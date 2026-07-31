@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coeurnoh Boost - Plateforme Premium de Boostage Réseaux Sociaux</title>
+    <meta name="description" content="Augmentez votre visibilité sur TikTok, Instagram, YouTube, Facebook, Spotify avec Coeurnoh Boost. Services réels, rapides et 100% sécurisés.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Lucide Icons (CDN) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- TOP ANNOUNCEMENT BAR -->
+    <div class="top-bar">
+        <div class="container top-bar-content">
+            <span class="badge-live"><i data-lucide="zap"></i> Système Opérationnel</span>
+            <span class="top-text">Offre Spéciale : Rechargez votre portefeuille et profitez de +10% de bonus sur Mobile Money !</span>
+            <div class="lang-selector-wrapper">
+                <i data-lucide="globe" class="lang-icon"></i>
+                <select id="langSelect" onchange="changeLanguage(this.value)">
+                    <option value="fr">Français</option>
+                    <option value="en">English</option>
+                    <option value="sw">Kiswahili</option>
+                    <option value="ln">Lingála</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN NAVBAR -->
+    <header class="navbar">
+        <div class="container nav-container">
+            <a href="#" class="brand-logo" onclick="showPage('home')">
+                <div class="logo-icon"><i data-lucide="trending-up"></i></div>
+                <div class="logo-text">Coeurnoh <span>Boost</span></div>
+            </a>
+
+            <nav class="nav-menu" id="navMenu">
+                <a href="#home" class="nav-link active" onclick="showPage('home')"><i data-lucide="home"></i> <span data-i18n="nav_home">Accueil</span></a>
+                <a href="#order" class="nav-link" onclick="showPage('order')"><i data-lucide="shopping-bag"></i> <span data-i18n="nav_order">Commandes</span></a>
+                <a href="#activity" class="nav-link" onclick="showPage('activity')"><i data-lucide="activity"></i> <span data-i18n="nav_activity">Activités</span></a>
+                <a href="#wallet" class="nav-link" onclick="showPage('wallet')"><i data-lucide="wallet"></i> <span data-i18n="nav_wallet">Portefeuille</span></a>
+                <a href="#support" class="nav-link" onclick="showPage('support')"><i data-lucide="headphones"></i> <span data-i18n="nav_support">Support</span></a>
+                <a href="#admin" class="nav-link admin-only" onclick="showPage('admin')"><i data-lucide="settings"></i> <span data-i18n="nav_admin">Admin Tarifs</span></a>
+            </nav>
+
+            <div class="nav-actions">
+                <div class="wallet-badge" onclick="showPage('wallet')">
+                    <i data-lucide="credit-card"></i>
+                    <span id="userBalanceDisplay">$0.00</span>
+                </div>
+                <button class="btn btn-outline" id="authBtn" onclick="openAuthModal()"><i data-lucide="user"></i> <span id="authBtnText" data-i18n="nav_login">Connexion</span></button>
+                <button class="mobile-toggle" onclick="toggleMobileMenu()"><i data-lucide="menu"></i></button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT CONTAINER AREA -->
+    <main class="container main-content">
+
+        <!-- ================= PAGE: HOME ================= -->
+        <section id="page-home" class="page-section active">
+            <!-- HERO BANNER -->
+            <div class="hero-card">
+                <div class="hero-body">
+                    <span class="hero-badge"><i data-lucide="shield-check"></i> Plateforme N°1 de Croissance Sociale</span>
+                    <h1 class="hero-title" data-i18n="hero_title">Développez votre visibilité sur les réseaux sociaux</h1>
+                    <p class="hero-subtitle" data-i18n="hero_subtitle">Services de boostage réels, sécurisés, stables et entièrement compatibles avec la monétisation.</p>
+                    <div class="hero-actions">
+                        <button class="btn btn-primary btn-lg" onclick="showPage('order')"><i data-lucide="rocket"></i> <span data-i18n="hero_cta_order">Passer une commande</span></button>
+                        <button class="btn btn-secondary btn-lg" onclick="openRechargeModal()"><i data-lucide="plus-circle"></i> <span data-i18n="hero_cta_wallet">Recharger le solde</span></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STATS COUNTER BAR -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon"><i data-lucide="users"></i></div>
+                    <div class="stat-number">15,400+</div>
+                    <div class="stat-label" data-i18n="stat_users">Clients Satisfaits</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i data-lucide="check-circle-2"></i></div>
+                    <div class="stat-number">128,900+</div>
+                    <div class="stat-label" data-i18n="stat_orders">Commandes Traitées</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i data-lucide="zap"></i></div>
+                    <div class="stat-number">&lt; 15 min</div>
+                    <div class="stat-label" data-i18n="stat_speed">Livraison Rapide</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i data-lucide="headphones"></i></div>
+                    <div class="stat-number">24/7</div>
+                    <div class="stat-label" data-i18n="stat_support">Support Dédié</div>
+                </div>
+            </div>
+
+            <!-- SUPPORTED PLATFORMS GRID -->
+            <div class="section-block">
+                <div class="section-header">
+                    <h2>Plateformes Prises en Charge</h2>
+                    <p>Développez la visibilité de vos profils sur plus de 15 réseaux sociaux majeurs.</p>
+                </div>
+                <div class="platforms-grid" id="platformsList">
+                    <!-- Dynamic rendering via JS -->
+                </div>
+            </div>
+
+            <!-- QUALITY ASSURANCE SECTION -->
+            <div class="section-block">
+                <div class="section-header">
+                    <h2 data-i18n="quality_title">Pourquoi choisir Coeurnoh Boost ?</h2>
+                    <p data-i18n="quality_sub">Une qualité de service irréprochable conçue pour la croissance durable des créateurs et entreprises.</p>
+                </div>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon"><i data-lucide="user-check"></i></div>
+                        <h3 data-i18n="q1_title">Audience Réelle & Ciblée</h3>
+                        <p data-i18n="q1_desc">Interactions authentiques pour maximiser votre engagement et crédibilité.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon"><i data-lucide="dollar-sign"></i></div>
+                        <h3 data-i18n="q2_title">Compatibilité Monétisation</h3>
+                        <p data-i18n="q2_desc">Conforme aux politiques de sécurité pour ne jamais compromettre vos comptes.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon"><i data-lucide="smartphone"></i></div>
+                        <h3 data-i18n="q3_title">Paiement Mobile Intégré</h3>
+                        <p data-i18n="q3_desc">Rechargez via Airtel Money, MTN MoMo, M-Pesa, Orange, et bien d'autres.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon"><i data-lucide="cpu"></i></div>
+                        <h3 data-i18n="q4_title">Exécution Automatisée</h3>
+                        <p data-i18n="q4_desc">Vos commandes sont enregistrées et lancées instantanément après validation.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= PAGE: NEW ORDER ================= -->
+        <section id="page-order" class="page-section">
+            <div class="card form-card">
+                <div class="card-header">
+                    <h2><i data-lucide="shopping-cart"></i> <span data-i18n="order_title">Nouvelle Commande</span></h2>
+                    <p>Sélectionnez la plateforme et le service souhaité, puis indiquez le lien de destination.</p>
+                </div>
+                <div class="card-body">
+                    <form id="orderForm" onsubmit="handleCreateOrder(event)">
+                        <div class="form-group">
+                            <label><i data-lucide="share-2"></i> <span data-i18n="order_platform">Plateforme</span></label>
+                            <select id="orderPlatform" onchange="updateServicesDropdown()" required class="form-control">
+                                <!-- Options dynamically injected -->
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label><i data-lucide="layers"></i> <span data-i18n="order_service">Type de Service</span></label>
+                            <select id="orderService" onchange="calculateOrderPrice()" required class="form-control">
+                                <!-- Options dynamically injected -->
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label><i data-lucide="link"></i> <span data-i18n="order_link">Lien cible (Profil, Vidéo, Publication)</span></label>
+                            <input type="url" id="orderTargetLink" placeholder="https://tiktok.com/@username/video/123456" required class="form-control">
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group col-6">
+                                <label><i data-lucide="hash"></i> <span data-i18n="order_qty">Quantité souhaitée</span></label>
+                                <input type="number" id="orderQuantity" value="1000" min="50" step="50" oninput="calculateOrderPrice()" required class="form-control">
+                            </div>
+                            <div class="form-group col-6">
+                                <label><span data-i18n="order_unit_price">Prix unitaire</span> (1,000 unités)</label>
+                                <input type="text" id="orderUnitPrice" value="$0.00" readonly class="form-control readonly-input">
+                            </div>
+                        </div>
+
+                        <!-- PRICE SUMMARY DISPLAY BOX -->
+                        <div class="price-summary-box">
+                            <div class="price-summary-label">
+                                <span>Montant Total Estimé</span>
+                                <small>Déduit de votre solde actuel (<span id="summaryCurrentBalance">$0.00</span>)</small>
+                            </div>
+                            <div class="price-summary-amount" id="orderTotalPrice">$0.00</div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-block btn-lg"><i data-lucide="check-circle"></i> <span data-i18n="order_btn">Valider et Payer avec le Solde</span></button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= PAGE: ACTIVITIES ================= -->
+        <section id="page-activity" class="page-section">
+            <div class="card">
+                <div class="card-header flex-header">
+                    <div>
+                        <h2><i data-lucide="list"></i> <span data-i18n="activity_title">Mes Activités & Commandes</span></h2>
+                        <p>Consultez l'état d'avancement et l'historique de vos demandes de boostage.</p>
+                    </div>
+                    <button class="btn btn-outline btn-sm" onclick="renderActivities()"><i data-lucide="refresh-cw"></i> Actualiser</button>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th data-i18n="activity_id">ID Commande</th>
+                                    <th data-i18n="activity_date">Date</th>
+                                    <th data-i18n="activity_service">Service</th>
+                                    <th>Cible</th>
+                                    <th data-i18n="activity_qty">Quantité</th>
+                                    <th data-i18n="activity_amount">Montant</th>
+                                    <th data-i18n="activity_status">Statut</th>
+                                </tr>
+                            </thead>
+                            <tbody id="activityTableBody">
+                                <!-- Dynamic JS Injection -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= PAGE: WALLET ================= -->
+        <section id="page-wallet" class="page-section">
+            <div class="wallet-grid">
+                <!-- BALANCE DISPLAY CARD -->
+                <div class="card wallet-balance-card">
+                    <div class="wallet-icon"><i data-lucide="wallet"></i></div>
+                    <div class="wallet-info">
+                        <span class="label" data-i18n="wallet_balance_label">Solde Actuel</span>
+                        <div class="big-balance" id="walletPageBalance">$0.00</div>
+                    </div>
+                    <button class="btn btn-primary btn-lg" onclick="openRechargeModal()"><i data-lucide="plus-circle"></i> <span data-i18n="wallet_recharge_btn">Recharger mon compte</span></button>
+                </div>
+
+                <!-- TRANSACTION HISTORY CARD -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i data-lucide="history"></i> <span data-i18n="wallet_history_title">Historique des Transactions</span></h2>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>ID Tx</th>
+                                        <th>Date</th>
+                                        <th>Type</th>
+                                        <th>Méthode / Description</th>
+                                        <th>Montant</th>
+                                        <th>Statut</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="walletHistoryBody">
+                                    <!-- Dynamic JS Injection -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= PAGE: ACCOUNT & SETTINGS ================= -->
+        <section id="page-account" class="page-section">
+            <div class="card form-card">
+                <div class="card-header">
+                    <h2><i data-lucide="user-check"></i> <span data-i18n="account_title">Mon Compte & Paramètres</span></h2>
+                    <p>Gérez vos informations personnelles et vos préférences d'affichage.</p>
+                </div>
+                <div class="card-body">
+                    <form id="accountForm" onsubmit="handleAccountSave(event)">
+                        <div class="form-group">
+                            <label data-i18n="account_name">Nom complet</label>
+                            <input type="text" id="accName" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="account_email">Adresse Email</label>
+                            <input type="email" id="accEmail" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="account_lang">Langue préférée</label>
+                            <select id="accLang" class="form-control" onchange="changeLanguage(this.value)">
+                                <option value="fr">Français</option>
+                                <option value="en">English</option>
+                                <option value="sw">Kiswahili</option>
+                                <option value="ln">Lingála</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary"><i data-lucide="save"></i> <span data-i18n="account_save">Enregistrer les modifications</span></button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= PAGE: SUPPORT ================= -->
+        <section id="page-support" class="page-section">
+            <div class="support-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i data-lucide="message-square"></i> <span data-i18n="support_title">Support Client & Assistance</span></h2>
+                        <p>Une équipe réactive est disponible pour répondre à toutes vos demandes.</p>
+                    </div>
+                    <div class="card-body">
+                        <form id="supportForm" onsubmit="handleSupportSend(event)">
+                            <div class="form-group">
+                                <label data-i18n="support_quick_msg">Message rapide pré-défini</label>
+                                <select id="supportQuickTemplate" class="form-control" onchange="applySupportTemplate(this.value)">
+                                    <option value="">-- Choisir une question fréquente --</option>
+                                    <option value="Problème de commande : Ma commande prend du retard.">Problème de commande</option>
+                                    <option value="Demande de remboursement : Je souhaite annuler ma dernière recharge.">Demande de remboursement</option>
+                                    <option value="Informations sur les services : Comment s'assurer que les abonnés sont réels ?">Informations sur les services</option>
+                                    <option value="Partenariat & Volume : Je souhaite bénéficier d'un tarif revendeur.">Partenariat & Tarifs Revendeurs</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label data-i18n="support_subject">Sujet</label>
+                                <input type="text" id="supportSubject" required class="form-control" placeholder="Résumé de votre problème...">
+                            </div>
+
+                            <div class="form-group">
+                                <label data-i18n="support_message">Votre message</label>
+                                <textarea id="supportMessage" rows="5" required class="form-control" placeholder="Décrivez en détail votre situation..."></textarea>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary"><i data-lucide="send"></i> <span data-i18n="support_send">Envoyer le message</span></button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card support-channels-card">
+                    <div class="card-header">
+                        <h2>Canaux Directs</h2>
+                        <p>Contactez-nous directement via nos canaux officiels :</p>
+                    </div>
+                    <div class="card-body">
+                        <a href="https://wa.me/243000000000" target="_blank" class="contact-btn whatsapp-btn">
+                            <i data-lucide="phone"></i> WhatsApp Support Direct
+                        </a>
+                        <a href="https://t.me/coeurnohboost" target="_blank" class="contact-btn telegram-btn">
+                            <i data-lucide="send"></i> Canaux Telegram Officiel
+                        </a>
+                        <a href="mailto:support@coeurnohboost.com" class="contact-btn email-btn">
+                            <i data-lucide="mail"></i> Email: support@coeurnohboost.com
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= PAGE: ADMIN PRICING ================= -->
+        <section id="page-admin" class="page-section">
+            <div class="card">
+                <div class="card-header flex-header">
+                    <div>
+                        <h2><i data-lucide="sliders"></i> <span data-i18n="admin_title">Administration des Tarifs & Marges</span></h2>
+                        <p>Définissez le coût réel et la marge bénéficiaire pour recalculer automatiquement les prix de vente.</p>
+                    </div>
+                    <button class="btn btn-outline btn-sm" onclick="resetAdminPrices()"><i data-lucide="rotate-ccw"></i> Réinitialiser</button>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th data-i18n="admin_platform">Plateforme</th>
+                                    <th data-i18n="admin_service">Service</th>
+                                    <th data-i18n="admin_cost">Coût de revient ($/1k)</th>
+                                    <th data-i18n="admin_margin">Marge bénéficiaire (%)</th>
+                                    <th data-i18n="admin_price">Prix Client ($/1k)</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminPricingBody">
+                                <!-- Dynamic JS Injection -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= PAGES LEGALES ================= -->
+        <section id="page-about" class="page-section">
+            <div class="card article-card">
+                <h1 data-i18n="nav_about">À propos de Coeurnoh Boost</h1>
+                <p><strong>Coeurnoh Boost</strong> est une solution technologique de premier plan dédiée à l'amplification de l'influence numérique et au développement de visibilité pour créateurs de contenu, artistes, PME et grandes marques.</p>
+                <h3>Notre Mission</h3>
+                <p>Fournir des outils d'engagement social fiables, ultra-rapides et parfaitement sécurisés pour aider nos utilisateurs à franchir les paliers de monétisation et à accroître leur notoriété globale.</p>
+                <h3>Notre Engagement Qualité</h3>
+                <p>Nous privilégions des canaux d'acquisition d'interactions réels et stables, dans le plus strict respect des règles des plateformes majeures (TikTok, YouTube, Meta, Spotify, etc.).</p>
+            </div>
+        </section>
+
+        <section id="page-terms" class="page-section">
+            <div class="card article-card">
+                <h1 data-i18n="footer_terms">Conditions Générales d'Utilisation</h1>
+                <p>Dernière mise à jour : Juillet 2026</p>
+                <h3>1. Acceptation des conditions</h3>
+                <p>En accédant et en utilisant la plateforme Coeurnoh Boost, vous acceptez d'être lié par les présentes conditions d'utilisation.</p>
+                <h3>2. Responsabilité de l'utilisateur</h3>
+                <p>L'utilisateur est responsable des liens soumis lors de la création d'une commande. Les comptes cibles doivent être publics lors du traitement de la commande.</p>
+                <h3>3. Remboursements & Solde</h3>
+                <p>Les soldes rechargés via Mobile Money ne sont pas remboursables directement en espèces, mais peuvent être utilisés pour n'importe quel service disponible sur le site.</p>
+            </div>
+        </section>
+
+        <section id="page-privacy" class="page-section">
+            <div class="card article-card">
+                <h1 data-i18n="footer_privacy">Politique de Confidentialité</h1>
+                <p>Votre confidentialité est essentielle pour nous.</p>
+                <h3>Collecte de données</h3>
+                <p>Nous collectons uniquement le nom, l'adresse email et le numéro de téléphone nécessaires à l'exécution de vos rechargements Mobile Money et commandes de services.</p>
+                <h3>Sécurité</h3>
+                <p>Aucune information bancaire confidentielle ou mot de passe de vos réseaux sociaux n'est jamais demandée. Coeurnoh Boost ne requiert JAMAIS les identifiants de vos comptes personnels.</p>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="container footer-container">
+            <div class="footer-brand">
+                <div class="brand-logo white">
+                    <div class="logo-icon"><i data-lucide="trending-up"></i></div>
+                    <div class="logo-text">Coeurnoh <span>Boost</span></div>
+                </div>
+                <p data-i18n="tagline">Propulsez votre présence digitale avec sérénité</p>
+            </div>
+            <div class="footer-links">
+                <a href="#about" onclick="showPage('about')" data-i18n="footer_about">À propos</a>
+                <a href="#terms" onclick="showPage('terms')" data-i18n="footer_terms">Conditions d'utilisation</a>
+                <a href="#privacy" onclick="showPage('privacy')" data-i18n="footer_privacy">Politique de confidentialité</a>
+            </div>
+            <div class="footer-copy">
+                &copy; 2026 Coeurnoh Boost. <span data-i18n="footer_rights">Tous droits réservés.</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- MODAL: RECHARGE MOBILE MONEY -->
+    <div class="modal-overlay" id="rechargeModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3><i data-lucide="smartphone"></i> <span data-i18n="recharge_modal_title">Rechargement par Mobile Money</span></h3>
+                <button class="modal-close" onclick="closeRechargeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="rechargeForm" onsubmit="handleRechargeSubmit(event)">
+                    <div class="form-group">
+                        <label data-i18n="recharge_method">Méthode de paiement</label>
+                        <select id="paymentProvider" class="form-control" required>
+                            <option value="Airtel Money">Airtel Money</option>
+                            <option value="MTN MoMo">MTN Mobile Money</option>
+                            <option value="Vodacom M-Pesa">Vodacom M-Pesa</option>
+                            <option value="Orange Money">Orange Money</option>
+                            <option value="Safaricom M-Pesa">Safaricom M-Pesa</option>
+                            <option value="Tigo Pesa">Tigo Pesa</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label data-i18n="recharge_phone">Numéro de téléphone Mobile Money</label>
+                        <input type="tel" id="rechargePhone" placeholder="+243 900 000 000" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label data-i18n="recharge_amount">Montant ($ USD)</label>
+                        <input type="number" id="rechargeAmount" min="1" step="1" value="10" class="form-control" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-block btn-lg"><i data-lucide="check"></i> <span data-i18n="recharge_submit">Initier le paiement</span></button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: AUTH / LOGIN -->
+    <div class="modal-overlay" id="authModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3><i data-lucide="log-in"></i> Connexion Rapide</h3>
+                <button class="modal-close" onclick="closeAuthModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- QUICK ACCOUNT SELECTION IF AVAILABLE -->
+                <div class="quick-accounts">
+                    <label class="small-label">Comptes détectés sur cet appareil :</label>
+                    <div class="account-item" onclick="selectQuickAccount('Jean-Marc Kabanga', 'jeanmarc@gmail.com')">
+                        <div class="avatar">JK</div>
+                        <div class="details">
+                            <strong>Jean-Marc Kabanga</strong>
+                            <small>jeanmarc@gmail.com</small>
+                        </div>
+                        <i data-lucide="chevron-right"></i>
+                    </div>
+                    <div class="account-item" onclick="selectQuickAccount('Sifa Tumaini', 'sifa.tumaini@yahoo.fr')">
+                        <div class="avatar alt">ST</div>
+                        <div class="details">
+                            <strong>Sifa Tumaini</strong>
+                            <small>sifa.tumaini@yahoo.fr</small>
+                        </div>
+                        <i data-lucide="chevron-right"></i>
+                    </div>
+                </div>
+
+                <div class="divider"><span>ou connexion par email</span></div>
+
+                <form id="loginForm" onsubmit="handleManualLogin(event)">
+                    <div class="form-group">
+                        <label>Adresse Email</label>
+                        <input type="email" id="loginEmail" required class="form-control" placeholder="nom@domaine.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Mot de passe</label>
+                        <input type="password" id="loginPassword" required class="form-control" placeholder="••••••••">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Se Connecter</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- MAIN SCRIPT -->
+    <script src="script.js"></script>
+</body>
+</html>
