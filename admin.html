@@ -59,15 +59,16 @@ function renderAdminCatalog(){
   const container = document.getElementById('platforms-container');
   container.innerHTML = Object.entries(CATALOG).map(([platform, services]) => `
     <div class="platform-block">
-      <h2>${platform}</h2>
+      <h2>${PLATFORM_ICONS[platform]||''} ${platform}</h2>
       <table>
-        <thead><tr><th>Service</th><th>Prix / 1000 ($)</th><th>Quantité minimum</th></tr></thead>
+        <thead><tr><th>Service</th><th>Standard ($/1000)</th><th>Premium ($/1000)</th><th>Qté min</th></tr></thead>
         <tbody>
           ${services.map((s,i) => `
             <tr>
               <td>${s.name}</td>
-              <td><input type="number" step="0.1" value="${s.price1k}" data-platform="${platform}" data-index="${i}" class="price-input"></td>
-              <td><input type="number" value="${s.min}" data-platform="${platform}" data-index="${i}" class="min-input"></td>
+              <td><input type="number" step="0.1" value="${s.tiers[0].price1k}" data-platform="${platform}" data-index="${i}" data-tier="0" class="price-input"></td>
+              <td><input type="number" step="0.1" value="${s.tiers[s.tiers.length-1].price1k}" data-platform="${platform}" data-index="${i}" data-tier="${s.tiers.length-1}" class="price-input"></td>
+              <td><input type="number" value="${s.tiers[0].min}" data-platform="${platform}" data-index="${i}" class="min-input"></td>
             </tr>`).join('')}
         </tbody>
       </table>
@@ -77,14 +78,14 @@ function renderAdminCatalog(){
 
 async function saveCatalog(){
   document.querySelectorAll('.price-input').forEach(inp => {
-    CATALOG[inp.dataset.platform][inp.dataset.index].price1k = parseFloat(inp.value);
+    CATALOG[inp.dataset.platform][inp.dataset.index].tiers[inp.dataset.tier].price1k = parseFloat(inp.value);
   });
   document.querySelectorAll('.min-input').forEach(inp => {
-    CATALOG[inp.dataset.platform][inp.dataset.index].min = parseInt(inp.value);
+    CATALOG[inp.dataset.platform][inp.dataset.index].tiers.forEach(t => t.min = parseInt(inp.value));
   });
   const payload = {};
   Object.entries(CATALOG).forEach(([platform, services]) => {
-    payload[platform] = services.map(s => ({name:s.name, price1k:s.price1k}));
+    payload[platform] = services.map(s => ({name:s.name, tiers:s.tiers}));
   });
   await db.collection('settings').doc('pricing').set(payload);
   document.getElementById('save-msg').textContent = "✅ Tarifs enregistrés — ils s'appliqueront sur le site principal.";

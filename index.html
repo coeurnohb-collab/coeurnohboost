@@ -209,6 +209,7 @@
   </div>
 
   <div class="app-main">
+    <button class="float-help-btn" onclick="contactSupport('')" title="Contacter le support">🆘</button>
     <div class="app-topbar">
       <h2 id="app-view-title" style="color:var(--green);font-size:1.5rem">Accueil</h2>
       <span class="wallet-pill">💰 <span id="nav-balance">0$</span></span>
@@ -239,6 +240,9 @@
         <div class="of-grid">
           <label class="of-full">Service
             <select id="d-service"></select>
+          </label>
+          <label class="of-full">Qualité
+            <select id="d-quality"></select>
           </label>
           <label><span data-i18n="exact_qty">Quantité exacte souhaitée</span>
             <input type="number" id="d-qty" min="10" step="10" value="500">
@@ -273,13 +277,17 @@
         <h3 style="color:var(--green);margin-bottom:14px" data-i18n="recharge">Recharger mon portefeuille</h3>
         <p style="color:var(--muted);font-size:0.88rem;margin-bottom:16px">Choisis ton réseau mobile money, disponible en RDC et pays voisins.</p>
         <div class="pay-grid">
-          <div class="pay-opt" data-net="mpesa" onclick="selectNetwork(this)">M-Pesa</div>
-          <div class="pay-opt" data-net="airtel" onclick="selectNetwork(this)">Airtel Money</div>
-          <div class="pay-opt" data-net="orange" onclick="selectNetwork(this)">Orange Money</div>
-          <div class="pay-opt" data-net="mtn" onclick="selectNetwork(this)">MTN MoMo</div>
-          <div class="pay-opt" data-net="tigo" onclick="selectNetwork(this)">Tigo Pesa</div>
-          <div class="pay-opt" data-net="usdt" onclick="selectNetwork(this)">USDT</div>
+          <div class="pay-opt" data-net="mpesa" onclick="selectNetwork(this)">📱 M-Pesa</div>
+          <div class="pay-opt" data-net="airtel" onclick="selectNetwork(this)">📱 Airtel Money</div>
+          <div class="pay-opt" data-net="orange" onclick="selectNetwork(this)">📱 Orange Money</div>
+          <div class="pay-opt" data-net="mtn" onclick="selectNetwork(this)">📱 MTN MoMo</div>
+          <div class="pay-opt" data-net="tigo" onclick="selectNetwork(this)">📱 Tigo Pesa</div>
+          <div class="pay-opt" data-net="usdt-trc20" onclick="selectNetwork(this)">₮ USDT (Tron / TRC20)</div>
+          <div class="pay-opt" data-net="card" onclick="selectNetwork(this)">💳 Carte virtuelle</div>
         </div>
+        <p id="card-note" class="hidden" style="font-size:0.8rem;color:var(--muted);margin:-8px 0 14px;background:var(--cream);padding:10px 12px;border-radius:10px">
+          Pas de carte Visa/Mastercard ? Tu peux en créer une virtuelle rapidement via un service comme izichange, puis l'utiliser ici.
+        </p>
         <div class="field"><label>Montant à recharger ($)</label><input type="number" id="deposit-amount" min="1" value="5"></div>
         <div class="field"><label>Numéro mobile money</label><input type="text" id="deposit-phone" placeholder="+243..."></div>
         <button class="btn btn-primary" style="width:100%;justify-content:center;padding:13px" onclick="submitDeposit()">Confirmer la recharge</button>
