@@ -25,78 +25,78 @@ const ADMIN_UID = "REPLACE_WITH_YOUR_UID";
    ========================================================= */
 const DEFAULT_CATALOG = {
   TikTok: [
-    {name:"Followers réels", desc:"Croissance progressive, comptes actifs", price1k:4, min:50, elite:true},
-    {name:"Vues vidéo", desc:"Livraison rapide 12-24h", price1k:1.5, min:100},
-    {name:"Likes", desc:"Boost d'engagement instantané", price1k:1.5, min:50},
-    {name:"Commentaires réels", desc:"Commentaires positifs variés", price1k:8, min:10, elite:true},
-    {name:"Partages", desc:"Amplifie la portée organique", price1k:3, min:50},
+    {name:"Followers réels", desc:"Croissance progressive, comptes actifs", price1k:9, min:50, elite:true},
+    {name:"Vues vidéo", desc:"Livraison rapide 12-24h", price1k:3, min:100},
+    {name:"Likes", desc:"Boost d'engagement instantané", price1k:3, min:50},
+    {name:"Commentaires réels", desc:"Commentaires positifs variés", price1k:16.5, min:10, elite:true},
+    {name:"Partages", desc:"Amplifie la portée organique", price1k:6, min:50},
   ],
   Instagram: [
-    {name:"Followers réels", desc:"Comptes actifs, rétention garantie", price1k:5, min:50, elite:true},
-    {name:"Likes", desc:"Livraison en quelques heures", price1k:1.5, min:50},
-    {name:"Vues Reels/Stories", desc:"Boost algorithme", price1k:1.5, min:100},
-    {name:"Commentaires réels", desc:"Commentaires positifs variés", price1k:8, min:10, elite:true},
+    {name:"Followers réels", desc:"Comptes actifs, rétention garantie", price1k:10.5, min:50, elite:true},
+    {name:"Likes", desc:"Livraison en quelques heures", price1k:3, min:50},
+    {name:"Vues Reels/Stories", desc:"Boost algorithme", price1k:3, min:100},
+    {name:"Commentaires réels", desc:"Commentaires positifs variés", price1k:16.5, min:10, elite:true},
   ],
   YouTube: [
-    {name:"Vues", desc:"Rétention correcte, sources variées", price1k:6, min:100},
-    {name:"Abonnés réels", desc:"Comptes actifs et stables", price1k:8, min:50, elite:true},
-    {name:"Likes vidéo", desc:"Renforce le taux d'engagement", price1k:2.5, min:50},
-    {name:"Commentaires réels", desc:"Commentaires positifs variés", price1k:9, min:10, elite:true},
+    {name:"Vues", desc:"Rétention correcte, sources variées", price1k:12, min:100},
+    {name:"Abonnés réels", desc:"Comptes actifs et stables", price1k:16.5, min:50, elite:true},
+    {name:"Likes vidéo", desc:"Renforce le taux d'engagement", price1k:6, min:50},
+    {name:"Commentaires réels", desc:"Commentaires positifs variés", price1k:19.5, min:10, elite:true},
   ],
   Facebook: [
-    {name:"Likes Page", desc:"Croissance progressive", price1k:2.5, min:50},
-    {name:"Followers profil/page", desc:"Comptes réels", price1k:3.5, min:50},
-    {name:"Vues vidéo", desc:"Boost de portée", price1k:1.5, min:100},
-    {name:"Commentaires réels", desc:"Commentaires positifs variés", price1k:8, min:10, elite:true},
-    {name:"Partages", desc:"Amplifie la portée organique", price1k:3, min:50},
+    {name:"Likes Page", desc:"Croissance progressive", price1k:6, min:50},
+    {name:"Followers profil/page", desc:"Comptes réels", price1k:7.5, min:50},
+    {name:"Vues vidéo", desc:"Boost de portée", price1k:3, min:100},
+    {name:"Commentaires réels", desc:"Commentaires positifs variés", price1k:16.5, min:10, elite:true},
+    {name:"Partages", desc:"Amplifie la portée organique", price1k:6, min:50},
   ],
   Spotify: [
-    {name:"Écoutes (Plays)", desc:"Répartition naturelle sur tes titres", price1k:3, min:100, elite:true},
-    {name:"Auditeurs mensuels", desc:"Renforce ton profil artiste", price1k:6, min:50},
-    {name:"Followers artiste", desc:"Croissance progressive", price1k:4, min:50},
+    {name:"Écoutes (Plays)", desc:"Répartition naturelle sur tes titres", price1k:6, min:100, elite:true},
+    {name:"Auditeurs mensuels", desc:"Renforce ton profil artiste", price1k:12, min:50},
+    {name:"Followers artiste", desc:"Croissance progressive", price1k:9, min:50},
   ],
   Shazam: [
-    {name:"Reconnaissances (Shazams)", desc:"Booste la découverte de ton titre", price1k:5, min:50, elite:true},
+    {name:"Reconnaissances (Shazams)", desc:"Booste la découverte de ton titre", price1k:10.5, min:50, elite:true},
   ],
   Pinterest: [
-    {name:"Followers", desc:"Comptes actifs", price1k:3, min:50},
-    {name:"Enregistrements (Saves)", desc:"Booste la portée de tes épingles", price1k:2.5, min:100},
-    {name:"Vues", desc:"Visibilité accrue", price1k:1.5, min:100},
+    {name:"Followers", desc:"Comptes actifs", price1k:6, min:50},
+    {name:"Enregistrements (Saves)", desc:"Booste la portée de tes épingles", price1k:6, min:100},
+    {name:"Vues", desc:"Visibilité accrue", price1k:3, min:100},
   ],
   Telegram: [
-    {name:"Membres groupe/chaîne", desc:"Comptes réels", price1k:4, min:50},
-    {name:"Vues de publication", desc:"Boost de portée", price1k:1.5, min:100},
+    {name:"Membres groupe/chaîne", desc:"Comptes réels", price1k:9, min:50},
+    {name:"Vues de publication", desc:"Boost de portée", price1k:3, min:100},
   ],
   WhatsApp: [
-    {name:"Membres groupe (via lien)", desc:"Croissance progressive", price1k:5, min:20},
-    {name:"Vues de statut", desc:"Boost de visibilité", price1k:3, min:50},
+    {name:"Membres groupe (via lien)", desc:"Croissance progressive", price1k:10.5, min:20},
+    {name:"Vues de statut", desc:"Boost de visibilité", price1k:6, min:50},
   ],
   Snapchat: [
-    {name:"Followers", desc:"Comptes actifs", price1k:4, min:50},
-    {name:"Vues Snap", desc:"Boost de visibilité", price1k:2, min:100},
+    {name:"Followers", desc:"Comptes actifs", price1k:9, min:50},
+    {name:"Vues Snap", desc:"Boost de visibilité", price1k:4.5, min:100},
   ],
   X: [
-    {name:"Followers", desc:"Comptes actifs", price1k:5, min:50, elite:true},
-    {name:"Likes", desc:"Boost d'engagement", price1k:2, min:50},
-    {name:"Retweets", desc:"Amplifie la portée", price1k:3, min:50},
-    {name:"Vues", desc:"Visibilité accrue", price1k:1.5, min:100},
+    {name:"Followers", desc:"Comptes actifs", price1k:10.5, min:50, elite:true},
+    {name:"Likes", desc:"Boost d'engagement", price1k:4.5, min:50},
+    {name:"Retweets", desc:"Amplifie la portée", price1k:6, min:50},
+    {name:"Vues", desc:"Visibilité accrue", price1k:3, min:100},
   ],
   LinkedIn: [
-    {name:"Followers", desc:"Profil ou page entreprise", price1k:6, min:50, elite:true},
-    {name:"Vues de publication", desc:"Boost professionnel", price1k:3, min:100},
-    {name:"Réactions", desc:"Renforce l'engagement", price1k:3, min:50},
+    {name:"Followers", desc:"Profil ou page entreprise", price1k:12, min:50, elite:true},
+    {name:"Vues de publication", desc:"Boost professionnel", price1k:6, min:100},
+    {name:"Réactions", desc:"Renforce l'engagement", price1k:6, min:50},
   ],
   SoundCloud: [
-    {name:"Écoutes", desc:"Répartition naturelle", price1k:2, min:100},
-    {name:"Followers", desc:"Croissance progressive", price1k:4, min:50},
-    {name:"Likes", desc:"Boost d'engagement", price1k:2, min:50},
+    {name:"Écoutes", desc:"Répartition naturelle", price1k:4.5, min:100},
+    {name:"Followers", desc:"Croissance progressive", price1k:9, min:50},
+    {name:"Likes", desc:"Boost d'engagement", price1k:4.5, min:50},
   ],
   "Apple Music": [
-    {name:"Écoutes", desc:"Répartition naturelle sur tes titres", price1k:4, min:100, elite:true},
+    {name:"Écoutes", desc:"Répartition naturelle sur tes titres", price1k:9, min:100, elite:true},
   ],
   Audiomack: [
-    {name:"Écoutes", desc:"Répartition naturelle", price1k:2.5, min:100},
-    {name:"Followers", desc:"Croissance progressive", price1k:3.5, min:50},
+    {name:"Écoutes", desc:"Répartition naturelle", price1k:6, min:100},
+    {name:"Followers", desc:"Croissance progressive", price1k:7.5, min:50},
   ],
 };
 
@@ -205,12 +205,14 @@ function requireLoginThenOrder(platform, service){
    ========================================================= */
 function enterApp(){
   document.getElementById('public-nav').classList.add('hidden');
-  document.getElementById('view-public').classList.add('hidden');
+  document.getElementById('view-public-home').classList.add('hidden');
+  document.getElementById('public-footer').classList.add('hidden');
   document.getElementById('app-shell').classList.remove('hidden');
 }
 function exitApp(){
   document.getElementById('public-nav').classList.remove('hidden');
-  document.getElementById('view-public').classList.remove('hidden');
+  document.getElementById('view-public-home').classList.remove('hidden');
+  document.getElementById('public-footer').classList.remove('hidden');
   document.getElementById('app-shell').classList.add('hidden');
 }
 function switchAppView(view){
