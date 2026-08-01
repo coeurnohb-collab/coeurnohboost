@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coeurnoh Boost — Admin tarifs</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="translations.js"></script>
+<style>
+  body{padding:32px 20px;max-width:900px;margin:0 auto;}
+  h1{color:var(--green);margin-bottom:6px;}
+  .warn{background:#fdf1da;color:#8a5a00;padding:12px 16px;border-radius:10px;font-size:0.88rem;margin-bottom:24px;}
+  .platform-block{margin-bottom:28px;}
+  .platform-block h2{font-size:1.15rem;color:var(--green);margin-bottom:10px;}
+  table{width:100%;border-collapse:collapse;margin-bottom:10px;}
+  th,td{padding:8px 10px;text-align:left;font-size:0.85rem;border-bottom:1px solid var(--line);}
+  th{background:var(--cream);}
+</style>
+</head>
+<body>
+
+<h1>Admin — Gestion des tarifs</h1>
+<p class="warn">⚠️ Cette page n'est protégée que par une vérification simple de ton identifiant (UID). Ne partage jamais ce lien publiquement — ce n'est pas une sécurité de niveau serveur.</p>
+
+<div id="login-gate">
+  <p>Connecte-toi avec le compte administrateur pour continuer.</p>
+  <button onclick="adminLogin()" style="margin-top:12px;padding:10px 18px;border-radius:100px;background:var(--green);color:white;font-weight:600;">Se connecter avec Google</button>
+</div>
+
+<div id="admin-panel" class="hidden">
+  <p style="margin-bottom:20px;color:var(--muted)">Modifie le prix de vente pour 1000 unités (le coût réel payé au fournisseur reste à calculer toi-même pour connaître ta marge). Clique "Enregistrer" pour appliquer.</p>
+  <div id="platforms-container"></div>
+  <button onclick="saveCatalog()" style="padding:12px 24px;border-radius:100px;background:var(--green);color:white;font-weight:700;">💾 Enregistrer tous les tarifs</button>
+  <p id="save-msg" style="margin-top:12px;color:var(--green);font-weight:600;"></p>
+</div>
+
+<script src="script.js"></script>
+<script>
+function adminLogin(){
+  const provider = new firebase.auth.GoogleAuthProvider();
+  auth.signInWithPopup(provider).catch(e => alert(e.message));
+}
+
+auth.onAuthStateChanged(user => {
+  if(user && user.uid === ADMIN_UID){
+    document.getElementById('login-gate').classList.add('hidden');
+    document.getElementById('admin-panel').classList.remove('hidden');
+    renderAdminCatalog();
+  } else if(user){
+    alert("Ce compte n'est pas autorisé à accéder à l'admin. UID détecté : " + user.uid + " — copie-le dans ADMIN_UID si c'est bien toi.");
+  }
+});
+
+function renderAdminCatalog(){
+  const container = document.getElementById('platforms-container');
+  container.innerHTML = Object.entries(CATALOG).map(([platform, services]) => `
+    <div class="platform-block">
+      <h2>${platform}</h2>
+      <table>
+        <thead><tr><th>Service</th><th>Prix / 1000 ($)</th><th>Quantité minimum</th></tr></thead>
+        <tbody>
+          ${services.map((s,i) => `
+            <tr>
+              <td>${s.name}</td>
+              <td><input type="number" step="0.1" value="${s.price1k}" data-platform="${platform}" data-index="${i}" class="price-input"></td>
+              <td><input type="number" value="${s.min}" data-platform="${platform}" data-index="${i}" class="min-input"></td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  `).join('');
+}
+
+async function saveCatalog(){
+  document.querySelectorAll('.price-input').forEach(inp => {
+    CATALOG[inp.dataset.platform][inp.dataset.index].price1k = parseFloat(inp.value);
+  });
+  document.querySelectorAll('.min-input').forEach(inp => {
+    CATALOG[inp.dataset.platform][inp.dataset.index].min = parseInt(inp.value);
+  });
+  const payload = {};
+  Object.entries(CATALOG).forEach(([platform, services]) => {
+    payload[platform] = services.map(s => ({name:s.name, price1k:s.price1k}));
+  });
+  await db.collection('settings').doc('pricing').set(payload);
+  document.getElementById('save-msg').textContent = "✅ Tarifs enregistrés — ils s'appliqueront sur le site principal.";
+}
+</script>
+</body>
+</html>

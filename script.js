@@ -1,499 +1,479 @@
-/* ==========================================================================
-   COEURNOH BOOST - COMPLETE FRONTEND CONTROLLER & APP ENGINE
-   ========================================================================== */
+/* =========================================================
+   FIREBASE CONFIG — remplace par la config de ton projet
+   "coeurnoh-business" (Console Firebase > Paramètres du projet)
+   ========================================================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyAK9j8lmKlxp267bfwKegKgW54fo_jrS9E",
+  authDomain: "coeurnohboost.firebaseapp.com",
+  projectId: "coeurnohboost",
+  storageBucket: "coeurnohboost.firebasestorage.app",
+  messagingSenderId: "295783149587",
+  appId: "1:295783149587:web:13aec67a2ae0109eaa4fe6"
+};
+let fbReady = false;
+try { firebase.initializeApp(firebaseConfig); fbReady = true; }
+catch(e){ console.warn("Firebase non configuré :", e.message); }
+const auth = fbReady ? firebase.auth() : null;
+const db = fbReady ? firebase.firestore() : null;
 
-// --- GLOBAL STATE ---
-let currentLang = 'fr';
-let translations = {};
-let currentUser = {
-    name: 'Invité',
-    email: 'guest@coeurnohboost.com',
-    balance: 25.00,
-    isLoggedIn: true
+// Remplace par ton propre UID Firebase une fois connecté (pour débloquer /admin.html)
+const ADMIN_UID = "REPLACE_WITH_YOUR_UID";
+
+/* =========================================================
+   CATALOGUE — 15 plateformes, prix pour 1000 unités
+   (quantité libre calculée au prorata, prix ajustables via admin.html)
+   ========================================================= */
+const DEFAULT_CATALOG = {
+  TikTok: [
+    {name:"Followers réels", desc:"Croissance progressive, comptes actifs", price1k:4, min:50, elite:true},
+    {name:"Vues vidéo", desc:"Livraison rapide 12-24h", price1k:1.5, min:100},
+    {name:"Likes", desc:"Boost d'engagement instantané", price1k:1.5, min:50},
+    {name:"Commentaires réels", desc:"Commentaires positifs variés", price1k:8, min:10, elite:true},
+    {name:"Partages", desc:"Amplifie la portée organique", price1k:3, min:50},
+  ],
+  Instagram: [
+    {name:"Followers réels", desc:"Comptes actifs, rétention garantie", price1k:5, min:50, elite:true},
+    {name:"Likes", desc:"Livraison en quelques heures", price1k:1.5, min:50},
+    {name:"Vues Reels/Stories", desc:"Boost algorithme", price1k:1.5, min:100},
+    {name:"Commentaires réels", desc:"Commentaires positifs variés", price1k:8, min:10, elite:true},
+  ],
+  YouTube: [
+    {name:"Vues", desc:"Rétention correcte, sources variées", price1k:6, min:100},
+    {name:"Abonnés réels", desc:"Comptes actifs et stables", price1k:8, min:50, elite:true},
+    {name:"Likes vidéo", desc:"Renforce le taux d'engagement", price1k:2.5, min:50},
+    {name:"Commentaires réels", desc:"Commentaires positifs variés", price1k:9, min:10, elite:true},
+  ],
+  Facebook: [
+    {name:"Likes Page", desc:"Croissance progressive", price1k:2.5, min:50},
+    {name:"Followers profil/page", desc:"Comptes réels", price1k:3.5, min:50},
+    {name:"Vues vidéo", desc:"Boost de portée", price1k:1.5, min:100},
+    {name:"Commentaires réels", desc:"Commentaires positifs variés", price1k:8, min:10, elite:true},
+    {name:"Partages", desc:"Amplifie la portée organique", price1k:3, min:50},
+  ],
+  Spotify: [
+    {name:"Écoutes (Plays)", desc:"Répartition naturelle sur tes titres", price1k:3, min:100, elite:true},
+    {name:"Auditeurs mensuels", desc:"Renforce ton profil artiste", price1k:6, min:50},
+    {name:"Followers artiste", desc:"Croissance progressive", price1k:4, min:50},
+  ],
+  Shazam: [
+    {name:"Reconnaissances (Shazams)", desc:"Booste la découverte de ton titre", price1k:5, min:50, elite:true},
+  ],
+  Pinterest: [
+    {name:"Followers", desc:"Comptes actifs", price1k:3, min:50},
+    {name:"Enregistrements (Saves)", desc:"Booste la portée de tes épingles", price1k:2.5, min:100},
+    {name:"Vues", desc:"Visibilité accrue", price1k:1.5, min:100},
+  ],
+  Telegram: [
+    {name:"Membres groupe/chaîne", desc:"Comptes réels", price1k:4, min:50},
+    {name:"Vues de publication", desc:"Boost de portée", price1k:1.5, min:100},
+  ],
+  WhatsApp: [
+    {name:"Membres groupe (via lien)", desc:"Croissance progressive", price1k:5, min:20},
+    {name:"Vues de statut", desc:"Boost de visibilité", price1k:3, min:50},
+  ],
+  Snapchat: [
+    {name:"Followers", desc:"Comptes actifs", price1k:4, min:50},
+    {name:"Vues Snap", desc:"Boost de visibilité", price1k:2, min:100},
+  ],
+  X: [
+    {name:"Followers", desc:"Comptes actifs", price1k:5, min:50, elite:true},
+    {name:"Likes", desc:"Boost d'engagement", price1k:2, min:50},
+    {name:"Retweets", desc:"Amplifie la portée", price1k:3, min:50},
+    {name:"Vues", desc:"Visibilité accrue", price1k:1.5, min:100},
+  ],
+  LinkedIn: [
+    {name:"Followers", desc:"Profil ou page entreprise", price1k:6, min:50, elite:true},
+    {name:"Vues de publication", desc:"Boost professionnel", price1k:3, min:100},
+    {name:"Réactions", desc:"Renforce l'engagement", price1k:3, min:50},
+  ],
+  SoundCloud: [
+    {name:"Écoutes", desc:"Répartition naturelle", price1k:2, min:100},
+    {name:"Followers", desc:"Croissance progressive", price1k:4, min:50},
+    {name:"Likes", desc:"Boost d'engagement", price1k:2, min:50},
+  ],
+  "Apple Music": [
+    {name:"Écoutes", desc:"Répartition naturelle sur tes titres", price1k:4, min:100, elite:true},
+  ],
+  Audiomack: [
+    {name:"Écoutes", desc:"Répartition naturelle", price1k:2.5, min:100},
+    {name:"Followers", desc:"Croissance progressive", price1k:3.5, min:50},
+  ],
 };
 
-// --- PLATFORMS & DEFAULT SERVICE PRICING (Per 1,000 units in USD) ---
-let platformData = [
-    { id: 'tiktok', name: 'TikTok', icon: 'video', services: [
-        { id: 'tt_views', name: 'Vues TikTok Réelles', cost: 0.20, margin: 200 }, // Selling price = 0.60
-        { id: 'tt_likes', name: 'Likes TikTok Stables', cost: 0.80, margin: 150 },
-        { id: 'tt_followers', name: 'Abonnés TikTok Fr/Int', cost: 2.50, margin: 100 }
-    ]},
-    { id: 'instagram', name: 'Instagram', icon: 'camera', services: [
-        { id: 'ig_likes', name: 'Likes Instagram HQ', cost: 0.50, margin: 150 },
-        { id: 'ig_followers', name: 'Followers Instagram Ciblés', cost: 2.00, margin: 120 },
-        { id: 'ig_reels', name: 'Vues Instagram Reels', cost: 0.15, margin: 200 }
-    ]},
-    { id: 'youtube', name: 'YouTube', icon: 'youtube', services: [
-        { id: 'yt_views', name: 'Vues YouTube Éligibles Monétisation', cost: 1.50, margin: 100 },
-        { id: 'yt_subs', name: 'Abonnés YouTube Stables', cost: 6.00, margin: 80 }
-    ]},
-    { id: 'facebook', name: 'Facebook', icon: 'facebook', services: [
-        { id: 'fb_likes', name: 'Likes / Suiveurs Page Facebook', cost: 1.20, margin: 100 },
-        { id: 'fb_shares', name: 'Partages de Publications', cost: 1.00, margin: 150 }
-    ]},
-    { id: 'spotify', name: 'Spotify', icon: 'music', services: [
-        { id: 'sp_streams', name: 'Streams / Écoutes Premium', cost: 1.80, margin: 100 },
-        { id: 'sp_followers', name: 'Abonnés Artiste', cost: 3.00, margin: 100 }
-    ]},
-    { id: 'shazam', name: 'Shazam', icon: 'disc', services: [
-        { id: 'sh_shazams', name: 'Shazams Réels', cost: 2.00, margin: 100 }
-    ]},
-    { id: 'pinterest', name: 'Pinterest', icon: 'image', services: [
-        { id: 'pin_followers', name: 'Abonnés Pinterest', cost: 2.50, margin: 100 }
-    ]},
-    { id: 'telegram', name: 'Telegram', icon: 'send', services: [
-        { id: 'tg_members', name: 'Membres Canal / Groupe', cost: 1.50, margin: 100 }
-    ]},
-    { id: 'whatsapp', name: 'WhatsApp', icon: 'phone', services: [
-        { id: 'wa_channel', name: 'Membres Chaîne WhatsApp', cost: 2.00, margin: 100 }
-    ]},
-    { id: 'snapchat', name: 'Snapchat', icon: 'ghost', services: [
-        { id: 'sc_subscribers', name: 'Abonnés Profil Snapchat', cost: 3.50, margin: 100 }
-    ]},
-    { id: 'twitter', name: 'X (Twitter)', icon: 'twitter', services: [
-        { id: 'tw_followers', name: 'Abonnés X Actifs', cost: 4.00, margin: 100 }
-    ]},
-    { id: 'linkedin', name: 'LinkedIn', icon: 'linkedin', services: [
-        { id: 'li_followers', name: 'Abonnés Page Professionnelle', cost: 8.00, margin: 75 }
-    ]},
-    { id: 'soundcloud', name: 'SoundCloud', icon: 'cloud-lightning', services: [
-        { id: 'sc_plays', name: 'Écoutes SoundCloud', cost: 0.50, margin: 200 }
-    ]},
-    { id: 'apple', name: 'Apple Music', icon: 'music', services: [
-        { id: 'am_plays', name: 'Écoutes Apple Music', cost: 3.00, margin: 100 }
-    ]},
-    { id: 'audiomack', name: 'Audiomack', icon: 'radio', services: [
-        { id: 'ack_plays', name: 'Écoutes Audiomack', cost: 0.60, margin: 150 }
-    ]}
+// Charge un catalogue personnalisé (modifié via admin.html) si présent, sinon les valeurs par défaut
+let CATALOG = JSON.parse(JSON.stringify(DEFAULT_CATALOG));
+
+const MONETIZATION_PACKS = [
+  {name:"Pack Monétisation YouTube", desc:"4000h de watch time + 1000 abonnés — seuil Partner Program", price:150},
+  {name:"Pack Monétisation TikTok", desc:"Vues + followers ciblés pour atteindre le seuil Creator Rewards", price:75},
+  {name:"Pack Créateur Instagram", desc:"Followers + engagement pour candidater aux bonus créateurs", price:60},
+  {name:"Pack Artiste Spotify/Audiomack", desc:"Écoutes + auditeurs pour renforcer ton profil artiste", price:65},
 ];
 
-// --- INITIAL USER DATA STORE ---
-let userOrders = [
-    { id: 'ORD-9842', date: '2026-07-30 14:22', service: 'Vues TikTok Réelles', target: 'https://tiktok.com/@demo/video/1', qty: 10000, amount: 6.00, status: 'terminé' },
-    { id: 'ORD-9843', date: '2026-07-31 09:10', service: 'Abonnés YouTube Stables', target: 'https://youtube.com/@demochannel', qty: 1000, amount: 10.80, status: 'en cours' }
-];
+/* =========================================================
+   LANGUE
+   ========================================================= */
+let currentLang = detectLang();
 
-let userTransactions = [
-    { id: 'TX-1001', date: '2026-07-29 10:00', type: 'Recharge', method: 'Airtel Money (+24399...)', amount: '+$35.00', status: 'RÉUSSI' },
-    { id: 'TX-1002', date: '2026-07-30 14:22', type: 'Commande', method: 'Paiement ORD-9842', amount: '-$6.00', status: 'RÉUSSI' },
-    { id: 'TX-1003', date: '2026-07-31 09:10', type: 'Commande', method: 'Paiement ORD-9843', amount: '-$10.80', status: 'RÉUSSI' }
-];
+function t(key){ return (I18N[currentLang] && I18N[currentLang][key]) || I18N.fr[key] || key; }
 
-// --- INITIALIZATION ---
+function applyTranslations(){
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    el.textContent = t(el.dataset.i18n);
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    el.placeholder = t(el.dataset.i18nPlaceholder);
+  });
+  document.getElementById('lang-current').textContent = currentLang.toUpperCase();
+  renderTabs(); renderServices(); renderMonetization();
+  renderAppNavLabels();
+}
+function setLang(lang){
+  currentLang = lang;
+  document.getElementById('lang-menu').classList.add('hidden');
+  applyTranslations();
+  if(currentUser && db) db.collection('users').doc(currentUser.uid).update({lang}).catch(()=>{});
+}
+function toggleLangMenu(){ document.getElementById('lang-menu').classList.toggle('hidden'); }
+function renderAppNavLabels(){
+  const map = {accueil:'app_home',commande:'app_order',activites:'app_activity',portefeuille:'app_wallet',compte:'app_account'};
+  document.querySelectorAll('.app-nav-item').forEach(item=>{
+    const key = map[item.dataset.view];
+    if(key){ const lbl = item.querySelector('.nav-label'); if(lbl) lbl.textContent = t(key); }
+  });
+}
+
+/* =========================================================
+   RENDER CATALOGUE
+   ========================================================= */
+let currentTab = "TikTok";
+
+function renderTabs(){
+  ['svc-tabs','dash-tabs'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.innerHTML = Object.keys(CATALOG).map(k =>
+      `<button class="tab ${k===currentTab?'active':''}" onclick="switchTab('${k}','${id}')">${k}</button>`
+    ).join('');
+  });
+}
+function switchTab(tab, from){
+  currentTab = tab; renderTabs(); renderServices();
+  if(from==='dash-tabs') populateDashServiceSelect(tab, null);
+}
+
+function renderServices(){
+  const grid = document.getElementById('svc-grid');
+  if(!grid) return;
+  grid.innerHTML = CATALOG[currentTab].map(s => {
+    const priceFor500 = (s.price1k * 0.5).toFixed(2);
+    return `
+    <div class="svc-card ${s.elite?'elite':''}">
+      <span class="tag">${currentTab}${s.elite? ' · Élite':''}</span>
+      <h3>${s.name}</h3>
+      <p class="desc">${s.desc}</p>
+      <div class="price-row">
+        <span class="price">${priceFor500}$</span>
+        <span class="unit">/ 500 · min. ${s.min}</span>
+      </div>
+      <button onclick="requireLoginThenOrder('${currentTab}',${JSON.stringify(s.name)})">${t('order_btn')}</button>
+    </div>`;
+  }).join('');
+}
+
+function renderMonetization(){
+  const el = document.getElementById('mon-grid');
+  if(!el) return;
+  el.innerHTML = MONETIZATION_PACKS.map(p => `
+    <div class="mon-card">
+      <span style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--gold);font-weight:700">${t('mon_eyebrow')}</span>
+      <h3>${p.name}</h3>
+      <p class="desc">${p.desc}</p>
+      <div class="price">${p.price}$</div>
+      <button onclick="requireLoginThenOrder('Monétisation',${JSON.stringify(p.name)})">${t('order_btn')}</button>
+    </div>
+  `).join('');
+}
+
+function requireLoginThenOrder(platform, service){
+  if(!currentUser){ openAuth('login'); return; }
+  enterApp(); switchAppView('commande'); populateDashServiceSelect(platform, service);
+}
+
+/* =========================================================
+   NAVIGATION APP SHELL
+   ========================================================= */
+function enterApp(){
+  document.getElementById('public-nav').classList.add('hidden');
+  document.getElementById('view-public').classList.add('hidden');
+  document.getElementById('app-shell').classList.remove('hidden');
+}
+function exitApp(){
+  document.getElementById('public-nav').classList.remove('hidden');
+  document.getElementById('view-public').classList.remove('hidden');
+  document.getElementById('app-shell').classList.add('hidden');
+}
+function switchAppView(view){
+  document.querySelectorAll('.app-view').forEach(v=>v.classList.add('hidden'));
+  document.getElementById('app-'+view).classList.remove('hidden');
+  document.querySelectorAll('.app-nav-item').forEach(i=>i.classList.toggle('active', i.dataset.view===view));
+  const titles = {accueil:t('app_home'),commande:t('app_order'),activites:t('app_activity'),portefeuille:t('app_wallet'),compte:t('app_account')};
+  document.getElementById('app-view-title').textContent = titles[view];
+  if(view==='commande'){ renderTabs(); if(!document.getElementById('d-service').value) populateDashServiceSelect(currentTab, null); }
+  if(view==='activites') loadOrders();
+}
+
+/* =========================================================
+   AUTH (Email + Google)
+   ========================================================= */
+let currentUser = null;
+let authMode = 'register';
+
+function openAuth(mode){ authMode = mode; updateAuthModalMode(); document.getElementById('auth-modal').classList.remove('hidden'); }
+function closeAuth(){ document.getElementById('auth-modal').classList.add('hidden'); }
+function toggleAuthMode(){ authMode = authMode==='register' ? 'login' : 'register'; updateAuthModalMode(); }
+function updateAuthModalMode(){
+  const isReg = authMode==='register';
+  document.getElementById('auth-title').textContent = isReg ? 'Créer un compte' : 'Se connecter';
+  document.getElementById('auth-name-field').classList.toggle('hidden', !isReg);
+  document.getElementById('auth-submit').textContent = isReg ? 'Créer mon compte' : 'Se connecter';
+  document.getElementById('auth-switch-text').textContent = isReg ? 'Déjà un compte ?' : 'Pas encore de compte ?';
+  document.getElementById('auth-switch-btn').textContent = isReg ? 'Se connecter' : "S'inscrire";
+  document.getElementById('auth-error').classList.add('hidden');
+}
+function showAuthError(msg){ const el=document.getElementById('auth-error'); el.textContent=msg; el.classList.remove('hidden'); }
+
+async function submitAuth(){
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+  const name = document.getElementById('auth-name').value.trim();
+  if(!fbReady){ showAuthError("Connecte d'abord ce site à ton projet Firebase (voir firebaseConfig dans script.js)."); return; }
+  if(!email || !password){ showAuthError("Email et mot de passe requis."); return; }
+  try{
+    if(authMode==='register'){
+      const cred = await auth.createUserWithEmailAndPassword(email, password);
+      await db.collection('users').doc(cred.user.uid).set({name: name || email.split('@')[0], email, balance: 0, lang: currentLang, createdAt: new Date().toISOString()});
+    } else {
+      await auth.signInWithEmailAndPassword(email, password);
+    }
+    closeAuth();
+  } catch(e){ showAuthError(e.message); }
+}
+
+// Connexion Google — le sélecteur natif du navigateur/téléphone propose
+// directement les comptes déjà connectés sur l'appareil.
+async function signInWithGoogle(){
+  if(!fbReady){ showAuthError("Connecte d'abord ce site à ton projet Firebase."); return; }
+  const provider = new firebase.auth.GoogleAuthProvider();
+  try{
+    const result = await auth.signInWithPopup(provider);
+    const user = result.user;
+    const ref = db.collection('users').doc(user.uid);
+    const doc = await ref.get();
+    if(!doc.exists){
+      await ref.set({name:user.displayName || user.email.split('@')[0], email:user.email, balance:0, lang:currentLang, createdAt:new Date().toISOString()});
+    }
+    closeAuth();
+  } catch(e){ showAuthError(e.message); }
+}
+
+function logout(){ if(fbReady) auth.signOut(); exitApp(); }
+
+if(fbReady){
+  auth.onAuthStateChanged(async (user) => {
+    if(user){
+      const doc = await db.collection('users').doc(user.uid).get();
+      const data = doc.exists ? doc.data() : {name:user.email, email:user.email, balance:0, lang:'fr', createdAt:new Date().toISOString()};
+      currentUser = {uid:user.uid, ...data};
+      if(data.lang) { currentLang = data.lang; }
+      enterApp();
+      document.getElementById('dash-username').textContent = currentUser.name;
+      document.getElementById('profile-name').textContent = currentUser.name;
+      document.getElementById('profile-email').textContent = currentUser.email;
+      document.getElementById('profile-since').textContent = new Date(currentUser.createdAt).toLocaleDateString('fr-FR');
+      const langSelect = document.getElementById('profile-lang');
+      if(langSelect) langSelect.value = currentLang;
+      updateBalanceDisplays();
+      applyTranslations();
+      switchAppView('accueil');
+      loadOrders();
+    } else {
+      currentUser = null;
+    }
+  });
+}
+
+function updateProfileLang(lang){ setLang(lang); }
+
+function updateBalanceDisplays(){
+  const bal = (currentUser?.balance || 0).toFixed(2);
+  const navBal = document.getElementById('nav-balance'); if(navBal) navBal.textContent = bal + '$';
+  const dashBal = document.getElementById('dash-balance'); if(dashBal) dashBal.textContent = bal + '$';
+  const dashBal2 = document.getElementById('dash-balance-2'); if(dashBal2) dashBal2.textContent = bal + '$';
+}
+
+/* =========================================================
+   DEPOSIT — structure prête pour une vraie API de paiement
+   (Flutterwave / PayChangu / Chapa). Remplace PUBLIC_KEY / logique
+   d'appel par l'intégration réelle une fois ton compte marchand créé.
+   ========================================================= */
+const PAYMENT_PUBLIC_KEY = "REPLACE_WITH_YOUR_PUBLIC_KEY"; // ex: Flutterwave/PayChangu
+
+let selectedNetwork = null;
+function selectNetwork(el){
+  document.querySelectorAll('.pay-opt').forEach(o=>o.classList.remove('selected'));
+  el.classList.add('selected'); selectedNetwork = el.dataset.net;
+}
+
+// Fonction "stub" représentant l'appel à l'API de paiement.
+// À remplacer par le vrai SDK/API une fois le compte marchand actif.
+async function callPaymentGateway({amount, phone, network}){
+  console.log("[stub] Appel API paiement :", {amount, phone, network, publicKey: PAYMENT_PUBLIC_KEY});
+  // return await fetch("https://api.ton-agregateur.com/charge", {...})
+  return {success:false, reason:"Aucune passerelle de paiement réelle connectée pour le moment."};
+}
+
+async function submitDeposit(){
+  if(!currentUser){ openAuth('login'); return; }
+  if(!selectedNetwork){ alert("Choisis un réseau mobile money."); return; }
+  const amount = parseFloat(document.getElementById('deposit-amount').value) || 0;
+  const phone = document.getElementById('deposit-phone').value.trim();
+  if(amount <= 0 || !phone){ alert("Renseigne un montant et un numéro valides."); return; }
+
+  await db.collection('deposits').add({uid: currentUser.uid, amount, network: selectedNetwork, phone, status: 'pending', createdAt: new Date().toISOString()});
+  const result = await callPaymentGateway({amount, phone, network:selectedNetwork});
+  if(result.success){
+    alert("Paiement confirmé, ton solde a été crédité.");
+  } else {
+    alert("Demande de recharge enregistrée (" + amount + "$ via " + selectedNetwork + "). Une fois ta passerelle de paiement connectée, le solde se créditera automatiquement ; pour l'instant, confirme avec le support si besoin.");
+  }
+}
+
+/* =========================================================
+   ORDERS — quantité libre au prorata du prix/1000
+   ========================================================= */
+function populateDashServiceSelect(platform, serviceName){
+  const select = document.getElementById('d-service');
+  select.innerHTML = '';
+  Object.entries(CATALOG).forEach(([plat, services]) => {
+    services.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = JSON.stringify({platform:plat, name:s.name, price1k:s.price1k, min:s.min});
+      opt.textContent = `${plat} — ${s.name} (${s.price1k}$ / 1000)`;
+      if(plat===platform && (!serviceName || s.name===serviceName)) opt.selected = true;
+      select.appendChild(opt);
+    });
+  });
+  updateOrderCost();
+}
+document.addEventListener('input', (e)=>{ if(e.target.id==='d-qty') updateOrderCost(); });
+document.addEventListener('change', (e)=>{ if(e.target.id==='d-service') updateOrderCost(); });
+function updateOrderCost(){
+  const select = document.getElementById('d-service');
+  if(!select || !select.value) return;
+  const svc = JSON.parse(select.value);
+  const qty = Math.max(svc.min||10, parseInt(document.getElementById('d-qty').value) || svc.min || 10);
+  document.getElementById('d-cost').textContent = (svc.price1k * (qty/1000)).toFixed(2) + '$';
+}
+
+async function placeOrder(){
+  const msgEl = document.getElementById('order-msg');
+  if(!currentUser){ openAuth('login'); return; }
+  const select = document.getElementById('d-service');
+  if(!select.value){ msgEl.textContent = "Choisis un service."; msgEl.style.color='var(--red)'; return; }
+  const svc = JSON.parse(select.value);
+  const qty = Math.max(svc.min||10, parseInt(document.getElementById('d-qty').value) || svc.min || 10);
+  const link = document.getElementById('d-link').value.trim();
+  const cost = svc.price1k * (qty/1000);
+
+  if(!link){ msgEl.textContent = "Ajoute le lien du profil/publication."; msgEl.style.color='var(--red)'; return; }
+  if(cost > (currentUser.balance||0)){ msgEl.textContent = "Solde insuffisant — recharge ton portefeuille."; msgEl.style.color='var(--red)'; return; }
+
+  const newBalance = currentUser.balance - cost;
+  await db.collection('users').doc(currentUser.uid).update({balance:newBalance});
+  currentUser.balance = newBalance;
+  updateBalanceDisplays();
+
+  await db.collection('orders').add({uid: currentUser.uid, platform: svc.platform, service: svc.name, qty, link, amount: cost, status: 'pending', createdAt: new Date().toISOString()});
+
+  msgEl.textContent = "Commande envoyée ! Suivi disponible dans Activités.";
+  msgEl.style.color = 'var(--green)';
+  document.getElementById('d-link').value = '';
+  loadOrders();
+}
+
+async function loadOrders(){
+  if(!currentUser || !db) return;
+  const snap = await db.collection('orders').where('uid','==',currentUser.uid).orderBy('createdAt','desc').limit(20).get();
+  const tbody = document.getElementById('orders-table');
+  if(snap.empty){
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted)">Aucune commande pour le moment</td></tr>';
+    document.getElementById('dash-order-count').textContent = '0';
+    return;
+  }
+  document.getElementById('dash-order-count').textContent = snap.size;
+  tbody.innerHTML = snap.docs.map(d => {
+    const o = d.data();
+    const date = new Date(o.createdAt).toLocaleDateString('fr-FR');
+    return `<tr><td>${date}</td><td>${o.platform} — ${o.service}</td><td>${o.qty}</td><td>${o.amount.toFixed(2)}$</td><td><span class="status ${o.status==='done'?'done':'pending'}">${o.status==='done'?'Livré':'En cours'}</span></td></tr>`;
+  }).join('');
+}
+
+/* =========================================================
+   SUPPORT — messages rapides + formulaire de contact
+   ========================================================= */
+function contactSupport(prefilledMessage){
+  const base = "https://wa.me/243825001290?text=";
+  const text = prefilledMessage ? prefilledMessage : "Bonjour, j'ai une question concernant mon compte Coeurnoh Boost.";
+  window.open(base + encodeURIComponent(text), '_blank');
+}
+
+function submitContactForm(){
+  const name = document.getElementById('contact-name').value.trim();
+  const subject = document.getElementById('contact-subject').value.trim();
+  const message = document.getElementById('contact-message').value.trim();
+  if(!name || !message){ alert("Merci de remplir au moins ton nom et ton message."); return; }
+  contactSupport(`Nom: ${name}\nSujet: ${subject}\nMessage: ${message}`);
+}
+
+/* =========================================================
+   VIEWS PUBLIQUES (légal / à propos)
+   ========================================================= */
+function showPublicPage(id){
+  document.querySelectorAll('.public-page').forEach(p=>p.classList.add('hidden'));
+  document.getElementById('view-public-home').classList.add('hidden');
+  document.getElementById(id).classList.remove('hidden');
+  window.scrollTo({top:0});
+}
+function showPublicHome(){
+  document.querySelectorAll('.public-page').forEach(p=>p.classList.add('hidden'));
+  document.getElementById('view-public-home').classList.remove('hidden');
+}
+
+/* =========================================================
+   OVERRIDES DE PRIX — chargés depuis Firestore si admin.html
+   a été utilisé pour ajuster les tarifs (marge personnalisée).
+   ========================================================= */
+async function loadCatalogOverrides(){
+  if(!db) return;
+  try{
+    const doc = await db.collection('settings').doc('pricing').get();
+    if(doc.exists){
+      const overrides = doc.data();
+      Object.keys(overrides).forEach(platform => {
+        if(!CATALOG[platform]) return;
+        overrides[platform].forEach(o => {
+          const svc = CATALOG[platform].find(s => s.name === o.name);
+          if(svc) svc.price1k = o.price1k;
+        });
+      });
+      renderServices();
+    }
+  } catch(e){ console.warn("Pas de tarifs personnalisés trouvés :", e.message); }
+}
+
+/* INIT */
 document.addEventListener('DOMContentLoaded', () => {
-    detectAndSetLanguage();
-    initUI();
-    lucide.createIcons();
+  applyTranslations();
+  loadCatalogOverrides();
 });
-
-// --- LANGUAGE SWITCHING SYSTEM ---
-async function detectAndSetLanguage() {
-    const userLang = navigator.language || navigator.userLanguage;
-    let targetLang = 'fr';
-
-    if (userLang.startsWith('en')) targetLang = 'en';
-    else if (userLang.startsWith('sw')) targetLang = 'sw';
-    else if (userLang.startsWith('ln')) targetLang = 'ln';
-
-    document.getElementById('langSelect').value = targetLang;
-    await changeLanguage(targetLang);
-}
-
-async function changeLanguage(langCode) {
-    currentLang = langCode;
-    try {
-        const response = await fetch(`lang/${langCode}.json`);
-        translations = await response.json();
-        applyTranslations();
-    } catch (e) {
-        console.warn('Could not load translation file dynamically, using default labels.', e);
-    }
-}
-
-function applyTranslations() {
-    document.querySelectorAll('[data-i18n]').forEach(el => {
-        const key = el.getAttribute('data-i18n');
-        if (translations[key]) {
-            el.textContent = translations[key];
-        }
-    });
-}
-
-// --- UI CONTROLLER & NAVIGATION ---
-function initUI() {
-    updateBalanceDisplay();
-    renderPlatformsGrid();
-    populateOrderDropdowns();
-    renderActivities();
-    renderWalletHistory();
-    renderAdminTable();
-    populateAccountForm();
-}
-
-function showPage(pageId) {
-    document.querySelectorAll('.page-section').forEach(sec => sec.classList.remove('active'));
-    document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
-
-    const targetSection = document.getElementById(`page-${pageId}`);
-    if (targetSection) {
-        targetSection.classList.add('active');
-    }
-
-    const navLink = document.querySelector(`.nav-link[href="#${pageId}"]`);
-    if (navLink) navLink.classList.add('active');
-
-    // Close mobile menu if open
-    document.getElementById('navMenu').classList.remove('active');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-function toggleMobileMenu() {
-    document.getElementById('navMenu').classList.toggle('active');
-}
-
-function updateBalanceDisplay() {
-    const formatted = `$${currentUser.balance.toFixed(2)}`;
-    document.getElementById('userBalanceDisplay').textContent = formatted;
-    document.getElementById('summaryCurrentBalance').textContent = formatted;
-    document.getElementById('walletPageBalance').textContent = formatted;
-}
-
-// --- RENDER PLATFORMS HOME ---
-function renderPlatformsGrid() {
-    const container = document.getElementById('platformsList');
-    if (!container) return;
-    container.innerHTML = '';
-
-    platformData.forEach(p => {
-        const card = document.createElement('div');
-        card.className = 'platform-card';
-        card.onclick = () => {
-            showPage('order');
-            document.getElementById('orderPlatform').value = p.id;
-            updateServicesDropdown();
-        };
-        card.innerHTML = `
-            <i data-lucide="${p.icon}"></i>
-            <strong>${p.name}</strong>
-        `;
-        container.appendChild(card);
-    });
-    lucide.createIcons();
-}
-
-// --- ORDER CALCULATOR ENGINE ---
-function populateOrderDropdowns() {
-    const platformSelect = document.getElementById('orderPlatform');
-    if (!platformSelect) return;
-    platformSelect.innerHTML = '';
-
-    platformData.forEach(p => {
-        const opt = document.createElement('option');
-        opt.value = p.id;
-        opt.textContent = p.name;
-        platformSelect.appendChild(opt);
-    });
-
-    updateServicesDropdown();
-}
-
-function updateServicesDropdown() {
-    const platId = document.getElementById('orderPlatform').value;
-    const serviceSelect = document.getElementById('orderService');
-    const plat = platformData.find(p => p.id === platId);
-
-    serviceSelect.innerHTML = '';
-    if (plat && plat.services) {
-        plat.services.forEach(s => {
-            const opt = document.createElement('option');
-            opt.value = s.id;
-            const sellingPricePer1k = calculateSellingPrice(s.cost, s.margin);
-            opt.textContent = `${s.name} - $${sellingPricePer1k.toFixed(2)} / 1,000`;
-            serviceSelect.appendChild(opt);
-        });
-    }
-    calculateOrderPrice();
-}
-
-function calculateSellingPrice(cost, marginPercent) {
-    return cost * (1 + marginPercent / 100);
-}
-
-function calculateOrderPrice() {
-    const platId = document.getElementById('orderPlatform').value;
-    const servId = document.getElementById('orderService').value;
-    const qty = parseInt(document.getElementById('orderQuantity').value) || 0;
-
-    const plat = platformData.find(p => p.id === platId);
-    if (!plat) return;
-    const serv = plat.services.find(s => s.id === servId);
-    if (!serv) return;
-
-    const unitPricePer1k = calculateSellingPrice(serv.cost, serv.margin);
-    const totalPrice = (qty / 1000) * unitPricePer1k;
-
-    document.getElementById('orderUnitPrice').value = `$${unitPricePer1k.toFixed(2)} / 1k`;
-    document.getElementById('orderTotalPrice').textContent = `$${totalPrice.toFixed(2)}`;
-}
-
-function handleCreateOrder(e) {
-    e.preventDefault();
-    const platId = document.getElementById('orderPlatform').value;
-    const servId = document.getElementById('orderService').value;
-    const targetLink = document.getElementById('orderTargetLink').value;
-    const qty = parseInt(document.getElementById('orderQuantity').value);
-
-    const plat = platformData.find(p => p.id === platId);
-    const serv = plat.services.find(s => s.id === servId);
-    const unitPricePer1k = calculateSellingPrice(serv.cost, serv.margin);
-    const totalPrice = (qty / 1000) * unitPricePer1k;
-
-    if (currentUser.balance < totalPrice) {
-        showToast("Solde insuffisant ! Veuillez recharger votre portefeuille.", "error");
-        return;
-    }
-
-    // Deduct balance and create order
-    currentUser.balance -= totalPrice;
-    updateBalanceDisplay();
-
-    const orderId = `ORD-${Math.floor(1000 + Math.random() * 9000)}`;
-    const now = new Date().toISOString().replace('T', ' ').substring(0, 16);
-
-    userOrders.unshift({
-        id: orderId,
-        date: now,
-        service: serv.name,
-        target: targetLink,
-        qty: qty,
-        amount: totalPrice,
-        status: 'en attente'
-    });
-
-    userTransactions.unshift({
-        id: `TX-${Math.floor(1000 + Math.random() * 9000)}`,
-        date: now,
-        type: 'Commande',
-        method: `Paiement ${orderId}`,
-        amount: `-$${totalPrice.toFixed(2)}`,
-        status: 'RÉUSSI'
-    });
-
-    renderActivities();
-    renderWalletHistory();
-    showToast(`Commande ${orderId} validée avec succès !`, "success");
-    showPage('activity');
-}
-
-// --- ACTIVITIES TABLE ---
-function renderActivities() {
-    const tbody = document.getElementById('activityTableBody');
-    if (!tbody) return;
-    tbody.innerHTML = '';
-
-    userOrders.forEach(o => {
-        let badgeClass = 'badge-pending';
-        if (o.status === 'terminé') badgeClass = 'badge-completed';
-        if (o.status === 'en cours') badgeClass = 'badge-progress';
-
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td><strong>${o.id}</strong></td>
-            <td>${o.date}</td>
-            <td>${o.service}</td>
-            <td><a href="${o.target}" target="_blank" style="color:var(--primary)">Lien cible</a></td>
-            <td>${o.qty.toLocaleString()}</td>
-            <td><strong>$${o.amount.toFixed(2)}</strong></td>
-            <td><span class="badge ${badgeClass}">${o.status}</span></td>
-        `;
-        tbody.appendChild(tr);
-    });
-}
-
-// --- WALLET & MOBILE MONEY API STRUCT ---
-function openRechargeModal() {
-    document.getElementById('rechargeModal').classList.add('active');
-}
-function closeRechargeModal() {
-    document.getElementById('rechargeModal').classList.remove('active');
-}
-
-function handleRechargeSubmit(e) {
-    e.preventDefault();
-    const provider = document.getElementById('paymentProvider').value;
-    const phone = document.getElementById('rechargePhone').value;
-    const amount = parseFloat(document.getElementById('rechargeAmount').value);
-
-    // Simulated API call (Flutterwave / PayChangu / Chapa structure)
-    initiateMobileMoneyPaymentAPI({
-        publicKey: "FLWPUBK_TEST-xxxxxxxxxxxxxxxx-X",
-        provider: provider,
-        phoneNumber: phone,
-        amount: amount,
-        currency: "USD"
-    }).then(response => {
-        if(response.status === "success") {
-            currentUser.balance += amount;
-            updateBalanceDisplay();
-
-            const now = new Date().toISOString().replace('T', ' ').substring(0, 16);
-            userTransactions.unshift({
-                id: `TX-${Math.floor(1000 + Math.random() * 9000)}`,
-                date: now,
-                type: 'Recharge',
-                method: `${provider} (${phone})`,
-                amount: `+$${amount.toFixed(2)}`,
-                status: 'RÉUSSI'
-            });
-
-            renderWalletHistory();
-            closeRechargeModal();
-            showToast(`Recharge de $${amount.toFixed(2)} effectuée avec succès !`, "success");
-        }
-    });
-}
-
-// Mock API Call Function (Ready for backend production integration)
-function initiateMobileMoneyPaymentAPI(payload) {
-    return new Promise((resolve) => {
-        console.log("Sending payload to Mobile Money gateway API...", payload);
-        setTimeout(() => {
-            resolve({ status: "success", transactionRef: "MM-" + Date.now() });
-        }, 1200);
-    });
-}
-
-function renderWalletHistory() {
-    const tbody = document.getElementById('walletHistoryBody');
-    if (!tbody) return;
-    tbody.innerHTML = '';
-
-    userTransactions.forEach(t => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td><strong>${t.id}</strong></td>
-            <td>${t.date}</td>
-            <td>${t.type}</td>
-            <td>${t.method}</td>
-            <td style="color:${t.amount.startsWith('+') ? 'var(--primary)' : 'var(--accent-red)'}"><strong>${t.amount}</strong></td>
-            <td><span class="badge badge-completed">${t.status}</span></td>
-        `;
-        tbody.appendChild(tr);
-    });
-}
-
-// --- ADMIN PRICING CONTROLLER ---
-function renderAdminTable() {
-    const tbody = document.getElementById('adminPricingBody');
-    if (!tbody) return;
-    tbody.innerHTML = '';
-
-    platformData.forEach(p => {
-        p.services.forEach(s => {
-            const sellingPrice = calculateSellingPrice(s.cost, s.margin);
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td><strong>${p.name}</strong></td>
-                <td>${s.name}</td>
-                <td><input type="number" step="0.05" value="${s.cost.toFixed(2)}" class="form-control" style="width:90px" onchange="updateAdminCost('${p.id}', '${s.id}', this.value)"></td>
-                <td><input type="number" step="5" value="${s.margin}" class="form-control" style="width:90px" onchange="updateAdminMargin('${p.id}', '${s.id}', this.value)"></td>
-                <td><strong style="color:var(--primary); font-size:1.05rem;">$${sellingPrice.toFixed(2)}</strong></td>
-                <td><button class="btn btn-outline btn-sm" onclick="showToast('Tarif mis à jour', 'success')"><i data-lucide="check"></i></button></td>
-            `;
-            tbody.appendChild(tr);
-        });
-    });
-    lucide.createIcons();
-}
-
-function updateAdminCost(platId, servId, val) {
-    const plat = platformData.find(p => p.id === platId);
-    const serv = plat.services.find(s => s.id === servId);
-    serv.cost = parseFloat(val) || 0;
-    renderAdminTable();
-    updateServicesDropdown();
-}
-
-function updateAdminMargin(platId, servId, val) {
-    const plat = platformData.find(p => p.id === platId);
-    const serv = plat.services.find(s => s.id === servId);
-    serv.margin = parseFloat(val) || 0;
-    renderAdminTable();
-    updateServicesDropdown();
-}
-
-function resetAdminPrices() {
-    showToast("Tarifs réinitialisés aux valeurs par défaut", "success");
-    renderAdminTable();
-}
-
-// --- ACCOUNT & AUTH ---
-function populateAccountForm() {
-    document.getElementById('accName').value = currentUser.name;
-    document.getElementById('accEmail').value = currentUser.email;
-    document.getElementById('accLang').value = currentLang;
-}
-
-function handleAccountSave(e) {
-    e.preventDefault();
-    currentUser.name = document.getElementById('accName').value;
-    currentUser.email = document.getElementById('accEmail').value;
-    showToast("Informations du compte mises à jour !", "success");
-}
-
-function openAuthModal() {
-    document.getElementById('authModal').classList.add('active');
-}
-function closeAuthModal() {
-    document.getElementById('authModal').classList.remove('active');
-}
-
-function selectQuickAccount(name, email) {
-    currentUser.name = name;
-    currentUser.email = email;
-    document.getElementById('authBtnText').textContent = name.split(' ')[0];
-    populateAccountForm();
-    closeAuthModal();
-    showToast(`Connecté en tant que ${name}`, "success");
-}
-
-function handleManualLogin(e) {
-    e.preventDefault();
-    const email = document.getElementById('loginEmail').value;
-    currentUser.name = email.split('@')[0];
-    currentUser.email = email;
-    document.getElementById('authBtnText').textContent = currentUser.name;
-    populateAccountForm();
-    closeAuthModal();
-    showToast("Connexion réussie !", "success");
-}
-
-// --- SUPPORT FORM & TEMPLATES ---
-function applySupportTemplate(val) {
-    if (!val) return;
-    const parts = val.split(' : ');
-    document.getElementById('supportSubject').value = parts[0];
-    document.getElementById('supportMessage').value = parts[1] || '';
-}
-
-function handleSupportSend(e) {
-    e.preventDefault();
-    showToast("Votre message a été transmis à l'équipe support !", "success");
-    document.getElementById('supportForm').reset();
-}
-
-// --- TOAST NOTIFICATION UTILITY ---
-function showToast(message, type = "success") {
-    const container = document.getElementById('toastContainer');
-    const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
-    toast.innerHTML = `<i data-lucide="${type === 'success' ? 'check-circle' : 'alert-triangle'}"></i> ${message}`;
-    container.appendChild(toast);
-    lucide.createIcons();
-
-    setTimeout(() => {
-        toast.style.opacity = '0';
-        setTimeout(() => toast.remove(), 300);
-    }, 3500);
-}
