@@ -20,14 +20,33 @@ const db = fbReady ? firebase.firestore() : null;
 const ADMIN_UID = "REPLACE_WITH_YOUR_UID";
 
 /* =========================================================
-   ICÔNES PAR PLATEFORME (pour l'harmonie visuelle des onglets/cartes)
+   BADGES DE PLATEFORME — monogrammes aux couleurs de marque
+   (pas les logos officiels, pour éviter tout souci de droits/marque
+   déposée, mais avec un rendu visuel professionnel et reconnaissable)
    ========================================================= */
-const PLATFORM_ICONS = {
-  TikTok:"🎵", Instagram:"📷", YouTube:"▶️", Facebook:"👍", Spotify:"🎧",
-  Shazam:"🔷", Pinterest:"📌", Telegram:"✈️", WhatsApp:"💬", Snapchat:"👻",
-  X:"✖️", LinkedIn:"💼", SoundCloud:"☁️", "Apple Music":"🍏", Audiomack:"🎶",
-  "Monétisation":"💎"
+const PLATFORM_BADGES = {
+  TikTok:{bg:"#000000", fg:"#25F4EE", text:"♪"},
+  Instagram:{bg:"linear-gradient(45deg,#f58529,#dd2a7b,#8134af,#515bd4)", fg:"#fff", text:"IG"},
+  YouTube:{bg:"#FF0000", fg:"#fff", text:"▶"},
+  Facebook:{bg:"#1877F2", fg:"#fff", text:"f"},
+  Spotify:{bg:"#1DB954", fg:"#fff", text:"♫"},
+  Shazam:{bg:"#0088FF", fg:"#fff", text:"Sh"},
+  Pinterest:{bg:"#E60023", fg:"#fff", text:"P"},
+  Telegram:{bg:"#26A5E4", fg:"#fff", text:"✈"},
+  WhatsApp:{bg:"#25D366", fg:"#fff", text:"W"},
+  Snapchat:{bg:"#FFFC00", fg:"#000", text:"S"},
+  X:{bg:"#000000", fg:"#fff", text:"X"},
+  LinkedIn:{bg:"#0A66C2", fg:"#fff", text:"in"},
+  SoundCloud:{bg:"#FF7700", fg:"#fff", text:"SC"},
+  "Apple Music":{bg:"linear-gradient(135deg,#FA243C,#FB5C74)", fg:"#fff", text:"♫"},
+  Audiomack:{bg:"#FFA200", fg:"#000", text:"A"},
+  "Monétisation":{bg:"#C9992F", fg:"#fff", text:"💎"}
 };
+function platformBadge(name, size){
+  size = size || 22;
+  const b = PLATFORM_BADGES[name] || {bg:"#0b3d2e", fg:"#fff", text:name.slice(0,2)};
+  return `<span class="platform-badge" style="width:${size}px;height:${size}px;background:${b.bg};color:${b.fg};font-size:${Math.round(size*0.48)}px">${b.text}</span>`;
+}
 
 /* =========================================================
    CATALOGUE — 15 plateformes, deux qualités par service
@@ -122,6 +141,22 @@ const MONETIZATION_PACKS = [
   {name:"Pack Artiste Spotify/Audiomack", desc:"Écoutes + auditeurs pour renforcer ton profil artiste", criteria:"Utile pour candidater à Spotify for Artists et aux playlists éditoriales", price:65},
 ];
 
+const COMBO_PACKS = [
+  {name:"Combo TikTok + Instagram", desc:"2000 followers TikTok + 2000 followers Instagram", oldPrice:38, newPrice:29, saveLabel:"-24%"},
+  {name:"Combo YouTube + TikTok", desc:"3000 vues YouTube + 5000 vues TikTok", oldPrice:22, newPrice:16, saveLabel:"-27%"},
+  {name:"Combo Réseau Complet", desc:"1000 followers sur TikTok, Instagram, Facebook + 1000 abonnés YouTube", oldPrice:65, newPrice:45, saveLabel:"-30%"},
+];
+
+// ⚠️ IMPORTANT : ce sont des EXEMPLES de structure, pas de vrais avis clients.
+// Publier de faux témoignages est trompeur pour les visiteurs et peut être illégal
+// (publicité mensongère) selon les lois de protection des consommateurs.
+// Remplace ces entrées par de vrais avis (captures WhatsApp, témoignages écrits
+// avec l'accord du client) avant de mettre le site en ligne publiquement.
+const TESTIMONIALS = [
+  {name:"[À remplacer]", text:"[Colle ici un vrai retour client, avec son accord]", rating:5},
+  {name:"[À remplacer]", text:"[Colle ici un vrai retour client, avec son accord]", rating:5},
+];
+
 /* =========================================================
    LANGUE
    ========================================================= */
@@ -137,7 +172,7 @@ function applyTranslations(){
     el.placeholder = t(el.dataset.i18nPlaceholder);
   });
   document.getElementById('lang-current').textContent = currentLang.toUpperCase();
-  renderTabs(); renderServices(); renderMonetization();
+  renderTabs(); renderServices(); renderMonetization(); renderCombos(); renderTestimonials();
   renderAppNavLabels();
 }
 function setLang(lang){
@@ -165,7 +200,7 @@ function renderTabs(){
     const el = document.getElementById(id);
     if(!el) return;
     el.innerHTML = Object.keys(CATALOG).map(k =>
-      `<button class="tab ${k===currentTab?'active':''}" onclick="switchTab('${k}','${id}')">${PLATFORM_ICONS[k]||''} ${k}</button>`
+      `<button class="tab ${k===currentTab?'active':''}" onclick="switchTab('${k}','${id}')">${platformBadge(k)} ${k}</button>`
     ).join('');
   });
 }
@@ -177,7 +212,7 @@ function switchTab(tab, from){
 function renderServices(){
   const grid = document.getElementById('svc-grid');
   if(!grid) return;
-  const icon = PLATFORM_ICONS[currentTab] || '';
+  const icon = platformBadge(currentTab);
   grid.innerHTML = CATALOG[currentTab].map(s => {
     const stdTier = s.tiers[0];
     const premTier = s.tiers[s.tiers.length-1];
@@ -206,6 +241,34 @@ function renderMonetization(){
       <p class="criteria">📋 ${p.criteria}</p>
       <div class="price">${p.price}$</div>
       <button onclick="requireLoginThenOrder('Monétisation',${JSON.stringify(p.name)})">${t('order_btn')}</button>
+    </div>
+  `).join('');
+}
+
+
+
+function renderCombos(){
+  const el = document.getElementById('combo-grid');
+  if(!el) return;
+  el.innerHTML = COMBO_PACKS.map(c => `
+    <div class="combo-card">
+      <span class="save-badge">${c.saveLabel}</span>
+      <h3>${c.name}</h3>
+      <p class="desc">${c.desc}</p>
+      <div class="price-compare"><span class="old-price">${c.oldPrice}$</span><span class="new-price">${c.newPrice}$</span></div>
+      <button onclick="contactSupport('Bonjour, je veux commander le pack : ${c.name} (${c.newPrice}\$)')">Commander ce combo</button>
+    </div>
+  `).join('');
+}
+
+function renderTestimonials(){
+  const el = document.getElementById('testimonials-grid');
+  if(!el) return;
+  el.innerHTML = TESTIMONIALS.map(tm => `
+    <div class="testimonial-card">
+      <div class="stars">${'⭐'.repeat(tm.rating)}</div>
+      <p class="quote">"${tm.text}"</p>
+      <p class="author">— ${tm.name}</p>
     </div>
   `).join('');
 }
@@ -269,7 +332,7 @@ async function submitAuth(){
   try{
     if(authMode==='register'){
       const cred = await auth.createUserWithEmailAndPassword(email, password);
-      await db.collection('users').doc(cred.user.uid).set({name: name || email.split('@')[0], email, balance: 0, lang: currentLang, createdAt: new Date().toISOString()});
+      await db.collection('users').doc(cred.user.uid).set({name: name || email.split('@')[0], email, balance: 0, lang: currentLang, referredBy: getReferralCodeFromURL(), createdAt: new Date().toISOString()});
     } else {
       await auth.signInWithEmailAndPassword(email, password);
     }
@@ -296,6 +359,39 @@ async function signInWithGoogle(){
 
 function logout(){ if(fbReady) auth.signOut(); exitApp(); }
 
+/* =========================================================
+   PROGRAMME D'AFFILIATION
+   Lien: tonsite.com/?ref=UID — commission créditée automatiquement
+   sur la 1ère recharge du filleul (10% par défaut, ajustable ici)
+   ========================================================= */
+const REFERRAL_COMMISSION_RATE = 0.10;
+function getReferralCodeFromURL(){
+  const params = new URLSearchParams(window.location.search);
+  return params.get('ref') || null;
+}
+function getReferralLink(){
+  if(!currentUser) return '';
+  return window.location.origin + window.location.pathname + '?ref=' + currentUser.uid;
+}
+function copyReferralLink(){
+  const link = getReferralLink();
+  navigator.clipboard.writeText(link).then(()=>{
+    document.getElementById('referral-copy-msg').textContent = "✅ Lien copié !";
+  }).catch(()=>{
+    document.getElementById('referral-copy-msg').textContent = link;
+  });
+}
+async function loadReferralStats(){
+  if(!currentUser || !db) return;
+  const el = document.getElementById('referral-link-display');
+  if(el) el.textContent = getReferralLink();
+  try{
+    const snap = await db.collection('users').where('referredBy','==',currentUser.uid).get();
+    const countEl = document.getElementById('referral-count');
+    if(countEl) countEl.textContent = snap.size;
+  } catch(e){ console.warn("Stats parrainage non disponibles :", e.message); }
+}
+
 if(fbReady){
   auth.onAuthStateChanged(async (user) => {
     if(user){
@@ -314,6 +410,7 @@ if(fbReady){
       applyTranslations();
       switchAppView('accueil');
       loadOrders();
+      loadReferralStats();
     } else {
       currentUser = null;
     }
@@ -334,7 +431,8 @@ function updateBalanceDisplays(){
    (Flutterwave / PayChangu / Chapa). Remplace PUBLIC_KEY / logique
    d'appel par l'intégration réelle une fois ton compte marchand créé.
    ========================================================= */
-const PAYMENT_PUBLIC_KEY = "REPLACE_WITH_YOUR_PUBLIC_KEY"; // ex: Flutterwave/PayChangu
+const PAYMENT_PUBLIC_KEY = "REPLACE_WITH_YOUR_PUBLIC_KEY"; // ex: Flutterwave/PayChangu (mobile money)
+const STRIPE_PUBLIC_KEY = "REPLACE_WITH_YOUR_STRIPE_PUBLIC_KEY"; // ex: pk_live_... (cartes bancaires/virtuelles)
 
 let selectedNetwork = null;
 function selectNetwork(el){
@@ -347,24 +445,46 @@ function selectNetwork(el){
 // Fonction "stub" représentant l'appel à l'API de paiement.
 // À remplacer par le vrai SDK/API une fois le compte marchand actif.
 async function callPaymentGateway({amount, phone, network}){
-  console.log("[stub] Appel API paiement :", {amount, phone, network, publicKey: PAYMENT_PUBLIC_KEY});
+  if(network === 'card'){
+    console.log("[stub] Appel Stripe Checkout :", {amount, publicKey: STRIPE_PUBLIC_KEY});
+    // Intégration réelle : créer une session Stripe Checkout côté serveur (Cloud Function),
+    // puis rediriger avec stripe.redirectToCheckout({sessionId}).
+    return {success:false, reason:"Stripe non connecté pour le moment — nécessite un compte Stripe actif."};
+  }
+  console.log("[stub] Appel API paiement mobile money :", {amount, phone, network, publicKey: PAYMENT_PUBLIC_KEY});
   // return await fetch("https://api.ton-agregateur.com/charge", {...})
   return {success:false, reason:"Aucune passerelle de paiement réelle connectée pour le moment."};
 }
 
 async function submitDeposit(){
   if(!currentUser){ openAuth('login'); return; }
-  if(!selectedNetwork){ alert("Choisis un réseau mobile money."); return; }
+  if(!selectedNetwork){ alert("Choisis un mode de paiement."); return; }
   const amount = parseFloat(document.getElementById('deposit-amount').value) || 0;
   const phone = document.getElementById('deposit-phone').value.trim();
-  if(amount <= 0 || !phone){ alert("Renseigne un montant et un numéro valides."); return; }
+  const isCard = selectedNetwork === 'card';
+  if(amount <= 0 || (!isCard && !phone)){ alert("Renseigne un montant" + (isCard ? " valide." : " et un numéro valides.")); return; }
 
   await db.collection('deposits').add({uid: currentUser.uid, amount, network: selectedNetwork, phone, status: 'pending', createdAt: new Date().toISOString()});
   const result = await callPaymentGateway({amount, phone, network:selectedNetwork});
   if(result.success){
+    await creditReferralCommissionIfFirstDeposit(amount);
     alert("Paiement confirmé, ton solde a été crédité.");
   } else {
     alert("Demande de recharge enregistrée (" + amount + "$ via " + selectedNetwork + "). Une fois ta passerelle de paiement connectée, le solde se créditera automatiquement ; pour l'instant, confirme avec le support si besoin.");
+  }
+}
+
+// Crédite automatiquement le parrain (10% par défaut) à la 1ère recharge du filleul.
+// S'active une fois callPaymentGateway() connecté à une vraie passerelle (result.success = true).
+async function creditReferralCommissionIfFirstDeposit(amount){
+  if(!currentUser.referredBy) return;
+  const priorDeposits = await db.collection('deposits').where('uid','==',currentUser.uid).get();
+  if(priorDeposits.size > 1) return; // pas le premier dépôt
+  const commission = amount * REFERRAL_COMMISSION_RATE;
+  const referrerRef = db.collection('users').doc(currentUser.referredBy);
+  const referrerDoc = await referrerRef.get();
+  if(referrerDoc.exists){
+    await referrerRef.update({balance: (referrerDoc.data().balance||0) + commission});
   }
 }
 
@@ -416,7 +536,22 @@ function updateOrderCost(){
   const sel = getSelectedTier();
   if(!sel) return;
   const qty = Math.max(sel.tier.min||10, parseInt(document.getElementById('d-qty').value) || sel.tier.min || 10);
-  document.getElementById('d-cost').textContent = (sel.tier.price1k * (qty/1000)).toFixed(2) + '$';
+  const cost = sel.tier.price1k * (qty/1000);
+  document.getElementById('d-cost').textContent = cost.toFixed(2) + '$';
+
+  const upsellEl = document.getElementById('upsell-suggestion');
+  if(upsellEl){
+    const doubleQty = qty * 2;
+    const doubleCost = sel.tier.price1k * (doubleQty/1000);
+    const extra = (doubleCost - cost).toFixed(2);
+    upsellEl.innerHTML = `Envie de plus d'impact ? Double ta quantité (${doubleQty}) pour seulement <strong>+${extra}$</strong> de plus.
+      <button type="button" onclick="applyUpsell(${doubleQty})">Doubler ma commande</button>`;
+    upsellEl.classList.remove('hidden');
+  }
+}
+function applyUpsell(newQty){
+  document.getElementById('d-qty').value = newQty;
+  updateOrderCost();
 }
 
 async function placeOrder(){

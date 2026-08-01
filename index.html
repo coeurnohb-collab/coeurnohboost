@@ -30,6 +30,9 @@
         <div class="lang-menu hidden" id="lang-menu">
           <button onclick="setLang('fr')">Français</button>
           <button onclick="setLang('en')">English</button>
+          <button onclick="setLang('es')">Español</button>
+          <button onclick="setLang('it')">Italiano</button>
+          <button onclick="setLang('pt')">Português</button>
           <button onclick="setLang('sw')">Kiswahili</button>
           <button onclick="setLang('ln')">Lingála</button>
         </div>
@@ -89,6 +92,17 @@
 <section class="section">
   <div class="wrap">
     <div class="section-head">
+      <span class="eyebrow">Offres combinées</span>
+      <h2>Packs combinés, prix réduit</h2>
+      <p>Plusieurs plateformes en une seule commande, avec une remise par rapport aux commandes séparées.</p>
+    </div>
+    <div class="combo-grid" id="combo-grid"></div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="section-head">
       <span class="eyebrow">Confiance</span>
       <h2 data-i18n="quality_title">Des services réels et fiables</h2>
     </div>
@@ -98,6 +112,17 @@
       <div class="quality-card"><div class="icon">⚡</div><h3>Stable</h3><p>Livraison progressive et durable.</p></div>
       <div class="quality-card"><div class="icon">📈</div><h3>Compatible monétisation</h3><p>Pensé pour respecter les règles des plateformes.</p></div>
     </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">Avis clients</span>
+      <h2>Ce que disent nos clients</h2>
+      <p style="font-size:0.8rem;color:var(--muted);font-style:italic">⚠️ Section à remplir avec de vrais témoignages avant publication.</p>
+    </div>
+    <div class="testimonials-grid" id="testimonials-grid"></div>
   </div>
 </section>
 
@@ -166,6 +191,11 @@
       <h2 data-i18n="support_title">Besoin d'aide ? Contacte-nous en privé</h2>
       <p data-i18n="support_sub">Choisis un message rapide, ou écris le tien directement.</p>
     </div>
+    <div class="contact-channels">
+      <a href="https://wa.me/243825001290" target="_blank" class="channel-btn wa">💬 WhatsApp</a>
+      <a href="https://t.me/coeurnohboost" target="_blank" class="channel-btn tg">✈️ Telegram</a>
+      <a href="mailto:contact@coeurnohboost.com" class="channel-btn mail">✉️ Email</a>
+    </div>
     <div class="support-card" style="max-width:600px">
       <div class="quick-msgs">
         <button class="quick-msg-btn" onclick="contactSupport('Problème de commande.')">Problème de commande <span class="arrow">→</span></button>
@@ -193,6 +223,8 @@
       <a onclick="showPublicPage('view-terms')" style="cursor:pointer">Conditions d'utilisation</a>
       <a onclick="showPublicPage('view-privacy')" style="cursor:pointer">Confidentialité</a>
       <span>WhatsApp : +243 825 001 290</span>
+      <span>Telegram : @coeurnohboost</span>
+      <span>Email : contact@coeurnohboost.com</span>
     </div>
   </div>
 </footer>
@@ -255,6 +287,7 @@
         <div style="display:flex;justify-content:space-between;align-items:center;background:var(--cream);border-radius:12px;padding:14px 18px;margin-bottom:16px">
           <span data-i18n="cost_label">Coût de la commande</span> : <strong id="d-cost" style="font-family:'Playfair Display',serif;color:var(--green);font-size:1.3rem">0$</strong>
         </div>
+        <div id="upsell-suggestion" class="hidden" style="background:#fbf3e2;border:1px solid var(--gold);border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:0.85rem;color:#7a5200"></div>
         <button class="btn btn-primary" style="width:100%;justify-content:center;padding:13px" onclick="placeOrder()" data-i18n="launch_order">Lancer la commande</button>
         <p id="order-msg" style="font-size:0.82rem;margin-top:10px;text-align:center"></p>
       </div>
@@ -283,10 +316,10 @@
           <div class="pay-opt" data-net="mtn" onclick="selectNetwork(this)">📱 MTN MoMo</div>
           <div class="pay-opt" data-net="tigo" onclick="selectNetwork(this)">📱 Tigo Pesa</div>
           <div class="pay-opt" data-net="usdt-trc20" onclick="selectNetwork(this)">₮ USDT (Tron / TRC20)</div>
-          <div class="pay-opt" data-net="card" onclick="selectNetwork(this)">💳 Carte virtuelle</div>
+          <div class="pay-opt" data-net="card" onclick="selectNetwork(this)">💳 Carte bancaire</div>
         </div>
         <p id="card-note" class="hidden" style="font-size:0.8rem;color:var(--muted);margin:-8px 0 14px;background:var(--cream);padding:10px 12px;border-radius:10px">
-          Pas de carte Visa/Mastercard ? Tu peux en créer une virtuelle rapidement via un service comme izichange, puis l'utiliser ici.
+          Paiement par carte (classique ou virtuelle) via Stripe. Aucune carte physique ? Une carte virtuelle crypto (ex: via izichange) fonctionne aussi ici.
         </p>
         <div class="field"><label>Montant à recharger ($)</label><input type="number" id="deposit-amount" min="1" value="5"></div>
         <div class="field"><label>Numéro mobile money</label><input type="text" id="deposit-phone" placeholder="+243..."></div>
@@ -304,11 +337,24 @@
         <div class="profile-row"><span>Langue préférée</span>
           <select id="profile-lang" onchange="updateProfileLang(this.value)">
             <option value="fr">Français</option><option value="en">English</option>
+            <option value="es">Español</option><option value="it">Italiano</option>
+            <option value="pt">Português</option>
             <option value="sw">Kiswahili</option><option value="ln">Lingála</option>
           </select>
         </div>
       </div>
       <button class="btn btn-outline" style="margin-bottom:24px" onclick="logout()" data-i18n="logout">Se déconnecter</button>
+
+      <div class="order-box">
+        <h3 style="color:var(--green);margin-bottom:6px">🎁 Programme de parrainage</h3>
+        <p style="color:var(--muted);font-size:0.88rem;margin-bottom:14px">Partage ton lien : tu gagnes <strong>10%</strong> en portefeuille sur la 1ère recharge de chaque filleul.</p>
+        <div style="background:var(--cream);border-radius:10px;padding:12px;font-size:0.82rem;word-break:break-all;margin-bottom:10px" id="referral-link-display">—</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+          <button class="btn btn-primary" onclick="copyReferralLink()">Copier mon lien</button>
+          <span style="font-size:0.85rem;color:var(--muted)"><strong id="referral-count">0</strong> filleul(s) inscrit(s)</span>
+        </div>
+        <p id="referral-copy-msg" style="font-size:0.8rem;color:var(--green);margin-top:8px"></p>
+      </div>
 
       <div class="support-card">
         <h3 style="color:var(--green);margin-bottom:6px" data-i18n="support_title">Besoin d'aide ? Contacte-nous en privé</h3>
@@ -319,6 +365,11 @@
           <button class="quick-msg-btn" onclick="contactSupport('Je veux annuler ma commande.')">Annuler une commande <span class="arrow">→</span></button>
           <button class="quick-msg-btn" onclick="contactSupport('J\'ai une question sur un service ou un prix.')">Question sur un service <span class="arrow">→</span></button>
           <button class="quick-msg-btn" onclick="contactSupport('')">Écrire un autre message <span class="arrow">→</span></button>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;border-top:1px solid var(--line);padding-top:16px">
+          <a href="https://wa.me/243825001290" class="btn btn-outline" style="font-size:0.82rem">💬 WhatsApp</a>
+          <a href="https://t.me/coeurnohboost" class="btn btn-outline" style="font-size:0.82rem">✈️ Telegram</a>
+          <a href="mailto:contact@coeurnohboost.com" class="btn btn-outline" style="font-size:0.82rem">📧 Email</a>
         </div>
       </div>
     </div>

@@ -99,14 +99,85 @@ const I18N = {
     support_title: "Ozali na mposa ya lisungi? Benga biso na sekele", support_sub: "Pona message ya mbangu, to koma oyo yo moko.",
     quality_title: "Misala ya solo mpe ya kotyelama",
     footer_rights: "Ba droits nyonso ebombami",
+  },
+  es: {
+    nav_services: "Servicios", nav_monetisation: "Monetización", nav_about: "Sobre nosotros",
+    nav_login: "Iniciar sesión", nav_register: "Crear cuenta",
+    hero_eyebrow: "Panel de crecimiento en redes sociales — Servicio Élite",
+    hero_title_1: "Crecimiento real, pago móvil,", hero_title_em: "resultados que importan.",
+    hero_lead: "TikTok, Instagram, YouTube, Facebook, Spotify y más — seguidores, vistas, likes, comentarios. Elige exactamente la cantidad que quieras. Pago móvil 100% africano.",
+    hero_cta_primary: "Crear mi cuenta gratis →", hero_cta_secondary: "Ver servicios",
+    stat_clients: "clientes atendidos", stat_platforms: "plataformas cubiertas", stat_delay: "tiempo promedio",
+    services_eyebrow: "Catálogo élite", services_title: "Servicios reales, en la cantidad que elijas",
+    services_sub: "No necesitas llegar a 1000 — introduce el número exacto que quieras, el precio se ajusta automáticamente.",
+    mon_eyebrow: "Paquetes de monetización", mon_title: "Supera el umbral de monetización",
+    mon_sub: "Paquetes diseñados para alcanzar los umbrales exigidos por las plataformas.",
+    order_btn: "Pedir",
+    app_home: "Inicio", app_order: "Pedido", app_activity: "Actividad", app_wallet: "Billetera", app_account: "Cuenta",
+    welcome: "Bienvenido", balance: "Saldo", my_orders: "Mis pedidos", clients_label: "Clientes de Coeurnoh Boost",
+    new_order: "+ Nuevo pedido", recharge: "Recargar billetera",
+    exact_qty: "Cantidad exacta deseada", qty_hint: "No necesitas llegar a 1000 — introduce el número que quieras (ej: 150, 320, 750...)",
+    link_label: "Enlace del perfil / publicación", cost_label: "Costo del pedido",
+    launch_order: "Realizar pedido", logout: "Cerrar sesión",
+    support_title: "¿Necesitas ayuda? Contáctanos en privado", support_sub: "Elige un mensaje rápido, o escribe el tuyo.",
+    quality_title: "Servicios reales y confiables",
+    footer_rights: "Todos los derechos reservados",
+  },
+  it: {
+    nav_services: "Servizi", nav_monetisation: "Monetizzazione", nav_about: "Chi siamo",
+    nav_login: "Accedi", nav_register: "Crea account",
+    hero_eyebrow: "Pannello di crescita social — Servizio Elite",
+    hero_title_1: "Crescita reale, pagamento mobile,", hero_title_em: "risultati che contano.",
+    hero_lead: "TikTok, Instagram, YouTube, Facebook, Spotify e altro — follower, visualizzazioni, like, commenti. Scegli esattamente la quantità che vuoi. Pagamento mobile 100% africano.",
+    hero_cta_primary: "Crea il mio account gratuito →", hero_cta_secondary: "Vedi i servizi",
+    stat_clients: "clienti serviti", stat_platforms: "piattaforme coperte", stat_delay: "tempo medio",
+    services_eyebrow: "Catalogo elite", services_title: "Servizi reali, nella quantità che scegli",
+    services_sub: "Non serve arrivare a 1000 — inserisci il numero esatto che vuoi, il prezzo si aggiorna automaticamente.",
+    mon_eyebrow: "Pacchetti monetizzazione", mon_title: "Supera la soglia di monetizzazione",
+    mon_sub: "Pacchetti pensati per raggiungere le soglie richieste dalle piattaforme.",
+    order_btn: "Ordina",
+    app_home: "Home", app_order: "Ordine", app_activity: "Attività", app_wallet: "Portafoglio", app_account: "Account",
+    welcome: "Benvenuto", balance: "Saldo", my_orders: "I miei ordini", clients_label: "Clienti Coeurnoh Boost",
+    new_order: "+ Nuovo ordine", recharge: "Ricarica portafoglio",
+    exact_qty: "Quantità esatta desiderata", qty_hint: "Non serve arrivare a 1000 — inserisci il numero che vuoi (es: 150, 320, 750...)",
+    link_label: "Link del profilo / post", cost_label: "Costo dell'ordine",
+    launch_order: "Invia ordine", logout: "Disconnetti",
+    support_title: "Hai bisogno di aiuto? Contattaci in privato", support_sub: "Scegli un messaggio rapido, o scrivi il tuo.",
+    quality_title: "Servizi reali e affidabili",
+    footer_rights: "Tutti i diritti riservati",
+  },
+  pt: {
+    nav_services: "Serviços", nav_monetisation: "Monetização", nav_about: "Sobre nós",
+    nav_login: "Entrar", nav_register: "Criar conta",
+    hero_eyebrow: "Painel de crescimento de redes sociais — Serviço Elite",
+    hero_title_1: "Crescimento real, pagamento móvel,", hero_title_em: "resultados que importam.",
+    hero_lead: "TikTok, Instagram, YouTube, Facebook, Spotify e mais — seguidores, visualizações, likes, comentários. Escolha exatamente a quantidade que quiser. Pagamento móvel 100% africano.",
+    hero_cta_primary: "Criar minha conta grátis →", hero_cta_secondary: "Ver serviços",
+    stat_clients: "clientes atendidos", stat_platforms: "plataformas cobertas", stat_delay: "tempo médio",
+    services_eyebrow: "Catálogo elite", services_title: "Serviços reais, na quantidade que você escolher",
+    services_sub: "Não precisa chegar a 1000 — insira o número exato que quiser, o preço se ajusta automaticamente.",
+    mon_eyebrow: "Pacotes de monetização", mon_title: "Ultrapasse o limite de monetização",
+    mon_sub: "Pacotes pensados para atingir os limites exigidos pelas plataformas.",
+    order_btn: "Pedir",
+    app_home: "Início", app_order: "Pedido", app_activity: "Atividade", app_wallet: "Carteira", app_account: "Conta",
+    welcome: "Bem-vindo", balance: "Saldo", my_orders: "Meus pedidos", clients_label: "Clientes Coeurnoh Boost",
+    new_order: "+ Novo pedido", recharge: "Recarregar carteira",
+    exact_qty: "Quantidade exata desejada", qty_hint: "Não precisa chegar a 1000 — insira o número que quiser (ex: 150, 320, 750...)",
+    link_label: "Link do perfil / publicação", cost_label: "Custo do pedido",
+    launch_order: "Enviar pedido", logout: "Sair",
+    support_title: "Precisa de ajuda? Contate-nos em privado", support_sub: "Escolha uma mensagem rápida, ou escreva a sua.",
+    quality_title: "Serviços reais e confiáveis",
+    footer_rights: "Todos os direitos reservados",
   }
 };
 
 function detectLang(){
-  const saved = null; // (branché sur Firestore côté script.js si connecté)
   const nav = (navigator.language || navigator.userLanguage || 'fr').toLowerCase();
   if(nav.startsWith('en')) return 'en';
   if(nav.startsWith('sw')) return 'sw';
   if(nav.startsWith('ln')) return 'ln';
+  if(nav.startsWith('es')) return 'es';
+  if(nav.startsWith('it')) return 'it';
+  if(nav.startsWith('pt')) return 'pt';
   return 'fr';
 }
