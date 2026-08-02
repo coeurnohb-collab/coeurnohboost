@@ -376,16 +376,44 @@ function renderCombos(){
   `).join('');
 }
 
+let carouselIndex = 0;
+let carouselTimer = null;
 function renderTestimonials(){
   const el = document.getElementById('testimonials-grid');
+  const dotsEl = document.getElementById('carousel-dots');
   if(!el) return;
-  el.innerHTML = TESTIMONIALS.map(t => `
-    <div class="testimonial-card">
+  el.innerHTML = TESTIMONIALS.map((t,i) => `
+    <div class="testimonial-card ${i===0?'active':''}">
       <div class="stars">${'★'.repeat(t.rating)}${'☆'.repeat(5-t.rating)}</div>
       <p class="quote">"${t.text}"</p>
       <p class="author">— ${t.name}</p>
     </div>
   `).join('');
+  if(dotsEl){
+    dotsEl.innerHTML = TESTIMONIALS.map((_,i) => `<span class="dot ${i===0?'active':''}" onclick="goToCarousel(${i})"></span>`).join('');
+  }
+  carouselIndex = 0;
+  if(carouselTimer) clearInterval(carouselTimer);
+  carouselTimer = setInterval(()=>moveCarousel(1), 5000);
+}
+function moveCarousel(dir){
+  const total = TESTIMONIALS.length;
+  carouselIndex = (carouselIndex + dir + total) % total;
+  updateCarouselDisplay();
+}
+function goToCarousel(i){
+  carouselIndex = i;
+  updateCarouselDisplay();
+  if(carouselTimer) clearInterval(carouselTimer);
+  carouselTimer = setInterval(()=>moveCarousel(1), 5000);
+}
+function updateCarouselDisplay(){
+  document.querySelectorAll('#testimonials-grid .testimonial-card').forEach((el,i) => {
+    el.classList.toggle('active', i===carouselIndex);
+  });
+  document.querySelectorAll('#carousel-dots .dot').forEach((el,i) => {
+    el.classList.toggle('active', i===carouselIndex);
+  });
 }
 
 function renderPackagePlans(){
@@ -931,8 +959,61 @@ async function loadCatalogOverrides(){
   } catch(e){ console.warn("Pas de tarifs personnalisés trouvés :", e.message); }
 }
 
+/* =========================================================
+   COMPTEUR ANIMÉ (effet premium sur les statistiques)
+   ========================================================= */
+function animateCounters(){
+  document.querySelectorAll('.counter').forEach(el => {
+    const target = parseInt(el.dataset.target) || 0;
+    const suffix = el.dataset.suffix || '';
+    const duration = 1400;
+    const start = performance.now();
+    function tick(now){
+      const progress = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const value = Math.floor(eased * target);
+      el.textContent = value.toLocaleString('fr-FR') + suffix;
+      if(progress < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  });
+}
+
+/* =========================================================
+   RECHERCHE INTERNE
+   ========================================================= */
+function searchServices(query){
+  const resultsEl = document.getElementById('search-results');
+  if(!resultsEl) return;
+  query = query.trim().toLowerCase();
+  if(query.length < 2){ resultsEl.innerHTML = ''; resultsEl.classList.add('hidden'); return; }
+  const matches = [];
+  Object.entries(CATALOG).forEach(([platform, services]) => {
+    services.forEach(s => {
+      if(s.name.toLowerCase().includes(query) || platform.toLowerCase().includes(query)){
+        matches.push({platform, service:s.name});
+      }
+    });
+  });
+  if(matches.length === 0){
+    resultsEl.innerHTML = '<div class="search-result-item">Aucun résultat.</div>';
+  } else {
+    resultsEl.innerHTML = matches.slice(0,8).map(m =>
+      `<div class="search-result-item" onclick="requireLoginThenOrder('${m.platform}', ${JSON.stringify(m.service)})">${platformBadge(m.platform,18)} ${m.platform} — ${m.service}</div>`
+    ).join('');
+  }
+  resultsEl.classList.remove('hidden');
+}
+
 /* INIT */
 document.addEventListener('DOMContentLoaded', () => {
   applyTranslations();
   loadCatalogOverrides();
+  const statObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if(entry.isIntersecting){ animateCounters(); statObserver.disconnect(); }
+    });
+  }, {threshold:0.4});
+  const statStrip = document.querySelector('.stat-strip');
+  if(statStrip) statObserver.observe(statStrip);
 });
