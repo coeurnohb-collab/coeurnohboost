@@ -49,6 +49,23 @@ function platformBadge(name, size){
 }
 
 /* =========================================================
+   NOTIFICATIONS (toasts simples)
+   ========================================================= */
+function showNotification(message){
+  let container = document.getElementById('toast-container');
+  if(!container){
+    container = document.createElement('div');
+    container.id = 'toast-container';
+    document.body.appendChild(container);
+  }
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.textContent = message;
+  container.appendChild(toast);
+  setTimeout(()=>{ toast.classList.add('toast-out'); setTimeout(()=>toast.remove(), 400); }, 3200);
+}
+
+/* =========================================================
    CATALOGUE — 15 plateformes, deux qualités par service
    (Standard = économique / Premium = comptes réels haut de gamme)
    Prix pour 1000 unités, quantité libre calculée au prorata,
@@ -56,78 +73,78 @@ function platformBadge(name, size){
    ========================================================= */
 const DEFAULT_CATALOG = {
   TikTok: [
-    {name:"Followers", desc:"Croissance progressive", tiers:[{label:"Standard",price1k:2.5,min:100},{label:"Premium ⭐",price1k:6,min:50}]},
-    {name:"Vues vidéo", desc:"Livraison rapide 12-24h", tiers:[{label:"Standard",price1k:0.4,min:200},{label:"Premium ⭐",price1k:1.2,min:100}]},
-    {name:"Likes", desc:"Boost d'engagement instantané", tiers:[{label:"Standard",price1k:0.8,min:100},{label:"Premium ⭐",price1k:2,min:50}]},
-    {name:"Commentaires", desc:"Commentaires positifs variés", tiers:[{label:"Standard",price1k:5,min:10},{label:"Premium ⭐",price1k:11,min:10}]},
-    {name:"Partages", desc:"Amplifie la portée organique", tiers:[{label:"Standard",price1k:1.5,min:50},{label:"Premium ⭐",price1k:3.5,min:50}]},
+    {name:"Followers", desc:"Croissance progressive", tiers:[{label:"Standard",price1k:2.5,min:100},{label:"Premium ⭐",price1k:6,min:50},{label:"VIP 👑",price1k:9.6,min:50}]},
+    {name:"Vues vidéo", desc:"Livraison rapide 12-24h", tiers:[{label:"Standard",price1k:0.4,min:200},{label:"Premium ⭐",price1k:1.2,min:100},{label:"VIP 👑",price1k:1.9,min:100}]},
+    {name:"Likes", desc:"Boost d'engagement instantané", tiers:[{label:"Standard",price1k:0.8,min:100},{label:"Premium ⭐",price1k:2,min:50},{label:"VIP 👑",price1k:3.2,min:50}]},
+    {name:"Commentaires", desc:"Commentaires positifs variés", tiers:[{label:"Standard",price1k:5,min:10},{label:"Premium ⭐",price1k:11,min:10},{label:"VIP 👑",price1k:17.6,min:10}]},
+    {name:"Partages", desc:"Amplifie la portée organique", tiers:[{label:"Standard",price1k:1.5,min:50},{label:"Premium ⭐",price1k:3.5,min:50},{label:"VIP 👑",price1k:5.6,min:50}]},
   ],
   Instagram: [
-    {name:"Followers", desc:"Comptes actifs", tiers:[{label:"Standard",price1k:3,min:100},{label:"Premium ⭐",price1k:7,min:50}]},
-    {name:"Likes", desc:"Livraison en quelques heures", tiers:[{label:"Standard",price1k:0.8,min:100},{label:"Premium ⭐",price1k:2,min:50}]},
-    {name:"Vues Reels/Stories", desc:"Boost algorithme", tiers:[{label:"Standard",price1k:0.5,min:200},{label:"Premium ⭐",price1k:1.2,min:100}]},
-    {name:"Commentaires", desc:"Commentaires positifs variés", tiers:[{label:"Standard",price1k:5,min:10},{label:"Premium ⭐",price1k:11,min:10}]},
+    {name:"Followers", desc:"Comptes actifs", tiers:[{label:"Standard",price1k:3,min:100},{label:"Premium ⭐",price1k:7,min:50},{label:"VIP 👑",price1k:11.2,min:50}]},
+    {name:"Likes", desc:"Livraison en quelques heures", tiers:[{label:"Standard",price1k:0.8,min:100},{label:"Premium ⭐",price1k:2,min:50},{label:"VIP 👑",price1k:3.2,min:50}]},
+    {name:"Vues Reels/Stories", desc:"Boost algorithme", tiers:[{label:"Standard",price1k:0.5,min:200},{label:"Premium ⭐",price1k:1.2,min:100},{label:"VIP 👑",price1k:1.9,min:100}]},
+    {name:"Commentaires", desc:"Commentaires positifs variés", tiers:[{label:"Standard",price1k:5,min:10},{label:"Premium ⭐",price1k:11,min:10},{label:"VIP 👑",price1k:17.6,min:10}]},
   ],
   YouTube: [
-    {name:"Vues", desc:"Sources variées", tiers:[{label:"Standard",price1k:2,min:200},{label:"Premium ⭐ (rétention haute)",price1k:5,min:100}]},
-    {name:"Abonnés", desc:"Comptes actifs et stables", tiers:[{label:"Standard",price1k:5,min:100},{label:"Premium ⭐",price1k:11,min:50}]},
-    {name:"Likes vidéo", desc:"Renforce le taux d'engagement", tiers:[{label:"Standard",price1k:1.5,min:50},{label:"Premium ⭐",price1k:4,min:50}]},
-    {name:"Commentaires", desc:"Commentaires positifs variés", tiers:[{label:"Standard",price1k:6,min:10},{label:"Premium ⭐",price1k:13,min:10}]},
+    {name:"Vues", desc:"Sources variées", tiers:[{label:"Standard",price1k:2,min:200},{label:"Premium ⭐ (rétention haute)",price1k:5,min:100},{label:"VIP 👑",price1k:8,min:100}]},
+    {name:"Abonnés", desc:"Comptes actifs et stables", tiers:[{label:"Standard",price1k:5,min:100},{label:"Premium ⭐",price1k:11,min:50},{label:"VIP 👑",price1k:17.6,min:50}]},
+    {name:"Likes vidéo", desc:"Renforce le taux d'engagement", tiers:[{label:"Standard",price1k:1.5,min:50},{label:"Premium ⭐",price1k:4,min:50},{label:"VIP 👑",price1k:6.4,min:50}]},
+    {name:"Commentaires", desc:"Commentaires positifs variés", tiers:[{label:"Standard",price1k:6,min:10},{label:"Premium ⭐",price1k:13,min:10},{label:"VIP 👑",price1k:20.8,min:10}]},
   ],
   Facebook: [
-    {name:"Likes Page", desc:"Croissance progressive", tiers:[{label:"Standard",price1k:1.5,min:100},{label:"Premium ⭐",price1k:4,min:50}]},
-    {name:"Followers", desc:"Comptes réels", tiers:[{label:"Standard",price1k:2,min:100},{label:"Premium ⭐",price1k:5,min:50}]},
-    {name:"Vues vidéo", desc:"Boost de portée", tiers:[{label:"Standard",price1k:0.5,min:200},{label:"Premium ⭐",price1k:1.5,min:100}]},
-    {name:"Commentaires", desc:"Commentaires positifs variés", tiers:[{label:"Standard",price1k:5,min:10},{label:"Premium ⭐",price1k:11,min:10}]},
-    {name:"Partages", desc:"Amplifie la portée organique", tiers:[{label:"Standard",price1k:1.5,min:50},{label:"Premium ⭐",price1k:3.5,min:50}]},
+    {name:"Likes Page", desc:"Croissance progressive", tiers:[{label:"Standard",price1k:1.5,min:100},{label:"Premium ⭐",price1k:4,min:50},{label:"VIP 👑",price1k:6.4,min:50}]},
+    {name:"Followers", desc:"Comptes réels", tiers:[{label:"Standard",price1k:2,min:100},{label:"Premium ⭐",price1k:5,min:50},{label:"VIP 👑",price1k:8,min:50}]},
+    {name:"Vues vidéo", desc:"Boost de portée", tiers:[{label:"Standard",price1k:0.5,min:200},{label:"Premium ⭐",price1k:1.5,min:100},{label:"VIP 👑",price1k:2.4,min:100}]},
+    {name:"Commentaires", desc:"Commentaires positifs variés", tiers:[{label:"Standard",price1k:5,min:10},{label:"Premium ⭐",price1k:11,min:10},{label:"VIP 👑",price1k:17.6,min:10}]},
+    {name:"Partages", desc:"Amplifie la portée organique", tiers:[{label:"Standard",price1k:1.5,min:50},{label:"Premium ⭐",price1k:3.5,min:50},{label:"VIP 👑",price1k:5.6,min:50}]},
   ],
   Spotify: [
-    {name:"Écoutes (Plays)", desc:"Répartition naturelle sur tes titres", tiers:[{label:"Standard",price1k:1.5,min:200},{label:"Premium ⭐",price1k:3.5,min:100}]},
-    {name:"Auditeurs mensuels", desc:"Renforce ton profil artiste", tiers:[{label:"Standard",price1k:3,min:100},{label:"Premium ⭐",price1k:7,min:50}]},
-    {name:"Followers artiste", desc:"Croissance progressive", tiers:[{label:"Standard",price1k:2.5,min:100},{label:"Premium ⭐",price1k:6,min:50}]},
+    {name:"Écoutes (Plays)", desc:"Répartition naturelle sur tes titres", tiers:[{label:"Standard",price1k:1.5,min:200},{label:"Premium ⭐",price1k:3.5,min:100},{label:"VIP 👑",price1k:5.6,min:100}]},
+    {name:"Auditeurs mensuels", desc:"Renforce ton profil artiste", tiers:[{label:"Standard",price1k:3,min:100},{label:"Premium ⭐",price1k:7,min:50},{label:"VIP 👑",price1k:11.2,min:50}]},
+    {name:"Followers artiste", desc:"Croissance progressive", tiers:[{label:"Standard",price1k:2.5,min:100},{label:"Premium ⭐",price1k:6,min:50},{label:"VIP 👑",price1k:9.6,min:50}]},
   ],
   Shazam: [
-    {name:"Reconnaissances (Shazams)", desc:"Booste la découverte de ton titre", tiers:[{label:"Standard",price1k:3,min:100},{label:"Premium ⭐",price1k:6.5,min:50}]},
+    {name:"Reconnaissances (Shazams)", desc:"Booste la découverte de ton titre", tiers:[{label:"Standard",price1k:3,min:100},{label:"Premium ⭐",price1k:6.5,min:50},{label:"VIP 👑",price1k:10.4,min:50}]},
   ],
   Pinterest: [
-    {name:"Followers", desc:"Comptes actifs", tiers:[{label:"Standard",price1k:1.5,min:100},{label:"Premium ⭐",price1k:4,min:50}]},
-    {name:"Enregistrements (Saves)", desc:"Booste la portée de tes épingles", tiers:[{label:"Standard",price1k:1.5,min:100},{label:"Premium ⭐",price1k:3.5,min:100}]},
-    {name:"Vues", desc:"Visibilité accrue", tiers:[{label:"Standard",price1k:0.5,min:200},{label:"Premium ⭐",price1k:1.2,min:100}]},
+    {name:"Followers", desc:"Comptes actifs", tiers:[{label:"Standard",price1k:1.5,min:100},{label:"Premium ⭐",price1k:4,min:50},{label:"VIP 👑",price1k:6.4,min:50}]},
+    {name:"Enregistrements (Saves)", desc:"Booste la portée de tes épingles", tiers:[{label:"Standard",price1k:1.5,min:100},{label:"Premium ⭐",price1k:3.5,min:100},{label:"VIP 👑",price1k:5.6,min:100}]},
+    {name:"Vues", desc:"Visibilité accrue", tiers:[{label:"Standard",price1k:0.5,min:200},{label:"Premium ⭐",price1k:1.2,min:100},{label:"VIP 👑",price1k:1.9,min:100}]},
   ],
   Telegram: [
-    {name:"Membres groupe/chaîne", desc:"Comptes réels", tiers:[{label:"Standard",price1k:2.5,min:100},{label:"Premium ⭐",price1k:6,min:50}]},
-    {name:"Vues de publication", desc:"Boost de portée", tiers:[{label:"Standard",price1k:0.5,min:200},{label:"Premium ⭐",price1k:1.2,min:100}]},
+    {name:"Membres groupe/chaîne", desc:"Comptes réels", tiers:[{label:"Standard",price1k:2.5,min:100},{label:"Premium ⭐",price1k:6,min:50},{label:"VIP 👑",price1k:9.6,min:50}]},
+    {name:"Vues de publication", desc:"Boost de portée", tiers:[{label:"Standard",price1k:0.5,min:200},{label:"Premium ⭐",price1k:1.2,min:100},{label:"VIP 👑",price1k:1.9,min:100}]},
   ],
   WhatsApp: [
-    {name:"Membres groupe (via lien)", desc:"Croissance progressive", tiers:[{label:"Standard",price1k:3,min:20},{label:"Premium ⭐",price1k:7,min:20}]},
-    {name:"Vues de statut", desc:"Boost de visibilité", tiers:[{label:"Standard",price1k:1.5,min:50},{label:"Premium ⭐",price1k:4,min:50}]},
+    {name:"Membres groupe (via lien)", desc:"Croissance progressive", tiers:[{label:"Standard",price1k:3,min:20},{label:"Premium ⭐",price1k:7,min:20},{label:"VIP 👑",price1k:11.2,min:20}]},
+    {name:"Vues de statut", desc:"Boost de visibilité", tiers:[{label:"Standard",price1k:1.5,min:50},{label:"Premium ⭐",price1k:4,min:50},{label:"VIP 👑",price1k:6.4,min:50}]},
   ],
   Snapchat: [
-    {name:"Followers", desc:"Comptes actifs", tiers:[{label:"Standard",price1k:2.5,min:100},{label:"Premium ⭐",price1k:6,min:50}]},
-    {name:"Vues Snap", desc:"Boost de visibilité", tiers:[{label:"Standard",price1k:1,min:200},{label:"Premium ⭐",price1k:2.5,min:100}]},
+    {name:"Followers", desc:"Comptes actifs", tiers:[{label:"Standard",price1k:2.5,min:100},{label:"Premium ⭐",price1k:6,min:50},{label:"VIP 👑",price1k:9.6,min:50}]},
+    {name:"Vues Snap", desc:"Boost de visibilité", tiers:[{label:"Standard",price1k:1,min:200},{label:"Premium ⭐",price1k:2.5,min:100},{label:"VIP 👑",price1k:4,min:100}]},
   ],
   X: [
-    {name:"Followers", desc:"Comptes actifs", tiers:[{label:"Standard",price1k:3,min:100},{label:"Premium ⭐",price1k:7,min:50}]},
-    {name:"Likes", desc:"Boost d'engagement", tiers:[{label:"Standard",price1k:1,min:100},{label:"Premium ⭐",price1k:2.5,min:50}]},
-    {name:"Retweets", desc:"Amplifie la portée", tiers:[{label:"Standard",price1k:1.5,min:50},{label:"Premium ⭐",price1k:3.5,min:50}]},
-    {name:"Vues", desc:"Visibilité accrue", tiers:[{label:"Standard",price1k:0.5,min:200},{label:"Premium ⭐",price1k:1.2,min:100}]},
+    {name:"Followers", desc:"Comptes actifs", tiers:[{label:"Standard",price1k:3,min:100},{label:"Premium ⭐",price1k:7,min:50},{label:"VIP 👑",price1k:11.2,min:50}]},
+    {name:"Likes", desc:"Boost d'engagement", tiers:[{label:"Standard",price1k:1,min:100},{label:"Premium ⭐",price1k:2.5,min:50},{label:"VIP 👑",price1k:4,min:50}]},
+    {name:"Retweets", desc:"Amplifie la portée", tiers:[{label:"Standard",price1k:1.5,min:50},{label:"Premium ⭐",price1k:3.5,min:50},{label:"VIP 👑",price1k:5.6,min:50}]},
+    {name:"Vues", desc:"Visibilité accrue", tiers:[{label:"Standard",price1k:0.5,min:200},{label:"Premium ⭐",price1k:1.2,min:100},{label:"VIP 👑",price1k:1.9,min:100}]},
   ],
   LinkedIn: [
-    {name:"Followers", desc:"Profil ou page entreprise", tiers:[{label:"Standard",price1k:3.5,min:100},{label:"Premium ⭐",price1k:8,min:50}]},
-    {name:"Vues de publication", desc:"Boost professionnel", tiers:[{label:"Standard",price1k:1.5,min:100},{label:"Premium ⭐",price1k:4,min:100}]},
-    {name:"Réactions", desc:"Renforce l'engagement", tiers:[{label:"Standard",price1k:1.5,min:50},{label:"Premium ⭐",price1k:4,min:50}]},
+    {name:"Followers", desc:"Profil ou page entreprise", tiers:[{label:"Standard",price1k:3.5,min:100},{label:"Premium ⭐",price1k:8,min:50},{label:"VIP 👑",price1k:12.8,min:50}]},
+    {name:"Vues de publication", desc:"Boost professionnel", tiers:[{label:"Standard",price1k:1.5,min:100},{label:"Premium ⭐",price1k:4,min:100},{label:"VIP 👑",price1k:6.4,min:100}]},
+    {name:"Réactions", desc:"Renforce l'engagement", tiers:[{label:"Standard",price1k:1.5,min:50},{label:"Premium ⭐",price1k:4,min:50},{label:"VIP 👑",price1k:6.4,min:50}]},
   ],
   SoundCloud: [
-    {name:"Écoutes", desc:"Répartition naturelle", tiers:[{label:"Standard",price1k:1,min:200},{label:"Premium ⭐",price1k:2.5,min:100}]},
-    {name:"Followers", desc:"Croissance progressive", tiers:[{label:"Standard",price1k:2.5,min:100},{label:"Premium ⭐",price1k:6,min:50}]},
-    {name:"Likes", desc:"Boost d'engagement", tiers:[{label:"Standard",price1k:1,min:100},{label:"Premium ⭐",price1k:2.5,min:50}]},
+    {name:"Écoutes", desc:"Répartition naturelle", tiers:[{label:"Standard",price1k:1,min:200},{label:"Premium ⭐",price1k:2.5,min:100},{label:"VIP 👑",price1k:4,min:100}]},
+    {name:"Followers", desc:"Croissance progressive", tiers:[{label:"Standard",price1k:2.5,min:100},{label:"Premium ⭐",price1k:6,min:50},{label:"VIP 👑",price1k:9.6,min:50}]},
+    {name:"Likes", desc:"Boost d'engagement", tiers:[{label:"Standard",price1k:1,min:100},{label:"Premium ⭐",price1k:2.5,min:50},{label:"VIP 👑",price1k:4,min:50}]},
   ],
   "Apple Music": [
-    {name:"Écoutes", desc:"Répartition naturelle sur tes titres", tiers:[{label:"Standard",price1k:2.5,min:200},{label:"Premium ⭐",price1k:5.5,min:100}]},
+    {name:"Écoutes", desc:"Répartition naturelle sur tes titres", tiers:[{label:"Standard",price1k:2.5,min:200},{label:"Premium ⭐",price1k:5.5,min:100},{label:"VIP 👑",price1k:8.8,min:100}]},
   ],
   Audiomack: [
-    {name:"Écoutes", desc:"Répartition naturelle", tiers:[{label:"Standard",price1k:1.5,min:200},{label:"Premium ⭐",price1k:3.5,min:100}]},
-    {name:"Followers", desc:"Croissance progressive", tiers:[{label:"Standard",price1k:2,min:100},{label:"Premium ⭐",price1k:4.5,min:50}]},
+    {name:"Écoutes", desc:"Répartition naturelle", tiers:[{label:"Standard",price1k:1.5,min:200},{label:"Premium ⭐",price1k:3.5,min:100},{label:"VIP 👑",price1k:5.6,min:100}]},
+    {name:"Followers", desc:"Croissance progressive", tiers:[{label:"Standard",price1k:2,min:100},{label:"Premium ⭐",price1k:4.5,min:50},{label:"VIP 👑",price1k:7.2,min:50}]},
   ],
 };
 
@@ -158,8 +175,52 @@ const TESTIMONIALS = [
 ];
 
 /* =========================================================
-   LANGUE
+   RÉSEAUX MOBILE MONEY PAR PAYS
    ========================================================= */
+const COUNTRY_NETWORKS = {
+  "RDC 🇨🇩": ["Vodacom M-Pesa", "Airtel Money", "Orange Money"],
+  "Congo-Brazzaville 🇨🇬": ["Airtel Money", "MTN MoMo"],
+  "Cameroun 🇨🇲": ["Orange Money", "MTN MoMo"],
+  "Côte d'Ivoire 🇨🇮": ["Orange Money", "MTN MoMo", "Moov Money"],
+  "Sénégal 🇸🇳": ["Orange Money", "Wave", "Free Money"],
+  "Kenya 🇰🇪": ["Safaricom M-Pesa", "Airtel Money"],
+  "Afrique du Sud 🇿🇦": ["MTN MoMo", "Vodacom M-Pesa"],
+  "Nigeria 🇳🇬": ["MTN MoMo", "Opay", "Palmpay"],
+  "Ghana 🇬🇭": ["MTN MoMo", "AirtelTigo Money", "Vodafone Cash"],
+};
+
+/* =========================================================
+   TAUX DE CHANGE APPROXIMATIFS (référence, pas temps réel)
+   1 USD ≈ ... — à mettre à jour périodiquement, l'affichage
+   est indicatif seulement, la monnaie de référence reste le $.
+   ========================================================= */
+const CURRENCY_RATES = {
+  "RDC 🇨🇩": {code:"CDF", rate:2870},
+  "Congo-Brazzaville 🇨🇬": {code:"XAF", rate:610},
+  "Cameroun 🇨🇲": {code:"XAF", rate:610},
+  "Côte d'Ivoire 🇨🇮": {code:"XOF", rate:610},
+  "Sénégal 🇸🇳": {code:"XOF", rate:610},
+  "Kenya 🇰🇪": {code:"KES", rate:129},
+  "Afrique du Sud 🇿🇦": {code:"ZAR", rate:18},
+  "Nigeria 🇳🇬": {code:"NGN", rate:1600},
+  "Ghana 🇬🇭": {code:"GHS", rate:15},
+};
+let selectedCountry = "RDC 🇨🇩";
+function convertToLocal(usdAmount){
+  const rateInfo = CURRENCY_RATES[selectedCountry];
+  if(!rateInfo) return '';
+  const local = (usdAmount * rateInfo.rate).toLocaleString('fr-FR', {maximumFractionDigits:0});
+  return `≈ ${local} ${rateInfo.code}`;
+}
+
+/* =========================================================
+   PACKS STARTER / PRO / BUSINESS — achats simplifiés
+   ========================================================= */
+const PACKAGE_PLANS = [
+  {name:"Starter", tagline:"Pour démarrer", price:15, includes:["1 plateforme au choix","1000 unités qualité Standard","Support WhatsApp"]},
+  {name:"Pro", tagline:"Le plus populaire", price:45, includes:["2 plateformes au choix","3000 unités qualité Premium","Support prioritaire","1 pack combiné offert"], featured:true},
+  {name:"Business", tagline:"Pour les marques", price:120, includes:["4 plateformes au choix","10 000 unités qualité VIP","Support dédié 7j/7","2 packs combinés offerts","Rapport de performance mensuel"]},
+];
 let currentLang = detectLang();
 
 function t(key){ return (I18N[currentLang] && I18N[currentLang][key]) || I18N.fr[key] || key; }
@@ -172,7 +233,7 @@ function applyTranslations(){
     el.placeholder = t(el.dataset.i18nPlaceholder);
   });
   document.getElementById('lang-current').textContent = currentLang.toUpperCase();
-  renderTabs(); renderServices(); renderMonetization(); renderCombos(); renderTestimonials();
+  renderTabs(); renderServices(); renderMonetization(); renderCombos(); renderTestimonials(); renderPackagePlans();
   renderAppNavLabels();
 }
 function setLang(lang){
@@ -214,17 +275,18 @@ function renderServices(){
   if(!grid) return;
   const icon = platformBadge(currentTab);
   grid.innerHTML = CATALOG[currentTab].map(s => {
-    const stdTier = s.tiers[0];
-    const premTier = s.tiers[s.tiers.length-1];
+    const tierRows = s.tiers.map((tier, i) => {
+      let cls = '';
+      if(i === s.tiers.length-1 && s.tiers.length===3) cls='vip';
+      else if(i === s.tiers.length-1 && s.tiers.length>1) cls='premium';
+      return `<div class="tier-row ${cls}"><span>${tier.label}</span><strong>${tier.price1k}$ /1000</strong></div>`;
+    }).join('');
     return `
     <div class="svc-card">
       <span class="tag">${icon} ${currentTab}</span>
       <h3>${s.name}</h3>
       <p class="desc">${s.desc}</p>
-      <div class="tier-prices">
-        <div class="tier-row"><span>${stdTier.label}</span><strong>${stdTier.price1k}$ /1000</strong></div>
-        <div class="tier-row premium"><span>${premTier.label}</span><strong>${premTier.price1k}$ /1000</strong></div>
-      </div>
+      <div class="tier-prices">${tierRows}</div>
       <button onclick="requireLoginThenOrder('${currentTab}',${JSON.stringify(s.name)})">${t('order_btn')}</button>
     </div>`;
   }).join('');
@@ -264,11 +326,26 @@ function renderCombos(){
 function renderTestimonials(){
   const el = document.getElementById('testimonials-grid');
   if(!el) return;
-  el.innerHTML = TESTIMONIALS.map(tm => `
+  el.innerHTML = TESTIMONIALS.map(t => `
     <div class="testimonial-card">
-      <div class="stars">${'⭐'.repeat(tm.rating)}</div>
-      <p class="quote">"${tm.text}"</p>
-      <p class="author">— ${tm.name}</p>
+      <div class="stars">${'★'.repeat(t.rating)}${'☆'.repeat(5-t.rating)}</div>
+      <p class="quote">"${t.text}"</p>
+      <p class="author">— ${t.name}</p>
+    </div>
+  `).join('');
+}
+
+function renderPackagePlans(){
+  const el = document.getElementById('plans-grid');
+  if(!el) return;
+  el.innerHTML = PACKAGE_PLANS.map(p => `
+    <div class="plan-card ${p.featured?'featured':''}">
+      ${p.featured ? '<span class="plan-badge">Le plus populaire</span>' : ''}
+      <h3>${p.name}</h3>
+      <p class="tagline">${p.tagline}</p>
+      <div class="plan-price">${p.price}$</div>
+      <ul>${p.includes.map(i => `<li>✓ ${i}</li>`).join('')}</ul>
+      <a href="https://wa.me/243825001290?text=${encodeURIComponent('Bonjour, je veux le pack '+p.name+' ('+p.price+'$)')}" class="btn ${p.featured?'btn-gold':'btn-outline'}" style="justify-content:center;padding:12px;border-radius:100px;font-weight:700">Choisir ${p.name}</a>
     </div>
   `).join('');
 }
@@ -301,6 +378,7 @@ function switchAppView(view){
   document.getElementById('app-view-title').textContent = titles[view];
   if(view==='commande'){ renderTabs(); if(!document.getElementById('d-service').value) populateDashServiceSelect(currentTab, null); }
   if(view==='activites') loadOrders();
+  if(view==='portefeuille') renderCountrySelect();
 }
 
 /* =========================================================
@@ -364,7 +442,7 @@ function logout(){ if(fbReady) auth.signOut(); exitApp(); }
    Lien: tonsite.com/?ref=UID — commission créditée automatiquement
    sur la 1ère recharge du filleul (10% par défaut, ajustable ici)
    ========================================================= */
-const REFERRAL_COMMISSION_RATE = 0.10;
+const REFERRAL_COMMISSION_RATE = 0.05;
 function getReferralCodeFromURL(){
   const params = new URLSearchParams(window.location.search);
   return params.get('ref') || null;
@@ -406,6 +484,7 @@ if(fbReady){
       document.getElementById('profile-since').textContent = new Date(currentUser.createdAt).toLocaleDateString('fr-FR');
       const langSelect = document.getElementById('profile-lang');
       if(langSelect) langSelect.value = currentLang;
+      document.body.classList.toggle('dark-mode', !!data.darkMode);
       updateBalanceDisplays();
       applyTranslations();
       switchAppView('accueil');
@@ -424,6 +503,8 @@ function updateBalanceDisplays(){
   const navBal = document.getElementById('nav-balance'); if(navBal) navBal.textContent = bal + '$';
   const dashBal = document.getElementById('dash-balance'); if(dashBal) dashBal.textContent = bal + '$';
   const dashBal2 = document.getElementById('dash-balance-2'); if(dashBal2) dashBal2.textContent = bal + '$';
+  const ptsEl = document.getElementById('loyalty-points-display');
+  if(ptsEl) ptsEl.textContent = (currentUser?.loyaltyPoints || 0) + ' pts';
 }
 
 /* =========================================================
@@ -440,6 +521,51 @@ function selectNetwork(el){
   el.classList.add('selected'); selectedNetwork = el.dataset.net;
   const note = document.getElementById('card-note');
   if(note) note.classList.toggle('hidden', selectedNetwork !== 'card');
+}
+
+function renderCountrySelect(){
+  const select = document.getElementById('country-select');
+  if(!select) return;
+  select.innerHTML = Object.keys(COUNTRY_NETWORKS).map(c => `<option value="${c}">${c}</option>`).join('');
+  select.value = selectedCountry;
+  renderMobileNetworks();
+  updateLocalConversion();
+}
+function onCountryChange(){
+  selectedCountry = document.getElementById('country-select').value;
+  renderMobileNetworks();
+  updateLocalConversion();
+}
+function renderMobileNetworks(){
+  const grid = document.getElementById('mobile-networks-grid');
+  if(!grid) return;
+  const networks = COUNTRY_NETWORKS[selectedCountry] || [];
+  grid.innerHTML = networks.map(n =>
+    `<div class="pay-opt" data-net="${n.toLowerCase().replace(/\s+/g,'-')}" onclick="selectNetwork(this)">📱 ${n}</div>`
+  ).join('');
+}
+function updateLocalConversion(){
+  const el = document.getElementById('local-conversion');
+  if(!el) return;
+  const amount = parseFloat(document.getElementById('deposit-amount').value) || 0;
+  el.textContent = amount > 0 ? convertToLocal(amount) + " (taux indicatif, susceptible de varier)" : '';
+}
+
+async function redeemLoyaltyPoints(){
+  const msgEl = document.getElementById('redeem-msg');
+  if(!currentUser){ openAuth('login'); return; }
+  const points = currentUser.loyaltyPoints || 0;
+  if(points < 100){ msgEl.textContent = "Il te faut au moins 100 points pour convertir (tu en as " + points + ")."; msgEl.style.color = 'var(--red)'; return; }
+  const credit = Math.floor(points / 100);
+  const usedPoints = credit * 100;
+  const newBalance = (currentUser.balance||0) + credit;
+  const newPoints = points - usedPoints;
+  await db.collection('users').doc(currentUser.uid).update({balance:newBalance, loyaltyPoints:newPoints});
+  currentUser.balance = newBalance;
+  currentUser.loyaltyPoints = newPoints;
+  updateBalanceDisplays();
+  msgEl.textContent = `✅ ${usedPoints} points convertis en ${credit}$ de crédit !`;
+  msgEl.style.color = 'var(--green)';
 }
 
 // Fonction "stub" représentant l'appel à l'API de paiement.
@@ -467,20 +593,18 @@ async function submitDeposit(){
   await db.collection('deposits').add({uid: currentUser.uid, amount, network: selectedNetwork, phone, status: 'pending', createdAt: new Date().toISOString()});
   const result = await callPaymentGateway({amount, phone, network:selectedNetwork});
   if(result.success){
-    await creditReferralCommissionIfFirstDeposit(amount);
-    alert("Paiement confirmé, ton solde a été crédité.");
+    showNotification("✅ Paiement reçu — solde crédité !");
   } else {
-    alert("Demande de recharge enregistrée (" + amount + "$ via " + selectedNetwork + "). Une fois ta passerelle de paiement connectée, le solde se créditera automatiquement ; pour l'instant, confirme avec le support si besoin.");
+    showNotification("⏳ Demande de recharge enregistrée. Confirme avec le support si besoin.");
   }
 }
 
-// Crédite automatiquement le parrain (10% par défaut) à la 1ère recharge du filleul.
-// S'active une fois callPaymentGateway() connecté à une vraie passerelle (result.success = true).
-async function creditReferralCommissionIfFirstDeposit(amount){
+// Crédite automatiquement le parrain (5%) à la 1ère COMMANDE du filleul (une seule fois).
+async function creditReferralCommissionIfFirstOrder(orderAmount){
   if(!currentUser.referredBy) return;
-  const priorDeposits = await db.collection('deposits').where('uid','==',currentUser.uid).get();
-  if(priorDeposits.size > 1) return; // pas le premier dépôt
-  const commission = amount * REFERRAL_COMMISSION_RATE;
+  const priorOrders = await db.collection('orders').where('uid','==',currentUser.uid).get();
+  if(priorOrders.size > 1) return; // pas la première commande
+  const commission = orderAmount * REFERRAL_COMMISSION_RATE;
   const referrerRef = db.collection('users').doc(currentUser.referredBy);
   const referrerDoc = await referrerRef.get();
   if(referrerDoc.exists){
@@ -564,41 +688,88 @@ async function placeOrder(){
   const cost = sel.tier.price1k * (qty/1000);
 
   if(!link){ msgEl.textContent = "Ajoute le lien du profil/publication."; msgEl.style.color='var(--red)'; return; }
+  if(!isValidLink(link)){ msgEl.textContent = "Ce lien ne semble pas valide (doit commencer par http:// ou https://)."; msgEl.style.color='var(--red)'; return; }
   if(cost > (currentUser.balance||0)){ msgEl.textContent = "Solde insuffisant — recharge ton portefeuille."; msgEl.style.color='var(--red)'; return; }
 
+  const pointsEarned = Math.max(1, Math.round(cost));
   const newBalance = currentUser.balance - cost;
-  await db.collection('users').doc(currentUser.uid).update({balance:newBalance});
+  const newPoints = (currentUser.loyaltyPoints||0) + pointsEarned;
+  await db.collection('users').doc(currentUser.uid).update({balance:newBalance, loyaltyPoints:newPoints});
   currentUser.balance = newBalance;
+  currentUser.loyaltyPoints = newPoints;
   updateBalanceDisplays();
 
   await db.collection('orders').add({uid: currentUser.uid, platform: sel.platform, service: sel.name, quality: sel.tier.label, qty, link, amount: cost, status: 'pending', createdAt: new Date().toISOString()});
+  await creditReferralCommissionIfFirstOrder(cost);
 
   msgEl.textContent = "Commande envoyée ! Suivi disponible dans Activités.";
   msgEl.style.color = 'var(--green)';
   document.getElementById('d-link').value = '';
+  showNotification(`✅ Commande validée — +${pointsEarned} points fidélité`);
   loadOrders();
 }
 
-async function loadOrders(){
+// Vérification simple de conformité du lien avant commande (criblage basique)
+function isValidLink(link){
+  try{
+    const url = new URL(link);
+    return url.protocol === 'http:' || url.protocol === 'https:';
+  } catch(e){ return false; }
+}
+
+let ordersUnsubscribe = null;
+function loadOrders(){
   if(!currentUser || !db) return;
-  const snap = await db.collection('orders').where('uid','==',currentUser.uid).orderBy('createdAt','desc').limit(20).get();
-  const tbody = document.getElementById('orders-table');
-  if(snap.empty){
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted)">Aucune commande pour le moment</td></tr>';
-    document.getElementById('dash-order-count').textContent = '0';
-    return;
-  }
-  document.getElementById('dash-order-count').textContent = snap.size;
-  tbody.innerHTML = snap.docs.map(d => {
-    const o = d.data();
-    const date = new Date(o.createdAt).toLocaleDateString('fr-FR');
-    return `<tr><td>${date}</td><td>${o.platform} — ${o.service}</td><td>${o.qty}</td><td>${o.amount.toFixed(2)}$</td><td><span class="status ${o.status==='done'?'done':'pending'}">${o.status==='done'?'Livré':'En cours'}</span></td></tr>`;
-  }).join('');
+  if(ordersUnsubscribe) ordersUnsubscribe(); // évite les doublons d'écouteurs
+  ordersUnsubscribe = db.collection('orders').where('uid','==',currentUser.uid).orderBy('createdAt','desc').limit(20)
+    .onSnapshot(snap => {
+      const tbody = document.getElementById('orders-table');
+      if(!tbody) return;
+      if(snap.empty){
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted)">Aucune commande pour le moment</td></tr>';
+        document.getElementById('dash-order-count').textContent = '0';
+        return;
+      }
+      document.getElementById('dash-order-count').textContent = snap.size;
+      tbody.innerHTML = snap.docs.map(d => {
+        const o = d.data();
+        const date = new Date(o.createdAt).toLocaleDateString('fr-FR');
+        return `<tr><td>${date}</td><td>${o.platform} — ${o.service}</td><td>${o.qty}</td><td>${o.amount.toFixed(2)}$</td><td><span class="status ${o.status==='done'?'done':'pending'}">${o.status==='done'?'Livré':'En cours'}</span></td></tr>`;
+      }).join('');
+    }, err => console.warn("Suivi temps réel indisponible :", err.message));
 }
 
 /* =========================================================
    SUPPORT — messages rapides + formulaire de contact
    ========================================================= */
+/* =========================================================
+   MODE SOMBRE / CLAIR — préférence stockée sur le profil si
+   connecté (pas de localStorage, non supporté dans cet environnement)
+   ========================================================= */
+function toggleDarkMode(){
+  const isDark = document.body.classList.toggle('dark-mode');
+  if(currentUser && db){
+    db.collection('users').doc(currentUser.uid).update({darkMode:isDark}).catch(()=>{});
+  }
+}
+
+/* =========================================================
+   PARTAGE DU SITE
+   ========================================================= */
+function shareSite(){
+  const url = window.location.origin + window.location.pathname;
+  const shareData = {title:"Coeurnoh Boost", text:"Fais grandir ta présence sur les réseaux sociaux avec Coeurnoh Boost !", url};
+  if(navigator.share){
+    navigator.share(shareData).catch(()=>{});
+  } else {
+    navigator.clipboard.writeText(url).then(()=>{
+      showNotification("🔗 Lien du site copié !");
+    }).catch(()=>{
+      alert(url);
+    });
+  }
+}
+
 function contactSupport(prefilledMessage){
   const base = "https://wa.me/243825001290?text=";
   const text = prefilledMessage ? prefilledMessage : "Bonjour, j'ai une question concernant mon compte Coeurnoh Boost.";
