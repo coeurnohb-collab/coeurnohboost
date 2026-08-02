@@ -17,7 +17,7 @@ const auth = fbReady ? firebase.auth() : null;
 const db = fbReady ? firebase.firestore() : null;
 
 // Remplace par ton propre UID Firebase une fois connecté (pour débloquer /admin.html)
-const ADMIN_UID = "REPLACE_WITH_YOUR_UID";
+const ADMIN_UID = "8BqWONj07hVZePHe2DrkHWYRjse2";
 
 /* =========================================================
    BADGES DE PLATEFORME — monogrammes aux couleurs de marque
