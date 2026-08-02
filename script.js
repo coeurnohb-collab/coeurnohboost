@@ -180,9 +180,29 @@ const TESTIMONIALS = [
 const COUNTRY_NETWORKS = {
   "RDC 🇨🇩": ["Vodacom M-Pesa", "Airtel Money", "Orange Money"],
   "Congo-Brazzaville 🇨🇬": ["Airtel Money", "MTN MoMo"],
+  "République Centrafricaine 🇨🇫": ["Orange Money", "MTN MoMo"],
+  "Soudan du Sud 🇸🇸": ["MTN MoMo", "Zain Cash"],
+  "Ouganda 🇺🇬": ["MTN MoMo", "Airtel Money"],
+  "Rwanda 🇷🇼": ["MTN MoMo", "Airtel Money"],
+  "Burundi 🇧🇮": ["Lumicash", "Ecocash"],
+  "Zambie 🇿🇲": ["MTN MoMo", "Airtel Money"],
+  "Angola 🇦🇴": ["Unitel Money", "Afrimoney"],
+  "Tanzanie 🇹🇿": ["Vodacom M-Pesa", "Airtel Money", "Tigo Pesa"],
   "Cameroun 🇨🇲": ["Orange Money", "MTN MoMo"],
-  "Côte d'Ivoire 🇨🇮": ["Orange Money", "MTN MoMo", "Moov Money"],
+  "Gabon 🇬🇦": ["Airtel Money", "Moov Money"],
+  "Tchad 🇹🇩": ["Airtel Money", "Moov Money"],
+  "Guinée Équatoriale 🇬🇶": ["Orange Money"],
+  "Côte d'Ivoire 🇨🇮": ["Orange Money", "MTN MoMo", "Moov Money", "Wave"],
   "Sénégal 🇸🇳": ["Orange Money", "Wave", "Free Money"],
+  "Mali 🇲🇱": ["Orange Money", "Moov Money", "Wave"],
+  "Burkina Faso 🇧🇫": ["Orange Money", "Moov Money"],
+  "Niger 🇳🇪": ["Orange Money", "Moov Money"],
+  "Togo 🇹🇬": ["Moov Money", "T-Money"],
+  "Bénin 🇧🇯": ["MTN MoMo", "Moov Money"],
+  "Guinée 🇬🇳": ["Orange Money", "MTN MoMo"],
+  "Madagascar 🇲🇬": ["Orange Money", "Mvola", "Airtel Money"],
+  "Djibouti 🇩🇯": ["Waafi", "D-Money"],
+  "Comores 🇰🇲": ["Mvola"],
   "Kenya 🇰🇪": ["Safaricom M-Pesa", "Airtel Money"],
   "Afrique du Sud 🇿🇦": ["MTN MoMo", "Vodacom M-Pesa"],
   "Nigeria 🇳🇬": ["MTN MoMo", "Opay", "Palmpay"],
@@ -197,9 +217,29 @@ const COUNTRY_NETWORKS = {
 const CURRENCY_RATES = {
   "RDC 🇨🇩": {code:"CDF", rate:2870},
   "Congo-Brazzaville 🇨🇬": {code:"XAF", rate:610},
+  "République Centrafricaine 🇨🇫": {code:"XAF", rate:610},
+  "Soudan du Sud 🇸🇸": {code:"SSP", rate:130},
+  "Ouganda 🇺🇬": {code:"UGX", rate:3700},
+  "Rwanda 🇷🇼": {code:"RWF", rate:1360},
+  "Burundi 🇧🇮": {code:"BIF", rate:2870},
+  "Zambie 🇿🇲": {code:"ZMW", rate:27},
+  "Angola 🇦🇴": {code:"AOA", rate:920},
+  "Tanzanie 🇹🇿": {code:"TZS", rate:2600},
   "Cameroun 🇨🇲": {code:"XAF", rate:610},
+  "Gabon 🇬🇦": {code:"XAF", rate:610},
+  "Tchad 🇹🇩": {code:"XAF", rate:610},
+  "Guinée Équatoriale 🇬🇶": {code:"XAF", rate:610},
   "Côte d'Ivoire 🇨🇮": {code:"XOF", rate:610},
   "Sénégal 🇸🇳": {code:"XOF", rate:610},
+  "Mali 🇲🇱": {code:"XOF", rate:610},
+  "Burkina Faso 🇧🇫": {code:"XOF", rate:610},
+  "Niger 🇳🇪": {code:"XOF", rate:610},
+  "Togo 🇹🇬": {code:"XOF", rate:610},
+  "Bénin 🇧🇯": {code:"XOF", rate:610},
+  "Guinée 🇬🇳": {code:"GNF", rate:8600},
+  "Madagascar 🇲🇬": {code:"MGA", rate:4500},
+  "Djibouti 🇩🇯": {code:"DJF", rate:178},
+  "Comores 🇰🇲": {code:"KMF", rate:450},
   "Kenya 🇰🇪": {code:"KES", rate:129},
   "Afrique du Sud 🇿🇦": {code:"ZAR", rate:18},
   "Nigeria 🇳🇬": {code:"NGN", rate:1600},
@@ -346,6 +386,27 @@ function renderPackagePlans(){
       <div class="plan-price">${p.price}$</div>
       <ul>${p.includes.map(i => `<li>✓ ${i}</li>`).join('')}</ul>
       <a href="https://wa.me/243825001290?text=${encodeURIComponent('Bonjour, je veux le pack '+p.name+' ('+p.price+'$)')}" class="btn ${p.featured?'btn-gold':'btn-outline'}" style="justify-content:center;padding:12px;border-radius:100px;font-weight:700">Choisir ${p.name}</a>
+    </div>
+  `).join('');
+}
+
+function switchOrderMode(mode){
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode===mode));
+  document.getElementById('order-mode-boost').classList.toggle('hidden', mode!=='boost');
+  document.getElementById('order-mode-mon').classList.toggle('hidden', mode!=='mon');
+  if(mode==='mon') renderDashMonetization();
+}
+function renderDashMonetization(){
+  const el = document.getElementById('dash-mon-grid');
+  if(!el) return;
+  el.innerHTML = MONETIZATION_PACKS.map(p => `
+    <div class="mon-card">
+      <span style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--gold);font-weight:700">💎 Pack monétisation</span>
+      <h3>${p.name}</h3>
+      <p class="desc">${p.desc}</p>
+      <p class="criteria">📋 ${p.criteria}</p>
+      <div class="price">${p.price}$</div>
+      <button onclick="contactSupport('Bonjour, je veux le pack : ${p.name} (${p.price}\$)')">Commander ce pack</button>
     </div>
   `).join('');
 }
@@ -656,17 +717,22 @@ function getSelectedTier(){
   const tierIndex = parseInt(qualitySelect.value) || 0;
   return {platform:chosen.platform, name:svc.name, tier:svc.tiers[tierIndex]};
 }
+const TARGETING_MULTIPLIERS = {
+  none:1, france:1.4, canada:1.4, belgique:1.4, afrique:1.15, nigeria:1.2, rdc:1.15, usa:1.45
+};
 function updateOrderCost(){
   const sel = getSelectedTier();
   if(!sel) return;
   const qty = Math.max(sel.tier.min||10, parseInt(document.getElementById('d-qty').value) || sel.tier.min || 10);
-  const cost = sel.tier.price1k * (qty/1000);
+  const targetEl = document.getElementById('d-targeting');
+  const multiplier = TARGETING_MULTIPLIERS[targetEl ? targetEl.value : 'none'] || 1;
+  const cost = sel.tier.price1k * (qty/1000) * multiplier;
   document.getElementById('d-cost').textContent = cost.toFixed(2) + '$';
 
   const upsellEl = document.getElementById('upsell-suggestion');
   if(upsellEl){
     const doubleQty = qty * 2;
-    const doubleCost = sel.tier.price1k * (doubleQty/1000);
+    const doubleCost = sel.tier.price1k * (doubleQty/1000) * multiplier;
     const extra = (doubleCost - cost).toFixed(2);
     upsellEl.innerHTML = `Envie de plus d'impact ? Double ta quantité (${doubleQty}) pour seulement <strong>+${extra}$</strong> de plus.
       <button type="button" onclick="applyUpsell(${doubleQty})">Doubler ma commande</button>`;
@@ -685,7 +751,10 @@ async function placeOrder(){
   if(!sel){ msgEl.textContent = "Choisis un service."; msgEl.style.color='var(--red)'; return; }
   const qty = Math.max(sel.tier.min||10, parseInt(document.getElementById('d-qty').value) || sel.tier.min || 10);
   const link = document.getElementById('d-link').value.trim();
-  const cost = sel.tier.price1k * (qty/1000);
+  const targetEl = document.getElementById('d-targeting');
+  const targeting = targetEl ? targetEl.value : 'none';
+  const multiplier = TARGETING_MULTIPLIERS[targeting] || 1;
+  const cost = sel.tier.price1k * (qty/1000) * multiplier;
 
   if(!link){ msgEl.textContent = "Ajoute le lien du profil/publication."; msgEl.style.color='var(--red)'; return; }
   if(!isValidLink(link)){ msgEl.textContent = "Ce lien ne semble pas valide (doit commencer par http:// ou https://)."; msgEl.style.color='var(--red)'; return; }
@@ -699,7 +768,7 @@ async function placeOrder(){
   currentUser.loyaltyPoints = newPoints;
   updateBalanceDisplays();
 
-  await db.collection('orders').add({uid: currentUser.uid, platform: sel.platform, service: sel.name, quality: sel.tier.label, qty, link, amount: cost, status: 'pending', createdAt: new Date().toISOString()});
+  await db.collection('orders').add({uid: currentUser.uid, platform: sel.platform, service: sel.name, quality: sel.tier.label, targeting, qty, link, amount: cost, status: 'pending', createdAt: new Date().toISOString()});
   await creditReferralCommissionIfFirstOrder(cost);
 
   msgEl.textContent = "Commande envoyée ! Suivi disponible dans Activités.";

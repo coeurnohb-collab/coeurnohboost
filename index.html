@@ -49,21 +49,57 @@
 <div id="view-public-home">
 
 <section class="hero">
-  <div class="wrap">
-    <span class="eyebrow" data-i18n="hero_eyebrow">Panel de croissance réseaux sociaux — Service Élite</span>
-    <h1><span data-i18n="hero_title_1">Boost réel, paiement mobile,</span> <em data-i18n="hero_title_em">résultats qui comptent.</em></h1>
-    <p class="lead" data-i18n="hero_lead">TikTok, Instagram, YouTube, Facebook, Spotify et bien plus — followers, vues, likes, commentaires. Choisis exactement la quantité que tu veux. Paiement mobile 100% africain.</p>
-    <div class="hero-actions">
-      <button class="btn btn-primary" style="padding:15px 26px;font-size:0.95rem" onclick="openAuth('register')" data-i18n="hero_cta_primary">Créer mon compte gratuit →</button>
-      <button class="btn btn-outline" style="padding:14px 24px;font-size:0.95rem" onclick="document.getElementById('services').scrollIntoView()" data-i18n="hero_cta_secondary">Voir les services</button>
+  <div class="hero-bg-orb orb-1"></div>
+  <div class="hero-bg-orb orb-2"></div>
+  <div class="wrap hero-grid">
+    <div class="hero-text">
+      <span class="eyebrow" data-i18n="hero_eyebrow">Panel de croissance réseaux sociaux — Service Élite</span>
+      <h1><span data-i18n="hero_title_1">Boost réel, paiement mobile,</span> <em data-i18n="hero_title_em">résultats qui comptent.</em></h1>
+      <p class="lead" data-i18n="hero_lead">TikTok, Instagram, YouTube, Facebook, Spotify et bien plus — followers, vues, likes, commentaires. Choisis exactement la quantité que tu veux. Paiement mobile 100% africain.</p>
+      <div class="delivery-badge">🚀 Démarrage de livraison sous 2h en moyenne</div>
+      <div class="hero-actions">
+        <button class="btn btn-primary" style="padding:15px 26px;font-size:0.95rem" onclick="openAuth('register')" data-i18n="hero_cta_primary">Créer mon compte gratuit →</button>
+        <button class="btn btn-outline" style="padding:14px 24px;font-size:0.95rem" onclick="document.getElementById('services').scrollIntoView()" data-i18n="hero_cta_secondary">Voir les services</button>
+      </div>
+      <div class="pay-icons">
+        <span>📱 M-Pesa</span><span>📱 Airtel Money</span><span>📱 Orange Money</span><span>📱 MTN MoMo</span><span>₿ Bitcoin</span><span>₮ USDT</span>
+      </div>
+      <div class="stat-strip">
+        <div><strong>2 300+</strong><span data-i18n="stat_clients">clients servis</span></div>
+        <div><strong>28</strong><span>pays couverts</span></div>
+        <div><strong>2h</strong><span>démarrage moyen</span></div>
+      </div>
     </div>
-    <div class="pay-icons">
-      <span>📱 M-Pesa</span><span>📱 Airtel Money</span><span>📱 Orange Money</span><span>📱 MTN MoMo</span><span>📱 Tigo Pesa</span><span>💵 USDT</span>
-    </div>
-    <div class="stat-strip">
-      <div><strong>2 300+</strong><span data-i18n="stat_clients">clients servis</span></div>
-      <div><strong>15</strong><span data-i18n="stat_platforms">plateformes couvertes</span></div>
-      <div><strong>24h</strong><span data-i18n="stat_delay">délai moyen</span></div>
+
+    <div class="hero-mockup">
+      <div class="mockup-card">
+        <div class="mockup-header">
+          <span class="mockup-dot"></span><span class="mockup-dot"></span><span class="mockup-dot"></span>
+        </div>
+        <div class="mockup-body">
+          <div class="mockup-row">
+            <span>💰 Solde</span><strong>48.00$</strong>
+          </div>
+          <div class="mockup-order">
+            <div class="mockup-order-top">
+              <span class="mockup-badge-tt">♪</span>
+              <div><strong>TikTok — Followers</strong><br><span class="mockup-muted">1 000 · Premium ⭐</span></div>
+            </div>
+            <span class="mockup-status">En cours</span>
+          </div>
+          <div class="mockup-order">
+            <div class="mockup-order-top">
+              <span class="mockup-badge-ig">IG</span>
+              <div><strong>Instagram — Vues</strong><br><span class="mockup-muted">5 000 · Standard</span></div>
+            </div>
+            <span class="mockup-status done">Livré ✓</span>
+          </div>
+          <div class="mockup-chart">
+            <div style="height:30%"></div><div style="height:55%"></div><div style="height:40%"></div>
+            <div style="height:70%"></div><div style="height:60%"></div><div style="height:90%"></div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -283,30 +319,63 @@
 
     <!-- COMMANDE -->
     <div class="app-view hidden" id="app-commande">
-      <div class="tabs" id="dash-tabs"></div>
-      <div class="order-box">
-        <h3 style="color:var(--green);margin-bottom:14px">Nouvelle commande</h3>
-        <div class="of-grid">
-          <label class="of-full">Service
-            <select id="d-service"></select>
-          </label>
-          <label class="of-full">Qualité
-            <select id="d-quality"></select>
-          </label>
-          <label><span data-i18n="exact_qty">Quantité exacte souhaitée</span>
-            <input type="number" id="d-qty" min="10" step="10" value="500">
-            <span class="qty-hint" data-i18n="qty_hint">Pas besoin d'atteindre 1000 — entre le nombre que tu veux (ex: 150, 320, 750...)</span>
-          </label>
-          <label><span data-i18n="link_label">Lien du profil / de la publication</span>
-            <input type="text" id="d-link" placeholder="https://...">
-          </label>
+      <div class="delivery-badge">🚀 Démarrage de livraison sous 2h en moyenne</div>
+
+      <div class="order-mode-switch">
+        <button class="mode-btn active" data-mode="boost" onclick="switchOrderMode('boost')">📦 Services de boost</button>
+        <button class="mode-btn" data-mode="mon" onclick="switchOrderMode('mon')">💎 Monétisation</button>
+      </div>
+
+      <!-- MODE BOOST -->
+      <div id="order-mode-boost">
+        <label class="section-label">1. Catégorie</label>
+        <div class="tabs" id="dash-tabs"></div>
+
+        <div class="order-box">
+          <h3 style="color:var(--green);margin-bottom:14px">Nouvelle commande</h3>
+          <div class="of-grid">
+            <label class="of-full">2. Service
+              <select id="d-service"></select>
+            </label>
+            <label class="of-full">3. Qualité
+              <select id="d-quality"></select>
+            </label>
+            <label class="of-full">4. Ciblage géographique (optionnel)
+              <select id="d-targeting" onchange="updateOrderCost()">
+                <option value="none">Aucun ciblage — audience mondiale</option>
+                <option value="france">🇫🇷 France (+40%)</option>
+                <option value="canada">🇨🇦 Canada (+40%)</option>
+                <option value="belgique">🇧🇪 Belgique (+40%)</option>
+                <option value="afrique">🌍 Afrique générale (+15%)</option>
+                <option value="nigeria">🇳🇬 Nigeria (+20%)</option>
+                <option value="rdc">🇨🇩 RDC / Congo (+15%)</option>
+                <option value="usa">🇺🇸 États-Unis (+45%)</option>
+              </select>
+            </label>
+            <label>5. Quantité exacte souhaitée
+              <input type="number" id="d-qty" min="10" step="10" value="500">
+              <span class="qty-hint">Pas besoin d'atteindre 1000 — entre le nombre que tu veux (ex: 150, 320, 750...)</span>
+            </label>
+            <label>6. Lien du profil / de la publication
+              <input type="text" id="d-link" placeholder="https://...">
+            </label>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;background:var(--cream);border-radius:12px;padding:14px 18px;margin-bottom:16px">
+            <span>Coût de la commande</span> : <strong id="d-cost" style="font-family:'Playfair Display',serif;color:var(--green);font-size:1.3rem">0$</strong>
+          </div>
+          <div id="upsell-suggestion" class="hidden" style="background:#fbf3e2;border:1px solid var(--gold);border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:0.85rem;color:#7a5200"></div>
+          <button class="btn btn-primary" style="width:100%;justify-content:center;padding:13px" onclick="placeOrder()">Lancer la commande</button>
+          <p id="order-msg" style="font-size:0.82rem;margin-top:10px;text-align:center"></p>
         </div>
-        <div style="display:flex;justify-content:space-between;align-items:center;background:var(--cream);border-radius:12px;padding:14px 18px;margin-bottom:16px">
-          <span data-i18n="cost_label">Coût de la commande</span> : <strong id="d-cost" style="font-family:'Playfair Display',serif;color:var(--green);font-size:1.3rem">0$</strong>
+      </div>
+
+      <!-- MODE MONÉTISATION -->
+      <div id="order-mode-mon" class="hidden">
+        <div class="section-head" style="margin-bottom:20px">
+          <h3 style="color:var(--green)">Packs & critères de monétisation</h3>
+          <p style="color:var(--muted);font-size:0.9rem">Les seuils exacts exigés par chaque plateforme, et le pack pour les atteindre.</p>
         </div>
-        <div id="upsell-suggestion" class="hidden" style="background:#fbf3e2;border:1px solid var(--gold);border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:0.85rem;color:#7a5200"></div>
-        <button class="btn btn-primary" style="width:100%;justify-content:center;padding:13px" onclick="placeOrder()" data-i18n="launch_order">Lancer la commande</button>
-        <p id="order-msg" style="font-size:0.82rem;margin-top:10px;text-align:center"></p>
+        <div class="mon-grid" id="dash-mon-grid"></div>
       </div>
     </div>
 
