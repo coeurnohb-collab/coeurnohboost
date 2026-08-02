@@ -4,6 +4,20 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Coeurnoh Boost — Panel de croissance réseaux sociaux</title>
+<meta name="description" content="Coeurnoh Boost : boostez TikTok, Instagram, YouTube, Facebook, Spotify et plus. Followers, vues, likes réels. Paiement mobile money, crypto et carte dans toute l'Afrique francophone.">
+<meta name="keywords" content="boost tiktok, boost instagram, followers réels, vues youtube, panel smm afrique, mobile money boost, augmenter followers RDC">
+<meta name="author" content="Coeurnoh Business">
+<link rel="canonical" href="https://coeurnohb-collab.github.io/coeurnohboost/">
+<meta property="og:title" content="Coeurnoh Boost — Croissance réseaux sociaux, service Élite">
+<meta property="og:description" content="Followers, vues, likes réels sur TikTok, Instagram, YouTube, Facebook et plus. Paiement mobile, crypto et carte.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://coeurnohb-collab.github.io/coeurnohboost/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Coeurnoh Boost — Croissance réseaux sociaux">
+<meta name="twitter:description" content="Followers, vues, likes réels. Paiement mobile money, crypto et carte dans toute l'Afrique francophone.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🚀%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
@@ -233,6 +247,23 @@
   </div>
 </div>
 
+<!-- ================= MENTIONS LÉGALES ================= -->
+<div id="view-legal" class="public-page hidden section">
+  <div class="wrap legal-content">
+    <h2>Mentions légales</h2>
+    <h3>Éditeur du site</h3>
+    <p>Coeurnoh Boost est un service exploité sous la marque Coeurnoh Business, basé en République Démocratique du Congo (Kinshasa).</p>
+    <h3>Contact</h3>
+    <p>Email : coeurnohb@gmail.com<br>WhatsApp : +243 825 001 290</p>
+    <h3>Hébergement</h3>
+    <p>Ce site est hébergé par GitHub Pages (GitHub, Inc.), avec base de données et authentification fournies par Google Firebase.</p>
+    <h3>Propriété intellectuelle</h3>
+    <p>Les noms de plateformes (TikTok, Instagram, YouTube, Facebook, etc.) mentionnés sur ce site appartiennent à leurs propriétaires respectifs. Coeurnoh Boost n'est affilié à aucune de ces plateformes.</p>
+    <button class="btn btn-outline" onclick="showPublicHome()">← Retour à l'accueil</button>
+  </div>
+</div>
+
+
 <!-- ================= SUPPORT (public) ================= -->
 <div id="view-support" class="public-page hidden section">
   <div class="wrap">
@@ -264,21 +295,88 @@
   </div>
 </div>
 
+<!-- ================= FAQ ================= -->
+<section class="section" id="faq">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow"><i class="fa-solid fa-circle-question"></i> Questions fréquentes</span>
+      <h2>Tout ce qu'il faut savoir</h2>
+    </div>
+    <div class="faq-list">
+      <details class="faq-item">
+        <summary>Est-ce que les followers/vues sont réels ?</summary>
+        <p>Oui, nos services Standard et Premium utilisent des sources réelles et actives, pas des comptes vides créés en masse.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Combien de temps pour recevoir ma commande ?</summary>
+        <p>Le démarrage commence généralement sous 2h. Le délai total dépend de la quantité et du service choisi.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Est-ce que mon compte risque une sanction ?</summary>
+        <p>Chaque plateforme a ses propres règles concernant les services de croissance. Nous privilégions une livraison progressive pour limiter les risques, mais ne pouvons jamais garantir zéro sanction.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Quels moyens de paiement acceptez-vous ?</summary>
+        <p>Mobile money (selon ton pays), crypto (USDT, Bitcoin, Ethereum), et carte bancaire/virtuelle via Stripe.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Puis-je annuler ou me faire rembourser ?</summary>
+        <p>Une commande non livrée dans les délais annoncés peut faire l'objet d'un remboursement ou d'une relance — contacte le support depuis ton compte.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
 <footer id="public-footer">
   <div class="wrap">
+    <div class="footer-grid">
+      <div class="footer-col">
+        <div class="logo" style="margin-bottom:10px">Coeurnoh<span>Boost</span></div>
+        <p style="font-size:0.85rem;color:rgba(247,245,240,0.65)">Croissance réseaux sociaux réelle, paiement 100% mobile africain.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Navigation</h4>
+        <a onclick="showPublicHome();document.getElementById('services').scrollIntoView()" style="cursor:pointer">Services</a>
+        <a onclick="showPublicHome();document.getElementById('plans').scrollIntoView()" style="cursor:pointer">Formules</a>
+        <a onclick="showPublicHome();document.getElementById('faq').scrollIntoView()" style="cursor:pointer">FAQ</a>
+        <a onclick="showPublicPage('view-support')" style="cursor:pointer">Support</a>
+      </div>
+      <div class="footer-col">
+        <h4>Légal</h4>
+        <a onclick="showPublicPage('view-about')" style="cursor:pointer">À propos</a>
+        <a onclick="showPublicPage('view-terms')" style="cursor:pointer">Conditions d'utilisation</a>
+        <a onclick="showPublicPage('view-privacy')" style="cursor:pointer">Confidentialité</a>
+        <a onclick="showPublicPage('view-legal')" style="cursor:pointer">Mentions légales</a>
+      </div>
+      <div class="footer-col">
+        <h4>Contact</h4>
+        <a href="https://wa.me/243825001290" target="_blank">💬 WhatsApp</a>
+        <a href="https://t.me/+243825001290" target="_blank">✈️ Telegram</a>
+        <a href="mailto:coeurnohb@gmail.com">✉️ coeurnohb@gmail.com</a>
+      </div>
+      <div class="footer-col">
+        <h4>Newsletter</h4>
+        <p style="font-size:0.82rem;color:rgba(247,245,240,0.6);margin-bottom:10px">Reçois nos offres et nouveautés.</p>
+        <div class="newsletter-form">
+          <input type="email" id="newsletter-email" placeholder="Ton email">
+          <button onclick="subscribeNewsletter()">S'inscrire</button>
+        </div>
+        <p id="newsletter-msg" style="font-size:0.78rem;margin-top:6px"></p>
+      </div>
+    </div>
     <div class="footer-links">
       <span>© 2026 Coeurnoh Boost — Service Élite</span>
-      <a onclick="showPublicPage('view-about')" style="cursor:pointer">À propos</a>
-      <a onclick="showPublicPage('view-terms')" style="cursor:pointer">Conditions d'utilisation</a>
-      <a onclick="showPublicPage('view-privacy')" style="cursor:pointer">Confidentialité</a>
-      <span>WhatsApp : +243 825 001 290</span>
-      <span>Telegram : @coeurnohboost</span>
-      <span>Email : coeurnohb@gmail.com</span>
+      <span>Un service Coeurnoh Business</span>
     </div>
   </div>
 </footer>
 
+<button id="back-to-top" class="hidden" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Retour en haut">
+  <i class="fa-solid fa-arrow-up"></i>
+</button>
+
 <!-- ================= APP SHELL (post-login) ================= -->
+
 <div id="app-shell" class="hidden">
   <div class="app-sidebar">
     <div class="logo">Coeurnoh<span>Boost</span></div>

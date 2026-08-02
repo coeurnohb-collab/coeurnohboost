@@ -108,6 +108,34 @@ nav .wrap{display:flex;align-items:center;justify-content:space-between;padding:
 .channel-btn.wa{background:#25D366;}
 .channel-btn.tg{background:#26A5E4;}
 .channel-btn.mail{background:var(--ink);}
+
+/* FAQ */
+.faq-list{max-width:760px;}
+.faq-item{border-bottom:1px solid var(--line);padding:18px 0;}
+.faq-item summary{cursor:pointer;font-weight:600;font-size:1rem;color:var(--ink);display:flex;justify-content:space-between;align-items:center;list-style:none;}
+.faq-item summary::-webkit-details-marker{display:none;}
+.faq-item summary::after{content:"+";font-size:1.3rem;color:var(--green);font-weight:400;}
+.faq-item[open] summary::after{content:"–";}
+.faq-item p{margin-top:10px;color:var(--muted);font-size:0.92rem;}
+
+/* FOOTER */
+footer .wrap{padding-top:0;}
+.footer-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr 1.3fr;gap:28px;padding-bottom:32px;}
+.footer-col h4{color:var(--white);font-size:0.85rem;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:14px;}
+.footer-col a{display:block;color:rgba(247,245,240,0.7);font-size:0.86rem;margin-bottom:9px;}
+.footer-col a:hover{color:var(--gold);}
+.newsletter-form{display:flex;gap:6px;}
+.newsletter-form input{flex:1;padding:9px 12px;border-radius:8px;border:none;font-size:0.82rem;min-width:0;}
+.newsletter-form button{background:var(--gold);color:#2b1d02;border:none;padding:9px 14px;border-radius:8px;font-weight:700;font-size:0.8rem;white-space:nowrap;}
+@media(max-width:900px){.footer-grid{grid-template-columns:1fr 1fr;}}
+@media(max-width:560px){.footer-grid{grid-template-columns:1fr;}}
+
+/* BACK TO TOP */
+#back-to-top{
+  position:fixed;bottom:24px;left:24px;z-index:65;
+  width:48px;height:48px;border-radius:50%;background:var(--green);color:var(--white);
+  font-size:1.1rem;box-shadow:0 8px 20px rgba(11,61,46,0.3);display:flex;align-items:center;justify-content:center;
+}
 .combo-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;}
 .combo-card{background:linear-gradient(135deg,var(--green),var(--green-light));color:var(--cream);border-radius:18px;padding:26px;display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden;}
 .combo-card .save-badge{position:absolute;top:16px;right:16px;background:var(--gold);color:#2b1d02;font-size:0.7rem;font-weight:800;padding:4px 10px;border-radius:100px;}

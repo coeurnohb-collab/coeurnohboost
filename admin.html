@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Coeurnoh Boost — Admin tarifs</title>
+<title>Coeurnoh Boost — Administration</title>
+<meta name="robots" content="noindex, nofollow">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -11,7 +12,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="translations.js"></script>
 <style>
-  body{padding:32px 20px;max-width:900px;margin:0 auto;}
+  body{padding:32px 20px;max-width:1000px;margin:0 auto;}
   h1{color:var(--green);margin-bottom:6px;}
   .warn{background:#fdf1da;color:#8a5a00;padding:12px 16px;border-radius:10px;font-size:0.88rem;margin-bottom:24px;}
   .platform-block{margin-bottom:28px;}
@@ -19,12 +20,18 @@
   table{width:100%;border-collapse:collapse;margin-bottom:10px;}
   th,td{padding:8px 10px;text-align:left;font-size:0.85rem;border-bottom:1px solid var(--line);}
   th{background:var(--cream);}
+  .admin-tabs{display:flex;gap:10px;margin-bottom:24px;flex-wrap:wrap;}
+  .admin-tab{padding:10px 18px;border-radius:100px;border:1.5px solid var(--line);font-weight:600;font-size:0.88rem;background:var(--white);}
+  .admin-tab.active{background:var(--green);color:var(--white);border-color:var(--green);}
+  .admin-section{display:none;}
+  .admin-section.active{display:block;}
+  select.status-select{padding:4px 8px;border-radius:6px;border:1px solid var(--line);font-size:0.82rem;}
 </style>
 </head>
 <body>
 
-<h1>Admin — Gestion des tarifs</h1>
-<p class="warn">⚠️ Cette page n'est protégée que par une vérification simple de ton identifiant (UID). Ne partage jamais ce lien publiquement — ce n'est pas une sécurité de niveau serveur.</p>
+<h1>Admin — Coeurnoh Boost</h1>
+<p class="warn">⚠️ Cette page n'est protégée que par une vérification simple de ton identifiant (UID), pas une sécurité de niveau serveur. Ne partage jamais ce lien.</p>
 
 <div id="login-gate">
   <p>Connecte-toi avec le compte administrateur pour continuer.</p>
@@ -32,10 +39,34 @@
 </div>
 
 <div id="admin-panel" class="hidden">
-  <p style="margin-bottom:20px;color:var(--muted)">Modifie le prix de vente pour 1000 unités (le coût réel payé au fournisseur reste à calculer toi-même pour connaître ta marge). Clique "Enregistrer" pour appliquer.</p>
-  <div id="platforms-container"></div>
-  <button onclick="saveCatalog()" style="padding:12px 24px;border-radius:100px;background:var(--green);color:white;font-weight:700;">💾 Enregistrer tous les tarifs</button>
-  <p id="save-msg" style="margin-top:12px;color:var(--green);font-weight:600;"></p>
+  <div class="admin-tabs">
+    <button class="admin-tab active" data-tab="tarifs" onclick="switchAdminTab('tarifs')">💰 Tarifs</button>
+    <button class="admin-tab" data-tab="commandes" onclick="switchAdminTab('commandes')">📦 Commandes</button>
+    <button class="admin-tab" data-tab="utilisateurs" onclick="switchAdminTab('utilisateurs')">👤 Utilisateurs</button>
+  </div>
+
+  <div class="admin-section active" id="admin-tarifs">
+    <p style="margin-bottom:20px;color:var(--muted)">Modifie le prix de vente pour 1000 unités. Clique "Enregistrer" pour appliquer.</p>
+    <div id="platforms-container"></div>
+    <button onclick="saveCatalog()" style="padding:12px 24px;border-radius:100px;background:var(--green);color:white;font-weight:700;">💾 Enregistrer tous les tarifs</button>
+    <p id="save-msg" style="margin-top:12px;color:var(--green);font-weight:600;"></p>
+  </div>
+
+  <div class="admin-section" id="admin-commandes">
+    <p style="margin-bottom:16px;color:var(--muted)">Change le statut dès qu'une commande est livrée — le client le voit en temps réel.</p>
+    <table>
+      <thead><tr><th>Date</th><th>Client (UID)</th><th>Service</th><th>Qté</th><th>Montant</th><th>Statut</th></tr></thead>
+      <tbody id="admin-orders-table"><tr><td colspan="6">Chargement...</td></tr></tbody>
+    </table>
+  </div>
+
+  <div class="admin-section" id="admin-utilisateurs">
+    <p style="margin-bottom:16px;color:var(--muted)">Liste de tes clients inscrits.</p>
+    <table>
+      <thead><tr><th>Nom</th><th>Email</th><th>Solde</th><th>Points</th><th>Inscrit le</th></tr></thead>
+      <tbody id="admin-users-table"><tr><td colspan="5">Chargement...</td></tr></tbody>
+    </table>
+  </div>
 </div>
 
 <script src="script.js"></script>
@@ -50,16 +81,24 @@ auth.onAuthStateChanged(user => {
     document.getElementById('login-gate').classList.add('hidden');
     document.getElementById('admin-panel').classList.remove('hidden');
     renderAdminCatalog();
+    loadAdminOrders();
+    loadAdminUsers();
   } else if(user){
     alert("Ce compte n'est pas autorisé à accéder à l'admin. UID détecté : " + user.uid + " — copie-le dans ADMIN_UID si c'est bien toi.");
   }
 });
 
+function switchAdminTab(tab){
+  document.querySelectorAll('.admin-tab').forEach(b => b.classList.toggle('active', b.dataset.tab===tab));
+  document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+  document.getElementById('admin-'+tab).classList.add('active');
+}
+
 function renderAdminCatalog(){
   const container = document.getElementById('platforms-container');
   container.innerHTML = Object.entries(CATALOG).map(([platform, services]) => `
     <div class="platform-block">
-      <h2>${PLATFORM_ICONS[platform]||''} ${platform}</h2>
+      <h2>${platformBadge(platform)} ${platform}</h2>
       <table>
         <thead><tr><th>Service</th><th>Standard ($/1000)</th><th>Premium ($/1000)</th><th>Qté min</th></tr></thead>
         <tbody>
@@ -90,6 +129,50 @@ async function saveCatalog(){
   await db.collection('settings').doc('pricing').set(payload);
   document.getElementById('save-msg').textContent = "✅ Tarifs enregistrés — ils s'appliqueront sur le site principal.";
 }
+
+async function loadAdminOrders(){
+  const snap = await db.collection('orders').orderBy('createdAt','desc').limit(100).get();
+  const tbody = document.getElementById('admin-orders-table');
+  if(snap.empty){ tbody.innerHTML = '<tr><td colspan="6">Aucune commande.</td></tr>'; return; }
+  tbody.innerHTML = snap.docs.map(d => {
+    const o = d.data();
+    const date = new Date(o.createdAt).toLocaleDateString('fr-FR');
+    return `<tr>
+      <td>${date}</td>
+      <td style="font-size:0.7rem">${o.uid.slice(0,8)}...</td>
+      <td>${o.platform} — ${o.service}</td>
+      <td>${o.qty}</td>
+      <td>${o.amount.toFixed(2)}$</td>
+      <td>
+        <select class="status-select" onchange="updateOrderStatus('${d.id}', this.value)">
+          <option value="pending" ${o.status==='pending'?'selected':''}>En cours</option>
+          <option value="done" ${o.status==='done'?'selected':''}>Livré</option>
+        </select>
+      </td>
+    </tr>`;
+  }).join('');
+}
+async function updateOrderStatus(orderId, status){
+  await db.collection('orders').doc(orderId).update({status});
+}
+
+async function loadAdminUsers(){
+  const snap = await db.collection('users').orderBy('createdAt','desc').limit(200).get();
+  const tbody = document.getElementById('admin-users-table');
+  if(snap.empty){ tbody.innerHTML = '<tr><td colspan="5">Aucun utilisateur.</td></tr>'; return; }
+  tbody.innerHTML = snap.docs.map(d => {
+    const u = d.data();
+    const date = u.createdAt ? new Date(u.createdAt).toLocaleDateString('fr-FR') : '—';
+    return `<tr>
+      <td>${u.name||'—'}</td>
+      <td>${u.email||'—'}</td>
+      <td>${(u.balance||0).toFixed(2)}$</td>
+      <td>${u.loyaltyPoints||0}</td>
+      <td>${date}</td>
+    </tr>`;
+  }).join('');
+}
 </script>
 </body>
 </html>
+

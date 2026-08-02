@@ -162,6 +162,9 @@ const COMBO_PACKS = [
   {name:"Combo TikTok + Instagram", desc:"2000 followers TikTok + 2000 followers Instagram", oldPrice:38, newPrice:29, saveLabel:"-24%"},
   {name:"Combo YouTube + TikTok", desc:"3000 vues YouTube + 5000 vues TikTok", oldPrice:22, newPrice:16, saveLabel:"-27%"},
   {name:"Combo Réseau Complet", desc:"1000 followers sur TikTok, Instagram, Facebook + 1000 abonnés YouTube", oldPrice:65, newPrice:45, saveLabel:"-30%"},
+  {name:"Pack Croissance TikTok complet", desc:"1000 followers + 2000 likes + 5000 vues TikTok en une seule commande", oldPrice:19, newPrice:14, saveLabel:"-26%"},
+  {name:"Pack Croissance Instagram complet", desc:"1000 followers + 2000 likes + 3000 vues Reels en une seule commande", oldPrice:21, newPrice:15, saveLabel:"-28%"},
+  {name:"Pack Croissance YouTube complet", desc:"500 abonnés + 2000 likes + 5000 vues en une seule commande", oldPrice:26, newPrice:19, saveLabel:"-27%"},
 ];
 
 // ⚠️ IMPORTANT : ce sont des EXEMPLES de structure, pas de vrais avis clients.
@@ -207,6 +210,11 @@ const COUNTRY_NETWORKS = {
   "Afrique du Sud 🇿🇦": ["MTN MoMo", "Vodacom M-Pesa"],
   "Nigeria 🇳🇬": ["MTN MoMo", "Opay", "Palmpay"],
   "Ghana 🇬🇭": ["MTN MoMo", "AirtelTigo Money", "Vodafone Cash"],
+  "Sierra Leone 🇸🇱": ["Orange Money", "Africell Money"],
+  "Égypte 🇪🇬": ["Vodafone Cash", "Orange Money", "Etisalat Cash"],
+  "Maroc 🇲🇦": ["Orange Money Maroc", "inwi money"],
+  "Malawi 🇲🇼": ["Airtel Money", "TNM Mpamba"],
+  "Éthiopie 🇪🇹": ["Telebirr", "M-Birr"],
 };
 
 /* =========================================================
@@ -244,6 +252,11 @@ const CURRENCY_RATES = {
   "Afrique du Sud 🇿🇦": {code:"ZAR", rate:18},
   "Nigeria 🇳🇬": {code:"NGN", rate:1600},
   "Ghana 🇬🇭": {code:"GHS", rate:15},
+  "Sierra Leone 🇸🇱": {code:"SLE", rate:23},
+  "Égypte 🇪🇬": {code:"EGP", rate:49},
+  "Maroc 🇲🇦": {code:"MAD", rate:9.5},
+  "Malawi 🇲🇼": {code:"MWK", rate:1740},
+  "Éthiopie 🇪🇹": {code:"ETB", rate:123},
 };
 let selectedCountry = "RDC 🇨🇩";
 function convertToLocal(usdAmount){
@@ -838,6 +851,35 @@ function shareSite(){
     });
   }
 }
+
+/* =========================================================
+   NEWSLETTER
+   ========================================================= */
+async function subscribeNewsletter(){
+  const input = document.getElementById('newsletter-email');
+  const msg = document.getElementById('newsletter-msg');
+  const email = input.value.trim();
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+    msg.textContent = "Entre un email valide."; msg.style.color = '#ff8a8a'; return;
+  }
+  if(!db){ msg.textContent = "Service indisponible pour le moment."; return; }
+  try{
+    await db.collection('newsletter').add({email, createdAt:new Date().toISOString()});
+    msg.textContent = "✅ Inscrit ! Merci."; msg.style.color = '#8fd6b0';
+    input.value = '';
+  } catch(e){
+    msg.textContent = "Erreur, réessaie."; msg.style.color = '#ff8a8a';
+  }
+}
+
+/* =========================================================
+   BOUTON RETOUR EN HAUT
+   ========================================================= */
+window.addEventListener('scroll', () => {
+  const btn = document.getElementById('back-to-top');
+  if(!btn) return;
+  btn.classList.toggle('hidden', window.scrollY < 400);
+});
 
 function contactSupport(prefilledMessage){
   const base = "https://wa.me/243825001290?text=";
