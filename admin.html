@@ -84,10 +84,10 @@
   </div>
 
   <div class="admin-section" id="admin-commandes">
-    <p style="margin-bottom:16px;color:var(--muted)">Change le statut dès qu'une commande est livrée — le client le voit en temps réel.</p>
+    <p style="margin-bottom:16px;color:var(--muted)">Envoie la commande à MoreThanPanel avec l'ID service correspondant, puis change le statut une fois livré.</p>
     <table>
-      <thead><tr><th>Date</th><th>Client (UID)</th><th>Service</th><th>Qté</th><th>Montant</th><th>Statut</th></tr></thead>
-      <tbody id="admin-orders-table"><tr><td colspan="6">Chargement...</td></tr></tbody>
+      <thead><tr><th>Date</th><th>Client</th><th>Service</th><th>Qté / Lien</th><th>Montant</th><th>Envoyer à MTP</th><th>Statut</th></tr></thead>
+      <tbody id="admin-orders-table"><tr><td colspan="7">Chargement...</td></tr></tbody>
     </table>
   </div>
 
@@ -166,16 +166,20 @@ async function saveCatalog(){
 async function loadAdminOrders(){
   const snap = await db.collection('orders').orderBy('createdAt','desc').limit(100).get();
   const tbody = document.getElementById('admin-orders-table');
-  if(snap.empty){ tbody.innerHTML = '<tr><td colspan="6">Aucune commande.</td></tr>'; return; }
+  if(snap.empty){ tbody.innerHTML = '<tr><td colspan="7">Aucune commande.</td></tr>'; return; }
   tbody.innerHTML = snap.docs.map(d => {
     const o = d.data();
     const date = new Date(o.createdAt).toLocaleDateString('fr-FR');
+    const mtpSent = o.mtpOrderId ? `✅ #${o.mtpOrderId}` :
+      `<input type="text" id="mtp-id-${d.id}" placeholder="ID service MTP" style="width:90px;padding:5px;border-radius:6px;border:1px solid var(--line);font-size:0.75rem">
+       <button onclick="sendToMTP('${d.id}','${o.link}',${o.qty})" style="background:var(--green);color:white;border:none;padding:5px 10px;border-radius:100px;font-size:0.72rem;font-weight:700;margin-top:4px">Envoyer</button>`;
     return `<tr>
       <td>${date}</td>
       <td style="font-size:0.7rem">${o.uid.slice(0,8)}...</td>
-      <td>${o.platform} — ${o.service}</td>
-      <td>${o.qty}</td>
+      <td>${o.platform} — ${o.service}<br><span style="font-size:0.72rem;color:var(--muted)">${o.quality||''}</span></td>
+      <td>${o.qty}<br><a href="${o.link}" target="_blank" style="font-size:0.72rem">voir le lien</a></td>
       <td>${o.amount.toFixed(2)}$</td>
+      <td>${mtpSent}<div id="mtp-msg-${d.id}" style="font-size:0.7rem;margin-top:4px"></div></td>
       <td>
         <select class="status-select" onchange="updateOrderStatus('${d.id}', this.value)">
           <option value="pending" ${o.status==='pending'?'selected':''}>En cours</option>
@@ -187,6 +191,35 @@ async function loadAdminOrders(){
 }
 async function updateOrderStatus(orderId, status){
   await db.collection('orders').doc(orderId).update({status});
+}
+
+async function sendToMTP(orderId, link, qty){
+  const input = document.getElementById('mtp-id-'+orderId);
+  const msgEl = document.getElementById('mtp-msg-'+orderId);
+  const serviceId = input.value.trim();
+  if(!serviceId){ msgEl.textContent = "Entre l'ID service MTP."; msgEl.style.color = 'var(--red)'; return; }
+  msgEl.textContent = "Envoi en cours...";
+  msgEl.style.color = 'var(--muted)';
+  try{
+    const res = await fetch('/.netlify/functions/place-smm-order', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({service: serviceId, link, quantity: qty})
+    });
+    const data = await res.json();
+    if(data.success){
+      await db.collection('orders').doc(orderId).update({mtpOrderId: data.orderId, status:'done'});
+      msgEl.textContent = "✅ Envoyé !";
+      msgEl.style.color = 'var(--green)';
+      loadAdminOrders();
+    } else {
+      msgEl.textContent = "Erreur : " + (data.error || 'inconnue');
+      msgEl.style.color = 'var(--red)';
+    }
+  } catch(e){
+    msgEl.textContent = "Erreur réseau : " + e.message;
+    msgEl.style.color = 'var(--red)';
+  }
 }
 
 async function loadAdminUsers(){
