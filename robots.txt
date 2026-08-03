@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /admin.html
 
-Sitemap: https://coeurnohb-collab.github.io/coeurnohboost/sitemap.xml
+Sitemap: https://coeurnohboost.netlify.app/sitemap.xml
