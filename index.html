@@ -412,17 +412,41 @@
 
     <!-- ACCUEIL -->
     <div class="app-view" id="app-accueil">
-      <div class="dash-grid">
-        <div class="dash-card"><div class="label" data-i18n="balance">Solde</div><div class="value" id="dash-balance">0$</div></div>
-        <div class="dash-card"><div class="label" data-i18n="my_orders">Mes commandes</div><div class="value" id="dash-order-count">0</div></div>
-        <div class="dash-card"><div class="label" data-i18n="clients_label">Clients Coeurnoh Boost</div><div class="value">2 300+</div></div>
+      <div class="welcome-banner">
+        <div class="welcome-banner-orb"></div>
+        <div class="welcome-banner-content">
+          <span class="welcome-eyebrow">Espace client Élite</span>
+          <h3><span data-i18n="welcome">Bienvenue</span>, <span id="dash-username">—</span> 👋</h3>
+          <p>Prêt à booster ton compte ? Lance une commande ou recharge ton portefeuille en quelques secondes.</p>
+          <div class="welcome-actions">
+            <button class="btn btn-gold" onclick="switchAppView('commande')" data-i18n="new_order">+ Nouvelle commande</button>
+            <button class="btn" style="background:rgba(255,255,255,0.15);color:#fff;border:1.5px solid rgba(255,255,255,0.3)" onclick="switchAppView('portefeuille')" data-i18n="recharge">Recharger le portefeuille</button>
+          </div>
+        </div>
       </div>
-      <div class="order-box">
-        <h3 style="color:var(--green);margin-bottom:10px"><span data-i18n="welcome">Bienvenue</span>, <span id="dash-username">—</span> 👋</h3>
-        <p style="color:var(--muted);font-size:0.9rem;margin-bottom:16px">Prêt à booster ton compte ? Lance une commande ou recharge ton portefeuille.</p>
-        <div style="display:flex;gap:12px;flex-wrap:wrap">
-          <button class="btn btn-primary" onclick="switchAppView('commande')" data-i18n="new_order">+ Nouvelle commande</button>
-          <button class="btn btn-outline" onclick="switchAppView('portefeuille')" data-i18n="recharge">Recharger le portefeuille</button>
+
+      <div class="dash-grid modern">
+        <div class="dash-card modern"><div class="dash-icon">💰</div><div class="label" data-i18n="balance">Solde</div><div class="value" id="dash-balance">0$</div></div>
+        <div class="dash-card modern"><div class="dash-icon">📦</div><div class="label" data-i18n="my_orders">Mes commandes</div><div class="value" id="dash-order-count">0</div></div>
+        <div class="dash-card modern"><div class="dash-icon">🌍</div><div class="label" data-i18n="clients_label">Clients Coeurnoh Boost</div><div class="value">2 300+</div></div>
+      </div>
+
+      <div class="quick-links-grid">
+        <div class="quick-link-card" onclick="switchAppView('commande')">
+          <span class="ql-icon">🛒</span>
+          <div><strong>Commander</strong><p>Followers, vues, likes...</p></div>
+        </div>
+        <div class="quick-link-card" onclick="switchAppView('activites')">
+          <span class="ql-icon">📊</span>
+          <div><strong>Suivi en temps réel</strong><p>Statut de tes commandes</p></div>
+        </div>
+        <div class="quick-link-card" onclick="switchAppView('portefeuille')">
+          <span class="ql-icon">💳</span>
+          <div><strong>Portefeuille</strong><p>Mobile money, crypto, carte</p></div>
+        </div>
+        <div class="quick-link-card" onclick="switchAppView('compte')">
+          <span class="ql-icon">🎁</span>
+          <div><strong>Parrainage</strong><p>Gagne 5% par filleul</p></div>
         </div>
       </div>
     </div>

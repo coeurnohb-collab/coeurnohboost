@@ -276,6 +276,36 @@ body.dark-mode .lang-menu{background:#20261f;}
 .dash-card .label{font-size:0.76rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;}
 .dash-card .value{font-family:'Playfair Display',serif;font-size:1.7rem;color:var(--green);font-weight:700;margin-top:6px;}
 
+/* DASHBOARD MODERNISÉ */
+.welcome-banner{
+  background:linear-gradient(135deg,var(--green) 0%,#0e4a38 60%,#123f2e 100%);
+  border-radius:22px;padding:32px 28px;margin-bottom:24px;position:relative;overflow:hidden;
+}
+.welcome-banner-orb{position:absolute;width:260px;height:260px;background:var(--gold);opacity:0.25;filter:blur(60px);border-radius:50%;top:-80px;right:-60px;}
+.welcome-banner-content{position:relative;z-index:1;}
+.welcome-eyebrow{color:var(--gold);text-transform:uppercase;letter-spacing:0.1em;font-size:0.72rem;font-weight:800;}
+.welcome-banner h3{color:#fff;font-size:1.6rem;margin:8px 0 8px;}
+.welcome-banner p{color:rgba(255,255,255,0.75);font-size:0.92rem;max-width:440px;margin-bottom:18px;}
+.welcome-actions{display:flex;gap:12px;flex-wrap:wrap;}
+
+.dash-grid.modern{grid-template-columns:repeat(3,1fr);}
+.dash-card.modern{position:relative;padding-top:24px;}
+.dash-icon{font-size:1.4rem;position:absolute;top:16px;right:16px;opacity:0.8;}
+
+.quick-links-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:24px;}
+.quick-link-card{
+  background:var(--white);border:1px solid var(--line);border-radius:16px;padding:20px;
+  display:flex;align-items:center;gap:14px;cursor:pointer;transition:transform .2s, box-shadow .2s;
+}
+.quick-link-card:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(11,61,46,0.1);border-color:var(--gold);}
+.ql-icon{font-size:1.6rem;flex-shrink:0;width:44px;height:44px;background:var(--cream);border-radius:12px;display:flex;align-items:center;justify-content:center;}
+.quick-link-card strong{font-size:0.92rem;color:var(--ink);display:block;margin-bottom:2px;}
+.quick-link-card p{font-size:0.78rem;color:var(--muted);}
+@media(max-width:640px){
+  .dash-grid.modern{grid-template-columns:1fr 1fr;}
+  .quick-links-grid{grid-template-columns:1fr;}
+}
+
 .order-box{background:var(--white);border:1px solid var(--line);border-radius:16px;padding:24px;margin-bottom:24px;}
 .of-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;}
 .of-full{grid-column:1/-1;}
