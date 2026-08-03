@@ -435,7 +435,36 @@ function switchOrderMode(mode){
   document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode===mode));
   document.getElementById('order-mode-boost').classList.toggle('hidden', mode!=='boost');
   document.getElementById('order-mode-mon').classList.toggle('hidden', mode!=='mon');
+  document.getElementById('order-mode-packs').classList.toggle('hidden', mode!=='packs');
   if(mode==='mon') renderDashMonetization();
+  if(mode==='packs') renderDashPacks();
+}
+function renderDashPacks(){
+  const plansEl = document.getElementById('dash-plans-grid');
+  const combosEl = document.getElementById('dash-combo-grid');
+  if(plansEl){
+    plansEl.innerHTML = PACKAGE_PLANS.map(p => `
+      <div class="plan-card ${p.featured?'featured':''}">
+        ${p.featured ? '<span class="plan-badge">Le plus populaire</span>' : ''}
+        <h3>${p.name}</h3>
+        <p class="tagline">${p.tagline}</p>
+        <div class="plan-price">${p.price}$</div>
+        <ul>${p.includes.map(i => `<li>✓ ${i}</li>`).join('')}</ul>
+        <a href="https://wa.me/243825001290?text=${encodeURIComponent('Bonjour, je veux le pack '+p.name+' ('+p.price+'$)')}" target="_blank" class="btn ${p.featured?'btn-gold':'btn-outline'}" style="justify-content:center;padding:12px;border-radius:100px;font-weight:700">Choisir ${p.name}</a>
+      </div>
+    `).join('');
+  }
+  if(combosEl){
+    combosEl.innerHTML = COMBO_PACKS.map(c => `
+      <div class="combo-card">
+        <span class="save-badge">${c.saveLabel}</span>
+        <h3>${c.name}</h3>
+        <p class="desc">${c.desc}</p>
+        <div class="price-compare"><span class="old-price">${c.oldPrice}$</span><span class="new-price">${c.newPrice}$</span></div>
+        <button onclick="contactSupport('Bonjour, je veux commander le pack : ${c.name} (${c.newPrice}\$)')">Commander ce combo</button>
+      </div>
+    `).join('');
+  }
 }
 function renderDashMonetization(){
   const el = document.getElementById('dash-mon-grid');
@@ -584,6 +613,8 @@ if(fbReady){
       document.getElementById('profile-name').textContent = currentUser.name;
       document.getElementById('profile-email').textContent = currentUser.email;
       document.getElementById('profile-since').textContent = new Date(currentUser.createdAt).toLocaleDateString('fr-FR');
+      const adminBox = document.getElementById('admin-access-box');
+      if(adminBox) adminBox.classList.toggle('hidden', currentUser.uid !== ADMIN_UID);
       const langSelect = document.getElementById('profile-lang');
       if(langSelect) langSelect.value = currentLang;
       document.body.classList.toggle('dark-mode', !!data.darkMode);

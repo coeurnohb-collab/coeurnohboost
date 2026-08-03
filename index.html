@@ -122,6 +122,37 @@
   </div>
 </section>
 
+<section class="section" id="faq">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow"><i class="fa-solid fa-circle-question"></i> Questions fréquentes</span>
+      <h2>Tout ce qu'il faut savoir</h2>
+    </div>
+    <div class="faq-list">
+      <details class="faq-item">
+        <summary>Est-ce que les followers/vues sont réels ?</summary>
+        <p>Oui, nos services Standard et Premium utilisent des sources réelles et actives, pas des comptes vides créés en masse.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Combien de temps pour recevoir ma commande ?</summary>
+        <p>Le démarrage commence généralement sous 2h. Le délai total dépend de la quantité et du service choisi.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Est-ce que mon compte risque une sanction ?</summary>
+        <p>Chaque plateforme a ses propres règles concernant les services de croissance. Nous privilégions une livraison progressive pour limiter les risques, mais ne pouvons jamais garantir zéro sanction.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Quels moyens de paiement acceptez-vous ?</summary>
+        <p>Mobile money (selon ton pays), crypto (USDT, Bitcoin, Ethereum), et carte bancaire/virtuelle via Stripe.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Puis-je annuler ou me faire rembourser ?</summary>
+        <p>Une commande non livrée dans les délais annoncés peut faire l'objet d'un remboursement ou d'une relance — contacte le support depuis ton compte.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
 <section class="section" id="plans">
   <div class="wrap">
     <div class="section-head">
@@ -307,37 +338,6 @@
   </div>
 </div>
 
-<!-- ================= FAQ ================= -->
-<section class="section" id="faq">
-  <div class="wrap">
-    <div class="section-head">
-      <span class="eyebrow"><i class="fa-solid fa-circle-question"></i> Questions fréquentes</span>
-      <h2>Tout ce qu'il faut savoir</h2>
-    </div>
-    <div class="faq-list">
-      <details class="faq-item">
-        <summary>Est-ce que les followers/vues sont réels ?</summary>
-        <p>Oui, nos services Standard et Premium utilisent des sources réelles et actives, pas des comptes vides créés en masse.</p>
-      </details>
-      <details class="faq-item">
-        <summary>Combien de temps pour recevoir ma commande ?</summary>
-        <p>Le démarrage commence généralement sous 2h. Le délai total dépend de la quantité et du service choisi.</p>
-      </details>
-      <details class="faq-item">
-        <summary>Est-ce que mon compte risque une sanction ?</summary>
-        <p>Chaque plateforme a ses propres règles concernant les services de croissance. Nous privilégions une livraison progressive pour limiter les risques, mais ne pouvons jamais garantir zéro sanction.</p>
-      </details>
-      <details class="faq-item">
-        <summary>Quels moyens de paiement acceptez-vous ?</summary>
-        <p>Mobile money (selon ton pays), crypto (USDT, Bitcoin, Ethereum), et carte bancaire/virtuelle via Stripe.</p>
-      </details>
-      <details class="faq-item">
-        <summary>Puis-je annuler ou me faire rembourser ?</summary>
-        <p>Une commande non livrée dans les délais annoncés peut faire l'objet d'un remboursement ou d'une relance — contacte le support depuis ton compte.</p>
-      </details>
-    </div>
-  </div>
-</section>
 
 <footer id="public-footer">
   <div class="wrap">
@@ -458,6 +458,7 @@
       <div class="order-mode-switch">
         <button class="mode-btn active" data-mode="boost" onclick="switchOrderMode('boost')">📦 Services de boost</button>
         <button class="mode-btn" data-mode="mon" onclick="switchOrderMode('mon')">💎 Monétisation</button>
+        <button class="mode-btn" data-mode="packs" onclick="switchOrderMode('packs')">🎁 Packs & Combos</button>
       </div>
 
       <!-- MODE BOOST -->
@@ -510,6 +511,20 @@
           <p style="color:var(--muted);font-size:0.9rem">Les seuils exacts exigés par chaque plateforme, et le pack pour les atteindre.</p>
         </div>
         <div class="mon-grid" id="dash-mon-grid"></div>
+      </div>
+
+      <!-- MODE PACKS & COMBOS -->
+      <div id="order-mode-packs" class="hidden">
+        <div class="section-head" style="margin-bottom:20px">
+          <h3 style="color:var(--green)">Formules Starter/Pro/Business</h3>
+          <p style="color:var(--muted);font-size:0.9rem">Des formules toutes prêtes, commande en un clic via WhatsApp.</p>
+        </div>
+        <div class="plans-grid" id="dash-plans-grid" style="margin-bottom:32px"></div>
+        <div class="section-head" style="margin-bottom:20px">
+          <h3 style="color:var(--green)">Packs combinés</h3>
+          <p style="color:var(--muted);font-size:0.9rem">Plusieurs plateformes en une seule commande, prix réduit.</p>
+        </div>
+        <div class="combo-grid" id="dash-combo-grid"></div>
       </div>
     </div>
 
@@ -577,9 +592,15 @@
       </div>
       <button class="btn btn-outline" style="margin-bottom:24px" onclick="logout()" data-i18n="logout">Se déconnecter</button>
 
+      <div class="order-box hidden" id="admin-access-box">
+        <h3 style="color:var(--green);margin-bottom:6px">🔐 Espace administrateur</h3>
+        <p style="color:var(--muted);font-size:0.88rem;margin-bottom:14px">Ce bouton n'est visible que par toi.</p>
+        <a href="admin.html" class="btn btn-primary">Ouvrir mon panel admin →</a>
+      </div>
+
       <div class="order-box">
         <h3 style="color:var(--green);margin-bottom:6px">🎁 Programme de parrainage</h3>
-        <p style="color:var(--muted);font-size:0.88rem;margin-bottom:14px">Partage ton lien : tu gagnes <strong>10%</strong> en portefeuille sur la 1ère recharge de chaque filleul.</p>
+        <p style="color:var(--muted);font-size:0.88rem;margin-bottom:14px">Partage ton lien : tu gagnes <strong>5%</strong> en portefeuille sur la 1ère commande de chaque filleul.</p>
         <div style="background:var(--cream);border-radius:10px;padding:12px;font-size:0.82rem;word-break:break-all;margin-bottom:10px" id="referral-link-display">—</div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
           <button class="btn btn-primary" onclick="copyReferralLink()">Copier mon lien</button>
