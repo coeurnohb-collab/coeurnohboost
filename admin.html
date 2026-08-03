@@ -26,6 +26,10 @@
   .admin-section{display:none;}
   .admin-section.active{display:block;}
   select.status-select{padding:4px 8px;border-radius:6px;border:1px solid var(--line);font-size:0.82rem;}
+  .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;}
+  .stat-box{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:18px;}
+  .stat-label{font-size:0.76rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;font-weight:600;}
+  .stat-value{font-family:'Playfair Display',serif;font-size:1.6rem;color:var(--green);font-weight:700;margin-top:6px;}
 </style>
 </head>
 <body>
@@ -43,6 +47,33 @@
     <button class="admin-tab active" data-tab="tarifs" onclick="switchAdminTab('tarifs')">💰 Tarifs</button>
     <button class="admin-tab" data-tab="commandes" onclick="switchAdminTab('commandes')">📦 Commandes</button>
     <button class="admin-tab" data-tab="utilisateurs" onclick="switchAdminTab('utilisateurs')">👤 Utilisateurs</button>
+    <button class="admin-tab" data-tab="stats" onclick="switchAdminTab('stats')">📊 Statistiques</button>
+    <button class="admin-tab" data-tab="depots" onclick="switchAdminTab('depots')">💵 Dépôts</button>
+  </div>
+
+  <div class="admin-section" id="admin-depots">
+    <p style="margin-bottom:16px;color:var(--muted)">Quand un client confirme avoir payé (mobile money/crypto/carte), valide ici pour créditer son portefeuille.</p>
+    <table>
+      <thead><tr><th>Date</th><th>Client (UID)</th><th>Montant</th><th>Réseau</th><th>Téléphone</th><th>Statut</th><th>Action</th></tr></thead>
+      <tbody id="admin-deposits-table"><tr><td colspan="7">Chargement...</td></tr></tbody>
+    </table>
+  </div>
+
+  <div class="admin-section" id="admin-stats">
+    <p style="margin-bottom:20px;color:var(--muted)">Vue d'ensemble de ton activité.</p>
+    <div class="stats-grid">
+      <div class="stat-box"><div class="stat-label">Chiffre d'affaires total</div><div class="stat-value" id="stat-revenue">—</div></div>
+      <div class="stat-box"><div class="stat-label">Commandes totales</div><div class="stat-value" id="stat-orders">—</div></div>
+      <div class="stat-box"><div class="stat-label">Commandes en attente</div><div class="stat-value" id="stat-pending">—</div></div>
+      <div class="stat-box"><div class="stat-label">Clients inscrits</div><div class="stat-value" id="stat-users">—</div></div>
+      <div class="stat-box"><div class="stat-label">Nouveaux clients (7j)</div><div class="stat-value" id="stat-new-users">—</div></div>
+      <div class="stat-box"><div class="stat-label">Abonnés newsletter</div><div class="stat-value" id="stat-newsletter">—</div></div>
+    </div>
+    <h3 style="margin:24px 0 10px;color:var(--green)">Service le plus commandé</h3>
+    <table>
+      <thead><tr><th>Plateforme — Service</th><th>Nombre de commandes</th></tr></thead>
+      <tbody id="stat-top-services"><tr><td colspan="2">Chargement...</td></tr></tbody>
+    </table>
   </div>
 
   <div class="admin-section active" id="admin-tarifs">
@@ -83,6 +114,8 @@ auth.onAuthStateChanged(user => {
     renderAdminCatalog();
     loadAdminOrders();
     loadAdminUsers();
+    loadAdminStats();
+    loadAdminDeposits();
   } else if(user){
     alert("Ce compte n'est pas autorisé à accéder à l'admin. UID détecté : " + user.uid + " — copie-le dans ADMIN_UID si c'est bien toi.");
   }
@@ -171,6 +204,79 @@ async function loadAdminUsers(){
       <td>${date}</td>
     </tr>`;
   }).join('');
+}
+
+async function loadAdminStats(){
+  try{
+    const [ordersSnap, usersSnap, newsletterSnap] = await Promise.all([
+      db.collection('orders').get(),
+      db.collection('users').get(),
+      db.collection('newsletter').get().catch(()=>({size:0}))
+    ]);
+
+    let revenue = 0, pending = 0;
+    const serviceCounts = {};
+    ordersSnap.forEach(doc => {
+      const o = doc.data();
+      revenue += o.amount || 0;
+      if(o.status === 'pending') pending++;
+      const key = `${o.platform} — ${o.service}`;
+      serviceCounts[key] = (serviceCounts[key]||0) + 1;
+    });
+
+    const sevenDaysAgo = new Date(Date.now() - 7*24*60*60*1000);
+    let newUsers = 0;
+    usersSnap.forEach(doc => {
+      const u = doc.data();
+      if(u.createdAt && new Date(u.createdAt) > sevenDaysAgo) newUsers++;
+    });
+
+    document.getElementById('stat-revenue').textContent = revenue.toFixed(2) + '$';
+    document.getElementById('stat-orders').textContent = ordersSnap.size;
+    document.getElementById('stat-pending').textContent = pending;
+    document.getElementById('stat-users').textContent = usersSnap.size;
+    document.getElementById('stat-new-users').textContent = newUsers;
+    document.getElementById('stat-newsletter').textContent = newsletterSnap.size;
+
+    const topServices = Object.entries(serviceCounts).sort((a,b) => b[1]-a[1]).slice(0,8);
+    const tbody = document.getElementById('stat-top-services');
+    tbody.innerHTML = topServices.length
+      ? topServices.map(([name,count]) => `<tr><td>${name}</td><td>${count}</td></tr>`).join('')
+      : '<tr><td colspan="2">Aucune commande pour le moment.</td></tr>';
+  } catch(e){
+    console.warn("Erreur chargement stats :", e.message);
+  }
+}
+
+async function loadAdminDeposits(){
+  const snap = await db.collection('deposits').orderBy('createdAt','desc').limit(100).get();
+  const tbody = document.getElementById('admin-deposits-table');
+  if(snap.empty){ tbody.innerHTML = '<tr><td colspan="7">Aucun dépôt.</td></tr>'; return; }
+  tbody.innerHTML = snap.docs.map(d => {
+    const dep = d.data();
+    const date = new Date(dep.createdAt).toLocaleDateString('fr-FR');
+    const isApproved = dep.status === 'approved';
+    return `<tr>
+      <td>${date}</td>
+      <td style="font-size:0.7rem">${dep.uid.slice(0,8)}...</td>
+      <td>${dep.amount}$</td>
+      <td>${dep.network}</td>
+      <td>${dep.phone||'—'}</td>
+      <td>${isApproved ? '✅ Crédité' : '⏳ En attente'}</td>
+      <td>${isApproved ? '—' : `<button onclick="approveDeposit('${d.id}','${dep.uid}',${dep.amount})" style="background:var(--green);color:white;border:none;padding:6px 12px;border-radius:100px;font-size:0.78rem;font-weight:700">Valider</button>`}</td>
+    </tr>`;
+  }).join('');
+}
+
+async function approveDeposit(depositId, userId, amount){
+  if(!confirm(`Confirmer que ce client a bien payé ${amount}$ ? Son solde sera crédité.`)) return;
+  const userRef = db.collection('users').doc(userId);
+  const userDoc = await userRef.get();
+  const currentBalance = userDoc.exists ? (userDoc.data().balance||0) : 0;
+  await userRef.update({balance: currentBalance + amount});
+  await db.collection('deposits').doc(depositId).update({status:'approved'});
+  loadAdminDeposits();
+  loadAdminUsers();
 }
 </script>
 </body>
