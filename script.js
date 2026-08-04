@@ -822,7 +822,7 @@ async function placeOrder(){
   const sel = getSelectedTier();
   if(!sel){ msgEl.textContent = "Choisis un service."; msgEl.style.color='var(--red)'; return; }
   const qty = Math.max(sel.tier.min||10, parseInt(document.getElementById('d-qty').value) || sel.tier.min || 10);
-  const link = document.getElementById('d-link').value.trim();
+  const link = normalizeLink(document.getElementById('d-link').value);
   const targetEl = document.getElementById('d-targeting');
   const targeting = targetEl ? targetEl.value : 'none';
   const multiplier = TARGETING_MULTIPLIERS[targeting] || 1;
@@ -851,10 +851,15 @@ async function placeOrder(){
 }
 
 // Vérification simple de conformité du lien avant commande (criblage basique)
+function normalizeLink(link){
+  link = link.trim();
+  if(!/^https?:\/\//i.test(link)) link = 'https://' + link;
+  return link;
+}
 function isValidLink(link){
   try{
     const url = new URL(link);
-    return url.protocol === 'http:' || url.protocol === 'https:';
+    return (url.protocol === 'http:' || url.protocol === 'https:') && url.hostname.includes('.');
   } catch(e){ return false; }
 }
 
