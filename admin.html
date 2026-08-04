@@ -6,15 +6,19 @@
     <title>Coeurnoh Boost — Administration</title>
     <style>
         :root {
-            --bg-color: #f8fafc;
-            --card-bg: #ffffff;
-            --text-color: #0f172a;
-            --text-muted: #64748b;
-            --primary: #064e3b;
-            --primary-hover: #04382b;
-            --border: #e2e8f0;
-            --warning-bg: #fef3c7;
-            --warning-text: #92400e;
+            --bg-color: #FAF8F5;
+            --card-bg: #FFFFFF;
+            --text-color: #0F172A;
+            --text-muted: #64748B;
+            --primary: #064E3B;
+            --primary-hover: #04382B;
+            --border: #E2E8F0;
+            --warning-bg: #FEF3C7;
+            --warning-text: #92400E;
+        }
+
+        * {
+            box-sizing: border-box;
         }
 
         body {
@@ -22,7 +26,7 @@
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
-            padding: 20px;
+            padding: 16px;
         }
 
         .container {
@@ -32,40 +36,52 @@
 
         h1 {
             color: var(--primary);
-            font-size: 28px;
-            margin-bottom: 20px;
+            font-size: 26px;
+            font-weight: 800;
+            margin: 10px 0 20px 0;
+            font-family: Georgia, serif;
         }
 
         .alert-warning {
             background-color: var(--warning-bg);
             color: var(--warning-text);
-            padding: 12px 16px;
-            border-radius: 8px;
-            font-size: 14px;
-            margin-bottom: 24px;
+            padding: 14px 18px;
+            border-radius: 12px;
+            font-size: 13px;
+            line-height: 1.5;
+            margin-bottom: 20px;
+            border: 1px solid #FCD34D;
         }
 
         .nav-tabs {
             display: flex;
             gap: 8px;
-            margin-bottom: 24px;
-            flex-wrap: wrap;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding-bottom: 6px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .nav-tabs::-webkit-scrollbar {
+            display: none;
         }
 
         .tab-btn {
-            background: #ffffff;
+            background: #FFFFFF;
             border: 1px solid var(--border);
             padding: 8px 16px;
             border-radius: 20px;
-            font-size: 14px;
-            font-weight: 500;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-color);
             cursor: pointer;
-            transition: all 0.2s;
+            white-space: nowrap;
+            transition: all 0.2s ease;
         }
 
         .tab-btn.active {
             background: var(--primary);
-            color: #ffffff;
+            color: #FFFFFF;
             border-color: var(--primary);
         }
 
@@ -73,7 +89,7 @@
             display: none;
             background: var(--card-bg);
             padding: 24px;
-            border-radius: 12px;
+            border-radius: 16px;
             border: 1px solid var(--border);
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
@@ -85,46 +101,65 @@
         .section-title {
             font-size: 16px;
             font-weight: 700;
-            margin: 20px 0 10px 0;
+            margin: 24px 0 12px 0;
             display: flex;
             align-items: center;
             gap: 8px;
+            color: var(--primary);
+        }
+
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            border-radius: 8px;
+            margin-bottom: 20px;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 24px;
+            background: white;
+            min-width: 650px;
         }
 
         th, td {
             padding: 10px 12px;
             text-align: left;
             border-bottom: 1px solid var(--border);
-            font-size: 14px;
+            font-size: 13px;
+            vertical-align: middle;
         }
 
         th {
-            font-size: 12px;
+            font-size: 11px;
             text-transform: uppercase;
             color: var(--text-muted);
             letter-spacing: 0.5px;
+            font-weight: 700;
         }
 
         input[type="number"], input[type="text"] {
             width: 100%;
             padding: 8px 10px;
             border: 1px solid var(--border);
-            border-radius: 6px;
-            font-size: 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            background: #FAFAFA;
             box-sizing: border-box;
+        }
+
+        input[type="number"]:focus, input[type="text"]:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: white;
         }
 
         .btn-save {
             background-color: var(--primary);
             color: white;
             border: none;
-            padding: 10px 20px;
+            padding: 12px 24px;
             border-radius: 20px;
             font-size: 14px;
             font-weight: 600;
@@ -133,6 +168,10 @@
             align-items: center;
             gap: 8px;
             margin-top: 10px;
+        }
+
+        .btn-save:hover {
+            background-color: var(--primary-hover);
         }
     </style>
 </head>
@@ -145,7 +184,7 @@
         ⚠️ Cette page n'est protégée que par une vérification simple de ton identifiant (UID), pas une sécurité de niveau serveur. Ne partage jamais ce lien.
     </div>
 
-    <!-- TABS -->
+    <!-- TABS DE NAVIGATION -->
     <div class="nav-tabs">
         <button class="tab-btn active" onclick="switchTab('tarifs')">💰 Tarifs</button>
         <button class="tab-btn" onclick="switchTab('commandes')">📦 Commandes</button>
@@ -157,88 +196,367 @@
 
     <!-- TAB 1: TARIFS -->
     <div id="tab-tarifs" class="tab-content active">
-        <p style="color: var(--text-muted); font-size: 14px;">
-            Modifie le prix de vente pour 1000 unités (Standard, Premium, VIP). Clique "Enregistrer les tarifs" pour appliquer.
+        <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 20px;">
+            Modifie le prix de vente pour 1000 unités. Clique "Enregistrer" pour appliquer.
         </p>
 
         <!-- TikTok -->
         <div class="section-title">🎵 TikTok</div>
-        <table>
-            <thead>
-                <tr>
-                    <th>SERVICE</th>
-                    <th>STANDARD ($/1000)</th>
-                    <th>PREMIUM ($/1000)</th>
-                    <th>VIP ($/1000)</th>
-                    <th>QTÉ MIN</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>Followers</td>
-                    <td><input type="number" step="0.1" id="price-tiktok-followers-std" value="2.5"></td>
-                    <td><input type="number" step="0.1" id="price-tiktok-followers-prem" value="9.6"></td>
-                    <td><input type="number" step="0.1" id="price-tiktok-followers-vip" value="15.0"></td>
-                    <td><input type="number" id="min-tiktok-followers" value="100"></td>
-                </tr>
-                <tr>
-                    <td>Vues vidéo</td>
-                    <td><input type="number" step="0.1" id="price-tiktok-views-std" value="0.4"></td>
-                    <td><input type="number" step="0.1" id="price-tiktok-views-prem" value="1.9"></td>
-                    <td><input type="number" step="0.1" id="price-tiktok-views-vip" value="3.5"></td>
-                    <td><input type="number" id="min-tiktok-views" value="200"></td>
-                </tr>
-                <tr>
-                    <td>Likes</td>
-                    <td><input type="number" step="0.1" id="price-tiktok-likes-std" value="0.8"></td>
-                    <td><input type="number" step="0.1" id="price-tiktok-likes-prem" value="3.2"></td>
-                    <td><input type="number" step="0.1" id="price-tiktok-likes-vip" value="5.5"></td>
-                    <td><input type="number" id="min-tiktok-likes" value="100"></td>
-                </tr>
-                <tr>
-                    <td>Commentaires</td>
-                    <td><input type="number" step="0.1" id="price-tiktok-comments-std" value="5.0"></td>
-                    <td><input type="number" step="0.1" id="price-tiktok-comments-prem" value="17.6"></td>
-                    <td><input type="number" step="0.1" id="price-tiktok-comments-vip" value="25.0"></td>
-                    <td><input type="number" id="min-tiktok-comments" value="10"></td>
-                </tr>
-                <tr>
-                    <td>Partages</td>
-                    <td><input type="number" step="0.1" id="price-tiktok-shares-std" value="1.5"></td>
-                    <td><input type="number" step="0.1" id="price-tiktok-shares-prem" value="5.6"></td>
-                    <td><input type="number" step="0.1" id="price-tiktok-shares-vip" value="8.0"></td>
-                    <td><input type="number" id="min-tiktok-shares" value="50"></td>
-                </tr>
-            </tbody>
-        </table>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>SERVICE</th>
+                        <th>STANDARD ($/1000)</th>
+                        <th>PREMIUM ($/1000)</th>
+                        <th>VIP ($/1000)</th>
+                        <th>QTÉ MIN</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Followers</td>
+                        <td><input type="number" step="0.1" id="price-tiktok-followers-std" value="2.5"></td>
+                        <td><input type="number" step="0.1" id="price-tiktok-followers-prem" value="9.6"></td>
+                        <td><input type="number" step="0.1" id="price-tiktok-followers-vip" value="15.0"></td>
+                        <td><input type="number" id="min-tiktok-followers" value="100"></td>
+                    </tr>
+                    <tr>
+                        <td>Vues vidéo</td>
+                        <td><input type="number" step="0.1" id="price-tiktok-views-std" value="0.4"></td>
+                        <td><input type="number" step="0.1" id="price-tiktok-views-prem" value="1.9"></td>
+                        <td><input type="number" step="0.1" id="price-tiktok-views-vip" value="3.5"></td>
+                        <td><input type="number" id="min-tiktok-views" value="200"></td>
+                    </tr>
+                    <tr>
+                        <td>Likes</td>
+                        <td><input type="number" step="0.1" id="price-tiktok-likes-std" value="0.8"></td>
+                        <td><input type="number" step="0.1" id="price-tiktok-likes-prem" value="3.2"></td>
+                        <td><input type="number" step="0.1" id="price-tiktok-likes-vip" value="5.5"></td>
+                        <td><input type="number" id="min-tiktok-likes" value="100"></td>
+                    </tr>
+                    <tr>
+                        <td>Commentaires</td>
+                        <td><input type="number" step="0.1" id="price-tiktok-comments-std" value="5.0"></td>
+                        <td><input type="number" step="0.1" id="price-tiktok-comments-prem" value="17.6"></td>
+                        <td><input type="number" step="0.1" id="price-tiktok-comments-vip" value="25.0"></td>
+                        <td><input type="number" id="min-tiktok-comments" value="10"></td>
+                    </tr>
+                    <tr>
+                        <td>Partages</td>
+                        <td><input type="number" step="0.1" id="price-tiktok-shares-std" value="1.5"></td>
+                        <td><input type="number" step="0.1" id="price-tiktok-shares-prem" value="5.6"></td>
+                        <td><input type="number" step="0.1" id="price-tiktok-shares-vip" value="8.0"></td>
+                        <td><input type="number" id="min-tiktok-shares" value="50"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Instagram -->
+        <div class="section-title">📸 Instagram</div>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>SERVICE</th>
+                        <th>STANDARD ($/1000)</th>
+                        <th>PREMIUM ($/1000)</th>
+                        <th>VIP ($/1000)</th>
+                        <th>QTÉ MIN</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Followers</td>
+                        <td><input type="number" step="0.1" id="price-ig-followers-std" value="3.0"></td>
+                        <td><input type="number" step="0.1" id="price-ig-followers-prem" value="11.2"></td>
+                        <td><input type="number" step="0.1" id="price-ig-followers-vip" value="18.0"></td>
+                        <td><input type="number" id="min-ig-followers" value="100"></td>
+                    </tr>
+                    <tr>
+                        <td>Likes</td>
+                        <td><input type="number" step="0.1" id="price-ig-likes-std" value="0.8"></td>
+                        <td><input type="number" step="0.1" id="price-ig-likes-prem" value="3.2"></td>
+                        <td><input type="number" step="0.1" id="price-ig-likes-vip" value="5.5"></td>
+                        <td><input type="number" id="min-ig-likes" value="100"></td>
+                    </tr>
+                    <tr>
+                        <td>Vues Reels/Stories</td>
+                        <td><input type="number" step="0.1" id="price-ig-views-std" value="0.5"></td>
+                        <td><input type="number" step="0.1" id="price-ig-views-prem" value="1.9"></td>
+                        <td><input type="number" step="0.1" id="price-ig-views-vip" value="3.5"></td>
+                        <td><input type="number" id="min-ig-views" value="200"></td>
+                    </tr>
+                    <tr>
+                        <td>Commentaires</td>
+                        <td><input type="number" step="0.1" id="price-ig-comments-std" value="5.0"></td>
+                        <td><input type="number" step="0.1" id="price-ig-comments-prem" value="17.6"></td>
+                        <td><input type="number" step="0.1" id="price-ig-comments-vip" value="25.0"></td>
+                        <td><input type="number" id="min-ig-comments" value="10"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- YouTube -->
+        <div class="section-title">▶️ YouTube</div>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>SERVICE</th>
+                        <th>STANDARD ($/1000)</th>
+                        <th>PREMIUM ($/1000)</th>
+                        <th>VIP ($/1000)</th>
+                        <th>QTÉ MIN</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Vues</td>
+                        <td><input type="number" step="0.1" id="price-yt-views-std" value="2.0"></td>
+                        <td><input type="number" step="0.1" id="price-yt-views-prem" value="8.0"></td>
+                        <td><input type="number" step="0.1" id="price-yt-views-vip" value="12.0"></td>
+                        <td><input type="number" id="min-yt-views" value="200"></td>
+                    </tr>
+                    <tr>
+                        <td>Abonnés</td>
+                        <td><input type="number" step="0.1" id="price-yt-subs-std" value="5.0"></td>
+                        <td><input type="number" step="0.1" id="price-yt-subs-prem" value="17.6"></td>
+                        <td><input type="number" step="0.1" id="price-yt-subs-vip" value="28.0"></td>
+                        <td><input type="number" id="min-yt-subs" value="100"></td>
+                    </tr>
+                    <tr>
+                        <td>Likes vidéo</td>
+                        <td><input type="number" step="0.1" id="price-yt-likes-std" value="1.5"></td>
+                        <td><input type="number" step="0.1" id="price-yt-likes-prem" value="6.4"></td>
+                        <td><input type="number" step="0.1" id="price-yt-likes-vip" value="10.0"></td>
+                        <td><input type="number" id="min-yt-likes" value="50"></td>
+                    </tr>
+                    <tr>
+                        <td>Commentaires</td>
+                        <td><input type="number" step="0.1" id="price-yt-comments-std" value="6.0"></td>
+                        <td><input type="number" step="0.1" id="price-yt-comments-prem" value="20.8"></td>
+                        <td><input type="number" step="0.1" id="price-yt-comments-vip" value="30.0"></td>
+                        <td><input type="number" id="min-yt-comments" value="10"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Facebook -->
+        <div class="section-title">📘 Facebook</div>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>SERVICE</th>
+                        <th>STANDARD ($/1000)</th>
+                        <th>PREMIUM ($/1000)</th>
+                        <th>VIP ($/1000)</th>
+                        <th>QTÉ MIN</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Followers/Abonnés</td>
+                        <td><input type="number" step="0.1" id="price-fb-followers-std" value="3.0"></td>
+                        <td><input type="number" step="0.1" id="price-fb-followers-prem" value="10.0"></td>
+                        <td><input type="number" step="0.1" id="price-fb-followers-vip" value="16.0"></td>
+                        <td><input type="number" id="min-fb-followers" value="100"></td>
+                    </tr>
+                    <tr>
+                        <td>Vues vidéo</td>
+                        <td><input type="number" step="0.1" id="price-fb-views-std" value="0.5"></td>
+                        <td><input type="number" step="0.1" id="price-fb-views-prem" value="2.0"></td>
+                        <td><input type="number" step="0.1" id="price-fb-views-vip" value="4.0"></td>
+                        <td><input type="number" id="min-fb-views" value="200"></td>
+                    </tr>
+                    <tr>
+                        <td>Likes Page/Post</td>
+                        <td><input type="number" step="0.1" id="price-fb-likes-std" value="1.0"></td>
+                        <td><input type="number" step="0.1" id="price-fb-likes-prem" value="4.0"></td>
+                        <td><input type="number" step="0.1" id="price-fb-likes-vip" value="7.0"></td>
+                        <td><input type="number" id="min-fb-likes" value="100"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
 
         <button class="btn-save" onclick="savePrices()">💾 Enregistrer les tarifs</button>
     </div>
 
+    <!-- TAB 2: COMMANDES -->
+    <div id="tab-commandes" class="tab-content">
+        <h2>Gestion des Commandes</h2>
+        <div id="orders-list">Chargement des commandes...</div>
+    </div>
+
+    <!-- TAB 3: UTILISATEURS -->
+    <div id="tab-utilisateurs" class="tab-content">
+        <h2>Liste des Utilisateurs</h2>
+        <div id="users-list">Chargement des utilisateurs...</div>
+    </div>
+
+    <!-- TAB 4: STATISTIQUES -->
+    <div id="tab-statistiques" class="tab-content">
+        <h2>Statistiques générales</h2>
+        <div id="stats-content">Chargement des statistiques...</div>
+    </div>
+
+    <!-- TAB 5: DÉPÔTS -->
+    <div id="tab-depots" class="tab-content">
+        <h2>Historique des Dépôts</h2>
+        <div id="deposits-list">Chargement des dépôts...</div>
+    </div>
+
     <!-- TAB 6: AUTOMATISATION -->
     <div id="tab-automatisation" class="tab-content">
-        <p style="color: var(--text-muted); font-size: 14px;">
-            Renseigne l'ID MoreThanPanel pour chaque qualité.
+        <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 20px;">
+            Renseigne l'ID MoreThanPanel pour chaque qualité. Une fois rempli, les commandes de ce service partiront automatiquement chez MTP.
         </p>
+
+        <!-- TikTok Automation -->
         <div class="section-title">🎵 TikTok</div>
-        <table>
-            <thead>
-                <tr>
-                    <th>SERVICE</th>
-                    <th>STANDARD</th>
-                    <th>PREMIUM</th>
-                    <th>VIP</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>Followers</td>
-                    <td><input type="text" id="mtp-tiktok-followers-std" placeholder="ID Standard"></td>
-                    <td><input type="text" id="mtp-tiktok-followers-prem" placeholder="ID Premium"></td>
-                    <td><input type="text" id="mtp-tiktok-followers-vip" placeholder="ID VIP"></td>
-                </tr>
-            </tbody>
-        </table>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>SERVICE</th>
+                        <th>STANDARD</th>
+                        <th>PREMIUM</th>
+                        <th>VIP</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Followers</td>
+                        <td><input type="text" id="mtp-tiktok-followers-std" placeholder="ID Standard"></td>
+                        <td><input type="text" id="mtp-tiktok-followers-prem" placeholder="ID Premium"></td>
+                        <td><input type="text" id="mtp-tiktok-followers-vip" placeholder="ID VIP"></td>
+                    </tr>
+                    <tr>
+                        <td>Vues vidéo</td>
+                        <td><input type="text" id="mtp-tiktok-views-std" placeholder="ID Standard"></td>
+                        <td><input type="text" id="mtp-tiktok-views-prem" placeholder="ID Premium"></td>
+                        <td><input type="text" id="mtp-tiktok-views-vip" placeholder="ID VIP"></td>
+                    </tr>
+                    <tr>
+                        <td>Likes</td>
+                        <td><input type="text" id="mtp-tiktok-likes-std" placeholder="ID Standard"></td>
+                        <td><input type="text" id="mtp-tiktok-likes-prem" placeholder="ID Premium"></td>
+                        <td><input type="text" id="mtp-tiktok-likes-vip" placeholder="ID VIP"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Instagram Automation -->
+        <div class="section-title">📸 Instagram</div>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>SERVICE</th>
+                        <th>STANDARD</th>
+                        <th>PREMIUM</th>
+                        <th>VIP</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Followers</td>
+                        <td><input type="text" id="mtp-ig-followers-std" placeholder="ID Standard"></td>
+                        <td><input type="text" id="mtp-ig-followers-prem" placeholder="ID Premium"></td>
+                        <td><input type="text" id="mtp-ig-followers-vip" placeholder="ID VIP"></td>
+                    </tr>
+                    <tr>
+                        <td>Vues Reels/Stories</td>
+                        <td><input type="text" id="mtp-ig-views-std" placeholder="ID Standard"></td>
+                        <td><input type="text" id="mtp-ig-views-prem" placeholder="ID Premium"></td>
+                        <td><input type="text" id="mtp-ig-views-vip" placeholder="ID VIP"></td>
+                    </tr>
+                    <tr>
+                        <td>Likes</td>
+                        <td><input type="text" id="mtp-ig-likes-std" placeholder="ID Standard"></td>
+                        <td><input type="text" id="mtp-ig-likes-prem" placeholder="ID Premium"></td>
+                        <td><input type="text" id="mtp-ig-likes-vip" placeholder="ID VIP"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- YouTube Automation -->
+        <div class="section-title">▶️ YouTube</div>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>SERVICE</th>
+                        <th>STANDARD</th>
+                        <th>PREMIUM</th>
+                        <th>VIP</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Abonnés</td>
+                        <td><input type="text" id="mtp-yt-subs-std" placeholder="ID Standard"></td>
+                        <td><input type="text" id="mtp-yt-subs-prem" placeholder="ID Premium"></td>
+                        <td><input type="text" id="mtp-yt-subs-vip" placeholder="ID VIP"></td>
+                    </tr>
+                    <tr>
+                        <td>Vues</td>
+                        <td><input type="text" id="mtp-yt-views-std" placeholder="ID Standard"></td>
+                        <td><input type="text" id="mtp-yt-views-prem" placeholder="ID Premium"></td>
+                        <td><input type="text" id="mtp-yt-views-vip" placeholder="ID VIP"></td>
+                    </tr>
+                    <tr>
+                        <td>Likes vidéo</td>
+                        <td><input type="text" id="mtp-yt-likes-std" placeholder="ID Standard"></td>
+                        <td><input type="text" id="mtp-yt-likes-prem" placeholder="ID Premium"></td>
+                        <td><input type="text" id="mtp-yt-likes-vip" placeholder="ID VIP"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Facebook Automation -->
+        <div class="section-title">📘 Facebook</div>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>SERVICE</th>
+                        <th>STANDARD</th>
+                        <th>PREMIUM</th>
+                        <th>VIP</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Followers</td>
+                        <td><input type="text" id="mtp-fb-followers-std" placeholder="ID Standard"></td>
+                        <td><input type="text" id="mtp-fb-followers-prem" placeholder="ID Premium"></td>
+                        <td><input type="text" id="mtp-fb-followers-vip" placeholder="ID VIP"></td>
+                    </tr>
+                    <tr>
+                        <td>Vues vidéo</td>
+                        <td><input type="text" id="mtp-fb-views-std" placeholder="ID Standard"></td>
+                        <td><input type="text" id="mtp-fb-views-prem" placeholder="ID Premium"></td>
+                        <td><input type="text" id="mtp-fb-views-vip" placeholder="ID VIP"></td>
+                    </tr>
+                    <tr>
+                        <td>Likes Page</td>
+                        <td><input type="text" id="mtp-fb-likes-std" placeholder="ID Standard"></td>
+                        <td><input type="text" id="mtp-fb-likes-prem" placeholder="ID Premium"></td>
+                        <td><input type="text" id="mtp-fb-likes-vip" placeholder="ID VIP"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
         <button class="btn-save" onclick="saveAutomation()">💾 Enregistrer l'automatisation</button>
     </div>
 
