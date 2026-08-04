@@ -181,16 +181,26 @@ async function loadAdminOrders(){
       <td>${o.amount.toFixed(2)}$</td>
       <td>${mtpSent}<div id="mtp-msg-${d.id}" style="font-size:0.7rem;margin-top:4px"></div></td>
       <td>
-        <select class="status-select" onchange="updateOrderStatus('${d.id}', this.value)">
+        <select class="status-select" onchange="updateOrderStatus('${d.id}', this.value, '${o.uid}', ${o.amount}, '${o.status}')">
           <option value="pending" ${o.status==='pending'?'selected':''}>En cours</option>
           <option value="done" ${o.status==='done'?'selected':''}>Livré</option>
+          <option value="cancelled" ${o.status==='cancelled'?'selected':''}>❌ Annulé + remboursé</option>
         </select>
       </td>
     </tr>`;
   }).join('');
 }
-async function updateOrderStatus(orderId, status){
+async function updateOrderStatus(orderId, status, uid, amount, previousStatus){
+  if(status === 'cancelled' && previousStatus !== 'cancelled'){
+    if(!confirm(`Annuler cette commande et rembourser ${amount}$ au client ?`)) { loadAdminOrders(); return; }
+    const userRef = db.collection('users').doc(uid);
+    const userDoc = await userRef.get();
+    const currentBalance = userDoc.exists ? (userDoc.data().balance||0) : 0;
+    await userRef.update({balance: currentBalance + amount});
+    loadAdminUsers();
+  }
   await db.collection('orders').doc(orderId).update({status});
+  loadAdminOrders();
 }
 
 async function sendToMTP(orderId, link, qty){

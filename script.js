@@ -880,7 +880,9 @@ function loadOrders(){
       tbody.innerHTML = snap.docs.map(d => {
         const o = d.data();
         const date = new Date(o.createdAt).toLocaleDateString('fr-FR');
-        return `<tr><td>${date}</td><td>${o.platform} — ${o.service}</td><td>${o.qty}</td><td>${o.amount.toFixed(2)}$</td><td><span class="status ${o.status==='done'?'done':'pending'}">${o.status==='done'?'Livré':'En cours'}</span></td></tr>`;
+        const statusLabel = o.status==='done' ? 'Livré' : (o.status==='cancelled' ? 'Annulé (remboursé)' : 'En cours');
+        const statusClass = o.status==='done' ? 'done' : (o.status==='cancelled' ? 'cancelled' : 'pending');
+        return `<tr><td>${date}</td><td>${o.platform} — ${o.service}</td><td>${o.qty}</td><td>${o.amount.toFixed(2)}$</td><td><span class="status ${statusClass}">${statusLabel}</span></td></tr>`;
       }).join('');
     }, err => console.warn("Suivi temps réel indisponible :", err.message));
 }

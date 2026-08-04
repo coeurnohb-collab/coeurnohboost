@@ -319,6 +319,7 @@ th{background:var(--cream);color:var(--muted);font-weight:700;text-transform:upp
 .status{padding:3px 10px;border-radius:100px;font-size:0.72rem;font-weight:700;}
 .status.pending{background:#fdf1da;color:#8a5a00;}
 .status.done{background:#e2f2e8;color:var(--green);}
+.status.cancelled{background:#fbeaea;color:var(--red);}
 
 .pay-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;}
 .pay-opt{border:1.5px solid var(--line);border-radius:12px;padding:14px;text-align:center;font-weight:700;font-size:0.85rem;}
