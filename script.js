@@ -1,4 +1,43 @@
-// Navigation entre les onglets de l'admin
+// --- GESTION DE LA CONNEXION ADMIN ---
+function loginAdmin() {
+    const adminUidInput = document.getElementById('admin-uid') || document.getElementById('admin-password');
+    const uid = adminUidInput ? adminUidInput.value.trim() : '';
+
+    if (!uid) {
+        alert("Veuillez entrer votre identifiant (UID) d'administration.");
+        return;
+    }
+
+    // Sauvegarde de la session en local
+    localStorage.setItem('coeurnoh_admin_session', uid);
+    
+    // Si la page contient une zone de connexion à cacher et un panneau à afficher
+    const loginSection = document.getElementById('login-section');
+    const adminPanel = document.getElementById('admin-panel') || document.querySelector('.container');
+
+    if (loginSection) {
+        loginSection.style.display = 'none';
+    }
+    if (adminPanel) {
+        adminPanel.style.display = 'block';
+    }
+
+    alert("Connexion réussie !");
+}
+
+// Auto-vérification au chargement de la page
+document.addEventListener('DOMContentLoaded', () => {
+    const savedSession = localStorage.getItem('coeurnoh_admin_session');
+    const loginSection = document.getElementById('login-section');
+    const adminPanel = document.getElementById('admin-panel');
+
+    if (savedSession && loginSection && adminPanel) {
+        loginSection.style.display = 'none';
+        adminPanel.style.display = 'block';
+    }
+});
+
+// --- NAVIGATION ENTRE LES ONGLETS ---
 function switchTab(tabName) {
     const tabs = document.querySelectorAll('.tab-content');
     const btns = document.querySelectorAll('.tab-btn');
@@ -11,12 +50,12 @@ function switchTab(tabName) {
         targetTab.classList.add('active');
     }
     
-    if (event && event.currentTarget) {
-        event.currentTarget.classList.add('active');
+    if (window.event && window.event.currentTarget) {
+        window.event.currentTarget.classList.add('active');
     }
 }
 
-// Enregistrer la grille tarifaire (Standard, Premium, VIP)
+// --- ENREGISTRER LA GRILLE TARIFAIRE ---
 function savePrices() {
     const prices = {
         tiktok: {
@@ -45,7 +84,7 @@ function savePrices() {
     alert('✅ Tarifs (Standard, Premium, VIP) enregistrés avec succès !');
 }
 
-// Enregistrer la cartographie des ID d'automatisation MoreThanPanel
+// --- ENREGISTRER L'AUTOMATISATION ---
 function saveAutomation() {
     const automationMap = {
         "tiktok-followers-std": document.getElementById('mtp-tiktok-followers-std')?.value || "",
