@@ -30,6 +30,9 @@
   .stat-box{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:18px;}
   .stat-label{font-size:0.76rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;font-weight:600;}
   .stat-value{font-family:'Playfair Display',serif;font-size:1.6rem;color:var(--green);font-weight:700;margin-top:6px;}
+  .auto-row{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);}
+  .auto-row input{padding:6px 8px;border-radius:6px;border:1px solid var(--line);font-size:0.8rem;width:100%;}
+  .auto-platform-title{font-weight:700;color:var(--green);margin:18px 0 6px;}
 </style>
 </head>
 <body>
@@ -49,6 +52,14 @@
     <button class="admin-tab" data-tab="utilisateurs" onclick="switchAdminTab('utilisateurs')">👤 Utilisateurs</button>
     <button class="admin-tab" data-tab="stats" onclick="switchAdminTab('stats')">📊 Statistiques</button>
     <button class="admin-tab" data-tab="depots" onclick="switchAdminTab('depots')">💵 Dépôts</button>
+    <button class="admin-tab" data-tab="auto" onclick="switchAdminTab('auto')">🤖 Automatisation</button>
+  </div>
+
+  <div class="admin-section" id="admin-auto">
+    <p style="margin-bottom:16px;color:var(--muted)">Renseigne l'ID MoreThanPanel pour chaque qualité. Une fois rempli, les commandes de ce service partiront automatiquement chez MTP, sans que tu aies besoin de cliquer quoi que ce soit.</p>
+    <div id="auto-map-container"></div>
+    <button onclick="saveMtpMap()" style="padding:12px 24px;border-radius:100px;background:var(--green);color:white;font-weight:700;margin-top:10px">💾 Enregistrer l'automatisation</button>
+    <p id="auto-save-msg" style="margin-top:12px;color:var(--green);font-weight:600;"></p>
   </div>
 
   <div class="admin-section" id="admin-depots">
@@ -116,6 +127,8 @@ auth.onAuthStateChanged(user => {
     loadAdminUsers();
     loadAdminStats();
     loadAdminDeposits();
+    renderMtpMapUI();
+    loadMtpMap();
   } else if(user){
     alert("Ce compte n'est pas autorisé à accéder à l'admin. UID détecté : " + user.uid + " — copie-le dans ADMIN_UID si c'est bien toi.");
   }
@@ -289,6 +302,71 @@ async function loadAdminStats(){
   } catch(e){
     console.warn("Erreur chargement stats :", e.message);
   }
+}
+
+// Les 12 services prioritaires à automatiser (Abonnés/Vues/Likes × 4 plateformes)
+const AUTO_TARGETS = [
+  {platform:"TikTok", service:"Followers"},
+  {platform:"TikTok", service:"Vues vidéo"},
+  {platform:"TikTok", service:"Likes"},
+  {platform:"Instagram", service:"Followers"},
+  {platform:"Instagram", service:"Vues Reels/Stories"},
+  {platform:"Instagram", service:"Likes"},
+  {platform:"YouTube", service:"Abonnés"},
+  {platform:"YouTube", service:"Vues"},
+  {platform:"YouTube", service:"Likes vidéo"},
+  {platform:"Facebook", service:"Followers"},
+  {platform:"Facebook", service:"Vues vidéo"},
+  {platform:"Facebook", service:"Likes Page"},
+];
+
+function renderMtpMapUI(){
+  const container = document.getElementById('auto-map-container');
+  let html = '';
+  let currentPlatform = '';
+  AUTO_TARGETS.forEach(t => {
+    if(t.platform !== currentPlatform){
+      currentPlatform = t.platform;
+      html += `<div class="auto-platform-title">${platformBadge(t.platform)} ${t.platform}</div>
+        <div class="auto-row" style="font-weight:700;font-size:0.75rem;color:var(--muted)"><span>Service</span><span>Standard</span><span>Premium</span><span>VIP</span></div>`;
+    }
+    const key = t.platform + '|' + t.service;
+    html += `<div class="auto-row">
+      <span>${t.service}</span>
+      <input type="text" id="mtp-${key}-0" placeholder="ID Standard">
+      <input type="text" id="mtp-${key}-1" placeholder="ID Premium">
+      <input type="text" id="mtp-${key}-2" placeholder="ID VIP">
+    </div>`;
+  });
+  container.innerHTML = html;
+}
+
+async function loadMtpMap(){
+  try{
+    const doc = await db.collection('settings').doc('mtpServiceMap').get();
+    if(!doc.exists) return;
+    const map = doc.data();
+    AUTO_TARGETS.forEach(t => {
+      const key = t.platform + '|' + t.service;
+      const ids = map[key];
+      if(ids){
+        ids.forEach((id, i) => {
+          const el = document.getElementById(`mtp-${key}-${i}`);
+          if(el && id) el.value = id;
+        });
+      }
+    });
+  } catch(e){ console.warn("Pas de mapping MTP existant :", e.message); }
+}
+
+async function saveMtpMap(){
+  const map = {};
+  AUTO_TARGETS.forEach(t => {
+    const key = t.platform + '|' + t.service;
+    map[key] = [0,1,2].map(i => document.getElementById(`mtp-${key}-${i}`).value.trim());
+  });
+  await db.collection('settings').doc('mtpServiceMap').set(map);
+  document.getElementById('auto-save-msg').textContent = "✅ Automatisation enregistrée — les nouvelles commandes de ces services partiront automatiquement.";
 }
 
 async function loadAdminDeposits(){

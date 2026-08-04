@@ -840,8 +840,9 @@ async function placeOrder(){
   currentUser.loyaltyPoints = newPoints;
   updateBalanceDisplays();
 
-  await db.collection('orders').add({uid: currentUser.uid, platform: sel.platform, service: sel.name, quality: sel.tier.label, targeting, qty, link, amount: cost, status: 'pending', createdAt: new Date().toISOString()});
+  const orderRef = await db.collection('orders').add({uid: currentUser.uid, platform: sel.platform, service: sel.name, quality: sel.tier.label, targeting, qty, link, amount: cost, status: 'pending', createdAt: new Date().toISOString()});
   await creditReferralCommissionIfFirstOrder(cost);
+  await tryAutoSendToMTP(orderRef.id, sel.platform, sel.name, sel.tier.label, link, qty);
 
   msgEl.textContent = "Commande envoyée ! Suivi disponible dans Activités.";
   msgEl.style.color = 'var(--green)';
@@ -851,6 +852,39 @@ async function placeOrder(){
 }
 
 // Vérification simple de conformité du lien avant commande (criblage basique)
+/* =========================================================
+   ENVOI AUTOMATIQUE À MORETHANPANEL
+   Si un ID de service est enregistré (admin.html > Automatisation)
+   pour la combinaison plateforme/service/qualité, la commande part
+   automatiquement. Sinon, elle reste "en attente" pour traitement
+   manuel dans l'admin, comme avant.
+   ========================================================= */
+async function tryAutoSendToMTP(orderId, platform, service, qualityLabel, link, qty){
+  try{
+    const doc = await db.collection('settings').doc('mtpServiceMap').get();
+    if(!doc.exists) return;
+    const key = platform + '|' + service;
+    const ids = doc.data()[key];
+    if(!ids) return;
+    const tierIndex = qualityLabel.startsWith('VIP') ? 2 : (qualityLabel.startsWith('Premium') ? 1 : 0);
+    const serviceId = ids[tierIndex];
+    if(!serviceId) return;
+
+    const res = await fetch('/.netlify/functions/place-smm-order', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({service: serviceId, link, quantity: qty})
+    });
+    const data = await res.json();
+    if(data.success){
+      await db.collection('orders').doc(orderId).update({mtpOrderId: data.orderId, status:'done'});
+    }
+    // Si erreur, on ne bloque rien : la commande reste "en attente" pour traitement manuel.
+  } catch(e){
+    console.warn("Envoi automatique MTP non disponible :", e.message);
+  }
+}
+
 function normalizeLink(link){
   link = link.trim();
   if(!/^https?:\/\//i.test(link)) link = 'https://' + link;
