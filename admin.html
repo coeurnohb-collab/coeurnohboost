@@ -1,405 +1,516 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Coeurnoh Boost — Administration</title>
-<meta name="robots" content="noindex, nofollow">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="translations.js"></script>
-<style>
-  body{padding:32px 20px;max-width:1000px;margin:0 auto;}
-  h1{color:var(--green);margin-bottom:6px;}
-  .warn{background:#fdf1da;color:#8a5a00;padding:12px 16px;border-radius:10px;font-size:0.88rem;margin-bottom:24px;}
-  .platform-block{margin-bottom:28px;}
-  .platform-block h2{font-size:1.15rem;color:var(--green);margin-bottom:10px;}
-  table{width:100%;border-collapse:collapse;margin-bottom:10px;}
-  th,td{padding:8px 10px;text-align:left;font-size:0.85rem;border-bottom:1px solid var(--line);}
-  th{background:var(--cream);}
-  .admin-tabs{display:flex;gap:10px;margin-bottom:24px;flex-wrap:wrap;}
-  .admin-tab{padding:10px 18px;border-radius:100px;border:1.5px solid var(--line);font-weight:600;font-size:0.88rem;background:var(--white);}
-  .admin-tab.active{background:var(--green);color:var(--white);border-color:var(--green);}
-  .admin-section{display:none;}
-  .admin-section.active{display:block;}
-  select.status-select{padding:4px 8px;border-radius:6px;border:1px solid var(--line);font-size:0.82rem;}
-  .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;}
-  .stat-box{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:18px;}
-  .stat-label{font-size:0.76rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;font-weight:600;}
-  .stat-value{font-family:'Playfair Display',serif;font-size:1.6rem;color:var(--green);font-weight:700;margin-top:6px;}
-  .auto-row{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);}
-  .auto-row input{padding:6px 8px;border-radius:6px;border:1px solid var(--line);font-size:0.8rem;width:100%;}
-  .auto-platform-title{font-weight:700;color:var(--green);margin:18px 0 6px;}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coeurnoh Boost — Administration</title>
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #0f172a;
+            --text-muted: #64748b;
+            --primary: #064e3b;
+            --primary-hover: #04382b;
+            --border: #e2e8f0;
+            --warning-bg: #fef3c7;
+            --warning-text: #92400e;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: var(--primary);
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        .alert-warning {
+            background-color: var(--warning-bg);
+            color: var(--warning-text);
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+            color: #ffffff;
+            border-color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+            background: var(--card-bg);
+            padding: 24px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin: 20px 0 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 24px;
+        }
+
+        th, td {
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+        }
+
+        th {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+        }
+
+        input[type="number"], input[type="text"] {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        .btn-save {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .btn-save:hover {
+            background-color: var(--primary-hover);
+        }
+    </style>
 </head>
 <body>
 
-<h1>Admin — Coeurnoh Boost</h1>
-<p class="warn">⚠️ Cette page n'est protégée que par une vérification simple de ton identifiant (UID), pas une sécurité de niveau serveur. Ne partage jamais ce lien.</p>
+<div class="container">
+    <h1>Admin — Coeurnoh Boost</h1>
 
-<div id="login-gate">
-  <p>Connecte-toi avec le compte administrateur pour continuer.</p>
-  <button onclick="adminLogin()" style="margin-top:12px;padding:10px 18px;border-radius:100px;background:var(--green);color:white;font-weight:600;">Se connecter avec Google</button>
-</div>
-
-<div id="admin-panel" class="hidden">
-  <div class="admin-tabs">
-    <button class="admin-tab active" data-tab="tarifs" onclick="switchAdminTab('tarifs')">💰 Tarifs</button>
-    <button class="admin-tab" data-tab="commandes" onclick="switchAdminTab('commandes')">📦 Commandes</button>
-    <button class="admin-tab" data-tab="utilisateurs" onclick="switchAdminTab('utilisateurs')">👤 Utilisateurs</button>
-    <button class="admin-tab" data-tab="stats" onclick="switchAdminTab('stats')">📊 Statistiques</button>
-    <button class="admin-tab" data-tab="depots" onclick="switchAdminTab('depots')">💵 Dépôts</button>
-    <button class="admin-tab" data-tab="auto" onclick="switchAdminTab('auto')">🤖 Automatisation</button>
-  </div>
-
-  <div class="admin-section" id="admin-auto">
-    <p style="margin-bottom:16px;color:var(--muted)">Renseigne l'ID MoreThanPanel pour chaque qualité. Une fois rempli, les commandes de ce service partiront automatiquement chez MTP, sans que tu aies besoin de cliquer quoi que ce soit.</p>
-    <div id="auto-map-container"></div>
-    <button onclick="saveMtpMap()" style="padding:12px 24px;border-radius:100px;background:var(--green);color:white;font-weight:700;margin-top:10px">💾 Enregistrer l'automatisation</button>
-    <p id="auto-save-msg" style="margin-top:12px;color:var(--green);font-weight:600;"></p>
-  </div>
-
-  <div class="admin-section" id="admin-depots">
-    <p style="margin-bottom:16px;color:var(--muted)">Quand un client confirme avoir payé (mobile money/crypto/carte), valide ici pour créditer son portefeuille.</p>
-    <table>
-      <thead><tr><th>Date</th><th>Client (UID)</th><th>Montant</th><th>Réseau</th><th>Téléphone</th><th>Statut</th><th>Action</th></tr></thead>
-      <tbody id="admin-deposits-table"><tr><td colspan="7">Chargement...</td></tr></tbody>
-    </table>
-  </div>
-
-  <div class="admin-section" id="admin-stats">
-    <p style="margin-bottom:20px;color:var(--muted)">Vue d'ensemble de ton activité.</p>
-    <div class="stats-grid">
-      <div class="stat-box"><div class="stat-label">Chiffre d'affaires total</div><div class="stat-value" id="stat-revenue">—</div></div>
-      <div class="stat-box"><div class="stat-label">Commandes totales</div><div class="stat-value" id="stat-orders">—</div></div>
-      <div class="stat-box"><div class="stat-label">Commandes en attente</div><div class="stat-value" id="stat-pending">—</div></div>
-      <div class="stat-box"><div class="stat-label">Clients inscrits</div><div class="stat-value" id="stat-users">—</div></div>
-      <div class="stat-box"><div class="stat-label">Nouveaux clients (7j)</div><div class="stat-value" id="stat-new-users">—</div></div>
-      <div class="stat-box"><div class="stat-label">Abonnés newsletter</div><div class="stat-value" id="stat-newsletter">—</div></div>
+    <div class="alert-warning">
+        ⚠️ Cette page n'est protégée que par une vérification simple de ton identifiant (UID), pas une sécurité de niveau serveur. Ne partage jamais ce lien.
     </div>
-    <h3 style="margin:24px 0 10px;color:var(--green)">Service le plus commandé</h3>
-    <table>
-      <thead><tr><th>Plateforme — Service</th><th>Nombre de commandes</th></tr></thead>
-      <tbody id="stat-top-services"><tr><td colspan="2">Chargement...</td></tr></tbody>
-    </table>
-  </div>
 
-  <div class="admin-section active" id="admin-tarifs">
-    <p style="margin-bottom:20px;color:var(--muted)">Modifie le prix de vente pour 1000 unités. Clique "Enregistrer" pour appliquer.</p>
-    <div id="platforms-container"></div>
-    <button onclick="saveCatalog()" style="padding:12px 24px;border-radius:100px;background:var(--green);color:white;font-weight:700;">💾 Enregistrer tous les tarifs</button>
-    <p id="save-msg" style="margin-top:12px;color:var(--green);font-weight:600;"></p>
-  </div>
+    <!-- TABS DE NAVIGATION -->
+    <div class="nav-tabs">
+        <button class="tab-btn active" onclick="switchTab('tarifs')">💰 Tarifs</button>
+        <button class="tab-btn" onclick="switchTab('commandes')">📦 Commandes</button>
+        <button class="tab-btn" onclick="switchTab('utilisateurs')">👤 Utilisateurs</button>
+        <button class="tab-btn" onclick="switchTab('statistiques')">📊 Statistiques</button>
+        <button class="tab-btn" onclick="switchTab('depots')">💵 Dépôts</button>
+        <button class="tab-btn" onclick="switchTab('automatisation')">🤖 Automatisation</button>
+    </div>
 
-  <div class="admin-section" id="admin-commandes">
-    <p style="margin-bottom:16px;color:var(--muted)">Envoie la commande à MoreThanPanel avec l'ID service correspondant, puis change le statut une fois livré.</p>
-    <table>
-      <thead><tr><th>Date</th><th>Client</th><th>Service</th><th>Qté / Lien</th><th>Montant</th><th>Envoyer à MTP</th><th>Statut</th></tr></thead>
-      <tbody id="admin-orders-table"><tr><td colspan="7">Chargement...</td></tr></tbody>
-    </table>
-  </div>
+    <!-- TAB 1: TARIFS (MODIFIÉ AVEC VIP) -->
+    <div id="tab-tarifs" class="tab-content active">
+        <p style="color: var(--text-muted); font-size: 14px;">
+            Modifie le prix de vente pour 1000 unités (Standard, Premium, VIP). Clique "Enregistrer les tarifs" pour appliquer.
+        </p>
 
-  <div class="admin-section" id="admin-utilisateurs">
-    <p style="margin-bottom:16px;color:var(--muted)">Liste de tes clients inscrits.</p>
-    <table>
-      <thead><tr><th>Nom</th><th>Email</th><th>Solde</th><th>Points</th><th>Inscrit le</th></tr></thead>
-      <tbody id="admin-users-table"><tr><td colspan="5">Chargement...</td></tr></tbody>
-    </table>
-  </div>
+        <!-- TikTok -->
+        <div class="section-title">🎵 TikTok</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>SERVICE</th>
+                    <th>STANDARD ($/1000)</th>
+                    <th>PREMIUM ($/1000)</th>
+                    <th>VIP ($/1000)</th>
+                    <th>QTÉ MIN</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Followers</td>
+                    <td><input type="number" step="0.1" id="price-tiktok-followers-std" value="2.5"></td>
+                    <td><input type="number" step="0.1" id="price-tiktok-followers-prem" value="9.6"></td>
+                    <td><input type="number" step="0.1" id="price-tiktok-followers-vip" value="15.0"></td>
+                    <td><input type="number" id="min-tiktok-followers" value="100"></td>
+                </tr>
+                <tr>
+                    <td>Vues vidéo</td>
+                    <td><input type="number" step="0.1" id="price-tiktok-views-std" value="0.4"></td>
+                    <td><input type="number" step="0.1" id="price-tiktok-views-prem" value="1.9"></td>
+                    <td><input type="number" step="0.1" id="price-tiktok-views-vip" value="3.5"></td>
+                    <td><input type="number" id="min-tiktok-views" value="200"></td>
+                </tr>
+                <tr>
+                    <td>Likes</td>
+                    <td><input type="number" step="0.1" id="price-tiktok-likes-std" value="0.8"></td>
+                    <td><input type="number" step="0.1" id="price-tiktok-likes-prem" value="3.2"></td>
+                    <td><input type="number" step="0.1" id="price-tiktok-likes-vip" value="5.5"></td>
+                    <td><input type="number" id="min-tiktok-likes" value="100"></td>
+                </tr>
+                <tr>
+                    <td>Commentaires</td>
+                    <td><input type="number" step="0.1" id="price-tiktok-comments-std" value="5.0"></td>
+                    <td><input type="number" step="0.1" id="price-tiktok-comments-prem" value="17.6"></td>
+                    <td><input type="number" step="0.1" id="price-tiktok-comments-vip" value="25.0"></td>
+                    <td><input type="number" id="min-tiktok-comments" value="10"></td>
+                </tr>
+                <tr>
+                    <td>Partages</td>
+                    <td><input type="number" step="0.1" id="price-tiktok-shares-std" value="1.5"></td>
+                    <td><input type="number" step="0.1" id="price-tiktok-shares-prem" value="5.6"></td>
+                    <td><input type="number" step="0.1" id="price-tiktok-shares-vip" value="8.0"></td>
+                    <td><input type="number" id="min-tiktok-shares" value="50"></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Instagram -->
+        <div class="section-title">📸 Instagram</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>SERVICE</th>
+                    <th>STANDARD ($/1000)</th>
+                    <th>PREMIUM ($/1000)</th>
+                    <th>VIP ($/1000)</th>
+                    <th>QTÉ MIN</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Followers</td>
+                    <td><input type="number" step="0.1" id="price-ig-followers-std" value="3.0"></td>
+                    <td><input type="number" step="0.1" id="price-ig-followers-prem" value="11.2"></td>
+                    <td><input type="number" step="0.1" id="price-ig-followers-vip" value="18.0"></td>
+                    <td><input type="number" id="min-ig-followers" value="100"></td>
+                </tr>
+                <tr>
+                    <td>Likes</td>
+                    <td><input type="number" step="0.1" id="price-ig-likes-std" value="0.8"></td>
+                    <td><input type="number" step="0.1" id="price-ig-likes-prem" value="3.2"></td>
+                    <td><input type="number" step="0.1" id="price-ig-likes-vip" value="5.5"></td>
+                    <td><input type="number" id="min-ig-likes" value="100"></td>
+                </tr>
+                <tr>
+                    <td>Vues Reels/Stories</td>
+                    <td><input type="number" step="0.1" id="price-ig-views-std" value="0.5"></td>
+                    <td><input type="number" step="0.1" id="price-ig-views-prem" value="1.9"></td>
+                    <td><input type="number" step="0.1" id="price-ig-views-vip" value="3.5"></td>
+                    <td><input type="number" id="min-ig-views" value="200"></td>
+                </tr>
+                <tr>
+                    <td>Commentaires</td>
+                    <td><input type="number" step="0.1" id="price-ig-comments-std" value="5.0"></td>
+                    <td><input type="number" step="0.1" id="price-ig-comments-prem" value="17.6"></td>
+                    <td><input type="number" step="0.1" id="price-ig-comments-vip" value="25.0"></td>
+                    <td><input type="number" id="min-ig-comments" value="10"></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- YouTube -->
+        <div class="section-title">▶️ YouTube</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>SERVICE</th>
+                    <th>STANDARD ($/1000)</th>
+                    <th>PREMIUM ($/1000)</th>
+                    <th>VIP ($/1000)</th>
+                    <th>QTÉ MIN</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Vues</td>
+                    <td><input type="number" step="0.1" id="price-yt-views-std" value="2.0"></td>
+                    <td><input type="number" step="0.1" id="price-yt-views-prem" value="8.0"></td>
+                    <td><input type="number" step="0.1" id="price-yt-views-vip" value="12.0"></td>
+                    <td><input type="number" id="min-yt-views" value="200"></td>
+                </tr>
+                <tr>
+                    <td>Abonnés</td>
+                    <td><input type="number" step="0.1" id="price-yt-subs-std" value="5.0"></td>
+                    <td><input type="number" step="0.1" id="price-yt-subs-prem" value="17.6"></td>
+                    <td><input type="number" step="0.1" id="price-yt-subs-vip" value="28.0"></td>
+                    <td><input type="number" id="min-yt-subs" value="100"></td>
+                </tr>
+                <tr>
+                    <td>Likes vidéo</td>
+                    <td><input type="number" step="0.1" id="price-yt-likes-std" value="1.5"></td>
+                    <td><input type="number" step="0.1" id="price-yt-likes-prem" value="6.4"></td>
+                    <td><input type="number" step="0.1" id="price-yt-likes-vip" value="10.0"></td>
+                    <td><input type="number" id="min-yt-likes" value="50"></td>
+                </tr>
+                <tr>
+                    <td>Commentaires</td>
+                    <td><input type="number" step="0.1" id="price-yt-comments-std" value="6.0"></td>
+                    <td><input type="number" step="0.1" id="price-yt-comments-prem" value="20.8"></td>
+                    <td><input type="number" step="0.1" id="price-yt-comments-vip" value="30.0"></td>
+                    <td><input type="number" id="min-yt-comments" value="10"></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Facebook -->
+        <div class="section-title">📘 Facebook</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>SERVICE</th>
+                    <th>STANDARD ($/1000)</th>
+                    <th>PREMIUM ($/1000)</th>
+                    <th>VIP ($/1000)</th>
+                    <th>QTÉ MIN</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Followers/Abonnés</td>
+                    <td><input type="number" step="0.1" id="price-fb-followers-std" value="3.0"></td>
+                    <td><input type="number" step="0.1" id="price-fb-followers-prem" value="10.0"></td>
+                    <td><input type="number" step="0.1" id="price-fb-followers-vip" value="16.0"></td>
+                    <td><input type="number" id="min-fb-followers" value="100"></td>
+                </tr>
+                <tr>
+                    <td>Vues vidéo</td>
+                    <td><input type="number" step="0.1" id="price-fb-views-std" value="0.5"></td>
+                    <td><input type="number" step="0.1" id="price-fb-views-prem" value="2.0"></td>
+                    <td><input type="number" step="0.1" id="price-fb-views-vip" value="4.0"></td>
+                    <td><input type="number" id="min-fb-views" value="200"></td>
+                </tr>
+                <tr>
+                    <td>Likes Page/Post</td>
+                    <td><input type="number" step="0.1" id="price-fb-likes-std" value="1.0"></td>
+                    <td><input type="number" step="0.1" id="price-fb-likes-prem" value="4.0"></td>
+                    <td><input type="number" step="0.1" id="price-fb-likes-vip" value="7.0"></td>
+                    <td><input type="number" id="min-fb-likes" value="100"></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <button class="btn-save" onclick="savePrices()">💾 Enregistrer les tarifs</button>
+    </div>
+
+    <!-- TAB 2: COMMANDES -->
+    <div id="tab-commandes" class="tab-content">
+        <h2>Gestion des Commandes</h2>
+        <div id="orders-list">Chargement des commandes...</div>
+    </div>
+
+    <!-- TAB 3: UTILISATEURS -->
+    <div id="tab-utilisateurs" class="tab-content">
+        <h2>Liste des Utilisateurs</h2>
+        <div id="users-list">Chargement des utilisateurs...</div>
+    </div>
+
+    <!-- TAB 4: STATISTIQUES -->
+    <div id="tab-statistiques" class="tab-content">
+        <h2>Statistiques générales</h2>
+        <div id="stats-content">Chargement des statistiques...</div>
+    </div>
+
+    <!-- TAB 5: DÉPÔTS -->
+    <div id="tab-depots" class="tab-content">
+        <h2>Historique des Dépôts</h2>
+        <div id="deposits-list">Chargement des dépôts...</div>
+    </div>
+
+    <!-- TAB 6: AUTOMATISATION (ID MORETHANPANEL) -->
+    <div id="tab-automatisation" class="tab-content">
+        <p style="color: var(--text-muted); font-size: 14px;">
+            Renseigne l'ID MoreThanPanel pour chaque qualité. Une fois rempli, les commandes partent automatiquement chez MTP.
+        </p>
+
+        <!-- TikTok Automation -->
+        <div class="section-title">🎵 TikTok</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>SERVICE</th>
+                    <th>STANDARD</th>
+                    <th>PREMIUM</th>
+                    <th>VIP</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Followers</td>
+                    <td><input type="text" id="mtp-tiktok-followers-std" placeholder="ID Standard"></td>
+                    <td><input type="text" id="mtp-tiktok-followers-prem" placeholder="ID Premium"></td>
+                    <td><input type="text" id="mtp-tiktok-followers-vip" placeholder="ID VIP"></td>
+                </tr>
+                <tr>
+                    <td>Vues vidéo</td>
+                    <td><input type="text" id="mtp-tiktok-views-std" placeholder="ID Standard"></td>
+                    <td><input type="text" id="mtp-tiktok-views-prem" placeholder="ID Premium"></td>
+                    <td><input type="text" id="mtp-tiktok-views-vip" placeholder="ID VIP"></td>
+                </tr>
+                <tr>
+                    <td>Likes</td>
+                    <td><input type="text" id="mtp-tiktok-likes-std" placeholder="ID Standard"></td>
+                    <td><input type="text" id="mtp-tiktok-likes-prem" placeholder="ID Premium"></td>
+                    <td><input type="text" id="mtp-tiktok-likes-vip" placeholder="ID VIP"></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Instagram Automation -->
+        <div class="section-title">📸 Instagram</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>SERVICE</th>
+                    <th>STANDARD</th>
+                    <th>PREMIUM</th>
+                    <th>VIP</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Followers</td>
+                    <td><input type="text" id="mtp-ig-followers-std" placeholder="ID Standard"></td>
+                    <td><input type="text" id="mtp-ig-followers-prem" placeholder="ID Premium"></td>
+                    <td><input type="text" id="mtp-ig-followers-vip" placeholder="ID VIP"></td>
+                </tr>
+                <tr>
+                    <td>Vues Reels/Stories</td>
+                    <td><input type="text" id="mtp-ig-views-std" placeholder="ID Standard"></td>
+                    <td><input type="text" id="mtp-ig-views-prem" placeholder="ID Premium"></td>
+                    <td><input type="text" id="mtp-ig-views-vip" placeholder="ID VIP"></td>
+                </tr>
+                <tr>
+                    <td>Likes</td>
+                    <td><input type="text" id="mtp-ig-likes-std" placeholder="ID Standard"></td>
+                    <td><input type="text" id="mtp-ig-likes-prem" placeholder="ID Premium"></td>
+                    <td><input type="text" id="mtp-ig-likes-vip" placeholder="ID VIP"></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- YouTube Automation -->
+        <div class="section-title">▶️ YouTube</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>SERVICE</th>
+                    <th>STANDARD</th>
+                    <th>PREMIUM</th>
+                    <th>VIP</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Abonnés</td>
+                    <td><input type="text" id="mtp-yt-subs-std" placeholder="ID Standard"></td>
+                    <td><input type="text" id="mtp-yt-subs-prem" placeholder="ID Premium"></td>
+                    <td><input type="text" id="mtp-yt-subs-vip" placeholder="ID VIP"></td>
+                </tr>
+                <tr>
+                    <td>Vues</td>
+                    <td><input type="text" id="mtp-yt-views-std" placeholder="ID Standard"></td>
+                    <td><input type="text" id="mtp-yt-views-prem" placeholder="ID Premium"></td>
+                    <td><input type="text" id="mtp-yt-views-vip" placeholder="ID VIP"></td>
+                </tr>
+                <tr>
+                    <td>Likes vidéo</td>
+                    <td><input type="text" id="mtp-yt-likes-std" placeholder="ID Standard"></td>
+                    <td><input type="text" id="mtp-yt-likes-prem" placeholder="ID Premium"></td>
+                    <td><input type="text" id="mtp-yt-likes-vip" placeholder="ID VIP"></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Facebook Automation -->
+        <div class="section-title">📘 Facebook</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>SERVICE</th>
+                    <th>STANDARD</th>
+                    <th>PREMIUM</th>
+                    <th>VIP</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Followers</td>
+                    <td><input type="text" id="mtp-fb-followers-std" placeholder="ID Standard"></td>
+                    <td><input type="text" id="mtp-fb-followers-prem" placeholder="ID Premium"></td>
+                    <td><input type="text" id="mtp-fb-followers-vip" placeholder="ID VIP"></td>
+                </tr>
+                <tr>
+                    <td>Vues vidéo</td>
+                    <td><input type="text" id="mtp-fb-views-std" placeholder="ID Standard"></td>
+                    <td><input type="text" id="mtp-fb-views-prem" placeholder="ID Premium"></td>
+                    <td><input type="text" id="mtp-fb-views-vip" placeholder="ID VIP"></td>
+                </tr>
+                <tr>
+                    <td>Likes Page</td>
+                    <td><input type="text" id="mtp-fb-likes-std" placeholder="ID Standard"></td>
+                    <td><input type="text" id="mtp-fb-likes-prem" placeholder="ID Premium"></td>
+                    <td><input type="text" id="mtp-fb-likes-vip" placeholder="ID VIP"></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <button class="btn-save" onclick="saveAutomation()">💾 Enregistrer l'automatisation</button>
+    </div>
+
 </div>
 
 <script src="script.js"></script>
-<script>
-function adminLogin(){
-  const provider = new firebase.auth.GoogleAuthProvider();
-  auth.signInWithPopup(provider).catch(e => alert(e.message));
-}
-
-auth.onAuthStateChanged(user => {
-  if(user && user.uid === ADMIN_UID){
-    document.getElementById('login-gate').classList.add('hidden');
-    document.getElementById('admin-panel').classList.remove('hidden');
-    renderAdminCatalog();
-    loadAdminOrders();
-    loadAdminUsers();
-    loadAdminStats();
-    loadAdminDeposits();
-    renderMtpMapUI();
-    loadMtpMap();
-  } else if(user){
-    alert("Ce compte n'est pas autorisé à accéder à l'admin. UID détecté : " + user.uid + " — copie-le dans ADMIN_UID si c'est bien toi.");
-  }
-});
-
-function switchAdminTab(tab){
-  document.querySelectorAll('.admin-tab').forEach(b => b.classList.toggle('active', b.dataset.tab===tab));
-  document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
-  document.getElementById('admin-'+tab).classList.add('active');
-}
-
-function renderAdminCatalog(){
-  const container = document.getElementById('platforms-container');
-  container.innerHTML = Object.entries(CATALOG).map(([platform, services]) => `
-    <div class="platform-block">
-      <h2>${platformBadge(platform)} ${platform}</h2>
-      <table>
-        <thead><tr><th>Service</th><th>Standard ($/1000)</th><th>Premium ($/1000)</th><th>Qté min</th></tr></thead>
-        <tbody>
-          ${services.map((s,i) => `
-            <tr>
-              <td>${s.name}</td>
-              <td><input type="number" step="0.1" value="${s.tiers[0].price1k}" data-platform="${platform}" data-index="${i}" data-tier="0" class="price-input"></td>
-              <td><input type="number" step="0.1" value="${s.tiers[s.tiers.length-1].price1k}" data-platform="${platform}" data-index="${i}" data-tier="${s.tiers.length-1}" class="price-input"></td>
-              <td><input type="number" value="${s.tiers[0].min}" data-platform="${platform}" data-index="${i}" class="min-input"></td>
-            </tr>`).join('')}
-        </tbody>
-      </table>
-    </div>
-  `).join('');
-}
-
-async function saveCatalog(){
-  document.querySelectorAll('.price-input').forEach(inp => {
-    CATALOG[inp.dataset.platform][inp.dataset.index].tiers[inp.dataset.tier].price1k = parseFloat(inp.value);
-  });
-  document.querySelectorAll('.min-input').forEach(inp => {
-    CATALOG[inp.dataset.platform][inp.dataset.index].tiers.forEach(t => t.min = parseInt(inp.value));
-  });
-  const payload = {};
-  Object.entries(CATALOG).forEach(([platform, services]) => {
-    payload[platform] = services.map(s => ({name:s.name, tiers:s.tiers}));
-  });
-  await db.collection('settings').doc('pricing').set(payload);
-  document.getElementById('save-msg').textContent = "✅ Tarifs enregistrés — ils s'appliqueront sur le site principal.";
-}
-
-async function loadAdminOrders(){
-  const snap = await db.collection('orders').orderBy('createdAt','desc').limit(100).get();
-  const tbody = document.getElementById('admin-orders-table');
-  if(snap.empty){ tbody.innerHTML = '<tr><td colspan="7">Aucune commande.</td></tr>'; return; }
-  tbody.innerHTML = snap.docs.map(d => {
-    const o = d.data();
-    const date = new Date(o.createdAt).toLocaleDateString('fr-FR');
-    const mtpSent = o.mtpOrderId ? `✅ #${o.mtpOrderId}` :
-      `<input type="text" id="mtp-id-${d.id}" placeholder="ID service MTP" style="width:90px;padding:5px;border-radius:6px;border:1px solid var(--line);font-size:0.75rem">
-       <button onclick="sendToMTP('${d.id}','${o.link}',${o.qty})" style="background:var(--green);color:white;border:none;padding:5px 10px;border-radius:100px;font-size:0.72rem;font-weight:700;margin-top:4px">Envoyer</button>`;
-    return `<tr>
-      <td>${date}</td>
-      <td style="font-size:0.7rem">${o.uid.slice(0,8)}...</td>
-      <td>${o.platform} — ${o.service}<br><span style="font-size:0.72rem;color:var(--muted)">${o.quality||''}</span></td>
-      <td>${o.qty}<br><a href="${o.link}" target="_blank" style="font-size:0.72rem">voir le lien</a></td>
-      <td>${o.amount.toFixed(2)}$</td>
-      <td>${mtpSent}<div id="mtp-msg-${d.id}" style="font-size:0.7rem;margin-top:4px"></div></td>
-      <td>
-        <select class="status-select" onchange="updateOrderStatus('${d.id}', this.value, '${o.uid}', ${o.amount}, '${o.status}')">
-          <option value="pending" ${o.status==='pending'?'selected':''}>En cours</option>
-          <option value="done" ${o.status==='done'?'selected':''}>Livré</option>
-          <option value="cancelled" ${o.status==='cancelled'?'selected':''}>❌ Annulé + remboursé</option>
-        </select>
-      </td>
-    </tr>`;
-  }).join('');
-}
-async function updateOrderStatus(orderId, status, uid, amount, previousStatus){
-  if(status === 'cancelled' && previousStatus !== 'cancelled'){
-    if(!confirm(`Annuler cette commande et rembourser ${amount}$ au client ?`)) { loadAdminOrders(); return; }
-    const userRef = db.collection('users').doc(uid);
-    const userDoc = await userRef.get();
-    const currentBalance = userDoc.exists ? (userDoc.data().balance||0) : 0;
-    await userRef.update({balance: currentBalance + amount});
-    loadAdminUsers();
-  }
-  await db.collection('orders').doc(orderId).update({status});
-  loadAdminOrders();
-}
-
-async function sendToMTP(orderId, link, qty){
-  const input = document.getElementById('mtp-id-'+orderId);
-  const msgEl = document.getElementById('mtp-msg-'+orderId);
-  const serviceId = input.value.trim();
-  if(!serviceId){ msgEl.textContent = "Entre l'ID service MTP."; msgEl.style.color = 'var(--red)'; return; }
-  msgEl.textContent = "Envoi en cours...";
-  msgEl.style.color = 'var(--muted)';
-  try{
-    const res = await fetch('/.netlify/functions/place-smm-order', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({service: serviceId, link, quantity: qty})
-    });
-    const data = await res.json();
-    if(data.success){
-      await db.collection('orders').doc(orderId).update({mtpOrderId: data.orderId, status:'done'});
-      msgEl.textContent = "✅ Envoyé !";
-      msgEl.style.color = 'var(--green)';
-      loadAdminOrders();
-    } else {
-      msgEl.textContent = "Erreur : " + (data.error || 'inconnue');
-      msgEl.style.color = 'var(--red)';
-    }
-  } catch(e){
-    msgEl.textContent = "Erreur réseau : " + e.message;
-    msgEl.style.color = 'var(--red)';
-  }
-}
-
-async function loadAdminUsers(){
-  const snap = await db.collection('users').orderBy('createdAt','desc').limit(200).get();
-  const tbody = document.getElementById('admin-users-table');
-  if(snap.empty){ tbody.innerHTML = '<tr><td colspan="5">Aucun utilisateur.</td></tr>'; return; }
-  tbody.innerHTML = snap.docs.map(d => {
-    const u = d.data();
-    const date = u.createdAt ? new Date(u.createdAt).toLocaleDateString('fr-FR') : '—';
-    return `<tr>
-      <td>${u.name||'—'}</td>
-      <td>${u.email||'—'}</td>
-      <td>${(u.balance||0).toFixed(2)}$</td>
-      <td>${u.loyaltyPoints||0}</td>
-      <td>${date}</td>
-    </tr>`;
-  }).join('');
-}
-
-async function loadAdminStats(){
-  try{
-    const [ordersSnap, usersSnap, newsletterSnap] = await Promise.all([
-      db.collection('orders').get(),
-      db.collection('users').get(),
-      db.collection('newsletter').get().catch(()=>({size:0}))
-    ]);
-
-    let revenue = 0, pending = 0;
-    const serviceCounts = {};
-    ordersSnap.forEach(doc => {
-      const o = doc.data();
-      revenue += o.amount || 0;
-      if(o.status === 'pending') pending++;
-      const key = `${o.platform} — ${o.service}`;
-      serviceCounts[key] = (serviceCounts[key]||0) + 1;
-    });
-
-    const sevenDaysAgo = new Date(Date.now() - 7*24*60*60*1000);
-    let newUsers = 0;
-    usersSnap.forEach(doc => {
-      const u = doc.data();
-      if(u.createdAt && new Date(u.createdAt) > sevenDaysAgo) newUsers++;
-    });
-
-    document.getElementById('stat-revenue').textContent = revenue.toFixed(2) + '$';
-    document.getElementById('stat-orders').textContent = ordersSnap.size;
-    document.getElementById('stat-pending').textContent = pending;
-    document.getElementById('stat-users').textContent = usersSnap.size;
-    document.getElementById('stat-new-users').textContent = newUsers;
-    document.getElementById('stat-newsletter').textContent = newsletterSnap.size;
-
-    const topServices = Object.entries(serviceCounts).sort((a,b) => b[1]-a[1]).slice(0,8);
-    const tbody = document.getElementById('stat-top-services');
-    tbody.innerHTML = topServices.length
-      ? topServices.map(([name,count]) => `<tr><td>${name}</td><td>${count}</td></tr>`).join('')
-      : '<tr><td colspan="2">Aucune commande pour le moment.</td></tr>';
-  } catch(e){
-    console.warn("Erreur chargement stats :", e.message);
-  }
-}
-
-// Les 12 services prioritaires à automatiser (Abonnés/Vues/Likes × 4 plateformes)
-const AUTO_TARGETS = [
-  {platform:"TikTok", service:"Followers"},
-  {platform:"TikTok", service:"Vues vidéo"},
-  {platform:"TikTok", service:"Likes"},
-  {platform:"Instagram", service:"Followers"},
-  {platform:"Instagram", service:"Vues Reels/Stories"},
-  {platform:"Instagram", service:"Likes"},
-  {platform:"YouTube", service:"Abonnés"},
-  {platform:"YouTube", service:"Vues"},
-  {platform:"YouTube", service:"Likes vidéo"},
-  {platform:"Facebook", service:"Followers"},
-  {platform:"Facebook", service:"Vues vidéo"},
-  {platform:"Facebook", service:"Likes Page"},
-];
-
-function renderMtpMapUI(){
-  const container = document.getElementById('auto-map-container');
-  let html = '';
-  let currentPlatform = '';
-  AUTO_TARGETS.forEach(t => {
-    if(t.platform !== currentPlatform){
-      currentPlatform = t.platform;
-      html += `<div class="auto-platform-title">${platformBadge(t.platform)} ${t.platform}</div>
-        <div class="auto-row" style="font-weight:700;font-size:0.75rem;color:var(--muted)"><span>Service</span><span>Standard</span><span>Premium</span><span>VIP</span></div>`;
-    }
-    const key = t.platform + '|' + t.service;
-    html += `<div class="auto-row">
-      <span>${t.service}</span>
-      <input type="text" id="mtp-${key}-0" placeholder="ID Standard">
-      <input type="text" id="mtp-${key}-1" placeholder="ID Premium">
-      <input type="text" id="mtp-${key}-2" placeholder="ID VIP">
-    </div>`;
-  });
-  container.innerHTML = html;
-}
-
-async function loadMtpMap(){
-  try{
-    const doc = await db.collection('settings').doc('mtpServiceMap').get();
-    if(!doc.exists) return;
-    const map = doc.data();
-    AUTO_TARGETS.forEach(t => {
-      const key = t.platform + '|' + t.service;
-      const ids = map[key];
-      if(ids){
-        ids.forEach((id, i) => {
-          const el = document.getElementById(`mtp-${key}-${i}`);
-          if(el && id) el.value = id;
-        });
-      }
-    });
-  } catch(e){ console.warn("Pas de mapping MTP existant :", e.message); }
-}
-
-async function saveMtpMap(){
-  const map = {};
-  AUTO_TARGETS.forEach(t => {
-    const key = t.platform + '|' + t.service;
-    map[key] = [0,1,2].map(i => document.getElementById(`mtp-${key}-${i}`).value.trim());
-  });
-  await db.collection('settings').doc('mtpServiceMap').set(map);
-  document.getElementById('auto-save-msg').textContent = "✅ Automatisation enregistrée — les nouvelles commandes de ces services partiront automatiquement.";
-}
-
-async function loadAdminDeposits(){
-  const snap = await db.collection('deposits').orderBy('createdAt','desc').limit(100).get();
-  const tbody = document.getElementById('admin-deposits-table');
-  if(snap.empty){ tbody.innerHTML = '<tr><td colspan="7">Aucun dépôt.</td></tr>'; return; }
-  tbody.innerHTML = snap.docs.map(d => {
-    const dep = d.data();
-    const date = new Date(dep.createdAt).toLocaleDateString('fr-FR');
-    const isApproved = dep.status === 'approved';
-    return `<tr>
-      <td>${date}</td>
-      <td style="font-size:0.7rem">${dep.uid.slice(0,8)}...</td>
-      <td>${dep.amount}$</td>
-      <td>${dep.network}</td>
-      <td>${dep.phone||'—'}</td>
-      <td>${isApproved ? '✅ Crédité' : '⏳ En attente'}</td>
-      <td>${isApproved ? '—' : `<button onclick="approveDeposit('${d.id}','${dep.uid}',${dep.amount})" style="background:var(--green);color:white;border:none;padding:6px 12px;border-radius:100px;font-size:0.78rem;font-weight:700">Valider</button>`}</td>
-    </tr>`;
-  }).join('');
-}
-
-async function approveDeposit(depositId, userId, amount){
-  if(!confirm(`Confirmer que ce client a bien payé ${amount}$ ? Son solde sera crédité.`)) return;
-  const userRef = db.collection('users').doc(userId);
-  const userDoc = await userRef.get();
-  const currentBalance = userDoc.exists ? (userDoc.data().balance||0) : 0;
-  await userRef.update({balance: currentBalance + amount});
-  await db.collection('deposits').doc(depositId).update({status:'approved'});
-  loadAdminDeposits();
-  loadAdminUsers();
-}
-</script>
 </body>
 </html>
-
