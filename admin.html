@@ -160,19 +160,44 @@ function renderAdminCatalog(){
     <div class="platform-block">
       <h2>${platformBadge(platform)} ${platform}</h2>
       <table>
-        <thead><tr><th>Service</th><th>Standard ($/1000)</th><th>Premium ($/1000)</th><th>Qté min</th></tr></thead>
+        <thead><tr><th>Service</th><th>Standard ($/1000)</th><th>Premium ($/1000)</th><th>VIP ($/1000)</th><th>Qté min</th></tr></thead>
         <tbody>
           ${services.map((s,i) => `
             <tr>
               <td>${s.name}</td>
               <td><input type="number" step="0.1" value="${s.tiers[0].price1k}" data-platform="${platform}" data-index="${i}" data-tier="0" class="price-input"></td>
-              <td><input type="number" step="0.1" value="${s.tiers[s.tiers.length-1].price1k}" data-platform="${platform}" data-index="${i}" data-tier="${s.tiers.length-1}" class="price-input"></td>
+              <td><input type="number" step="0.1" value="${s.tiers[1].price1k}" data-platform="${platform}" data-index="${i}" data-tier="1" class="price-input"></td>
+              <td><input type="number" step="0.1" value="${s.tiers[2].price1k}" data-platform="${platform}" data-index="${i}" data-tier="2" class="price-input"></td>
               <td><input type="number" value="${s.tiers[0].min}" data-platform="${platform}" data-index="${i}" class="min-input"></td>
             </tr>`).join('')}
         </tbody>
       </table>
     </div>
   `).join('');
+  renderAdminMonetization();
+}
+
+function renderAdminMonetization(){
+  let container = document.getElementById('mon-pricing-container');
+  if(!container){
+    const wrapper = document.createElement('div');
+    wrapper.className = 'platform-block';
+    wrapper.innerHTML = `<h2>💎 Packs Monétisation</h2><div id="mon-pricing-container"></div>`;
+    document.getElementById('platforms-container').appendChild(wrapper);
+    container = document.getElementById('mon-pricing-container');
+  }
+  container.innerHTML = `
+    <table>
+      <thead><tr><th>Pack</th><th>Prix de vente ($)</th></tr></thead>
+      <tbody>
+        ${MONETIZATION_PACKS.map((p,i) => `
+          <tr>
+            <td>${p.name}<br><span style="font-size:0.72rem;color:var(--muted)">${p.desc}</span></td>
+            <td><input type="number" step="0.1" value="${p.price}" data-mon-index="${i}" class="mon-price-input" style="width:90px;padding:6px 8px;border-radius:6px;border:1px solid var(--line);font-size:0.85rem"></td>
+          </tr>`).join('')}
+      </tbody>
+    </table>
+  `;
 }
 
 async function saveCatalog(){
@@ -182,11 +207,17 @@ async function saveCatalog(){
   document.querySelectorAll('.min-input').forEach(inp => {
     CATALOG[inp.dataset.platform][inp.dataset.index].tiers.forEach(t => t.min = parseInt(inp.value));
   });
+  document.querySelectorAll('.mon-price-input').forEach(inp => {
+    MONETIZATION_PACKS[inp.dataset.monIndex].price = parseFloat(inp.value);
+  });
   const payload = {};
   Object.entries(CATALOG).forEach(([platform, services]) => {
     payload[platform] = services.map(s => ({name:s.name, tiers:s.tiers}));
   });
   await db.collection('settings').doc('pricing').set(payload);
+  await db.collection('settings').doc('monetizationPricing').set({
+    packs: MONETIZATION_PACKS.map(p => ({name:p.name, price:p.price}))
+  });
   document.getElementById('save-msg').textContent = "✅ Tarifs enregistrés — ils s'appliqueront sur le site principal.";
 }
 
@@ -194,7 +225,7 @@ async function loadMtpBalance(){
   const badge = document.getElementById('mtp-balance-badge');
   const valueEl = document.getElementById('mtp-balance-value');
   try{
-    const res = await fetch('/.netlify/functions/get-mtp-balance');
+    const res = await fetch(API_BASE + '/get-mtp-balance');
     const data = await res.json();
     if(data.balance !== undefined){
       valueEl.textContent = parseFloat(data.balance).toFixed(2) + ' ' + (data.currency||'USD');
@@ -282,7 +313,7 @@ async function sendToMTP(orderId, link, qty){
   msgEl.textContent = "Envoi en cours...";
   msgEl.style.color = 'var(--muted)';
   try{
-    const res = await fetch('/.netlify/functions/place-smm-order', {
+    const res = await fetch(API_BASE + '/place-smm-order', {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({service: serviceId, link, quantity: qty})
@@ -436,6 +467,10 @@ const AUTO_TARGETS = [
   {platform:"Apple Music", service:"Écoutes"},
   {platform:"Audiomack", service:"Écoutes"},
   {platform:"Audiomack", service:"Followers"},
+  {platform:"Monétisation", service:"Pack Monétisation YouTube"},
+  {platform:"Monétisation", service:"Pack Monétisation TikTok"},
+  {platform:"Monétisation", service:"Pack Créateur Instagram"},
+  {platform:"Monétisation", service:"Pack Artiste Spotify/Audiomack"},
 ];
 
 function renderMtpMapUI(){

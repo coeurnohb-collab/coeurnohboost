@@ -1039,6 +1039,16 @@ async function loadCatalogOverrides(){
       renderServices();
     }
   } catch(e){ console.warn("Pas de tarifs personnalisés trouvés :", e.message); }
+  try{
+    const monDoc = await db.collection('settings').doc('monetizationPricing').get();
+    if(monDoc.exists && monDoc.data().packs){
+      monDoc.data().packs.forEach(o => {
+        const pack = MONETIZATION_PACKS.find(p => p.name === o.name);
+        if(pack) pack.price = o.price;
+      });
+      renderMonetization();
+    }
+  } catch(e){ console.warn("Pas de tarifs de monétisation personnalisés :", e.message); }
 }
 
 /* =========================================================
