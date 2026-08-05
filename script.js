@@ -864,6 +864,10 @@ async function placeOrder(){
    automatiquement. Sinon, elle reste "en attente" pour traitement
    manuel dans l'admin, comme avant.
    ========================================================= */
+// Adresse des fonctions serverless. Une fois ton projet Vercel déployé,
+// remplace par ton URL Vercel, ex: "https://coeurnoh-boost-api.vercel.app/api"
+const API_BASE = "https://coeurnohboost.vercel.app/api";
+
 async function tryAutoSendToMTP(orderId, platform, service, qualityLabel, link, qty){
   try{
     const doc = await db.collection('settings').doc('mtpServiceMap').get();
@@ -875,7 +879,7 @@ async function tryAutoSendToMTP(orderId, platform, service, qualityLabel, link, 
     const serviceId = ids[tierIndex];
     if(!serviceId) return;
 
-    const res = await fetch('/.netlify/functions/place-smm-order', {
+    const res = await fetch(API_BASE + '/place-smm-order', {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({service: serviceId, link, quantity: qty})
