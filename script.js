@@ -78,18 +78,21 @@ const DEFAULT_CATALOG = {
     {name:"Likes", desc:"Boost d'engagement instantané", tiers:[{label:"Standard",price1k:0.8,min:100},{label:"Premium ⭐",price1k:2,min:50},{label:"VIP 👑",price1k:3.2,min:50}]},
     {name:"Commentaires", desc:"Commentaires positifs variés", tiers:[{label:"Standard",price1k:5,min:10},{label:"Premium ⭐",price1k:11,min:10},{label:"VIP 👑",price1k:17.6,min:10}]},
     {name:"Partages", desc:"Amplifie la portée organique", tiers:[{label:"Standard",price1k:1.5,min:50},{label:"Premium ⭐",price1k:3.5,min:50},{label:"VIP 👑",price1k:5.6,min:50}]},
+    {name:"Pack Tout-en-un", desc:"Followers + Vues + Likes combinés, prix réduit vs achat séparé", tiers:[{label:"Standard",price1k:3.0,min:100},{label:"Premium ⭐",price1k:7.8,min:50},{label:"VIP 👑",price1k:12.5,min:50}]},
   ],
   Instagram: [
     {name:"Followers", desc:"Comptes actifs", tiers:[{label:"Standard",price1k:3,min:100},{label:"Premium ⭐",price1k:7,min:50},{label:"VIP 👑",price1k:11.2,min:50}]},
     {name:"Likes", desc:"Livraison en quelques heures", tiers:[{label:"Standard",price1k:0.8,min:100},{label:"Premium ⭐",price1k:2,min:50},{label:"VIP 👑",price1k:3.2,min:50}]},
     {name:"Vues Reels/Stories", desc:"Boost algorithme", tiers:[{label:"Standard",price1k:0.5,min:200},{label:"Premium ⭐",price1k:1.2,min:100},{label:"VIP 👑",price1k:1.9,min:100}]},
     {name:"Commentaires", desc:"Commentaires positifs variés", tiers:[{label:"Standard",price1k:5,min:10},{label:"Premium ⭐",price1k:11,min:10},{label:"VIP 👑",price1k:17.6,min:10}]},
+    {name:"Pack Tout-en-un", desc:"Followers + Vues + Likes combinés, prix réduit vs achat séparé", tiers:[{label:"Standard",price1k:3.7,min:100},{label:"Premium ⭐",price1k:8.7,min:50},{label:"VIP 👑",price1k:13.9,min:50}]},
   ],
   YouTube: [
     {name:"Vues", desc:"Sources variées", tiers:[{label:"Standard",price1k:2,min:200},{label:"Premium ⭐ (rétention haute)",price1k:5,min:100},{label:"VIP 👑",price1k:8,min:100}]},
     {name:"Abonnés", desc:"Comptes actifs et stables", tiers:[{label:"Standard",price1k:5,min:100},{label:"Premium ⭐",price1k:11,min:50},{label:"VIP 👑",price1k:17.6,min:50}]},
     {name:"Likes vidéo", desc:"Renforce le taux d'engagement", tiers:[{label:"Standard",price1k:1.5,min:50},{label:"Premium ⭐",price1k:4,min:50},{label:"VIP 👑",price1k:6.4,min:50}]},
     {name:"Commentaires", desc:"Commentaires positifs variés", tiers:[{label:"Standard",price1k:6,min:10},{label:"Premium ⭐",price1k:13,min:10},{label:"VIP 👑",price1k:20.8,min:10}]},
+    {name:"Pack Tout-en-un", desc:"Abonnés + Vues + Likes combinés, prix réduit vs achat séparé", tiers:[{label:"Standard",price1k:7.2,min:100},{label:"Premium ⭐",price1k:17,min:50},{label:"VIP 👑",price1k:27.2,min:50}]},
   ],
   Facebook: [
     {name:"Likes Page", desc:"Croissance progressive", tiers:[{label:"Standard",price1k:1.5,min:100},{label:"Premium ⭐",price1k:4,min:50},{label:"VIP 👑",price1k:6.4,min:50}]},
@@ -97,6 +100,8 @@ const DEFAULT_CATALOG = {
     {name:"Vues vidéo", desc:"Boost de portée", tiers:[{label:"Standard",price1k:0.5,min:200},{label:"Premium ⭐",price1k:1.5,min:100},{label:"VIP 👑",price1k:2.4,min:100}]},
     {name:"Commentaires", desc:"Commentaires positifs variés", tiers:[{label:"Standard",price1k:5,min:10},{label:"Premium ⭐",price1k:11,min:10},{label:"VIP 👑",price1k:17.6,min:10}]},
     {name:"Partages", desc:"Amplifie la portée organique", tiers:[{label:"Standard",price1k:1.5,min:50},{label:"Premium ⭐",price1k:3.5,min:50},{label:"VIP 👑",price1k:5.6,min:50}]},
+    {name:"Partages", desc:"Amplifie la portée organique", tiers:[{label:"Standard",price1k:1.5,min:50},{label:"Premium ⭐",price1k:3.5,min:50},{label:"VIP 👑",price1k:5.6,min:50}]},
+    {name:"Pack Tout-en-un", desc:"Followers + Vues + Likes combinés, prix réduit vs achat séparé", tiers:[{label:"Standard",price1k:3.4,min:100},{label:"Premium ⭐",price1k:8.9,min:50},{label:"VIP 👑",price1k:14.3,min:50}]},
   ],
   Spotify: [
     {name:"Écoutes (Plays)", desc:"Répartition naturelle sur tes titres", tiers:[{label:"Standard",price1k:1.5,min:200},{label:"Premium ⭐",price1k:3.5,min:100},{label:"VIP 👑",price1k:5.6,min:100}]},
