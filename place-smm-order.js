@@ -1,21 +1,29 @@
-// Fonction serverless Netlify — s'exécute côté serveur, jamais visible publiquement.
-// La clé API reste secrète (stockée en variable d'environnement Netlify, pas ici dans le code).
+// Fonction Vercel — équivalent de place-smm-order.js mais au format Vercel.
+// La clé API reste secrète (variable d'environnement Vercel, jamais dans ce fichier).
 
-exports.handler = async function (event) {
-  if (event.httpMethod !== "POST") {
-    return { statusCode: 405, body: "Method not allowed" };
+export default async function handler(req, res) {
+  // Autorise ton site (Netlify) à appeler cette fonction (CORS)
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
   }
 
   try {
-    const { service, link, quantity } = JSON.parse(event.body);
+    const { service, link, quantity } = req.body;
 
     if (!service || !link || !quantity) {
-      return { statusCode: 400, body: JSON.stringify({ error: "Paramètres manquants (service, link, quantity requis)" }) };
+      return res.status(400).json({ error: "Paramètres manquants (service, link, quantity requis)" });
     }
 
     const apiKey = process.env.MTP_API_KEY;
     if (!apiKey) {
-      return { statusCode: 500, body: JSON.stringify({ error: "Clé API non configurée côté serveur (MTP_API_KEY manquante)" }) };
+      return res.status(500).json({ error: "Clé API non configurée côté serveur (MTP_API_KEY manquante)" });
     }
 
     const params = new URLSearchParams({
@@ -35,14 +43,11 @@ exports.handler = async function (event) {
     const data = await response.json();
 
     if (data.error) {
-      return { statusCode: 400, body: JSON.stringify({ error: data.error }) };
+      return res.status(400).json({ error: data.error });
     }
 
-    return {
-      statusCode: 200,
-      body: JSON.stringify({ success: true, orderId: data.order })
-    };
+    return res.status(200).json({ success: true, orderId: data.order });
   } catch (err) {
-    return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
+    return res.status(500).json({ error: err.message });
   }
-};
+}
