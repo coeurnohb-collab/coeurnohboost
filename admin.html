@@ -38,6 +38,9 @@
 <body>
 
 <h1>Admin — Coeurnoh Boost</h1>
+<div id="mtp-balance-badge" class="hidden" style="display:inline-flex;align-items:center;gap:8px;background:var(--white);border:1.5px solid var(--gold);border-radius:100px;padding:8px 16px;margin-bottom:16px;font-weight:700;font-size:0.85rem">
+  💳 Solde MoreThanPanel : <span id="mtp-balance-value">—</span>
+</div>
 <p class="warn">⚠️ Cette page n'est protégée que par une vérification simple de ton identifiant (UID), pas une sécurité de niveau serveur. Ne partage jamais ce lien.</p>
 
 <div id="login-gate">
@@ -80,6 +83,8 @@
       <div class="stat-box"><div class="stat-label">Nouveaux clients (7j)</div><div class="stat-value" id="stat-new-users">—</div></div>
       <div class="stat-box"><div class="stat-label">Abonnés newsletter</div><div class="stat-value" id="stat-newsletter">—</div></div>
     </div>
+    <h3 style="margin:24px 0 10px;color:var(--green)">Activité des 7 derniers jours</h3>
+    <div id="stat-chart" style="display:flex;align-items:flex-end;gap:8px;height:100px;background:var(--white);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:0 2px 8px rgba(11,61,46,0.04)"></div>
     <h3 style="margin:24px 0 10px;color:var(--green)">Service le plus commandé</h3>
     <table>
       <thead><tr><th>Plateforme — Service</th><th>Nombre de commandes</th></tr></thead>
@@ -95,7 +100,14 @@
   </div>
 
   <div class="admin-section" id="admin-commandes">
-    <p style="margin-bottom:16px;color:var(--muted)">Envoie la commande à MoreThanPanel avec l'ID service correspondant, puis change le statut une fois livré.</p>
+    <p style="margin-bottom:12px;color:var(--muted)">Envoie la commande à MoreThanPanel avec l'ID service correspondant, puis change le statut une fois livré.</p>
+    <select id="order-status-filter" onchange="loadAdminOrders()" style="padding:8px 12px;border-radius:8px;border:1px solid var(--line);margin-bottom:14px;font-size:0.85rem">
+      <option value="all">Tous les statuts</option>
+      <option value="pending">En cours</option>
+      <option value="done">Livré</option>
+      <option value="failed">❗ Échoué</option>
+      <option value="cancelled">Annulé</option>
+    </select>
     <table>
       <thead><tr><th>Date</th><th>Client</th><th>Service</th><th>Qté / Lien</th><th>Montant</th><th>Envoyer à MTP</th><th>Statut</th></tr></thead>
       <tbody id="admin-orders-table"><tr><td colspan="7">Chargement...</td></tr></tbody>
@@ -103,10 +115,11 @@
   </div>
 
   <div class="admin-section" id="admin-utilisateurs">
-    <p style="margin-bottom:16px;color:var(--muted)">Liste de tes clients inscrits.</p>
+    <p style="margin-bottom:12px;color:var(--muted)">Liste de tes clients inscrits.</p>
+    <input type="text" id="user-search" placeholder="🔍 Rechercher un nom ou email..." oninput="loadAdminUsers()" style="padding:9px 14px;border-radius:8px;border:1px solid var(--line);margin-bottom:14px;width:100%;max-width:320px;font-size:0.85rem">
     <table>
-      <thead><tr><th>Nom</th><th>Email</th><th>Solde</th><th>Points</th><th>Inscrit le</th></tr></thead>
-      <tbody id="admin-users-table"><tr><td colspan="5">Chargement...</td></tr></tbody>
+      <thead><tr><th>Nom</th><th>Email</th><th>Solde</th><th>Points</th><th>Inscrit le</th><th>Ajuster solde</th></tr></thead>
+      <tbody id="admin-users-table"><tr><td colspan="6">Chargement...</td></tr></tbody>
     </table>
   </div>
 </div>
@@ -129,6 +142,7 @@ auth.onAuthStateChanged(user => {
     loadAdminDeposits();
     renderMtpMapUI();
     loadMtpMap();
+    loadMtpBalance();
   } else if(user){
     alert("Ce compte n'est pas autorisé à accéder à l'admin. UID détecté : " + user.uid + " — copie-le dans ADMIN_UID si c'est bien toi.");
   }
@@ -176,16 +190,59 @@ async function saveCatalog(){
   document.getElementById('save-msg').textContent = "✅ Tarifs enregistrés — ils s'appliqueront sur le site principal.";
 }
 
+async function loadMtpBalance(){
+  const badge = document.getElementById('mtp-balance-badge');
+  const valueEl = document.getElementById('mtp-balance-value');
+  try{
+    const res = await fetch('/.netlify/functions/get-mtp-balance');
+    const data = await res.json();
+    if(data.balance !== undefined){
+      valueEl.textContent = parseFloat(data.balance).toFixed(2) + ' ' + (data.currency||'USD');
+      badge.classList.remove('hidden');
+    }
+  } catch(e){ console.warn("Solde MTP indisponible :", e.message); }
+}
+
+async function renderActivityChart(){
+  const container = document.getElementById('stat-chart');
+  if(!container) return;
+  const days = [];
+  for(let i=6;i>=0;i--){
+    const d = new Date(); d.setDate(d.getDate()-i);
+    days.push({label:d.toLocaleDateString('fr-FR',{weekday:'short'}), date:d.toDateString(), count:0});
+  }
+  try{
+    const snap = await db.collection('orders').get();
+    snap.forEach(doc => {
+      const o = doc.data();
+      const od = new Date(o.createdAt).toDateString();
+      const day = days.find(d => d.date === od);
+      if(day) day.count++;
+    });
+  } catch(e){}
+  const max = Math.max(1, ...days.map(d=>d.count));
+  container.innerHTML = days.map(d => `
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end">
+      <div style="width:100%;background:linear-gradient(180deg,var(--gold),var(--green));border-radius:4px 4px 0 0;height:${(d.count/max*70)||2}px"></div>
+      <span style="font-size:0.65rem;color:var(--muted)">${d.label}</span>
+    </div>
+  `).join('');
+}
+
 async function loadAdminOrders(){
   const snap = await db.collection('orders').orderBy('createdAt','desc').limit(100).get();
   const tbody = document.getElementById('admin-orders-table');
-  if(snap.empty){ tbody.innerHTML = '<tr><td colspan="7">Aucune commande.</td></tr>'; return; }
-  tbody.innerHTML = snap.docs.map(d => {
+  const filter = document.getElementById('order-status-filter')?.value || 'all';
+  let docs = snap.docs;
+  if(filter !== 'all') docs = docs.filter(d => (d.data().status||'pending') === filter);
+  if(docs.length===0){ tbody.innerHTML = '<tr><td colspan="7">Aucune commande.</td></tr>'; return; }
+  tbody.innerHTML = docs.map(d => {
     const o = d.data();
     const date = new Date(o.createdAt).toLocaleDateString('fr-FR');
+    const isFailed = o.status === 'failed';
     const mtpSent = o.mtpOrderId ? `✅ #${o.mtpOrderId}` :
       `<input type="text" id="mtp-id-${d.id}" placeholder="ID service MTP" style="width:90px;padding:5px;border-radius:6px;border:1px solid var(--line);font-size:0.75rem">
-       <button onclick="sendToMTP('${d.id}','${o.link}',${o.qty})" style="background:var(--green);color:white;border:none;padding:5px 10px;border-radius:100px;font-size:0.72rem;font-weight:700;margin-top:4px">Envoyer</button>`;
+       <button onclick="sendToMTP('${d.id}','${o.link}',${o.qty})" style="background:${isFailed?'var(--red)':'var(--green)'};color:white;border:none;padding:5px 10px;border-radius:100px;font-size:0.72rem;font-weight:700;margin-top:4px">${isFailed?'🔁 Relancer':'Envoyer'}</button>`;
     return `<tr>
       <td>${date}</td>
       <td style="font-size:0.7rem">${o.uid.slice(0,8)}...</td>
@@ -197,6 +254,7 @@ async function loadAdminOrders(){
         <select class="status-select" onchange="updateOrderStatus('${d.id}', this.value, '${o.uid}', ${o.amount}, '${o.status}')">
           <option value="pending" ${o.status==='pending'?'selected':''}>En cours</option>
           <option value="done" ${o.status==='done'?'selected':''}>Livré</option>
+          <option value="failed" ${o.status==='failed'?'selected':''}>❗ Échoué</option>
           <option value="cancelled" ${o.status==='cancelled'?'selected':''}>❌ Annulé + remboursé</option>
         </select>
       </td>
@@ -238,18 +296,30 @@ async function sendToMTP(orderId, link, qty){
     } else {
       msgEl.textContent = "Erreur : " + (data.error || 'inconnue');
       msgEl.style.color = 'var(--red)';
+      await db.collection('orders').doc(orderId).update({status:'failed'});
+      loadAdminOrders();
     }
   } catch(e){
     msgEl.textContent = "Erreur réseau : " + e.message;
     msgEl.style.color = 'var(--red)';
+    await db.collection('orders').doc(orderId).update({status:'failed'});
+    loadAdminOrders();
   }
 }
 
 async function loadAdminUsers(){
   const snap = await db.collection('users').orderBy('createdAt','desc').limit(200).get();
   const tbody = document.getElementById('admin-users-table');
-  if(snap.empty){ tbody.innerHTML = '<tr><td colspan="5">Aucun utilisateur.</td></tr>'; return; }
-  tbody.innerHTML = snap.docs.map(d => {
+  const query = (document.getElementById('user-search')?.value || '').toLowerCase().trim();
+  let docs = snap.docs;
+  if(query){
+    docs = docs.filter(d => {
+      const u = d.data();
+      return (u.name||'').toLowerCase().includes(query) || (u.email||'').toLowerCase().includes(query);
+    });
+  }
+  if(docs.length===0){ tbody.innerHTML = '<tr><td colspan="6">Aucun utilisateur trouvé.</td></tr>'; return; }
+  tbody.innerHTML = docs.map(d => {
     const u = d.data();
     const date = u.createdAt ? new Date(u.createdAt).toLocaleDateString('fr-FR') : '—';
     return `<tr>
@@ -258,8 +328,25 @@ async function loadAdminUsers(){
       <td>${(u.balance||0).toFixed(2)}$</td>
       <td>${u.loyaltyPoints||0}</td>
       <td>${date}</td>
+      <td>
+        <input type="number" id="adjust-${d.id}" placeholder="±$" style="width:60px;padding:4px 6px;border-radius:6px;border:1px solid var(--line);font-size:0.75rem">
+        <button onclick="adjustUserBalance('${d.id}')" style="background:var(--green);color:white;border:none;padding:5px 10px;border-radius:100px;font-size:0.72rem;font-weight:700">OK</button>
+      </td>
     </tr>`;
   }).join('');
+}
+
+async function adjustUserBalance(userId){
+  const input = document.getElementById('adjust-'+userId);
+  const delta = parseFloat(input.value);
+  if(isNaN(delta) || delta === 0){ alert("Entre un montant valide (ex: 5 pour créditer, -5 pour débiter)."); return; }
+  const userRef = db.collection('users').doc(userId);
+  const userDoc = await userRef.get();
+  const currentBalance = userDoc.exists ? (userDoc.data().balance||0) : 0;
+  const newBalance = currentBalance + delta;
+  if(!confirm(`${delta > 0 ? 'Créditer' : 'Débiter'} ${Math.abs(delta)}$ ? Nouveau solde : ${newBalance.toFixed(2)}$`)) return;
+  await userRef.update({balance: newBalance});
+  loadAdminUsers();
 }
 
 async function loadAdminStats(){
@@ -293,6 +380,7 @@ async function loadAdminStats(){
     document.getElementById('stat-users').textContent = usersSnap.size;
     document.getElementById('stat-new-users').textContent = newUsers;
     document.getElementById('stat-newsletter').textContent = newsletterSnap.size;
+    renderActivityChart();
 
     const topServices = Object.entries(serviceCounts).sort((a,b) => b[1]-a[1]).slice(0,8);
     const tbody = document.getElementById('stat-top-services');

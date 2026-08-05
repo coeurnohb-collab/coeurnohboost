@@ -883,8 +883,9 @@ async function tryAutoSendToMTP(orderId, platform, service, qualityLabel, link, 
     const data = await res.json();
     if(data.success){
       await db.collection('orders').doc(orderId).update({mtpOrderId: data.orderId, status:'done'});
+    } else {
+      await db.collection('orders').doc(orderId).update({status:'failed'});
     }
-    // Si erreur, on ne bloque rien : la commande reste "en attente" pour traitement manuel.
   } catch(e){
     console.warn("Envoi automatique MTP non disponible :", e.message);
   }
