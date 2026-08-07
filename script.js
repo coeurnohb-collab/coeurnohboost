@@ -11,15 +11,16 @@ const firebaseConfig = {
 };
 
 let fbReady = false;
-try { 
-  firebase.initializeApp(firebaseConfig); 
-  fbReady = true; 
-} catch(e) { 
-  console.warn("Firebase non configuré :", e.message); 
+let auth = null;
+let db = null;
+try {
+  firebase.initializeApp(firebaseConfig);
+  auth = firebase.auth();
+  db = firebase.firestore();
+  fbReady = true;
+} catch(e) {
+  console.error("Firebase non disponible (le site va quand même se charger, mais connexion/commandes désactivées) :", e.message);
 }
-
-const auth = fbReady ? firebase.auth() : null;
-const db = fbReady ? firebase.firestore() : null;
 
 // UID Firebase Admin
 const ADMIN_UID = "8BqWONj07hVZePHe2DrkHWYRjse2";
@@ -621,7 +622,7 @@ async function submitAuth() {
   const email = document.getElementById('auth-email').value.trim();
   const password = document.getElementById('auth-password').value;
   const name = document.getElementById('auth-name').value.trim();
-  if (!fbReady) { showAuthError("Connecte d'abord ce site à ton projet Firebase (voir firebaseConfig)."); return; }
+  if (!fbReady) { showAuthError("Connexion au service indisponible pour le moment. Vérifie ta connexion internet et réessaie."); return; }
   if (!email || !password) { showAuthError("Email et mot de passe requis."); return; }
   try {
     if (authMode === 'register') {
@@ -635,7 +636,7 @@ async function submitAuth() {
 }
 
 async function signInWithGoogle() {
-  if (!fbReady) { showAuthError("Connecte d'abord ce site à ton projet Firebase."); return; }
+  if (!fbReady) { showAuthError("Connexion au service indisponible pour le moment. Vérifie ta connexion internet et réessaie."); return; }
   const provider = new firebase.auth.GoogleAuthProvider();
   try {
     const result = await auth.signInWithPopup(provider);
@@ -720,6 +721,8 @@ if (fbReady) {
       currentUser = null;
     }
   });
+} else {
+  console.error("⚠️ Firebase n'a pas pu s'initialiser — connexion/inscription désactivées. Vérifie ta connexion internet et recharge la page.");
 }
 
 function updateProfileLang(lang) { setLang(lang); }
