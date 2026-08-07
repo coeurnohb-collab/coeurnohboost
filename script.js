@@ -78,7 +78,7 @@ const PLATFORM_BADGES = {
 function platformBadge(name, size) {
   size = size || 22;
   const b = PLATFORM_BADGES[name] || { bg: "#0b3d2e", fg: "#fff", text: name.slice(0, 2) };
-  return <span class="platform-badge" style="width:${size}px;height:${size}px;background:${b.bg};color:${b.fg};font-size:${Math.round(size * 0.48)}px">${b.text}</span>;
+  return `<span class="platform-badge" style="width:${size}px;height:${size}px;background:${b.bg};color:${b.fg};font-size:${Math.round(size * 0.48)}px">${b.text}</span>`;
 }
 
 /* =========================================================
@@ -294,7 +294,7 @@ function convertToLocal(usdAmount) {
   const rateInfo = CURRENCY_RATES[selectedCountry];
   if (!rateInfo) return '';
   const local = (usdAmount * rateInfo.rate).toLocaleString('fr-FR', { maximumFractionDigits: 0 });
-  return ≈ ${local} ${rateInfo.code};
+  return `≈ ${local} ${rateInfo.code}`;
 }
 
 /* =========================================================
@@ -345,7 +345,7 @@ function toggleLangMenu() {
 }
 
 function renderAppNavLabels() {
-  const map = { accueil: 'apphome', commande: 'apporder', activites: 'appactivity', portefeuille: 'appwallet', compte: 'app_account' };
+  const map = { accueil: 'app_home', commande: 'app_order', activites: 'app_activity', portefeuille: 'app_wallet', compte: 'app_account' };
   document.querySelectorAll('.app-nav-item').forEach(item => {
     const key = map[item.dataset.view];
     if (key) { 
@@ -365,7 +365,7 @@ function renderTabs() {
     const el = document.getElementById(id);
     if (!el) return;
     el.innerHTML = Object.keys(CATALOG).map(k =>
-      <button class="tab ${k === currentTab ? 'active' : ''}" onclick="switchTab('${k}','${id}')">${platformBadge(k)} ${k}</button>
+      `<button class="tab ${k === currentTab ? 'active' : ''}" onclick="switchTab('${k}','${id}')">${platformBadge(k)} ${k}</button>`
     ).join('');
   });
 }
@@ -386,7 +386,7 @@ function renderServices() {
       let cls = '';
       if (i === s.tiers.length - 1 && s.tiers.length === 3) cls = 'vip';
       else if (i === s.tiers.length - 1 && s.tiers.length > 1) cls = 'premium';
-      return <div class="tier-row ${cls}"><span>${tier.label}</span><strong>${tier.price1k}$ /1000</strong></div>;
+      return `<div class="tier-row ${cls}"><span>${tier.label}</span><strong>${tier.price1k}$ /1000</strong></div>`;
     }).join('');
     return `
     <div class="svc-card">
@@ -443,7 +443,7 @@ function renderTestimonials() {
     </div>
   `).join('');
   if (dotsEl) {
-    dotsEl.innerHTML = TESTIMONIALS.map((_, i) => <span class="dot ${i === 0 ? 'active' : ''}" onclick="goToCarousel(${i})"></span>).join('');
+    dotsEl.innerHTML = TESTIMONIALS.map((_, i) => `<span class="dot ${i === 0 ? 'active' : ''}" onclick="goToCarousel(${i})"></span>`).join('');
   }
   carouselIndex = 0;
   if (carouselTimer) clearInterval(carouselTimer);
@@ -481,7 +481,7 @@ function renderPackagePlans() {
       <h3>${p.name}</h3>
       <p class="tagline">${p.tagline}</p>
       <div class="plan-price">${p.price}$</div>
-      <ul>${p.includes.map(i => <li>✓ ${i}</li>).join('')}</ul>
+      <ul>${p.includes.map(i => `<li>✓ ${i}</li>`).join('')}</ul>
       <a href="https://wa.me/243825001290?text=${encodeURIComponent('Bonjour, je veux le pack ' + p.name + ' (' + p.price + '$)')}" class="btn ${p.featured ? 'btn-gold' : 'btn-outline'}" style="justify-content:center;padding:12px;border-radius:100px;font-weight:700">Choisir ${p.name}</a>
     </div>
   `).join('');
@@ -506,7 +506,7 @@ function renderDashPacks() {
         <h3>${p.name}</h3>
         <p class="tagline">${p.tagline}</p>
         <div class="plan-price">${p.price}$</div>
-        <ul>${p.includes.map(i => <li>✓ ${i}</li>).join('')}</ul>
+        <ul>${p.includes.map(i => `<li>✓ ${i}</li>`).join('')}</ul>
         <a href="https://wa.me/243825001290?text=${encodeURIComponent('Bonjour, je veux le pack ' + p.name + ' (' + p.price + '$)')}" target="_blank" class="btn ${p.featured ? 'btn-gold' : 'btn-outline'}" style="justify-content:center;padding:12px;border-radius:100px;font-weight:700">Choisir ${p.name}</a>
       </div>
     `).join('');
@@ -567,7 +567,7 @@ function switchAppView(view) {
   document.querySelectorAll('.app-view').forEach(v => v.classList.add('hidden'));
   document.getElementById('app-' + view).classList.remove('hidden');
   document.querySelectorAll('.app-nav-item').forEach(i => i.classList.toggle('active', i.dataset.view === view));
-  const titles = { accueil: t('apphome'), commande: t('apporder'), activites: t('appactivity'), portefeuille: t('appwallet'), compte: t('app_account') };
+  const titles = { accueil: t('app_home'), commande: t('app_order'), activites: t('app_activity'), portefeuille: t('app_wallet'), compte: t('app_account') };
   const titleEl = document.getElementById('app-view-title');
   if (titleEl) titleEl.textContent = titles[view];
   
@@ -657,7 +657,7 @@ function logout() {
 /* =========================================================
    PROGRAMME D'AFFILIATION
    ========================================================= */
-const REFERRALCOMMISSIONRATE = 0.05;
+const REFERRAL_COMMISSION_RATE = 0.05;
 
 function getReferralCodeFromURL() {
   const params = new URLSearchParams(window.location.search);
@@ -738,8 +738,8 @@ function updateBalanceDisplays() {
 /* =========================================================
    DEPOSIT — PAIEMENTS
    ========================================================= */
-const PAYMENTPUBLICKEY = "REPLACEWITHYOURPUBLICKEY";
-const STRIPEPUBLICKEY = "REPLACEWITHYOURSTRIPEPUBLIC_KEY";
+const PAYMENT_PUBLIC_KEY = "REPLACE_WITH_YOUR_PUBLIC_KEY";
+const STRIPE_PUBLIC_KEY = "REPLACE_WITH_YOUR_STRIPE_PUBLIC_KEY";
 
 let selectedNetwork = null;
 
@@ -754,7 +754,7 @@ function selectNetwork(el) {
 function renderCountrySelect() {
   const select = document.getElementById('country-select');
   if (!select) return;
-  select.innerHTML = Object.keys(COUNTRY_NETWORKS).map(c => <option value="${c}">${c}</option>).join('');
+  select.innerHTML = Object.keys(COUNTRY_NETWORKS).map(c => `<option value="${c}">${c}</option>`).join('');
   select.value = selectedCountry;
   renderMobileNetworks();
   updateLocalConversion();
@@ -771,7 +771,7 @@ function renderMobileNetworks() {
   if (!grid) return;
   const networks = COUNTRY_NETWORKS[selectedCountry] || [];
   grid.innerHTML = networks.map(n =>
-    <div class="pay-opt" data-net="${n.toLowerCase().replace(/\s+/g, '-')}" onclick="selectNetwork(this)">📱 ${n}</div>
+    `<div class="pay-opt" data-net="${n.toLowerCase().replace(/\s+/g, '-')}" onclick="selectNetwork(this)">📱 ${n}</div>`
   ).join('');
 }
 
@@ -799,16 +799,16 @@ async function redeemLoyaltyPoints() {
   currentUser.balance = newBalance;
   currentUser.loyaltyPoints = newPoints;
   updateBalanceDisplays();
-  msgEl.textContent = ✅ ${usedPoints} points convertis en ${credit}$ de crédit !;
+  msgEl.textContent = `✅ ${usedPoints} points convertis en ${credit}$ de crédit !`;
   msgEl.style.color = 'var(--green)';
 }
 
 async function callPaymentGateway({ amount, phone, network }) {
   if (network === 'card') {
-    console.log("[stub] Appel Stripe Checkout :", { amount, publicKey: STRIPEPUBLICKEY });
+    console.log("[stub] Appel Stripe Checkout :", { amount, publicKey: STRIPE_PUBLIC_KEY });
     return { success: false, reason: "Stripe non connecté pour le moment." };
   }
-  console.log("[stub] Appel API paiement mobile money :", { amount, phone, network, publicKey: PAYMENTPUBLICKEY });
+  console.log("[stub] Appel API paiement mobile money :", { amount, phone, network, publicKey: PAYMENT_PUBLIC_KEY });
   return { success: false, reason: "Aucune passerelle de paiement réelle connectée." };
 }
 
@@ -836,7 +836,7 @@ async function creditReferralCommissionIfFirstOrder(orderAmount) {
   if (!currentUser.referredBy) return;
   const priorOrders = await db.collection('orders').where('uid', '==', currentUser.uid).get();
   if (priorOrders.size > 1) return;
-  const commission = orderAmount * REFERRALCOMMISSIONRATE;
+  const commission = orderAmount * REFERRAL_COMMISSION_RATE;
   const referrerRef = db.collection('users').doc(currentUser.referredBy);
   const referrerDoc = await referrerRef.get();
   if (referrerDoc.exists) {
@@ -887,7 +887,7 @@ function populateQualitySelect() {
   const svc = (CATALOG[chosen.platform] || []).find(s => s.name === chosen.name);
   if (!svc) return;
   qualitySelect.innerHTML = svc.tiers.map((tier, i) =>
-    <option value="${i}">${tier.label} — ${tier.price1k}$ / 1000</option>
+    `<option value="${i}">${tier.label} — ${tier.price1k}$ / 1000</option>`
   ).join('');
 }
 
@@ -919,7 +919,7 @@ function updateOrderCost() {
   const qty = Math.max(sel.tier.min || 10, parseInt(qtyInput ? qtyInput.value : 0) || sel.tier.min || 10);
   const targetEl = document.getElementById('d-targeting');
   const multiplier = TARGETING_MULTIPLIERS[targetEl ? targetEl.value : 'none'] || 1;
-  const cost = sel.tier.price1k  (qty / 1000)  multiplier;
+  const cost = sel.tier.price1k * (qty / 1000) * multiplier;
   
   const costEl = document.getElementById('d-cost');
   if (costEl) costEl.textContent = cost.toFixed(2) + '$';
@@ -927,7 +927,7 @@ function updateOrderCost() {
   const upsellEl = document.getElementById('upsell-suggestion');
   if (upsellEl) {
     const doubleQty = qty * 2;
-    const doubleCost = sel.tier.price1k  (doubleQty / 1000)  multiplier;
+    const doubleCost = sel.tier.price1k * (doubleQty / 1000) * multiplier;
     const extra = (doubleCost - cost).toFixed(2);
     upsellEl.innerHTML = `Envie de plus d'impact ? Double ta quantité (${doubleQty}) pour seulement <strong>+${extra}$</strong> de plus.
       <button type="button" onclick="applyUpsell(${doubleQty})">Doubler ma commande</button>`;
@@ -953,7 +953,7 @@ async function placeOrder() {
   const targetEl = document.getElementById('d-targeting');
   const targeting = targetEl ? targetEl.value : 'none';
   const multiplier = TARGETING_MULTIPLIERS[targeting] || 1;
-  const cost = sel.tier.price1k  (qty / 1000)  multiplier;
+  const cost = sel.tier.price1k * (qty / 1000) * multiplier;
 
   if (!rawLink.trim()) { msgEl.textContent = "Ajoute le lien du profil/publication."; msgEl.style.color = 'var(--red)'; return; }
   if (!isValidLink(link)) { msgEl.textContent = "Ce lien ne semble pas valide (doit commencer par http:// ou https://)."; msgEl.style.color = 'var(--red)'; return; }
@@ -974,7 +974,7 @@ async function placeOrder() {
   msgEl.textContent = "Commande envoyée ! Suivi disponible dans Activités.";
   msgEl.style.color = 'var(--green)';
   document.getElementById('d-link').value = '';
-  showNotification(✅ Commande validée — +${pointsEarned} points fidélité);
+  showNotification(`✅ Commande validée — +${pointsEarned} points fidélité`);
   loadOrders();
 }
 
@@ -1032,7 +1032,7 @@ function loadOrders() {
         const date = new Date(o.createdAt).toLocaleDateString('fr-FR');
         const statusLabel = o.status === 'done' ? 'Livré' : (o.status === 'cancelled' ? 'Annulé (remboursé)' : 'En cours');
         const statusClass = o.status === 'done' ? 'done' : (o.status === 'cancelled' ? 'cancelled' : 'pending');
-        return <tr><td>${date}</td><td>${o.platform} — ${o.service}</td><td>${o.qty}</td><td>${o.amount.toFixed(2)}$</td><td><span class="status ${statusClass}">${statusLabel}</span></td></tr>;
+        return `<tr><td>${date}</td><td>${o.platform} — ${o.service}</td><td>${o.qty}</td><td>${o.amount.toFixed(2)}$</td><td><span class="status ${statusClass}">${statusLabel}</span></td></tr>`;
       }).join('');
     }, err => console.warn("Suivi temps réel indisponible :", err.message));
 }
@@ -1107,7 +1107,7 @@ function submitContactForm() {
   const subject = document.getElementById('contact-subject').value.trim();
   const message = document.getElementById('contact-message').value.trim();
   if (!name || !message) { alert("Merci de remplir au moins ton nom et ton message."); return; }
-  contactSupport(Nom: ${name}\nSujet: ${subject}\nMessage: ${message});
+  contactSupport(`Nom: ${name}\nSujet: ${subject}\nMessage: ${message}`);
 }
 
 /* =========================================================
@@ -1197,7 +1197,7 @@ function searchServices(query) {
     resultsEl.innerHTML = '<div class="search-result-item">Aucun résultat.</div>';
   } else {
     resultsEl.innerHTML = matches.slice(0, 8).map(m =>
-      <div class="search-result-item" onclick="requireLoginThenOrder('${m.platform}', ${JSON.stringify(m.service)})">${platformBadge(m.platform, 18)} ${m.platform} — ${m.service}</div>
+      `<div class="search-result-item" onclick="requireLoginThenOrder('${m.platform}', ${JSON.stringify(m.service)})">${platformBadge(m.platform, 18)} ${m.platform} — ${m.service}</div>`
     ).join('');
   }
   resultsEl.classList.remove('hidden');
