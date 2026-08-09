@@ -20,7 +20,7 @@ body{
 a{text-decoration:none;color:inherit}
 
 /* NAV */
-#nav{position:sticky;top:0;background:var(--white);border-bottom:1px solid var(--line);z-index:100}
+#nav{position:sticky;top:0;background:var(--white);border-bottom:1px solid var(--line);z-index:100;box-shadow:0 1px 3px rgba(0,0,0,0.03)}
 .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;gap:12px}
 .logo{font-weight:800;font-size:1.2rem;cursor:pointer}
 .logo span{color:var(--green)}
@@ -97,8 +97,8 @@ a{text-decoration:none;color:inherit}
 .dash-header{margin-bottom:24px}
 .dash-header h2{font-size:1.4rem;margin-bottom:6px}
 .muted{color:var(--muted);font-size:0.9rem}
-.order-box{border:1px solid var(--line);border-radius:var(--radius);padding:18px;margin-bottom:16px}
-.order-box h3{margin-bottom:8px;color:var(--green);font-size:1rem}
+.order-box{border:1px solid var(--line);border-radius:var(--radius);padding:18px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,0.03)}
+.order-box h3{margin-bottom:8px;color:var(--green);font-size:1rem;font-weight:700}
 .profile-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line);font-size:0.9rem}
 .profile-row:last-child{border-bottom:none}
 
@@ -128,44 +128,47 @@ a{text-decoration:none;color:inherit}
 .bnav-btn.active{color:var(--green)}
 
 /* CATALOGUE — GRILLE DE PLATEFORMES */
-.platform-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:12px}
+.platform-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:14px}
 .platform-badge{
-  display:flex;flex-direction:column;align-items:center;gap:8px;
-  background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px 8px;
-  cursor:pointer;transition:0.15s;
+  display:flex;flex-direction:column;align-items:center;gap:10px;
+  background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px 8px;
+  cursor:pointer;transition:0.18s;
 }
-.platform-badge:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,0.08);border-color:transparent}
+.platform-badge:hover{transform:translateY(-3px);box-shadow:0 10px 22px rgba(0,0,0,0.1);border-color:transparent}
 .platform-badge .p-icon{
-  width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;
-  font-size:1.3rem;color:#fff;box-shadow:0 3px 8px rgba(0,0,0,0.15);
+  width:52px;height:52px;border-radius:15px;display:flex;align-items:center;justify-content:center;
+  color:#fff;box-shadow:0 4px 10px rgba(0,0,0,0.18);
 }
-.platform-badge .p-name{font-size:0.72rem;font-weight:700;text-align:center;color:var(--ink)}
+.p-icon svg{width:52%;height:52%}
+.platform-badge .p-name{font-size:0.74rem;font-weight:700;text-align:center;color:var(--ink);letter-spacing:0.01em}
 
 /* ORDER FORM */
-.order-platform-header{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.order-platform-header{display:flex;align-items:center;gap:14px;margin-bottom:20px}
 .order-platform-header .p-icon{
-  width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;
-  font-size:1.4rem;color:#fff;box-shadow:0 3px 8px rgba(0,0,0,0.15);
+  width:54px;height:54px;border-radius:15px;display:flex;align-items:center;justify-content:center;
+  color:#fff;box-shadow:0 4px 10px rgba(0,0,0,0.18);
 }
-.order-platform-header h2{font-size:1.2rem}
-.field-label{display:block;font-size:0.82rem;font-weight:700;margin-bottom:6px}
+.order-platform-header h2{font-size:1.25rem;font-weight:800;letter-spacing:-0.01em}
+.field-label{display:block;font-size:0.82rem;font-weight:700;margin-bottom:6px;color:var(--ink)}
 .select-input, .text-input{
-  width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:10px;
+  width:100%;padding:13px 14px;border:1.5px solid var(--line);border-radius:12px;
   font-size:0.95rem;background:var(--cream);
 }
-.select-input:focus, .text-input:focus{outline:none;border-color:var(--green)}
+.select-input:focus, .text-input:focus{outline:none;border-color:var(--green);background:#fff}
 .small{font-size:0.75rem;margin-top:5px}
 .quality-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .quality-card{
-  border:1.5px solid var(--line);border-radius:12px;padding:10px 6px;text-align:center;
-  cursor:pointer;background:#fff;
+  border:1.5px solid var(--line);border-radius:14px;padding:12px 6px;text-align:center;
+  cursor:pointer;background:#fff;transition:0.15s;
 }
-.quality-card.active{border-color:var(--green);background:#eafaf1}
-.quality-card .q-name{font-weight:800;font-size:0.82rem;display:block}
-.quality-card .q-mult{font-size:0.68rem;color:var(--muted);display:block;margin-top:2px}
-.order-summary{margin-top:18px;border-top:1px solid var(--line);padding-top:14px}
-.order-summary-row{display:flex;justify-content:space-between;font-size:0.9rem;padding:4px 0}
-.order-summary-row strong{color:var(--green);font-size:1.15rem}
+.quality-card:hover{border-color:#c9e8d8}
+.quality-card.active{border-color:var(--green);background:#eafaf1;box-shadow:0 3px 10px rgba(13,138,79,0.12)}
+.quality-card .q-name{font-weight:800;font-size:0.85rem;display:block;letter-spacing:0.01em}
+.quality-card .q-mult{font-size:0.78rem;color:var(--green-dark);font-weight:700;display:block;margin-top:4px}
+.quality-card .q-mult small{font-weight:500;color:var(--muted);font-size:0.65rem}
+.order-summary{margin-top:20px;border-top:1px solid var(--line);padding-top:16px}
+.order-summary-row{display:flex;justify-content:space-between;font-size:0.9rem;padding:5px 0}
+.order-summary-row strong{color:var(--green);font-size:1.25rem;font-weight:800}
 .order-status{
   background:var(--cream);color:var(--green-dark);font-size:0.72rem;font-weight:700;
   padding:3px 10px;border-radius:999px;text-transform:capitalize;
