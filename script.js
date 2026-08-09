@@ -47,8 +47,8 @@ function showDashboard() {
 function showServices() {
   hideAllViews();
   document.getElementById('view-services').classList.remove('hidden');
-  renderPlatformTabs();
-  renderServiceList(SERVICES[0].platform);
+  renderPlatformTabs('platform-tabs', 'services-list');
+  renderServiceList(SERVICES[0].platform, 'services-list');
 }
 
 /* =========================================================
@@ -69,21 +69,21 @@ const SERVICES = [
   { platform: "Facebook", icon: "FB", name: "Likes Post", price1000: 1.5, min: 100, max: 100000 }
 ];
 
-function renderPlatformTabs() {
+function renderPlatformTabs(tabsId, listId) {
   const platforms = [...new Set(SERVICES.map(s => s.platform))];
-  const el = document.getElementById('platform-tabs');
+  const el = document.getElementById(tabsId);
   el.innerHTML = platforms.map((p, i) =>
-    `<button class="platform-tab${i === 0 ? ' active' : ''}" onclick="selectPlatformTab(this,'${p}')">${p}</button>`
+    `<button class="platform-tab${i === 0 ? ' active' : ''}" onclick="selectPlatformTab(this,'${p}','${tabsId}','${listId}')">${p}</button>`
   ).join('');
 }
-function selectPlatformTab(btn, platform) {
-  document.querySelectorAll('.platform-tab').forEach(t => t.classList.remove('active'));
+function selectPlatformTab(btn, platform, tabsId, listId) {
+  document.querySelectorAll(`#${tabsId} .platform-tab`).forEach(t => t.classList.remove('active'));
   btn.classList.add('active');
-  renderServiceList(platform);
+  renderServiceList(platform, listId);
 }
-function renderServiceList(platform) {
+function renderServiceList(platform, listId) {
   const list = SERVICES.filter(s => s.platform === platform);
-  const el = document.getElementById('services-list');
+  const el = document.getElementById(listId);
   el.innerHTML = list.map(s => `
     <div class="service-item">
       <h4>${s.icon} ${s.platform} — ${s.name}</h4>
@@ -91,6 +91,10 @@ function renderServiceList(platform) {
       <div class="meta">Min ${s.min.toLocaleString('fr-FR')} · Max ${s.max.toLocaleString('fr-FR')}</div>
     </div>
   `).join('');
+}
+function initHomeCatalog() {
+  renderPlatformTabs('home-platform-tabs', 'home-services-list');
+  renderServiceList(SERVICES[0].platform, 'home-services-list');
 }
 
 /* =========================================================
@@ -281,4 +285,5 @@ if (fbReady) {
 /* Applique la langue détectée (ou choisie) dès que la page est prête */
 document.addEventListener('DOMContentLoaded', () => {
   applyTranslations(currentLang);
+  initHomeCatalog();
 });

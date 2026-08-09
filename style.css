@@ -52,6 +52,27 @@ a{text-decoration:none;color:inherit}
 .pay-icons{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;font-size:0.82rem;color:var(--muted)}
 .pay-icons span{background:#fff;border:1px solid var(--line);border-radius:999px;padding:6px 12px}
 
+/* STATS BAR */
+.stats-bar{background:var(--ink);padding:28px 0}
+.stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;text-align:center}
+.stat strong{display:block;color:#fff;font-size:1.6rem;font-weight:800}
+.stat span{color:#aaa;font-size:0.78rem}
+@media(min-width:600px){.stats-grid{grid-template-columns:repeat(4,1fr)}}
+
+/* HOW IT WORKS */
+.how-it-works{padding:50px 0}
+.how-it-works h2{text-align:center;font-size:1.5rem;margin-bottom:28px}
+.steps-grid{display:grid;grid-template-columns:1fr;gap:18px}
+.step{border:1px solid var(--line);border-radius:var(--radius);padding:22px;position:relative}
+.step-num{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:32px;height:32px;border-radius:50%;background:var(--green);color:#fff;
+  font-weight:800;font-size:0.9rem;margin-bottom:10px;
+}
+.step h3{font-size:1rem;margin-bottom:6px}
+.step p{color:var(--muted);font-size:0.85rem}
+@media(min-width:700px){.steps-grid{grid-template-columns:repeat(3,1fr)}}
+
 /* SERVICES TEASER */
 .services-teaser{padding:50px 0}
 .services-teaser h2{text-align:center;font-size:1.5rem;margin-bottom:24px}
