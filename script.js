@@ -43,6 +43,13 @@ function showHome() {
 function showDashboard() {
   hideAllViews();
   document.getElementById('view-dashboard').classList.remove('hidden');
+  showDashTab('home');
+}
+function showDashTab(tab) {
+  document.querySelectorAll('.dash-tab').forEach(el => el.classList.add('hidden'));
+  document.getElementById('dash-tab-' + tab).classList.remove('hidden');
+  document.querySelectorAll('.bnav-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById('bnav-' + tab).classList.add('active');
 }
 function showServices() {
   hideAllViews();
@@ -265,6 +272,7 @@ if (fbReady) {
       renderLoggedInNav();
       document.getElementById('dash-name').textContent = currentUser.name;
       document.getElementById('dash-balance').textContent = (currentUser.balance || 0).toFixed(2) + '$';
+      document.getElementById('wallet-balance').textContent = (currentUser.balance || 0).toFixed(2) + '$';
       document.getElementById('profile-name').textContent = currentUser.name;
       document.getElementById('profile-email').textContent = currentUser.email;
       document.getElementById('profile-since').textContent = currentUser.createdAt

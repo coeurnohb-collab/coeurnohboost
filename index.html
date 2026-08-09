@@ -87,26 +87,89 @@
 <!-- ================= DASHBOARD (après connexion) ================= -->
 <div id="view-dashboard" class="hidden">
   <div class="wrap dash-wrap">
-    <div class="dash-header">
-      <h2><span data-i18n="dash_hello">Bonjour</span>, <span id="dash-name">—</span> 👋</h2>
-      <p class="muted"><span data-i18n="dash_balance">Solde</span> : <strong id="dash-balance">0.00$</strong></p>
+
+    <!-- ---- Onglet Accueil ---- -->
+    <div class="dash-tab" id="dash-tab-home">
+      <div class="dash-header">
+        <h2><span data-i18n="dash_hello">Bonjour</span>, <span id="dash-name">—</span> 👋</h2>
+        <p class="muted"><span data-i18n="dash_balance">Solde</span> : <strong id="dash-balance">0.00$</strong></p>
+      </div>
+
+      <div class="order-box">
+        <h3>🛒 <span data-i18n="dash_orders_title">Nouvelle commande</span></h3>
+        <p class="muted" style="margin-bottom:12px" data-i18n="dash_orders_sub">Découvre nos services par plateforme et leurs prix.</p>
+        <button class="btn btn-primary" data-i18n="dash_orders_cta" onclick="showServices()">Voir les services →</button>
+      </div>
+
+      <div class="quick-links">
+        <button class="quick-link" onclick="showDashTab('wallet')">💰 <span data-i18n="tab_wallet">Portefeuille</span></button>
+        <button class="quick-link" onclick="showDashTab('activity')">📊 <span data-i18n="tab_activity">Activité</span></button>
+      </div>
     </div>
 
-    <div class="order-box">
-      <h3>🛒 <span data-i18n="dash_orders_title">Nouvelle commande</span></h3>
-      <p class="muted" style="margin-bottom:12px" data-i18n="dash_orders_sub">Découvre nos services par plateforme et leurs prix.</p>
-      <button class="btn btn-primary" data-i18n="dash_orders_cta" onclick="showServices()">Voir les services →</button>
+    <!-- ---- Onglet Commandes ---- -->
+    <div class="dash-tab hidden" id="dash-tab-orders">
+      <h2 style="margin-bottom:14px" data-i18n="tab_orders">Commandes</h2>
+      <div class="order-box">
+        <p class="muted" data-i18n="orders_empty">Tu n'as pas encore passé de commande.</p>
+        <button class="btn btn-primary" style="margin-top:12px" data-i18n="dash_orders_cta" onclick="showServices()">Voir les services →</button>
+      </div>
     </div>
 
-    <div class="order-box">
-      <h3 data-i18n="dash_profile_title">Mon profil</h3>
-      <div class="profile-row"><span data-i18n="dash_profile_name">Nom</span><span id="profile-name">—</span></div>
-      <div class="profile-row"><span data-i18n="dash_profile_email">Email</span><span id="profile-email">—</span></div>
-      <div class="profile-row"><span data-i18n="dash_profile_since">Membre depuis</span><span id="profile-since">—</span></div>
+    <!-- ---- Onglet Portefeuille ---- -->
+    <div class="dash-tab hidden" id="dash-tab-wallet">
+      <h2 style="margin-bottom:14px" data-i18n="tab_wallet">Portefeuille</h2>
+      <div class="order-box wallet-box">
+        <p class="muted" data-i18n="dash_balance">Solde</p>
+        <div class="wallet-amount" id="wallet-balance">0.00$</div>
+        <button class="btn btn-primary" data-i18n="wallet_recharge" onclick="alert('Bientôt disponible 🚧')">Recharger →</button>
+      </div>
+      <div class="order-box">
+        <h3 data-i18n="wallet_history_title">Historique des transactions</h3>
+        <p class="muted" data-i18n="wallet_history_empty">Aucune transaction pour l'instant.</p>
+      </div>
     </div>
 
-    <button class="btn btn-outline" data-i18n="dash_logout" onclick="logout()">Se déconnecter</button>
+    <!-- ---- Onglet Activité ---- -->
+    <div class="dash-tab hidden" id="dash-tab-activity">
+      <h2 style="margin-bottom:14px" data-i18n="tab_activity">Activité</h2>
+      <div class="order-box">
+        <p class="muted" data-i18n="activity_empty">Aucune activité récente.</p>
+      </div>
+    </div>
+
+    <!-- ---- Onglet Compte ---- -->
+    <div class="dash-tab hidden" id="dash-tab-account">
+      <h2 style="margin-bottom:14px" data-i18n="tab_account">Mon compte</h2>
+      <div class="order-box">
+        <h3 data-i18n="dash_profile_title">Mon profil</h3>
+        <div class="profile-row"><span data-i18n="dash_profile_name">Nom</span><span id="profile-name">—</span></div>
+        <div class="profile-row"><span data-i18n="dash_profile_email">Email</span><span id="profile-email">—</span></div>
+        <div class="profile-row"><span data-i18n="dash_profile_since">Membre depuis</span><span id="profile-since">—</span></div>
+      </div>
+      <button class="btn btn-outline" data-i18n="dash_logout" onclick="logout()">Se déconnecter</button>
+    </div>
+
   </div>
+
+  <!-- ---- Barre de navigation basse (mobile, style SMM panel) ---- -->
+  <nav class="bottom-nav">
+    <button class="bnav-btn active" id="bnav-home" onclick="showDashTab('home')">
+      <span class="bnav-icon">🏠</span><span data-i18n="tab_home">Accueil</span>
+    </button>
+    <button class="bnav-btn" id="bnav-orders" onclick="showDashTab('orders')">
+      <span class="bnav-icon">🛒</span><span data-i18n="tab_orders">Commandes</span>
+    </button>
+    <button class="bnav-btn" id="bnav-wallet" onclick="showDashTab('wallet')">
+      <span class="bnav-icon">💰</span><span data-i18n="tab_wallet">Portefeuille</span>
+    </button>
+    <button class="bnav-btn" id="bnav-activity" onclick="showDashTab('activity')">
+      <span class="bnav-icon">📊</span><span data-i18n="tab_activity">Activité</span>
+    </button>
+    <button class="bnav-btn" id="bnav-account" onclick="showDashTab('account')">
+      <span class="bnav-icon">👤</span><span data-i18n="tab_account">Compte</span>
+    </button>
+  </nav>
 </div>
 
 <!-- ================= CATALOGUE DE SERVICES ================= -->

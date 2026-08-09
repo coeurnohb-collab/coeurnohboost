@@ -93,7 +93,7 @@ a{text-decoration:none;color:inherit}
 .footer-links a:hover{color:var(--green)}
 
 /* DASHBOARD */
-.dash-wrap{padding:30px 20px 60px;max-width:600px}
+.dash-wrap{padding:30px 20px 90px;max-width:600px}
 .dash-header{margin-bottom:24px}
 .dash-header h2{font-size:1.4rem;margin-bottom:6px}
 .muted{color:var(--muted);font-size:0.9rem}
@@ -101,6 +101,31 @@ a{text-decoration:none;color:inherit}
 .order-box h3{margin-bottom:8px;color:var(--green);font-size:1rem}
 .profile-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line);font-size:0.9rem}
 .profile-row:last-child{border-bottom:none}
+
+/* QUICK LINKS */
+.quick-links{display:flex;gap:10px}
+.quick-link{
+  flex:1;border:1px solid var(--line);border-radius:var(--radius);background:#fff;
+  padding:14px;font-size:0.85rem;font-weight:600;cursor:pointer;text-align:center;
+}
+.quick-link:hover{background:var(--cream)}
+
+/* WALLET */
+.wallet-box{text-align:center}
+.wallet-amount{font-size:2rem;font-weight:800;color:var(--green);margin:6px 0 16px}
+
+/* BOTTOM NAV (style app SMM panel) */
+.bottom-nav{
+  position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);
+  display:flex;justify-content:space-around;padding:8px 4px calc(8px + env(safe-area-inset-bottom));
+  z-index:200;
+}
+.bnav-btn{
+  background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:2px;
+  color:var(--muted);font-size:0.68rem;font-weight:600;cursor:pointer;padding:4px 6px;flex:1;
+}
+.bnav-icon{font-size:1.25rem}
+.bnav-btn.active{color:var(--green)}
 
 /* CATALOGUE SERVICES */
 .platform-tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:16px}
