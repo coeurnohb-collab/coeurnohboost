@@ -174,6 +174,21 @@ a{text-decoration:none;color:inherit}
   padding:3px 10px;border-radius:999px;text-transform:capitalize;
 }
 
+/* OPÉRATEURS MOBILE MONEY / CRYPTO — cartes avec badge coloré */
+.op-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px}
+.op-card{
+  display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;
+  border:1.5px solid var(--line);border-radius:14px;padding:12px 6px;cursor:pointer;
+  background:#fff;transition:0.15s;
+}
+.op-card:hover{border-color:#c9e8d8}
+.op-card.active{border-color:var(--green);background:#eafaf1;box-shadow:0 3px 10px rgba(13,138,79,0.12)}
+.op-icon{
+  width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:0.85rem;box-shadow:0 3px 8px rgba(0,0,0,0.15);
+}
+.op-name{font-size:0.72rem;font-weight:700;line-height:1.2}
+
 /* SERVICES TEASER */
 .modal-overlay{
   position:fixed;inset:0;background:rgba(0,0,0,0.5);

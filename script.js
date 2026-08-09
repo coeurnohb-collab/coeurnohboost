@@ -167,11 +167,42 @@ const COUNTRIES = [
 ];
 
 const CRYPTOS = [
-  { id:"usdt-trc20", name:"USDT (TRC20 - Tron)", icon:"₮" },
-  { id:"usdt-bep20", name:"USDT (BEP20 - BSC)",  icon:"₮" },
-  { id:"btc",        name:"Bitcoin (BTC)",        icon:"₿" },
-  { id:"trx",        name:"TRON (TRX)",           icon:"⚡" }
+  { id:"usdt-trc20", name:"USDT (TRC20 - Tron)", icon:"₮", bg:"#26A17B" },
+  { id:"usdt-bep20", name:"USDT (BEP20 - BSC)",  icon:"₮", bg:"#26A17B" },
+  { id:"btc",        name:"Bitcoin (BTC)",        icon:"₿", bg:"#F7931A" },
+  { id:"trx",        name:"TRON (TRX)",           icon:"T", bg:"#EB0029" }
 ];
+
+/* Badge coloré par opérateur mobile money (reconnaissance visuelle par marque) */
+function getOperatorBadge(name) {
+  const n = name.toLowerCase();
+  if (n.includes('m-pesa') && n.includes('vodacom')) return { bg:'#E60000', label:'M' };
+  if (n.includes('m-pesa')) return { bg:'#4CAF50', label:'M' };
+  if (n.includes('vodacom')) return { bg:'#E60000', label:'V' };
+  if (n.includes('airteltigo')) return { bg:'#0033A0', label:'AT' };
+  if (n.includes('airtel')) return { bg:'#ED1C24', label:'A' };
+  if (n.includes('orange')) return { bg:'#FF6600', label:'O' };
+  if (n.includes('mtn')) return { bg:'#FFCC00', label:'M', dark:true };
+  if (n.includes('moov')) return { bg:'#0066CC', label:'M' };
+  if (n.includes('wave')) return { bg:'#00A3E0', label:'W' };
+  if (n.includes('free')) return { bg:'#CC0000', label:'F' };
+  if (n.includes('telecel')) return { bg:'#6A1B9A', label:'T' };
+  if (n.includes('t-money') || n.includes('togocom')) return { bg:'#00A19A', label:'T' };
+  if (n.includes('zain')) return { bg:'#6A1B9A', label:'Z' };
+  if (n.includes('lumitel')) return { bg:'#F7941D', label:'L' };
+  if (n.includes('ecocash')) return { bg:'#1E8449', label:'E' };
+  if (n.includes('unitel')) return { bg:'#0057A8', label:'U' };
+  if (n.includes('multicaixa')) return { bg:'#D32F2F', label:'MC' };
+  if (n.includes('djezzy')) return { bg:'#6A1B9A', label:'D' };
+  if (n.includes('mobilis')) return { bg:'#2E7D32', label:'M' };
+  if (n.includes('mobicash')) return { bg:'#0057A8', label:'MC' };
+  if (n.includes('inwi')) return { bg:'#FF6600', label:'I' };
+  if (n.includes('d17')) return { bg:'#0057A8', label:'D17' };
+  if (n.includes('telebirr')) return { bg:'#2E9E4F', label:'T' };
+  if (n.includes('africell')) return { bg:'#6A1B9A', label:'A' };
+  if (n.includes('opay')) return { bg:'#00A650', label:'O' };
+  return { bg:'#555555', label: name[0] };
+}
 
 let payMethod = "mobile";
 let payCountryCode = null;
@@ -397,11 +428,14 @@ function renderPayOperators() {
   const country = COUNTRIES.find(c => c.code === payCountryCode);
   const el = document.getElementById('pay-operators');
   if (!country) { el.innerHTML = ''; return; }
-  el.innerHTML = country.ops.map(op => `
-    <button class="quality-card${op === payOperator ? ' active' : ''}" style="padding:12px 8px" onclick="selectOperator('${op.replace(/'/g,"\\'")}')">
-      <span class="q-name" style="font-size:0.78rem">${op}</span>
-    </button>
-  `).join('');
+  el.innerHTML = country.ops.map(op => {
+    const badge = getOperatorBadge(op);
+    return `
+    <div class="op-card${op === payOperator ? ' active' : ''}" onclick="selectOperator('${op.replace(/'/g,"\\'")}')">
+      <div class="op-icon" style="background:${badge.bg};${badge.dark ? 'color:#111' : 'color:#fff'}">${badge.label}</div>
+      <span class="op-name">${op}</span>
+    </div>`;
+  }).join('');
 }
 function selectOperator(op) {
   payOperator = op;
@@ -410,9 +444,10 @@ function selectOperator(op) {
 function renderPayCryptoOptions() {
   const el = document.getElementById('pay-crypto-list');
   el.innerHTML = CRYPTOS.map(c => `
-    <button class="quality-card${c.id === payCryptoId ? ' active' : ''}" style="padding:12px 6px" onclick="selectCrypto('${c.id}')">
-      <span class="q-name" style="font-size:0.78rem">${c.icon} ${c.name}</span>
-    </button>
+    <div class="op-card${c.id === payCryptoId ? ' active' : ''}" onclick="selectCrypto('${c.id}')">
+      <div class="op-icon" style="background:${c.bg};color:#fff">${c.icon}</div>
+      <span class="op-name">${c.name}</span>
+    </div>
   `).join('');
 }
 function selectCrypto(id) {
@@ -447,8 +482,7 @@ async function submitRecharge() {
   if (!currentUser) { openAuth('register'); return; }
 
   if (payMethod === 'card') {
-    window.open('https://wa.me/243825001290?text=' + encodeURIComponent('Bonjour, je souhaite recharger via carte virtuelle.'), '_blank');
-    return;
+    return; // Carte virtuelle : bientôt disponible (le bouton est masqué pour cet onglet)
   }
 
   const amount = parseFloat(document.getElementById('recharge-amount').value || 0);
