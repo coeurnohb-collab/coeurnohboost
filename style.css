@@ -127,21 +127,51 @@ a{text-decoration:none;color:inherit}
 .bnav-icon{font-size:1.25rem}
 .bnav-btn.active{color:var(--green)}
 
-/* CATALOGUE SERVICES */
-.platform-tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:16px}
-.platform-tab{
-  flex:0 0 auto;padding:8px 16px;border-radius:999px;border:1.5px solid var(--line);
-  background:#fff;font-size:0.85rem;font-weight:600;cursor:pointer;white-space:nowrap;
+/* CATALOGUE — GRILLE DE PLATEFORMES */
+.platform-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:12px}
+.platform-badge{
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px 8px;
+  cursor:pointer;transition:0.15s;
 }
-.platform-tab.active{background:var(--green);color:#fff;border-color:var(--green)}
-.service-item{
-  border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:12px;
+.platform-badge:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,0.08);border-color:transparent}
+.platform-badge .p-icon{
+  width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;
+  font-size:1.3rem;color:#fff;box-shadow:0 3px 8px rgba(0,0,0,0.15);
 }
-.service-item h4{font-size:0.95rem;margin-bottom:4px}
-.service-item .price{color:var(--green);font-weight:700;font-size:0.95rem}
-.service-item .meta{color:var(--muted);font-size:0.78rem;margin-top:4px}
+.platform-badge .p-name{font-size:0.72rem;font-weight:700;text-align:center;color:var(--ink)}
 
-/* MODAL */
+/* ORDER FORM */
+.order-platform-header{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.order-platform-header .p-icon{
+  width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;
+  font-size:1.4rem;color:#fff;box-shadow:0 3px 8px rgba(0,0,0,0.15);
+}
+.order-platform-header h2{font-size:1.2rem}
+.field-label{display:block;font-size:0.82rem;font-weight:700;margin-bottom:6px}
+.select-input, .text-input{
+  width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:10px;
+  font-size:0.95rem;background:var(--cream);
+}
+.select-input:focus, .text-input:focus{outline:none;border-color:var(--green)}
+.small{font-size:0.75rem;margin-top:5px}
+.quality-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.quality-card{
+  border:1.5px solid var(--line);border-radius:12px;padding:10px 6px;text-align:center;
+  cursor:pointer;background:#fff;
+}
+.quality-card.active{border-color:var(--green);background:#eafaf1}
+.quality-card .q-name{font-weight:800;font-size:0.82rem;display:block}
+.quality-card .q-mult{font-size:0.68rem;color:var(--muted);display:block;margin-top:2px}
+.order-summary{margin-top:18px;border-top:1px solid var(--line);padding-top:14px}
+.order-summary-row{display:flex;justify-content:space-between;font-size:0.9rem;padding:4px 0}
+.order-summary-row strong{color:var(--green);font-size:1.15rem}
+.order-status{
+  background:var(--cream);color:var(--green-dark);font-size:0.72rem;font-weight:700;
+  padding:3px 10px;border-radius:999px;text-transform:capitalize;
+}
+
+/* SERVICES TEASER */
 .modal-overlay{
   position:fixed;inset:0;background:rgba(0,0,0,0.5);
   display:flex;align-items:center;justify-content:center;
