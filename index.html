@@ -71,8 +71,9 @@
     </div>
 
     <div class="order-box">
-      <h3>🚧 Espace commandes</h3>
-      <p class="muted">La liste des services et le système de commande arrivent dans la prochaine étape. Pour l'instant, ton compte est créé et connecté avec succès.</p>
+      <h3>🛒 Nouvelle commande</h3>
+      <p class="muted" style="margin-bottom:12px">Découvre nos services par plateforme et leurs prix.</p>
+      <button class="btn btn-primary" onclick="showServices()">Voir les services →</button>
     </div>
 
     <div class="order-box">
@@ -83,6 +84,17 @@
     </div>
 
     <button class="btn btn-outline" onclick="logout()">Se déconnecter</button>
+  </div>
+</div>
+
+<!-- ================= CATALOGUE DE SERVICES ================= -->
+<div id="view-services" class="hidden">
+  <div class="wrap dash-wrap">
+    <button class="btn btn-outline" style="margin-bottom:16px" onclick="showDashboard()">← Retour</button>
+    <h2 style="margin-bottom:14px">Services disponibles</h2>
+
+    <div class="platform-tabs" id="platform-tabs"></div>
+    <div id="services-list"></div>
   </div>
 </div>
 

@@ -31,13 +31,66 @@ try {
 /* =========================================================
    NAVIGATION ENTRE VUES
    ========================================================= */
-function showHome() {
-  document.getElementById('view-home').classList.remove('hidden');
+function hideAllViews() {
+  document.getElementById('view-home').classList.add('hidden');
   document.getElementById('view-dashboard').classList.add('hidden');
+  document.getElementById('view-services').classList.add('hidden');
+}
+function showHome() {
+  hideAllViews();
+  document.getElementById('view-home').classList.remove('hidden');
 }
 function showDashboard() {
-  document.getElementById('view-home').classList.add('hidden');
+  hideAllViews();
   document.getElementById('view-dashboard').classList.remove('hidden');
+}
+function showServices() {
+  hideAllViews();
+  document.getElementById('view-services').classList.remove('hidden');
+  renderPlatformTabs();
+  renderServiceList(SERVICES[0].platform);
+}
+
+/* =========================================================
+   CATALOGUE DE SERVICES (statique pour l'instant)
+   Prix en $ pour 1000 unités. min/max = quantité par commande.
+   ⚠️ À remplacer plus tard par les vrais services MTP + prix admin.
+   ========================================================= */
+const SERVICES = [
+  { platform: "TikTok", icon: "♪", name: "Followers", price1000: 2.5, min: 100, max: 50000 },
+  { platform: "TikTok", icon: "♪", name: "Vues", price1000: 0.6, min: 500, max: 1000000 },
+  { platform: "TikTok", icon: "♪", name: "Likes", price1000: 1.2, min: 100, max: 100000 },
+  { platform: "Instagram", icon: "IG", name: "Followers", price1000: 3.0, min: 100, max: 50000 },
+  { platform: "Instagram", icon: "IG", name: "Vues Reels", price1000: 0.8, min: 500, max: 500000 },
+  { platform: "Instagram", icon: "IG", name: "Likes", price1000: 1.5, min: 100, max: 100000 },
+  { platform: "YouTube", icon: "YT", name: "Vues", price1000: 3.5, min: 1000, max: 1000000 },
+  { platform: "YouTube", icon: "YT", name: "Abonnés", price1000: 8.0, min: 100, max: 20000 },
+  { platform: "Facebook", icon: "FB", name: "Followers Page", price1000: 3.0, min: 100, max: 50000 },
+  { platform: "Facebook", icon: "FB", name: "Likes Post", price1000: 1.5, min: 100, max: 100000 }
+];
+
+function renderPlatformTabs() {
+  const platforms = [...new Set(SERVICES.map(s => s.platform))];
+  const el = document.getElementById('platform-tabs');
+  el.innerHTML = platforms.map((p, i) =>
+    `<button class="platform-tab${i === 0 ? ' active' : ''}" onclick="selectPlatformTab(this,'${p}')">${p}</button>`
+  ).join('');
+}
+function selectPlatformTab(btn, platform) {
+  document.querySelectorAll('.platform-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  renderServiceList(platform);
+}
+function renderServiceList(platform) {
+  const list = SERVICES.filter(s => s.platform === platform);
+  const el = document.getElementById('services-list');
+  el.innerHTML = list.map(s => `
+    <div class="service-item">
+      <h4>${s.icon} ${s.platform} — ${s.name}</h4>
+      <div class="price">${s.price1000.toFixed(2)}$ / 1000</div>
+      <div class="meta">Min ${s.min.toLocaleString('fr-FR')} · Max ${s.max.toLocaleString('fr-FR')}</div>
+    </div>
+  `).join('');
 }
 
 /* =========================================================

@@ -77,6 +77,20 @@ a{text-decoration:none;color:inherit}
 .profile-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line);font-size:0.9rem}
 .profile-row:last-child{border-bottom:none}
 
+/* CATALOGUE SERVICES */
+.platform-tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:16px}
+.platform-tab{
+  flex:0 0 auto;padding:8px 16px;border-radius:999px;border:1.5px solid var(--line);
+  background:#fff;font-size:0.85rem;font-weight:600;cursor:pointer;white-space:nowrap;
+}
+.platform-tab.active{background:var(--green);color:#fff;border-color:var(--green)}
+.service-item{
+  border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:12px;
+}
+.service-item h4{font-size:0.95rem;margin-bottom:4px}
+.service-item .price{color:var(--green);font-weight:700;font-size:0.95rem}
+.service-item .meta{color:var(--muted);font-size:0.78rem;margin-top:4px}
+
 /* MODAL */
 .modal-overlay{
   position:fixed;inset:0;background:rgba(0,0,0,0.5);
