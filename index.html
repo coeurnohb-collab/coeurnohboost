@@ -102,7 +102,7 @@
 
       <div class="quick-links">
         <button class="quick-link" onclick="showDashTab('wallet')">💰 <span data-i18n="tab_wallet">Portefeuille</span></button>
-        <button class="quick-link" onclick="showDashTab('activity')">📊 <span data-i18n="tab_activity">Activité</span></button>
+        <button class="quick-link" onclick="showMonetization()">💡 <span data-i18n="monetization_title">Monétisation</span></button>
       </div>
     </div>
 
@@ -121,7 +121,7 @@
       <div class="order-box wallet-box">
         <p class="muted" data-i18n="dash_balance">Solde</p>
         <div class="wallet-amount" id="wallet-balance">0.00$</div>
-        <button class="btn btn-primary" data-i18n="wallet_recharge" onclick="alert('Bientôt disponible 🚧')">Recharger →</button>
+        <button class="btn btn-primary" data-i18n="wallet_recharge" onclick="showRecharge()">Recharger →</button>
       </div>
       <div class="order-box">
         <h3 data-i18n="wallet_history_title">Historique des transactions</h3>
@@ -212,6 +212,64 @@
 
       <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:14px" data-i18n="order_submit" onclick="submitOrder()">Passer la commande</button>
     </div>
+  </div>
+</div>
+
+<!-- ================= RECHARGE / PAIEMENT ================= -->
+<div id="view-recharge" class="hidden">
+  <div class="wrap dash-wrap">
+    <button class="btn btn-outline" style="margin-bottom:16px" onclick="showDashboard()" data-i18n="services_back">← Retour</button>
+    <h2 style="margin-bottom:4px" data-i18n="pay_title">Recharger mon solde</h2>
+    <p class="muted" style="margin-bottom:18px" data-i18n="pay_sub">Choisis ton moyen de paiement.</p>
+
+    <div class="platform-tabs" id="pay-method-tabs"></div>
+
+    <div class="order-box">
+
+      <!-- Mobile Money -->
+      <div id="pay-panel-mobile">
+        <label class="field-label" data-i18n="pay_country_label">Pays</label>
+        <select id="pay-country-select" class="select-input" onchange="onPayCountryChange()"></select>
+        <div class="quality-grid" id="pay-operators" style="margin-top:12px"></div>
+      </div>
+
+      <!-- Crypto -->
+      <div id="pay-panel-crypto" class="hidden">
+        <label class="field-label" data-i18n="pay_crypto_label">Choisis ta crypto</label>
+        <div class="quality-grid" id="pay-crypto-list"></div>
+        <p class="muted small" data-i18n="pay_crypto_note">L'adresse de paiement te sera envoyée par WhatsApp après ta demande.</p>
+      </div>
+
+      <!-- Carte virtuelle -->
+      <div id="pay-panel-card" class="hidden">
+        <p class="muted" data-i18n="pay_card_note">Paiement par carte virtuelle : contacte-nous sur WhatsApp pour finaliser ta recharge en toute sécurité.</p>
+      </div>
+
+      <div id="recharge-amount-block">
+        <label class="field-label" style="margin-top:16px" data-i18n="pay_amount_label">Montant (USD)</label>
+        <input type="number" id="recharge-amount" class="text-input" placeholder="10" oninput="updateRechargeEquivalent()">
+        <p class="muted small" id="recharge-equivalent"></p>
+      </div>
+
+      <div class="modal-error hidden" id="recharge-error"></div>
+      <div class="modal-loading hidden" id="recharge-success"></div>
+
+      <button class="btn btn-primary" id="recharge-submit-btn" style="width:100%;justify-content:center;margin-top:14px" data-i18n="pay_submit" onclick="submitRecharge()">Envoyer la demande</button>
+    </div>
+
+    <p class="muted small" style="text-align:center;margin-top:12px" data-i18n="pay_manual_note">Chaque demande est validée manuellement après réception du paiement (généralement sous quelques minutes).</p>
+  </div>
+</div>
+
+<!-- ================= MONÉTISATION ================= -->
+<div id="view-monetization" class="hidden">
+  <div class="wrap dash-wrap">
+    <button class="btn btn-outline" style="margin-bottom:16px" onclick="showDashboard()" data-i18n="services_back">← Retour</button>
+    <h2 style="margin-bottom:4px" data-i18n="monetization_title">Monétisation</h2>
+    <p class="muted" style="margin-bottom:18px" data-i18n="monetization_sub">Découvre les critères pour monétiser ton compte, et les services pour les atteindre plus vite.</p>
+
+    <div class="platform-grid" id="monetization-grid" style="margin-bottom:18px"></div>
+    <div id="monetization-detail"></div>
   </div>
 </div>
 

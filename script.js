@@ -36,6 +36,8 @@ function hideAllViews() {
   document.getElementById('view-dashboard').classList.add('hidden');
   document.getElementById('view-services').classList.add('hidden');
   document.getElementById('view-order').classList.add('hidden');
+  document.getElementById('view-recharge').classList.add('hidden');
+  document.getElementById('view-monetization').classList.add('hidden');
 }
 function showHome() {
   hideAllViews();
@@ -124,6 +126,57 @@ const SERVICE_CATALOG = {
 
 let selectedPlatformId = null;
 let selectedQuality = "standard";
+
+/* =========================================================
+   PAIEMENTS — pays d'Afrique francophone + voisins RDC + crypto
+   ⚠️ Taux de change indicatifs, à ajuster régulièrement.
+   ========================================================= */
+const COUNTRIES = [
+  { code:"CD", name:"RD Congo",             flag:"🇨🇩", currency:"CDF",  rate:2800,  ops:["Vodacom M-Pesa","Airtel Money","Orange Money"] },
+  { code:"CG", name:"Congo-Brazzaville",     flag:"🇨🇬", currency:"XAF",  rate:600,   ops:["MTN Mobile Money","Airtel Money"] },
+  { code:"CF", name:"Centrafrique",          flag:"🇨🇫", currency:"XAF",  rate:600,   ops:["Orange Money","Telecel Money"] },
+  { code:"CM", name:"Cameroun",              flag:"🇨🇲", currency:"XAF",  rate:600,   ops:["MTN Mobile Money","Orange Money"] },
+  { code:"CI", name:"Côte d'Ivoire",         flag:"🇨🇮", currency:"XOF",  rate:600,   ops:["Orange Money","MTN Mobile Money","Moov Money","Wave"] },
+  { code:"SN", name:"Sénégal",               flag:"🇸🇳", currency:"XOF",  rate:600,   ops:["Orange Money","Free Money","Wave"] },
+  { code:"ML", name:"Mali",                  flag:"🇲🇱", currency:"XOF",  rate:600,   ops:["Orange Money","Moov Money"] },
+  { code:"BF", name:"Burkina Faso",          flag:"🇧🇫", currency:"XOF",  rate:600,   ops:["Orange Money","Moov Money"] },
+  { code:"TG", name:"Togo",                  flag:"🇹🇬", currency:"XOF",  rate:600,   ops:["T-Money (Togocom)","Moov Money"] },
+  { code:"BJ", name:"Bénin",                 flag:"🇧🇯", currency:"XOF",  rate:600,   ops:["MTN Mobile Money","Moov Money"] },
+  { code:"GN", name:"Guinée",                flag:"🇬🇳", currency:"GNF",  rate:8600,  ops:["Orange Money","MTN Mobile Money"] },
+  { code:"NE", name:"Niger",                 flag:"🇳🇪", currency:"XOF",  rate:600,   ops:["Airtel Money","Orange Money","Moov Money"] },
+  { code:"UG", name:"Ouganda",               flag:"🇺🇬", currency:"UGX",  rate:3700,  ops:["MTN Mobile Money","Airtel Money"] },
+  { code:"RW", name:"Rwanda",                flag:"🇷🇼", currency:"RWF",  rate:1300,  ops:["MTN Mobile Money","Airtel Money"] },
+  { code:"BI", name:"Burundi",               flag:"🇧🇮", currency:"BIF",  rate:2900,  ops:["Lumitel Pesa","Ecocash"] },
+  { code:"TZ", name:"Tanzanie",              flag:"🇹🇿", currency:"TZS",  rate:2500,  ops:["M-Pesa (Vodacom)","Tigo Pesa","Airtel Money"] },
+  { code:"ZM", name:"Zambie",                flag:"🇿🇲", currency:"ZMW",  rate:27,    ops:["MTN Mobile Money","Airtel Money"] },
+  { code:"AO", name:"Angola",                flag:"🇦🇴", currency:"AOA",  rate:830,   ops:["Unitel Money","Multicaixa Express"] },
+  { code:"KE", name:"Kenya",                 flag:"🇰🇪", currency:"KES",  rate:129,   ops:["M-Pesa (Safaricom)","Airtel Money"] },
+  { code:"SS", name:"Soudan du Sud",         flag:"🇸🇸", currency:"SSP",  rate:130,   ops:["MTN Mobile Money","Zain Cash"] },
+  { code:"SD", name:"Soudan",                flag:"🇸🇩", currency:"SDG",  rate:600,   ops:["Zain Cash","MTN Mobile Money"] },
+  { code:"LY", name:"Libye",                 flag:"🇱🇾", currency:"LYD",  rate:4.8,   ops:["Mobicash"] },
+  { code:"MA", name:"Maroc",                 flag:"🇲🇦", currency:"MAD",  rate:9.9,   ops:["Orange Money","inwi money"] },
+  { code:"TN", name:"Tunisie",               flag:"🇹🇳", currency:"TND",  rate:3.1,   ops:["Orange Money","D17"] },
+  { code:"DZ", name:"Algérie",               flag:"🇩🇿", currency:"DZD",  rate:134,   ops:["Djezzy","Mobilis"] },
+  { code:"GH", name:"Ghana",                 flag:"🇬🇭", currency:"GHS",  rate:15,    ops:["MTN Mobile Money","Vodafone Cash","AirtelTigo Money"] },
+  { code:"NG", name:"Nigeria",               flag:"🇳🇬", currency:"NGN",  rate:1550,  ops:["MTN MoMo","Airtel Money","Opay"] },
+  { code:"TD", name:"Tchad",                 flag:"🇹🇩", currency:"XAF",  rate:600,   ops:["Airtel Money","Moov Money"] },
+  { code:"ET", name:"Éthiopie",              flag:"🇪🇹", currency:"ETB",  rate:120,   ops:["Telebirr"] },
+  { code:"SL", name:"Sierra Leone",          flag:"🇸🇱", currency:"SLE",  rate:22.5,  ops:["Orange Money","Africell Money"] },
+  { code:"ZA", name:"Afrique du Sud",        flag:"🇿🇦", currency:"ZAR",  rate:18,    ops:["MTN MoMo","Vodacom"] },
+  { code:"MG", name:"Madagascar",            flag:"🇲🇬", currency:"MGA",  rate:4500,  ops:["Orange Money","Telma Mvola","Airtel Money"] }
+];
+
+const CRYPTOS = [
+  { id:"usdt-trc20", name:"USDT (TRC20 - Tron)", icon:"₮" },
+  { id:"usdt-bep20", name:"USDT (BEP20 - BSC)",  icon:"₮" },
+  { id:"btc",        name:"Bitcoin (BTC)",        icon:"₿" },
+  { id:"trx",        name:"TRON (TRX)",           icon:"⚡" }
+];
+
+let payMethod = "mobile";
+let payCountryCode = null;
+let payOperator = null;
+let payCryptoId = null;
 
 function platformBadgeHTML(p) {
   const color = p.dark ? 'color:#111' : 'color:#fff';
@@ -295,6 +348,245 @@ async function loadOrders() {
   } catch (e) {
     console.error("Erreur chargement commandes :", e.message);
   }
+}
+
+/* =========================================================
+   RECHARGE / PAIEMENT
+   ========================================================= */
+function showRecharge() {
+  hideAllViews();
+  document.getElementById('view-recharge').classList.remove('hidden');
+  payMethod = "mobile";
+  payCountryCode = null;
+  payOperator = null;
+  payCryptoId = null;
+  document.getElementById('recharge-amount').value = '';
+  document.getElementById('recharge-error').classList.add('hidden');
+  document.getElementById('recharge-success').classList.add('hidden');
+  renderPayMethodTabs();
+  renderPayCountrySelect();
+  renderPayPanel();
+}
+function renderPayMethodTabs() {
+  const methods = [
+    { id: "mobile", label: t('pay_mobile') },
+    { id: "crypto", label: t('pay_crypto') },
+    { id: "card",   label: t('pay_card') }
+  ];
+  document.getElementById('pay-method-tabs').innerHTML = methods.map(m => `
+    <button class="platform-tab${m.id === payMethod ? ' active' : ''}" onclick="selectPayMethod('${m.id}')">${m.label}</button>
+  `).join('');
+}
+function selectPayMethod(m) {
+  payMethod = m;
+  renderPayMethodTabs();
+  renderPayPanel();
+}
+function renderPayCountrySelect() {
+  const sel = document.getElementById('pay-country-select');
+  sel.innerHTML = `<option value="">${t('pay_choose_country')}</option>` +
+    COUNTRIES.map(c => `<option value="${c.code}">${c.flag} ${c.name}</option>`).join('');
+}
+function onPayCountryChange() {
+  payCountryCode = document.getElementById('pay-country-select').value || null;
+  payOperator = null;
+  renderPayOperators();
+  updateRechargeEquivalent();
+}
+function renderPayOperators() {
+  const country = COUNTRIES.find(c => c.code === payCountryCode);
+  const el = document.getElementById('pay-operators');
+  if (!country) { el.innerHTML = ''; return; }
+  el.innerHTML = country.ops.map(op => `
+    <button class="quality-card${op === payOperator ? ' active' : ''}" style="padding:12px 8px" onclick="selectOperator('${op.replace(/'/g,"\\'")}')">
+      <span class="q-name" style="font-size:0.78rem">${op}</span>
+    </button>
+  `).join('');
+}
+function selectOperator(op) {
+  payOperator = op;
+  renderPayOperators();
+}
+function renderPayCryptoOptions() {
+  const el = document.getElementById('pay-crypto-list');
+  el.innerHTML = CRYPTOS.map(c => `
+    <button class="quality-card${c.id === payCryptoId ? ' active' : ''}" style="padding:12px 6px" onclick="selectCrypto('${c.id}')">
+      <span class="q-name" style="font-size:0.78rem">${c.icon} ${c.name}</span>
+    </button>
+  `).join('');
+}
+function selectCrypto(id) {
+  payCryptoId = id;
+  renderPayCryptoOptions();
+}
+function renderPayPanel() {
+  document.getElementById('pay-panel-mobile').classList.toggle('hidden', payMethod !== 'mobile');
+  document.getElementById('pay-panel-crypto').classList.toggle('hidden', payMethod !== 'crypto');
+  document.getElementById('pay-panel-card').classList.toggle('hidden', payMethod !== 'card');
+  document.getElementById('recharge-amount-block').classList.toggle('hidden', payMethod === 'card');
+  document.getElementById('recharge-submit-btn').classList.toggle('hidden', payMethod === 'card');
+  if (payMethod === 'crypto') renderPayCryptoOptions();
+}
+function updateRechargeEquivalent() {
+  const amount = parseFloat(document.getElementById('recharge-amount').value || 0);
+  const country = COUNTRIES.find(c => c.code === payCountryCode);
+  const hint = document.getElementById('recharge-equivalent');
+  if (payMethod === 'mobile' && country && amount > 0) {
+    const local = (amount * country.rate).toLocaleString('fr-FR', { maximumFractionDigits: 0 });
+    hint.textContent = `≈ ${local} ${country.currency}`;
+  } else {
+    hint.textContent = '';
+  }
+}
+async function submitRecharge() {
+  const errEl = document.getElementById('recharge-error');
+  const okEl = document.getElementById('recharge-success');
+  errEl.classList.add('hidden');
+  okEl.classList.add('hidden');
+
+  if (!currentUser) { openAuth('register'); return; }
+
+  if (payMethod === 'card') {
+    window.open('https://wa.me/243825001290?text=' + encodeURIComponent('Bonjour, je souhaite recharger via carte virtuelle.'), '_blank');
+    return;
+  }
+
+  const amount = parseFloat(document.getElementById('recharge-amount').value || 0);
+  if (!amount || amount <= 0) {
+    errEl.textContent = t('pay_err_amount');
+    errEl.classList.remove('hidden');
+    return;
+  }
+  if (payMethod === 'mobile' && (!payCountryCode || !payOperator)) {
+    errEl.textContent = t('pay_err_operator');
+    errEl.classList.remove('hidden');
+    return;
+  }
+  if (payMethod === 'crypto' && !payCryptoId) {
+    errEl.textContent = t('pay_err_crypto');
+    errEl.classList.remove('hidden');
+    return;
+  }
+
+  try {
+    const country = COUNTRIES.find(c => c.code === payCountryCode);
+    const crypto = CRYPTOS.find(c => c.id === payCryptoId);
+    await db.collection('topup_requests').add({
+      uid: currentUser.uid,
+      email: currentUser.email,
+      method: payMethod,
+      country: country ? country.name : null,
+      operator: payOperator || null,
+      crypto: crypto ? crypto.name : null,
+      amountUSD: amount,
+      status: 'pending',
+      createdAt: new Date().toISOString()
+    });
+    okEl.textContent = t('pay_success');
+    okEl.classList.remove('hidden');
+  } catch (e) {
+    console.error("Erreur demande recharge :", e.message);
+    errEl.textContent = t('pay_err_generic');
+    errEl.classList.remove('hidden');
+  }
+}
+
+/* =========================================================
+   MONÉTISATION — critères par plateforme + services associés
+   ========================================================= */
+const MONETIZATION = {
+  youtube: {
+    program: "YouTube Partner Program",
+    criteria: [
+      { label: "Abonnés", value: "1 000 minimum" },
+      { label: "Heures de visionnage", value: "4 000 heures sur 12 mois (vidéos longues)" },
+      { label: "Alternative Shorts", value: "10 millions de vues Shorts sur 90 jours" },
+      { label: "Compte AdSense", value: "Obligatoire, lié à la chaîne" },
+      { label: "Règles de la communauté", value: "Aucune violation majeure sur les 90 derniers jours" }
+    ]
+  },
+  tiktok: {
+    program: "TikTok Creator Rewards Program",
+    criteria: [
+      { label: "Abonnés", value: "10 000 minimum" },
+      { label: "Vues", value: "100 000 vues sur les 30 derniers jours" },
+      { label: "Âge du compte", value: "18 ans minimum, compte en règle" },
+      { label: "Format", value: "Vidéos de plus d'1 minute recommandées" }
+    ]
+  },
+  facebook: {
+    program: "Facebook In-Stream Ads",
+    criteria: [
+      { label: "Abonnés Page", value: "10 000 minimum" },
+      { label: "Minutes vues", value: "600 000 minutes sur les 60 derniers jours" },
+      { label: "Vidéos actives", value: "5 vidéos minimum publiées" }
+    ]
+  },
+  instagram: {
+    program: "Instagram Bonus Program",
+    criteria: [
+      { label: "Éligibilité", value: "Selon pays et invitation Meta" },
+      { label: "Engagement", value: "Bon taux de likes/commentaires sur les Reels" },
+      { label: "Régularité", value: "Publications fréquentes recommandées" }
+    ]
+  },
+  twitch: {
+    program: "Twitch Affiliate",
+    criteria: [
+      { label: "Abonnés (followers)", value: "50 minimum" },
+      { label: "Temps de stream", value: "500 minutes sur les 30 derniers jours" },
+      { label: "Jours de diffusion", value: "7 jours uniques" },
+      { label: "Viewers moyens", value: "3 en moyenne par stream" }
+    ]
+  },
+  spotify: {
+    program: "Spotify for Artists",
+    criteria: [
+      { label: "Écoutes", value: "Pas de seuil officiel, mais plus d'écoutes = plus de revenus" },
+      { label: "Playlists", value: "L'ajout à des playlists augmente fortement la visibilité" }
+    ]
+  }
+};
+
+function renderMonetizationGrid() {
+  const platforms = PLATFORMS.filter(p => MONETIZATION[p.id]);
+  const el = document.getElementById('monetization-grid');
+  el.innerHTML = platforms.map(p => `
+    <div class="platform-badge" onclick="renderMonetizationDetail('${p.id}')">
+      ${platformBadgeHTML(p)}
+      <span class="p-name">${p.name}</span>
+    </div>
+  `).join('');
+}
+function renderMonetizationDetail(platformId) {
+  const p = PLATFORMS.find(x => x.id === platformId);
+  const m = MONETIZATION[platformId];
+  const el = document.getElementById('monetization-detail');
+  if (!p || !m) { el.innerHTML = ''; return; }
+  el.innerHTML = `
+    <div class="order-box">
+      <div class="order-platform-header" style="margin-bottom:14px">
+        ${platformBadgeHTML(p)}
+        <div>
+          <h2 style="font-size:1.05rem">${p.name}</h2>
+          <p class="muted" style="font-size:0.8rem">${m.program}</p>
+        </div>
+      </div>
+      ${m.criteria.map(c => `
+        <div class="profile-row">
+          <span>${c.label}</span>
+          <span style="text-align:right;max-width:60%">${c.value}</span>
+        </div>
+      `).join('')}
+      <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:16px" onclick="onPlatformClick('${p.id}')" data-i18n="monetization_boost_cta">Booster mes statistiques →</button>
+    </div>
+  `;
+}
+function showMonetization() {
+  hideAllViews();
+  document.getElementById('view-monetization').classList.remove('hidden');
+  renderMonetizationGrid();
+  document.getElementById('monetization-detail').innerHTML = '';
 }
 
 /* =========================================================
