@@ -1,0 +1,219 @@
+/* =========================================================
+   FIREBASE CONFIG — projet "coeurnohboost"
+   ========================================================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyAK9j8lmKlxp267bfwKegKgW54fo_jrS9E",
+  authDomain: "coeurnohboost.firebaseapp.com",
+  projectId: "coeurnohboost",
+  storageBucket: "coeurnohboost.firebasestorage.app",
+  messagingSenderId: "295783149587",
+  appId: "1:295783149587:web:13aec67a2ae0109eaa4fe6"
+};
+
+const ADMIN_UID = "8BqWONj07hVZePHe2DrkHWYRjse2";
+
+let fbReady = false;
+let auth = null;
+let db = null;
+let currentUser = null;
+let authMode = 'register';
+
+try {
+  firebase.initializeApp(firebaseConfig);
+  auth = firebase.auth();
+  db = firebase.firestore();
+  fbReady = true;
+  console.log("✅ Firebase initialisé");
+} catch (e) {
+  console.error("🔴 Firebase a échoué :", e.message);
+}
+
+/* =========================================================
+   NAVIGATION ENTRE VUES
+   ========================================================= */
+function showHome() {
+  document.getElementById('view-home').classList.remove('hidden');
+  document.getElementById('view-dashboard').classList.add('hidden');
+}
+function showDashboard() {
+  document.getElementById('view-home').classList.add('hidden');
+  document.getElementById('view-dashboard').classList.remove('hidden');
+}
+
+/* =========================================================
+   MODAL AUTH
+   ========================================================= */
+function openAuth(mode) {
+  authMode = mode;
+  updateAuthModalMode();
+  document.getElementById('auth-modal').classList.remove('hidden');
+}
+function closeAuth() {
+  document.getElementById('auth-modal').classList.add('hidden');
+  hideAuthError();
+  setAuthLoading(false);
+}
+function toggleAuthMode() {
+  authMode = authMode === 'register' ? 'login' : 'register';
+  updateAuthModalMode();
+}
+function updateAuthModalMode() {
+  const isReg = authMode === 'register';
+  document.getElementById('auth-title').textContent = isReg ? 'Créer un compte' : 'Se connecter';
+  document.getElementById('auth-name-field').classList.toggle('hidden', !isReg);
+  document.getElementById('auth-submit').textContent = isReg ? 'Créer mon compte' : 'Se connecter';
+  document.getElementById('auth-switch-text').textContent = isReg ? 'Déjà un compte ?' : 'Pas encore de compte ?';
+  document.getElementById('auth-switch-btn').textContent = isReg ? 'Se connecter' : "S'inscrire";
+  hideAuthError();
+}
+function showAuthError(msg) {
+  const el = document.getElementById('auth-error');
+  el.textContent = msg;
+  el.classList.remove('hidden');
+}
+function hideAuthError() {
+  document.getElementById('auth-error').classList.add('hidden');
+}
+function setAuthLoading(isLoading) {
+  document.getElementById('auth-loading').classList.toggle('hidden', !isLoading);
+  document.getElementById('auth-submit').disabled = isLoading;
+  document.getElementById('google-btn').disabled = isLoading;
+}
+
+/* Traduit les erreurs Firebase en messages compréhensibles en français */
+function translateAuthError(e) {
+  const code = e.code || '';
+  const map = {
+    'auth/email-already-in-use': "Cet email est déjà utilisé. Essaie de te connecter à la place.",
+    'auth/invalid-email': "Cet email n'est pas valide.",
+    'auth/weak-password': "Le mot de passe doit contenir au moins 6 caractères.",
+    'auth/user-not-found': "Aucun compte trouvé avec cet email.",
+    'auth/wrong-password': "Mot de passe incorrect.",
+    'auth/invalid-credential': "Email ou mot de passe incorrect.",
+    'auth/too-many-requests': "Trop de tentatives. Réessaie dans quelques minutes.",
+    'auth/network-request-failed': "Problème de connexion internet. Vérifie ton réseau.",
+    'auth/popup-closed-by-user': "Fenêtre Google fermée avant la fin de connexion.",
+    'auth/configuration-not-found': "Ce mode de connexion n'est pas encore activé côté serveur (contacte l'admin).",
+    'auth/unauthorized-domain': "Ce site n'est pas encore autorisé pour la connexion (contacte l'admin)."
+  };
+  return map[code] || e.message || "Une erreur inconnue est survenue.";
+}
+
+async function submitAuth() {
+  hideAuthError();
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+  const name = document.getElementById('auth-name').value.trim();
+
+  if (!fbReady) {
+    showAuthError("Connexion au service indisponible. Vérifie ta connexion internet et réessaie.");
+    return;
+  }
+  if (!email || !password) {
+    showAuthError("Email et mot de passe requis.");
+    return;
+  }
+
+  setAuthLoading(true);
+  try {
+    if (authMode === 'register') {
+      const cred = await auth.createUserWithEmailAndPassword(email, password);
+      await db.collection('users').doc(cred.user.uid).set({
+        name: name || email.split('@')[0],
+        email,
+        balance: 0,
+        createdAt: new Date().toISOString()
+      });
+    } else {
+      await auth.signInWithEmailAndPassword(email, password);
+    }
+    closeAuth();
+  } catch (e) {
+    console.error("Erreur auth :", e.code, e.message);
+    showAuthError(translateAuthError(e));
+  } finally {
+    setAuthLoading(false);
+  }
+}
+
+async function signInWithGoogle() {
+  hideAuthError();
+  if (!fbReady) {
+    showAuthError("Connexion au service indisponible. Vérifie ta connexion internet et réessaie.");
+    return;
+  }
+  setAuthLoading(true);
+  const provider = new firebase.auth.GoogleAuthProvider();
+  try {
+    const result = await auth.signInWithPopup(provider);
+    const user = result.user;
+    const ref = db.collection('users').doc(user.uid);
+    const doc = await ref.get();
+    if (!doc.exists) {
+      await ref.set({
+        name: user.displayName || user.email.split('@')[0],
+        email: user.email,
+        balance: 0,
+        createdAt: new Date().toISOString()
+      });
+    }
+    closeAuth();
+  } catch (e) {
+    console.error("Erreur Google auth :", e.code, e.message);
+    showAuthError(translateAuthError(e));
+  } finally {
+    setAuthLoading(false);
+  }
+}
+
+function logout() {
+  if (fbReady) auth.signOut();
+  showHome();
+}
+
+/* =========================================================
+   ÉTAT DE CONNEXION — met à jour l'interface automatiquement
+   ========================================================= */
+function renderLoggedOutNav() {
+  document.getElementById('nav-login-btn').classList.remove('hidden');
+  document.getElementById('nav-register-btn').classList.remove('hidden');
+  document.getElementById('nav-dashboard-btn').classList.add('hidden');
+}
+function renderLoggedInNav() {
+  document.getElementById('nav-login-btn').classList.add('hidden');
+  document.getElementById('nav-register-btn').classList.add('hidden');
+  document.getElementById('nav-dashboard-btn').classList.remove('hidden');
+}
+
+if (fbReady) {
+  auth.onAuthStateChanged(async (user) => {
+    if (user) {
+      let data;
+      try {
+        const doc = await db.collection('users').doc(user.uid).get();
+        data = doc.exists ? doc.data() : { name: user.email, email: user.email, balance: 0, createdAt: new Date().toISOString() };
+      } catch (e) {
+        console.error("Erreur lecture profil :", e.message);
+        data = { name: user.email, email: user.email, balance: 0, createdAt: new Date().toISOString() };
+      }
+      currentUser = { uid: user.uid, ...data };
+
+      renderLoggedInNav();
+      document.getElementById('dash-name').textContent = currentUser.name;
+      document.getElementById('dash-balance').textContent = (currentUser.balance || 0).toFixed(2) + '$';
+      document.getElementById('profile-name').textContent = currentUser.name;
+      document.getElementById('profile-email').textContent = currentUser.email;
+      document.getElementById('profile-since').textContent = currentUser.createdAt
+        ? new Date(currentUser.createdAt).toLocaleDateString('fr-FR')
+        : '—';
+
+      showDashboard();
+    } else {
+      currentUser = null;
+      renderLoggedOutNav();
+      showHome();
+    }
+  });
+} else {
+  renderLoggedOutNav();
+}
