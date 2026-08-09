@@ -25,6 +25,10 @@ a{text-decoration:none;color:inherit}
 .logo{font-weight:800;font-size:1.2rem;cursor:pointer}
 .logo span{color:var(--green)}
 .nav-right{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.lang-select{
+  border:1.5px solid var(--line);border-radius:999px;padding:8px 10px;
+  font-size:0.82rem;background:#fff;cursor:pointer;color:var(--ink);
+}
 
 /* BUTTONS */
 .btn{
@@ -123,6 +127,13 @@ a{text-decoration:none;color:inherit}
   font-size:0.95rem;background:var(--cream);
 }
 .field input:focus{outline:none;border-color:var(--green)}
+.password-wrap{position:relative}
+.password-wrap input{padding-right:70px}
+.password-toggle{
+  position:absolute;right:6px;top:50%;transform:translateY(-50%);
+  background:none;border:none;color:var(--green);font-weight:700;font-size:0.78rem;
+  cursor:pointer;padding:6px 8px;
+}
 #auth-submit{width:100%;justify-content:center;padding:13px;margin-top:4px}
 .modal-switch{text-align:center;margin-top:16px;font-size:0.85rem;color:var(--muted)}
 .modal-switch button{background:none;border:none;color:var(--green);font-weight:700;cursor:pointer;margin-left:6px}

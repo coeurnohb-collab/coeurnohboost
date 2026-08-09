@@ -17,9 +17,16 @@
   <div class="wrap nav-inner">
     <div class="logo" onclick="showHome()">Coeurnoh<span>Boost</span></div>
     <div class="nav-right">
-      <button class="btn btn-outline" id="nav-login-btn" onclick="openAuth('login')">Se connecter</button>
-      <button class="btn btn-primary" id="nav-register-btn" onclick="openAuth('register')">Créer un compte</button>
-      <button class="btn btn-outline hidden" id="nav-dashboard-btn" onclick="showDashboard()">Mon compte</button>
+      <select id="lang-select" class="lang-select" onchange="changeLanguage(this.value)">
+        <option value="fr">🇫🇷 FR</option>
+        <option value="en">🇬🇧 EN</option>
+        <option value="es">🇪🇸 ES</option>
+        <option value="it">🇮🇹 IT</option>
+        <option value="pt">🇵🇹 PT</option>
+      </select>
+      <button class="btn btn-outline" id="nav-login-btn" data-i18n="nav_login" onclick="openAuth('login')">Se connecter</button>
+      <button class="btn btn-primary" id="nav-register-btn" data-i18n="nav_register" onclick="openAuth('register')">Créer un compte</button>
+      <button class="btn btn-outline hidden" id="nav-dashboard-btn" data-i18n="nav_account" onclick="showDashboard()">Mon compte</button>
     </div>
   </div>
 </nav>
@@ -28,11 +35,11 @@
 <div id="view-home">
   <section class="hero">
     <div class="wrap">
-      <span class="eyebrow">Panel de croissance réseaux sociaux</span>
-      <h1>Boost réel, paiement mobile,<br><em>résultats qui comptent.</em></h1>
-      <p class="lead">TikTok, Instagram, YouTube, Facebook, Spotify et plus — followers, vues, likes, commentaires. Paiement mobile money, crypto et carte, partout en Afrique francophone.</p>
+      <span class="eyebrow" data-i18n="hero_eyebrow">Panel de croissance réseaux sociaux</span>
+      <h1><span data-i18n="hero_title">Boost réel, paiement mobile,</span><br><em data-i18n="hero_title_em">résultats qui comptent.</em></h1>
+      <p class="lead" data-i18n="hero_lead">TikTok, Instagram, YouTube, Facebook, Spotify et plus — followers, vues, likes, commentaires. Paiement mobile money, crypto et carte, partout en Afrique francophone.</p>
       <div class="hero-actions">
-        <button class="btn btn-primary btn-lg" onclick="openAuth('register')">Créer mon compte gratuit →</button>
+        <button class="btn btn-primary btn-lg" data-i18n="hero_cta" onclick="openAuth('register')">Créer mon compte gratuit →</button>
       </div>
       <div class="pay-icons">
         <span>📱 M-Pesa</span><span>📱 Airtel Money</span><span>📱 Orange Money</span><span>📱 MTN MoMo</span><span>₿ Bitcoin</span><span>₮ USDT</span>
@@ -41,19 +48,19 @@
   </section>
 
   <section class="wrap services-teaser">
-    <h2>Services populaires</h2>
+    <h2 data-i18n="services_title">Services populaires</h2>
     <div class="service-grid">
       <div class="service-card"><span class="badge tt">♪</span><h3>TikTok</h3><p>Followers, vues, likes</p></div>
       <div class="service-card"><span class="badge ig">IG</span><h3>Instagram</h3><p>Followers, vues, likes</p></div>
       <div class="service-card"><span class="badge yt">YT</span><h3>YouTube</h3><p>Vues, abonnés, likes</p></div>
       <div class="service-card"><span class="badge fb">FB</span><h3>Facebook</h3><p>Followers, vues, likes</p></div>
     </div>
-    <p class="muted" style="text-align:center;margin-top:20px">Crée ton compte pour voir la liste complète des services et des prix.</p>
+    <p class="muted" style="text-align:center;margin-top:20px" data-i18n="services_sub">Crée ton compte pour voir la liste complète des services et des prix.</p>
   </section>
 
   <footer class="footer">
     <div class="wrap">
-      <p>© 2026 Coeurnoh Business — Coeurnoh Boost</p>
+      <p>© 2026 Coeurnoh Business — Coeurnoh Boost. <span data-i18n="footer_rights">Tous droits réservés</span>.</p>
       <div class="footer-links">
         <a href="https://wa.me/243825001290">WhatsApp</a>
         <a href="mailto:coeurnohb@gmail.com">Email</a>
@@ -66,32 +73,32 @@
 <div id="view-dashboard" class="hidden">
   <div class="wrap dash-wrap">
     <div class="dash-header">
-      <h2>Bonjour, <span id="dash-name">—</span> 👋</h2>
-      <p class="muted">Solde : <strong id="dash-balance">0.00$</strong></p>
+      <h2><span data-i18n="dash_hello">Bonjour</span>, <span id="dash-name">—</span> 👋</h2>
+      <p class="muted"><span data-i18n="dash_balance">Solde</span> : <strong id="dash-balance">0.00$</strong></p>
     </div>
 
     <div class="order-box">
-      <h3>🛒 Nouvelle commande</h3>
-      <p class="muted" style="margin-bottom:12px">Découvre nos services par plateforme et leurs prix.</p>
-      <button class="btn btn-primary" onclick="showServices()">Voir les services →</button>
+      <h3>🛒 <span data-i18n="dash_orders_title">Nouvelle commande</span></h3>
+      <p class="muted" style="margin-bottom:12px" data-i18n="dash_orders_sub">Découvre nos services par plateforme et leurs prix.</p>
+      <button class="btn btn-primary" data-i18n="dash_orders_cta" onclick="showServices()">Voir les services →</button>
     </div>
 
     <div class="order-box">
-      <h3>Mon profil</h3>
-      <div class="profile-row"><span>Nom</span><span id="profile-name">—</span></div>
-      <div class="profile-row"><span>Email</span><span id="profile-email">—</span></div>
-      <div class="profile-row"><span>Membre depuis</span><span id="profile-since">—</span></div>
+      <h3 data-i18n="dash_profile_title">Mon profil</h3>
+      <div class="profile-row"><span data-i18n="dash_profile_name">Nom</span><span id="profile-name">—</span></div>
+      <div class="profile-row"><span data-i18n="dash_profile_email">Email</span><span id="profile-email">—</span></div>
+      <div class="profile-row"><span data-i18n="dash_profile_since">Membre depuis</span><span id="profile-since">—</span></div>
     </div>
 
-    <button class="btn btn-outline" onclick="logout()">Se déconnecter</button>
+    <button class="btn btn-outline" data-i18n="dash_logout" onclick="logout()">Se déconnecter</button>
   </div>
 </div>
 
 <!-- ================= CATALOGUE DE SERVICES ================= -->
 <div id="view-services" class="hidden">
   <div class="wrap dash-wrap">
-    <button class="btn btn-outline" style="margin-bottom:16px" onclick="showDashboard()">← Retour</button>
-    <h2 style="margin-bottom:14px">Services disponibles</h2>
+    <button class="btn btn-outline" style="margin-bottom:16px" data-i18n="services_back" onclick="showDashboard()">← Retour</button>
+    <h2 style="margin-bottom:14px" data-i18n="services_available">Services disponibles</h2>
 
     <div class="platform-tabs" id="platform-tabs"></div>
     <div id="services-list"></div>
@@ -102,37 +109,41 @@
 <div class="modal-overlay hidden" id="auth-modal">
   <div class="modal">
     <button class="modal-close" onclick="closeAuth()">×</button>
-    <h2 id="auth-title">Créer un compte</h2>
-    <p class="sub">Rejoins Coeurnoh Boost en moins d'une minute.</p>
+    <h2 id="auth-title" data-i18n="auth_title_register">Créer un compte</h2>
+    <p class="sub" data-i18n="auth_sub">Rejoins Coeurnoh Boost en moins d'une minute.</p>
     <div class="modal-error hidden" id="auth-error"></div>
     <div class="modal-loading hidden" id="auth-loading">⏳ Connexion en cours...</div>
 
     <button class="google-btn" id="google-btn" onclick="signInWithGoogle()">
       <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.6-6 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 3l5.7-5.7C34.6 6 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.2-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 15.9 18.9 13 24 13c3 0 5.8 1.1 7.9 3l5.7-5.7C34.6 6 29.6 4 24 4c-7.4 0-13.7 4.1-17.1 10.2z"/><path fill="#4CAF50" d="M24 44c5.5 0 10.4-1.9 14.2-5.1l-6.6-5.4C29.6 35 26.9 36 24 36c-5.3 0-9.7-3.4-11.3-8.1l-6.6 5c3.3 6.6 10.1 11.1 18 11.1z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.2 4.2-4.1 5.5l6.6 5.4C41.7 35.9 44 30.4 44 24c0-1.2-.1-2.4-.4-3.5z"/></svg>
-      Continuer avec Google
+      <span data-i18n="auth_google">Continuer avec Google</span>
     </button>
-    <div class="divider-or">ou</div>
+    <div class="divider-or" data-i18n="auth_or">ou</div>
 
     <div class="field" id="auth-name-field">
-      <label>Nom / Pseudo</label>
-      <input type="text" id="auth-name" placeholder="Ton nom">
+      <label data-i18n="auth_name_label">Nom / Pseudo</label>
+      <input type="text" id="auth-name" data-i18n-placeholder="auth_name_ph" placeholder="Ton nom">
     </div>
     <div class="field">
-      <label>Email</label>
-      <input type="email" id="auth-email" placeholder="toi@email.com">
+      <label data-i18n="auth_email_label">Email</label>
+      <input type="email" id="auth-email" data-i18n-placeholder="auth_email_ph" placeholder="toi@email.com">
     </div>
     <div class="field">
-      <label>Mot de passe</label>
-      <input type="password" id="auth-password" placeholder="•••••••• (6 caractères min.)">
+      <label data-i18n="auth_password_label">Mot de passe</label>
+      <div class="password-wrap">
+        <input type="password" id="auth-password" data-i18n-placeholder="auth_password_ph" placeholder="•••••••• (6 caractères min.)">
+        <button type="button" class="password-toggle" id="password-toggle-btn" onclick="togglePasswordVisibility()" data-i18n="auth_show_password">Afficher</button>
+      </div>
     </div>
-    <button class="btn btn-primary" id="auth-submit" onclick="submitAuth()">Créer mon compte</button>
+    <button class="btn btn-primary" id="auth-submit" data-i18n="auth_submit_register" onclick="submitAuth()">Créer mon compte</button>
     <div class="modal-switch">
-      <span id="auth-switch-text">Déjà un compte ?</span>
-      <button onclick="toggleAuthMode()" id="auth-switch-btn">Se connecter</button>
+      <span id="auth-switch-text" data-i18n="auth_switch_to_login">Déjà un compte ?</span>
+      <button onclick="toggleAuthMode()" id="auth-switch-btn" data-i18n="auth_switch_btn_login">Se connecter</button>
     </div>
   </div>
 </div>
 
+<script src="translations.js"></script>
 <script src="script.js"></script>
 </body>
 </html>

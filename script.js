@@ -112,12 +112,19 @@ function toggleAuthMode() {
 }
 function updateAuthModalMode() {
   const isReg = authMode === 'register';
-  document.getElementById('auth-title').textContent = isReg ? 'Créer un compte' : 'Se connecter';
+  document.getElementById('auth-title').textContent = isReg ? t('auth_title_register') : t('auth_title_login');
   document.getElementById('auth-name-field').classList.toggle('hidden', !isReg);
-  document.getElementById('auth-submit').textContent = isReg ? 'Créer mon compte' : 'Se connecter';
-  document.getElementById('auth-switch-text').textContent = isReg ? 'Déjà un compte ?' : 'Pas encore de compte ?';
-  document.getElementById('auth-switch-btn').textContent = isReg ? 'Se connecter' : "S'inscrire";
+  document.getElementById('auth-submit').textContent = isReg ? t('auth_submit_register') : t('auth_submit_login');
+  document.getElementById('auth-switch-text').textContent = isReg ? t('auth_switch_to_login') : t('auth_switch_to_register');
+  document.getElementById('auth-switch-btn').textContent = isReg ? t('auth_switch_btn_login') : t('auth_switch_btn_register');
   hideAuthError();
+}
+function togglePasswordVisibility() {
+  const input = document.getElementById('auth-password');
+  const btn = document.getElementById('password-toggle-btn');
+  const showing = input.type === 'text';
+  input.type = showing ? 'password' : 'text';
+  btn.textContent = showing ? t('auth_show_password') : t('auth_hide_password');
 }
 function showAuthError(msg) {
   const el = document.getElementById('auth-error');
@@ -270,3 +277,8 @@ if (fbReady) {
 } else {
   renderLoggedOutNav();
 }
+
+/* Applique la langue détectée (ou choisie) dès que la page est prête */
+document.addEventListener('DOMContentLoaded', () => {
+  applyTranslations(currentLang);
+});
