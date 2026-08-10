@@ -676,7 +676,7 @@ function renderMonetizationDetail(platformId) {
     <div class="order-box pack-card">
       <div class="pack-head">
         <div>
-          <h3 style="color:var(--ink);margin-bottom:2px">${m.pack.title}</h3>
+          <h3 style="color:var(--red);margin-bottom:2px">${m.pack.title}</h3>
           <p class="muted" style="font-size:0.8rem">${m.pack.desc}</p>
         </div>
         <div class="pack-price">${m.pack.price}$</div>
