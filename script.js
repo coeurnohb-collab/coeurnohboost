@@ -78,7 +78,11 @@ const ICONS = {
   twitch: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 3 3.5 6.6v12.7H8V22l3-2.7h3.6L19.5 15V3H5zm12.6 11.1-2.7 2.6h-3.6l-2.4 2.2v-2.2H5.9V4.9h11.7v9.2z"/><path d="M14.6 7.5h1.7v4.6h-1.7zM9.9 7.5h1.7v4.6H9.9z"/></svg>`,
   spotify: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5A9.5 9.5 0 1 0 21.5 12 9.5 9.5 0 0 0 12 2.5zm4.2 13.7a.6.6 0 0 1-.8.2c-2.2-1.35-5-1.65-8.3-.9a.6.6 0 1 1-.27-1.17c3.6-.82 6.7-.47 9.2 1.05a.6.6 0 0 1 .17.8zm1.1-2.65a.75.75 0 0 1-1.03.25c-2.5-1.55-6.3-2-9.25-1.1a.75.75 0 1 1-.44-1.44c3.4-1 7.6-.5 10.47 1.25a.75.75 0 0 1 .25 1.04zm.1-2.75C14.6 9 8.9 8.8 5.98 9.7a.9.9 0 1 1-.53-1.72c3.36-1 9.65-.77 13.3 1.4a.9.9 0 1 1-.93 1.54z"/></svg>`,
   discord: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.5 5.6a16 16 0 0 0-4-1.25l-.2.4a14 14 0 0 1 3.5 1.3 15.3 15.3 0 0 0-13.6 0 13 13 0 0 1 3.5-1.3l-.2-.4a16 16 0 0 0-4 1.25C2 9.7 1.3 13.6 1.6 17.5a16 16 0 0 0 4.8 2.4l.6-1a10 10 0 0 1-1.6-.8c.15-.1.3-.2.4-.3a11.5 11.5 0 0 0 9.9 0c.15.1.3.2.4.3-.5.3-1 .6-1.6.8l.6 1a16 16 0 0 0 4.8-2.4c.4-4.5-.7-8.3-2.4-11.9zM8.9 14.9c-.9 0-1.6-.85-1.6-1.9s.7-1.9 1.6-1.9 1.6.85 1.6 1.9-.7 1.9-1.6 1.9zm6.2 0c-.9 0-1.6-.85-1.6-1.9s.7-1.9 1.6-1.9 1.6.85 1.6 1.9-.7 1.9-1.6 1.9z"/></svg>`,
-  threads: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.2 22c-2.9 0-5.2-.9-6.7-2.6-1.4-1.6-2.1-3.9-2.2-6.9v-.9c.1-3 .8-5.3 2.2-6.9C7 3 9.3 2 12.2 2c2.6 0 4.7.8 6.2 2.3 1.2 1.3 2 3 2.2 5l-1.9.4c-.15-1.6-.75-2.9-1.7-3.9-1.15-1.15-2.8-1.75-4.9-1.75-2.35 0-4.15.8-5.3 2.3-1 1.3-1.6 3.15-1.7 5.5v.3c.05 2.4.65 4.3 1.7 5.6 1.15 1.5 2.95 2.3 5.3 2.3 2 0 3.5-.5 4.5-1.5.85-.85 1.3-1.9 1.35-3.1-.5.3-1.15.5-2 .6a5 5 0 0 1-2.9-.4c-1.1-.5-1.75-1.4-1.75-2.5 0-1.2.7-2.15 1.9-2.65a5.5 5.5 0 0 1 3.3-.2c-.15-.65-.45-1.15-.9-1.5-.5-.4-1.2-.6-2-.6-1.1 0-2 .4-2.6 1.15l-1.5-1.1c.9-1.2 2.35-1.85 4.1-1.85 1.3 0 2.4.35 3.2 1 1 .8 1.55 2 1.6 3.5v.1c1.15.7 1.85 1.85 1.85 3.35 0 1.85-.85 3.35-2.35 4.4-1.35.9-3.05 1.35-4.95 1.35zm.85-8.85c-.75-.05-1.5.05-2.05.3-.55.25-.8.6-.8 1.05 0 .5.35.85.95 1.05.6.2 1.35.2 2-.05.75-.3 1.15-.9 1.2-1.8v-.35a4 4 0 0 0-1.3-.2z"/></svg>`
+  threads: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.2 22c-2.9 0-5.2-.9-6.7-2.6-1.4-1.6-2.1-3.9-2.2-6.9v-.9c.1-3 .8-5.3 2.2-6.9C7 3 9.3 2 12.2 2c2.6 0 4.7.8 6.2 2.3 1.2 1.3 2 3 2.2 5l-1.9.4c-.15-1.6-.75-2.9-1.7-3.9-1.15-1.15-2.8-1.75-4.9-1.75-2.35 0-4.15.8-5.3 2.3-1 1.3-1.6 3.15-1.7 5.5v.3c.05 2.4.65 4.3 1.7 5.6 1.15 1.5 2.95 2.3 5.3 2.3 2 0 3.5-.5 4.5-1.5.85-.85 1.3-1.9 1.35-3.1-.5.3-1.15.5-2 .6a5 5 0 0 1-2.9-.4c-1.1-.5-1.75-1.4-1.75-2.5 0-1.2.7-2.15 1.9-2.65a5.5 5.5 0 0 1 3.3-.2c-.15-.65-.45-1.15-.9-1.5-.5-.4-1.2-.6-2-.6-1.1 0-2 .4-2.6 1.15l-1.5-1.1c.9-1.2 2.35-1.85 4.1-1.85 1.3 0 2.4.35 3.2 1 1 .8 1.55 2 1.6 3.5v.1c1.15.7 1.85 1.85 1.85 3.35 0 1.85-.85 3.35-2.35 4.4-1.35.9-3.05 1.35-4.95 1.35zm.85-8.85c-.75-.05-1.5.05-2.05.3-.55.25-.8.6-.8 1.05 0 .5.35.85.95 1.05.6.2 1.35.2 2-.05.75-.3 1.15-.9 1.2-1.8v-.35a4 4 0 0 0-1.3-.2z"/></svg>`,
+  kwai: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h5.5l2 5 2-5H19l-4.5 8L19 20h-5.5l-2-5-2 5H4l4.5-8L4 4z"/></svg>`,
+  likee: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 20.5s-7.5-4.6-7.5-10.1C4.5 7.4 6.6 5.3 9.2 5.3c1.4 0 2.6.7 3.3 1.8.7-1.1 1.9-1.8 3.3-1.8 2.6 0 4.7 2.1 4.7 5.1 0 5.5-7.5 10.1-7.5 10.1z"/></svg>`,
+  reddit: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M22 12.3c0-1.2-1-2.2-2.2-2.2-.6 0-1.1.2-1.5.6-1.4-1-3.3-1.6-5.4-1.7l1-4.5 3.2.7c0 .9.7 1.6 1.6 1.6.9 0 1.6-.7 1.6-1.6s-.7-1.6-1.6-1.6c-.6 0-1.2.4-1.4.9l-3.6-.8c-.2 0-.4.1-.4.3l-1.1 5c-2.1.1-4 .7-5.4 1.7-.4-.4-.9-.6-1.5-.6-1.2 0-2.2 1-2.2 2.2 0 .9.5 1.6 1.2 2-.05.25-.05.5-.05.75 0 2.8 3.4 5.1 7.7 5.1s7.7-2.3 7.7-5.1c0-.25 0-.5-.05-.75.7-.4 1.15-1.15 1.15-2.05zM7.5 13.5c0-.7.6-1.3 1.3-1.3.7 0 1.3.6 1.3 1.3 0 .7-.6 1.3-1.3 1.3-.7 0-1.3-.6-1.3-1.3zm7.7 3.6c-.8.8-2 1.15-3.2 1.15s-2.4-.35-3.2-1.15c-.15-.15-.15-.4 0-.55.15-.15.4-.15.55 0 .6.6 1.6.9 2.65.9s2.05-.3 2.65-.9c.15-.15.4-.15.55 0 .15.15.15.4 0 .55zm-.4-2.3c-.7 0-1.3-.6-1.3-1.3 0-.7.6-1.3 1.3-1.3.7 0 1.3.6 1.3 1.3 0 .7-.6 1.3-1.3 1.3z"/></svg>`,
+  soundcloud: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8.5 10.2v7.3h9.8c1.7 0 3.1-1.4 3.1-3.1 0-1.7-1.35-3.05-3.05-3.1-.15-2.1-1.9-3.7-4-3.7-1.05 0-2 .4-2.7 1.05-.3-.3-.7-.45-1.1-.45-.9 0-1.6.7-1.6 1.6v.4zm-1.3 7.3V11c-.3-.1-.6-.15-.9-.15-.65 0-1.15.5-1.15 1.15v5.1c0 .35.25.6.6.6h1.45zm-2.7-.4v-4.2c-.6.1-1 .6-1 1.2v2.5c0 .35.25.65.6.65.15 0 .3-.05.4-.15z"/></svg>`
 };
 
 const PLATFORMS = [
@@ -95,7 +99,11 @@ const PLATFORMS = [
   { id: "twitch",    name: "Twitch",     bg: "#9146FF" },
   { id: "spotify",   name: "Spotify",    bg: "#1DB954" },
   { id: "discord",   name: "Discord",    bg: "#5865F2" },
-  { id: "threads",   name: "Threads",    bg: "#000000" }
+  { id: "threads",   name: "Threads",    bg: "#000000" },
+  { id: "kwai",      name: "Kwai",       bg: "#FF8000" },
+  { id: "likee",     name: "Likee",      bg: "linear-gradient(135deg,#FE2C55,#FFC000)" },
+  { id: "reddit",    name: "Reddit",     bg: "#FF4500" },
+  { id: "soundcloud",name: "SoundCloud", bg: "#FF5500" }
 ];
 
 /* Niveaux de qualité — le prix réel s'affiche désormais en $, plus de multiplicateur brut */
@@ -121,7 +129,11 @@ const SERVICE_CATALOG = {
   twitch:    [ {type:"followers",label:"Abonnés",base:4.0,min:50,max:20000}, {type:"views",label:"Vues VOD",base:1.0,min:200,max:100000} ],
   spotify:   [ {type:"views",label:"Écoutes",base:2.0,min:500,max:500000}, {type:"followers",label:"Abonnés",base:3.5,min:100,max:20000} ],
   discord:   [ {type:"followers",label:"Membres",base:2.5,min:50,max:20000} ],
-  threads:   [ {type:"followers",label:"Abonnés",base:3.0,min:100,max:30000}, {type:"likes",label:"Likes",base:1.5,min:50,max:50000} ]
+  threads:   [ {type:"followers",label:"Abonnés",base:3.0,min:100,max:30000}, {type:"likes",label:"Likes",base:1.5,min:50,max:50000} ],
+  kwai:      [ {type:"followers",label:"Abonnés",base:2.0,min:100,max:50000}, {type:"likes",label:"Likes",base:1.0,min:100,max:100000}, {type:"views",label:"Vues",base:0.5,min:500,max:1000000} ],
+  likee:     [ {type:"followers",label:"Abonnés",base:2.2,min:100,max:50000}, {type:"likes",label:"Likes",base:1.1,min:100,max:100000}, {type:"views",label:"Vues",base:0.5,min:500,max:500000} ],
+  reddit:    [ {type:"followers",label:"Membres",base:4.0,min:50,max:20000}, {type:"likes",label:"Upvotes",base:2.5,min:20,max:10000} ],
+  soundcloud:[ {type:"views",label:"Écoutes",base:1.8,min:500,max:500000}, {type:"followers",label:"Abonnés",base:3.0,min:100,max:20000}, {type:"likes",label:"Likes",base:1.2,min:100,max:50000} ]
 };
 
 let selectedPlatformId = null;
@@ -208,6 +220,22 @@ let payMethod = "mobile";
 let payCountryCode = null;
 let payOperator = null;
 let payCryptoId = null;
+let LIVE_RATES = null;
+
+/* Récupère les taux de change en direct (API publique, gratuite, sans clé) */
+async function fetchLiveRates() {
+  try {
+    const res = await fetch('https://open.er-api.com/v6/latest/USD');
+    const data = await res.json();
+    if (data && data.result === 'success' && data.rates) {
+      LIVE_RATES = data.rates;
+      console.log('✅ Taux de change en direct chargés');
+    }
+  } catch (e) {
+    console.warn('⚠️ Taux en direct indisponibles, utilisation des taux indicatifs.', e.message);
+    LIVE_RATES = null;
+  }
+}
 
 function platformBadgeHTML(p) {
   const color = p.dark ? 'color:#111' : 'color:#fff';
@@ -392,11 +420,13 @@ function showRecharge() {
   payOperator = null;
   payCryptoId = null;
   document.getElementById('recharge-amount').value = '';
+  document.getElementById('recharge-phone').value = '';
   document.getElementById('recharge-error').classList.add('hidden');
   document.getElementById('recharge-success').classList.add('hidden');
   renderPayMethodTabs();
   renderPayCountrySelect();
   renderPayPanel();
+  if (!LIVE_RATES) fetchLiveRates();
 }
 function renderPayMethodTabs() {
   const methods = [
@@ -467,8 +497,11 @@ function updateRechargeEquivalent() {
   const country = COUNTRIES.find(c => c.code === payCountryCode);
   const hint = document.getElementById('recharge-equivalent');
   if (payMethod === 'mobile' && country && amount > 0) {
-    const local = (amount * country.rate).toLocaleString('fr-FR', { maximumFractionDigits: 0 });
-    hint.textContent = `≈ ${local} ${country.currency}`;
+    const liveRate = LIVE_RATES && LIVE_RATES[country.currency];
+    const rate = liveRate || country.rate;
+    const local = (amount * rate).toLocaleString('fr-FR', { maximumFractionDigits: 0 });
+    const sourceTag = liveRate ? t('pay_rate_live') : t('pay_rate_indicative');
+    hint.textContent = `≈ ${local} ${country.currency} · ${sourceTag}`;
   } else {
     hint.textContent = '';
   }
@@ -496,6 +529,12 @@ async function submitRecharge() {
     errEl.classList.remove('hidden');
     return;
   }
+  const phone = document.getElementById('recharge-phone').value.trim();
+  if (payMethod === 'mobile' && !phone) {
+    errEl.textContent = t('pay_err_phone');
+    errEl.classList.remove('hidden');
+    return;
+  }
   if (payMethod === 'crypto' && !payCryptoId) {
     errEl.textContent = t('pay_err_crypto');
     errEl.classList.remove('hidden');
@@ -511,6 +550,7 @@ async function submitRecharge() {
       method: payMethod,
       country: country ? country.name : null,
       operator: payOperator || null,
+      phone: payMethod === 'mobile' ? phone : null,
       crypto: crypto ? crypto.name : null,
       amountUSD: amount,
       status: 'pending',
@@ -595,6 +635,7 @@ function renderMonetizationGrid() {
 function renderMonetizationDetail(platformId) {
   const p = PLATFORMS.find(x => x.id === platformId);
   const m = MONETIZATION[platformId];
+  const services = SERVICE_CATALOG[platformId] || [];
   const el = document.getElementById('monetization-detail');
   if (!p || !m) { el.innerHTML = ''; return; }
   el.innerHTML = `
@@ -612,6 +653,22 @@ function renderMonetizationDetail(platformId) {
           <span style="text-align:right;max-width:60%">${c.value}</span>
         </div>
       `).join('')}
+    </div>
+
+    <div class="order-box">
+      <div class="price-table">
+        <div class="price-table-head">
+          <span></span><span>Standard</span><span>Premium</span><span>VIP</span>
+        </div>
+        ${services.map(s => `
+          <div class="price-table-row">
+            <span class="pt-label">${s.label}</span>
+            <span class="pt-price">${(s.base * QUALITY_TIERS[0].mult).toFixed(2)}$</span>
+            <span class="pt-price">${(s.base * QUALITY_TIERS[1].mult).toFixed(2)}$</span>
+            <span class="pt-price">${(s.base * QUALITY_TIERS[2].mult).toFixed(2)}$</span>
+          </div>
+        `).join('')}
+      </div>
       <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:16px" onclick="onPlatformClick('${p.id}')" data-i18n="monetization_boost_cta">Booster mes statistiques →</button>
     </div>
   `;

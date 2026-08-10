@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Coeurnoh Boost — Panel de croissance réseaux sociaux</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🚀%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
@@ -231,6 +234,8 @@
         <label class="field-label" data-i18n="pay_country_label">Pays</label>
         <select id="pay-country-select" class="select-input" onchange="onPayCountryChange()"></select>
         <div class="op-grid" id="pay-operators" style="margin-top:12px"></div>
+        <label class="field-label" style="margin-top:16px" data-i18n="pay_phone_label">Numéro de téléphone</label>
+        <input type="tel" id="recharge-phone" class="text-input" data-i18n-placeholder="pay_phone_ph" placeholder="+243 8xx xxx xxx">
       </div>
 
       <!-- Crypto -->
