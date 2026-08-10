@@ -194,6 +194,26 @@ a{text-decoration:none;color:inherit}
 }
 .op-name{font-size:0.72rem;font-weight:700;line-height:1.2}
 
+/* ONGLETS (méthode de paiement, catégories, etc.) */
+.platform-tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;margin-bottom:16px;scrollbar-width:none}
+.platform-tabs::-webkit-scrollbar{display:none}
+.platform-tab{
+  flex:0 0 auto;padding:10px 18px;border-radius:999px;border:1.5px solid var(--line);
+  background:#fff;font-family:var(--font);font-size:0.85rem;font-weight:700;color:var(--ink);
+  cursor:pointer;white-space:nowrap;transition:0.18s;
+}
+.platform-tab:hover{border-color:#c9e8d8}
+.platform-tab.active{background:var(--green);color:#fff;border-color:var(--green);box-shadow:0 4px 12px rgba(10,148,89,0.25)}
+
+/* SÉLECTEUR SEGMENTÉ (moyens de paiement) — style iOS premium */
+.segmented{display:flex;background:var(--cream);border-radius:999px;padding:5px;gap:4px}
+.segmented button{
+  flex:1;border:none;background:transparent;padding:11px 6px;border-radius:999px;
+  font-family:var(--font);font-weight:700;font-size:0.8rem;color:var(--muted);cursor:pointer;
+  transition:0.18s;display:flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;
+}
+.segmented button.active{background:#fff;color:var(--ink);box-shadow:0 3px 10px rgba(0,0,0,0.1)}
+
 /* TABLEAU DE PRIX (monétisation) */
 .price-table-head, .price-table-row{
   display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:6px;align-items:center;
@@ -205,6 +225,11 @@ a{text-decoration:none;color:inherit}
 .price-table-row:last-child{border-bottom:none}
 .pt-label{font-weight:600}
 .pt-price{text-align:center;font-weight:700;color:var(--green-dark)}
+
+/* PACK PRIX FIXE (monétisation) */
+.pack-card{border-color:var(--green);background:var(--green-light)}
+.pack-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.pack-price{font-size:1.3rem;font-weight:800;color:var(--green-dark);white-space:nowrap}
 
 /* SERVICES TEASER */
 .modal-overlay{

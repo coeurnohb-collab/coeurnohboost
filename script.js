@@ -116,25 +116,26 @@ const QUALITY_TIERS = [
 /* Catalogue de services par plateforme — prix de base ($ / 1000), min, max
    ⚠️ Prix d'exemple, à remplacer par les vrais tarifs plus tard. */
 const SERVICE_CATALOG = {
-  tiktok:    [ {type:"followers",label:"Abonnés",base:2.5,min:100,max:50000}, {type:"likes",label:"Likes",base:1.2,min:100,max:100000}, {type:"views",label:"Vues",base:0.6,min:500,max:1000000}, {type:"comments",label:"Commentaires",base:4.0,min:20,max:5000}, {type:"shares",label:"Partages",base:1.8,min:50,max:20000} ],
-  instagram: [ {type:"followers",label:"Abonnés",base:3.0,min:100,max:50000}, {type:"likes",label:"Likes",base:1.5,min:100,max:100000}, {type:"views",label:"Vues Reels",base:0.8,min:500,max:500000}, {type:"comments",label:"Commentaires",base:4.5,min:20,max:5000} ],
-  youtube:   [ {type:"views",label:"Vues",base:3.5,min:1000,max:1000000}, {type:"followers",label:"Abonnés",base:8.0,min:100,max:20000}, {type:"likes",label:"Likes",base:2.0,min:50,max:50000} ],
-  facebook:  [ {type:"followers",label:"Followers Page",base:3.0,min:100,max:50000}, {type:"likes",label:"Likes Post",base:1.5,min:100,max:100000}, {type:"views",label:"Vues",base:0.7,min:500,max:500000}, {type:"shares",label:"Partages",base:2.0,min:50,max:10000} ],
-  twitter:   [ {type:"followers",label:"Abonnés",base:3.5,min:100,max:50000}, {type:"likes",label:"Likes",base:1.6,min:50,max:50000}, {type:"shares",label:"Retweets",base:2.2,min:50,max:20000}, {type:"views",label:"Vues",base:0.5,min:500,max:1000000} ],
-  telegram:  [ {type:"followers",label:"Membres",base:2.0,min:100,max:100000}, {type:"views",label:"Vues Post",base:0.8,min:500,max:200000} ],
-  whatsapp:  [ {type:"followers",label:"Abonnés Chaîne",base:3.0,min:100,max:20000}, {type:"views",label:"Vues Statut",base:1.0,min:100,max:50000} ],
-  snapchat:  [ {type:"followers",label:"Abonnés",base:3.5,min:100,max:20000}, {type:"views",label:"Vues Story",base:1.2,min:200,max:100000} ],
-  linkedin:  [ {type:"followers",label:"Abonnés",base:5.0,min:50,max:20000}, {type:"likes",label:"Likes Post",base:2.5,min:20,max:10000} ],
-  pinterest: [ {type:"followers",label:"Abonnés",base:2.5,min:100,max:30000}, {type:"package",label:"Repins",base:1.5,min:50,max:10000} ],
-  twitch:    [ {type:"followers",label:"Abonnés",base:4.0,min:50,max:20000}, {type:"views",label:"Vues VOD",base:1.0,min:200,max:100000} ],
-  spotify:   [ {type:"views",label:"Écoutes",base:2.0,min:500,max:500000}, {type:"followers",label:"Abonnés",base:3.5,min:100,max:20000} ],
-  discord:   [ {type:"followers",label:"Membres",base:2.5,min:50,max:20000} ],
-  threads:   [ {type:"followers",label:"Abonnés",base:3.0,min:100,max:30000}, {type:"likes",label:"Likes",base:1.5,min:50,max:50000} ],
-  kwai:      [ {type:"followers",label:"Abonnés",base:2.0,min:100,max:50000}, {type:"likes",label:"Likes",base:1.0,min:100,max:100000}, {type:"views",label:"Vues",base:0.5,min:500,max:1000000} ],
-  likee:     [ {type:"followers",label:"Abonnés",base:2.2,min:100,max:50000}, {type:"likes",label:"Likes",base:1.1,min:100,max:100000}, {type:"views",label:"Vues",base:0.5,min:500,max:500000} ],
-  reddit:    [ {type:"followers",label:"Membres",base:4.0,min:50,max:20000}, {type:"likes",label:"Upvotes",base:2.5,min:20,max:10000} ],
-  soundcloud:[ {type:"views",label:"Écoutes",base:1.8,min:500,max:500000}, {type:"followers",label:"Abonnés",base:3.0,min:100,max:20000}, {type:"likes",label:"Likes",base:1.2,min:100,max:50000} ]
+  tiktok:    [ {type:"followers",label:"Abonnés",base:2.5,min:100,max:50000}, {type:"likes",label:"Likes",base:1.2,min:100,max:100000}, {type:"views",label:"Vues",base:0.6,min:500,max:1000000}, {type:"comments",label:"Commentaires",base:4.0,min:20,max:5000}, {type:"shares",label:"Partages",base:1.8,min:50,max:20000}, {type:"package",label:"Pack Croissance (Abonnés+Likes+Vues)",base:1.4,min:200,max:20000} ],
+  instagram: [ {type:"followers",label:"Abonnés",base:3.0,min:100,max:50000}, {type:"likes",label:"Likes",base:1.5,min:100,max:100000}, {type:"views",label:"Vues Reels",base:0.8,min:500,max:500000}, {type:"comments",label:"Commentaires",base:4.5,min:20,max:5000}, {type:"package",label:"Pack Croissance (Abonnés+Likes+Vues)",base:1.7,min:200,max:20000} ],
+  youtube:   [ {type:"views",label:"Vues",base:3.5,min:1000,max:1000000}, {type:"followers",label:"Abonnés",base:8.0,min:100,max:20000}, {type:"likes",label:"Likes",base:2.0,min:50,max:50000}, {type:"package",label:"Pack Croissance (Abonnés+Vues+Likes)",base:4.2,min:200,max:10000} ],
+  facebook:  [ {type:"followers",label:"Followers Page",base:3.0,min:100,max:50000}, {type:"likes",label:"Likes Post",base:1.5,min:100,max:100000}, {type:"views",label:"Vues",base:0.7,min:500,max:500000}, {type:"shares",label:"Partages",base:2.0,min:50,max:10000}, {type:"package",label:"Pack Croissance (Followers+Likes+Vues)",base:1.6,min:200,max:20000} ],
+  twitter:   [ {type:"followers",label:"Abonnés",base:3.5,min:100,max:50000}, {type:"likes",label:"Likes",base:1.6,min:50,max:50000}, {type:"shares",label:"Retweets",base:2.2,min:50,max:20000}, {type:"views",label:"Vues",base:0.5,min:500,max:1000000}, {type:"package",label:"Pack Croissance (Abonnés+Likes+RT)",base:1.9,min:200,max:15000} ],
+  telegram:  [ {type:"followers",label:"Membres",base:2.0,min:100,max:100000}, {type:"views",label:"Vues Post",base:0.8,min:500,max:200000}, {type:"package",label:"Pack Croissance (Membres+Vues)",base:1.2,min:200,max:20000} ],
+  whatsapp:  [ {type:"followers",label:"Abonnés Chaîne",base:3.0,min:100,max:20000}, {type:"views",label:"Vues Statut",base:1.0,min:100,max:50000}, {type:"package",label:"Pack Croissance (Abonnés+Vues)",base:1.8,min:100,max:10000} ],
+  snapchat:  [ {type:"followers",label:"Abonnés",base:3.5,min:100,max:20000}, {type:"views",label:"Vues Story",base:1.2,min:200,max:100000}, {type:"package",label:"Pack Croissance (Abonnés+Vues)",base:2.0,min:200,max:15000} ],
+  linkedin:  [ {type:"followers",label:"Abonnés",base:5.0,min:50,max:20000}, {type:"likes",label:"Likes Post",base:2.5,min:20,max:10000}, {type:"package",label:"Pack Croissance (Abonnés+Likes)",base:3.2,min:100,max:8000} ],
+  pinterest: [ {type:"followers",label:"Abonnés",base:2.5,min:100,max:30000}, {type:"package",label:"Repins",base:1.5,min:50,max:10000}, {type:"package",label:"Pack Croissance (Abonnés+Repins)",base:1.8,min:200,max:15000} ],
+  twitch:    [ {type:"followers",label:"Abonnés",base:4.0,min:50,max:20000}, {type:"views",label:"Vues VOD",base:1.0,min:200,max:100000}, {type:"package",label:"Pack Croissance (Abonnés+Vues)",base:2.2,min:200,max:15000} ],
+  spotify:   [ {type:"views",label:"Écoutes",base:2.0,min:500,max:500000}, {type:"followers",label:"Abonnés",base:3.5,min:100,max:20000}, {type:"package",label:"Pack Croissance (Écoutes+Abonnés)",base:2.4,min:500,max:20000} ],
+  discord:   [ {type:"followers",label:"Membres",base:2.5,min:50,max:20000}, {type:"package",label:"Pack Croissance Membres",base:2.5,min:100,max:15000} ],
+  threads:   [ {type:"followers",label:"Abonnés",base:3.0,min:100,max:30000}, {type:"likes",label:"Likes",base:1.5,min:50,max:50000}, {type:"package",label:"Pack Croissance (Abonnés+Likes)",base:1.9,min:200,max:15000} ],
+  kwai:      [ {type:"followers",label:"Abonnés",base:2.0,min:100,max:50000}, {type:"likes",label:"Likes",base:1.0,min:100,max:100000}, {type:"views",label:"Vues",base:0.5,min:500,max:1000000}, {type:"package",label:"Pack Croissance (Abonnés+Likes+Vues)",base:1.1,min:200,max:20000} ],
+  likee:     [ {type:"followers",label:"Abonnés",base:2.2,min:100,max:50000}, {type:"likes",label:"Likes",base:1.1,min:100,max:100000}, {type:"views",label:"Vues",base:0.5,min:500,max:500000}, {type:"package",label:"Pack Croissance (Abonnés+Likes+Vues)",base:1.2,min:200,max:20000} ],
+  reddit:    [ {type:"followers",label:"Membres",base:4.0,min:50,max:20000}, {type:"likes",label:"Upvotes",base:2.5,min:20,max:10000}, {type:"package",label:"Pack Croissance (Membres+Upvotes)",base:3.1,min:100,max:8000} ],
+  soundcloud:[ {type:"views",label:"Écoutes",base:1.8,min:500,max:500000}, {type:"followers",label:"Abonnés",base:3.0,min:100,max:20000}, {type:"likes",label:"Likes",base:1.2,min:100,max:50000}, {type:"package",label:"Pack Croissance (Écoutes+Abonnés+Likes)",base:1.9,min:200,max:20000} ]
 };
+
 
 let selectedPlatformId = null;
 let selectedQuality = "standard";
@@ -265,9 +266,9 @@ function onPlatformClick(platformId) {
   }
 }
 
-function openOrderForm(platformId) {
+function openOrderForm(platformId, presetTypeIndex, presetQty, presetTier) {
   selectedPlatformId = platformId;
-  selectedQuality = "standard";
+  selectedQuality = presetTier || "standard";
   const p = PLATFORMS.find(x => x.id === platformId);
   document.getElementById('order-platform-header').innerHTML = `
     ${platformBadgeHTML(p)}
@@ -278,9 +279,20 @@ function openOrderForm(platformId) {
   const select = document.getElementById('order-service-select');
   select.innerHTML = services.map((s, i) => `<option value="${i}">${s.label}</option>`).join('');
 
+  const qtyInput = document.getElementById('order-qty');
+  if (presetTypeIndex !== undefined) {
+    select.value = presetTypeIndex;
+    select.disabled = true;
+    qtyInput.value = presetQty;
+    qtyInput.readOnly = true;
+  } else {
+    select.disabled = false;
+    qtyInput.readOnly = false;
+    qtyInput.value = '';
+  }
+
   renderQualityGrid();
   document.getElementById('order-link').value = '';
-  document.getElementById('order-qty').value = '';
   document.getElementById('order-error').classList.add('hidden');
   onOrderInputChange();
 
@@ -430,12 +442,12 @@ function showRecharge() {
 }
 function renderPayMethodTabs() {
   const methods = [
-    { id: "mobile", label: t('pay_mobile') },
-    { id: "crypto", label: t('pay_crypto') },
-    { id: "card",   label: t('pay_card') }
+    { id: "mobile", label: t('pay_mobile'), icon: "📱" },
+    { id: "crypto", label: t('pay_crypto'), icon: "₿" },
+    { id: "card",   label: t('pay_card'),   icon: "💳" }
   ];
   document.getElementById('pay-method-tabs').innerHTML = methods.map(m => `
-    <button class="platform-tab${m.id === payMethod ? ' active' : ''}" onclick="selectPayMethod('${m.id}')">${m.label}</button>
+    <button class="${m.id === payMethod ? 'active' : ''}" onclick="selectPayMethod('${m.id}')">${m.icon} ${m.label}</button>
   `).join('');
 }
 function selectPayMethod(m) {
@@ -577,7 +589,8 @@ const MONETIZATION = {
       { label: "Alternative Shorts", value: "10 millions de vues Shorts sur 90 jours" },
       { label: "Compte AdSense", value: "Obligatoire, lié à la chaîne" },
       { label: "Règles de la communauté", value: "Aucune violation majeure sur les 90 derniers jours" }
-    ]
+    ],
+    pack: { title: "Pack Monétisation YouTube", desc: "1 000 abonnés + 4 500 heures de visionnage (livraison progressive)", price: 149 }
   },
   tiktok: {
     program: "TikTok Creator Rewards Program",
@@ -586,7 +599,8 @@ const MONETIZATION = {
       { label: "Vues", value: "100 000 vues sur les 30 derniers jours" },
       { label: "Âge du compte", value: "18 ans minimum, compte en règle" },
       { label: "Format", value: "Vidéos de plus d'1 minute recommandées" }
-    ]
+    ],
+    pack: { title: "Pack Monétisation TikTok", desc: "10 000 abonnés + 100 000 vues (30 derniers jours)", price: 89 }
   },
   facebook: {
     program: "Facebook In-Stream Ads",
@@ -594,7 +608,8 @@ const MONETIZATION = {
       { label: "Abonnés Page", value: "10 000 minimum" },
       { label: "Minutes vues", value: "600 000 minutes sur les 60 derniers jours" },
       { label: "Vidéos actives", value: "5 vidéos minimum publiées" }
-    ]
+    ],
+    pack: { title: "Pack Monétisation Facebook", desc: "10 000 abonnés Page + 600 000 minutes vues", price: 129 }
   },
   instagram: {
     program: "Instagram Bonus Program",
@@ -602,7 +617,8 @@ const MONETIZATION = {
       { label: "Éligibilité", value: "Selon pays et invitation Meta" },
       { label: "Engagement", value: "Bon taux de likes/commentaires sur les Reels" },
       { label: "Régularité", value: "Publications fréquentes recommandées" }
-    ]
+    ],
+    pack: { title: "Pack Engagement Instagram", desc: "5 000 vues Reels + 1 000 likes répartis sur tes publications", price: 39 }
   },
   twitch: {
     program: "Twitch Affiliate",
@@ -611,14 +627,16 @@ const MONETIZATION = {
       { label: "Temps de stream", value: "500 minutes sur les 30 derniers jours" },
       { label: "Jours de diffusion", value: "7 jours uniques" },
       { label: "Viewers moyens", value: "3 en moyenne par stream" }
-    ]
+    ],
+    pack: { title: "Pack Affiliate Twitch", desc: "100 abonnés + viewers moyens boostés sur tes streams", price: 45 }
   },
   spotify: {
     program: "Spotify for Artists",
     criteria: [
       { label: "Écoutes", value: "Pas de seuil officiel, mais plus d'écoutes = plus de revenus" },
       { label: "Playlists", value: "L'ajout à des playlists augmente fortement la visibilité" }
-    ]
+    ],
+    pack: { title: "Pack Visibilité Spotify", desc: "5 000 écoutes + 500 abonnés artiste", price: 35 }
   }
 };
 
@@ -655,6 +673,23 @@ function renderMonetizationDetail(platformId) {
       `).join('')}
     </div>
 
+    <div class="order-box pack-card">
+      <div class="pack-head">
+        <div>
+          <h3 style="color:var(--ink);margin-bottom:2px">${m.pack.title}</h3>
+          <p class="muted" style="font-size:0.8rem">${m.pack.desc}</p>
+        </div>
+        <div class="pack-price">${m.pack.price}$</div>
+      </div>
+      <label class="field-label" style="margin-top:14px" data-i18n="order_link_label">Lien</label>
+      <input type="url" id="pack-link-${platformId}" class="text-input" data-i18n-placeholder="order_link_ph" placeholder="https://...">
+      <div class="modal-error hidden" id="pack-error-${platformId}"></div>
+      <div class="modal-loading hidden" id="pack-success-${platformId}"></div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:14px" onclick="buyMonetizationPackage('${platformId}')">
+        <span data-i18n="pack_buy_cta">Acheter ce pack</span> — ${m.pack.price}$
+      </button>
+    </div>
+
     <div class="order-box">
       <div class="price-table">
         <div class="price-table-head">
@@ -669,9 +704,56 @@ function renderMonetizationDetail(platformId) {
           </div>
         `).join('')}
       </div>
-      <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:16px" onclick="onPlatformClick('${p.id}')" data-i18n="monetization_boost_cta">Booster mes statistiques →</button>
     </div>
   `;
+}
+async function buyMonetizationPackage(platformId) {
+  const m = MONETIZATION[platformId];
+  const p = PLATFORMS.find(x => x.id === platformId);
+  const errEl = document.getElementById(`pack-error-${platformId}`);
+  const okEl = document.getElementById(`pack-success-${platformId}`);
+  errEl.classList.add('hidden');
+  okEl.classList.add('hidden');
+
+  if (!currentUser) { openAuth('register'); return; }
+
+  const link = document.getElementById(`pack-link-${platformId}`).value.trim();
+  if (!link) {
+    errEl.textContent = t('order_err_link');
+    errEl.classList.remove('hidden');
+    return;
+  }
+  if ((currentUser.balance || 0) < m.pack.price) {
+    errEl.textContent = t('order_err_balance');
+    errEl.classList.remove('hidden');
+    return;
+  }
+
+  try {
+    const newBalance = (currentUser.balance || 0) - m.pack.price;
+    await db.collection('users').doc(currentUser.uid).update({ balance: newBalance });
+    currentUser.balance = newBalance;
+    await db.collection('orders').add({
+      uid: currentUser.uid,
+      email: currentUser.email,
+      platform: p.name,
+      service: m.pack.title,
+      quality: 'package',
+      link,
+      quantity: null,
+      price: m.pack.price,
+      status: 'pending',
+      createdAt: new Date().toISOString()
+    });
+    document.getElementById('dash-balance').textContent = newBalance.toFixed(2) + '$';
+    document.getElementById('wallet-balance').textContent = newBalance.toFixed(2) + '$';
+    okEl.textContent = t('order_success');
+    okEl.classList.remove('hidden');
+  } catch (e) {
+    console.error("Erreur achat pack :", e.message);
+    errEl.textContent = t('pay_err_generic');
+    errEl.classList.remove('hidden');
+  }
 }
 function showMonetization() {
   hideAllViews();
