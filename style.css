@@ -238,6 +238,41 @@ a{text-decoration:none;color:inherit}
   background:var(--green-light);border-radius:8px;padding:6px 4px;
 }
 
+/* FORFAITS À QUANTITÉ FIXE (bundles) */
+.bundle-card{border:1.5px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
+.bundle-head{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.bundle-label{font-weight:700;font-size:0.85rem}
+.bundle-price{font-weight:800;color:var(--green-dark);font-size:1rem;white-space:nowrap}
+
+/* PARRAINAGE */
+.referral-box{
+  display:flex;align-items:center;gap:8px;background:var(--cream);border-radius:12px;
+  padding:10px 12px;
+}
+.referral-link-text{flex:1;font-size:0.78rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* CONTACT */
+.contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.contact-btn{
+  border:1.5px solid var(--line);border-radius:12px;padding:12px;text-align:center;
+  font-size:0.8rem;font-weight:700;transition:0.15s;
+}
+.contact-btn:hover{border-color:var(--green);background:var(--green-light)}
+.contact-btn small{font-weight:500;color:var(--muted);display:block;margin-top:2px}
+
+/* FAQ */
+.faq-item{border-bottom:1px solid var(--line)}
+.faq-item:last-child{border-bottom:none}
+.faq-q{
+  width:100%;text-align:left;background:none;border:none;padding:12px 0;
+  font-weight:700;font-size:0.88rem;cursor:pointer;display:flex;justify-content:space-between;
+  align-items:center;color:var(--ink);
+}
+.faq-a{max-height:0;overflow:hidden;transition:0.25s ease;color:var(--muted);font-size:0.84rem;line-height:1.5}
+.faq-a.open{max-height:300px;padding-bottom:12px}
+.faq-icon{transition:0.25s;color:var(--green)}
+.faq-icon.open{transform:rotate(45deg)}
+
 /* PACK PRIX FIXE (monétisation) */
 .pack-card{border-color:var(--green);background:var(--green-light)}
 .pack-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}

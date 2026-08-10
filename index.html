@@ -107,6 +107,32 @@
         <button class="quick-link" onclick="showDashTab('wallet')">💰 <span data-i18n="tab_wallet">Portefeuille</span></button>
         <button class="quick-link" onclick="showMonetization()">💡 <span data-i18n="monetization_title">Monétisation</span></button>
       </div>
+
+      <div class="order-box">
+        <h3>🎁 <span data-i18n="referral_title">Parrainage</span></h3>
+        <p class="muted" style="margin-bottom:12px" data-i18n="referral_sub">Invite tes amis et gagne 5% sur chacune de leurs recharges.</p>
+        <div class="referral-box">
+          <span id="referral-link-text" class="referral-link-text">—</span>
+          <button class="btn btn-outline" onclick="copyReferralLink()" data-i18n="referral_copy">Copier</button>
+        </div>
+        <p class="muted small" style="margin-top:8px" id="referral-count-text"></p>
+      </div>
+
+      <div class="order-box">
+        <h3>💬 <span data-i18n="contact_title">Besoin d'aide ?</span></h3>
+        <p class="muted" style="margin-bottom:12px" data-i18n="contact_sub">Contacte-nous directement, on te répond vite.</p>
+        <div class="contact-grid">
+          <a class="contact-btn" href="https://wa.me/243825001290" target="_blank">📱 WhatsApp<br><small>+243 825 001 290</small></a>
+          <a class="contact-btn" href="https://wa.me/243999082973" target="_blank">📱 WhatsApp<br><small>+243 999 082 973</small></a>
+          <a class="contact-btn" href="https://t.me/243825001290" target="_blank">✈️ Telegram<br><small>@coeurnoh</small></a>
+          <a class="contact-btn" href="mailto:coeurnohb@gmail.com" target="_blank">✉️ Email<br><small>coeurnohb@gmail.com</small></a>
+        </div>
+      </div>
+
+      <div class="order-box">
+        <h3>❓ <span data-i18n="faq_title">Questions fréquentes</span></h3>
+        <div id="faq-list"></div>
+      </div>
     </div>
 
     <!-- ---- Onglet Commandes ---- -->
@@ -181,6 +207,7 @@
     <h2 class="page-title" style="margin-bottom:4px" data-i18n="services_available">Services disponibles</h2>
     <p class="muted" style="margin-bottom:18px" data-i18n="platforms_pick_sub">Choisis un réseau pour voir les services disponibles.</p>
 
+    <input type="text" id="platform-search" class="text-input" data-i18n-placeholder="search_placeholder" placeholder="🔍 Rechercher un réseau..." style="margin-bottom:14px" oninput="filterPlatformGrid('platform-grid', this.value)">
     <div class="platform-grid" id="platform-grid"></div>
   </div>
 </div>
@@ -192,7 +219,13 @@
 
     <div class="order-platform-header" id="order-platform-header"></div>
 
+    <div class="order-box" id="bundles-box">
+      <h3 data-i18n="bundles_title">Forfaits (prix fixe)</h3>
+      <div id="bundles-list"></div>
+    </div>
+
     <div class="order-box">
+      <h3 data-i18n="order_alacarte_title">À la carte</h3>
       <label class="field-label" data-i18n="order_service_label">Service</label>
       <select id="order-service-select" class="select-input" onchange="onOrderInputChange()"></select>
 

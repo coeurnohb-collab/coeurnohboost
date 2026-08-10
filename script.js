@@ -54,6 +54,7 @@ function showDashTab(tab) {
   document.querySelectorAll('.bnav-btn').forEach(el => el.classList.remove('active'));
   document.getElementById('bnav-' + tab).classList.add('active');
   if (tab === 'orders') loadOrders();
+  if (tab === 'home') { renderReferralBox(); renderFAQ(); }
 }
 function showServices() {
   hideAllViews();
@@ -116,25 +117,66 @@ const QUALITY_TIERS = [
 /* Catalogue de services par plateforme — prix de base ($ / 1000), min, max
    ⚠️ Prix d'exemple, à remplacer par les vrais tarifs plus tard. */
 const SERVICE_CATALOG = {
-  tiktok:    [ {type:"followers",label:"Abonnés",base:2.5,min:100,max:50000}, {type:"likes",label:"Likes",base:1.2,min:100,max:100000}, {type:"views",label:"Vues",base:0.6,min:500,max:1000000}, {type:"comments",label:"Commentaires",base:4.0,min:20,max:5000}, {type:"shares",label:"Partages",base:1.8,min:50,max:20000}, {type:"package",label:"Pack Croissance (Abonnés+Likes+Vues)",base:1.4,min:200,max:20000} ],
-  instagram: [ {type:"followers",label:"Abonnés",base:3.0,min:100,max:50000}, {type:"likes",label:"Likes",base:1.5,min:100,max:100000}, {type:"views",label:"Vues Reels",base:0.8,min:500,max:500000}, {type:"comments",label:"Commentaires",base:4.5,min:20,max:5000}, {type:"package",label:"Pack Croissance (Abonnés+Likes+Vues)",base:1.7,min:200,max:20000} ],
-  youtube:   [ {type:"views",label:"Vues",base:3.5,min:1000,max:1000000}, {type:"followers",label:"Abonnés",base:8.0,min:100,max:20000}, {type:"likes",label:"Likes",base:2.0,min:50,max:50000}, {type:"package",label:"Pack Croissance (Abonnés+Vues+Likes)",base:4.2,min:200,max:10000} ],
-  facebook:  [ {type:"followers",label:"Followers Page",base:3.0,min:100,max:50000}, {type:"likes",label:"Likes Post",base:1.5,min:100,max:100000}, {type:"views",label:"Vues",base:0.7,min:500,max:500000}, {type:"shares",label:"Partages",base:2.0,min:50,max:10000}, {type:"package",label:"Pack Croissance (Followers+Likes+Vues)",base:1.6,min:200,max:20000} ],
-  twitter:   [ {type:"followers",label:"Abonnés",base:3.5,min:100,max:50000}, {type:"likes",label:"Likes",base:1.6,min:50,max:50000}, {type:"shares",label:"Retweets",base:2.2,min:50,max:20000}, {type:"views",label:"Vues",base:0.5,min:500,max:1000000}, {type:"package",label:"Pack Croissance (Abonnés+Likes+RT)",base:1.9,min:200,max:15000} ],
-  telegram:  [ {type:"followers",label:"Membres",base:2.0,min:100,max:100000}, {type:"views",label:"Vues Post",base:0.8,min:500,max:200000}, {type:"package",label:"Pack Croissance (Membres+Vues)",base:1.2,min:200,max:20000} ],
-  whatsapp:  [ {type:"followers",label:"Abonnés Chaîne",base:3.0,min:100,max:20000}, {type:"views",label:"Vues Statut",base:1.0,min:100,max:50000}, {type:"package",label:"Pack Croissance (Abonnés+Vues)",base:1.8,min:100,max:10000} ],
-  snapchat:  [ {type:"followers",label:"Abonnés",base:3.5,min:100,max:20000}, {type:"views",label:"Vues Story",base:1.2,min:200,max:100000}, {type:"package",label:"Pack Croissance (Abonnés+Vues)",base:2.0,min:200,max:15000} ],
-  linkedin:  [ {type:"followers",label:"Abonnés",base:5.0,min:50,max:20000}, {type:"likes",label:"Likes Post",base:2.5,min:20,max:10000}, {type:"package",label:"Pack Croissance (Abonnés+Likes)",base:3.2,min:100,max:8000} ],
-  pinterest: [ {type:"followers",label:"Abonnés",base:2.5,min:100,max:30000}, {type:"package",label:"Repins",base:1.5,min:50,max:10000}, {type:"package",label:"Pack Croissance (Abonnés+Repins)",base:1.8,min:200,max:15000} ],
-  twitch:    [ {type:"followers",label:"Abonnés",base:4.0,min:50,max:20000}, {type:"views",label:"Vues VOD",base:1.0,min:200,max:100000}, {type:"package",label:"Pack Croissance (Abonnés+Vues)",base:2.2,min:200,max:15000} ],
-  spotify:   [ {type:"views",label:"Écoutes",base:2.0,min:500,max:500000}, {type:"followers",label:"Abonnés",base:3.5,min:100,max:20000}, {type:"package",label:"Pack Croissance (Écoutes+Abonnés)",base:2.4,min:500,max:20000} ],
-  discord:   [ {type:"followers",label:"Membres",base:2.5,min:50,max:20000}, {type:"package",label:"Pack Croissance Membres",base:2.5,min:100,max:15000} ],
-  threads:   [ {type:"followers",label:"Abonnés",base:3.0,min:100,max:30000}, {type:"likes",label:"Likes",base:1.5,min:50,max:50000}, {type:"package",label:"Pack Croissance (Abonnés+Likes)",base:1.9,min:200,max:15000} ],
-  kwai:      [ {type:"followers",label:"Abonnés",base:2.0,min:100,max:50000}, {type:"likes",label:"Likes",base:1.0,min:100,max:100000}, {type:"views",label:"Vues",base:0.5,min:500,max:1000000}, {type:"package",label:"Pack Croissance (Abonnés+Likes+Vues)",base:1.1,min:200,max:20000} ],
-  likee:     [ {type:"followers",label:"Abonnés",base:2.2,min:100,max:50000}, {type:"likes",label:"Likes",base:1.1,min:100,max:100000}, {type:"views",label:"Vues",base:0.5,min:500,max:500000}, {type:"package",label:"Pack Croissance (Abonnés+Likes+Vues)",base:1.2,min:200,max:20000} ],
-  reddit:    [ {type:"followers",label:"Membres",base:4.0,min:50,max:20000}, {type:"likes",label:"Upvotes",base:2.5,min:20,max:10000}, {type:"package",label:"Pack Croissance (Membres+Upvotes)",base:3.1,min:100,max:8000} ],
-  soundcloud:[ {type:"views",label:"Écoutes",base:1.8,min:500,max:500000}, {type:"followers",label:"Abonnés",base:3.0,min:100,max:20000}, {type:"likes",label:"Likes",base:1.2,min:100,max:50000}, {type:"package",label:"Pack Croissance (Écoutes+Abonnés+Likes)",base:1.9,min:200,max:20000} ]
+  tiktok:    [ {type:"followers",label:"Abonnés",base:2.5,min:100,max:50000}, {type:"likes",label:"Likes",base:1.2,min:100,max:100000}, {type:"views",label:"Vues",base:0.6,min:500,max:1000000}, {type:"comments",label:"Commentaires",base:4.0,min:20,max:5000}, {type:"shares",label:"Partages",base:1.8,min:50,max:20000} ],
+  instagram: [ {type:"followers",label:"Abonnés",base:3.0,min:100,max:50000}, {type:"likes",label:"Likes",base:1.5,min:100,max:100000}, {type:"views",label:"Vues Reels",base:0.8,min:500,max:500000}, {type:"comments",label:"Commentaires",base:4.5,min:20,max:5000} ],
+  youtube:   [ {type:"views",label:"Vues",base:3.5,min:1000,max:1000000}, {type:"followers",label:"Abonnés",base:8.0,min:100,max:20000}, {type:"likes",label:"Likes",base:2.0,min:50,max:50000} ],
+  facebook:  [ {type:"followers",label:"Followers Page",base:3.0,min:100,max:50000}, {type:"likes",label:"Likes Post",base:1.5,min:100,max:100000}, {type:"views",label:"Vues",base:0.7,min:500,max:500000}, {type:"shares",label:"Partages",base:2.0,min:50,max:10000} ],
+  twitter:   [ {type:"followers",label:"Abonnés",base:3.5,min:100,max:50000}, {type:"likes",label:"Likes",base:1.6,min:50,max:50000}, {type:"shares",label:"Retweets",base:2.2,min:50,max:20000}, {type:"views",label:"Vues",base:0.5,min:500,max:1000000} ],
+  telegram:  [ {type:"followers",label:"Membres",base:2.0,min:100,max:100000}, {type:"views",label:"Vues Post",base:0.8,min:500,max:200000} ],
+  whatsapp:  [ {type:"followers",label:"Abonnés Chaîne",base:3.0,min:100,max:20000}, {type:"views",label:"Vues Statut",base:1.0,min:100,max:50000} ],
+  snapchat:  [ {type:"followers",label:"Abonnés",base:3.5,min:100,max:20000}, {type:"views",label:"Vues Story",base:1.2,min:200,max:100000} ],
+  linkedin:  [ {type:"followers",label:"Abonnés",base:5.0,min:50,max:20000}, {type:"likes",label:"Likes Post",base:2.5,min:20,max:10000} ],
+  pinterest: [ {type:"followers",label:"Abonnés",base:2.5,min:100,max:30000}, {type:"repins",label:"Repins",base:1.5,min:50,max:10000} ],
+  twitch:    [ {type:"followers",label:"Abonnés",base:4.0,min:50,max:20000}, {type:"views",label:"Vues VOD",base:1.0,min:200,max:100000} ],
+  spotify:   [ {type:"views",label:"Écoutes",base:2.0,min:500,max:500000}, {type:"followers",label:"Abonnés",base:3.5,min:100,max:20000} ],
+  discord:   [ {type:"followers",label:"Membres",base:2.5,min:50,max:20000} ],
+  threads:   [ {type:"followers",label:"Abonnés",base:3.0,min:100,max:30000}, {type:"likes",label:"Likes",base:1.5,min:50,max:50000} ],
+  kwai:      [ {type:"followers",label:"Abonnés",base:2.0,min:100,max:50000}, {type:"likes",label:"Likes",base:1.0,min:100,max:100000}, {type:"views",label:"Vues",base:0.5,min:500,max:1000000} ],
+  likee:     [ {type:"followers",label:"Abonnés",base:2.2,min:100,max:50000}, {type:"likes",label:"Likes",base:1.1,min:100,max:100000}, {type:"views",label:"Vues",base:0.5,min:500,max:500000} ],
+  reddit:    [ {type:"followers",label:"Membres",base:4.0,min:50,max:20000}, {type:"likes",label:"Upvotes",base:2.5,min:20,max:10000} ],
+  soundcloud:[ {type:"views",label:"Écoutes",base:1.8,min:500,max:500000}, {type:"followers",label:"Abonnés",base:3.0,min:100,max:20000}, {type:"likes",label:"Likes",base:1.2,min:100,max:50000} ]
 };
+
+/* =========================================================
+   FORFAITS À QUANTITÉS FIXES (style MoreThanPanel)
+   Ex: "200 Abonnés + 200 Likes + 200 Vues" — un seul prix, un clic.
+   Le prix additionne chaque composant à son tarif Standard, avec 10% de remise.
+   ========================================================= */
+const BUNDLES = {
+  tiktok:    [ { items:[{type:"followers",qty:200},{type:"likes",qty:200},{type:"views",qty:200}] }, { items:[{type:"followers",qty:500},{type:"likes",qty:500},{type:"views",qty:1000}] } ],
+  instagram: [ { items:[{type:"followers",qty:200},{type:"likes",qty:200},{type:"views",qty:200}] }, { items:[{type:"followers",qty:500},{type:"likes",qty:500}] } ],
+  youtube:   [ { items:[{type:"followers",qty:100},{type:"views",qty:500},{type:"likes",qty:100}] } ],
+  facebook:  [ { items:[{type:"followers",qty:200},{type:"likes",qty:200},{type:"views",qty:200}] } ],
+  twitter:   [ { items:[{type:"followers",qty:200},{type:"likes",qty:200},{type:"shares",qty:100}] } ],
+  telegram:  [ { items:[{type:"followers",qty:300},{type:"views",qty:500}] } ],
+  whatsapp:  [ { items:[{type:"followers",qty:200},{type:"views",qty:300}] } ],
+  snapchat:  [ { items:[{type:"followers",qty:200},{type:"views",qty:300}] } ],
+  linkedin:  [ { items:[{type:"followers",qty:100},{type:"likes",qty:100}] } ],
+  pinterest: [ { items:[{type:"followers",qty:200},{type:"repins",qty:200}] } ],
+  twitch:    [ { items:[{type:"followers",qty:100},{type:"views",qty:300}] } ],
+  spotify:   [ { items:[{type:"views",qty:1000},{type:"followers",qty:200}] } ],
+  discord:   [ { items:[{type:"followers",qty:200}] } ],
+  threads:   [ { items:[{type:"followers",qty:200},{type:"likes",qty:200}] } ],
+  kwai:      [ { items:[{type:"followers",qty:200},{type:"likes",qty:200},{type:"views",qty:200}] } ],
+  likee:     [ { items:[{type:"followers",qty:200},{type:"likes",qty:200},{type:"views",qty:200}] } ],
+  reddit:    [ { items:[{type:"followers",qty:100},{type:"likes",qty:100}] } ],
+  soundcloud:[ { items:[{type:"views",qty:1000},{type:"followers",qty:200},{type:"likes",qty:200}] } ]
+};
+function bundlePrice(platformId, bundle) {
+  const services = SERVICE_CATALOG[platformId] || [];
+  const total = bundle.items.reduce((sum, item) => {
+    const s = services.find(x => x.type === item.type);
+    return s ? sum + (item.qty / 1000) * s.base : sum;
+  }, 0);
+  return total * 0.9; // 10% de remise sur les forfaits groupés
+}
+function bundleLabel(platformId, bundle) {
+  const services = SERVICE_CATALOG[platformId] || [];
+  return bundle.items.map(item => {
+    const s = services.find(x => x.type === item.type);
+    return `${item.qty.toLocaleString('fr-FR')} ${s ? s.label : item.type}`;
+  }).join(' + ');
+}
 
 
 let selectedPlatformId = null;
@@ -255,6 +297,13 @@ function renderPlatformGrid(gridId) {
 function initHomeCatalog() {
   renderPlatformGrid('home-platform-grid');
 }
+function filterPlatformGrid(gridId, query) {
+  const q = query.trim().toLowerCase();
+  document.querySelectorAll(`#${gridId} .platform-badge`).forEach(card => {
+    const name = card.querySelector('.p-name').textContent.toLowerCase();
+    card.style.display = name.includes(q) ? '' : 'none';
+  });
+}
 
 /* Sur l'accueil public (non connecté) → ouvre l'inscription.
    Depuis le dashboard → ouvre le formulaire de commande. */
@@ -274,6 +323,8 @@ function openOrderForm(platformId, presetTypeIndex, presetQty, presetTier) {
     ${platformBadgeHTML(p)}
     <h2>${p.name}</h2>
   `;
+
+  renderBundles(platformId);
 
   const services = SERVICE_CATALOG[platformId] || [];
   const select = document.getElementById('order-service-select');
@@ -298,6 +349,79 @@ function openOrderForm(platformId, presetTypeIndex, presetQty, presetTier) {
 
   hideAllViews();
   document.getElementById('view-order').classList.remove('hidden');
+}
+
+function renderBundles(platformId) {
+  const bundles = BUNDLES[platformId];
+  const box = document.getElementById('bundles-box');
+  const list = document.getElementById('bundles-list');
+  if (!bundles || !bundles.length) { box.classList.add('hidden'); return; }
+  box.classList.remove('hidden');
+  list.innerHTML = bundles.map((b, i) => {
+    const price = bundlePrice(platformId, b);
+    return `
+    <div class="bundle-card">
+      <div class="bundle-head">
+        <span class="bundle-label">${bundleLabel(platformId, b)}</span>
+        <span class="bundle-price">${price.toFixed(2)}$</span>
+      </div>
+      <input type="url" id="bundle-link-${platformId}-${i}" class="text-input" data-i18n-placeholder="order_link_ph" placeholder="https://..." style="margin-top:8px">
+      <div class="modal-error hidden" id="bundle-error-${platformId}-${i}" style="margin-top:8px"></div>
+      <div class="modal-loading hidden" id="bundle-success-${platformId}-${i}" style="margin-top:8px"></div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:10px" onclick="buyBundle('${platformId}', ${i})">
+        <span data-i18n="pkg_buy">Acheter</span> — ${price.toFixed(2)}$
+      </button>
+    </div>`;
+  }).join('');
+}
+async function buyBundle(platformId, idx) {
+  const bundle = BUNDLES[platformId][idx];
+  const price = bundlePrice(platformId, bundle);
+  const p = PLATFORMS.find(x => x.id === platformId);
+  const errEl = document.getElementById(`bundle-error-${platformId}-${idx}`);
+  const okEl = document.getElementById(`bundle-success-${platformId}-${idx}`);
+  errEl.classList.add('hidden');
+  okEl.classList.add('hidden');
+
+  if (!currentUser) { openAuth('register'); return; }
+
+  const link = document.getElementById(`bundle-link-${platformId}-${idx}`).value.trim();
+  if (!link) {
+    errEl.textContent = t('order_err_link');
+    errEl.classList.remove('hidden');
+    return;
+  }
+  if ((currentUser.balance || 0) < price) {
+    errEl.textContent = t('order_err_balance');
+    errEl.classList.remove('hidden');
+    return;
+  }
+
+  try {
+    const newBalance = (currentUser.balance || 0) - price;
+    await db.collection('users').doc(currentUser.uid).update({ balance: newBalance });
+    currentUser.balance = newBalance;
+    await db.collection('orders').add({
+      uid: currentUser.uid,
+      email: currentUser.email,
+      platform: p.name,
+      service: bundleLabel(platformId, bundle),
+      quality: 'bundle',
+      link,
+      quantity: null,
+      price,
+      status: 'pending',
+      createdAt: new Date().toISOString()
+    });
+    document.getElementById('dash-balance').textContent = newBalance.toFixed(2) + '$';
+    document.getElementById('wallet-balance').textContent = newBalance.toFixed(2) + '$';
+    okEl.textContent = t('order_success');
+    okEl.classList.remove('hidden');
+  } catch (e) {
+    console.error("Erreur achat forfait :", e.message);
+    errEl.textContent = t('pay_err_generic');
+    errEl.classList.remove('hidden');
+  }
 }
 
 function renderQualityGrid() {
@@ -763,6 +887,60 @@ function showMonetization() {
 }
 
 /* =========================================================
+   PARRAINAGE — lien unique par utilisateur, 5% de commission
+   ========================================================= */
+function getPendingReferrerUid() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('ref') || null;
+}
+function renderReferralBox() {
+  if (!currentUser) return;
+  const link = `${window.location.origin}${window.location.pathname}?ref=${currentUser.uid}`;
+  const el = document.getElementById('referral-link-text');
+  if (el) el.textContent = link;
+  db.collection('users').where('referredBy', '==', currentUser.uid).get()
+    .then(snap => {
+      const countEl = document.getElementById('referral-count-text');
+      if (countEl) countEl.textContent = `${snap.size} ${t('referral_count_suffix')}`;
+    })
+    .catch(() => {});
+}
+function copyReferralLink() {
+  const link = document.getElementById('referral-link-text').textContent;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(link).then(() => alert(t('referral_copied')));
+  }
+}
+
+/* =========================================================
+   FAQ
+   ========================================================= */
+const FAQ_ITEMS = [
+  { q: "faq_q1", a: "faq_a1" },
+  { q: "faq_q2", a: "faq_a2" },
+  { q: "faq_q3", a: "faq_a3" },
+  { q: "faq_q4", a: "faq_a4" },
+  { q: "faq_q5", a: "faq_a5" }
+];
+function renderFAQ() {
+  const el = document.getElementById('faq-list');
+  if (!el) return;
+  el.innerHTML = FAQ_ITEMS.map((item, i) => `
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFAQ(${i})">
+        <span>${t(item.q)}</span>
+        <span class="faq-icon" id="faq-icon-${i}">+</span>
+      </button>
+      <div class="faq-a" id="faq-a-${i}">${t(item.a)}</div>
+    </div>
+  `).join('');
+}
+function toggleFAQ(i) {
+  document.getElementById(`faq-a-${i}`).classList.toggle('open');
+  document.getElementById(`faq-icon-${i}`).classList.toggle('open');
+}
+
+/* =========================================================
    MODAL AUTH
    ========================================================= */
 function openAuth(mode) {
@@ -851,6 +1029,7 @@ async function submitAuth() {
         name: name || email.split('@')[0],
         email,
         balance: 0,
+        referredBy: getPendingReferrerUid(),
         createdAt: new Date().toISOString()
       });
     } else {
@@ -883,6 +1062,7 @@ async function signInWithGoogle() {
         name: user.displayName || user.email.split('@')[0],
         email: user.email,
         balance: 0,
+        referredBy: getPendingReferrerUid(),
         createdAt: new Date().toISOString()
       });
     }
