@@ -988,11 +988,13 @@ function renderLoggedOutNav() {
   document.getElementById('nav-login-btn').classList.remove('hidden');
   document.getElementById('nav-register-btn').classList.remove('hidden');
   document.getElementById('nav-dashboard-btn').classList.add('hidden');
+  document.getElementById('admin-shortcut-btn').classList.add('hidden');
 }
-function renderLoggedInNav() {
+function renderLoggedInNav(uid) {
   document.getElementById('nav-login-btn').classList.add('hidden');
   document.getElementById('nav-register-btn').classList.add('hidden');
   document.getElementById('nav-dashboard-btn').classList.remove('hidden');
+  document.getElementById('admin-shortcut-btn').classList.toggle('hidden', uid !== ADMIN_UID);
 }
 
 if (fbReady) {
@@ -1009,7 +1011,7 @@ if (fbReady) {
       }
       currentUser = { uid: user.uid, ...data };
 
-      renderLoggedInNav();
+      renderLoggedInNav(user.uid);
       document.getElementById('dash-name').textContent = currentUser.name;
       document.getElementById('dash-balance').textContent = (currentUser.balance || 0).toFixed(2) + '$';
       document.getElementById('wallet-balance').textContent = (currentUser.balance || 0).toFixed(2) + '$';
