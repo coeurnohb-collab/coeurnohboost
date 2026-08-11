@@ -3,556 +3,104 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Coeurnoh Boost — Administration</title>
 <meta name="robots" content="noindex, nofollow">
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<title>Administration — Coeurnoh Boost</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="admin.css">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="translations.js"></script>
-<style>
-  body{padding:32px 20px;max-width:1000px;margin:0 auto;}
-  h1{color:var(--green);margin-bottom:6px;}
-  .warn{background:#fdf1da;color:#8a5a00;padding:12px 16px;border-radius:10px;font-size:0.88rem;margin-bottom:24px;}
-  .platform-block{margin-bottom:28px;}
-  .platform-block h2{font-size:1.15rem;color:var(--green);margin-bottom:10px;}
-  table{width:100%;border-collapse:collapse;margin-bottom:10px;}
-  th,td{padding:8px 10px;text-align:left;font-size:0.85rem;border-bottom:1px solid var(--line);}
-  th{background:var(--cream);}
-  .admin-tabs{display:flex;gap:10px;margin-bottom:24px;flex-wrap:wrap;}
-  .admin-tab{padding:10px 18px;border-radius:100px;border:1.5px solid var(--line);font-weight:600;font-size:0.88rem;background:var(--white);}
-  .admin-tab.active{background:var(--green);color:var(--white);border-color:var(--green);}
-  .admin-section{display:none;}
-  .admin-section.active{display:block;}
-  select.status-select{padding:4px 8px;border-radius:6px;border:1px solid var(--line);font-size:0.82rem;}
-  .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;}
-  .stat-box{background:var(--white);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 2px 8px rgba(11,61,46,0.04), 0 8px 24px rgba(11,61,46,0.06);}
-  .stat-label{font-size:0.76rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;font-weight:600;}
-  .stat-value{font-family:'Outfit',serif;font-size:1.6rem;color:var(--green);font-weight:700;margin-top:6px;}
-  .auto-row{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);}
-  .auto-row input{padding:6px 8px;border-radius:6px;border:1px solid var(--line);font-size:0.8rem;width:100%;}
-  .auto-platform-title{font-weight:700;color:var(--green);margin:18px 0 6px;}
-</style>
 </head>
 <body>
 
-<h1>Admin — Coeurnoh Boost</h1>
-<div id="mtp-balance-badge" class="hidden" style="display:inline-flex;align-items:center;gap:8px;background:var(--white);border:1.5px solid var(--gold);border-radius:100px;padding:8px 16px;margin-bottom:16px;font-weight:700;font-size:0.85rem">
-  💳 Solde MoreThanPanel : <span id="mtp-balance-value">—</span>
+<!-- ================= PORTE D'ENTRÉE (login admin) ================= -->
+<div id="admin-gate" class="admin-gate">
+  <div class="admin-login-box">
+    <div class="admin-lock">🔒</div>
+    <h1>Espace administrateur</h1>
+    <p class="muted">Accès réservé au propriétaire du site.</p>
+    <div class="modal-error hidden" id="admin-login-error"></div>
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="admin-email" placeholder="coeurnohb@gmail.com">
+    </div>
+    <div class="field">
+      <label>Mot de passe</label>
+      <input type="password" id="admin-password" placeholder="••••••••">
+    </div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="adminLogin()">Se connecter</button>
+  </div>
 </div>
-<p class="warn">⚠️ Cette page n'est protégée que par une vérification simple de ton identifiant (UID), pas une sécurité de niveau serveur. Ne partage jamais ce lien.</p>
 
-<div id="login-gate">
-  <p>Connecte-toi avec le compte administrateur pour continuer.</p>
-  <button onclick="adminLogin()" style="margin-top:12px;padding:10px 18px;border-radius:100px;background:var(--green);color:white;font-weight:600;">Se connecter avec Google</button>
-</div>
-
+<!-- ================= PANEL ADMIN ================= -->
 <div id="admin-panel" class="hidden">
-  <div class="admin-tabs">
-    <button class="admin-tab active" data-tab="tarifs" onclick="switchAdminTab('tarifs')">💰 Tarifs</button>
-    <button class="admin-tab" data-tab="commandes" onclick="switchAdminTab('commandes')">📦 Commandes</button>
-    <button class="admin-tab" data-tab="utilisateurs" onclick="switchAdminTab('utilisateurs')">👤 Utilisateurs</button>
-    <button class="admin-tab" data-tab="stats" onclick="switchAdminTab('stats')">📊 Statistiques</button>
-    <button class="admin-tab" data-tab="depots" onclick="switchAdminTab('depots')">💵 Dépôts</button>
-    <button class="admin-tab" data-tab="auto" onclick="switchAdminTab('auto')">🤖 Automatisation</button>
-  </div>
-
-  <div class="admin-section" id="admin-auto">
-    <p style="margin-bottom:16px;color:var(--muted)">Renseigne l'ID MoreThanPanel pour chaque qualité. Une fois rempli, les commandes de ce service partiront automatiquement chez MTP, sans que tu aies besoin de cliquer quoi que ce soit.</p>
-    <div id="auto-map-container"></div>
-    <button onclick="saveMtpMap()" style="padding:12px 24px;border-radius:100px;background:var(--green);color:white;font-weight:700;margin-top:10px">💾 Enregistrer l'automatisation</button>
-    <p id="auto-save-msg" style="margin-top:12px;color:var(--green);font-weight:600;"></p>
-  </div>
-
-  <div class="admin-section" id="admin-depots">
-    <p style="margin-bottom:16px;color:var(--muted)">Quand un client confirme avoir payé (mobile money/crypto/carte), valide ici pour créditer son portefeuille.</p>
-    <table>
-      <thead><tr><th>Date</th><th>Client (UID)</th><th>Montant</th><th>Réseau</th><th>Téléphone</th><th>Statut</th><th>Action</th></tr></thead>
-      <tbody id="admin-deposits-table"><tr><td colspan="7">Chargement...</td></tr></tbody>
-    </table>
-  </div>
-
-  <div class="admin-section" id="admin-stats">
-    <p style="margin-bottom:20px;color:var(--muted)">Vue d'ensemble de ton activité.</p>
-    <div class="stats-grid">
-      <div class="stat-box"><div class="stat-label">Chiffre d'affaires total</div><div class="stat-value" id="stat-revenue">—</div></div>
-      <div class="stat-box"><div class="stat-label">Commandes totales</div><div class="stat-value" id="stat-orders">—</div></div>
-      <div class="stat-box"><div class="stat-label">Commandes en attente</div><div class="stat-value" id="stat-pending">—</div></div>
-      <div class="stat-box"><div class="stat-label">Clients inscrits</div><div class="stat-value" id="stat-users">—</div></div>
-      <div class="stat-box"><div class="stat-label">Nouveaux clients (7j)</div><div class="stat-value" id="stat-new-users">—</div></div>
-      <div class="stat-box"><div class="stat-label">Abonnés newsletter</div><div class="stat-value" id="stat-newsletter">—</div></div>
+  <nav id="admin-nav">
+    <div class="wrap admin-nav-inner">
+      <div class="logo">Coeurnoh<span>Boost</span> <small class="admin-tag">ADMIN</small></div>
+      <button class="btn btn-outline" onclick="adminLogout()">Déconnexion</button>
     </div>
-    <h3 style="margin:24px 0 10px;color:var(--green)">Activité des 7 derniers jours</h3>
-    <div id="stat-chart" style="display:flex;align-items:flex-end;gap:8px;height:100px;background:var(--white);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:0 2px 8px rgba(11,61,46,0.04)"></div>
-    <h3 style="margin:24px 0 10px;color:var(--green)">Service le plus commandé</h3>
-    <table>
-      <thead><tr><th>Plateforme — Service</th><th>Nombre de commandes</th></tr></thead>
-      <tbody id="stat-top-services"><tr><td colspan="2">Chargement...</td></tr></tbody>
-    </table>
-  </div>
+  </nav>
 
-  <div class="admin-section active" id="admin-tarifs">
-    <p style="margin-bottom:20px;color:var(--muted)">Modifie le prix de vente pour 1000 unités. Clique "Enregistrer" pour appliquer.</p>
-    <div id="platforms-container"></div>
-    <button onclick="saveCatalog()" style="padding:12px 24px;border-radius:100px;background:var(--green);color:white;font-weight:700;">💾 Enregistrer tous les tarifs</button>
-    <p id="save-msg" style="margin-top:12px;color:var(--green);font-weight:600;"></p>
-  </div>
+  <div class="wrap admin-wrap">
+    <div class="segmented admin-tabs" id="admin-tabs"></div>
 
-  <div class="admin-section" id="admin-commandes">
-    <p style="margin-bottom:12px;color:var(--muted)">Envoie la commande à MoreThanPanel avec l'ID service correspondant, puis change le statut une fois livré.</p>
-    <select id="order-status-filter" onchange="loadAdminOrders()" style="padding:8px 12px;border-radius:8px;border:1px solid var(--line);margin-bottom:14px;font-size:0.85rem">
-      <option value="all">Tous les statuts</option>
-      <option value="pending">En cours</option>
-      <option value="done">Livré</option>
-      <option value="failed">❗ Échoué</option>
-      <option value="cancelled">Annulé</option>
-    </select>
-    <table>
-      <thead><tr><th>Date</th><th>Client</th><th>Service</th><th>Qté / Lien</th><th>Montant</th><th>Envoyer à MTP</th><th>Statut</th></tr></thead>
-      <tbody id="admin-orders-table"><tr><td colspan="7">Chargement...</td></tr></tbody>
-    </table>
-  </div>
+    <!-- ---- Statistiques ---- -->
+    <div class="admin-tab" id="admin-tab-stats">
+      <div class="stats-cards" id="admin-stats-cards"></div>
+    </div>
 
-  <div class="admin-section" id="admin-utilisateurs">
-    <p style="margin-bottom:12px;color:var(--muted)">Liste de tes clients inscrits.</p>
-    <input type="text" id="user-search" placeholder="🔍 Rechercher un nom ou email..." oninput="loadAdminUsers()" style="padding:9px 14px;border-radius:8px;border:1px solid var(--line);margin-bottom:14px;width:100%;max-width:320px;font-size:0.85rem">
-    <table>
-      <thead><tr><th>Nom</th><th>Email</th><th>Solde</th><th>Points</th><th>Inscrit le</th><th>Ajuster solde</th></tr></thead>
-      <tbody id="admin-users-table"><tr><td colspan="6">Chargement...</td></tr></tbody>
-    </table>
+    <!-- ---- Commandes ---- -->
+    <div class="admin-tab hidden" id="admin-tab-orders">
+      <h2 class="page-title">Commandes</h2>
+      <div id="admin-orders-list"></div>
+    </div>
+
+    <!-- ---- Dépôts ---- -->
+    <div class="admin-tab hidden" id="admin-tab-deposits">
+      <h2 class="page-title">Demandes de recharge</h2>
+      <div id="admin-deposits-list"></div>
+    </div>
+
+    <!-- ---- Tarifs ---- -->
+    <div class="admin-tab hidden" id="admin-tab-pricing">
+      <h2 class="page-title">Tarifs</h2>
+      <p class="muted" style="margin-bottom:14px">Modifie le prix de base ($ / 1000) de chaque service. Le tarif Standard/Premium/VIP est recalculé automatiquement.</p>
+      <div class="platform-tabs" id="pricing-platform-tabs"></div>
+      <div id="pricing-editor"></div>
+    </div>
+
+    <!-- ---- Utilisateurs ---- -->
+    <div class="admin-tab hidden" id="admin-tab-users">
+      <h2 class="page-title">Utilisateurs</h2>
+      <div id="admin-users-list"></div>
+    </div>
+
+    <!-- ---- Automatisation ---- -->
+    <div class="admin-tab hidden" id="admin-tab-automation">
+      <h2 class="page-title">Automatisation</h2>
+      <div class="order-box">
+        <h3>🤖 État actuel</h3>
+        <p class="muted" id="automation-status">Vérification...</p>
+      </div>
+      <div class="order-box">
+        <h3>📋 Pour activer l'automatisation complète</h3>
+        <p class="muted small">Ces étapes se font une seule fois, en dehors de ce panel (sur Vercel) :</p>
+        <ol class="automation-steps">
+          <li>Créer un compte MoreThanPanel et récupérer ta clé API</li>
+          <li>Ajouter <code>MTP_API_KEY</code> comme variable d'environnement sur Vercel</li>
+          <li>Faire correspondre chaque service de ton catalogue à son ID MoreThanPanel</li>
+          <li>Redéployer le site</li>
+        </ol>
+        <p class="muted small">Une fois fait, chaque commande payée sera transmise automatiquement à MoreThanPanel — même la nuit, même hors ligne.</p>
+      </div>
+    </div>
   </div>
 </div>
 
-<script src="script.js"></script>
-<script>
-function adminLogin(){
-  const provider = new firebase.auth.GoogleAuthProvider();
-  auth.signInWithPopup(provider).catch(e => alert(e.message));
-}
-
-auth.onAuthStateChanged(user => {
-  if(user && user.uid === ADMIN_UID){
-    document.getElementById('login-gate').classList.add('hidden');
-    document.getElementById('admin-panel').classList.remove('hidden');
-    renderAdminCatalog();
-    loadAdminOrders();
-    loadAdminUsers();
-    loadAdminStats();
-    loadAdminDeposits();
-    renderMtpMapUI();
-    loadMtpMap();
-    loadMtpBalance();
-  } else if(user){
-    alert("Ce compte n'est pas autorisé à accéder à l'admin. UID détecté : " + user.uid + " — copie-le dans ADMIN_UID si c'est bien toi.");
-  }
-});
-
-function switchAdminTab(tab){
-  document.querySelectorAll('.admin-tab').forEach(b => b.classList.toggle('active', b.dataset.tab===tab));
-  document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
-  document.getElementById('admin-'+tab).classList.add('active');
-}
-
-function renderAdminCatalog(){
-  const container = document.getElementById('platforms-container');
-  container.innerHTML = Object.entries(CATALOG).map(([platform, services]) => `
-    <div class="platform-block">
-      <h2>${platformBadge(platform)} ${platform}</h2>
-      <table>
-        <thead><tr><th>Service</th><th>Standard ($/1000)</th><th>Premium ($/1000)</th><th>VIP ($/1000)</th><th>Qté min</th></tr></thead>
-        <tbody>
-          ${services.map((s,i) => `
-            <tr>
-              <td>${s.name}</td>
-              <td><input type="number" step="0.1" value="${s.tiers[0].price1k}" data-platform="${platform}" data-index="${i}" data-tier="0" class="price-input"></td>
-              <td><input type="number" step="0.1" value="${s.tiers[1].price1k}" data-platform="${platform}" data-index="${i}" data-tier="1" class="price-input"></td>
-              <td><input type="number" step="0.1" value="${s.tiers[2].price1k}" data-platform="${platform}" data-index="${i}" data-tier="2" class="price-input"></td>
-              <td><input type="number" value="${s.tiers[0].min}" data-platform="${platform}" data-index="${i}" class="min-input"></td>
-            </tr>`).join('')}
-        </tbody>
-      </table>
-    </div>
-  `).join('');
-  renderAdminMonetization();
-}
-
-function renderAdminMonetization(){
-  let container = document.getElementById('mon-pricing-container');
-  if(!container){
-    const wrapper = document.createElement('div');
-    wrapper.className = 'platform-block';
-    wrapper.innerHTML = `<h2>💎 Packs Monétisation</h2><div id="mon-pricing-container"></div>`;
-    document.getElementById('platforms-container').appendChild(wrapper);
-    container = document.getElementById('mon-pricing-container');
-  }
-  container.innerHTML = `
-    <table>
-      <thead><tr><th>Pack</th><th>Prix de vente ($)</th></tr></thead>
-      <tbody>
-        ${MONETIZATION_PACKS.map((p,i) => `
-          <tr>
-            <td>${p.name}<br><span style="font-size:0.72rem;color:var(--muted)">${p.desc}</span></td>
-            <td><input type="number" step="0.1" value="${p.price}" data-mon-index="${i}" class="mon-price-input" style="width:90px;padding:6px 8px;border-radius:6px;border:1px solid var(--line);font-size:0.85rem"></td>
-          </tr>`).join('')}
-      </tbody>
-    </table>
-  `;
-}
-
-async function saveCatalog(){
-  document.querySelectorAll('.price-input').forEach(inp => {
-    CATALOG[inp.dataset.platform][inp.dataset.index].tiers[inp.dataset.tier].price1k = parseFloat(inp.value);
-  });
-  document.querySelectorAll('.min-input').forEach(inp => {
-    CATALOG[inp.dataset.platform][inp.dataset.index].tiers.forEach(t => t.min = parseInt(inp.value));
-  });
-  document.querySelectorAll('.mon-price-input').forEach(inp => {
-    MONETIZATION_PACKS[inp.dataset.monIndex].price = parseFloat(inp.value);
-  });
-  const payload = {};
-  Object.entries(CATALOG).forEach(([platform, services]) => {
-    payload[platform] = services.map(s => ({name:s.name, tiers:s.tiers}));
-  });
-  await db.collection('settings').doc('pricing').set(payload);
-  await db.collection('settings').doc('monetizationPricing').set({
-    packs: MONETIZATION_PACKS.map(p => ({name:p.name, price:p.price}))
-  });
-  document.getElementById('save-msg').textContent = "✅ Tarifs enregistrés — ils s'appliqueront sur le site principal.";
-}
-
-async function loadMtpBalance(){
-  const badge = document.getElementById('mtp-balance-badge');
-  const valueEl = document.getElementById('mtp-balance-value');
-  try{
-    const res = await fetch(API_BASE + '/get-mtp-balance');
-    const data = await res.json();
-    if(data.balance !== undefined){
-      valueEl.textContent = parseFloat(data.balance).toFixed(2) + ' ' + (data.currency||'USD');
-      badge.classList.remove('hidden');
-    }
-  } catch(e){ console.warn("Solde MTP indisponible :", e.message); }
-}
-
-async function renderActivityChart(){
-  const container = document.getElementById('stat-chart');
-  if(!container) return;
-  const days = [];
-  for(let i=6;i>=0;i--){
-    const d = new Date(); d.setDate(d.getDate()-i);
-    days.push({label:d.toLocaleDateString('fr-FR',{weekday:'short'}), date:d.toDateString(), count:0});
-  }
-  try{
-    const snap = await db.collection('orders').get();
-    snap.forEach(doc => {
-      const o = doc.data();
-      const od = new Date(o.createdAt).toDateString();
-      const day = days.find(d => d.date === od);
-      if(day) day.count++;
-    });
-  } catch(e){}
-  const max = Math.max(1, ...days.map(d=>d.count));
-  container.innerHTML = days.map(d => `
-    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end">
-      <div style="width:100%;background:linear-gradient(180deg,var(--gold),var(--green));border-radius:4px 4px 0 0;height:${(d.count/max*70)||2}px"></div>
-      <span style="font-size:0.65rem;color:var(--muted)">${d.label}</span>
-    </div>
-  `).join('');
-}
-
-async function loadAdminOrders(){
-  const snap = await db.collection('orders').orderBy('createdAt','desc').limit(100).get();
-  const tbody = document.getElementById('admin-orders-table');
-  const filter = document.getElementById('order-status-filter')?.value || 'all';
-  let docs = snap.docs;
-  if(filter !== 'all') docs = docs.filter(d => (d.data().status||'pending') === filter);
-  if(docs.length===0){ tbody.innerHTML = '<tr><td colspan="7">Aucune commande.</td></tr>'; return; }
-  tbody.innerHTML = docs.map(d => {
-    const o = d.data();
-    const date = new Date(o.createdAt).toLocaleDateString('fr-FR');
-    const isFailed = o.status === 'failed';
-    const mtpSent = o.mtpOrderId ? `✅ #${o.mtpOrderId}` :
-      `<input type="text" id="mtp-id-${d.id}" placeholder="ID service MTP" style="width:90px;padding:5px;border-radius:6px;border:1px solid var(--line);font-size:0.75rem">
-       <button onclick="sendToMTP('${d.id}','${o.link}',${o.qty})" style="background:${isFailed?'var(--red)':'var(--green)'};color:white;border:none;padding:5px 10px;border-radius:100px;font-size:0.72rem;font-weight:700;margin-top:4px">${isFailed?'🔁 Relancer':'Envoyer'}</button>`;
-    return `<tr>
-      <td>${date}</td>
-      <td style="font-size:0.7rem">${o.uid.slice(0,8)}...</td>
-      <td>${o.platform} — ${o.service}<br><span style="font-size:0.72rem;color:var(--muted)">${o.quality||''}</span></td>
-      <td>${o.qty}<br><a href="${o.link}" target="_blank" style="font-size:0.72rem">voir le lien</a></td>
-      <td>${o.amount.toFixed(2)}$</td>
-      <td>${mtpSent}<div id="mtp-msg-${d.id}" style="font-size:0.7rem;margin-top:4px"></div></td>
-      <td>
-        <select class="status-select" onchange="updateOrderStatus('${d.id}', this.value, '${o.uid}', ${o.amount}, '${o.status}')">
-          <option value="pending" ${o.status==='pending'?'selected':''}>En cours</option>
-          <option value="done" ${o.status==='done'?'selected':''}>Livré</option>
-          <option value="failed" ${o.status==='failed'?'selected':''}>❗ Échoué</option>
-          <option value="cancelled" ${o.status==='cancelled'?'selected':''}>❌ Annulé + remboursé</option>
-        </select>
-      </td>
-    </tr>`;
-  }).join('');
-}
-async function updateOrderStatus(orderId, status, uid, amount, previousStatus){
-  if(status === 'cancelled' && previousStatus !== 'cancelled'){
-    if(!confirm(`Annuler cette commande et rembourser ${amount}$ au client ?`)) { loadAdminOrders(); return; }
-    const userRef = db.collection('users').doc(uid);
-    const userDoc = await userRef.get();
-    const currentBalance = userDoc.exists ? (userDoc.data().balance||0) : 0;
-    await userRef.update({balance: currentBalance + amount});
-    loadAdminUsers();
-  }
-  await db.collection('orders').doc(orderId).update({status});
-  loadAdminOrders();
-}
-
-async function sendToMTP(orderId, link, qty){
-  const input = document.getElementById('mtp-id-'+orderId);
-  const msgEl = document.getElementById('mtp-msg-'+orderId);
-  const serviceId = input.value.trim();
-  if(!serviceId){ msgEl.textContent = "Entre l'ID service MTP."; msgEl.style.color = 'var(--red)'; return; }
-  msgEl.textContent = "Envoi en cours...";
-  msgEl.style.color = 'var(--muted)';
-  try{
-    const res = await fetch(API_BASE + '/place-smm-order', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({service: serviceId, link, quantity: qty})
-    });
-    const data = await res.json();
-    if(data.success){
-      await db.collection('orders').doc(orderId).update({mtpOrderId: data.orderId, status:'done'});
-      msgEl.textContent = "✅ Envoyé !";
-      msgEl.style.color = 'var(--green)';
-      loadAdminOrders();
-    } else {
-      msgEl.textContent = "Erreur : " + (data.error || 'inconnue');
-      msgEl.style.color = 'var(--red)';
-      await db.collection('orders').doc(orderId).update({status:'failed'});
-      loadAdminOrders();
-    }
-  } catch(e){
-    msgEl.textContent = "Erreur réseau : " + e.message;
-    msgEl.style.color = 'var(--red)';
-    await db.collection('orders').doc(orderId).update({status:'failed'});
-    loadAdminOrders();
-  }
-}
-
-async function loadAdminUsers(){
-  const snap = await db.collection('users').orderBy('createdAt','desc').limit(200).get();
-  const tbody = document.getElementById('admin-users-table');
-  const query = (document.getElementById('user-search')?.value || '').toLowerCase().trim();
-  let docs = snap.docs;
-  if(query){
-    docs = docs.filter(d => {
-      const u = d.data();
-      return (u.name||'').toLowerCase().includes(query) || (u.email||'').toLowerCase().includes(query);
-    });
-  }
-  if(docs.length===0){ tbody.innerHTML = '<tr><td colspan="6">Aucun utilisateur trouvé.</td></tr>'; return; }
-  tbody.innerHTML = docs.map(d => {
-    const u = d.data();
-    const date = u.createdAt ? new Date(u.createdAt).toLocaleDateString('fr-FR') : '—';
-    return `<tr>
-      <td>${u.name||'—'}</td>
-      <td>${u.email||'—'}</td>
-      <td>${(u.balance||0).toFixed(2)}$</td>
-      <td>${u.loyaltyPoints||0}</td>
-      <td>${date}</td>
-      <td>
-        <input type="number" id="adjust-${d.id}" placeholder="±$" style="width:60px;padding:4px 6px;border-radius:6px;border:1px solid var(--line);font-size:0.75rem">
-        <button onclick="adjustUserBalance('${d.id}')" style="background:var(--green);color:white;border:none;padding:5px 10px;border-radius:100px;font-size:0.72rem;font-weight:700">OK</button>
-      </td>
-    </tr>`;
-  }).join('');
-}
-
-async function adjustUserBalance(userId){
-  const input = document.getElementById('adjust-'+userId);
-  const delta = parseFloat(input.value);
-  if(isNaN(delta) || delta === 0){ alert("Entre un montant valide (ex: 5 pour créditer, -5 pour débiter)."); return; }
-  const userRef = db.collection('users').doc(userId);
-  const userDoc = await userRef.get();
-  const currentBalance = userDoc.exists ? (userDoc.data().balance||0) : 0;
-  const newBalance = currentBalance + delta;
-  if(!confirm(`${delta > 0 ? 'Créditer' : 'Débiter'} ${Math.abs(delta)}$ ? Nouveau solde : ${newBalance.toFixed(2)}$`)) return;
-  await userRef.update({balance: newBalance});
-  loadAdminUsers();
-}
-
-async function loadAdminStats(){
-  try{
-    const [ordersSnap, usersSnap, newsletterSnap] = await Promise.all([
-      db.collection('orders').get(),
-      db.collection('users').get(),
-      db.collection('newsletter').get().catch(()=>({size:0}))
-    ]);
-
-    let revenue = 0, pending = 0;
-    const serviceCounts = {};
-    ordersSnap.forEach(doc => {
-      const o = doc.data();
-      revenue += o.amount || 0;
-      if(o.status === 'pending') pending++;
-      const key = `${o.platform} — ${o.service}`;
-      serviceCounts[key] = (serviceCounts[key]||0) + 1;
-    });
-
-    const sevenDaysAgo = new Date(Date.now() - 7*24*60*60*1000);
-    let newUsers = 0;
-    usersSnap.forEach(doc => {
-      const u = doc.data();
-      if(u.createdAt && new Date(u.createdAt) > sevenDaysAgo) newUsers++;
-    });
-
-    document.getElementById('stat-revenue').textContent = revenue.toFixed(2) + '$';
-    document.getElementById('stat-orders').textContent = ordersSnap.size;
-    document.getElementById('stat-pending').textContent = pending;
-    document.getElementById('stat-users').textContent = usersSnap.size;
-    document.getElementById('stat-new-users').textContent = newUsers;
-    document.getElementById('stat-newsletter').textContent = newsletterSnap.size;
-    renderActivityChart();
-
-    const topServices = Object.entries(serviceCounts).sort((a,b) => b[1]-a[1]).slice(0,8);
-    const tbody = document.getElementById('stat-top-services');
-    tbody.innerHTML = topServices.length
-      ? topServices.map(([name,count]) => `<tr><td>${name}</td><td>${count}</td></tr>`).join('')
-      : '<tr><td colspan="2">Aucune commande pour le moment.</td></tr>';
-  } catch(e){
-    console.warn("Erreur chargement stats :", e.message);
-  }
-}
-
-// Les 12 services prioritaires à automatiser (Abonnés/Vues/Likes × 4 plateformes)
-const AUTO_TARGETS = [
-  {platform:"TikTok", service:"Followers"},
-  {platform:"TikTok", service:"Vues vidéo"},
-  {platform:"TikTok", service:"Likes"},
-  {platform:"TikTok", service:"Pack Tout-en-un"},
-  {platform:"Instagram", service:"Followers"},
-  {platform:"Instagram", service:"Vues Reels/Stories"},
-  {platform:"Instagram", service:"Likes"},
-  {platform:"Instagram", service:"Pack Tout-en-un"},
-  {platform:"YouTube", service:"Abonnés"},
-  {platform:"YouTube", service:"Vues"},
-  {platform:"YouTube", service:"Likes vidéo"},
-  {platform:"YouTube", service:"Pack Tout-en-un"},
-  {platform:"Facebook", service:"Followers"},
-  {platform:"Facebook", service:"Vues vidéo"},
-  {platform:"Facebook", service:"Likes Page"},
-  {platform:"Facebook", service:"Pack Tout-en-un"},
-  {platform:"Spotify", service:"Écoutes (Plays)"},
-  {platform:"Spotify", service:"Auditeurs mensuels"},
-  {platform:"Spotify", service:"Followers artiste"},
-  {platform:"Shazam", service:"Reconnaissances (Shazams)"},
-  {platform:"Pinterest", service:"Followers"},
-  {platform:"Pinterest", service:"Enregistrements (Saves)"},
-  {platform:"Pinterest", service:"Vues"},
-  {platform:"Telegram", service:"Membres groupe/chaîne"},
-  {platform:"Telegram", service:"Vues de publication"},
-  {platform:"WhatsApp", service:"Membres groupe (via lien)"},
-  {platform:"WhatsApp", service:"Vues de statut"},
-  {platform:"Snapchat", service:"Followers"},
-  {platform:"Snapchat", service:"Vues Snap"},
-  {platform:"X", service:"Followers"},
-  {platform:"X", service:"Likes"},
-  {platform:"X", service:"Retweets"},
-  {platform:"X", service:"Vues"},
-  {platform:"LinkedIn", service:"Followers"},
-  {platform:"LinkedIn", service:"Vues de publication"},
-  {platform:"LinkedIn", service:"Réactions"},
-  {platform:"SoundCloud", service:"Écoutes"},
-  {platform:"SoundCloud", service:"Followers"},
-  {platform:"SoundCloud", service:"Likes"},
-  {platform:"Apple Music", service:"Écoutes"},
-  {platform:"Audiomack", service:"Écoutes"},
-  {platform:"Audiomack", service:"Followers"},
-  {platform:"Monétisation", service:"Pack Monétisation YouTube"},
-  {platform:"Monétisation", service:"Pack Monétisation TikTok"},
-  {platform:"Monétisation", service:"Pack Créateur Instagram"},
-  {platform:"Monétisation", service:"Pack Artiste Spotify/Audiomack"},
-];
-
-function renderMtpMapUI(){
-  const container = document.getElementById('auto-map-container');
-  let html = '';
-  let currentPlatform = '';
-  AUTO_TARGETS.forEach(t => {
-    if(t.platform !== currentPlatform){
-      currentPlatform = t.platform;
-      html += `<div class="auto-platform-title">${platformBadge(t.platform)} ${t.platform}</div>
-        <div class="auto-row" style="font-weight:700;font-size:0.75rem;color:var(--muted)"><span>Service</span><span>Standard</span><span>Premium</span><span>VIP</span></div>`;
-    }
-    const key = t.platform + '|' + t.service;
-    html += `<div class="auto-row">
-      <span>${t.service}</span>
-      <input type="text" id="mtp-${key}-0" placeholder="ID Standard">
-      <input type="text" id="mtp-${key}-1" placeholder="ID Premium">
-      <input type="text" id="mtp-${key}-2" placeholder="ID VIP">
-    </div>`;
-  });
-  container.innerHTML = html;
-}
-
-async function loadMtpMap(){
-  try{
-    const doc = await db.collection('settings').doc('mtpServiceMap').get();
-    if(!doc.exists) return;
-    const map = doc.data();
-    AUTO_TARGETS.forEach(t => {
-      const key = t.platform + '|' + t.service;
-      const ids = map[key];
-      if(ids){
-        ids.forEach((id, i) => {
-          const el = document.getElementById(`mtp-${key}-${i}`);
-          if(el && id) el.value = id;
-        });
-      }
-    });
-  } catch(e){ console.warn("Pas de mapping MTP existant :", e.message); }
-}
-
-async function saveMtpMap(){
-  const map = {};
-  AUTO_TARGETS.forEach(t => {
-    const key = t.platform + '|' + t.service;
-    map[key] = [0,1,2].map(i => document.getElementById(`mtp-${key}-${i}`).value.trim());
-  });
-  await db.collection('settings').doc('mtpServiceMap').set(map);
-  document.getElementById('auto-save-msg').textContent = "✅ Automatisation enregistrée — les nouvelles commandes de ces services partiront automatiquement.";
-}
-
-async function loadAdminDeposits(){
-  const snap = await db.collection('deposits').orderBy('createdAt','desc').limit(100).get();
-  const tbody = document.getElementById('admin-deposits-table');
-  if(snap.empty){ tbody.innerHTML = '<tr><td colspan="7">Aucun dépôt.</td></tr>'; return; }
-  tbody.innerHTML = snap.docs.map(d => {
-    const dep = d.data();
-    const date = new Date(dep.createdAt).toLocaleDateString('fr-FR');
-    const isApproved = dep.status === 'approved';
-    return `<tr>
-      <td>${date}</td>
-      <td style="font-size:0.7rem">${dep.uid.slice(0,8)}...</td>
-      <td>${dep.amount}$</td>
-      <td>${dep.network}</td>
-      <td>${dep.phone||'—'}</td>
-      <td>${isApproved ? '✅ Crédité' : '⏳ En attente'}</td>
-      <td>${isApproved ? '—' : `<button onclick="approveDeposit('${d.id}','${dep.uid}',${dep.amount})" style="background:var(--green);color:white;border:none;padding:6px 12px;border-radius:100px;font-size:0.78rem;font-weight:700">Valider</button>`}</td>
-    </tr>`;
-  }).join('');
-}
-
-async function approveDeposit(depositId, userId, amount){
-  if(!confirm(`Confirmer que ce client a bien payé ${amount}$ ? Son solde sera crédité.`)) return;
-  const userRef = db.collection('users').doc(userId);
-  const userDoc = await userRef.get();
-  const currentBalance = userDoc.exists ? (userDoc.data().balance||0) : 0;
-  await userRef.update({balance: currentBalance + amount});
-  await db.collection('deposits').doc(depositId).update({status:'approved'});
-  loadAdminDeposits();
-  loadAdminUsers();
-}
-</script>
+<script src="catalog-data.js"></script>
+<script src="admin.js"></script>
 </body>
 </html>
-

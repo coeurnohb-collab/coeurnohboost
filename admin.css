@@ -1,0 +1,75 @@
+/* ================= PORTE D'ENTRÉE ================= */
+.admin-gate{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  background:var(--bg);padding:20px;
+}
+.admin-login-box{
+  background:#fff;border-radius:20px;padding:32px 26px;max-width:380px;width:100%;
+  box-shadow:0 10px 30px rgba(0,0,0,0.08);text-align:center;
+}
+.admin-lock{font-size:2.2rem;margin-bottom:6px}
+.admin-login-box h1{font-size:1.3rem;margin-bottom:4px}
+.admin-login-box .field{text-align:left;margin-top:14px;margin-bottom:0}
+.admin-login-box .btn{margin-top:18px}
+
+/* ================= NAV ADMIN ================= */
+#admin-nav{background:var(--ink);padding:14px 0}
+.admin-nav-inner{display:flex;justify-content:space-between;align-items:center}
+#admin-nav .logo{color:#fff}
+#admin-nav .logo span{color:var(--green)}
+.admin-tag{
+  background:var(--red);color:#fff;font-size:0.6rem;font-weight:800;padding:2px 8px;
+  border-radius:999px;vertical-align:middle;margin-left:6px;letter-spacing:0.05em;
+}
+#admin-nav .btn-outline{border-color:#555;color:#fff}
+#admin-nav .btn-outline:hover{background:#222}
+
+.admin-wrap{padding:24px 20px 60px;max-width:900px}
+.admin-tabs{margin-bottom:22px;overflow-x:auto}
+
+/* ================= CARTES STATS ================= */
+.stats-cards{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+@media(min-width:600px){.stats-cards{grid-template-columns:repeat(4,1fr)}}
+.stat-card{
+  background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.03);
+}
+.stat-card .stat-value{font-size:1.6rem;font-weight:800;color:var(--green-dark);display:block}
+.stat-card .stat-label{font-size:0.78rem;color:var(--muted);margin-top:2px;display:block}
+
+/* ================= LISTES (commandes / dépôts / users) ================= */
+.admin-row{
+  background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px;
+  margin-bottom:10px;
+}
+.admin-row-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px}
+.admin-row-title{font-weight:700;font-size:0.9rem}
+.admin-row-meta{font-size:0.76rem;color:var(--muted);line-height:1.5}
+.admin-row-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.admin-badge{
+  font-size:0.68rem;font-weight:800;padding:3px 10px;border-radius:999px;text-transform:uppercase;
+}
+.admin-badge.pending{background:#fff3cd;color:#8a6100}
+.admin-badge.processing{background:#d6e9ff;color:#0a4faf}
+.admin-badge.completed{background:var(--green-light);color:var(--green-dark)}
+.admin-badge.approved{background:var(--green-light);color:var(--green-dark)}
+.admin-badge.rejected{background:#fdecea;color:#a3241f}
+.btn-sm{padding:7px 14px;font-size:0.76rem}
+.admin-empty{color:var(--muted);font-size:0.85rem;text-align:center;padding:30px 0}
+
+/* ================= TARIFS ================= */
+.pricing-row{
+  display:grid;grid-template-columns:1.4fr 0.9fr auto;gap:10px;align-items:center;
+  padding:10px 0;border-bottom:1px solid var(--line);
+}
+.pricing-row:last-child{border-bottom:none}
+.pricing-row label{font-weight:600;font-size:0.85rem}
+.pricing-row input{
+  padding:8px 10px;border:1.5px solid var(--line);border-radius:8px;font-size:0.85rem;
+  background:var(--cream);width:100%;
+}
+.pricing-preview{font-size:0.72rem;color:var(--muted);white-space:nowrap}
+
+/* ================= AUTOMATISATION ================= */
+.automation-steps{margin:10px 0 10px 20px;font-size:0.85rem;line-height:1.9}
+.automation-steps code{background:var(--cream);padding:2px 6px;border-radius:6px;font-size:0.8rem}
