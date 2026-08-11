@@ -54,7 +54,8 @@ function showDashTab(tab) {
   document.querySelectorAll('.bnav-btn').forEach(el => el.classList.remove('active'));
   document.getElementById('bnav-' + tab).classList.add('active');
   if (tab === 'orders') loadOrders();
-  if (tab === 'home') { renderReferralBox(); renderFAQ(); }
+  if (tab === 'home') renderFAQ();
+  if (tab === 'account') renderReferralBox();
 }
 function showServices() {
   hideAllViews();
@@ -812,22 +813,6 @@ function renderMonetizationDetail(platformId) {
       <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:14px" onclick="buyMonetizationPackage('${platformId}')">
         <span data-i18n="pack_buy_cta">Acheter ce pack</span> — ${m.pack.price}$
       </button>
-    </div>
-
-    <div class="order-box">
-      <div class="price-table">
-        <div class="price-table-head">
-          <span></span><span>Standard</span><span>Premium</span><span>VIP</span>
-        </div>
-        ${services.map(s => `
-          <div class="price-table-row">
-            <span class="pt-label">${s.label}</span>
-            <span class="pt-price">${(s.base * QUALITY_TIERS[0].mult).toFixed(2)}$</span>
-            <span class="pt-price">${(s.base * QUALITY_TIERS[1].mult).toFixed(2)}$</span>
-            <span class="pt-price">${(s.base * QUALITY_TIERS[2].mult).toFixed(2)}$</span>
-          </div>
-        `).join('')}
-      </div>
     </div>
   `;
 }

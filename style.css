@@ -6,6 +6,7 @@
   --red-dark:#8d0e21;
   --accent:#ffb020;
   --cream:#f7f6f2;
+  --bg:#f2ede7;
   --ink:#14171a;
   --muted:#6b7280;
   --line:#e7e5e0;
@@ -17,7 +18,7 @@
 body{
   font-family:var(--font);
   color:var(--ink);
-  background:var(--white);
+  background:var(--bg);
   line-height:1.55;
   -webkit-font-smoothing:antialiased;
 }
@@ -259,6 +260,18 @@ a{text-decoration:none;color:inherit}
 }
 .contact-btn:hover{border-color:var(--green);background:var(--green-light)}
 .contact-btn small{font-weight:500;color:var(--muted);display:block;margin-top:2px}
+.contact-icon{
+  display:flex;align-items:center;justify-content:center;width:30px;height:30px;
+  border-radius:9px;margin:0 auto 8px;box-shadow:0 3px 8px rgba(0,0,0,0.15);
+}
+.contact-icon svg{width:60%;height:60%}
+
+/* BANNIÈRE DE CONFIANCE */
+.trust-banner{
+  display:flex;align-items:center;gap:10px;background:var(--green-light);color:var(--green-dark);
+  border-radius:14px;padding:14px 16px;font-size:0.82rem;font-weight:600;margin-bottom:16px;
+}
+.trust-banner span:first-child{font-size:1.3rem}
 
 /* FAQ */
 .faq-item{border-bottom:1px solid var(--line)}

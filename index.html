@@ -108,24 +108,19 @@
         <button class="quick-link" onclick="showMonetization()">💡 <span data-i18n="monetization_title">Monétisation</span></button>
       </div>
 
-      <div class="order-box">
-        <h3>🎁 <span data-i18n="referral_title">Parrainage</span></h3>
-        <p class="muted" style="margin-bottom:12px" data-i18n="referral_sub">Invite tes amis et gagne 5% sur chacune de leurs recharges.</p>
-        <div class="referral-box">
-          <span id="referral-link-text" class="referral-link-text">—</span>
-          <button class="btn btn-outline" onclick="copyReferralLink()" data-i18n="referral_copy">Copier</button>
-        </div>
-        <p class="muted small" style="margin-top:8px" id="referral-count-text"></p>
+      <div class="trust-banner">
+        <span>🚀</span>
+        <span data-i18n="trust_banner">Livraison rapide, sécurisée et fiable — la confiance de nos clients, notre priorité.</span>
       </div>
 
       <div class="order-box">
         <h3>💬 <span data-i18n="contact_title">Besoin d'aide ?</span></h3>
         <p class="muted" style="margin-bottom:12px" data-i18n="contact_sub">Contacte-nous directement, on te répond vite.</p>
         <div class="contact-grid">
-          <a class="contact-btn" href="https://wa.me/243825001290" target="_blank">📱 WhatsApp<br><small>+243 825 001 290</small></a>
-          <a class="contact-btn" href="https://wa.me/243999082973" target="_blank">📱 WhatsApp<br><small>+243 999 082 973</small></a>
-          <a class="contact-btn" href="https://t.me/243825001290" target="_blank">✈️ Telegram<br><small>@coeurnoh</small></a>
-          <a class="contact-btn" href="mailto:coeurnohb@gmail.com" target="_blank">✉️ Email<br><small>coeurnohb@gmail.com</small></a>
+          <a class="contact-btn" href="https://wa.me/243825001290" target="_blank"><span class="contact-icon" style="background:#25D366"><svg viewBox="0 0 24 24" fill="#fff"><path d="M12 3a9 9 0 0 0-7.7 13.6L3 21l4.5-1.3A9 9 0 1 0 12 3zm0 1.8a7.2 7.2 0 0 1 6.1 11l-.2.3.3 3.4-3.4-1-.3.1a7.2 7.2 0 1 1-2.5-13.8zm-3.5 3.9c-.2 0-.5 0-.7.3-.3.3-1 1-1 2.3s1 2.7 1.2 2.9c.15.2 2 3.1 4.9 4.2 2.4.9 2.9.7 3.4.7.5 0 1.7-.7 1.9-1.4.2-.7.2-1.2.15-1.4-.05-.1-.2-.2-.4-.35-.2-.1-1.3-.6-1.5-.7-.2-.1-.35-.15-.5.15-.15.3-.6.7-.7.85-.15.15-.25.15-.45.05-.2-.1-.9-.35-1.7-1.1-.6-.55-1.05-1.25-1.15-1.45-.15-.25 0-.35.1-.5.1-.1.2-.25.3-.4.1-.15.15-.25.2-.4.05-.15.05-.3 0-.4-.05-.1-.5-1.3-.7-1.75-.2-.45-.35-.4-.5-.4z"/></svg></span>WhatsApp<br><small>+243 825 001 290</small></a>
+          <a class="contact-btn" href="https://wa.me/243999082973" target="_blank"><span class="contact-icon" style="background:#25D366"><svg viewBox="0 0 24 24" fill="#fff"><path d="M12 3a9 9 0 0 0-7.7 13.6L3 21l4.5-1.3A9 9 0 1 0 12 3zm0 1.8a7.2 7.2 0 0 1 6.1 11l-.2.3.3 3.4-3.4-1-.3.1a7.2 7.2 0 1 1-2.5-13.8zm-3.5 3.9c-.2 0-.5 0-.7.3-.3.3-1 1-1 2.3s1 2.7 1.2 2.9c.15.2 2 3.1 4.9 4.2 2.4.9 2.9.7 3.4.7.5 0 1.7-.7 1.9-1.4.2-.7.2-1.2.15-1.4-.05-.1-.2-.2-.4-.35-.2-.1-1.3-.6-1.5-.7-.2-.1-.35-.15-.5.15-.15.3-.6.7-.7.85-.15.15-.25.15-.45.05-.2-.1-.9-.35-1.7-1.1-.6-.55-1.05-1.25-1.15-1.45-.15-.25 0-.35.1-.5.1-.1.2-.25.3-.4.1-.15.15-.25.2-.4.05-.15.05-.3 0-.4-.05-.1-.5-1.3-.7-1.75-.2-.45-.35-.4-.5-.4z"/></svg></span>WhatsApp<br><small>+243 999 082 973</small></a>
+          <a class="contact-btn" href="https://t.me/243825001290" target="_blank"><span class="contact-icon" style="background:#26A5E4"><svg viewBox="0 0 24 24" fill="#fff"><path d="M21 4.3 3.4 11.2c-.9.35-.87 1.65.04 1.94l4.4 1.4 1.7 5.35c.25.78 1.24.95 1.75.3l2.5-3.1 4.55 3.36c.7.5 1.7.13 1.9-.72L23 5.4c.2-.9-.7-1.6-1.5-1.1zM8.8 13.7l8.6-6c.2-.14.4.1.2.3l-7 6.7-.3 3.3-1.5-4.3z"/></svg></span>Telegram<br><small>@coeurnoh</small></a>
+          <a class="contact-btn" href="mailto:coeurnohb@gmail.com" target="_blank"><span class="contact-icon" style="background:#6b7280">✉️</span>Email<br><small>coeurnohb@gmail.com</small></a>
         </div>
       </div>
 
@@ -169,6 +164,17 @@
     <!-- ---- Onglet Compte ---- -->
     <div class="dash-tab hidden" id="dash-tab-account">
       <h2 class="page-title" style="margin-bottom:14px" data-i18n="tab_account">Mon compte</h2>
+
+      <div class="order-box">
+        <h3>🎁 <span data-i18n="referral_title">Parrainage</span></h3>
+        <p class="muted" style="margin-bottom:12px" data-i18n="referral_sub">Invite tes amis et gagne 5% sur chacune de leurs recharges.</p>
+        <div class="referral-box">
+          <span id="referral-link-text" class="referral-link-text">—</span>
+          <button class="btn btn-outline" onclick="copyReferralLink()" data-i18n="referral_copy">Copier</button>
+        </div>
+        <p class="muted small" style="margin-top:8px" id="referral-count-text"></p>
+      </div>
+
       <div class="order-box">
         <h3 data-i18n="dash_profile_title">Mon profil</h3>
         <div class="profile-row"><span data-i18n="dash_profile_name">Nom</span><span id="profile-name">—</span></div>
