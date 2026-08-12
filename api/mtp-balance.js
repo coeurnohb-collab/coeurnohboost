@@ -1,28 +1,98 @@
-// GET /api/mtp-balance
-// Verifie la connexion a MoreThanPanel et renvoie le solde fournisseur.
-// Necessite la variable d'environnement Vercel : MTP_API_KEY
+/// Correspondance service coeurnohboost <-> ID MoreThanPanel
+// Structure : plateforme > type de service > qualite (standard/premium/vip) > ID MoreThanPanel
+//
+// Comment lire les captures MoreThanPanel pour choisir les 3 qualites :
+// - standard = le service le moins cher (souvent "Non-drop" simple)
+// - premium  = un service intermediaire (plus rapide ou meilleure retention)
+// - vip      = le service le plus cher / le plus rapide / le plus fiable
+//
+// Tant qu'un ID est "null", cette combinaison reste en attente pour un
+// traitement manuel - rien ne casse.
 
-module.exports = async function handler(req, res) {
-  const apiKey = process.env.MTP_API_KEY;
-
-  if (!apiKey) {
-    res.status(503).json({ error: "MTP_API_KEY non configuree sur Vercel." });
-    return;
-  }
-
-  try {
-    const response = await fetch('https://morethanpanel.com/api/v2', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({ key: apiKey, action: 'balance' })
-    });
-    const data = await response.json();
-    if (data.error) {
-      res.status(502).json({ error: data.error });
-      return;
-    }
-    res.status(200).json({ balance: data.balance, currency: data.currency || 'USD' });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
+module.exports = {
+  tiktok: {
+    followers: { standard: null, premium: null, vip: null },
+    likes:     { standard: null, premium: null, vip: null },
+    views:     { standard: null, premium: null, vip: null },
+    comments:  { standard: null, premium: null, vip: null },
+    shares:    { standard: null, premium: null, vip: null }
+  },
+  instagram: {
+    followers: { standard: null, premium: null, vip: null },
+    likes:     { standard: null, premium: null, vip: null },
+    views:     { standard: null, premium: null, vip: null },
+    comments:  { standard: null, premium: null, vip: null }
+  },
+  youtube: {
+    views:     { standard: null, premium: null, vip: null },
+    followers: { standard: null, premium: null, vip: null },
+    likes:     { standard: null, premium: null, vip: null }
+  },
+  facebook: {
+    followers: { standard: null, premium: null, vip: null },
+    likes:     { standard: null, premium: null, vip: null },
+    views:     { standard: null, premium: null, vip: null },
+    shares:    { standard: null, premium: null, vip: null }
+  },
+  twitter: {
+    followers: { standard: null, premium: null, vip: null },
+    likes:     { standard: null, premium: null, vip: null },
+    shares:    { standard: null, premium: null, vip: null },
+    views:     { standard: null, premium: null, vip: null }
+  },
+  telegram: {
+    followers: { standard: null, premium: null, vip: null },
+    views:     { standard: null, premium: null, vip: null }
+  },
+  whatsapp: {
+    followers: { standard: null, premium: null, vip: null },
+    views:     { standard: null, premium: null, vip: null }
+  },
+  snapchat: {
+    followers: { standard: null, premium: null, vip: null },
+    views:     { standard: null, premium: null, vip: null }
+  },
+  linkedin: {
+    followers: { standard: null, premium: null, vip: null },
+    likes:     { standard: null, premium: null, vip: null }
+  },
+  pinterest: {
+    followers: { standard: null, premium: null, vip: null },
+    repins:    { standard: null, premium: null, vip: null }
+  },
+  twitch: {
+    followers: { standard: null, premium: null, vip: null },
+    views:     { standard: null, premium: null, vip: null }
+  },
+  spotify: {
+    views:     { standard: null, premium: null, vip: null },
+    followers: { standard: null, premium: null, vip: null }
+  },
+  discord: {
+    followers: { standard: null, premium: null, vip: null }
+  },
+  threads: {
+    followers: { standard: null, premium: null, vip: null },
+    likes:     { standard: null, premium: null, vip: null }
+  },
+  kwai: {
+    followers: { standard: null, premium: null, vip: null },
+    likes:     { standard: null, premium: null, vip: null },
+    views:     { standard: null, premium: null, vip: null }
+  },
+  likee: {
+    followers: { standard: null, premium: null, vip: null },
+    likes:     { standard: null, premium: null, vip: null },
+    views:     { standard: null, premium: null, vip: null }
+  },
+  reddit: {
+    followers: { standard: null, premium: null, vip: null },
+    likes:     { standard: null, premium: null, vip: null }
+  },
+  soundcloud: {
+    views:     { standard: null, premium: null, vip: null },
+    followers: { standard: null, premium: null, vip: null },
+    likes:     { standard: null, premium: null, vip: null }
   }
 };
+Enter
