@@ -1,16 +1,12 @@
-//* =========================================================
-   GET /api/mtp-balance
-   Vérifie la connexion à MoreThanPanel et renvoie le solde
-   fournisseur. Utilisé par l'espace admin (onglet Automatisation).
-
-   Nécessite la variable d'environnement Vercel : MTP_API_KEY
-   ========================================================= */
+// GET /api/mtp-balance
+// Verifie la connexion a MoreThanPanel et renvoie le solde fournisseur.
+// Necessite la variable d'environnement Vercel : MTP_API_KEY
 
 module.exports = async function handler(req, res) {
   const apiKey = process.env.MTP_API_KEY;
 
   if (!apiKey) {
-    res.status(503).json({ error: "MTP_API_KEY non configurée sur Vercel." });
+    res.status(503).json({ error: "MTP_API_KEY non configuree sur Vercel." });
     return;
   }
 
@@ -29,4 +25,4 @@ module.exports = async function handler(req, res) {
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
-};Enter
+};
