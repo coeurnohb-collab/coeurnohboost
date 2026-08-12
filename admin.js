@@ -304,13 +304,13 @@ async function loadAutomationStatus() {
   el.textContent = "Vérification...";
   try {
     const res = await fetch('/api/mtp-balance');
+    const data = await res.json();
     if (res.ok) {
-      const data = await res.json();
-      el.textContent = `🟢 Connecté à MoreThanPanel — solde fournisseur : ${data.balance || '—'}`;
+      el.innerHTML = `🟢 Connecté à MoreThanPanel — solde fournisseur : ${data.balance || '—'} ${data.currency || ''}`;
     } else {
-      el.textContent = "🔴 Pas encore connecté — les commandes restent en attente de traitement manuel (voir les étapes ci-dessous).";
+      el.innerHTML = `🔴 Pas encore connecté.<br><span style="color:#a3241f;font-size:0.78rem">Détail de l'erreur : ${data.error || 'inconnue'} (code ${res.status})</span><br>Les commandes restent en attente de traitement manuel en attendant.`;
     }
   } catch (e) {
-    el.textContent = "🔴 Pas encore connecté — les commandes restent en attente de traitement manuel (voir les étapes ci-dessous).";
+    el.innerHTML = `🔴 Erreur de connexion au serveur.<br><span style="color:#a3241f;font-size:0.78rem">Détail : ${e.message}</span>`;
   }
 }
