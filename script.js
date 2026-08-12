@@ -358,12 +358,12 @@ function onOrderInputChange() {
 /* Tente de transmettre la commande automatiquement à MoreThanPanel via le serveur.
    Si l'automatisation n'est pas encore branchée (pas de clé API, pas d'ID service),
    la commande reste simplement en attente pour un traitement manuel — rien ne casse. */
-async function attemptAutomatedFulfillment(orderId, platformId, type, link, quantity) {
+async function attemptAutomatedFulfillment(orderId, platformId, type, quality, link, quantity) {
   try {
     const res = await fetch('/api/place-smm-order', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ platform: platformId, type, link, quantity })
+      body: JSON.stringify({ platform: platformId, type, quality, link, quantity })
     });
     const data = await res.json();
     if (data.automated) {
@@ -416,7 +416,7 @@ async function submitOrder() {
     await db.collection('users').doc(currentUser.uid).update({ balance: newBalance });
     currentUser.balance = newBalance;
 
-    attemptAutomatedFulfillment(orderRef.id, selectedPlatformId, service.type, link, qty);
+    attemptAutomatedFulfillment(orderRef.id, selectedPlatformId, service.type, selectedQuality, link, qty);
 
     showDashboard();
     showDashTab('orders');
