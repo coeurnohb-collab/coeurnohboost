@@ -237,10 +237,22 @@ function renderPricingEditor(platformId) {
   el.innerHTML = `
     <div class="order-box">
       ${services.map((s, i) => `
-        <div class="pricing-row">
-          <label>${s.label}</label>
-          <input type="number" step="0.01" id="price-${platformId}-${i}" value="${s.base}" oninput="updatePricingPreview('${platformId}', ${i})">
-          <span class="pricing-preview" id="preview-${platformId}-${i}">Std ${s.base.toFixed(2)}$ · Prem ${(s.base * QUALITY_TIERS[1].mult).toFixed(2)}$ · VIP ${(s.base * QUALITY_TIERS[2].mult).toFixed(2)}$</span>
+        <div class="pricing-service-block">
+          <label class="pricing-service-label">${s.label}</label>
+          <div class="pricing-tier-row">
+            <div class="pricing-tier-field">
+              <span>Standard</span>
+              <input type="number" step="0.01" id="price-${platformId}-${i}-standard" value="${s.price.standard}">
+            </div>
+            <div class="pricing-tier-field">
+              <span>Premium</span>
+              <input type="number" step="0.01" id="price-${platformId}-${i}-premium" value="${s.price.premium}">
+            </div>
+            <div class="pricing-tier-field">
+              <span>VIP</span>
+              <input type="number" step="0.01" id="price-${platformId}-${i}-vip" value="${s.price.vip}">
+            </div>
+          </div>
         </div>
       `).join('')}
       <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:16px" onclick="savePricing('${platformId}')">💾 Enregistrer les tarifs ${PLATFORMS.find(p=>p.id===platformId).name}</button>
@@ -248,16 +260,15 @@ function renderPricingEditor(platformId) {
     </div>
   `;
 }
-function updatePricingPreview(platformId, i) {
-  const val = parseFloat(document.getElementById(`price-${platformId}-${i}`).value || 0);
-  document.getElementById(`preview-${platformId}-${i}`).textContent =
-    `Std ${val.toFixed(2)}$ · Prem ${(val * QUALITY_TIERS[1].mult).toFixed(2)}$ · VIP ${(val * QUALITY_TIERS[2].mult).toFixed(2)}$`;
-}
 async function savePricing(platformId) {
   const services = SERVICE_CATALOG[platformId] || [];
   const updated = services.map((s, i) => ({
     type: s.type,
-    base: parseFloat(document.getElementById(`price-${platformId}-${i}`).value) || s.base
+    price: {
+      standard: parseFloat(document.getElementById(`price-${platformId}-${i}-standard`).value) || s.price.standard,
+      premium: parseFloat(document.getElementById(`price-${platformId}-${i}-premium`).value) || s.price.premium,
+      vip: parseFloat(document.getElementById(`price-${platformId}-${i}-vip`).value) || s.price.vip
+    }
   }));
   try {
     await db.collection('pricing').doc(platformId).set({ services: updated });

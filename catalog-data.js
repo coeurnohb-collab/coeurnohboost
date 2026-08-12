@@ -57,24 +57,30 @@ const QUALITY_TIERS = [
 /* Catalogue de services par plateforme — prix de base ($ / 1000), min, max
    ⚠️ Prix d'exemple, à remplacer par les vrais tarifs plus tard. */
 const SERVICE_CATALOG = {
-  tiktok:    [ {type:"followers",label:"Abonnés",base:2.5,min:100,max:50000}, {type:"likes",label:"Likes",base:1.2,min:100,max:100000}, {type:"views",label:"Vues",base:0.6,min:500,max:1000000}, {type:"comments",label:"Commentaires",base:4.0,min:20,max:5000}, {type:"shares",label:"Partages",base:1.8,min:50,max:20000} ],
-  instagram: [ {type:"followers",label:"Abonnés",base:3.0,min:100,max:50000}, {type:"likes",label:"Likes",base:1.5,min:100,max:100000}, {type:"views",label:"Vues Reels",base:0.8,min:500,max:500000}, {type:"comments",label:"Commentaires",base:4.5,min:20,max:5000} ],
-  youtube:   [ {type:"views",label:"Vues",base:3.5,min:1000,max:1000000}, {type:"followers",label:"Abonnés",base:8.0,min:100,max:20000}, {type:"likes",label:"Likes",base:2.0,min:50,max:50000} ],
-  facebook:  [ {type:"followers",label:"Followers Page",base:3.0,min:100,max:50000}, {type:"likes",label:"Likes Post",base:1.5,min:100,max:100000}, {type:"views",label:"Vues",base:0.7,min:500,max:500000}, {type:"shares",label:"Partages",base:2.0,min:50,max:10000} ],
-  twitter:   [ {type:"followers",label:"Abonnés",base:3.5,min:100,max:50000}, {type:"likes",label:"Likes",base:1.6,min:50,max:50000}, {type:"shares",label:"Retweets",base:2.2,min:50,max:20000}, {type:"views",label:"Vues",base:0.5,min:500,max:1000000} ],
-  telegram:  [ {type:"followers",label:"Membres",base:2.0,min:100,max:100000}, {type:"views",label:"Vues Post",base:0.8,min:500,max:200000} ],
-  whatsapp:  [ {type:"followers",label:"Abonnés Chaîne",base:3.0,min:100,max:20000}, {type:"views",label:"Vues Statut",base:1.0,min:100,max:50000} ],
-  snapchat:  [ {type:"followers",label:"Abonnés",base:3.5,min:100,max:20000}, {type:"views",label:"Vues Story",base:1.2,min:200,max:100000} ],
-  linkedin:  [ {type:"followers",label:"Abonnés",base:5.0,min:50,max:20000}, {type:"likes",label:"Likes Post",base:2.5,min:20,max:10000} ],
-  pinterest: [ {type:"followers",label:"Abonnés",base:2.5,min:100,max:30000}, {type:"repins",label:"Repins",base:1.5,min:50,max:10000} ],
-  twitch:    [ {type:"followers",label:"Abonnés",base:4.0,min:50,max:20000}, {type:"views",label:"Vues VOD",base:1.0,min:200,max:100000} ],
-  spotify:   [ {type:"views",label:"Écoutes",base:2.0,min:500,max:500000}, {type:"followers",label:"Abonnés",base:3.5,min:100,max:20000} ],
-  discord:   [ {type:"followers",label:"Membres",base:2.5,min:50,max:20000} ],
-  threads:   [ {type:"followers",label:"Abonnés",base:3.0,min:100,max:30000}, {type:"likes",label:"Likes",base:1.5,min:50,max:50000} ],
-  kwai:      [ {type:"followers",label:"Abonnés",base:2.0,min:100,max:50000}, {type:"likes",label:"Likes",base:1.0,min:100,max:100000}, {type:"views",label:"Vues",base:0.5,min:500,max:1000000} ],
-  likee:     [ {type:"followers",label:"Abonnés",base:2.2,min:100,max:50000}, {type:"likes",label:"Likes",base:1.1,min:100,max:100000}, {type:"views",label:"Vues",base:0.5,min:500,max:500000} ],
-  reddit:    [ {type:"followers",label:"Membres",base:4.0,min:50,max:20000}, {type:"likes",label:"Upvotes",base:2.5,min:20,max:10000} ],
-  soundcloud:[ {type:"views",label:"Écoutes",base:1.8,min:500,max:500000}, {type:"followers",label:"Abonnés",base:3.0,min:100,max:20000}, {type:"likes",label:"Likes",base:1.2,min:100,max:50000} ]
+  tiktok:    [
+    { type:"followers", label:"Abonnés",       price:{standard:11.99, premium:21.99, vip:74.99}, min:100, max:10000 },
+    { type:"likes",      label:"Likes",         price:{standard:2.49,  premium:21.99, vip:24.99}, min:5,   max:1000  },
+    { type:"views",      label:"Vues",          price:{standard:0.29,  premium:0.99,  vip:14.99}, min:100, max:1000000 },
+    { type:"comments",   label:"Commentaires",  price:{standard:6.99,  premium:6.99,  vip:104.99}, min:1,  max:1000  },
+    { type:"shares",     label:"Partages",      price:{standard:0.79,  premium:0.79,  vip:38.99}, min:5,  max:1000  }
+  ],
+  instagram: [ { type:"followers", label:"Abonnés", price:{standard:3.0, premium:4.8, vip:7.5}, min:100, max:50000 }, { type:"likes", label:"Likes", price:{standard:1.5, premium:2.4, vip:3.75}, min:100, max:100000 }, { type:"views", label:"Vues Reels", price:{standard:0.8, premium:1.28, vip:2.0}, min:500, max:500000 }, { type:"comments", label:"Commentaires", price:{standard:4.5, premium:7.2, vip:11.25}, min:20, max:5000 } ],
+  youtube:   [ { type:"views", label:"Vues", price:{standard:3.5, premium:5.6, vip:8.75}, min:1000, max:1000000 }, { type:"followers", label:"Abonnés", price:{standard:8.0, premium:12.8, vip:20.0}, min:100, max:20000 }, { type:"likes", label:"Likes", price:{standard:2.0, premium:3.2, vip:5.0}, min:50, max:50000 } ],
+  facebook:  [ { type:"followers", label:"Followers Page", price:{standard:3.0, premium:4.8, vip:7.5}, min:100, max:50000 }, { type:"likes", label:"Likes Post", price:{standard:1.5, premium:2.4, vip:3.75}, min:100, max:100000 }, { type:"views", label:"Vues", price:{standard:0.7, premium:1.12, vip:1.75}, min:500, max:500000 }, { type:"shares", label:"Partages", price:{standard:2.0, premium:3.2, vip:5.0}, min:50, max:10000 } ],
+  twitter:   [ { type:"followers", label:"Abonnés", price:{standard:3.5, premium:5.6, vip:8.75}, min:100, max:50000 }, { type:"likes", label:"Likes", price:{standard:1.6, premium:2.56, vip:4.0}, min:50, max:50000 }, { type:"shares", label:"Retweets", price:{standard:2.2, premium:3.52, vip:5.5}, min:50, max:20000 }, { type:"views", label:"Vues", price:{standard:0.5, premium:0.8, vip:1.25}, min:500, max:1000000 } ],
+  telegram:  [ { type:"followers", label:"Membres", price:{standard:2.0, premium:3.2, vip:5.0}, min:100, max:100000 }, { type:"views", label:"Vues Post", price:{standard:0.8, premium:1.28, vip:2.0}, min:500, max:200000 } ],
+  whatsapp:  [ { type:"followers", label:"Abonnés Chaîne", price:{standard:3.0, premium:4.8, vip:7.5}, min:100, max:20000 }, { type:"views", label:"Vues Statut", price:{standard:1.0, premium:1.6, vip:2.5}, min:100, max:50000 } ],
+  snapchat:  [ { type:"followers", label:"Abonnés", price:{standard:3.5, premium:5.6, vip:8.75}, min:100, max:20000 }, { type:"views", label:"Vues Story", price:{standard:1.2, premium:1.92, vip:3.0}, min:200, max:100000 } ],
+  linkedin:  [ { type:"followers", label:"Abonnés", price:{standard:5.0, premium:8.0, vip:12.5}, min:50, max:20000 }, { type:"likes", label:"Likes Post", price:{standard:2.5, premium:4.0, vip:6.25}, min:20, max:10000 } ],
+  pinterest: [ { type:"followers", label:"Abonnés", price:{standard:2.5, premium:4.0, vip:6.25}, min:100, max:30000 }, { type:"repins", label:"Repins", price:{standard:1.5, premium:2.4, vip:3.75}, min:50, max:10000 } ],
+  twitch:    [ { type:"followers", label:"Abonnés", price:{standard:4.0, premium:6.4, vip:10.0}, min:50, max:20000 }, { type:"views", label:"Vues VOD", price:{standard:1.0, premium:1.6, vip:2.5}, min:200, max:100000 } ],
+  spotify:   [ { type:"views", label:"Écoutes", price:{standard:2.0, premium:3.2, vip:5.0}, min:500, max:500000 }, { type:"followers", label:"Abonnés", price:{standard:3.5, premium:5.6, vip:8.75}, min:100, max:20000 } ],
+  discord:   [ { type:"followers", label:"Membres", price:{standard:2.5, premium:4.0, vip:6.25}, min:50, max:20000 } ],
+  threads:   [ { type:"followers", label:"Abonnés", price:{standard:3.0, premium:4.8, vip:7.5}, min:100, max:30000 }, { type:"likes", label:"Likes", price:{standard:1.5, premium:2.4, vip:3.75}, min:50, max:50000 } ],
+  kwai:      [ { type:"followers", label:"Abonnés", price:{standard:2.0, premium:3.2, vip:5.0}, min:100, max:50000 }, { type:"likes", label:"Likes", price:{standard:1.0, premium:1.6, vip:2.5}, min:100, max:100000 }, { type:"views", label:"Vues", price:{standard:0.5, premium:0.8, vip:1.25}, min:500, max:1000000 } ],
+  likee:     [ { type:"followers", label:"Abonnés", price:{standard:2.2, premium:3.52, vip:5.5}, min:100, max:50000 }, { type:"likes", label:"Likes", price:{standard:1.1, premium:1.76, vip:2.75}, min:100, max:100000 }, { type:"views", label:"Vues", price:{standard:0.5, premium:0.8, vip:1.25}, min:500, max:500000 } ],
+  reddit:    [ { type:"followers", label:"Membres", price:{standard:4.0, premium:6.4, vip:10.0}, min:50, max:20000 }, { type:"likes", label:"Upvotes", price:{standard:2.5, premium:4.0, vip:6.25}, min:20, max:10000 } ],
+  soundcloud:[ { type:"views", label:"Écoutes", price:{standard:1.8, premium:2.88, vip:4.5}, min:500, max:500000 }, { type:"followers", label:"Abonnés", price:{standard:3.0, premium:4.8, vip:7.5}, min:100, max:20000 }, { type:"likes", label:"Likes", price:{standard:1.2, premium:1.92, vip:3.0}, min:100, max:50000 } ]
 };
 
 /* =========================================================
@@ -106,7 +112,7 @@ function bundlePrice(platformId, bundle) {
   const services = SERVICE_CATALOG[platformId] || [];
   const total = bundle.items.reduce((sum, item) => {
     const s = services.find(x => x.type === item.type);
-    return s ? sum + (item.qty / 1000) * s.base : sum;
+    return s ? sum + (item.qty / 1000) * s.price.standard : sum;
   }, 0);
   return total * 0.9; // 10% de remise sur les forfaits groupés
 }
@@ -131,7 +137,7 @@ function applyPricingOverrides(overrides) {
     if (!services) return;
     overrides[platformId].forEach(o => {
       const s = services.find(x => x.type === o.type);
-      if (s && typeof o.base === 'number') s.base = o.base;
+      if (s && o.price) s.price = o.price;
     });
   });
 }

@@ -321,7 +321,7 @@ function renderQualityGrid() {
   const service = getSelectedService();
   const el = document.getElementById('quality-grid');
   el.innerHTML = QUALITY_TIERS.map(q => {
-    const price = service ? (service.base * q.mult).toFixed(2) : '0.00';
+    const price = service ? service.price[q.id].toFixed(2) : '0.00';
     return `
     <div class="quality-card${q.id === selectedQuality ? ' active' : ''}" onclick="selectQuality('${q.id}')">
       <span class="q-name">${q.name}</span>
@@ -346,8 +346,7 @@ function onOrderInputChange() {
   if (!service) return;
   renderQualityGrid();
   const qty = parseInt(document.getElementById('order-qty').value || 0, 10);
-  const quality = QUALITY_TIERS.find(q => q.id === selectedQuality);
-  const price = (qty / 1000) * service.base * quality.mult;
+  const price = (qty / 1000) * service.price[selectedQuality];
 
   document.getElementById('order-qty-hint').textContent =
     `Min ${service.min.toLocaleString('fr-FR')} · Max ${service.max.toLocaleString('fr-FR')}`;
@@ -386,8 +385,8 @@ async function submitOrder() {
   const service = getSelectedService();
   const qty = parseInt(document.getElementById('order-qty').value || 0, 10);
   const link = document.getElementById('order-link').value.trim();
-  const quality = QUALITY_TIERS.find(q => q.id === selectedQuality);
-  const price = (qty / 1000) * service.base * quality.mult;
+  const price = (qty / 1000) * service.price[selectedQuality];
+  const qualityInfo = QUALITY_TIERS.find(q => q.id === selectedQuality);
 
   if (!link) { errEl.textContent = "Merci d'indiquer le lien à booster."; errEl.classList.remove('hidden'); return; }
   if (!qty || qty < service.min || qty > service.max) {
@@ -408,7 +407,7 @@ async function submitOrder() {
       email: currentUser.email,
       platform: selectedPlatformId,
       service: service.label,
-      quality: quality.name,
+      quality: qualityInfo.name,
       link, quantity: qty, price,
       status: 'pending',
       createdAt: new Date().toISOString()

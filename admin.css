@@ -58,17 +58,16 @@
 .admin-empty{color:var(--muted);font-size:0.85rem;text-align:center;padding:30px 0}
 
 /* ================= TARIFS ================= */
-.pricing-row{
-  display:grid;grid-template-columns:1.4fr 0.9fr auto;gap:10px;align-items:center;
-  padding:10px 0;border-bottom:1px solid var(--line);
-}
-.pricing-row:last-child{border-bottom:none}
-.pricing-row label{font-weight:600;font-size:0.85rem}
-.pricing-row input{
+.pricing-service-block{padding:12px 0;border-bottom:1px solid var(--line)}
+.pricing-service-block:last-child{border-bottom:none}
+.pricing-service-label{font-weight:700;font-size:0.88rem;display:block;margin-bottom:8px}
+.pricing-tier-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pricing-tier-field{display:flex;flex-direction:column;gap:4px}
+.pricing-tier-field span{font-size:0.7rem;color:var(--muted);font-weight:600}
+.pricing-tier-field input{
   padding:8px 10px;border:1.5px solid var(--line);border-radius:8px;font-size:0.85rem;
   background:var(--cream);width:100%;
 }
-.pricing-preview{font-size:0.72rem;color:var(--muted);white-space:nowrap}
 
 /* ================= AUTOMATISATION ================= */
 .automation-steps{margin:10px 0 10px 20px;font-size:0.85rem;line-height:1.9}
