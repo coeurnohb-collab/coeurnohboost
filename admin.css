@@ -1,0 +1,259 @@
+/* =========================================================
+   ADMIN.CSS — Espace administrateur Coeurnoh Boost
+   Refonte complète : look "back-office professionnel".
+   Utilise les mêmes tokens que style.css (--green, --red,
+   --cream, --radius, --font...) pour rester 100% cohérent
+   avec le site public. Ne modifie AUCUNE classe du site public,
+   ne cible que les id/classes déjà présents dans admin.html
+   et générés par admin.js — zéro risque de conflit.
+   ========================================================= */
+
+/* ---------- FOND GÉNÉRAL DE L'ADMIN ---------- */
+body:has(#admin-panel){ background:var(--bg); }
+
+/* =========================================================
+   1. PORTE D'ENTRÉE (login)
+   ========================================================= */
+.admin-gate{
+  min-height:100vh;
+  display:flex;align-items:center;justify-content:center;
+  padding:24px;
+  background:
+    radial-gradient(circle at 15% 10%, rgba(11,92,55,0.12), transparent 55%),
+    radial-gradient(circle at 90% 90%, rgba(179,18,42,0.10), transparent 50%),
+    var(--ink);
+}
+.admin-login-box{
+  width:100%;max-width:380px;
+  background:var(--white);
+  border-radius:22px;
+  padding:34px 28px 28px;
+  position:relative;
+  overflow:hidden;
+  box-shadow:0 24px 60px rgba(0,0,0,0.35);
+}
+.admin-login-box::before{
+  content:"";position:absolute;top:0;left:0;right:0;height:5px;
+  background:linear-gradient(90deg,var(--green),var(--accent),var(--red));
+}
+.admin-lock{
+  width:56px;height:56px;border-radius:16px;margin:0 auto 16px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.5rem;
+  background:var(--green-light);
+  color:var(--green);
+  box-shadow:0 6px 16px rgba(11,92,55,0.18);
+}
+.admin-login-box h1{
+  text-align:center;font-size:1.3rem;font-weight:800;color:var(--ink);margin-bottom:4px;
+}
+.admin-login-box .muted{text-align:center;margin-bottom:22px}
+.admin-login-box .field input{background:var(--cream)}
+.admin-login-box .btn-primary{margin-top:6px;padding:13px}
+
+/* =========================================================
+   2. STRUCTURE GÉNÉRALE DU PANEL
+   ========================================================= */
+#admin-nav{
+  position:sticky;top:0;z-index:150;
+  background:var(--ink);
+  border-bottom:1px solid rgba(255,255,255,0.08);
+}
+.admin-nav-inner{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 20px;gap:12px;
+}
+.admin-nav-inner .logo{color:#fff}
+.admin-nav-inner .logo span{color:var(--accent)}
+.admin-tag{
+  display:inline-block;margin-left:8px;
+  background:var(--red);color:#fff;
+  font-size:0.6rem;font-weight:800;letter-spacing:0.06em;
+  padding:3px 8px;border-radius:999px;vertical-align:middle;
+}
+.admin-nav-inner .btn-outline{
+  border-color:rgba(255,255,255,0.28);color:#fff;background:transparent;
+}
+.admin-nav-inner .btn-outline:hover{background:rgba(255,255,255,0.08)}
+
+.admin-wrap{padding:22px 20px 100px;max-width:1000px}
+
+/* =========================================================
+   3. NAVIGATION PAR ONGLETS — bandeau premium scrollable
+   (remplace le style "segmented" générique par des pilules
+   avec icône, plus lisibles et plus pro sur mobile)
+   ========================================================= */
+.admin-tabs{
+  display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;
+  background:transparent;padding:0 0 4px;margin-bottom:22px;
+  -webkit-overflow-scrolling:touch;
+}
+.admin-tabs::-webkit-scrollbar{display:none}
+.admin-tabs button{
+  flex:0 0 auto;
+  display:flex;align-items:center;gap:6px;
+  font-family:var(--font);font-weight:700;font-size:0.82rem;
+  color:var(--muted);
+  background:var(--white);
+  border:1.5px solid var(--line);
+  border-radius:999px;
+  padding:10px 16px;
+  cursor:pointer;
+  white-space:nowrap;
+  transition:0.18s ease;
+}
+.admin-tabs button:hover{border-color:#c9e8d8;color:var(--ink)}
+.admin-tabs button.active{
+  background:var(--green);
+  border-color:var(--green);
+  color:#fff;
+  box-shadow:0 6px 16px rgba(11,92,55,0.28);
+}
+
+.page-title{margin-bottom:4px}
+.admin-tab > .muted{margin-bottom:20px}
+
+/* =========================================================
+   4. STATISTIQUES — cartes avec accent coloré
+   ========================================================= */
+.stats-cards{
+  display:grid;grid-template-columns:repeat(2,1fr);gap:14px;
+}
+@media(min-width:640px){ .stats-cards{grid-template-columns:repeat(3,1fr)} }
+.stat-card{
+  background:var(--white);
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:20px 18px;
+  display:flex;flex-direction:column;gap:6px;
+  box-shadow:0 3px 10px rgba(0,0,0,0.035);
+  position:relative;
+  overflow:hidden;
+}
+.stat-card::before{
+  content:"";position:absolute;left:0;top:0;bottom:0;width:4px;
+  background:var(--green);
+}
+.stat-card:nth-child(2)::before{background:var(--accent)}
+.stat-card:nth-child(3)::before{background:var(--red)}
+.stat-card:nth-child(4)::before{background:#4c8dd9}
+.stat-card:nth-child(5)::before{background:#8a5cf6}
+.stat-value{font-size:1.65rem;font-weight:800;color:var(--ink);letter-spacing:-0.02em}
+.stat-label{color:var(--muted);font-size:0.78rem;font-weight:600}
+
+/* =========================================================
+   5. LISTES (commandes, dépôts, utilisateurs) — cartes claires
+   ========================================================= */
+.admin-row{
+  background:var(--white);
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:16px 18px;
+  margin-bottom:12px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.03);
+}
+.admin-row-top{
+  display:flex;justify-content:space-between;align-items:flex-start;gap:12px;
+}
+.admin-row-title{font-weight:700;font-size:0.92rem;color:var(--ink);margin-bottom:4px}
+.admin-row-meta{color:var(--muted);font-size:0.78rem;line-height:1.6;word-break:break-word}
+.admin-row-actions{
+  display:flex;gap:8px;margin-top:14px;padding-top:14px;
+  border-top:1px dashed var(--line);flex-wrap:wrap;
+}
+.btn-sm{padding:8px 14px;font-size:0.78rem}
+
+.admin-badge{
+  flex:0 0 auto;
+  font-size:0.7rem;font-weight:800;text-transform:capitalize;
+  padding:5px 12px;border-radius:999px;white-space:nowrap;
+}
+.admin-badge.pending{background:#fff3d6;color:#a6720a}
+.admin-badge.processing{background:#dbeafe;color:#1d4ed8}
+.admin-badge.completed{background:var(--green-light);color:var(--green-dark)}
+.admin-badge.approved{background:var(--green-light);color:var(--green-dark)}
+.admin-badge.rejected{background:#fdecea;color:#c0392b}
+
+.admin-empty{
+  text-align:center;color:var(--muted);font-size:0.88rem;
+  padding:40px 20px;background:var(--white);
+  border:1.5px dashed var(--line);border-radius:16px;
+}
+
+/* =========================================================
+   6. TARIFS / PACKAGES / MONÉTISATION — éditeurs de prix
+   ========================================================= */
+.pricing-service-block{
+  padding:16px 0;
+  border-bottom:1px solid var(--line);
+}
+.pricing-service-block:last-of-type{border-bottom:none}
+.pricing-service-label{
+  display:block;font-weight:800;font-size:0.92rem;color:var(--ink);margin-bottom:10px;
+}
+.pricing-tier-row{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:10px;
+}
+.pricing-tier-field{
+  background:var(--cream);
+  border:1.5px solid var(--line);
+  border-radius:12px;
+  padding:8px 10px;
+  transition:0.15s;
+}
+.pricing-tier-field:focus-within{border-color:var(--green);background:#fff}
+.pricing-tier-field span{
+  display:block;font-size:0.66rem;font-weight:800;letter-spacing:0.04em;
+  text-transform:uppercase;color:var(--muted);margin-bottom:3px;
+}
+.pricing-tier-field input{
+  width:100%;border:none;background:transparent;
+  font-family:var(--font);font-weight:700;font-size:0.95rem;color:var(--green-dark);
+  padding:0;
+}
+.pricing-tier-field input:focus{outline:none}
+
+/* Onglets plateforme dans Tarifs/Packages : réutilise .platform-tab
+   déjà défini dans style.css — juste un léger espacement admin */
+#pricing-platform-tabs,#packages-platform-tabs{margin-bottom:18px}
+
+/* =========================================================
+   7. AUTOMATISATION
+   ========================================================= */
+.automation-steps{
+  list-style:none;counter-reset:step;margin:10px 0 4px;
+}
+.automation-steps li{
+  counter-increment:step;
+  position:relative;
+  padding:10px 0 10px 40px;
+  font-size:0.86rem;
+  border-bottom:1px solid var(--line);
+}
+.automation-steps li:last-child{border-bottom:none}
+.automation-steps li::before{
+  content:counter(step);
+  position:absolute;left:0;top:8px;
+  width:26px;height:26px;border-radius:50%;
+  background:var(--green);color:#fff;
+  font-weight:800;font-size:0.78rem;
+  display:flex;align-items:center;justify-content:center;
+}
+.automation-steps code{
+  background:var(--cream);color:var(--red-dark);
+  padding:2px 6px;border-radius:6px;font-size:0.82rem;
+}
+#automation-status{font-size:0.92rem;line-height:1.7}
+
+/* =========================================================
+   8. RESPONSIVE — confort mobile (contexte principal de Coeurnoh)
+   ========================================================= */
+@media(max-width:600px){
+  .admin-wrap{padding:18px 14px 90px}
+  .stats-cards{grid-template-columns:repeat(2,1fr)}
+  .stat-value{font-size:1.35rem}
+  .pricing-tier-row{grid-template-columns:1fr}
+  .admin-row-actions{flex-direction:column}
+  .admin-row-actions .btn{width:100%;justify-content:center}
+  .admin-login-box{padding:28px 20px 22px}
+}
