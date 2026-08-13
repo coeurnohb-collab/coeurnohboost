@@ -73,8 +73,11 @@ body:has(#admin-panel){ background:var(--bg); }
 }
 .admin-nav-inner .btn-outline{
   border-color:rgba(255,255,255,0.28);color:#fff;background:transparent;
+  white-space:nowrap;flex:0 0 auto;
 }
 .admin-nav-inner .btn-outline:hover{background:rgba(255,255,255,0.08)}
+.admin-nav-inner{flex-wrap:wrap}
+.admin-nav-inner > div{display:flex;gap:8px;flex-wrap:wrap}
 
 .admin-wrap{padding:22px 20px 100px;max-width:1000px}
 
@@ -256,4 +259,7 @@ body:has(#admin-panel){ background:var(--bg); }
   .admin-row-actions{flex-direction:column}
   .admin-row-actions .btn{width:100%;justify-content:center}
   .admin-login-box{padding:28px 20px 22px}
+  .admin-nav-inner{padding:12px 14px}
+  .admin-nav-inner .logo{font-size:1rem}
+  .admin-nav-inner .btn-outline{padding:8px 12px;font-size:0.76rem}
 }
