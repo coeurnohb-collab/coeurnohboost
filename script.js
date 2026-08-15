@@ -370,9 +370,18 @@ async function attemptAutomatedFulfillment(orderId, platformId, type, quality, l
         status: 'processing',
         mtpOrderId: data.mtpOrderId
       });
+    } else {
+      await db.collection('orders').doc(orderId).update({
+        debugReason: data.reason || 'Raison inconnue (reponse sans "reason")'
+      });
     }
   } catch (e) {
     console.warn('Automatisation non disponible pour cette commande :', e.message);
+    try {
+      await db.collection('orders').doc(orderId).update({
+        debugReason: 'Erreur fetch cote client : ' + e.message
+      });
+    } catch (e2) { /* rien de plus a faire */ }
   }
 }
 

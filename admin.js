@@ -143,7 +143,7 @@ async function loadOrdersAdmin() {
         <div class="admin-row-top">
           <div>
             <div class="admin-row-title">${d.platform || ''} — ${d.service || ''}</div>
-            <div class="admin-row-meta">${d.email || ''}<br>${d.link || ''}<br>${d.quantity ? d.quantity + ' unités · ' : ''}${(d.price || 0).toFixed(2)}$ · ${new Date(d.createdAt).toLocaleString('fr-FR')}</div>
+            <div class="admin-row-meta">${d.email || ''}<br>${d.link || ''}<br>${d.quantity ? d.quantity + ' unités · ' : ''}${(d.price || 0).toFixed(2)}$ · ${new Date(d.createdAt).toLocaleString('fr-FR')}${d.debugReason ? `<br><span style="color:var(--red)">⚠️ Automatisation : ${d.debugReason}</span>` : ''}</div>
           </div>
           <span class="admin-badge ${status}">${status}</span>
         </div>
