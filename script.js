@@ -750,10 +750,49 @@ async function submitRecharge() {
         errEl.classList.remove('hidden');
         return;
       }
-      // data.supported === false : pays/operateur non couvert, on continue vers le flux manuel ci-dessous
+      // data.supported === false : pays non couvert par MboтePay, on tente CinetPay ci-dessous
+
+      const cinetpayResponse = await fetch('/api/cinetpay-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          uid: currentUser.uid,
+          amountUSD: amount,
+          countryCode: payCountryCode,
+          clientEmail: currentUser.email,
+          clientPhone: phone
+        })
+      });
+      const cinetpayData = await cinetpayResponse.json();
+
+      if (cinetpayData.supported && cinetpayData.success) {
+        // Automatise : on enregistre la demande puis on redirige vers la page CinetPay
+        // (Mobile Money OU Carte Bancaire selon le choix du client sur leur guichet)
+        await db.collection('topup_requests').add({
+          uid: currentUser.uid,
+          email: currentUser.email,
+          method: payMethod,
+          country: country ? country.name : null,
+          phone,
+          amountUSD: amount,
+          localAmount: cinetpayData.localAmount,
+          localCurrency: cinetpayData.currency,
+          status: 'pending_payment',
+          cinetpayReference: cinetpayData.reference,
+          createdAt: new Date().toISOString()
+        });
+        window.location.href = cinetpayData.paymentUrl;
+        return;
+      }
+      if (cinetpayData.supported && !cinetpayData.success) {
+        errEl.textContent = cinetpayData.error || t('pay_err_generic');
+        errEl.classList.remove('hidden');
+        return;
+      }
+      // cinetpayData.supported === false : pays non couvert non plus, on continue vers le flux manuel ci-dessous
     }
 
-    // Autres methodes (et Mobile Money non couvert par MboтePay) : demande manuelle comme avant
+    // Autres methodes (et Mobile Money non couvert par MboтePay ni CinetPay) : demande manuelle comme avant
     await db.collection('topup_requests').add({
       uid: currentUser.uid,
       email: currentUser.email,
