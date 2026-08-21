@@ -23,7 +23,7 @@ body{
   -webkit-font-smoothing:antialiased;
 }
 h1,h2,h3,h4{font-family:var(--font);letter-spacing:-0.015em}
-h2.page-title{color:var(--red);font-weight:800}
+h2.page-title{color:var(--ink);font-weight:800}
 .hidden{display:none !important}
 .wrap{max-width:1100px;margin:0 auto;padding:0 20px}
 a{text-decoration:none;color:inherit}
@@ -31,7 +31,7 @@ a{text-decoration:none;color:inherit}
 /* NAV */
 #nav{position:sticky;top:0;background:var(--white);border-bottom:1px solid var(--line);z-index:100;box-shadow:0 1px 3px rgba(0,0,0,0.03)}
 .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;gap:12px}
-.logo{font-weight:800;font-size:1.2rem;cursor:pointer;color:var(--red)}
+.logo{font-weight:800;font-size:1.2rem;cursor:pointer;color:var(--ink)}
 .logo span{color:var(--green)}
 .nav-right{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .lang-select{
@@ -54,7 +54,7 @@ a{text-decoration:none;color:inherit}
   background:var(--ink);color:#fff;width:38px;height:38px;padding:0;border-radius:50%;
   font-size:1.05rem;flex:0 0 auto;
 }
-.admin-shortcut:hover{background:var(--red)}
+.admin-shortcut:hover{background:var(--green-dark)}
 
 /* HERO */
 .hero{padding:60px 0 40px;text-align:center;background:var(--cream)}
@@ -347,7 +347,7 @@ a{text-decoration:none;color:inherit}
 
 /* BANDEAU PROMO DÉFILANT */
 .promo-marquee{
-  background:linear-gradient(90deg, var(--red-dark), var(--red));
+  background:linear-gradient(90deg, var(--green-dark), var(--green));
   color:#fff;overflow:hidden;white-space:nowrap;
   padding:10px 0;font-size:0.82rem;font-weight:600;
   border-radius:0 0 14px 14px;
