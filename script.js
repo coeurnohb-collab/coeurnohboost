@@ -1329,4 +1329,221 @@ async function loadShopFeed() {
       .get();
 
     if (snap.empty) {
-      feedEl.innerHTML = '<p class="muted">Aucune publication pour l\'instant. Reviens                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+      feedEl.innerHTML = '<p class="muted">Aucune publication pour l\'instant. Reviens bientôt !</p>';
+      return;
+    }
+
+    const items = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    // Verifie en parallele si l'utilisateur connecte a deja like chaque publication
+    let likedMap = {};
+    if (currentUser) {
+      const likeChecks = await Promise.all(items.map(item =>
+        db.collection('publication_likes').doc(`${item.id}_${currentUser.uid}`).get()
+      ));
+      items.forEach((item, i) => { likedMap[item.id] = likeChecks[i].exists; });
+    }
+
+    feedEl.innerHTML = items.map(item => renderShopCard(item, likedMap[item.id])).join('');
+
+    // Charge les commentaires de chaque publication (affichage replie par defaut, deja en cache une fois charges)
+  } catch (e) {
+    feedEl.innerHTML = `<p class="muted">Erreur de chargement : ${e.message}</p>`;
+  }
+}
+
+function renderShopCard(item, isLiked) {
+  const typeLabel = item.type === 'book' ? '📖 Livre' : '🛍️ Produit';
+  return `
+  <div class="shop-card" id="shop-card-${item.id}">
+    <img src="${item.imageUrl}" alt="${item.title}" class="shop-card-img">
+    <div class="shop-card-body">
+      <span class="shop-card-type">${typeLabel}</span>
+      <h3 class="shop-card-title">${item.title}</h3>
+      <p class="shop-card-desc">${item.description}</p>
+      <div class="shop-card-price">${(item.price || 0).toFixed(2)}$</div>
+
+      <div class="shop-card-actions">
+        <button class="shop-action-btn ${isLiked ? 'liked' : ''}" id="shop-like-${item.id}" onclick="toggleShopLike('${item.id}')">
+          <span id="shop-like-icon-${item.id}">${isLiked ? '❤️' : '🤍'}</span>
+          <span id="shop-like-count-${item.id}">${item.likesCount || 0}</span>
+        </button>
+        <button class="shop-action-btn" onclick="toggleShopComments('${item.id}')">
+          💬 <span id="shop-comment-count-${item.id}">${item.commentsCount || 0}</span>
+        </button>
+        <button class="btn btn-primary btn-sm" style="margin-left:auto" onclick="buyShopItem('${item.id}','${escapeForJs(item.title)}',${item.price},'${item.type}')" data-i18n="shop_buy">Commander</button>
+      </div>
+
+      <div class="shop-comments hidden" id="shop-comments-${item.id}">
+        <div class="shop-comments-list" id="shop-comments-list-${item.id}"><p class="muted small">Chargement des commentaires...</p></div>
+        <div class="shop-comment-form">
+          <input type="text" class="text-input" id="shop-comment-input-${item.id}" placeholder="Écris un commentaire...">
+          <button class="btn btn-outline btn-sm" onclick="addShopComment('${item.id}')">Envoyer</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function escapeForJs(str) {
+  return (str || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+}
+
+async function toggleShopLike(pubId) {
+  if (!currentUser) { openAuth('register'); return; }
+  const likeRef = db.collection('publication_likes').doc(`${pubId}_${currentUser.uid}`);
+  const pubRef = db.collection('publications').doc(pubId);
+  const iconEl = document.getElementById(`shop-like-icon-${pubId}`);
+  const countEl = document.getElementById(`shop-like-count-${pubId}`);
+  const btnEl = document.getElementById(`shop-like-${pubId}`);
+
+  try {
+    const likeDoc = await likeRef.get();
+    if (likeDoc.exists) {
+      await likeRef.delete();
+      await pubRef.update({ likesCount: firebase.firestore.FieldValue.increment(-1) });
+      iconEl.textContent = '🤍';
+      btnEl.classList.remove('liked');
+      countEl.textContent = Math.max(0, parseInt(countEl.textContent, 10) - 1);
+    } else {
+      await likeRef.set({ pubId, uid: currentUser.uid, createdAt: new Date().toISOString() });
+      await pubRef.update({ likesCount: firebase.firestore.FieldValue.increment(1) });
+      iconEl.textContent = '❤️';
+      btnEl.classList.add('liked');
+      countEl.textContent = parseInt(countEl.textContent, 10) + 1;
+    }
+  } catch (e) {
+    console.log('[shop] Erreur like :', e.message);
+  }
+}
+
+let shopCommentsLoaded = {};
+async function toggleShopComments(pubId) {
+  const panel = document.getElementById(`shop-comments-${pubId}`);
+  panel.classList.toggle('hidden');
+  if (!panel.classList.contains('hidden') && !shopCommentsLoaded[pubId]) {
+    shopCommentsLoaded[pubId] = true;
+    await loadShopComments(pubId);
+  }
+}
+
+async function loadShopComments(pubId) {
+  const listEl = document.getElementById(`shop-comments-list-${pubId}`);
+  try {
+    const snap = await db.collection('publication_comments')
+      .where('pubId', '==', pubId)
+      .orderBy('createdAt', 'asc')
+      .limit(50)
+      .get();
+    if (snap.empty) {
+      listEl.innerHTML = '<p class="muted small">Aucun commentaire. Sois le premier !</p>';
+      return;
+    }
+    listEl.innerHTML = snap.docs.map(doc => {
+      const c = doc.data();
+      return `<div class="shop-comment"><strong>${c.name || 'Client'}</strong><span>${c.text}</span></div>`;
+    }).join('');
+  } catch (e) {
+    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+  }
+}
+
+async function addShopComment(pubId) {
+  if (!currentUser) { openAuth('register'); return; }
+  const input = document.getElementById(`shop-comment-input-${pubId}`);
+  const text = input.value.trim();
+  if (!text) return;
+
+  try {
+    await db.collection('publication_comments').add({
+      pubId,
+      uid: currentUser.uid,
+      name: currentUser.name || 'Client',
+      text,
+      createdAt: new Date().toISOString()
+    });
+    await db.collection('publications').doc(pubId).update({
+      commentsCount: firebase.firestore.FieldValue.increment(1)
+    });
+    input.value = '';
+    shopCommentsLoaded[pubId] = false;
+    await toggleShopComments(pubId); // referme
+    await toggleShopComments(pubId); // rouvre avec le nouveau commentaire
+    const countEl = document.getElementById(`shop-comment-count-${pubId}`);
+    countEl.textContent = parseInt(countEl.textContent, 10) + 1;
+  } catch (e) {
+    alert("Erreur lors de l'envoi du commentaire : " + e.message);
+  }
+}
+
+/* ================= PAIEMENT BOUTIQUE (par article, via solde portefeuille) ================= */
+function buyShopItem(pubId, title, price, itemType) {
+  if (!currentUser) { openAuth('register'); return; }
+
+  const modalHtml = `
+    <div class="modal-overlay" id="shop-checkout-modal">
+      <div class="modal">
+        <button class="modal-close" onclick="closeShopCheckout()">×</button>
+        <h2>🛍️ ${title}</h2>
+        <p class="sub">Prix : <strong>${price.toFixed(2)}$</strong> — Ton solde : <strong>${(currentUser.balance || 0).toFixed(2)}$</strong></p>
+        <div class="modal-error hidden" id="shop-checkout-error"></div>
+        <div class="hidden" id="shop-checkout-success">
+          <div class="tutorial-emoji">✅</div>
+          <p class="sub" style="text-align:center;font-weight:700;color:var(--green)">Achat confirmé !</p>
+          <div id="shop-checkout-download"></div>
+        </div>
+        <button class="btn btn-primary" style="width:100%;margin-top:14px" id="shop-checkout-submit" onclick="confirmShopPurchase('${pubId}','${escapeForJs(title)}',${price},'${itemType}')">Confirmer l'achat (${price.toFixed(2)}$)</button>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+}
+
+function closeShopCheckout() {
+  const modal = document.getElementById('shop-checkout-modal');
+  if (modal) modal.remove();
+}
+
+async function confirmShopPurchase(pubId, title, price, itemType) {
+  const errEl = document.getElementById('shop-checkout-error');
+  errEl.classList.add('hidden');
+
+  if (price > (currentUser.balance || 0)) {
+    errEl.textContent = "Solde insuffisant. Recharge ton portefeuille pour continuer.";
+    errEl.classList.remove('hidden');
+    return;
+  }
+
+  document.getElementById('shop-checkout-submit').classList.add('hidden');
+
+  try {
+    const newBalance = currentUser.balance - price;
+    const orderRef = await db.collection('shop_orders').add({
+      uid: currentUser.uid,
+      email: currentUser.email,
+      pubId, itemTitle: title, itemType, amountUSD: price,
+      status: 'completed',
+      createdAt: new Date().toISOString(),
+      completedAt: new Date().toISOString()
+    });
+    await db.collection('users').doc(currentUser.uid).update({ balance: newBalance });
+    currentUser.balance = newBalance;
+
+    document.getElementById('shop-checkout-success').classList.remove('hidden');
+
+    if (itemType === 'book') {
+      const pubDoc = await db.collection('publications').doc(pubId).get();
+      const fileUrl = pubDoc.data() && pubDoc.data().fileUrl;
+      if (fileUrl) {
+        document.getElementById('shop-checkout-download').innerHTML =
+          `<a class="btn btn-primary" style="width:100%;justify-content:center;margin-top:10px" href="${fileUrl}" target="_blank">📖 Télécharger le livre</a>`;
+      }
+    } else {
+      document.getElementById('shop-checkout-download').innerHTML =
+        `<p class="muted" style="text-align:center;margin-top:10px">On te contacte sur WhatsApp pour la livraison.</p>`;
+    }
+  } catch (e) {
+    document.getElementById('shop-checkout-submit').classList.remove('hidden');
+    errEl.textContent = "Erreur lors de l'achat : " + e.message;
+    errEl.classList.remove('hidden');
+  }
+}
