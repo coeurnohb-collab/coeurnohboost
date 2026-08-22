@@ -1313,10 +1313,23 @@ function renderTutorialStep() {
 }
 
 /* ================= BOUTIQUE (livres & produits) ================= */
+let shopFeedItems = [];
+let shopLikedMap = {};
+let shopPurchasedSet = new Set();
+let shopActiveFilter = 'all';
+
 function showShop() {
   hideAllViews();
   document.getElementById('view-shop').classList.remove('hidden');
   loadShopFeed();
+}
+
+function setShopFilter(filter) {
+  shopActiveFilter = filter;
+  document.querySelectorAll('#shop-filter-tabs button').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.filter === filter);
+  });
+  renderShopFeed();
 }
 
 async function loadShopFeed() {
@@ -1328,37 +1341,68 @@ async function loadShopFeed() {
       .orderBy('createdAt', 'desc')
       .get();
 
-    if (snap.empty) {
-      feedEl.innerHTML = '<p class="muted">Aucune publication pour l\'instant. Reviens bientôt !</p>';
-      return;
-    }
+    shopFeedItems = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    shopLikedMap = {};
+    shopPurchasedSet = new Set();
 
-    const items = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-    // Verifie en parallele si l'utilisateur connecte a deja like chaque publication
-    let likedMap = {};
     if (currentUser) {
-      const likeChecks = await Promise.all(items.map(item =>
-        db.collection('publication_likes').doc(`${item.id}_${currentUser.uid}`).get()
-      ));
-      items.forEach((item, i) => { likedMap[item.id] = likeChecks[i].exists; });
+      // Verifie en parallele les likes et les achats deja effectues (acces livres)
+      const [likeChecks, ordersSnap] = await Promise.all([
+        Promise.all(shopFeedItems.map(item =>
+          db.collection('publication_likes').doc(`${item.id}_${currentUser.uid}`).get()
+        )),
+        db.collection('shop_orders')
+          .where('uid', '==', currentUser.uid)
+          .where('status', '==', 'completed')
+          .get()
+      ]);
+      shopFeedItems.forEach((item, i) => { shopLikedMap[item.id] = likeChecks[i].exists; });
+      ordersSnap.docs.forEach(doc => shopPurchasedSet.add(doc.data().pubId));
     }
 
-    feedEl.innerHTML = items.map(item => renderShopCard(item, likedMap[item.id])).join('');
-
-    // Charge les commentaires de chaque publication (affichage replie par defaut, deja en cache une fois charges)
+    renderShopFeed();
   } catch (e) {
     feedEl.innerHTML = `<p class="muted">Erreur de chargement : ${e.message}</p>`;
   }
 }
 
-function renderShopCard(item, isLiked) {
+function renderShopFeed() {
+  const feedEl = document.getElementById('shop-feed');
+  const searchText = (document.getElementById('shop-search-input').value || '').trim().toLowerCase();
+
+  let filtered = shopFeedItems;
+  if (shopActiveFilter !== 'all') {
+    filtered = filtered.filter(item => item.type === shopActiveFilter);
+  }
+  if (searchText) {
+    filtered = filtered.filter(item =>
+      (item.title || '').toLowerCase().includes(searchText) ||
+      (item.description || '').toLowerCase().includes(searchText)
+    );
+  }
+
+  if (filtered.length === 0) {
+    feedEl.innerHTML = '<p class="muted">Aucun résultat. Essaie une autre recherche.</p>';
+    return;
+  }
+
+  feedEl.innerHTML = filtered.map(item =>
+    renderShopCard(item, shopLikedMap[item.id], shopPurchasedSet.has(item.id))
+  ).join('');
+}
+
+function renderShopCard(item, isLiked, isPurchased) {
   const typeLabel = item.type === 'book' ? '📖 Livre' : '🛍️ Produit';
+  const alreadyOwned = item.type === 'book' && isPurchased;
+  const buyButtonHtml = alreadyOwned
+    ? `<a class="btn btn-primary btn-sm" style="margin-left:auto" href="${item.fileUrl}" target="_blank">📖 Télécharger</a>`
+    : `<button class="btn btn-primary btn-sm" style="margin-left:auto" onclick="buyShopItem('${item.id}','${escapeForJs(item.title)}',${item.price},'${item.type}')" data-i18n="shop_buy">Commander</button>`;
+
   return `
   <div class="shop-card" id="shop-card-${item.id}">
     <img src="${item.imageUrl}" alt="${item.title}" class="shop-card-img">
     <div class="shop-card-body">
-      <span class="shop-card-type">${typeLabel}</span>
+      <span class="shop-card-type">${typeLabel}${alreadyOwned ? ' · ✅ Déjà acheté' : ''}</span>
       <h3 class="shop-card-title">${item.title}</h3>
       <p class="shop-card-desc">${item.description}</p>
       <div class="shop-card-price">${(item.price || 0).toFixed(2)}$</div>
@@ -1371,7 +1415,7 @@ function renderShopCard(item, isLiked) {
         <button class="shop-action-btn" onclick="toggleShopComments('${item.id}')">
           💬 <span id="shop-comment-count-${item.id}">${item.commentsCount || 0}</span>
         </button>
-        <button class="btn btn-primary btn-sm" style="margin-left:auto" onclick="buyShopItem('${item.id}','${escapeForJs(item.title)}',${item.price},'${item.type}')" data-i18n="shop_buy">Commander</button>
+        ${buyButtonHtml}
       </div>
 
       <div class="shop-comments hidden" id="shop-comments-${item.id}">
@@ -1531,12 +1575,14 @@ async function confirmShopPurchase(pubId, title, price, itemType) {
     document.getElementById('shop-checkout-success').classList.remove('hidden');
 
     if (itemType === 'book') {
+      shopPurchasedSet.add(pubId);
       const pubDoc = await db.collection('publications').doc(pubId).get();
       const fileUrl = pubDoc.data() && pubDoc.data().fileUrl;
       if (fileUrl) {
         document.getElementById('shop-checkout-download').innerHTML =
           `<a class="btn btn-primary" style="width:100%;justify-content:center;margin-top:10px" href="${fileUrl}" target="_blank">📖 Télécharger le livre</a>`;
       }
+      renderShopFeed(); // le bouton "Commander" de la carte devient "Télécharger"
     } else {
       document.getElementById('shop-checkout-download').innerHTML =
         `<p class="muted" style="text-align:center;margin-top:10px">On te contacte sur WhatsApp pour la livraison.</p>`;
