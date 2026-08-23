@@ -1318,6 +1318,115 @@ let shopLikedMap = {};
 let shopPurchasedSet = new Set();
 let shopActiveFilter = 'all';
 
+function openSellForm() {
+  if (!currentUser) { openAuth('register'); return; }
+  const modalHtml = `
+    <div class="modal-overlay" id="sell-modal">
+      <div class="modal">
+        <button class="modal-close" onclick="document.getElementById('sell-modal').remove()">×</button>
+        <h2>➕ Vendre un article</h2>
+        <p class="sub">CoeurnohBoost prélève 10% de commission sur chaque vente. Tu reçois 90% directement sur ton solde.</p>
+        <div class="modal-error hidden" id="sell-form-error"></div>
+
+        <div class="field">
+          <label>Type</label>
+          <select id="sell-type" class="text-input" onchange="toggleSellFields()">
+            <option value="book">📖 Livre (avec lien de téléchargement)</option>
+            <option value="product">🛍️ Produit (photo)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Titre</label>
+          <input type="text" id="sell-title" class="text-input" placeholder="Nom de ton article">
+        </div>
+        <div class="field">
+          <label>Description</label>
+          <textarea id="sell-description" class="text-input" rows="3" placeholder="Décris ce que tu vends..."></textarea>
+        </div>
+        <div class="field">
+          <label>Prix (USD)</label>
+          <input type="number" id="sell-price" class="text-input" placeholder="Ex: 5.99" step="0.01" min="0">
+        </div>
+        <div class="field">
+          <label>Lien de la photo</label>
+          <input type="url" id="sell-image" class="text-input" placeholder="https://i.postimg.cc/...">
+          <p class="muted small" style="margin-top:4px">Uploade ta photo sur <strong>postimages.org</strong>, copie le "Lien direct", colle-le ici.</p>
+        </div>
+        <div class="field" id="sell-file-field">
+          <label>Lien du fichier PDF</label>
+          <input type="url" id="sell-file" class="text-input" placeholder="https://drive.google.com/...">
+        </div>
+        <div class="field" id="sell-phone-field" style="display:none">
+          <label>Ton numéro WhatsApp (pour que l'acheteur te contacte)</label>
+          <input type="tel" id="sell-phone" class="text-input" placeholder="+243...">
+        </div>
+
+        <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:10px" onclick="submitSellForm()">Publier</button>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+  toggleSellFields();
+}
+
+function toggleSellFields() {
+  const type = document.getElementById('sell-type').value;
+  document.getElementById('sell-file-field').style.display = type === 'book' ? 'block' : 'none';
+  document.getElementById('sell-phone-field').style.display = type === 'product' ? 'block' : 'none';
+}
+
+async function submitSellForm() {
+  const errEl = document.getElementById('sell-form-error');
+  errEl.classList.add('hidden');
+
+  const type = document.getElementById('sell-type').value;
+  const title = document.getElementById('sell-title').value.trim();
+  const description = document.getElementById('sell-description').value.trim();
+  const price = parseFloat(document.getElementById('sell-price').value);
+  const imageUrl = document.getElementById('sell-image').value.trim();
+  const fileUrl = document.getElementById('sell-file').value.trim();
+  const phone = document.getElementById('sell-phone').value.trim();
+
+  if (!title || !description || isNaN(price) || price <= 0) {
+    errEl.textContent = "Merci de remplir le titre, la description et un prix valide.";
+    errEl.classList.remove('hidden');
+    return;
+  }
+  if (!imageUrl || !imageUrl.startsWith('http')) {
+    errEl.textContent = "Merci de coller un lien de photo valide.";
+    errEl.classList.remove('hidden');
+    return;
+  }
+  if (type === 'book' && (!fileUrl || !fileUrl.startsWith('http'))) {
+    errEl.textContent = "Merci de coller un lien valide vers le fichier PDF.";
+    errEl.classList.remove('hidden');
+    return;
+  }
+  if (type === 'product' && !phone) {
+    errEl.textContent = "Merci d'indiquer ton numéro WhatsApp pour que les acheteurs te contactent.";
+    errEl.classList.remove('hidden');
+    return;
+  }
+
+  try {
+    await db.collection('publications').add({
+      type, title, description, price, imageUrl,
+      fileUrl: type === 'book' ? fileUrl : null,
+      sellerUid: currentUser.uid,
+      sellerName: currentUser.name || 'Vendeur CoeurnohBoost',
+      sellerPhone: type === 'product' ? phone : null,
+      status: 'published',
+      likesCount: 0,
+      commentsCount: 0,
+      createdAt: new Date().toISOString()
+    });
+    document.getElementById('sell-modal').remove();
+    loadShopFeed();
+  } catch (e) {
+    errEl.textContent = "Erreur lors de la publication : " + e.message;
+    errEl.classList.remove('hidden');
+  }
+}
+
 function showShop() {
   hideAllViews();
   document.getElementById('view-shop').classList.remove('hidden');
@@ -1403,12 +1512,25 @@ function renderShopCard(item, isLiked, isPurchased) {
     ? `<a class="btn btn-primary btn-sm" style="margin-left:auto" href="${item.fileUrl}" target="_blank">📖 Télécharger</a>`
     : `<button class="btn btn-primary btn-sm" style="margin-left:auto" onclick="buyShopItem('${item.id}','${escapeForJs(item.title)}',${item.price},'${item.type}')" data-i18n="shop_buy">Commander</button>`;
 
+  // Le bouton WhatsApp n'apparait que sur les PRODUITS (coordination livraison),
+  // jamais sur les livres (achat direct + telechargement immediat suffit).
+  let whatsappHtml = '';
+  if (item.type === 'product' && item.sellerPhone) {
+    const waMessage = encodeURIComponent(`Bonjour, je suis intéressé(e) par : ${item.title}`);
+    whatsappHtml = `<a class="shop-action-btn" href="https://wa.me/${item.sellerPhone.replace(/\D/g,'')}?text=${waMessage}" target="_blank" title="Contacter le vendeur">💬📱</a>`;
+  }
+
+  const sellerLine = item.sellerName
+    ? `<span class="shop-card-seller">Vendu par ${item.sellerName}</span>`
+    : '';
+
   return `
   <div class="shop-card" id="shop-card-${item.id}">
     <img src="${item.imageUrl}" alt="${item.title}" class="shop-card-img">
     <div class="shop-card-body">
       <span class="shop-card-type">${typeLabel}${alreadyOwned ? ' · ✅ Déjà acheté' : ''}</span>
       <h3 class="shop-card-title">${item.title}</h3>
+      ${sellerLine}
       <p class="shop-card-desc">${item.description}</p>
       <div class="shop-card-price">${(item.price || 0).toFixed(2)}$</div>
 
@@ -1420,6 +1542,7 @@ function renderShopCard(item, isLiked, isPurchased) {
         <button class="shop-action-btn" onclick="toggleShopComments('${item.id}')">
           💬 <span id="shop-comment-count-${item.id}">${item.commentsCount || 0}</span>
         </button>
+        ${whatsappHtml}
         ${buyButtonHtml}
       </div>
 
@@ -1565,36 +1688,34 @@ async function confirmShopPurchase(pubId, title, price, itemType) {
   document.getElementById('shop-checkout-submit').classList.add('hidden');
 
   try {
-    const newBalance = currentUser.balance - price;
-    const orderRef = await db.collection('shop_orders').add({
-      uid: currentUser.uid,
-      email: currentUser.email,
-      pubId, itemTitle: title, itemType, amountUSD: price,
-      status: 'completed',
-      createdAt: new Date().toISOString(),
-      completedAt: new Date().toISOString()
+    const response = await fetch('/api/shop-purchase', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ uid: currentUser.uid, pubId })
     });
-    await db.collection('users').doc(currentUser.uid).update({ balance: newBalance });
-    currentUser.balance = newBalance;
+    const data = await response.json();
 
+    if (!data.success) {
+      throw new Error(data.error || "Erreur lors de l'achat");
+    }
+
+    currentUser.balance = data.newBalance;
     document.getElementById('shop-checkout-success').classList.remove('hidden');
 
     if (itemType === 'book') {
       shopPurchasedSet.add(pubId);
-      const pubDoc = await db.collection('publications').doc(pubId).get();
-      const fileUrl = pubDoc.data() && pubDoc.data().fileUrl;
-      if (fileUrl) {
+      if (data.fileUrl) {
         document.getElementById('shop-checkout-download').innerHTML =
-          `<a class="btn btn-primary" style="width:100%;justify-content:center;margin-top:10px" href="${fileUrl}" target="_blank">📖 Télécharger le livre</a>`;
+          `<a class="btn btn-primary" style="width:100%;justify-content:center;margin-top:10px" href="${data.fileUrl}" target="_blank">📖 Télécharger le livre</a>`;
       }
       renderShopFeed(); // le bouton "Commander" de la carte devient "Télécharger"
     } else {
       document.getElementById('shop-checkout-download').innerHTML =
-        `<p class="muted" style="text-align:center;margin-top:10px">On te contacte sur WhatsApp pour la livraison.</p>`;
+        `<p class="muted" style="text-align:center;margin-top:10px">Achat confirmé ! Utilise le bouton WhatsApp sur l'article pour coordonner la livraison avec le vendeur.</p>`;
     }
   } catch (e) {
     document.getElementById('shop-checkout-submit').classList.remove('hidden');
-    errEl.textContent = "Erreur lors de l'achat : " + e.message;
+    errEl.textContent = e.message;
     errEl.classList.remove('hidden');
   }
 }
