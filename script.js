@@ -1236,6 +1236,7 @@ document.addEventListener('DOMContentLoaded', () => {
   applyTranslations(currentLang);
   initHomeCatalog();
   initTutorialAutoShow();
+  updateCartBadge();
 });
 
 /* ================= TUTORIEL / GUIDE D'UTILISATION ================= */
@@ -1314,10 +1315,152 @@ function renderTutorialStep() {
 }
 
 /* ================= BOUTIQUE (livres & produits) ================= */
+/* ================= PANIER (produits uniquement) ================= */
+const CART_STORAGE_KEY = 'coeurnohboost_cart';
+let cartItems = [];
+try {
+  cartItems = JSON.parse(localStorage.getItem(CART_STORAGE_KEY) || '[]');
+} catch (e) { cartItems = []; }
+
+function saveCart() {
+  try { localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems)); } catch (e) { /* pas grave */ }
+  updateCartBadge();
+}
+
+function updateCartBadge() {
+  const badge = document.getElementById('cart-badge');
+  if (!badge) return;
+  if (cartItems.length > 0) {
+    badge.textContent = cartItems.length;
+    badge.classList.remove('hidden');
+  } else {
+    badge.classList.add('hidden');
+  }
+}
+
+function toggleCartItem(pubId, title, price, imageUrl) {
+  if (!currentUser) { openAuth('register'); return; }
+  const idx = cartItems.findIndex(c => c.id === pubId);
+  if (idx >= 0) {
+    cartItems.splice(idx, 1);
+  } else {
+    cartItems.push({ id: pubId, title, price, imageUrl });
+  }
+  saveCart();
+  renderShopFeed(); // met a jour le bouton "Ajouter" / "Dans le panier" sur la carte
+}
+
+function removeFromCart(pubId) {
+  cartItems = cartItems.filter(c => c.id !== pubId);
+  saveCart();
+  renderCartModal();
+  renderShopFeed();
+}
+
+function getCartTotal() {
+  const subtotal = cartItems.reduce((sum, c) => sum + c.price, 0);
+  const discountApplies = cartItems.length > 3;
+  const total = discountApplies ? Math.round(subtotal * 0.95 * 100) / 100 : subtotal;
+  return { subtotal: Math.round(subtotal * 100) / 100, discountApplies, total };
+}
+
+function openCart() {
+  if (!currentUser) { openAuth('register'); return; }
+  if (!document.getElementById('cart-modal')) {
+    document.body.insertAdjacentHTML('beforeend', `
+      <div class="modal-overlay" id="cart-modal">
+        <div class="modal">
+          <button class="modal-close" onclick="document.getElementById('cart-modal').classList.add('hidden')">×</button>
+          <h2>🛒 Mon panier</h2>
+          <div class="modal-error hidden" id="cart-error"></div>
+          <div id="cart-items-list"></div>
+          <div id="cart-summary"></div>
+          <button class="btn btn-primary" style="width:100%;margin-top:14px" id="cart-checkout-btn" onclick="checkoutCart()">Payer</button>
+        </div>
+      </div>`);
+  }
+  document.getElementById('cart-modal').classList.remove('hidden');
+  renderCartModal();
+}
+
+function renderCartModal() {
+  const listEl = document.getElementById('cart-items-list');
+  const summaryEl = document.getElementById('cart-summary');
+  if (!listEl) return;
+
+  if (cartItems.length === 0) {
+    listEl.innerHTML = '<p class="muted">Ton panier est vide.</p>';
+    summaryEl.innerHTML = '';
+    document.getElementById('cart-checkout-btn').classList.add('hidden');
+    return;
+  }
+  document.getElementById('cart-checkout-btn').classList.remove('hidden');
+
+  listEl.innerHTML = cartItems.map(c => `
+    <div class="cart-row">
+      <img src="${c.imageUrl}" class="cart-row-img" alt="">
+      <div class="cart-row-info"><strong>${c.title}</strong><div class="muted small">${c.price.toFixed(2)}$</div></div>
+      <button class="shop-action-btn" onclick="removeFromCart('${c.id}')">🗑️</button>
+    </div>
+  `).join('');
+
+  const { subtotal, discountApplies, total } = getCartTotal();
+  summaryEl.innerHTML = `
+    <div class="cart-summary-row"><span>Sous-total</span><span>${subtotal.toFixed(2)}$</span></div>
+    ${discountApplies ? `<div class="cart-summary-row cart-discount-row"><span>🎉 Remise -5% (plus de 3 articles)</span><span>-${(subtotal - total).toFixed(2)}$</span></div>` : ''}
+    <div class="cart-summary-row cart-total-row"><span>Total</span><span>${total.toFixed(2)}$</span></div>`;
+}
+
+async function checkoutCart() {
+  const errEl = document.getElementById('cart-error');
+  errEl.classList.add('hidden');
+  const { total } = getCartTotal();
+
+  if (total > (currentUser.balance || 0)) {
+    errEl.textContent = "Solde insuffisant. Recharge ton portefeuille pour continuer.";
+    errEl.classList.remove('hidden');
+    return;
+  }
+
+  document.getElementById('cart-checkout-btn').classList.add('hidden');
+  try {
+    const response = await fetch('/api/shop-purchase', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ uid: currentUser.uid, pubIds: cartItems.map(c => c.id) })
+    });
+    const data = await response.json();
+    if (!data.success) throw new Error(data.error || "Erreur lors du paiement");
+
+    currentUser.balance = data.newBalance;
+    cartItems = [];
+    saveCart();
+    document.getElementById('cart-items-list').innerHTML = `<p style="text-align:center;color:var(--green);font-weight:700">✅ Achat confirmé ! Contacte les vendeurs via WhatsApp sur chaque article pour la livraison.</p>`;
+    document.getElementById('cart-summary').innerHTML = '';
+    renderShopFeed();
+  } catch (e) {
+    document.getElementById('cart-checkout-btn').classList.remove('hidden');
+    errEl.textContent = e.message;
+    errEl.classList.remove('hidden');
+  }
+}
+
 let shopFeedItems = [];
 let shopLikedMap = {};
 let shopPurchasedSet = new Set();
 let shopActiveFilter = 'all';
+let shopActiveSort = 'recent';
+let shopActiveCategory = 'all';
+
+function setShopSort(sort) {
+  shopActiveSort = sort;
+  renderShopFeed();
+}
+
+function setShopCategory(category) {
+  shopActiveCategory = category;
+  renderShopFeed();
+}
 
 function openSellForm() {
   if (!currentUser) { openAuth('register'); return; }
@@ -1347,6 +1490,34 @@ function openSellForm() {
         <div class="field">
           <label>Prix (USD)</label>
           <input type="number" id="sell-price" class="text-input" placeholder="Ex: 5.99" step="0.01" min="0">
+        </div>
+        <div class="field">
+          <label>Catégorie</label>
+          <select id="sell-category" class="text-input">
+            <option value="ebooks">📚 Livres & Ebooks</option>
+            <option value="beaute">💄 Beauté & Bien-être</option>
+            <option value="mode">👗 Mode & Accessoires</option>
+            <option value="electronique">🔌 Électronique</option>
+            <option value="maison">🏠 Maison & Déco</option>
+            <option value="autres">📦 Autres</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Promotion (optionnel)</label>
+          <div style="display:flex;gap:8px">
+            <select id="sell-discount" class="text-input" style="flex:1">
+              <option value="0">Aucune réduction</option>
+              <option value="10">-10%</option>
+              <option value="20">-20%</option>
+              <option value="30">-30%</option>
+            </select>
+            <select id="sell-discount-duration" class="text-input" style="flex:1">
+              <option value="0">Sans limite de temps</option>
+              <option value="24">24 heures</option>
+              <option value="72">3 jours</option>
+              <option value="168">7 jours</option>
+            </select>
+          </div>
         </div>
         <div class="field">
           <label>Lien de la photo</label>
@@ -1383,9 +1554,12 @@ async function submitSellForm() {
   const title = document.getElementById('sell-title').value.trim();
   const description = document.getElementById('sell-description').value.trim();
   const price = parseFloat(document.getElementById('sell-price').value);
+  const category = document.getElementById('sell-category').value;
   const imageUrl = document.getElementById('sell-image').value.trim();
   const fileUrl = document.getElementById('sell-file').value.trim();
   const phone = document.getElementById('sell-phone').value.trim();
+  const discountPercent = parseInt(document.getElementById('sell-discount').value, 10) || 0;
+  const discountDurationHours = parseInt(document.getElementById('sell-discount-duration').value, 10) || 0;
 
   if (!title || !description || isNaN(price) || price <= 0) {
     errEl.textContent = "Merci de remplir le titre, la description et un prix valide.";
@@ -1410,11 +1584,15 @@ async function submitSellForm() {
 
   try {
     await db.collection('publications').add({
-      type, title, description, price, imageUrl,
+      type, title, description, price, category, imageUrl,
       fileUrl: type === 'book' ? fileUrl : null,
       sellerUid: currentUser.uid,
       sellerName: currentUser.name || 'Vendeur CoeurnohBoost',
       sellerPhone: type === 'product' ? phone : null,
+      discountPercent: discountPercent,
+      promoExpiresAt: (discountPercent > 0 && discountDurationHours > 0)
+        ? new Date(Date.now() + discountDurationHours * 60 * 60 * 1000).toISOString()
+        : null,
       status: 'published',
       likesCount: 0,
       commentsCount: 0,
@@ -1615,11 +1793,21 @@ function renderShopFeed() {
   if (shopActiveFilter !== 'all') {
     filtered = filtered.filter(item => item.type === shopActiveFilter);
   }
+  if (shopActiveCategory !== 'all') {
+    filtered = filtered.filter(item => item.category === shopActiveCategory);
+  }
   if (searchText) {
     filtered = filtered.filter(item =>
       (item.title || '').toLowerCase().includes(searchText) ||
       (item.description || '').toLowerCase().includes(searchText)
     );
+  }
+
+  filtered = filtered.slice(); // copie pour ne pas alterer l'ordre original de shopFeedItems
+  if (shopActiveSort === 'popular') {
+    filtered.sort((a, b) => (b.likesCount || 0) - (a.likesCount || 0));
+  } else {
+    filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   }
 
   // Rejoue le fondu doux a chaque mise a jour (retire puis rajoute la classe)
@@ -1637,12 +1825,35 @@ function renderShopFeed() {
   ).join('');
 }
 
+function getEffectivePrice(item) {
+  if (item.discountPercent > 0) {
+    const stillValid = !item.promoExpiresAt || new Date(item.promoExpiresAt) > new Date();
+    if (stillValid) {
+      return Math.round(item.price * (1 - item.discountPercent / 100) * 100) / 100;
+    }
+  }
+  return item.price;
+}
+
 function renderShopCard(item, isLiked, isPurchased) {
   const typeLabel = item.type === 'book' ? '📖 Livre' : '🛍️ Produit';
   const alreadyOwned = item.type === 'book' && isPurchased;
-  const buyButtonHtml = alreadyOwned
-    ? `<a class="btn btn-primary btn-sm" style="margin-left:auto" href="${item.fileUrl}" target="_blank">📖 Télécharger</a>`
-    : `<button class="btn btn-primary btn-sm" style="margin-left:auto" onclick="buyShopItem('${item.id}','${escapeForJs(item.title)}',${item.price},'${item.type}')" data-i18n="shop_buy">Commander</button>`;
+  const effectivePrice = getEffectivePrice(item);
+  const hasPromo = effectivePrice < item.price;
+
+  const priceHtml = hasPromo
+    ? `<div class="shop-card-price">${effectivePrice.toFixed(2)}$ <span class="shop-card-price-old">${item.price.toFixed(2)}$</span> <span class="shop-card-promo-badge">-${item.discountPercent}%</span></div>`
+    : `<div class="shop-card-price">${item.price.toFixed(2)}$</div>`;
+
+  let buyButtonHtml;
+  if (alreadyOwned) {
+    buyButtonHtml = `<a class="btn btn-primary btn-sm" style="margin-left:auto" href="${item.fileUrl}" target="_blank">📖 Télécharger</a>`;
+  } else if (item.type === 'book') {
+    buyButtonHtml = `<button class="btn btn-primary btn-sm" style="margin-left:auto" onclick="buyShopItem('${item.id}','${escapeForJs(item.title)}',${effectivePrice},'${item.type}')" data-i18n="shop_buy">Commander</button>`;
+  } else {
+    const inCart = cartItems.some(c => c.id === item.id);
+    buyButtonHtml = `<button class="btn ${inCart ? 'btn-outline' : 'btn-primary'} btn-sm" style="margin-left:auto" onclick="toggleCartItem('${item.id}','${escapeForJs(item.title)}',${effectivePrice},'${item.imageUrl}')">${inCart ? '✓ Dans le panier' : '🛒 Ajouter'}</button>`;
+  }
 
   // Le bouton WhatsApp n'apparait que sur les PRODUITS (coordination livraison),
   // jamais sur les livres (achat direct + telechargement immediat suffit).
@@ -1656,15 +1867,24 @@ function renderShopCard(item, isLiked, isPurchased) {
     ? `<span class="shop-card-seller">Vendu par ${item.sellerName}</span>`
     : '';
 
+  const categoryLabels = {
+    ebooks: '📚 Livres & Ebooks', beaute: '💄 Beauté & Bien-être', mode: '👗 Mode & Accessoires',
+    electronique: '🔌 Électronique', maison: '🏠 Maison & Déco', autres: '📦 Autres'
+  };
+  const categoryLine = item.category && categoryLabels[item.category]
+    ? `<span class="shop-card-category">${categoryLabels[item.category]}</span>`
+    : '';
+
   return `
   <div class="shop-card" id="shop-card-${item.id}">
     <img src="${item.imageUrl}" alt="${item.title}" class="shop-card-img">
     <div class="shop-card-body">
       <span class="shop-card-type">${typeLabel}${alreadyOwned ? ' · ✅ Déjà acheté' : ''}</span>
+      ${categoryLine}
       <h3 class="shop-card-title">${item.title}</h3>
       ${sellerLine}
       <p class="shop-card-desc">${item.description}</p>
-      <div class="shop-card-price">${(item.price || 0).toFixed(2)}$</div>
+      ${priceHtml}
 
       <div class="shop-card-actions">
         <button class="shop-action-btn ${isLiked ? 'liked' : ''}" id="shop-like-${item.id}" onclick="toggleShopLike('${item.id}')">
