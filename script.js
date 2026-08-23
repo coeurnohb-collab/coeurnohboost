@@ -1381,6 +1381,11 @@ function renderShopFeed() {
     );
   }
 
+  // Rejoue le fondu doux a chaque mise a jour (retire puis rajoute la classe)
+  feedEl.classList.remove('fade-refresh');
+  void feedEl.offsetWidth; // force le navigateur a "relire" avant de rajouter la classe
+  feedEl.classList.add('fade-refresh');
+
   if (filtered.length === 0) {
     feedEl.innerHTML = '<p class="muted">Aucun résultat. Essaie une autre recherche.</p>';
     return;
