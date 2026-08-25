@@ -1634,6 +1634,10 @@ function showSellerPage() {
 }
 
 /* ================= RETRAIT VENDEUR ================= */
+let withdrawMethod = 'mobile'; // 'mobile' ou 'crypto'
+let withdrawCountry = null;
+let withdrawOperator = null;
+
 function openWithdrawForm() {
   const balance = currentUser.balance || 0;
   const modalHtml = `
@@ -1645,22 +1649,36 @@ function openWithdrawForm() {
         <p class="muted small" style="margin-bottom:14px">Ta demande sera traitée manuellement par CoeurnohBoost, généralement sous 24-48h.</p>
         <div class="modal-error hidden" id="withdraw-form-error"></div>
 
-        <div class="field">
-          <label>Méthode</label>
-          <select id="withdraw-method" class="text-input" onchange="toggleWithdrawFields()">
-            <option value="airtel">📱 Airtel Money</option>
-            <option value="mtn">📱 MTN Mobile Money</option>
-            <option value="crypto">₿ Crypto (TRX/USDT)</option>
-          </select>
+        <div class="pay-method-tabs" id="withdraw-method-tabs"></div>
+
+        <div id="withdraw-panel-mobile">
+          <div class="field">
+            <label>Pays</label>
+            <select id="withdraw-country-select" class="select-input" onchange="onWithdrawCountryChange()"></select>
+          </div>
+          <div class="op-grid" id="withdraw-operators"></div>
+          <div class="field">
+            <label>Numéro de téléphone</label>
+            <input type="tel" id="withdraw-phone" class="text-input" placeholder="+243...">
+          </div>
         </div>
-        <div class="field" id="withdraw-phone-field">
-          <label>Numéro de téléphone</label>
-          <input type="tel" id="withdraw-phone" class="text-input" placeholder="+243...">
+
+        <div class="hidden" id="withdraw-panel-crypto">
+          <div class="field">
+            <label>Réseau</label>
+            <select id="withdraw-crypto-network" class="select-input">
+              <option value="usdt-trc20">USDT (TRC20 - Tron)</option>
+              <option value="usdt-bep20">USDT (BEP20 - BSC)</option>
+              <option value="btc">Bitcoin (BTC)</option>
+              <option value="trx">TRON (TRX)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Adresse du portefeuille</label>
+            <input type="text" id="withdraw-address" class="text-input" placeholder="Colle ton adresse ici">
+          </div>
         </div>
-        <div class="field" id="withdraw-address-field" style="display:none">
-          <label>Adresse du portefeuille crypto (réseau TRC20)</label>
-          <input type="text" id="withdraw-address" class="text-input" placeholder="T...">
-        </div>
+
         <div class="field">
           <label>Montant à retirer (USD)</label>
           <input type="number" id="withdraw-amount" class="text-input" placeholder="Ex: 20" step="0.01" min="1" max="${balance}">
@@ -1670,24 +1688,85 @@ function openWithdrawForm() {
       </div>
     </div>`;
   document.body.insertAdjacentHTML('beforeend', modalHtml);
-  toggleWithdrawFields();
+  withdrawMethod = 'mobile'; withdrawCountry = null; withdrawOperator = null;
+  renderWithdrawMethodTabs();
+  renderWithdrawCountrySelect();
 }
 
-function toggleWithdrawFields() {
-  const method = document.getElementById('withdraw-method').value;
-  document.getElementById('withdraw-phone-field').style.display = method === 'crypto' ? 'none' : 'block';
-  document.getElementById('withdraw-address-field').style.display = method === 'crypto' ? 'block' : 'none';
+function renderWithdrawMethodTabs() {
+  const methods = [{ id: 'mobile', label: 'Mobile Money', icon: '📱' }, { id: 'crypto', label: 'Crypto', icon: '₿' }];
+  document.getElementById('withdraw-method-tabs').innerHTML = methods.map(m => `
+    <button class="${m.id === withdrawMethod ? 'active' : ''}" onclick="selectWithdrawMethod('${m.id}')">${m.icon} ${m.label}</button>
+  `).join('');
+  document.getElementById('withdraw-panel-mobile').classList.toggle('hidden', withdrawMethod !== 'mobile');
+  document.getElementById('withdraw-panel-crypto').classList.toggle('hidden', withdrawMethod !== 'crypto');
+}
+
+function selectWithdrawMethod(m) {
+  withdrawMethod = m;
+  renderWithdrawMethodTabs();
+}
+
+function renderWithdrawCountrySelect() {
+  const sel = document.getElementById('withdraw-country-select');
+  sel.innerHTML = `<option value="">Choisis ton pays</option>` +
+    COUNTRIES.map(c => `<option value="${c.code}">${c.flag} ${c.name}</option>`).join('');
+}
+
+function onWithdrawCountryChange() {
+  withdrawCountry = document.getElementById('withdraw-country-select').value || null;
+  withdrawOperator = null;
+  renderWithdrawOperators();
+}
+
+function renderWithdrawOperators() {
+  const country = COUNTRIES.find(c => c.code === withdrawCountry);
+  const el = document.getElementById('withdraw-operators');
+  if (!country) { el.innerHTML = ''; return; }
+  el.innerHTML = country.ops.map(op => {
+    const badge = getOperatorBadge(op);
+    return `
+    <div class="op-card${op === withdrawOperator ? ' active' : ''}" onclick="selectWithdrawOperator('${op.replace(/'/g, "\\'")}')">
+      <div class="op-icon" style="background:${badge.bg};${badge.dark ? 'color:#111' : 'color:#fff'}">${badge.label}</div>
+      <span class="op-name">${op}</span>
+    </div>`;
+  }).join('');
+}
+
+function selectWithdrawOperator(op) {
+  withdrawOperator = op;
+  renderWithdrawOperators();
 }
 
 async function submitWithdrawRequest() {
   const errEl = document.getElementById('withdraw-form-error');
   errEl.classList.add('hidden');
 
-  const method = document.getElementById('withdraw-method').value;
-  const phone = document.getElementById('withdraw-phone').value.trim();
-  const address = document.getElementById('withdraw-address').value.trim();
   const amount = parseFloat(document.getElementById('withdraw-amount').value);
-  const accountDetails = method === 'crypto' ? address : phone;
+  let method, accountDetails;
+
+  if (withdrawMethod === 'mobile') {
+    const phone = document.getElementById('withdraw-phone').value.trim();
+    const country = COUNTRIES.find(c => c.code === withdrawCountry);
+    if (!withdrawCountry || !withdrawOperator || !phone) {
+      errEl.textContent = "Merci de choisir ton pays, ton opérateur et ton numéro.";
+      errEl.classList.remove('hidden');
+      return;
+    }
+    method = `${withdrawOperator} (${country.name})`;
+    accountDetails = phone;
+  } else {
+    const network = document.getElementById('withdraw-crypto-network').value;
+    const address = document.getElementById('withdraw-address').value.trim();
+    if (!address) {
+      errEl.textContent = "Merci d'indiquer ton adresse crypto.";
+      errEl.classList.remove('hidden');
+      return;
+    }
+    const cryptoNames = { 'usdt-trc20': 'USDT (TRC20)', 'usdt-bep20': 'USDT (BEP20)', 'btc': 'Bitcoin', 'trx': 'TRON' };
+    method = cryptoNames[network] || network;
+    accountDetails = address;
+  }
 
   if (isNaN(amount) || amount <= 0) {
     errEl.textContent = "Merci d'indiquer un montant valide.";
@@ -1696,11 +1775,6 @@ async function submitWithdrawRequest() {
   }
   if (amount > (currentUser.balance || 0)) {
     errEl.textContent = "Ce montant dépasse ton solde disponible.";
-    errEl.classList.remove('hidden');
-    return;
-  }
-  if (!accountDetails) {
-    errEl.textContent = method === 'crypto' ? "Merci d'indiquer ton adresse crypto." : "Merci d'indiquer ton numéro de téléphone.";
     errEl.classList.remove('hidden');
     return;
   }
@@ -1724,7 +1798,7 @@ async function submitWithdrawRequest() {
 
     document.getElementById('withdraw-modal').remove();
     loadSellerWithdrawals();
-    loadSellerStats(); // rafraichit le solde affiche si utilise ailleurs
+    loadSellerStats();
   } catch (e) {
     errEl.textContent = "Erreur : " + e.message;
     errEl.classList.remove('hidden');
@@ -1750,7 +1824,7 @@ async function loadSellerWithdrawals() {
       return `
       <div class="seller-sale-row">
         <div>
-          <strong>${w.amountUSD.toFixed(2)}$</strong> — ${w.method === 'crypto' ? 'Crypto' : w.method === 'airtel' ? 'Airtel Money' : 'MTN Mobile Money'}
+          <strong>${w.amountUSD.toFixed(2)}$</strong> — ${w.method}
           <div class="muted small">${new Date(w.createdAt).toLocaleDateString('fr-FR')} · ${statusLabels[w.status] || w.status}</div>
         </div>
       </div>`;
