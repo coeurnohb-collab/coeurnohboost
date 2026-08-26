@@ -1325,7 +1325,7 @@ async function updateNotifBadge() {
       .where('uid', '==', currentUser.uid)
       .where('read', '==', false)
       .get();
-    const badge = document.getElementById('notif-badge');
+    const badge = document.getElementById('notif-badge-bnav');
     if (snap.size > 0) {
       badge.textContent = snap.size > 9 ? '9+' : snap.size;
       badge.classList.remove('hidden');
@@ -2438,115 +2438,4 @@ async function confirmShopPurchase(pubId, title, price, itemType) {
       renderShopFeed(); // le bouton "Commander" de la carte devient "Télécharger"
     } else {
       document.getElementById('shop-checkout-download').innerHTML =
-        `<p class="muted" style="text-align:center;margin-top:10px">Achat confirmé ! Utilise le bouton WhatsApp sur l'article pour coordonner la livraison avec le vendeur.</p>`;
-    }
-  } catch (e) {
-    document.getElementById('shop-checkout-submit').classList.remove('hidden');
-    errEl.textContent = e.message;
-    errEl.classList.remove('hidden');
-  }
-}
-
-/* ================= NOTIFICATIONS ================= */
-let notifUnsubscribe = null;
-let notifCache = [];
-let announcementsCache = [];
-
-function startNotifWatch() {
-  if (notifUnsubscribe) return; // deja actif
-  notifUnsubscribe = db.collection('notifications')
-    .where('uid', '==', currentUser.uid)
-    .orderBy('createdAt', 'desc')
-    .limit(50)
-    .onSnapshot((snap) => {
-      notifCache = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      updateNotifBadge();
-      if (!document.getElementById('notif-panel').classList.contains('hidden')) {
-        renderNotifPanel();
-      }
-    }, (err) => console.log('[notif] Erreur suivi notifications :', err.message));
-}
-
-function stopNotifWatch() {
-  if (notifUnsubscribe) { notifUnsubscribe(); notifUnsubscribe = null; }
-  notifCache = [];
-}
-
-function updateNotifBadge() {
-  const unreadCount = notifCache.filter(n => !n.read).length;
-  const badge = document.getElementById('notif-badge');
-  if (unreadCount > 0) {
-    badge.textContent = unreadCount > 9 ? '9+' : unreadCount;
-    badge.classList.remove('hidden');
-  } else {
-    badge.classList.add('hidden');
-  }
-}
-
-async function toggleNotifPanel() {
-  const panel = document.getElementById('notif-panel');
-  const willOpen = panel.classList.contains('hidden');
-  panel.classList.toggle('hidden');
-  if (!willOpen) return;
-
-  // Charge les annonces publiques recentes en parallele
-  try {
-    const annSnap = await db.collection('announcements').orderBy('createdAt', 'desc').limit(15).get();
-    announcementsCache = annSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  } catch (e) {
-    announcementsCache = [];
-  }
-
-  renderNotifPanel();
-
-  // Marque toutes les notifications personnelles non lues comme lues
-  const unread = notifCache.filter(n => !n.read);
-  if (unread.length > 0) {
-    try {
-      const batch = db.batch();
-      unread.forEach(n => batch.update(db.collection('notifications').doc(n.id), { read: true }));
-      await batch.commit();
-    } catch (e) { /* pas grave si ca echoue, ce n'est pas critique */ }
-  }
-}
-
-function renderNotifPanel() {
-  const listEl = document.getElementById('notif-panel-list');
-  // Fusionne notifications personnelles + annonces publiques, triees par date
-  const merged = [
-    ...notifCache.map(n => ({ ...n, isAnnouncement: false })),
-    ...announcementsCache.map(a => ({ ...a, isAnnouncement: true }))
-  ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 30);
-
-  if (merged.length === 0) {
-    listEl.innerHTML = '<p class="muted small" style="padding:16px">Aucune notification pour l\'instant.</p>';
-    return;
-  }
-
-  const typeIcons = {
-    recharge: '💰', purchase: '🛒', sale: '🎉', like: '❤️', comment: '💬',
-    order: '📦', announcement: '📢'
-  };
-
-  listEl.innerHTML = merged.map(n => `
-    <div class="notif-item ${!n.isAnnouncement && !n.read ? 'unread' : ''}">
-      <span class="notif-item-icon">${typeIcons[n.type] || '🔔'}</span>
-      <div class="notif-item-body">
-        <strong>${n.title}</strong>
-        <div class="muted small">${n.body}</div>
-        <div class="notif-item-time">${timeAgo(n.createdAt)}</div>
-      </div>
-    </div>
-  `).join('');
-}
-
-function timeAgo(isoDate) {
-  const diffMs = Date.now() - new Date(isoDate).getTime();
-  const mins = Math.floor(diffMs / 60000);
-  if (mins < 1) return "À l'instant";
-  if (mins < 60) return `Il y a ${mins} min`;
-  const hours = Math.floor(mins / 60);
-  if (hours < 24) return `Il y a ${hours}h`;
-  const days = Math.floor(hours / 24);
-  return `Il y a ${days}j`;
-}
+        `<p class="muted" style="text-align:center;margin-top:10
