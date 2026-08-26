@@ -1,6 +1,6 @@
-/* =========================================================
-   FIREBASE CONFIG — projet "coeurnohboost"
-   ========================================================= */
+/* ==========================================================================
+   FIREBASE CONFIG & INITIALISATION
+   ========================================================================== */
 const firebaseConfig = {
   apiKey: "AIzaSyAK9j8lmKlxp267bfwKegKgW54fo_jrS9E",
   authDomain: "coeurnohboost.firebaseapp.com",
@@ -11,7 +11,6 @@ const firebaseConfig = {
 };
 
 const ADMIN_UID = "8BqWONj07hVZePHe2DrkHWYRjse2";
-
 let fbReady = false;
 let auth = null;
 let db = null;
@@ -23,14 +22,14 @@ try {
   auth = firebase.auth();
   db = firebase.firestore();
   fbReady = true;
-  console.log("✅ Firebase initialisé");
+  console.log("Firebase initialisé");
 } catch (e) {
-  console.error("🔴 Firebase a échoué :", e.message);
+  console.error("Firebase a échoué:", e.message);
 }
 
-/* =========================================================
+/* ==========================================================================
    NAVIGATION ENTRE VUES
-   ========================================================= */
+   ========================================================================== */
 function hideAllViews() {
   document.getElementById('view-home').classList.add('hidden');
   document.getElementById('view-dashboard').classList.add('hidden');
@@ -41,16 +40,17 @@ function hideAllViews() {
   document.getElementById('view-shop').classList.add('hidden');
   document.getElementById('view-seller').classList.add('hidden');
 }
+
 function showHome() {
   hideAllViews();
   document.getElementById('view-home').classList.remove('hidden');
 }
+
 function showDashboard() {
   hideAllViews();
   document.getElementById('view-dashboard').classList.remove('hidden');
-  showDashTab('home');
-  updateNotifBadge();
 }
+
 function showDashTab(tab) {
   document.querySelectorAll('.dash-tab').forEach(el => el.classList.add('hidden'));
   document.getElementById('dash-tab-' + tab).classList.remove('hidden');
@@ -60,91 +60,89 @@ function showDashTab(tab) {
   if (tab === 'home') renderFAQ();
   if (tab === 'account') renderReferralBox();
 }
+
 function showServices() {
   hideAllViews();
   document.getElementById('view-services').classList.remove('hidden');
   renderPlatformGrid('platform-grid');
 }
 
-
 let selectedPlatformId = null;
 let selectedQuality = "standard";
 
-/* =========================================================
-   PAIEMENTS — pays d'Afrique francophone + voisins RDC + crypto
-   ⚠️ Taux de change indicatifs, à ajuster régulièrement.
-   ========================================================= */
+/* ==========================================================================
+   DONNÉES PAIEMENTS & TAUX
+   ========================================================================== */
 const COUNTRIES = [
-  { code:"CD", name:"RD Congo",             flag:"🇨🇩", currency:"CDF",  rate:2800,  ops:["Vodacom M-Pesa","Airtel Money","Orange Money"] },
-  { code:"CG", name:"Congo-Brazzaville",     flag:"🇨🇬", currency:"XAF",  rate:600,   ops:["MTN Mobile Money","Airtel Money"] },
-  { code:"CF", name:"Centrafrique",          flag:"🇨🇫", currency:"XAF",  rate:600,   ops:["Orange Money","Telecel Money"] },
-  { code:"CM", name:"Cameroun",              flag:"🇨🇲", currency:"XAF",  rate:600,   ops:["MTN Mobile Money","Orange Money"] },
-  { code:"CI", name:"Côte d'Ivoire",         flag:"🇨🇮", currency:"XOF",  rate:600,   ops:["Orange Money","MTN Mobile Money","Moov Money","Wave"] },
-  { code:"SN", name:"Sénégal",               flag:"🇸🇳", currency:"XOF",  rate:600,   ops:["Orange Money","Free Money","Wave"] },
-  { code:"ML", name:"Mali",                  flag:"🇲🇱", currency:"XOF",  rate:600,   ops:["Orange Money","Moov Money"] },
-  { code:"BF", name:"Burkina Faso",          flag:"🇧🇫", currency:"XOF",  rate:600,   ops:["Orange Money","Moov Money"] },
-  { code:"TG", name:"Togo",                  flag:"🇹🇬", currency:"XOF",  rate:600,   ops:["T-Money (Togocom)","Moov Money"] },
-  { code:"BJ", name:"Bénin",                 flag:"🇧🇯", currency:"XOF",  rate:600,   ops:["MTN Mobile Money","Moov Money"] },
-  { code:"GN", name:"Guinée",                flag:"🇬🇳", currency:"GNF",  rate:8600,  ops:["Orange Money","MTN Mobile Money"] },
-  { code:"NE", name:"Niger",                 flag:"🇳🇪", currency:"XOF",  rate:600,   ops:["Airtel Money","Orange Money","Moov Money"] },
-  { code:"UG", name:"Ouganda",               flag:"🇺🇬", currency:"UGX",  rate:3700,  ops:["MTN Mobile Money","Airtel Money"] },
-  { code:"RW", name:"Rwanda",                flag:"🇷🇼", currency:"RWF",  rate:1300,  ops:["MTN Mobile Money","Airtel Money"] },
-  { code:"BI", name:"Burundi",               flag:"🇧🇮", currency:"BIF",  rate:2900,  ops:["Lumitel Pesa","Ecocash"] },
-  { code:"TZ", name:"Tanzanie",              flag:"🇹🇿", currency:"TZS",  rate:2500,  ops:["M-Pesa (Vodacom)","Tigo Pesa","Airtel Money"] },
-  { code:"ZM", name:"Zambie",                flag:"🇿🇲", currency:"ZMW",  rate:27,    ops:["MTN Mobile Money","Airtel Money"] },
-  { code:"AO", name:"Angola",                flag:"🇦🇴", currency:"AOA",  rate:830,   ops:["Unitel Money","Multicaixa Express"] },
-  { code:"KE", name:"Kenya",                 flag:"🇰🇪", currency:"KES",  rate:129,   ops:["M-Pesa (Safaricom)","Airtel Money"] },
-  { code:"SS", name:"Soudan du Sud",         flag:"🇸🇸", currency:"SSP",  rate:130,   ops:["MTN Mobile Money","Zain Cash"] },
-  { code:"SD", name:"Soudan",                flag:"🇸🇩", currency:"SDG",  rate:600,   ops:["Zain Cash","MTN Mobile Money"] },
-  { code:"LY", name:"Libye",                 flag:"🇱🇾", currency:"LYD",  rate:4.8,   ops:["Mobicash"] },
-  { code:"MA", name:"Maroc",                 flag:"🇲🇦", currency:"MAD",  rate:9.9,   ops:["Orange Money","inwi money"] },
-  { code:"TN", name:"Tunisie",               flag:"🇹🇳", currency:"TND",  rate:3.1,   ops:["Orange Money","D17"] },
-  { code:"DZ", name:"Algérie",               flag:"🇩🇿", currency:"DZD",  rate:134,   ops:["Djezzy","Mobilis"] },
-  { code:"GH", name:"Ghana",                 flag:"🇬🇭", currency:"GHS",  rate:15,    ops:["MTN Mobile Money","Vodafone Cash","AirtelTigo Money"] },
-  { code:"NG", name:"Nigeria",               flag:"🇳🇬", currency:"NGN",  rate:1550,  ops:["MTN MoMo","Airtel Money","Opay"] },
-  { code:"TD", name:"Tchad",                 flag:"🇹🇩", currency:"XAF",  rate:600,   ops:["Airtel Money","Moov Money"] },
-  { code:"ET", name:"Éthiopie",              flag:"🇪🇹", currency:"ETB",  rate:120,   ops:["Telebirr"] },
-  { code:"SL", name:"Sierra Leone",          flag:"🇸🇱", currency:"SLE",  rate:22.5,  ops:["Orange Money","Africell Money"] },
-  { code:"ZA", name:"Afrique du Sud",        flag:"🇿🇦", currency:"ZAR",  rate:18,    ops:["MTN MoMo","Vodacom"] },
-  { code:"MG", name:"Madagascar",            flag:"🇲🇬", currency:"MGA",  rate:4500,  ops:["Orange Money","Telma Mvola","Airtel Money"] }
+  { code: "CD", name: "RD Congo", flag: "🇨🇩", currency: "CDF", rate: 2800, ops: ["Vodacom M-Pesa", "Airtel Money", "Orange Money"] },
+  { code: "CG", name: "Congo-Brazzaville", flag: "🇨🇬", currency: "XAF", rate: 600, ops: ["MTN Mobile Money", "Airtel Money"] },
+  { code: "CF", name: "Centrafrique", flag: "🇨🇫", currency: "XAF", rate: 600, ops: ["Orange Money", "Telecel Money"] },
+  { code: "CM", name: "Cameroun", flag: "🇨🇲", currency: "XAF", rate: 600, ops: ["MTN Mobile Money", "Orange Money"] },
+  { code: "CI", name: "Côte d'Ivoire", flag: "🇨🇮", currency: "XOF", rate: 600, ops: ["Orange Money", "MTN Mobile Money", "Wave", "Moov Money"] },
+  { code: "SN", name: "Sénégal", flag: "🇸🇳", currency: "XOF", rate: 600, ops: ["Orange Money", "Free Money", "Wave"] },
+  { code: "ML", name: "Mali", flag: "🇲🇱", currency: "XOF", rate: 600, ops: ["Orange Money", "Moov Money"] },
+  { code: "BF", name: "Burkina Faso", flag: "🇧🇫", currency: "XOF", rate: 600, ops: ["Orange Money", "Moov Money"] },
+  { code: "TG", name: "Togo", flag: "🇹🇬", currency: "XOF", rate: 600, ops: ["T-Money (Togocom)", "Moov Money"] },
+  { code: "BJ", name: "Bénin", flag: "🇧🇯", currency: "XOF", rate: 600, ops: ["MTN Mobile Money", "Moov Money"] },
+  { code: "GN", name: "Guinée", flag: "🇬🇳", currency: "GNF", rate: 8600, ops: ["Orange Money", "MTN Mobile Money"] },
+  { code: "NE", name: "Niger", flag: "🇳🇪", currency: "XOF", rate: 600, ops: ["Airtel Money", "Orange Money", "Moov Money"] },
+  { code: "UG", name: "Ouganda", flag: "🇺🇬", currency: "UGX", rate: 3700, ops: ["MTN Mobile Money", "Airtel Money"] },
+  { code: "RW", name: "Rwanda", flag: "🇷🇼", currency: "RWF", rate: 1300, ops: ["MTN Mobile Money", "Airtel Money"] },
+  { code: "BI", name: "Burundi", flag: "🇧🇮", currency: "BIF", rate: 2900, ops: ["Lumitel Pesa", "Ecocash"] },
+  { code: "TZ", name: "Tanzanie", flag: "🇹🇿", currency: "TZS", rate: 2500, ops: ["M-Pesa (Vodacom)", "Tigo Pesa", "Airtel Money"] },
+  { code: "ZM", name: "Zambie", flag: "🇿🇲", currency: "ZMW", rate: 27, ops: ["MTN Mobile Money", "Airtel Money"] },
+  { code: "AO", name: "Angola", flag: "🇦🇴", currency: "AOA", rate: 830, ops: ["Unitel Money", "Multicaixa Express"] },
+  { code: "KE", name: "Kenya", flag: "🇰🇪", currency: "KES", rate: 129, ops: ["M-Pesa (Safaricom)", "Airtel Money"] },
+  { code: "SS", name: "Soudan du Sud", flag: "🇸🇸", currency: "SSP", rate: 130, ops: ["MTN Mobile Money", "Zain Cash"] },
+  { code: "SD", name: "Soudan", flag: "🇸🇩", currency: "SDG", rate: 600, ops: ["Zain Cash", "MTN Mobile Money"] },
+  { code: "LY", name: "Libye", flag: "🇱🇾", currency: "LYD", rate: 4.8, ops: ["Mobicash"] },
+  { code: "MA", name: "Maroc", flag: "🇲🇦", currency: "MAD", rate: 9.9, ops: ["Orange Money", "inwi money"] },
+  { code: "TN", name: "Tunisie", flag: "🇹🇳", currency: "TND", rate: 3.1, ops: ["Orange Money", "D17"] },
+  { code: "DZ", name: "Algérie", flag: "🇩🇿", currency: "DZD", rate: 134, ops: ["Djezzy", "Mobilis"] },
+  { code: "GH", name: "Ghana", flag: "🇬🇭", currency: "GHS", rate: 15, ops: ["MTN Mobile Money", "Vodafone Cash", "Airtel Tigo Money"] },
+  { code: "NG", name: "Nigeria", flag: "🇳🇬", currency: "NGN", rate: 1550, ops: ["MTN MoMo", "Airtel Money", "Opay"] },
+  { code: "TD", name: "Tchad", flag: "🇹🇩", currency: "XAF", rate: 600, ops: ["Airtel Money", "Moov Money"] },
+  { code: "ET", name: "Éthiopie", flag: "🇪🇹", currency: "ETB", rate: 120, ops: ["Telebirr"] },
+  { code: "SL", name: "Sierra Leone", flag: "🇸🇱", currency: "SLE", rate: 22.5, ops: ["Orange Money", "Africell Money"] },
+  { code: "ZA", name: "Afrique du Sud", flag: "🇿🇦", currency: "ZAR", rate: 18, ops: ["MTN MoMo", "Vodacom"] },
+  { code: "MG", name: "Madagascar", flag: "🇲🇬", currency: "MGA", rate: 4500, ops: ["Orange Money", "Telma Mvola", "Airtel Money"] }
 ];
 
 const CRYPTOS = [
-  { id:"usdt-trc20", name:"USDT (TRC20 - Tron)", icon:"₮", bg:"#26A17B" },
-  { id:"usdt-bep20", name:"USDT (BEP20 - BSC)",  icon:"₮", bg:"#26A17B" },
-  { id:"btc",        name:"Bitcoin (BTC)",        icon:"₿", bg:"#F7931A" },
-  { id:"trx",        name:"TRON (TRX)",           icon:"T", bg:"#EB0029" }
+  { id: "usdt-trc20", name: "USDT (TRC20 Tron)", icon: "₮", bg: "#26A17B" },
+  { id: "usdt-bep20", name: "USDT (BEP20 BSC)", icon: "₮", bg: "#26A17B" },
+  { id: "btc", name: "Bitcoin (BTC)", icon: "₿", bg: "#F7931A" },
+  { id: "trx", name: "TRON (TRX)", icon: "T", bg: "#EB0029" }
 ];
 
-/* Badge coloré par opérateur mobile money (reconnaissance visuelle par marque) */
 function getOperatorBadge(name) {
   const n = name.toLowerCase();
-  if (n.includes('m-pesa') && n.includes('vodacom')) return { bg:'#E60000', label:'M' };
-  if (n.includes('m-pesa')) return { bg:'#4CAF50', label:'M' };
-  if (n.includes('vodacom')) return { bg:'#E60000', label:'V' };
-  if (n.includes('airteltigo')) return { bg:'#0033A0', label:'AT' };
-  if (n.includes('airtel')) return { bg:'#ED1C24', label:'A' };
-  if (n.includes('orange')) return { bg:'#FF6600', label:'O' };
-  if (n.includes('mtn')) return { bg:'#FFCC00', label:'M', dark:true };
-  if (n.includes('moov')) return { bg:'#0066CC', label:'M' };
-  if (n.includes('wave')) return { bg:'#00A3E0', label:'W' };
-  if (n.includes('free')) return { bg:'#CC0000', label:'F' };
-  if (n.includes('telecel')) return { bg:'#6A1B9A', label:'T' };
-  if (n.includes('t-money') || n.includes('togocom')) return { bg:'#00A19A', label:'T' };
-  if (n.includes('zain')) return { bg:'#6A1B9A', label:'Z' };
-  if (n.includes('lumitel')) return { bg:'#F7941D', label:'L' };
-  if (n.includes('ecocash')) return { bg:'#1E8449', label:'E' };
-  if (n.includes('unitel')) return { bg:'#0057A8', label:'U' };
-  if (n.includes('multicaixa')) return { bg:'#D32F2F', label:'MC' };
-  if (n.includes('djezzy')) return { bg:'#6A1B9A', label:'D' };
-  if (n.includes('mobilis')) return { bg:'#2E7D32', label:'M' };
-  if (n.includes('mobicash')) return { bg:'#0057A8', label:'MC' };
-  if (n.includes('inwi')) return { bg:'#FF6600', label:'I' };
-  if (n.includes('d17')) return { bg:'#0057A8', label:'D17' };
-  if (n.includes('telebirr')) return { bg:'#2E9E4F', label:'T' };
-  if (n.includes('africell')) return { bg:'#6A1B9A', label:'A' };
-  if (n.includes('opay')) return { bg:'#00A650', label:'O' };
-  return { bg:'#555555', label: name[0] };
+  if (n.includes('m-pesa') && n.includes('vodacom')) return { bg: '#E60000', label: 'M' };
+  if (n.includes('m-pesa')) return { bg: '#4CAF50', label: 'M' };
+  if (n.includes('vodacom')) return { bg: '#E60000', label: 'V' };
+  if (n.includes('airteltigo')) return { bg: '#0033A0', label: 'AT' };
+  if (n.includes('airtel')) return { bg: '#ED1C24', label: 'A' };
+  if (n.includes('orange')) return { bg: '#FF6600', label: 'O' };
+  if (n.includes('mtn')) return { bg: '#FFCC00', label: 'M', dark: true };
+  if (n.includes('moov')) return { bg: '#0066CC', label: 'M' };
+  if (n.includes('wave')) return { bg: '#00A3E0', label: 'W' };
+  if (n.includes('free')) return { bg: '#CC0000', label: 'F' };
+  if (n.includes('telecel')) return { bg: '#6A1B9A', label: 'T' };
+  if (n.includes('t-money') || n.includes('togocom')) return { bg: '#00A19A', label: 'T' };
+  if (n.includes('zain')) return { bg: '#6A1B9A', label: 'Z' };
+  if (n.includes('lumitel')) return { bg: '#F7941D', label: 'L' };
+  if (n.includes('ecocash')) return { bg: '#1E8449', label: 'E' };
+  if (n.includes('unitel')) return { bg: '#0057A8', label: 'U' };
+  if (n.includes('multicaixa')) return { bg: '#D32F2F', label: 'MC' };
+  if (n.includes('djezzy')) return { bg: '#6A1B9A', label: 'D' };
+  if (n.includes('mobilis')) return { bg: '#2E7D32', label: 'M' };
+  if (n.includes('mobicash')) return { bg: '#0057A8', label: 'MC' };
+  if (n.includes('inwi')) return { bg: '#FF6600', label: 'I' };
+  if (n.includes('d17')) return { bg: '#0057A8', label: 'D17' };
+  if (n.includes('telebirr')) return { bg: '#2E9E4F', label: 'T' };
+  if (n.includes('africell')) return { bg: '#6A1B9A', label: 'A' };
+  if (n.includes('opay')) return { bg: '#00A650', label: 'O' };
+  return { bg: '#555555', label: name[0] };
 }
 
 let payMethod = "mobile";
@@ -154,36 +152,37 @@ let payCryptoId = null;
 let payCurrency = "USD";
 let LIVE_RATES = null;
 
-/* Récupère les taux de change en direct (API publique, gratuite, sans clé) */
 async function fetchLiveRates() {
   try {
     const res = await fetch('https://open.er-api.com/v6/latest/USD');
     const data = await res.json();
     if (data && data.result === 'success' && data.rates) {
       LIVE_RATES = data.rates;
-      console.log('✅ Taux de change en direct chargés');
+      console.log('Taux de change en direct chargés');
     }
   } catch (e) {
-    console.warn('⚠️ Taux en direct indisponibles, utilisation des taux indicatifs.', e.message);
+    console.warn('Taux en direct indisponibles, utilisation des taux indicatifs.', e.message);
     LIVE_RATES = null;
   }
 }
 
-/* Charge les prix personnalisés définis par l'admin (collection Firestore "pricing") */
 async function loadPricingOverrides() {
   try {
     const snap = await db.collection('pricing').get();
     const overrides = {};
     snap.forEach(doc => { overrides[doc.id] = doc.data().services || []; });
-    applyPricingOverrides(overrides);
-    console.log('✅ Prix personnalisés chargés');
+    if (typeof applyPricingOverrides === 'function') {
+      applyPricingOverrides(overrides);
+    }
+    console.log('Prix personnalisés chargés');
   } catch (e) {
-    console.warn('⚠️ Pas de prix personnalisés (utilisation des prix par défaut).', e.message);
+    console.warn('Pas de prix personnalisés (utilisation des prix par défaut).', e.message);
   }
 }
 
 function renderPlatformGrid(gridId) {
   const el = document.getElementById(gridId);
+  if (!el || typeof PLATFORMS === 'undefined') return;
   el.innerHTML = PLATFORMS.map(p => `
     <div class="platform-badge" onclick="onPlatformClick('${p.id}')">
       ${platformBadgeHTML(p)}
@@ -191,9 +190,11 @@ function renderPlatformGrid(gridId) {
     </div>
   `).join('');
 }
+
 function initHomeCatalog() {
   renderPlatformGrid('home-platform-grid');
 }
+
 function filterPlatformGrid(gridId, query) {
   const q = query.trim().toLowerCase();
   document.querySelectorAll(`#${gridId} .platform-badge`).forEach(card => {
@@ -202,8 +203,6 @@ function filterPlatformGrid(gridId, query) {
   });
 }
 
-/* Sur l'accueil public (non connecté) → ouvre l'inscription.
-   Depuis le dashboard → ouvre le formulaire de commande. */
 function onPlatformClick(platformId) {
   if (currentUser) {
     openOrderForm(platformId);
@@ -220,13 +219,10 @@ function openOrderForm(platformId, presetTypeIndex, presetQty, presetTier) {
     ${platformBadgeHTML(p)}
     <h2>${p.name}</h2>
   `;
-
   renderBundles(platformId);
-
   const services = SERVICE_CATALOG[platformId] || [];
   const select = document.getElementById('order-service-select');
   select.innerHTML = services.map((s, i) => `<option value="${i}">${s.label}</option>`).join('');
-
   const qtyInput = document.getElementById('order-qty');
   if (presetTypeIndex !== undefined) {
     select.value = presetTypeIndex;
@@ -238,12 +234,10 @@ function openOrderForm(platformId, presetTypeIndex, presetQty, presetTier) {
     qtyInput.readOnly = false;
     qtyInput.value = '';
   }
-
   renderQualityGrid();
   document.getElementById('order-link').value = '';
   document.getElementById('order-error').classList.add('hidden');
   onOrderInputChange();
-
   hideAllViews();
   document.getElementById('view-order').classList.remove('hidden');
 }
@@ -252,25 +246,29 @@ function renderBundles(platformId) {
   const bundles = BUNDLES[platformId];
   const box = document.getElementById('bundles-box');
   const list = document.getElementById('bundles-list');
-  if (!bundles || !bundles.length) { box.classList.add('hidden'); return; }
+  if (!bundles || !bundles.length) {
+    box.classList.add('hidden');
+    return;
+  }
   box.classList.remove('hidden');
   list.innerHTML = bundles.map((b, i) => {
     const price = bundlePrice(platformId, b);
     return `
-    <div class="bundle-card">
-      <div class="bundle-head">
-        <span class="bundle-label">${bundleLabel(platformId, b)}</span>
-        <span class="bundle-price">${price.toFixed(2)}$</span>
-      </div>
-      <input type="url" id="bundle-link-${platformId}-${i}" class="text-input" data-i18n-placeholder="order_link_ph" placeholder="https://..." style="margin-top:8px">
-      <div class="modal-error hidden" id="bundle-error-${platformId}-${i}" style="margin-top:8px"></div>
-      <div class="modal-loading hidden" id="bundle-success-${platformId}-${i}" style="margin-top:8px"></div>
-      <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:10px" onclick="buyBundle('${platformId}', ${i})">
-        <span data-i18n="pkg_buy">Acheter</span> — ${price.toFixed(2)}$
-      </button>
-    </div>`;
+      <div class="bundle-card">
+        <div class="bundle-head">
+          <span class="bundle-label">${bundleLabel(platformId, b)}</span>
+          <span class="bundle-price">${price.toFixed(2)}$</span>
+        </div>
+        <input type="url" id="bundle-link-${platformId}-${i}" class="text-input" placeholder="https://..." style="margin-top:8px">
+        <div class="modal-error hidden" id="bundle-error-${platformId}-${i}" style="margin-top:8px"></div>
+        <div class="modal-loading hidden" id="bundle-success-${platformId}-${i}" style="margin-top:8px"></div>
+        <button class="btn btn-primary" style="width: 100%; justify-content:center; margin-top: 10px" onclick="buyBundle('${platformId}', ${i})">
+          <span>Acheter</span> ${price.toFixed(2)}$
+        </button>
+      </div>`;
   }).join('');
 }
+
 async function buyBundle(platformId, idx) {
   const bundle = BUNDLES[platformId][idx];
   const price = bundlePrice(platformId, bundle);
@@ -280,7 +278,10 @@ async function buyBundle(platformId, idx) {
   errEl.classList.add('hidden');
   okEl.classList.add('hidden');
 
-  if (!currentUser) { openAuth('register'); return; }
+  if (!currentUser) {
+    openAuth('register');
+    return;
+  }
 
   const link = document.getElementById(`bundle-link-${platformId}-${idx}`).value.trim();
   if (!link) {
@@ -324,15 +325,17 @@ async function buyBundle(platformId, idx) {
 function renderQualityGrid() {
   const service = getSelectedService();
   const el = document.getElementById('quality-grid');
+  if (!el || typeof QUALITY_TIERS === 'undefined') return;
   el.innerHTML = QUALITY_TIERS.map(q => {
     const price = service ? service.price[q.id].toFixed(2) : '0.00';
     return `
-    <div class="quality-card${q.id === selectedQuality ? ' active' : ''}" onclick="selectQuality('${q.id}')">
-      <span class="q-name">${q.name}</span>
-      <span class="q-mult">${price}$ <small>/1000</small></span>
-    </div>`;
+      <div class="quality-card${q.id === selectedQuality ? ' active' : ''}" onclick="selectQuality('${q.id}')">
+        <span class="q-name">${q.name}</span>
+        <span class="q-mult">${price}$ <small>/1000</small></span>
+      </div>`;
   }).join('');
 }
+
 function selectQuality(qId) {
   selectedQuality = qId;
   renderQualityGrid();
@@ -351,16 +354,11 @@ function onOrderInputChange() {
   renderQualityGrid();
   const qty = parseInt(document.getElementById('order-qty').value || 0, 10);
   const price = (qty / 1000) * service.price[selectedQuality];
-
-  document.getElementById('order-qty-hint').textContent =
-    `Min ${service.min.toLocaleString('fr-FR')} · Max ${service.max.toLocaleString('fr-FR')}`;
-  document.getElementById('order-total-price').textContent = price.toFixed(2) + '$';
+  document.getElementById('order-qty-hint').textContent = `Min ${service.min.toLocaleString('fr-FR')} Max ${service.max.toLocaleString('fr-FR')}`;
+  document.getElementById('order-total-price').textContent = (isNaN(price) ? 0 : price).toFixed(2) + '$';
   document.getElementById('order-user-balance').textContent = ((currentUser && currentUser.balance) || 0).toFixed(2) + '$';
 }
 
-/* Tente de transmettre la commande automatiquement à MoreThanPanel via le serveur.
-   Si l'automatisation n'est pas encore branchée (pas de clé API, pas d'ID service),
-   la commande reste simplement en attente pour un traitement manuel — rien ne casse. */
 async function attemptAutomatedFulfillment(orderId, platformId, type, quality, link, quantity) {
   try {
     const res = await fetch('/api/place-smm-order', {
@@ -382,19 +380,18 @@ async function attemptAutomatedFulfillment(orderId, platformId, type, quality, l
       });
     }
   } catch (e) {
-    console.warn('Automatisation non disponible pour cette commande :', e.message);
+    console.warn('Automatisation non disponible pour cette commande:', e.message);
     try {
       await db.collection('orders').doc(orderId).update({
-        debugReason: 'Erreur fetch cote client : ' + e.message
+        debugReason: 'Erreur fetch cote client: ' + e.message
       });
-    } catch (e2) { /* rien de plus a faire */ }
+    } catch (e2) { }
   }
 }
 
 async function submitOrder() {
   const errEl = document.getElementById('order-error');
   errEl.classList.add('hidden');
-
   if (!currentUser) { openAuth('register'); return; }
 
   const service = getSelectedService();
@@ -403,7 +400,11 @@ async function submitOrder() {
   const price = (qty / 1000) * service.price[selectedQuality];
   const qualityInfo = QUALITY_TIERS.find(q => q.id === selectedQuality);
 
-  if (!link) { errEl.textContent = "Merci d'indiquer le lien à booster."; errEl.classList.remove('hidden'); return; }
+  if (!link) {
+    errEl.textContent = "Merci d'indiquer le lien à booster.";
+    errEl.classList.remove('hidden');
+    return;
+  }
   if (!qty || qty < service.min || qty > service.max) {
     errEl.textContent = `Quantité invalide (entre ${service.min} et ${service.max}).`;
     errEl.classList.remove('hidden');
@@ -427,6 +428,7 @@ async function submitOrder() {
       status: 'pending',
       createdAt: new Date().toISOString()
     });
+
     await db.collection('users').doc(currentUser.uid).update({ balance: newBalance });
     currentUser.balance = newBalance;
 
@@ -436,7 +438,7 @@ async function submitOrder() {
     showDashTab('orders');
     loadOrders();
   } catch (e) {
-    console.error("Erreur commande :", e.message);
+    console.error("Erreur commande:", e.message);
     errEl.textContent = "Erreur lors de l'enregistrement. Réessaie.";
     errEl.classList.remove('hidden');
   }
@@ -460,25 +462,27 @@ async function loadOrders() {
         </div>`;
       return;
     }
-    container.innerHTML = `<h2 style="margin-bottom:14px">${t('tab_orders')}</h2>` + orders.map(o => {
-      const p = PLATFORMS.find(x => x.id === o.platform);
-      return `
-        <div class="order-box">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-            <strong>${p ? p.name : o.platform} — ${o.service}</strong>
-            <span class="order-status">${o.status}</span>
-          </div>
-          <p class="muted small">${o.quality} · Qté ${o.quantity.toLocaleString('fr-FR')} · ${o.price.toFixed(2)}$</p>
-        </div>`;
-    }).join('');
+
+    container.innerHTML = `<h2 style="margin-bottom: 14px">${t('tab_orders')}</h2>` +
+      orders.map(o => {
+        const p = PLATFORMS.find(x => x.id === o.platform);
+        return `
+          <div class="order-box">
+            <div style="display: flex; justify-content: space-between; align-items:center; margin-bottom:6px">
+              <strong>${p ? p.name : o.platform} - ${o.service}</strong>
+              <span class="order-status">${o.status}</span>
+            </div>
+            <p class="muted small">${o.quality} · Qté ${(o.quantity || 0).toLocaleString('fr-FR')} · ${(o.price || 0).toFixed(2)}$</p>
+          </div>`;
+      }).join('');
   } catch (e) {
-    console.error("Erreur chargement commandes :", e.message);
+    console.error("Erreur chargement commandes:", e.message);
   }
 }
 
-/* =========================================================
+/* ==========================================================================
    RECHARGE / PAIEMENT
-   ========================================================= */
+   ========================================================================== */
 function showRecharge() {
   hideAllViews();
   document.getElementById('view-recharge').classList.remove('hidden');
@@ -491,31 +495,36 @@ function showRecharge() {
   document.getElementById('recharge-phone').value = '';
   document.getElementById('recharge-error').classList.add('hidden');
   document.getElementById('recharge-success').classList.add('hidden');
+
   renderPayMethodTabs();
   renderPayCountrySelect();
   renderPayPanel();
   if (!LIVE_RATES) fetchLiveRates();
 }
+
 function renderPayMethodTabs() {
   const methods = [
     { id: "mobile", label: t('pay_mobile'), icon: "📱" },
     { id: "crypto", label: t('pay_crypto'), icon: "₿" },
-    { id: "card",   label: t('pay_card'),   icon: "💳" }
+    { id: "card", label: t('pay_card'), icon: "💳" }
   ];
-  document.getElementById('pay-method-tabs').innerHTML = methods.map(m => `
-    <button class="${m.id === payMethod ? 'active' : ''}" onclick="selectPayMethod('${m.id}')">${m.icon} ${m.label}</button>
-  `).join('');
+  document.getElementById('pay-method-tabs').innerHTML = methods.map(m =>
+    `<button class="${m.id === payMethod ? 'active' : ''}" onclick="selectPayMethod('${m.id}')">${m.icon} ${m.label}</button>`
+  ).join('');
 }
+
 function selectPayMethod(m) {
   payMethod = m;
   renderPayMethodTabs();
   renderPayPanel();
 }
+
 function renderPayCountrySelect() {
   const sel = document.getElementById('pay-country-select');
   sel.innerHTML = `<option value="">${t('pay_choose_country')}</option>` +
     COUNTRIES.map(c => `<option value="${c.code}">${c.flag} ${c.name}</option>`).join('');
 }
+
 function onPayCountryChange() {
   payCountryCode = document.getElementById('pay-country-select').value || null;
   payOperator = null;
@@ -525,6 +534,7 @@ function onPayCountryChange() {
   renderPayCurrencyToggle();
   updateRechargeEquivalent();
 }
+
 function renderPayCurrencyToggle() {
   const toggleEl = document.getElementById('pay-currency-toggle');
   const labelEl = document.getElementById('recharge-amount-label');
@@ -537,9 +547,6 @@ function renderPayCurrencyToggle() {
     return;
   }
 
-  // Seule la RD Congo autorise le choix entre USD et la devise locale (CDF).
-  // Tous les autres pays sont exclusivement en USD, pour eviter toute confusion
-  // sur la devise reellement facturee au client.
   if (country.code !== 'CD') {
     payCurrency = 'USD';
     toggleEl.innerHTML = '';
@@ -555,9 +562,9 @@ function renderPayCurrencyToggle() {
   `;
   labelEl.textContent = payCurrency === 'USD' ? t('pay_amount_label') : `Montant (${country.currency})`;
 }
+
 function selectPayCurrency(cur) {
   const country = COUNTRIES.find(c => c.code === payCountryCode);
-  // Garde-fou : seule la RD Congo peut basculer vers la devise locale.
   if (cur === 'local' && (!country || country.code !== 'CD')) {
     cur = 'USD';
   }
@@ -566,23 +573,27 @@ function selectPayCurrency(cur) {
   document.getElementById('recharge-equivalent').textContent = '';
   renderPayCurrencyToggle();
 }
+
 function renderPayOperators() {
   const country = COUNTRIES.find(c => c.code === payCountryCode);
   const el = document.getElementById('pay-operators');
   if (!country) { el.innerHTML = ''; return; }
+
   el.innerHTML = country.ops.map(op => {
     const badge = getOperatorBadge(op);
     return `
-    <div class="op-card${op === payOperator ? ' active' : ''}" onclick="selectOperator('${op.replace(/'/g,"\\'")}')">
-      <div class="op-icon" style="background:${badge.bg};${badge.dark ? 'color:#111' : 'color:#fff'}">${badge.label}</div>
-      <span class="op-name">${op}</span>
-    </div>`;
+      <div class="op-card${op === payOperator ? ' active' : ''}" onclick="selectOperator('${op.replace(/'/g, "\\'")}')">
+        <div class="op-icon" style="background: ${badge.bg}; ${badge.dark ? 'color:#111' : 'color:#fff'}">${badge.label}</div>
+        <span class="op-name">${op}</span>
+      </div>`;
   }).join('');
 }
+
 function selectOperator(op) {
   payOperator = op;
   renderPayOperators();
 }
+
 function renderPayCryptoOptions() {
   const el = document.getElementById('pay-crypto-list');
   el.innerHTML = CRYPTOS.map(c => `
@@ -592,38 +603,45 @@ function renderPayCryptoOptions() {
     </div>
   `).join('');
 }
+
 function selectCrypto(id) {
   payCryptoId = id;
   renderPayCryptoOptions();
 }
+
 function renderPayPanel() {
   document.getElementById('pay-panel-mobile').classList.toggle('hidden', payMethod !== 'mobile');
   document.getElementById('pay-panel-crypto').classList.toggle('hidden', payMethod !== 'crypto');
   document.getElementById('pay-panel-card').classList.toggle('hidden', payMethod !== 'card');
   document.getElementById('recharge-amount-block').classList.toggle('hidden', payMethod === 'card');
   document.getElementById('recharge-submit-btn').classList.toggle('hidden', payMethod === 'card');
+
   if (payMethod === 'crypto') renderPayCryptoOptions();
   renderPayCurrencyToggle();
 }
+
 function updateRechargeEquivalent() {
   const amount = parseFloat(document.getElementById('recharge-amount').value || 0);
   const country = COUNTRIES.find(c => c.code === payCountryCode);
   const hint = document.getElementById('recharge-equivalent');
+
   if (payMethod === 'mobile' && country && amount > 0) {
     const liveRate = LIVE_RATES && LIVE_RATES[country.currency];
     const rate = liveRate || country.rate;
     const sourceTag = liveRate ? t('pay_rate_live') : t('pay_rate_indicative');
+
     if (payCurrency === 'local') {
       const usd = (amount / rate).toFixed(2);
-      hint.textContent = `≈ ${usd} USD · ${sourceTag}`;
+      hint.textContent = `≈ ${usd} USD (${sourceTag})`;
     } else {
       const local = (amount * rate).toLocaleString('fr-FR', { maximumFractionDigits: 0 });
-      hint.textContent = `≈ ${local} ${country.currency} · ${sourceTag}`;
+      hint.textContent = `≈ ${local} ${country.currency} (${sourceTag})`;
     }
   } else {
     hint.textContent = '';
   }
 }
+
 async function submitRecharge() {
   const errEl = document.getElementById('recharge-error');
   const okEl = document.getElementById('recharge-success');
@@ -632,9 +650,7 @@ async function submitRecharge() {
 
   if (!currentUser) { openAuth('register'); return; }
 
-  if (payMethod === 'card') {
-    return; // Carte virtuelle : bientôt disponible (le bouton est masqué pour cet onglet)
-  }
+  if (payMethod === 'card') return;
 
   const rawAmount = parseFloat(document.getElementById('recharge-amount').value || 0);
   if (!rawAmount || rawAmount <= 0) {
@@ -659,9 +675,6 @@ async function submitRecharge() {
     return;
   }
 
-  // Si le client a saisi le montant dans la devise locale, on le convertit
-  // en USD ici, une seule fois, pour que tout le reste du code (facture,
-  // enregistrement Firestore, credit du solde) continue de travailler en USD.
   let amount = rawAmount;
   if (payMethod === 'mobile' && payCurrency === 'local' && payCountryCode) {
     const localCountry = COUNTRIES.find(c => c.code === payCountryCode);
@@ -675,26 +688,18 @@ async function submitRecharge() {
     const crypto = CRYPTOS.find(c => c.id === payCryptoId);
 
     if (payMethod === 'crypto') {
-      // Paiement crypto : on cree une vraie facture Cryptomus via notre API serveur
       const response = await fetch('/api/cryptomus-payment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          uid: currentUser.uid,
-          amount: amount,
-          currency: 'USD'
-        })
+        body: JSON.stringify({ uid: currentUser.uid, amount, currency: 'USD' })
       });
       const data = await response.json();
-
       if (!response.ok || !data.success) {
-        console.error("Erreur creation facture Cryptomus :", data.error);
+        console.error("Erreur creation facture Cryptomus", data.error);
         errEl.textContent = t('pay_err_generic');
         errEl.classList.remove('hidden');
         return;
       }
-
-      // On enregistre la demande en attente, en gardant l'ID de facture pour le suivi
       await db.collection('topup_requests').add({
         uid: currentUser.uid,
         email: currentUser.email,
@@ -706,13 +711,10 @@ async function submitRecharge() {
         cryptomusInvoiceId: data.invoiceId,
         createdAt: new Date().toISOString()
       });
-
-      // On redirige l'utilisateur vers la page de paiement Cryptomus
       window.location.href = data.paymentUrl;
       return;
     }
 
-    // Mobile Money : on tente MboтePay (pays couverts), sinon flux manuel comme avant
     if (payMethod === 'mobile') {
       const response = await fetch('/api/mbotepay-payment', {
         method: 'POST',
@@ -722,14 +724,12 @@ async function submitRecharge() {
           amountUSD: amount,
           countryCode: payCountryCode,
           operatorName: payOperator,
-          phone: phone,
+          phone,
           chargeCurrency: payCurrency === 'USD' ? 'USD' : (country ? country.currency : null)
         })
       });
       const data = await response.json();
-
       if (data.supported && data.success) {
-        // Automatise : le client va recevoir une invite mobile money sur son telephone
         await db.collection('topup_requests').add({
           uid: currentUser.uid,
           email: currentUser.email,
@@ -753,7 +753,6 @@ async function submitRecharge() {
         errEl.classList.remove('hidden');
         return;
       }
-      // data.supported === false : pays non couvert par MboтePay, on tente CinetPay ci-dessous
 
       const cinetpayResponse = await fetch('/api/cinetpay-payment', {
         method: 'POST',
@@ -767,10 +766,7 @@ async function submitRecharge() {
         })
       });
       const cinetpayData = await cinetpayResponse.json();
-
       if (cinetpayData.supported && cinetpayData.success) {
-        // Automatise : on enregistre la demande puis on redirige vers la page CinetPay
-        // (Mobile Money OU Carte Bancaire selon le choix du client sur leur guichet)
         await db.collection('topup_requests').add({
           uid: currentUser.uid,
           email: currentUser.email,
@@ -792,10 +788,8 @@ async function submitRecharge() {
         errEl.classList.remove('hidden');
         return;
       }
-      // cinetpayData.supported === false : pays non couvert non plus, on continue vers le flux manuel ci-dessous
     }
 
-    // Autres methodes (et Mobile Money non couvert par MboтePay ni CinetPay) : demande manuelle comme avant
     await db.collection('topup_requests').add({
       uid: currentUser.uid,
       email: currentUser.email,
@@ -817,9 +811,9 @@ async function submitRecharge() {
   }
 }
 
-/* =========================================================
-   MONÉTISATION — critères par plateforme + services associés
-   ========================================================= */
+/* ==========================================================================
+   MONÉTISATION
+   ========================================================================== */
 const MONETIZATION = {
   youtube: {
     program: "YouTube Partner Program",
@@ -881,6 +875,7 @@ const MONETIZATION = {
 };
 
 function renderMonetizationGrid() {
+  if (typeof PLATFORMS === 'undefined') return;
   const platforms = PLATFORMS.filter(p => MONETIZATION[p.id]);
   const el = document.getElementById('monetization-grid');
   el.innerHTML = platforms.map(p => `
@@ -890,52 +885,54 @@ function renderMonetizationGrid() {
     </div>
   `).join('');
 }
+
 function renderMonetizationDetail(platformId) {
   const p = PLATFORMS.find(x => x.id === platformId);
   const m = MONETIZATION[platformId];
-  const services = SERVICE_CATALOG[platformId] || [];
   const el = document.getElementById('monetization-detail');
+
   if (!p || !m) { el.innerHTML = ''; return; }
+
   el.innerHTML = `
     <div class="order-box">
-      <div class="order-platform-header" style="margin-bottom:14px">
+      <div class="order-platform-header" style="margin-bottom: 14px">
         ${platformBadgeHTML(p)}
         <div>
-          <h2 style="font-size:1.05rem">${p.name}</h2>
+          <h2 style="font-size: 1.05rem">${p.name}</h2>
           <p class="muted" style="font-size:0.8rem">${m.program}</p>
         </div>
       </div>
       ${m.criteria.map(c => `
         <div class="profile-row">
           <span>${c.label}</span>
-          <span style="text-align:right;max-width:60%">${c.value}</span>
+          <span style="text-align:right; max-width: 60%">${c.value}</span>
         </div>
       `).join('')}
     </div>
-
     <div class="order-box pack-card">
       <div class="pack-head">
         <div>
-          <h3 style="color:var(--red);margin-bottom:2px">${m.pack.title}</h3>
+          <h3 style="color:var(--red); margin-bottom:2px">${m.pack.title}</h3>
           <p class="muted" style="font-size:0.8rem">${m.pack.desc}</p>
         </div>
         <div class="pack-price">${m.pack.price}$</div>
       </div>
-      <label class="field-label" style="margin-top:14px" data-i18n="order_link_label">Lien</label>
-      <input type="url" id="pack-link-${platformId}" class="text-input" data-i18n-placeholder="order_link_ph" placeholder="https://...">
+      <label class="field-label" style="margin-top: 14px">Lien</label>
+      <input type="url" id="pack-link-${platformId}" class="text-input" placeholder="https://...">
       <div class="modal-error hidden" id="pack-error-${platformId}"></div>
       <div class="modal-loading hidden" id="pack-success-${platformId}"></div>
-      <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:14px" onclick="buyMonetizationPackage('${platformId}')">
-        <span data-i18n="pack_buy_cta">Acheter ce pack</span> — ${m.pack.price}$
+      <button class="btn btn-primary" style="width: 100%; justify-content:center; margin-top: 14px" onclick="buyMonetizationPackage('${platformId}')">
+        <span>Acheter ce pack</span> ${m.pack.price}$
       </button>
-    </div>
-  `;
+    </div>`;
 }
+
 async function buyMonetizationPackage(platformId) {
   const m = MONETIZATION[platformId];
   const p = PLATFORMS.find(x => x.id === platformId);
   const errEl = document.getElementById(`pack-error-${platformId}`);
   const okEl = document.getElementById(`pack-success-${platformId}`);
+
   errEl.classList.add('hidden');
   okEl.classList.add('hidden');
 
@@ -969,34 +966,34 @@ async function buyMonetizationPackage(platformId) {
       status: 'pending',
       createdAt: new Date().toISOString()
     });
+
     document.getElementById('dash-balance').textContent = newBalance.toFixed(2) + '$';
     document.getElementById('wallet-balance').textContent = newBalance.toFixed(2) + '$';
     okEl.textContent = t('order_success');
     okEl.classList.remove('hidden');
   } catch (e) {
-    console.error("Erreur achat pack :", e.message);
+    console.error("Erreur achat pack:", e.message);
     errEl.textContent = t('pay_err_generic');
     errEl.classList.remove('hidden');
   }
 }
+
 function showMonetization() {
   hideAllViews();
   document.getElementById('view-monetization').classList.remove('hidden');
   renderMonetizationGrid();
-  document.getElementById('monetization-detail').innerHTML = '';
+  document.getElementById('monetization-detail').innerHTML = "";
 }
 
-/* =========================================================
-   PARRAINAGE — lien unique par utilisateur, 5% de commission
-   ========================================================= */
-/* Ouvre directement la Boutique sur l'article partage, si le lien contient ?produit=ID */
+/* ==========================================================================
+   PARRAINAGE & BOUTIQUE PARTAGE
+   ========================================================================== */
 async function openSharedProductIfAny() {
   const params = new URLSearchParams(window.location.search);
   const pubId = params.get('produit');
   if (!pubId) return;
 
   showShop();
-  // Laisse le temps au fil de se charger avant de chercher la carte
   setTimeout(() => {
     const card = document.getElementById(`shop-card-${pubId}`);
     if (card) {
@@ -1011,18 +1008,20 @@ function getPendingReferrerUid() {
   const params = new URLSearchParams(window.location.search);
   return params.get('ref') || null;
 }
+
 function renderReferralBox() {
   if (!currentUser) return;
   const link = `${window.location.origin}${window.location.pathname}?ref=${currentUser.uid}`;
   const el = document.getElementById('referral-link-text');
   if (el) el.textContent = link;
+
   db.collection('users').where('referredBy', '==', currentUser.uid).get()
     .then(snap => {
       const countEl = document.getElementById('referral-count-text');
       if (countEl) countEl.textContent = `${snap.size} ${t('referral_count_suffix')}`;
-    })
-    .catch(() => {});
+    }).catch(() => {});
 }
+
 function copyReferralLink() {
   const link = document.getElementById('referral-link-text').textContent;
   if (navigator.clipboard) {
@@ -1030,9 +1029,9 @@ function copyReferralLink() {
   }
 }
 
-/* =========================================================
+/* ==========================================================================
    FAQ
-   ========================================================= */
+   ========================================================================== */
 const FAQ_ITEMS = [
   { q: "faq_q1", a: "faq_a1" },
   { q: "faq_q2", a: "faq_a2" },
@@ -1040,6 +1039,7 @@ const FAQ_ITEMS = [
   { q: "faq_q4", a: "faq_a4" },
   { q: "faq_q5", a: "faq_a5" }
 ];
+
 function renderFAQ() {
   const el = document.getElementById('faq-list');
   if (!el) return;
@@ -1053,28 +1053,30 @@ function renderFAQ() {
     </div>
   `).join('');
 }
+
 function toggleFAQ(i) {
   document.getElementById(`faq-a-${i}`).classList.toggle('open');
   document.getElementById(`faq-icon-${i}`).classList.toggle('open');
 }
 
-/* =========================================================
-   MODAL AUTH
-   ========================================================= */
+/* ==========================================================================
+   MODAL AUTHENTIFICATION
+   ========================================================================== */
 function openAuth(mode) {
   authMode = mode;
   updateAuthModalMode();
   document.getElementById('auth-modal').classList.remove('hidden');
 }
+
 function closeAuth() {
   document.getElementById('auth-modal').classList.add('hidden');
-  hideAuthError();
-  setAuthLoading(false);
 }
+
 function toggleAuthMode() {
   authMode = authMode === 'register' ? 'login' : 'register';
   updateAuthModalMode();
 }
+
 function updateAuthModalMode() {
   const isReg = authMode === 'register';
   document.getElementById('auth-title').textContent = isReg ? t('auth_title_register') : t('auth_title_login');
@@ -1084,6 +1086,7 @@ function updateAuthModalMode() {
   document.getElementById('auth-switch-btn').textContent = isReg ? t('auth_switch_btn_login') : t('auth_switch_btn_register');
   hideAuthError();
 }
+
 function togglePasswordVisibility() {
   const input = document.getElementById('auth-password');
   const btn = document.getElementById('password-toggle-btn');
@@ -1091,21 +1094,23 @@ function togglePasswordVisibility() {
   input.type = showing ? 'password' : 'text';
   btn.textContent = showing ? t('auth_show_password') : t('auth_hide_password');
 }
+
 function showAuthError(msg) {
   const el = document.getElementById('auth-error');
   el.textContent = msg;
   el.classList.remove('hidden');
 }
+
 function hideAuthError() {
   document.getElementById('auth-error').classList.add('hidden');
 }
+
 function setAuthLoading(isLoading) {
   document.getElementById('auth-loading').classList.toggle('hidden', !isLoading);
   document.getElementById('auth-submit').disabled = isLoading;
   document.getElementById('google-btn').disabled = isLoading;
 }
 
-/* Traduit les erreurs Firebase en messages compréhensibles en français */
 function translateAuthError(e) {
   const code = e.code || '';
   const map = {
@@ -1155,7 +1160,7 @@ async function submitAuth() {
     }
     closeAuth();
   } catch (e) {
-    console.error("Erreur auth :", e.code, e.message);
+    console.error("Erreur auth", e.code, e.message);
     showAuthError(translateAuthError(e));
   } finally {
     setAuthLoading(false);
@@ -1186,7 +1191,7 @@ async function signInWithGoogle() {
     }
     closeAuth();
   } catch (e) {
-    console.error("Erreur Google auth :", e.code, e.message);
+    console.error("Erreur Google auth", e.code, e.message);
     showAuthError(translateAuthError(e));
   } finally {
     setAuthLoading(false);
@@ -1198,9 +1203,9 @@ function logout() {
   showHome();
 }
 
-/* =========================================================
-   ÉTAT DE CONNEXION — met à jour l'interface automatiquement
-   ========================================================= */
+/* ==========================================================================
+   ÉTAT DE CONNEXION ET INITIALISATION
+   ========================================================================== */
 function renderLoggedOutNav() {
   document.getElementById('nav-login-btn').classList.remove('hidden');
   document.getElementById('nav-register-btn').classList.remove('hidden');
@@ -1209,6 +1214,7 @@ function renderLoggedOutNav() {
   document.getElementById('notif-bell-btn').classList.add('hidden');
   stopNotifWatch();
 }
+
 function renderLoggedInNav(uid) {
   document.getElementById('nav-login-btn').classList.add('hidden');
   document.getElementById('nav-register-btn').classList.add('hidden');
@@ -1227,12 +1233,12 @@ if (fbReady) {
         const doc = await db.collection('users').doc(user.uid).get();
         data = doc.exists ? doc.data() : { name: user.email, email: user.email, balance: 0, createdAt: new Date().toISOString() };
       } catch (e) {
-        console.error("Erreur lecture profil :", e.message);
+        console.error("Erreur lecture profil", e.message);
         data = { name: user.email, email: user.email, balance: 0, createdAt: new Date().toISOString() };
       }
       currentUser = { uid: user.uid, ...data };
-
       renderLoggedInNav(user.uid);
+
       document.getElementById('dash-name').textContent = currentUser.name;
       document.getElementById('dash-balance').textContent = (currentUser.balance || 0).toFixed(2) + '$';
       document.getElementById('wallet-balance').textContent = (currentUser.balance || 0).toFixed(2) + '$';
@@ -1240,7 +1246,7 @@ if (fbReady) {
       document.getElementById('profile-email').textContent = currentUser.email;
       document.getElementById('profile-since').textContent = currentUser.createdAt
         ? new Date(currentUser.createdAt).toLocaleDateString('fr-FR')
-        : '—';
+        : '-';
       document.getElementById('profile-loyalty').textContent = currentUser.loyaltyPoints || 0;
 
       showDashboard();
@@ -1255,19 +1261,21 @@ if (fbReady) {
   renderLoggedOutNav();
 }
 
-/* Applique la langue détectée (ou choisie) dès que la page est prête */
 document.addEventListener('DOMContentLoaded', () => {
-  applyTranslations(currentLang);
+  if (typeof applyTranslations === 'function' && typeof currentLang !== 'undefined') {
+    applyTranslations(currentLang);
+  }
   initHomeCatalog();
   initTutorialAutoShow();
   updateCartBadge();
 });
 
-/* ================= TUTORIEL / GUIDE D'UTILISATION ================= */
+/* ==========================================================================
+   TUTORIEL & NOTIFICATIONS
+   ========================================================================== */
 let tutorialCurrentStep = 0;
 const TUTORIAL_SEEN_KEY = 'coeurnohboost_tutorial_seen';
 
-/* ================= NOTIFICATIONS ================= */
 function openNotifPanel() {
   if (!currentUser) { openAuth('register'); return; }
   document.getElementById('notif-modal').classList.remove('hidden');
@@ -1286,7 +1294,6 @@ async function loadNotifPanel() {
       db.collection('notifications').where('uid', '==', currentUser.uid).orderBy('createdAt', 'desc').limit(30).get(),
       db.collection('announcements').orderBy('createdAt', 'desc').limit(15).get()
     ]);
-
     const personal = personalSnap.docs.map(d => ({ id: d.id, kind: 'personal', ...d.data() }));
     const announcements = announceSnap.docs.map(d => ({ id: d.id, kind: 'announcement', ...d.data() }));
     const merged = [...personal, ...announcements].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -1294,7 +1301,7 @@ async function loadNotifPanel() {
     if (merged.length === 0) {
       listEl.innerHTML = '<p class="muted">Aucune notification pour l\'instant.</p>';
     } else {
-      const icons = { recharge: '💰', purchase: '🛍️', sale: '🎉', order: '✅', like: '❤️', comment: '💬', announcement: '📢', admin_message: '📢' };
+      const icons = { recharge: '💳', purchase: '🛍️', sale: '💰', order: '🚀', like: '❤️', comment: '💬', announcement: '📢', admin_message: '✉️' };
       listEl.innerHTML = merged.map(n => `
         <div class="notif-row ${n.kind === 'personal' && !n.read ? 'unread' : ''}">
           <span class="notif-icon">${icons[n.type] || '🔔'}</span>
@@ -1305,16 +1312,15 @@ async function loadNotifPanel() {
           </div>
         </div>
       `).join('');
-    }
 
-    // Marque les notifications personnelles comme lues
-    const unread = personalSnap.docs.filter(d => d.data().read === false);
-    if (unread.length > 0) {
-      await Promise.all(unread.map(d => d.ref.update({ read: true })));
+      const unread = personalSnap.docs.filter(d => d.data().read === false);
+      if (unread.length > 0) {
+        await Promise.all(unread.map(d => d.ref.update({ read: true })));
+      }
+      updateNotifBadge();
     }
-    updateNotifBadge();
   } catch (e) {
-    listEl.innerHTML = `<p class="muted">Erreur de chargement : ${e.message}</p>`;
+    listEl.innerHTML = `<p class="muted">Erreur de chargement: ${e.message}</p>`;
   }
 }
 
@@ -1333,7 +1339,7 @@ async function updateNotifBadge() {
       badge.classList.add('hidden');
     }
   } catch (e) {
-    console.log('[notif] Erreur badge :', e.message);
+    console.log('[notif] Erreur badge:', e.message);
   }
 }
 
@@ -1354,9 +1360,7 @@ function initTutorialAutoShow() {
     if (!alreadySeen) {
       setTimeout(() => openTutorial(), 900);
     }
-  } catch (e) {
-    // localStorage indisponible (mode privé, etc.) : on n'affiche pas automatiquement
-  }
+  } catch (e) { }
 }
 
 function tutorialStepCount() {
@@ -1381,9 +1385,7 @@ function closeTutorial() {
   document.getElementById('tutorial-modal').classList.add('hidden');
   try {
     localStorage.setItem(TUTORIAL_SEEN_KEY, '1');
-  } catch (e) {
-    // localStorage indisponible : pas grave, le tutoriel se réaffichera simplement
-  }
+  } catch (e) { }
 }
 
 function tutorialNext() {
@@ -1412,6 +1414,7 @@ function renderTutorialStep() {
   const prevBtn = document.getElementById('tutorial-prev');
   const nextBtn = document.getElementById('tutorial-next');
   prevBtn.classList.toggle('tutorial-nav-hidden', tutorialCurrentStep === 0);
+
   if (tutorialCurrentStep === tutorialStepCount() - 1) {
     nextBtn.classList.add('hidden');
   } else {
@@ -1419,8 +1422,9 @@ function renderTutorialStep() {
   }
 }
 
-/* ================= BOUTIQUE (livres & produits) ================= */
-/* ================= PANIER (produits uniquement) ================= */
+/* ==========================================================================
+   PANIER & BOUTIQUE (PRODUITS & EBOOKS)
+   ========================================================================== */
 const CART_STORAGE_KEY = 'coeurnohboost_cart';
 let cartItems = [];
 try {
@@ -1428,7 +1432,9 @@ try {
 } catch (e) { cartItems = []; }
 
 function saveCart() {
-  try { localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems)); } catch (e) { /* pas grave */ }
+  try {
+    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems));
+  } catch (e) { }
   updateCartBadge();
 }
 
@@ -1452,7 +1458,7 @@ function toggleCartItem(pubId, title, price, imageUrl) {
     cartItems.push({ id: pubId, title, price, imageUrl });
   }
   saveCart();
-  renderShopFeed(); // met a jour le bouton "Ajouter" / "Dans le panier" sur la carte
+  renderShopFeed();
 }
 
 function removeFromCart(pubId) {
@@ -1476,11 +1482,11 @@ function openCart() {
       <div class="modal-overlay" id="cart-modal">
         <div class="modal">
           <button class="modal-close" onclick="document.getElementById('cart-modal').classList.add('hidden')">×</button>
-          <h2>🛒 Mon panier</h2>
+          <h2>Mon panier</h2>
           <div class="modal-error hidden" id="cart-error"></div>
           <div id="cart-items-list"></div>
           <div id="cart-summary"></div>
-          <button class="btn btn-primary" style="width:100%;margin-top:14px" id="cart-checkout-btn" onclick="checkoutCart()">Payer</button>
+          <button class="btn btn-primary" style="width: 100%; margin-top: 14px" id="cart-checkout-btn" onclick="checkoutCart()">Payer</button>
         </div>
       </div>`);
   }
@@ -1499,12 +1505,15 @@ function renderCartModal() {
     document.getElementById('cart-checkout-btn').classList.add('hidden');
     return;
   }
-  document.getElementById('cart-checkout-btn').classList.remove('hidden');
 
+  document.getElementById('cart-checkout-btn').classList.remove('hidden');
   listEl.innerHTML = cartItems.map(c => `
     <div class="cart-row">
       <img src="${c.imageUrl}" class="cart-row-img" alt="">
-      <div class="cart-row-info"><strong>${c.title}</strong><div class="muted small">${c.price.toFixed(2)}$</div></div>
+      <div class="cart-row-info">
+        <strong>${c.title}</strong>
+        <div class="muted small">${c.price.toFixed(2)}$</div>
+      </div>
       <button class="shop-action-btn" onclick="removeFromCart('${c.id}')">🗑️</button>
     </div>
   `).join('');
@@ -1512,7 +1521,7 @@ function renderCartModal() {
   const { subtotal, discountApplies, total } = getCartTotal();
   summaryEl.innerHTML = `
     <div class="cart-summary-row"><span>Sous-total</span><span>${subtotal.toFixed(2)}$</span></div>
-    ${discountApplies ? `<div class="cart-summary-row cart-discount-row"><span>🎉 Remise -5% (plus de 3 articles)</span><span>-${(subtotal - total).toFixed(2)}$</span></div>` : ''}
+    ${discountApplies ? `<div class="cart-summary-row cart-discount-row"><span>Remise -5% (plus de 3 articles)</span><span>-${(subtotal - total).toFixed(2)}$</span></div>` : ''}
     <div class="cart-summary-row cart-total-row"><span>Total</span><span>${total.toFixed(2)}$</span></div>`;
 }
 
@@ -1540,7 +1549,8 @@ async function checkoutCart() {
     currentUser.balance = data.newBalance;
     cartItems = [];
     saveCart();
-    document.getElementById('cart-items-list').innerHTML = `<p style="text-align:center;color:var(--green);font-weight:700">✅ Achat confirmé ! Contacte les vendeurs via WhatsApp sur chaque article pour la livraison.</p>`;
+
+    document.getElementById('cart-items-list').innerHTML = '<p style="text-align:center;color:var(--green); font-weight:700">Achat confirmé ! Contacte les vendeurs via WhatsApp sur chaque article pour la livraison.</p>';
     document.getElementById('cart-summary').innerHTML = '';
     renderShopFeed();
   } catch (e) {
@@ -1573,15 +1583,14 @@ function openSellForm() {
     <div class="modal-overlay" id="sell-modal">
       <div class="modal">
         <button class="modal-close" onclick="document.getElementById('sell-modal').remove()">×</button>
-        <h2>➕ Vendre un article</h2>
+        <h2>Vendre un article</h2>
         <p class="sub">CoeurnohBoost prélève 10% de commission sur chaque vente. Tu reçois 90% directement sur ton solde.</p>
         <div class="modal-error hidden" id="sell-form-error"></div>
-
         <div class="field">
           <label>Type</label>
           <select id="sell-type" class="text-input" onchange="toggleSellFields()">
-            <option value="book">📖 Livre (avec lien de téléchargement)</option>
-            <option value="product">🛍️ Produit (photo)</option>
+            <option value="book">Livre (avec lien de téléchargement)</option>
+            <option value="product">Produit (photo)</option>
           </select>
         </div>
         <div class="field">
@@ -1599,17 +1608,17 @@ function openSellForm() {
         <div class="field">
           <label>Catégorie</label>
           <select id="sell-category" class="text-input">
-            <option value="ebooks">📚 Livres & Ebooks</option>
-            <option value="beaute">💄 Beauté & Bien-être</option>
-            <option value="mode">👗 Mode & Accessoires</option>
-            <option value="electronique">🔌 Électronique</option>
-            <option value="maison">🏠 Maison & Déco</option>
-            <option value="autres">📦 Autres</option>
+            <option value="ebooks">Livres & Ebooks</option>
+            <option value="beaute">Beauté & Bien-être</option>
+            <option value="mode">Mode & Accessoires</option>
+            <option value="electronique">Électronique</option>
+            <option value="maison">Maison & Déco</option>
+            <option value="autres">Autres</option>
           </select>
         </div>
         <div class="field">
           <label>Promotion (optionnel)</label>
-          <div style="display:flex;gap:8px">
+          <div style="display: flex; gap:8px">
             <select id="sell-discount" class="text-input" style="flex:1">
               <option value="0">Aucune réduction</option>
               <option value="10">-10%</option>
@@ -1637,8 +1646,7 @@ function openSellForm() {
           <label>Ton numéro WhatsApp (pour que l'acheteur te contacte)</label>
           <input type="tel" id="sell-phone" class="text-input" placeholder="+243...">
         </div>
-
-        <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:10px" onclick="submitSellForm()">Publier</button>
+        <button class="btn btn-primary" style="width: 100%; justify-content:center; margin-top: 10px" onclick="submitSellForm()">Publier</button>
       </div>
     </div>`;
   document.body.insertAdjacentHTML('beforeend', modalHtml);
@@ -1694,9 +1702,9 @@ async function submitSellForm() {
       sellerUid: currentUser.uid,
       sellerName: currentUser.name || 'Vendeur CoeurnohBoost',
       sellerPhone: type === 'product' ? phone : null,
-      discountPercent: discountPercent,
+      discountPercent,
       promoExpiresAt: (discountPercent > 0 && discountDurationHours > 0)
-        ? new Date(Date.now() + discountDurationHours * 60 * 60 * 1000).toISOString()
+        ? new Date(Date.now() + discountDurationHours * 3600000).toISOString()
         : null,
       status: 'published',
       likesCount: 0,
@@ -1704,10 +1712,9 @@ async function submitSellForm() {
       createdAt: new Date().toISOString()
     });
 
-    // Annonce publique visible par tous (panneau notifications)
     await db.collection('announcements').add({
-      title: discountPercent > 0 ? 'Promotion disponible 🎉' : 'Nouveau produit disponible 🆕',
-      body: `${title} — ${price.toFixed(2)}$${discountPercent > 0 ? ` (-${discountPercent}%)` : ''}`,
+      title: discountPercent > 0 ? 'Promotion disponible' : 'Nouveau produit disponible',
+      body: `${title} - ${price.toFixed(2)}$${discountPercent > 0 ? ` (-${discountPercent}%)` : ''}`,
       type: 'announcement',
       createdAt: new Date().toISOString()
     });
@@ -1715,7 +1722,7 @@ async function submitSellForm() {
     document.getElementById('sell-modal').remove();
     loadShopFeed();
   } catch (e) {
-    errEl.textContent = "Erreur lors de la publication : " + e.message;
+    errEl.textContent = "Erreur lors de la publication: " + e.message;
     errEl.classList.remove('hidden');
   }
 }
@@ -1726,12 +1733,14 @@ function showShop() {
   loadShopFeed();
 }
 
-/* ================= ESPACE VENDEUR ================= */
+/* ==========================================================================
+   ESPACE VENDEUR & RETRAITS
+   ========================================================================== */
 const SELLER_TIERS = [
   { min: 50, name: 'Diamant', emoji: '💎', color: '#5ec1ea' },
-  { min: 20, name: 'Or',      emoji: '🥇', color: '#e8a534' },
-  { min: 5,  name: 'Argent',  emoji: '🥈', color: '#9aa3ad' },
-  { min: 0,  name: 'Bronze',  emoji: '🥉', color: '#b8722f' }
+  { min: 20, name: 'Or', emoji: '🥇', color: '#e8a534' },
+  { min: 5, name: 'Argent', emoji: '🥈', color: '#9aa3ad' },
+  { min: 0, name: 'Bronze', emoji: '🥉', color: '#b8722f' }
 ];
 
 function getSellerTier(salesCount) {
@@ -1747,8 +1756,7 @@ function showSellerPage() {
   loadSellerWithdrawals();
 }
 
-/* ================= RETRAIT VENDEUR ================= */
-let withdrawMethod = 'mobile'; // 'mobile' ou 'crypto'
+let withdrawMethod = 'mobile';
 let withdrawCountry = null;
 let withdrawOperator = null;
 
@@ -1758,13 +1766,12 @@ function openWithdrawForm() {
     <div class="modal-overlay" id="withdraw-modal">
       <div class="modal">
         <button class="modal-close" onclick="document.getElementById('withdraw-modal').remove()">×</button>
-        <h2>💸 Demander un retrait</h2>
+        <h2>Demander un retrait</h2>
         <p class="sub">Ton solde disponible : <strong>${balance.toFixed(2)}$</strong></p>
-        <p class="muted small" style="margin-bottom:14px">Ta demande sera traitée manuellement par CoeurnohBoost, généralement sous 24-48h.</p>
+        <p class="muted small" style="margin-bottom: 14px">Ta demande sera traitée manuellement par CoeurnohBoost, généralement sous 24-48h.</p>
         <div class="modal-error hidden" id="withdraw-form-error"></div>
-
         <div class="pay-method-tabs" id="withdraw-method-tabs"></div>
-
+        
         <div id="withdraw-panel-mobile">
           <div class="field">
             <label>Pays</label>
@@ -1781,8 +1788,8 @@ function openWithdrawForm() {
           <div class="field">
             <label>Réseau</label>
             <select id="withdraw-crypto-network" class="select-input">
-              <option value="usdt-trc20">USDT (TRC20 - Tron)</option>
-              <option value="usdt-bep20">USDT (BEP20 - BSC)</option>
+              <option value="usdt-trc20">USDT (TRC20 Tron)</option>
+              <option value="usdt-bep20">USDT (BEP20 BSC)</option>
               <option value="btc">Bitcoin (BTC)</option>
               <option value="trx">TRON (TRX)</option>
             </select>
@@ -1797,21 +1804,26 @@ function openWithdrawForm() {
           <label>Montant à retirer (USD)</label>
           <input type="number" id="withdraw-amount" class="text-input" placeholder="Ex: 20" step="0.01" min="1" max="${balance}">
         </div>
-
-        <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:10px" onclick="submitWithdrawRequest()">Envoyer la demande</button>
+        <button class="btn btn-primary" style="width: 100%; justify-content:center; margin-top: 10px" onclick="submitWithdrawRequest()">Envoyer la demande</button>
       </div>
     </div>`;
   document.body.insertAdjacentHTML('beforeend', modalHtml);
-  withdrawMethod = 'mobile'; withdrawCountry = null; withdrawOperator = null;
+  withdrawMethod = 'mobile';
+  withdrawCountry = null;
+  withdrawOperator = null;
   renderWithdrawMethodTabs();
   renderWithdrawCountrySelect();
 }
 
 function renderWithdrawMethodTabs() {
-  const methods = [{ id: 'mobile', label: 'Mobile Money', icon: '📱' }, { id: 'crypto', label: 'Crypto', icon: '₿' }];
-  document.getElementById('withdraw-method-tabs').innerHTML = methods.map(m => `
-    <button class="${m.id === withdrawMethod ? 'active' : ''}" onclick="selectWithdrawMethod('${m.id}')">${m.icon} ${m.label}</button>
-  `).join('');
+  const methods = [
+    { id: 'mobile', label: 'Mobile Money', icon: '📱' },
+    { id: 'crypto', label: 'Crypto', icon: '₿' }
+  ];
+  document.getElementById('withdraw-method-tabs').innerHTML = methods.map(m =>
+    `<button class="${m.id === withdrawMethod ? 'active' : ''}" onclick="selectWithdrawMethod('${m.id}')">${m.icon} ${m.label}</button>`
+  ).join('');
+
   document.getElementById('withdraw-panel-mobile').classList.toggle('hidden', withdrawMethod !== 'mobile');
   document.getElementById('withdraw-panel-crypto').classList.toggle('hidden', withdrawMethod !== 'crypto');
 }
@@ -1823,7 +1835,7 @@ function selectWithdrawMethod(m) {
 
 function renderWithdrawCountrySelect() {
   const sel = document.getElementById('withdraw-country-select');
-  sel.innerHTML = `<option value="">Choisis ton pays</option>` +
+  sel.innerHTML = '<option value="">Choisis ton pays</option>' +
     COUNTRIES.map(c => `<option value="${c.code}">${c.flag} ${c.name}</option>`).join('');
 }
 
@@ -1837,13 +1849,14 @@ function renderWithdrawOperators() {
   const country = COUNTRIES.find(c => c.code === withdrawCountry);
   const el = document.getElementById('withdraw-operators');
   if (!country) { el.innerHTML = ''; return; }
+
   el.innerHTML = country.ops.map(op => {
     const badge = getOperatorBadge(op);
     return `
-    <div class="op-card${op === withdrawOperator ? ' active' : ''}" onclick="selectWithdrawOperator('${op.replace(/'/g, "\\'")}')">
-      <div class="op-icon" style="background:${badge.bg};${badge.dark ? 'color:#111' : 'color:#fff'}">${badge.label}</div>
-      <span class="op-name">${op}</span>
-    </div>`;
+      <div class="op-card${op === withdrawOperator ? ' active' : ''}" onclick="selectWithdrawOperator('${op.replace(/'/g, "\\'")}')">
+        <div class="op-icon" style="background:${badge.bg};${badge.dark ? 'color:#111' : 'color:#fff'}">${badge.label}</div>
+        <span class="op-name">${op}</span>
+      </div>`;
   }).join('');
 }
 
@@ -1855,7 +1868,6 @@ function selectWithdrawOperator(op) {
 async function submitWithdrawRequest() {
   const errEl = document.getElementById('withdraw-form-error');
   errEl.classList.add('hidden');
-
   const amount = parseFloat(document.getElementById('withdraw-amount').value);
   let method, accountDetails;
 
@@ -1895,8 +1907,6 @@ async function submitWithdrawRequest() {
 
   try {
     const newBalance = Math.round((currentUser.balance - amount) * 100) / 100;
-    // On retire le montant du solde tout de suite pour eviter qu'il soit depense ailleurs
-    // pendant que la demande est en attente de traitement manuel.
     await db.collection('users').doc(currentUser.uid).update({ balance: newBalance });
     currentUser.balance = newBalance;
 
@@ -1914,7 +1924,7 @@ async function submitWithdrawRequest() {
     loadSellerWithdrawals();
     loadSellerStats();
   } catch (e) {
-    errEl.textContent = "Erreur : " + e.message;
+    errEl.textContent = "Erreur: " + e.message;
     errEl.classList.remove('hidden');
   }
 }
@@ -1931,20 +1941,19 @@ async function loadSellerWithdrawals() {
       el.innerHTML = '<p class="muted">Aucune demande de retrait pour l\'instant.</p>';
       return;
     }
-
     const statusLabels = { pending: '⏳ En attente', paid: '✅ Payé', rejected: '❌ Rejeté' };
     el.innerHTML = snap.docs.map(doc => {
       const w = doc.data();
       return `
-      <div class="seller-sale-row">
-        <div>
-          <strong>${w.amountUSD.toFixed(2)}$</strong> — ${w.method}
-          <div class="muted small">${new Date(w.createdAt).toLocaleDateString('fr-FR')} · ${statusLabels[w.status] || w.status}</div>
-        </div>
-      </div>`;
+        <div class="seller-sale-row">
+          <div>
+            <strong>${w.amountUSD.toFixed(2)}$</strong> via ${w.method}
+            <div class="muted small">${new Date(w.createdAt).toLocaleDateString('fr-FR')} - ${statusLabels[w.status] || w.status}</div>
+          </div>
+        </div>`;
     }).join('');
   } catch (e) {
-    el.innerHTML = `<p class="muted">Erreur de chargement : ${e.message}</p>`;
+    el.innerHTML = `<p class="muted">Erreur de chargement: ${e.message}</p>`;
   }
 }
 
@@ -1970,12 +1979,12 @@ async function loadSellerStats() {
     const nextTier = SELLER_TIERS.slice().reverse().find(t => t.min > totalSales);
 
     badgeEl.innerHTML = `
-      <div class="seller-badge-card" style="border-color:${tier.color}">
+      <div class="seller-badge-card" style="border-color: ${tier.color}">
         <div class="seller-badge-emoji">${tier.emoji}</div>
         <div>
           <div class="seller-badge-name" style="color:${tier.color}">Niveau ${tier.name}</div>
-          <div class="muted small">${totalSales} vente${totalSales > 1 ? 's' : ''} au total
-            ${nextTier ? ` · Encore ${nextTier.min - totalSales} pour atteindre ${nextTier.name} ${nextTier.emoji}` : ' · Niveau maximum atteint !'}
+          <div class="muted small">${totalSales} vente${totalSales > 1 ? 's' : ''} au total. 
+            ${nextTier ? `Encore ${nextTier.min - totalSales} pour atteindre ${nextTier.name} ${nextTier.emoji}` : 'Niveau maximum atteint !'}
           </div>
         </div>
       </div>`;
@@ -1991,11 +2000,11 @@ async function loadSellerStats() {
       </div>
       <div class="seller-stat-box">
         <div class="seller-stat-value">${bookSales}</div>
-        <div class="seller-stat-label">📖 Livres vendus</div>
+        <div class="seller-stat-label">Livres vendus</div>
       </div>
       <div class="seller-stat-box">
         <div class="seller-stat-value">${productSales}</div>
-        <div class="seller-stat-label">🛍️ Produits vendus</div>
+        <div class="seller-stat-label">Produits vendus</div>
       </div>`;
 
     if (sales.length === 0) {
@@ -2033,24 +2042,24 @@ async function loadMyPublications() {
 
     el.innerHTML = snap.docs.map(doc => {
       const d = doc.data();
-      const typeLabel = d.type === 'book' ? '📖' : '🛍️';
+      const typeLabel = d.type === 'book' ? '📚' : '📦';
       return `
-      <div class="seller-pub-row">
-        <img src="${d.imageUrl}" alt="" class="seller-pub-img">
-        <div class="seller-pub-info">
-          <strong>${typeLabel} ${d.title}</strong>
-          <div class="muted small">${(d.price || 0).toFixed(2)}$ · ❤️ ${d.likesCount || 0}</div>
-        </div>
-        <button class="shop-action-btn" onclick="deleteMyPublication('${doc.id}')">🗑️</button>
-      </div>`;
+        <div class="seller-pub-row">
+          <img src="${d.imageUrl}" alt="" class="seller-pub-img">
+          <div class="seller-pub-info">
+            <strong>${typeLabel} ${d.title}</strong>
+            <div class="muted small">${(d.price || 0).toFixed(2)}$ · ${d.likesCount || 0} ❤️</div>
+          </div>
+          <button class="shop-action-btn" onclick="deleteMyPublication('${doc.id}')">🗑️</button>
+        </div>`;
     }).join('');
   } catch (e) {
-    el.innerHTML = `<p class="muted">Erreur de chargement : ${e.message}</p>`;
+    el.innerHTML = `<p class="muted">Erreur de chargement: ${e.message}</p>`;
   }
 }
 
 async function deleteMyPublication(pubId) {
-  if (!confirm("Supprimer definitivement cette publication ?")) return;
+  if (!confirm("Supprimer définitivement cette publication ?")) return;
   try {
     await db.collection('publications').doc(pubId).delete();
     loadMyPublications();
@@ -2059,6 +2068,9 @@ async function deleteMyPublication(pubId) {
   }
 }
 
+/* ==========================================================================
+   AFFICHAGE DU FLUX BOUTIQUE ET INTERACTIONS
+   ========================================================================== */
 function setShopFilter(filter) {
   shopActiveFilter = filter;
   document.querySelectorAll('#shop-filter-tabs button').forEach(btn => {
@@ -2081,7 +2093,6 @@ async function loadShopFeed() {
     shopPurchasedSet = new Set();
 
     if (currentUser) {
-      // Verifie en parallele les likes et les achats deja effectues (acces livres)
       const [likeChecks, ordersSnap] = await Promise.all([
         Promise.all(shopFeedItems.map(item =>
           db.collection('publication_likes').doc(`${item.id}_${currentUser.uid}`).get()
@@ -2094,18 +2105,17 @@ async function loadShopFeed() {
       shopFeedItems.forEach((item, i) => { shopLikedMap[item.id] = likeChecks[i].exists; });
       ordersSnap.docs.forEach(doc => shopPurchasedSet.add(doc.data().pubId));
     }
-
     renderShopFeed();
   } catch (e) {
-    feedEl.innerHTML = `<p class="muted">Erreur de chargement : ${e.message}</p>`;
+    feedEl.innerHTML = `<p class="muted">Erreur de chargement: ${e.message}</p>`;
   }
 }
 
 function renderShopFeed() {
   const feedEl = document.getElementById('shop-feed');
-  const searchText = (document.getElementById('shop-search-input').value || '').trim().toLowerCase();
-
+  const searchText = (document.getElementById('shop-search-input')?.value || '').trim().toLowerCase();
   let filtered = shopFeedItems;
+
   if (shopActiveFilter !== 'all') {
     filtered = filtered.filter(item => item.type === shopActiveFilter);
   }
@@ -2119,16 +2129,15 @@ function renderShopFeed() {
     );
   }
 
-  filtered = filtered.slice(); // copie pour ne pas alterer l'ordre original de shopFeedItems
+  filtered = filtered.slice();
   if (shopActiveSort === 'popular') {
     filtered.sort((a, b) => (b.likesCount || 0) - (a.likesCount || 0));
   } else {
     filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   }
 
-  // Rejoue le fondu doux a chaque mise a jour (retire puis rajoute la classe)
   feedEl.classList.remove('fade-refresh');
-  void feedEl.offsetWidth; // force le navigateur a "relire" avant de rajouter la classe
+  void feedEl.offsetWidth;
   feedEl.classList.add('fade-refresh');
 
   if (filtered.length === 0) {
@@ -2152,7 +2161,7 @@ function getEffectivePrice(item) {
 }
 
 function renderShopCard(item, isLiked, isPurchased) {
-  const typeLabel = item.type === 'book' ? '📖 Livre' : '🛍️ Produit';
+  const typeLabel = item.type === 'book' ? '📚 Livre' : '📦 Produit';
   const alreadyOwned = item.type === 'book' && isPurchased;
   const effectivePrice = getEffectivePrice(item);
   const hasPromo = effectivePrice < item.price;
@@ -2163,35 +2172,27 @@ function renderShopCard(item, isLiked, isPurchased) {
 
   let buyButtonHtml;
   if (alreadyOwned) {
-    buyButtonHtml = `<a class="btn btn-primary btn-sm" style="margin-left:auto" href="${item.fileUrl}" target="_blank">📖 Télécharger</a>`;
+    buyButtonHtml = `<a class="btn btn-primary btn-sm" style="margin-left:auto" href="${item.fileUrl}" target="_blank">Télécharger</a>`;
   } else if (item.type === 'book') {
-    buyButtonHtml = `<button class="btn btn-primary btn-sm" style="margin-left:auto" onclick="buyShopItem('${item.id}','${escapeForJs(item.title)}',${effectivePrice},'${item.type}')" data-i18n="shop_buy">Commander</button>`;
+    buyButtonHtml = `<button class="btn btn-primary btn-sm" style="margin-left:auto" onclick="buyShopItem('${item.id}','${escapeForJs(item.title)}',${effectivePrice},'${item.type}')">Commander</button>`;
   } else {
     const inCart = cartItems.some(c => c.id === item.id);
     buyButtonHtml = `<button class="btn ${inCart ? 'btn-outline' : 'btn-primary'} btn-sm" style="margin-left:auto" onclick="toggleCartItem('${item.id}','${escapeForJs(item.title)}',${effectivePrice},'${item.imageUrl}')">${inCart ? '✓ Dans le panier' : '🛒 Ajouter'}</button>`;
   }
 
-  // Le bouton WhatsApp n'apparait que sur les PRODUITS (coordination livraison),
-  // jamais sur les livres (achat direct + telechargement immediat suffit).
   let whatsappHtml = '';
   if (item.type === 'product' && item.sellerPhone) {
     const waMessage = encodeURIComponent(`Bonjour, je suis intéressé(e) par : ${item.title}`);
-    whatsappHtml = `<a class="shop-action-btn" href="https://wa.me/${item.sellerPhone.replace(/\D/g,'')}?text=${waMessage}" target="_blank" title="Contacter le vendeur">${ICON_WHATSAPP}</a>`;
+    whatsappHtml = `<a class="shop-action-btn" href="https://wa.me/${item.sellerPhone.replace(/\D/g, '')}?text=${waMessage}" target="_blank" title="Contacter le vendeur">${ICON_WHATSAPP}</a>`;
   }
 
   const shareHtml = `<button class="shop-action-btn" onclick="shareShopItem('${item.id}','${escapeForJs(item.title)}')" title="Partager">${ICON_SHARE}</button>`;
-
-  const sellerLine = item.sellerName
-    ? `<span class="shop-card-seller">Vendu par ${item.sellerName}</span>`
-    : '';
-
+  const sellerLine = item.sellerName ? `<span class="shop-card-seller">Vendu par ${item.sellerName}</span>` : '';
   const categoryLabels = {
     ebooks: '📚 Livres & Ebooks', beaute: '💄 Beauté & Bien-être', mode: '👗 Mode & Accessoires',
     electronique: '🔌 Électronique', maison: '🏠 Maison & Déco', autres: '📦 Autres'
   };
-  const categoryLine = item.category && categoryLabels[item.category]
-    ? `<span class="shop-card-category">${categoryLabels[item.category]}</span>`
-    : '';
+  const categoryLine = item.category && categoryLabels[item.category] ? `<span class="shop-card-category">${categoryLabels[item.category]}</span>` : '';
 
   return `
   <div class="shop-card" id="shop-card-${item.id}">
@@ -2203,7 +2204,6 @@ function renderShopCard(item, isLiked, isPurchased) {
       ${sellerLine}
       <p class="shop-card-desc">${item.description}</p>
       ${priceHtml}
-
       <div class="shop-card-actions">
         <button class="shop-action-btn ${isLiked ? 'liked' : ''}" id="shop-like-${item.id}" onclick="toggleShopLike('${item.id}')">
           <span id="shop-like-icon-${item.id}">${isLiked ? '❤️' : '🤍'}</span>
@@ -2216,9 +2216,10 @@ function renderShopCard(item, isLiked, isPurchased) {
         ${shareHtml}
         ${buyButtonHtml}
       </div>
-
       <div class="shop-comments hidden" id="shop-comments-${item.id}">
-        <div class="shop-comments-list" id="shop-comments-list-${item.id}"><p class="muted small">Chargement des commentaires...</p></div>
+        <div class="shop-comments-list" id="shop-comments-list-${item.id}">
+          <p class="muted small">Chargement des commentaires...</p>
+        </div>
         <div class="shop-comment-form">
           <input type="text" class="text-input" id="shop-comment-input-${item.id}" placeholder="Écris un commentaire...">
           <button class="btn btn-outline btn-sm" onclick="addShopComment('${item.id}')">Envoyer</button>
@@ -2236,13 +2237,10 @@ async function shareShopItem(pubId, title) {
   const shareText = `Regarde ça sur CoeurnohBoost : ${title}`;
 
   if (navigator.share) {
-    // Ouvre le menu de partage natif du telephone : WhatsApp, Statut, Messenger,
-    // Facebook, Instagram, TikTok... tout ce qui est installe s'affiche automatiquement.
     try {
       await navigator.share({ title, text: shareText, url: shareUrl });
-    } catch (e) { /* l'utilisateur a simplement annule le partage */ }
+    } catch (e) { }
   } else {
-    // Repli pour les navigateurs desktop qui n'ont pas le partage natif
     try {
       await navigator.clipboard.writeText(`${shareText} ${shareUrl}`);
       alert('Lien copié ! Tu peux le coller où tu veux (WhatsApp, Facebook...).');
@@ -2258,184 +2256,30 @@ function escapeForJs(str) {
 
 async function toggleShopLike(pubId) {
   if (!currentUser) { openAuth('register'); return; }
-  const likeRef = db.collection('publication_likes').doc(`${pubId}_${currentUser.uid}`);
+  const docRef = db.collection('publication_likes').doc(`${pubId}_${currentUser.uid}`);
   const pubRef = db.collection('publications').doc(pubId);
-  const iconEl = document.getElementById(`shop-like-icon-${pubId}`);
-  const countEl = document.getElementById(`shop-like-count-${pubId}`);
-  const btnEl = document.getElementById(`shop-like-${pubId}`);
 
   try {
-    const likeDoc = await likeRef.get();
-    if (likeDoc.exists) {
-      await likeRef.delete();
+    const doc = await docRef.get();
+    const isLiked = shopLikedMap[pubId];
+    const iconEl = document.getElementById(`shop-like-icon-${pubId}`);
+    const countEl = document.getElementById(`shop-like-count-${pubId}`);
+    const currentCount = parseInt(countEl.textContent, 10) || 0;
+
+    if (doc.exists || isLiked) {
+      await docRef.delete();
       await pubRef.update({ likesCount: firebase.firestore.FieldValue.increment(-1) });
-      iconEl.textContent = '🤍';
-      btnEl.classList.remove('liked');
-      countEl.textContent = Math.max(0, parseInt(countEl.textContent, 10) - 1);
+      shopLikedMap[pubId] = false;
+      if (iconEl) iconEl.textContent = '🤍';
+      if (countEl) countEl.textContent = Math.max(0, currentCount - 1);
     } else {
-      await likeRef.set({ pubId, uid: currentUser.uid, createdAt: new Date().toISOString() });
+      await docRef.set({ uid: currentUser.uid, pubId, createdAt: new Date().toISOString() });
       await pubRef.update({ likesCount: firebase.firestore.FieldValue.increment(1) });
-      iconEl.textContent = '❤️';
-      btnEl.classList.add('liked');
-      countEl.textContent = parseInt(countEl.textContent, 10) + 1;
-
-      // Notifie le proprietaire de la publication (sauf s'il s'est like lui-meme)
-      try {
-        const pubSnap = await pubRef.get();
-        const pub = pubSnap.data();
-        if (pub && pub.sellerUid && pub.sellerUid !== currentUser.uid) {
-          await db.collection('notifications').add({
-            uid: pub.sellerUid,
-            title: 'Nouveau like ❤️',
-            body: `${currentUser.name || 'Quelqu\'un'} a aimé "${pub.title}".`,
-            type: 'like',
-            read: false,
-            createdAt: new Date().toISOString()
-          });
-        }
-      } catch (e) { /* pas grave si la notification echoue */ }
+      shopLikedMap[pubId] = true;
+      if (iconEl) iconEl.textContent = '❤️';
+      if (countEl) countEl.textContent = currentCount + 1;
     }
   } catch (e) {
-    console.log('[shop] Erreur like :', e.message);
+    console.error("Erreur like:", e.message);
   }
 }
-
-let shopCommentsLoaded = {};
-async function toggleShopComments(pubId) {
-  const panel = document.getElementById(`shop-comments-${pubId}`);
-  panel.classList.toggle('hidden');
-  if (!panel.classList.contains('hidden') && !shopCommentsLoaded[pubId]) {
-    shopCommentsLoaded[pubId] = true;
-    await loadShopComments(pubId);
-  }
-}
-
-async function loadShopComments(pubId) {
-  const listEl = document.getElementById(`shop-comments-list-${pubId}`);
-  try {
-    const snap = await db.collection('publication_comments')
-      .where('pubId', '==', pubId)
-      .orderBy('createdAt', 'asc')
-      .limit(50)
-      .get();
-    if (snap.empty) {
-      listEl.innerHTML = '<p class="muted small">Aucun commentaire. Sois le premier !</p>';
-      return;
-    }
-    listEl.innerHTML = snap.docs.map(doc => {
-      const c = doc.data();
-      return `<div class="shop-comment"><strong>${c.name || 'Client'}</strong><span>${c.text}</span></div>`;
-    }).join('');
-  } catch (e) {
-    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
-  }
-}
-
-async function addShopComment(pubId) {
-  if (!currentUser) { openAuth('register'); return; }
-  const input = document.getElementById(`shop-comment-input-${pubId}`);
-  const text = input.value.trim();
-  if (!text) return;
-
-  try {
-    await db.collection('publication_comments').add({
-      pubId,
-      uid: currentUser.uid,
-      name: currentUser.name || 'Client',
-      text,
-      createdAt: new Date().toISOString()
-    });
-    await db.collection('publications').doc(pubId).update({
-      commentsCount: firebase.firestore.FieldValue.increment(1)
-    });
-    input.value = '';
-    shopCommentsLoaded[pubId] = false;
-    await toggleShopComments(pubId); // referme
-    await toggleShopComments(pubId); // rouvre avec le nouveau commentaire
-    const countEl = document.getElementById(`shop-comment-count-${pubId}`);
-    countEl.textContent = parseInt(countEl.textContent, 10) + 1;
-
-    // Notifie le proprietaire de la publication (sauf s'il a commente lui-meme)
-    try {
-      const pubSnap = await db.collection('publications').doc(pubId).get();
-      const pub = pubSnap.data();
-      if (pub && pub.sellerUid && pub.sellerUid !== currentUser.uid) {
-        await db.collection('notifications').add({
-          uid: pub.sellerUid,
-          title: 'Nouveau commentaire 💬',
-          body: `${currentUser.name || 'Quelqu\'un'} a commenté "${pub.title}" : "${text.slice(0, 60)}"`,
-          type: 'comment',
-          read: false,
-          createdAt: new Date().toISOString()
-        });
-      }
-    } catch (e) { /* pas grave si la notification echoue */ }
-  } catch (e) {
-    alert("Erreur lors de l'envoi du commentaire : " + e.message);
-  }
-}
-
-/* ================= PAIEMENT BOUTIQUE (par article, via solde portefeuille) ================= */
-function buyShopItem(pubId, title, price, itemType) {
-  if (!currentUser) { openAuth('register'); return; }
-
-  const modalHtml = `
-    <div class="modal-overlay" id="shop-checkout-modal">
-      <div class="modal">
-        <button class="modal-close" onclick="closeShopCheckout()">×</button>
-        <h2>🛍️ ${title}</h2>
-        <p class="sub">Prix : <strong>${price.toFixed(2)}$</strong> — Ton solde : <strong>${(currentUser.balance || 0).toFixed(2)}$</strong></p>
-        <div class="modal-error hidden" id="shop-checkout-error"></div>
-        <div class="hidden" id="shop-checkout-success">
-          <div class="tutorial-emoji">✅</div>
-          <p class="sub" style="text-align:center;font-weight:700;color:var(--green)">Achat confirmé !</p>
-          <div id="shop-checkout-download"></div>
-        </div>
-        <button class="btn btn-primary" style="width:100%;margin-top:14px" id="shop-checkout-submit" onclick="confirmShopPurchase('${pubId}','${escapeForJs(title)}',${price},'${itemType}')">Confirmer l'achat (${price.toFixed(2)}$)</button>
-      </div>
-    </div>`;
-  document.body.insertAdjacentHTML('beforeend', modalHtml);
-}
-
-function closeShopCheckout() {
-  const modal = document.getElementById('shop-checkout-modal');
-  if (modal) modal.remove();
-}
-
-async function confirmShopPurchase(pubId, title, price, itemType) {
-  const errEl = document.getElementById('shop-checkout-error');
-  errEl.classList.add('hidden');
-
-  if (price > (currentUser.balance || 0)) {
-    errEl.textContent = "Solde insuffisant. Recharge ton portefeuille pour continuer.";
-    errEl.classList.remove('hidden');
-    return;
-  }
-
-  document.getElementById('shop-checkout-submit').classList.add('hidden');
-
-  try {
-    const response = await fetch('/api/shop-purchase', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ uid: currentUser.uid, pubId })
-    });
-    const data = await response.json();
-
-    if (!data.success) {
-      throw new Error(data.error || "Erreur lors de l'achat");
-    }
-
-    currentUser.balance = data.newBalance;
-    document.getElementById('shop-checkout-success').classList.remove('hidden');
-
-    if (itemType === 'book') {
-      shopPurchasedSet.add(pubId);
-      if (data.fileUrl) {
-        document.getElementById('shop-checkout-download').innerHTML =
-          `<a class="btn btn-primary" style="width:100%;justify-content:center;margin-top:10px" href="${data.fileUrl}" target="_blank">📖 Télécharger le livre</a>`;
-      }
-      renderShopFeed(); // le bouton "Commander" de la carte devient "Télécharger"
-    } else {
-      document.getElementById('shop-checkout-download').innerHTML =
-        `<p class="muted" style="text-align:center;margin-top:10
