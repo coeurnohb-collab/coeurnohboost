@@ -1698,9 +1698,9 @@ function renderPostCard(item, isLiked) {
   const timeStr = timeAgo(item.createdAt);
   let mediaHtml = '';
   if (item.mediaType === 'photo' && item.imageUrl) {
-    mediaHtml = `<img src="${item.imageUrl}" alt="" class="post-media" onclick="openMediaViewer('${item.imageUrl}','photo')">`;
+    mediaHtml = `<img src="${item.imageUrl}" alt="" class="post-media" onclick="openPostDetail('${item.id}')">`;
   } else if (item.mediaType === 'video' && item.videoUrl) {
-    mediaHtml = `<video src="${item.videoUrl}" class="post-media" controls onclick="openMediaViewer('${item.videoUrl}','video')"></video>`;
+    mediaHtml = `<video src="${item.videoUrl}" class="post-media" controls onclick="openPostDetail('${item.id}')"></video>`;
   }
 
   const shareUrl = `https://coeurnohboost.vercel.app/?produit=${item.id}`;
@@ -1717,23 +1717,16 @@ function renderPostCard(item, isLiked) {
     ${item.description ? `<p class="post-caption">${item.description}</p>` : ''}
     ${mediaHtml}
     <div class="post-actions">
-      <button class="shop-action-btn ${isLiked ? 'liked' : ''}" id="shop-like-${item.id}" onclick="toggleShopLike('${item.id}')">
-        <span id="shop-like-icon-${item.id}">${isLiked ? '❤️' : '🤍'}</span>
-        <span id="shop-like-count-${item.id}">${item.likesCount || 0}</span>
+      <button class="shop-action-btn ${isLiked ? 'liked' : ''}" data-like-btn="${item.id}" onclick="toggleShopLike('${item.id}')">
+        <span data-like-icon="${item.id}">${isLiked ? '❤️' : '🤍'}</span>
+        <span data-like-count="${item.id}">${item.likesCount || 0}</span>
       </button>
-      <button class="shop-action-btn" onclick="toggleShopComments('${item.id}')">
-        💬 <span id="shop-comment-count-${item.id}">${item.commentsCount || 0}</span>
+      <button class="shop-action-btn" onclick="openPostDetail('${item.id}')">
+        💬 <span data-comment-count="${item.id}">${item.commentsCount || 0}</span>
       </button>
       <button class="shop-action-btn" onclick="sharePost('${item.id}','${escapeForJs(item.description || '')}','${shareUrl}')">
         ${ICON_SHARE} Partager
       </button>
-    </div>
-    <div class="shop-comments hidden" id="shop-comments-${item.id}">
-      <div class="shop-comments-list" id="shop-comments-list-${item.id}"><p class="muted small">Chargement des commentaires...</p></div>
-      <div class="shop-comment-form">
-        <input type="text" class="text-input" id="shop-comment-input-${item.id}" placeholder="Écris un commentaire...">
-        <button class="btn btn-outline btn-sm" onclick="addShopComment('${item.id}')">Envoyer</button>
-      </div>
     </div>
   </div>`;
 }
@@ -2344,7 +2337,7 @@ function renderShopCard(item, isLiked, isPurchased) {
 
   return `
   <div class="shop-card" id="shop-card-${item.id}">
-    <img src="${item.imageUrl}" alt="${item.title}" class="shop-card-img">
+    <img src="${item.imageUrl}" alt="${item.title}" class="shop-card-img" onclick="openPostDetail('${item.id}')">
     <div class="shop-card-body">
       <span class="shop-card-type">${typeLabel}${alreadyOwned ? ' · ✅ Déjà acheté' : ''}</span>
       ${categoryLine}
@@ -2354,24 +2347,16 @@ function renderShopCard(item, isLiked, isPurchased) {
       ${priceHtml}
 
       <div class="shop-card-actions">
-        <button class="shop-action-btn ${isLiked ? 'liked' : ''}" id="shop-like-${item.id}" onclick="toggleShopLike('${item.id}')">
-          <span id="shop-like-icon-${item.id}">${isLiked ? '❤️' : '🤍'}</span>
-          <span id="shop-like-count-${item.id}">${item.likesCount || 0}</span>
+        <button class="shop-action-btn ${isLiked ? 'liked' : ''}" data-like-btn="${item.id}" onclick="toggleShopLike('${item.id}')">
+          <span data-like-icon="${item.id}">${isLiked ? '❤️' : '🤍'}</span>
+          <span data-like-count="${item.id}">${item.likesCount || 0}</span>
         </button>
-        <button class="shop-action-btn" onclick="toggleShopComments('${item.id}')">
-          💬 <span id="shop-comment-count-${item.id}">${item.commentsCount || 0}</span>
+        <button class="shop-action-btn" onclick="openPostDetail('${item.id}')">
+          💬 <span data-comment-count="${item.id}">${item.commentsCount || 0}</span>
         </button>
         ${whatsappHtml}
         ${shareHtml}
         ${buyButtonHtml}
-      </div>
-
-      <div class="shop-comments hidden" id="shop-comments-${item.id}">
-        <div class="shop-comments-list" id="shop-comments-list-${item.id}"><p class="muted small">Chargement des commentaires...</p></div>
-        <div class="shop-comment-form">
-          <input type="text" class="text-input" id="shop-comment-input-${item.id}" placeholder="Écris un commentaire...">
-          <button class="btn btn-outline btn-sm" onclick="addShopComment('${item.id}')">Envoyer</button>
-        </div>
       </div>
     </div>
   </div>`;
@@ -2410,24 +2395,26 @@ async function toggleShopLike(pubId) {
   if (!currentUser) { openAuth('register'); return; }
   const likeRef = db.collection('publication_likes').doc(`${pubId}_${currentUser.uid}`);
   const pubRef = db.collection('publications').doc(pubId);
-  const iconEl = document.getElementById(`shop-like-icon-${pubId}`);
-  const countEl = document.getElementById(`shop-like-count-${pubId}`);
-  const btnEl = document.getElementById(`shop-like-${pubId}`);
+  // querySelectorAll : le meme bouton peut exister a la fois dans le fil ET
+  // dans la fiche plein ecran ouverte -- on met les deux a jour ensemble.
+  const iconEls = document.querySelectorAll(`[data-like-icon="${pubId}"]`);
+  const countEls = document.querySelectorAll(`[data-like-count="${pubId}"]`);
+  const btnEls = document.querySelectorAll(`[data-like-btn="${pubId}"]`);
 
   try {
     const likeDoc = await likeRef.get();
     if (likeDoc.exists) {
       await likeRef.delete();
       await pubRef.update({ likesCount: firebase.firestore.FieldValue.increment(-1) });
-      iconEl.textContent = '🤍';
-      btnEl.classList.remove('liked');
-      countEl.textContent = Math.max(0, parseInt(countEl.textContent, 10) - 1);
+      iconEls.forEach(el => el.textContent = '🤍');
+      btnEls.forEach(el => el.classList.remove('liked'));
+      countEls.forEach(el => el.textContent = Math.max(0, parseInt(el.textContent, 10) - 1));
     } else {
       await likeRef.set({ pubId, uid: currentUser.uid, createdAt: new Date().toISOString() });
       await pubRef.update({ likesCount: firebase.firestore.FieldValue.increment(1) });
-      iconEl.textContent = '❤️';
-      btnEl.classList.add('liked');
-      countEl.textContent = parseInt(countEl.textContent, 10) + 1;
+      iconEls.forEach(el => el.textContent = '❤️');
+      btnEls.forEach(el => el.classList.add('liked'));
+      countEls.forEach(el => el.textContent = parseInt(el.textContent, 10) + 1);
 
       // Notifie le proprietaire de la publication (sauf s'il s'est like lui-meme)
       try {
@@ -2448,18 +2435,72 @@ async function toggleShopLike(pubId) {
   }
 }
 
-let shopCommentsLoaded = {};
-async function toggleShopComments(pubId) {
-  const panel = document.getElementById(`shop-comments-${pubId}`);
-  panel.classList.toggle('hidden');
-  if (!panel.classList.contains('hidden') && !shopCommentsLoaded[pubId]) {
-    shopCommentsLoaded[pubId] = true;
+/* ================= FICHE PUBLICATION PLEIN ECRAN (comme Facebook) =================
+   Un tap sur la photo/video ou sur le compteur de commentaires ouvre cette fiche :
+   c'est LA seule ou les commentaires sont visibles. Le J'aime reste utilisable
+   depuis le fil ET depuis la fiche (les deux sont synchronises en direct). */
+async function openPostDetail(pubId) {
+  try {
+    const pubSnap = await db.collection('publications').doc(pubId).get();
+    if (!pubSnap.exists) return;
+    const item = { id: pubId, ...pubSnap.data() };
+
+    let isLiked = false;
+    if (currentUser) {
+      const likeDoc = await db.collection('publication_likes').doc(`${pubId}_${currentUser.uid}`).get();
+      isLiked = likeDoc.exists;
+    }
+
+    const mediaUrl = item.imageUrl || null;
+    const videoUrl = item.videoUrl || null;
+    let mediaHtml = '';
+    if (videoUrl) {
+      mediaHtml = `<video src="${videoUrl}" class="post-detail-media" controls autoplay></video>`;
+    } else if (mediaUrl) {
+      mediaHtml = `<img src="${mediaUrl}" class="post-detail-media" alt="">`;
+    }
+
+    document.getElementById('post-detail-body').innerHTML = `
+      <div class="post-card-header">
+        <div class="post-avatar">${(item.sellerName || 'C')[0].toUpperCase()}</div>
+        <div>
+          <strong>${item.sellerName || 'CoeurnohBoost'}</strong>
+          <div class="post-time">${timeAgo(item.createdAt)}</div>
+        </div>
+      </div>
+      ${item.title ? `<h3 class="post-detail-title">${item.title}</h3>` : ''}
+      ${item.description ? `<p class="post-caption">${item.description}</p>` : ''}
+      ${mediaHtml}
+      <div class="post-actions">
+        <button class="shop-action-btn ${isLiked ? 'liked' : ''}" data-like-btn="${item.id}" onclick="toggleShopLike('${item.id}')">
+          <span data-like-icon="${item.id}">${isLiked ? '❤️' : '🤍'}</span>
+          <span data-like-count="${item.id}">${item.likesCount || 0}</span>
+        </button>
+        <span class="shop-action-btn">💬 <span data-comment-count="${item.id}">${item.commentsCount || 0}</span></span>
+      </div>
+      <div class="shop-comments" id="shop-comments-${item.id}">
+        <div class="shop-comments-list" id="shop-comments-list-${item.id}"><p class="muted small">Chargement des commentaires...</p></div>
+        <div class="shop-comment-form">
+          <input type="text" class="text-input" id="shop-comment-input-${item.id}" placeholder="Écris un commentaire...">
+          <button class="btn btn-outline btn-sm" onclick="addShopComment('${item.id}')">Envoyer</button>
+        </div>
+      </div>
+    `;
+    document.getElementById('post-detail-modal').classList.remove('hidden');
     await loadShopComments(pubId);
+  } catch (e) {
+    alert("Impossible d'ouvrir la publication : " + e.message);
   }
+}
+
+function closePostDetail() {
+  document.getElementById('post-detail-modal').classList.add('hidden');
+  document.getElementById('post-detail-body').innerHTML = '';
 }
 
 async function loadShopComments(pubId) {
   const listEl = document.getElementById(`shop-comments-list-${pubId}`);
+  if (!listEl) return;
   try {
     const snap = await db.collection('publication_comments')
       .where('pubId', '==', pubId)
@@ -2482,6 +2523,7 @@ async function loadShopComments(pubId) {
 async function addShopComment(pubId) {
   if (!currentUser) { openAuth('register'); return; }
   const input = document.getElementById(`shop-comment-input-${pubId}`);
+  if (!input) return;
   const text = input.value.trim();
   if (!text) return;
 
@@ -2497,11 +2539,10 @@ async function addShopComment(pubId) {
       commentsCount: firebase.firestore.FieldValue.increment(1)
     });
     input.value = '';
-    shopCommentsLoaded[pubId] = false;
-    await toggleShopComments(pubId); // referme
-    await toggleShopComments(pubId); // rouvre avec le nouveau commentaire
-    const countEl = document.getElementById(`shop-comment-count-${pubId}`);
-    countEl.textContent = parseInt(countEl.textContent, 10) + 1;
+    await loadShopComments(pubId);
+    document.querySelectorAll(`[data-comment-count="${pubId}"]`).forEach(el => {
+      el.textContent = parseInt(el.textContent, 10) + 1;
+    });
 
     // Notifie le proprietaire de la publication (sauf s'il a commente lui-meme)
     try {
