@@ -2761,6 +2761,11 @@ async function toggleNotifPanelContent() {
     localStorage.setItem('lastSeenAnnouncementAt', announcementsCache[0].createdAt);
   }
   updateNotifBadge();
+
+  // Efface la pastille sur l'icone de l'app une fois tout consulte
+  if ('clearAppBadge' in navigator) {
+    try { navigator.clearAppBadge(); } catch (e) { /* pas grave */ }
+  }
 }
 
 function renderNotifPanel() {
