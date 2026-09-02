@@ -7,6 +7,7 @@ const TRANSLATIONS = {
   fr: {
     nav_login: "Se connecter",
     nav_register: "Créer un compte",
+    install_app_btn: "Installer l'app",
     nav_account: "Mon compte",
     hero_eyebrow: "Panel de croissance réseaux sociaux",
     hero_title: "Boost réel, paiement mobile,",
@@ -137,6 +138,7 @@ services_title: "Services populaires",
   en: {
     nav_login: "Log in",
     nav_register: "Create account",
+    install_app_btn: "Install app",
     nav_account: "My account",
     hero_eyebrow: "Social media growth panel",
     hero_title: "Real boost, mobile payment,",
@@ -267,6 +269,7 @@ services_title: "Popular services",
   es: {
     nav_login: "Iniciar sesión",
     nav_register: "Crear cuenta",
+    install_app_btn: "Instalar app",
     nav_account: "Mi cuenta",
     hero_eyebrow: "Panel de crecimiento en redes sociales",
     hero_title: "Impulso real, pago móvil,",
@@ -397,6 +400,7 @@ services_title: "Servicios populares",
   it: {
     nav_login: "Accedi",
     nav_register: "Crea account",
+    install_app_btn: "Installa app",
     nav_account: "Il mio account",
     hero_eyebrow: "Pannello di crescita social media",
     hero_title: "Boost reale, pagamento mobile,",
@@ -527,6 +531,7 @@ services_title: "Servizi popolari",
   pt: {
     nav_login: "Entrar",
     nav_register: "Criar conta",
+    install_app_btn: "Instalar app",
     nav_account: "Minha conta",
     hero_eyebrow: "Painel de crescimento em redes sociais",
     hero_title: "Impulso real, pagamento móvel,",
@@ -698,4 +703,54 @@ function changeLanguage(lang) {
   if (typeof updateAuthModalMode === "function" && !document.getElementById('auth-modal').classList.contains('hidden')) {
     updateAuthModalMode();
   }
+}
+
+/* =========================================================
+   TRADUCTION AUTOMATIQUE DU CONTENU AJOUTE DYNAMIQUEMENT
+   =========================================================
+   Le fil, la boutique, les fenetres, etc. sont recrees en JS APRES le
+   chargement initial (innerHTML) : applyTranslations() ne les voit jamais
+   puisqu'elle n'inspecte le DOM qu'une fois. Cet observateur regarde le DOM
+   en continu et retraduit automatiquement tout nouveau contenu marque
+   data-i18n / data-i18n-placeholder, sans qu'on ait besoin d'y penser a
+   chaque nouvel affichage. */
+function translateNode(node, lang) {
+  if (!node || node.nodeType !== 1) return;
+  const dict = TRANSLATIONS[lang] || TRANSLATIONS.en;
+
+  if (node.hasAttribute && node.hasAttribute('data-i18n')) {
+    const key = node.getAttribute('data-i18n');
+    if (dict[key]) node.textContent = dict[key];
+  }
+  if (node.hasAttribute && node.hasAttribute('data-i18n-placeholder')) {
+    const key = node.getAttribute('data-i18n-placeholder');
+    if (dict[key]) node.setAttribute('placeholder', dict[key]);
+  }
+  if (node.querySelectorAll) {
+    node.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      if (dict[key]) el.textContent = dict[key];
+    });
+    node.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+      const key = el.getAttribute('data-i18n-placeholder');
+      if (dict[key]) el.setAttribute('placeholder', dict[key]);
+    });
+  }
+}
+
+let i18nObserverStarted = false;
+function startAutoTranslateObserver() {
+  if (i18nObserverStarted) return;
+  i18nObserverStarted = true;
+  const observer = new MutationObserver((mutations) => {
+    mutations.forEach(m => {
+      m.addedNodes.forEach(node => translateNode(node, currentLang));
+    });
+  });
+  observer.observe(document.body, { childList: true, subtree: true });
+}
+if (document.body) {
+  startAutoTranslateObserver();
+} else {
+  document.addEventListener('DOMContentLoaded', startAutoTranslateObserver);
 }

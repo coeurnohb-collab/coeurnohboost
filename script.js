@@ -16,12 +16,76 @@ const FCM_VAPID_KEY = "BCwBF4M8jxL1uYPBERZvSFz0lYZk34m7vNLUtBby1lUwfoYVLFgY4c23O
 let fbReady = false;
 let auth = null;
 let db = null;
+
+/* ================= INSTALLATION DE L'APP (PWA) =================
+   Pour les gens qui utilisent encore le site dans un navigateur classique :
+   propose d'installer l'app comme une vraie application (icone sur l'ecran
+   d'accueil), sans passer par un store. */
+let deferredInstallPrompt = null;
+
+function isAppAlreadyInstalled() {
+  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+}
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  if (!isAppAlreadyInstalled()) {
+    const btn = document.getElementById('install-app-btn');
+    if (btn) btn.classList.remove('hidden');
+  }
+});
+
+window.addEventListener('appinstalled', () => {
+  const btn = document.getElementById('install-app-btn');
+  if (btn) btn.classList.add('hidden');
+  deferredInstallPrompt = null;
+});
+
+async function installApp() {
+  if (deferredInstallPrompt) {
+    deferredInstallPrompt.prompt();
+    const { outcome } = await deferredInstallPrompt.userChoice;
+    console.log('[install] Choix utilisateur :', outcome);
+    deferredInstallPrompt = null;
+    document.getElementById('install-app-btn').classList.add('hidden');
+    return;
+  }
+  // Pas d'invite native disponible (iPhone/iPad, ou certains navigateurs) :
+  // on explique la manipulation manuelle.
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  if (isIOS) {
+    alert("Pour installer l'app sur iPhone/iPad :\n\n1. Touche le bouton Partager (le carré avec la flèche vers le haut) en bas de Safari\n2. Fais défiler et touche \"Sur l'écran d'accueil\"\n3. Touche \"Ajouter\"");
+  } else {
+    alert("Pour installer : ouvre le menu de ton navigateur (⋮ en haut à droite) puis choisis \"Installer l'application\" ou \"Ajouter à l'écran d'accueil\".");
+  }
+}
+
+// Sur iPhone/iPad, il n'y a jamais d'evenement "beforeinstallprompt" -- on
+// affiche quand meme le bouton (avec l'astuce manuelle) si l'app n'est pas
+// deja installee.
+(function () {
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  if (isIOS && !isAppAlreadyInstalled()) {
+    document.addEventListener('DOMContentLoaded', () => {
+      const btn = document.getElementById('install-app-btn');
+      if (btn) btn.classList.remove('hidden');
+    });
+  }
+})();
+
 let currentUser = null;
 let authMode = 'register';
 
 try {
   firebase.initializeApp(firebaseConfig);
   auth = firebase.auth();
+  // Garde la connexion active indefiniment sur cet appareil, meme apres
+  // fermeture complete de l'app/du navigateur -- deconnexion UNIQUEMENT si
+  // la personne clique explicitement sur "Deconnexion".
+  auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch((e) => {
+    console.log('[auth] Persistance non definie :', e.message);
+  });
   db = firebase.firestore();
   fbReady = true;
   console.log("✅ Firebase initialisé");
@@ -2775,13 +2839,18 @@ function updateNotifBadge() {
   const unreadPersonal = notifCache.filter(n => !n.read).length;
   const unreadAnnouncements = announcementsCache.filter(a => a.createdAt > lastSeen).length;
   const unreadCount = unreadPersonal + unreadAnnouncements;
-  const badge = document.getElementById('notif-badge-bnav');
-  if (unreadCount > 0) {
-    badge.textContent = unreadCount > 9 ? '9+' : unreadCount;
-    badge.classList.remove('hidden');
-  } else {
-    badge.classList.add('hidden');
-  }
+  const label = unreadCount > 9 ? '9+' : String(unreadCount);
+  // Deux pastilles a tenir a jour ensemble : celle du haut (cloche) et celle du bas (Notifs)
+  ['notif-badge', 'notif-badge-bnav'].forEach(id => {
+    const badge = document.getElementById(id);
+    if (!badge) return;
+    if (unreadCount > 0) {
+      badge.textContent = label;
+      badge.classList.remove('hidden');
+    } else {
+      badge.classList.add('hidden');
+    }
+  });
 }
 
 async function toggleNotifPanelContent() {
