@@ -104,6 +104,7 @@ function hideAllViews() {
   document.getElementById('view-recharge').classList.add('hidden');
   document.getElementById('view-monetization').classList.add('hidden');
   document.getElementById('view-shop').classList.add('hidden');
+  document.getElementById('view-library').classList.add('hidden');
   document.getElementById('view-seller').classList.add('hidden');
   document.getElementById('view-notifications').classList.add('hidden');
 }
@@ -1930,6 +1931,44 @@ function showShop() {
   const homeFeedEl = document.getElementById('home-feed');
   if (homeFeedEl) homeFeedEl.innerHTML = '';
   loadShopFeed();
+}
+
+/* ================= BIBLIOTHEQUE (livres uniquement, espace dedie) =================
+   Reutilise le meme cache (shopFeedItems / shopLikedMap / shopPurchasedSet) et
+   la meme carte (renderShopCard) que la Boutique -- juste un affichage separe,
+   filtre sur les livres, avec sa propre recherche. */
+async function showLibrary() {
+  hideAllViews();
+  document.getElementById('view-library').classList.remove('hidden');
+  const homeFeedEl = document.getElementById('home-feed');
+  if (homeFeedEl) homeFeedEl.innerHTML = '';
+  if (shopFeedItems.length === 0) {
+    await loadShopFeed();
+  }
+  renderLibraryFeed();
+}
+
+function renderLibraryFeed() {
+  const feedEl = document.getElementById('library-feed');
+  const searchText = (document.getElementById('library-search-input').value || '').trim().toLowerCase();
+
+  let filtered = shopFeedItems.filter(item => item.type === 'book');
+  if (searchText) {
+    filtered = filtered.filter(item =>
+      (item.title || '').toLowerCase().includes(searchText) ||
+      (item.description || '').toLowerCase().includes(searchText)
+    );
+  }
+  filtered = filtered.slice().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+  if (filtered.length === 0) {
+    feedEl.innerHTML = '<p class="muted">Aucun livre trouvé. Essaie une autre recherche.</p>';
+    return;
+  }
+
+  feedEl.innerHTML = filtered.map(item =>
+    renderShopCard(item, shopLikedMap[item.id], shopPurchasedSet.has(item.id))
+  ).join('');
 }
 
 /* ================= ESPACE VENDEUR ================= */
