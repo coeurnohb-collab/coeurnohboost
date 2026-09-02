@@ -1278,7 +1278,6 @@ function renderLoggedOutNav() {
   document.getElementById('nav-register-btn').classList.remove('hidden');
   document.getElementById('nav-dashboard-btn').classList.add('hidden');
   document.getElementById('admin-shortcut-btn').classList.add('hidden');
-  document.getElementById('notif-bell-btn').classList.add('hidden');
   stopNotifWatch();
 }
 function renderLoggedInNav(uid) {
@@ -1286,7 +1285,6 @@ function renderLoggedInNav(uid) {
   document.getElementById('nav-register-btn').classList.add('hidden');
   document.getElementById('nav-dashboard-btn').classList.remove('hidden');
   document.getElementById('admin-shortcut-btn').classList.toggle('hidden', uid !== ADMIN_UID);
-  document.getElementById('notif-bell-btn').classList.remove('hidden');
   startNotifWatch();
 }
 
@@ -1729,7 +1727,7 @@ async function submitSellForm() {
 async function loadHomeFeed() {
   const feedEl = document.getElementById('home-feed');
   if (!feedEl) return;
-  feedEl.innerHTML = '<p class="muted">Chargement...</p>';
+  feedEl.innerHTML = '<p class="muted" data-i18n="shop_loading">Chargement...</p>';
   try {
     const snap = await db.collection('publications')
       .where('status', '==', 'published')
@@ -1755,7 +1753,7 @@ async function loadHomeFeed() {
 
     feedEl.innerHTML = items.map(item => renderPostCard(item, likedMap[item.id])).join('');
   } catch (e) {
-    feedEl.innerHTML = `<p class="muted">Erreur de chargement : ${e.message}</p>`;
+    feedEl.innerHTML = `<p class="muted"><span data-i18n="shop_load_error_prefix">Erreur de chargement :</span> ${e.message}</p>`;
   }
 }
 
@@ -1962,7 +1960,7 @@ function renderLibraryFeed() {
   filtered = filtered.slice().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
   if (filtered.length === 0) {
-    feedEl.innerHTML = '<p class="muted">Aucun livre trouvé. Essaie une autre recherche.</p>';
+    feedEl.innerHTML = '<p class="muted" data-i18n="library_no_results">Aucun livre trouvé. Essaie une autre recherche.</p>';
     return;
   }
 
@@ -2314,14 +2312,20 @@ function setShopFilter(filter) {
 
 async function loadShopFeed() {
   const feedEl = document.getElementById('shop-feed');
-  feedEl.innerHTML = '<p class="muted">Chargement...</p>';
+  feedEl.innerHTML = '<p class="muted" data-i18n="shop_loading">Chargement...</p>';
   try {
     const snap = await db.collection('publications')
       .where('status', '==', 'published')
       .orderBy('createdAt', 'desc')
       .get();
 
-    shopFeedItems = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    shopFeedItems = snap.docs
+      .map(doc => ({ id: doc.id, ...doc.data() }))
+      // IMPORTANT : cette collection contient aussi les publications du fil
+      // d'accueil (photo/vidéo/texte, sans prix) — on ne garde ici que les
+      // vrais articles de Boutique/Bibliothèque (livres et produits), sinon
+      // le calcul du prix plante sur les publications sans prix.
+      .filter(item => item.type === 'book' || item.type === 'product');
     shopLikedMap = {};
     shopPurchasedSet = new Set();
 
@@ -2342,7 +2346,7 @@ async function loadShopFeed() {
 
     renderShopFeed();
   } catch (e) {
-    feedEl.innerHTML = `<p class="muted">Erreur de chargement : ${e.message}</p>`;
+    feedEl.innerHTML = `<p class="muted"><span data-i18n="shop_load_error_prefix">Erreur de chargement :</span> ${e.message}</p>`;
   }
 }
 
@@ -2377,7 +2381,7 @@ function renderShopFeed() {
   feedEl.classList.add('fade-refresh');
 
   if (filtered.length === 0) {
-    feedEl.innerHTML = '<p class="muted">Aucun résultat. Essaie une autre recherche.</p>';
+    feedEl.innerHTML = '<p class="muted" data-i18n="shop_no_results">Aucun résultat. Essaie une autre recherche.</p>';
     return;
   }
 
