@@ -130,7 +130,7 @@ function showDashTab(tab) {
     if (shopFeedEl) shopFeedEl.innerHTML = '';
     loadHomeFeed();
   }
-  if (tab === 'account') renderReferralBox();
+  if (tab === 'account') { renderReferralBox(); applyNotifPrefsToUI(); }
 }
 function showServices() {
   hideAllViews();
@@ -2805,27 +2805,54 @@ function playNotifSound() {
 
 /* ================= HELPERS D'ENVOI DE PUSH REEL (serveur) ================= */
 // Notifie UN utilisateur precis (like, commentaire, partage...).
-async function notifyUserPush(uid, title, body) {
+async function notifyUserPush(uid, title, body, category = 'activity') {
   if (!currentUser || !uid) return;
   try {
     await fetch('/api/notify-user', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fromUid: currentUser.uid, uid, title, body })
+      body: JSON.stringify({ fromUid: currentUser.uid, uid, title, body, category })
     });
   } catch (e) { /* pas grave si le push echoue, la notif Firestore reste visible dans l'app */ }
 }
 
 // Notifie TOUT LE MONDE (nouvelle publication, produit, promo...).
-async function broadcastPush(title, body) {
+async function broadcastPush(title, body, category = 'content') {
   if (!currentUser) return;
   try {
     await fetch('/api/broadcast-notification', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fromUid: currentUser.uid, excludeUid: currentUser.uid, title, body })
+      body: JSON.stringify({ fromUid: currentUser.uid, excludeUid: currentUser.uid, title, body, category })
     });
   } catch (e) { /* pas grave si le push echoue, l'annonce reste visible dans le panneau */ }
+}
+
+/* ================= PREFERENCES DE NOTIFICATIONS (page Parametres) ================= */
+// Par defaut tout est active, pour ne rien changer au comportement des
+// comptes existants qui n'ont jamais touche a ces reglages.
+const DEFAULT_NOTIF_PREFS = { push: true, email: true, content: true, activity: true, orders: true };
+
+function applyNotifPrefsToUI() {
+  if (!currentUser) return;
+  const prefs = { ...DEFAULT_NOTIF_PREFS, ...(currentUser.notifPrefs || {}) };
+  ['push', 'email', 'content', 'activity', 'orders'].forEach((key) => {
+    const el = document.getElementById('notifpref-' + key);
+    if (el) el.checked = !!prefs[key];
+  });
+}
+
+async function saveNotifPrefs() {
+  if (!currentUser) return;
+  const prefs = {};
+  ['push', 'email', 'content', 'activity', 'orders'].forEach((key) => {
+    const el = document.getElementById('notifpref-' + key);
+    if (el) prefs[key] = el.checked;
+  });
+  currentUser.notifPrefs = prefs;
+  try {
+    await db.collection('users').doc(currentUser.uid).update({ notifPrefs: prefs });
+  } catch (e) { console.log('[notifPrefs] Erreur sauvegarde :', e.message); }
 }
 
 /* ================= NOTIFICATIONS ================= */

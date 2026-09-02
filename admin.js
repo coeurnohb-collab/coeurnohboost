@@ -188,7 +188,7 @@ async function updateOrderStatus(orderId, status) {
       fetch('/api/notify-user', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ adminUid: auth.currentUser ? auth.currentUser.uid : null, uid: o.uid, title, body })
+        body: JSON.stringify({ adminUid: auth.currentUser ? auth.currentUser.uid : null, uid: o.uid, title, body, category: 'orders' })
       }).catch(() => {});
     }
     loadOrdersAdmin();
@@ -817,7 +817,8 @@ async function publishShopItem() {
       body: JSON.stringify({
         adminUid: auth.currentUser ? auth.currentUser.uid : null,
         title: discountPercent > 0 ? 'Promotion disponible 🎉' : 'Nouveau produit disponible 🆕',
-        body: `${title} — ${price.toFixed(2)}$${discountPercent > 0 ? ` (-${discountPercent}%)` : ''}`
+        body: `${title} — ${price.toFixed(2)}$${discountPercent > 0 ? ` (-${discountPercent}%)` : ''}`,
+        category: 'content'
       })
     }).catch(() => {});
 
@@ -980,7 +981,8 @@ async function sendAnnouncement() {
       body: JSON.stringify({
         adminUid: auth.currentUser ? auth.currentUser.uid : null,
         title: `📢 ${title}`,
-        body
+        body,
+        category: 'admin'
       })
     }).catch(() => {});
 
