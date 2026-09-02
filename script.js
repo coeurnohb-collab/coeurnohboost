@@ -17,6 +17,49 @@ let fbReady = false;
 let auth = null;
 let db = null;
 
+/* ================= APPARENCE (theme + taille de police) =================
+   Reglage local a l'appareil (localStorage), applique immediatement au
+   chargement de la page — meme avant connexion — pour eviter tout flash
+   du mauvais theme. Par defaut : theme automatique (suit le systeme) et
+   taille de texte normale, donc aucun changement visuel pour les
+   utilisateurs qui n'ont jamais touche a ce reglage. */
+function applyAppearance() {
+  const theme = localStorage.getItem('appTheme') || 'auto';
+  const fontSize = localStorage.getItem('appFontSize') || 'normal';
+  const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const effectiveTheme = theme === 'auto' ? (prefersDark ? 'dark' : 'light') : theme;
+
+  document.documentElement.setAttribute('data-theme', effectiveTheme);
+  document.documentElement.setAttribute('data-fontsize', fontSize);
+
+  document.querySelectorAll('.theme-choice').forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.theme === theme);
+  });
+  document.querySelectorAll('.fontsize-choice').forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.fontsize === fontSize);
+  });
+}
+
+function setTheme(theme) {
+  localStorage.setItem('appTheme', theme);
+  applyAppearance();
+}
+
+function setFontSize(size) {
+  localStorage.setItem('appFontSize', size);
+  applyAppearance();
+}
+
+applyAppearance();
+
+// En mode "Automatique", suit un changement de theme du systeme en direct
+// (ex: le telephone bascule en sombre au coucher du soleil).
+if (window.matchMedia) {
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    if ((localStorage.getItem('appTheme') || 'auto') === 'auto') applyAppearance();
+  });
+}
+
 /* ================= INSTALLATION DE L'APP (PWA) =================
    Pour les gens qui utilisent encore le site dans un navigateur classique :
    propose d'installer l'app comme une vraie application (icone sur l'ecran
