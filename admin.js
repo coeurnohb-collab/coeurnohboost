@@ -592,16 +592,104 @@ async function loadServiceMapAdmin() {
   }
 }
 
+// Valeurs de depart, recopiees de mtp-service-map.js — gardees ici directement
+// (pas dans un fichier /api separe) pour ne pas depasser la limite de 12
+// fonctions serverless du plan Hobby de Vercel.
+const DEFAULT_SERVICE_MAP = {
+  tiktok: {
+    followers: { standard: 9854, premium: 5760, vip: 2560 },
+    likes:     { standard: 5737, premium: 2563, vip: 7722 },
+    views:     { standard: 9742, premium: 9744, vip: 9744 },
+    comments:  { standard: 9848, premium: 9847, vip: 3656 },
+    shares:    { standard: 5026, premium: 2572, vip: 7724 }
+  },
+  instagram: {
+    followers: { standard: 5787, premium: 9751, vip: 7961 },
+    likes:     { standard: 2518, premium: 9764, vip: 8086 },
+    views:     { standard: 9749, premium: 2523, vip: 2524 },
+    comments:  { standard: 6226, premium: 6227, vip: 6227 }
+  },
+  youtube: {
+    views:     { standard: 9681, premium: 8121, vip: 9662 },
+    followers: { standard: 2386, premium: 8355, vip: 9882 },
+    likes:     { standard: 9539, premium: 9538, vip: 918 },
+    watchtime: { standard: 8866, premium: 7479, vip: 7481 }
+  },
+  facebook: {
+    followers: { standard: 4138, premium: 9059, vip: 4139 },
+    likes:     { standard: 9787, premium: 7101, vip: 7100 },
+    views:     { standard: 9798, premium: 7347, vip: 7069 },
+    shares:    { standard: 9318, premium: 9318, vip: 9318 }
+  },
+  twitter: {
+    followers: { standard: 2596, premium: 2596, vip: 2596 },
+    likes:     { standard: 5802, premium: 5802, vip: 5802 },
+    shares:    { standard: 1604, premium: 3308, vip: 5288 },
+    views:     { standard: 8863, premium: 8864, vip: 8865 }
+  },
+  telegram: {
+    followers: { standard: 3521, premium: 3521, vip: 3521 },
+    views:     { standard: 2951, premium: 2951, vip: 2951 }
+  },
+  whatsapp: {
+    followers: { standard: 4885, premium: 4885, vip: 4885 },
+    views:     { standard: null, premium: null, vip: null }
+  },
+  snapchat: {
+    followers: { standard: 8384, premium: 8384, vip: 8384 },
+    views:     { standard: 8393, premium: 8394, vip: 8396 }
+  },
+  linkedin: {
+    followers: { standard: 5467, premium: 9109, vip: 9110 },
+    likes:     { standard: 5472, premium: 9417, vip: 9417 }
+  },
+  pinterest: {
+    followers: { standard: 2922, premium: 2922, vip: 2922 },
+    repins:    { standard: null, premium: null, vip: null }
+  },
+  twitch: {
+    followers: { standard: 7189, premium: 7189, vip: 7189 },
+    views:     { standard: null, premium: null, vip: null }
+  },
+  spotify: {
+    views:     { standard: 2549, premium: 2547, vip: 4978 },
+    followers: { standard: 4502, premium: 4502, vip: 4502 }
+  },
+  discord: {
+    followers: { standard: 7344, premium: 7344, vip: 7344 }
+  },
+  threads: {
+    followers: { standard: 2775, premium: 2775, vip: 2775 },
+    likes:     { standard: 2776, premium: 2776, vip: 2776 }
+  },
+  kwai: {
+    followers: { standard: 9612, premium: 9612, vip: 9612 },
+    likes:     { standard: 9614, premium: 9614, vip: 9614 },
+    views:     { standard: null, premium: null, vip: null }
+  },
+  likee: {
+    followers: { standard: null, premium: null, vip: null },
+    likes:     { standard: null, premium: null, vip: null },
+    views:     { standard: null, premium: null, vip: null }
+  },
+  reddit: {
+    followers: { standard: 8039, premium: 8038, vip: 2875 },
+    likes:     { standard: 7339, premium: 7339, vip: 2874 }
+  },
+  soundcloud: {
+    views:     { standard: 9910, premium: 9910, vip: 9910 },
+    followers: { standard: 2198, premium: 2198, vip: 2198 },
+    likes:     { standard: 2205, premium: 2205, vip: 2205 }
+  }
+};
+
 async function importDefaultServiceMap() {
   const el = document.getElementById('service-map-editor');
   el.innerHTML = `<p class="admin-empty">Import en cours...</p>`;
   try {
-    const res = await fetch(`/api/get-service-map-defaults?adminUid=${auth.currentUser.uid}`);
-    const defaults = await res.json();
-    if (!res.ok) throw new Error(defaults.error || 'Erreur serveur');
     const batch = db.batch();
-    Object.keys(defaults).forEach(platform => {
-      batch.set(db.collection('service_map').doc(platform), defaults[platform]);
+    Object.keys(DEFAULT_SERVICE_MAP).forEach(platform => {
+      batch.set(db.collection('service_map').doc(platform), DEFAULT_SERVICE_MAP[platform]);
     });
     await batch.commit();
     await loadServiceMapAdmin();
