@@ -611,18 +611,31 @@ async function importDefaultServiceMap() {
   }
 }
 
+const SERVICE_MAP_KNOWN_PLATFORMS = ['tiktok','instagram','youtube','facebook','twitter','telegram','whatsapp','snapchat','linkedin','pinterest','twitch','spotify','discord','threads','kwai','likee','reddit','soundcloud'];
+const SERVICE_MAP_KNOWN_TYPES = ['followers','likes','views','comments','shares','watchtime','repins'];
+
 function renderServiceMapAdmin() {
   const platforms = Object.keys(serviceMapCache).sort();
   document.getElementById('service-map-platform-tabs').innerHTML =
     platforms.map(p =>
       `<button class="platform-tab${p === serviceMapActivePlatform ? ' active' : ''}" onclick="selectServiceMapPlatform('${p}')">${p}</button>`
-    ).join('') + `<button class="platform-tab" onclick="addServiceMapPlatform()">➕ Plateforme</button>`;
+    ).join('');
 
   const el = document.getElementById('service-map-editor');
   const types = serviceMapCache[serviceMapActivePlatform] || {};
   const typeKeys = Object.keys(types).sort();
 
   el.innerHTML = `
+    <datalist id="svcmap-platform-list">${SERVICE_MAP_KNOWN_PLATFORMS.map(p => `<option value="${p}">`).join('')}</datalist>
+    <datalist id="svcmap-type-list">${SERVICE_MAP_KNOWN_TYPES.map(t => `<option value="${t}">`).join('')}</datalist>
+
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <input list="svcmap-platform-list" id="new-platform-input" class="text-input" placeholder="➕ Nouvelle plateforme (ex : tiktok)">
+      <button class="btn btn-outline btn-sm" onclick="addServiceMapPlatform()">Ajouter</button>
+    </div>
+
+    <p class="muted small" style="margin-bottom:10px">Plateforme actuelle : <strong>${serviceMapActivePlatform || '—'}</strong></p>
+
     ${typeKeys.map(type => {
       const v = types[type] || {};
       return `
@@ -646,10 +659,14 @@ function renderServiceMapAdmin() {
           </div>
         </div>
       </div>`;
-    }).join('') || '<p class="muted">Aucun type pour cette plateforme pour l\'instant.</p>'}
+    }).join('') || '<p class="muted">Aucun type pour cette plateforme pour l\'instant — ajoutes-en un ci-dessous.</p>'}
 
-    <button class="btn btn-outline" style="width:100%;justify-content:center;margin-top:10px" onclick="addServiceMapType()">➕ Ajouter un type de service (ex : followers, likes, views...)</button>
-    <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:10px" onclick="saveServiceMapPlatform()">💾 Enregistrer "${serviceMapActivePlatform}"</button>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <input list="svcmap-type-list" id="new-type-input" class="text-input" placeholder="➕ Nouveau type (ex : followers, likes, views...)">
+      <button class="btn btn-outline btn-sm" onclick="addServiceMapType()">Ajouter</button>
+    </div>
+
+    <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:14px" onclick="saveServiceMapPlatform()">💾 Enregistrer "${serviceMapActivePlatform}"</button>
     <div class="modal-loading hidden" id="service-map-saved-msg" style="margin-top:10px">✅ Enregistré ! Actif tout de suite sur les prochaines commandes.</div>
     <button class="btn btn-outline" style="width:100%;justify-content:center;margin-top:16px;color:#a3241f;border-color:#a3241f" onclick="deleteServiceMapPlatform()">🗑️ Supprimer toute la plateforme "${serviceMapActivePlatform}" d'ici</button>
   `;
@@ -661,9 +678,8 @@ function selectServiceMapPlatform(p) {
 }
 
 function addServiceMapPlatform() {
-  const name = prompt("Nom de la nouvelle plateforme (ex : mastodon), en minuscules sans espace :");
-  if (!name) return;
-  const key = name.trim().toLowerCase().replace(/\s+/g, '');
+  const input = document.getElementById('new-platform-input');
+  const key = input.value.trim().toLowerCase().replace(/\s+/g, '');
   if (!key) return;
   serviceMapCache[key] = serviceMapCache[key] || {};
   serviceMapActivePlatform = key;
@@ -671,9 +687,8 @@ function addServiceMapPlatform() {
 }
 
 function addServiceMapType() {
-  const name = prompt("Nom du type de service (ex : followers, likes, views, comments, shares...) :");
-  if (!name) return;
-  const key = name.trim().toLowerCase().replace(/\s+/g, '');
+  const input = document.getElementById('new-type-input');
+  const key = input.value.trim().toLowerCase().replace(/\s+/g, '');
   if (!key) return;
   if (!serviceMapCache[serviceMapActivePlatform]) serviceMapCache[serviceMapActivePlatform] = {};
   serviceMapCache[serviceMapActivePlatform][key] = { standard: null, premium: null, vip: null };
