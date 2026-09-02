@@ -1,0 +1,17 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "app.vercel.coeurnohboost.twa",
+    "sha256_cert_fingerprints": ["D1:8F:A5:C0:A2:32:AA:6E:8D:2D:E4:53:E4:7E:D4:17:7F:63:8E:DD:38:3D:8D:7E:CA:9B:72:9A:2A:E8:05:86"]
+  }
+}]
+Enter[[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "app.vercel.coeurnohboost.twa",
+    "sha256_cert_fingerprints": ["D1:8F:A5:C0:A2:32:AA:6E:8D:2D:E4:53:E4:7E:D4:17:7F:63:8E:DD:38:3D:8D:7E:CA:9B:72:9A:2A:E8:05:86"]
+  }
+}]
+Enter
