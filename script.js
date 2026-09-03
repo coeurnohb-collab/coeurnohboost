@@ -1735,7 +1735,7 @@ function renderCartModal() {
 
   listEl.innerHTML = cartItems.map(c => `
     <div class="cart-row">
-      <img src="${c.imageUrl}" class="cart-row-img" alt="">
+      <img src="${c.imageUrl}" class="cart-row-img" alt="" loading="lazy">
       <div class="cart-row-info"><strong>${c.title}</strong><div class="muted small">${c.price.toFixed(2)}$</div></div>
       <button class="shop-action-btn" onclick="removeFromCart('${c.id}')">🗑️</button>
     </div>
@@ -1992,7 +1992,7 @@ function renderPostCard(item, isLiked) {
   const timeStr = timeAgo(item.createdAt);
   let mediaHtml = '';
   if (item.mediaType === 'photo' && item.imageUrl) {
-    mediaHtml = `<img src="${item.imageUrl}" alt="" class="post-media" onclick="openPostDetail('${item.id}')">`;
+    mediaHtml = `<img src="${item.imageUrl}" alt="" class="post-media" loading="lazy" onclick="openPostDetail('${item.id}')">`;
   } else if (item.mediaType === 'video' && item.videoUrl) {
     mediaHtml = `<video src="${item.videoUrl}" class="post-media" controls onclick="openPostDetail('${item.id}')"></video>`;
   }
@@ -2053,7 +2053,7 @@ function openMediaViewer(url, type) {
   const contentEl = document.getElementById('media-viewer-content');
   contentEl.innerHTML = type === 'video'
     ? `<video src="${url}" controls autoplay class="media-viewer-media"></video>`
-    : `<img src="${url}" alt="" class="media-viewer-media">`;
+    : `<img src="${url}" alt="" class="media-viewer-media" loading="lazy">`;
   document.getElementById('media-viewer-download-btn').onclick = () => downloadMedia(url, type);
   document.getElementById('media-viewer').classList.remove('hidden');
 }
@@ -2505,7 +2505,7 @@ async function loadMyPublications() {
       const typeLabel = d.type === 'book' ? '📖' : '🛍️';
       return `
       <div class="seller-pub-row">
-        <img src="${d.imageUrl}" alt="" class="seller-pub-img">
+        <img src="${d.imageUrl}" alt="" class="seller-pub-img" loading="lazy">
         <div class="seller-pub-info">
           <strong>${typeLabel} ${d.title}</strong>
           <div class="muted small">${(d.price || 0).toFixed(2)}$ · ❤️ ${d.likesCount || 0}</div>
@@ -2670,7 +2670,7 @@ function renderShopCard(item, isLiked, isPurchased) {
 
   return `
   <div class="shop-card" id="shop-card-${item.id}">
-    <img src="${item.imageUrl}" alt="${item.title}" class="shop-card-img" onclick="openPostDetail('${item.id}')">
+    <img src="${item.imageUrl}" alt="${item.title}" class="shop-card-img" loading="lazy" onclick="openPostDetail('${item.id}')">
     <div class="shop-card-body">
       <span class="shop-card-type">${typeLabel}${alreadyOwned ? ' · ✅ Déjà acheté' : ''}</span>
       ${categoryLine}
@@ -2785,7 +2785,7 @@ async function openPostDetail(pubId) {
     if (videoUrl) {
       mediaHtml = `<video src="${videoUrl}" class="post-detail-media" controls autoplay></video>`;
     } else if (mediaUrl) {
-      mediaHtml = `<img src="${mediaUrl}" class="post-detail-media" alt="">`;
+      mediaHtml = `<img src="${mediaUrl}" class="post-detail-media" alt="" loading="lazy">`;
     }
 
     document.getElementById('post-detail-body').innerHTML = `
