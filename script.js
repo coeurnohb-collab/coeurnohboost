@@ -1313,6 +1313,24 @@ function logout() {
   showHome();
 }
 
+/* ================= PARTAGER L'APPLICATION ================= */
+async function shareApp() {
+  const url = 'https://coeurnohboost.vercel.app/';
+  const shareText = 'CoeurnohBoost — fais grandir tes réseaux sociaux (TikTok, Instagram, YouTube, Facebook) avec des paiements Mobile Money, crypto ou carte.';
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: 'CoeurnohBoost', text: shareText, url });
+    } catch (e) { /* l'utilisateur a annule le partage, rien a faire */ }
+  } else {
+    try {
+      await navigator.clipboard.writeText(`${shareText} ${url}`);
+      alert('Lien copié ! Tu peux le coller où tu veux (WhatsApp, Facebook...).');
+    } catch (e) {
+      alert(url);
+    }
+  }
+}
+
 /* ================= MODIFIER MON COMPTE (page Parametres > Compte) ================= */
 function fillAccountForm() {
   if (!currentUser) return;
