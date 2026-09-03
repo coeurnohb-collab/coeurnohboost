@@ -1438,10 +1438,10 @@ async function logoutAllDevices() {
   if (!confirm("Ça va te déconnecter de TOUS les appareils, y compris celui-ci. Continuer ?")) return;
   try {
     const idToken = await auth.currentUser.getIdToken();
-    await fetch('/api/revoke-sessions', {
+    await fetch('/api/notify-user', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ idToken })
+      body: JSON.stringify({ action: 'revoke-sessions', idToken })
     });
   } catch (e) { /* on se deconnecte quand meme localement, meme si l'appel echoue */ }
   logout();
