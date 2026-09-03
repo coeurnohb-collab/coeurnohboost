@@ -2003,23 +2003,34 @@ async function submitSellForm() {
 /* Fil de publications sur l'Accueil : PHOTOS/VIDEOS/TEXTES (type 'post'),
    rendu style Instagram/Facebook — volontairement different des cartes
    Boutique (pas de prix, media en plein format, legende en dessous). */
-async function loadHomeFeed() {
+let homeFeedLastDoc = null;
+
+async function loadHomeFeed(append = false) {
   const feedEl = document.getElementById('home-feed');
   if (!feedEl) return;
-  feedEl.innerHTML = '<p class="muted" data-i18n="shop_loading">Chargement...</p>';
+  if (!append) {
+    feedEl.innerHTML = '<p class="muted" data-i18n="shop_loading">Chargement...</p>';
+    homeFeedLastDoc = null;
+  }
   try {
-    const snap = await db.collection('publications')
+    let query = db.collection('publications')
       .where('status', '==', 'published')
       .where('type', '==', 'post')
       .orderBy('createdAt', 'desc')
-      .limit(30)
-      .get();
+      .limit(30);
+    if (append && homeFeedLastDoc) query = query.startAfter(homeFeedLastDoc);
+
+    const snap = await query.get();
+
+    const oldBtn = document.getElementById('home-feed-load-more');
+    if (oldBtn) oldBtn.remove();
 
     if (snap.empty) {
-      feedEl.innerHTML = '<p class="muted">Aucune publication pour l\'instant. Sois le premier à publier !</p>';
+      if (!append) feedEl.innerHTML = '<p class="muted">Aucune publication pour l\'instant. Sois le premier à publier !</p>';
       return;
     }
 
+    homeFeedLastDoc = snap.docs[snap.docs.length - 1];
     const items = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
     let likedMap = {};
@@ -2030,9 +2041,25 @@ async function loadHomeFeed() {
       items.forEach((item, i) => { likedMap[item.id] = likeChecks[i].exists; });
     }
 
-    feedEl.innerHTML = items.map(item => renderPostCard(item, likedMap[item.id])).join('');
+    const html = items.map(item => renderPostCard(item, likedMap[item.id])).join('');
+    if (append) {
+      feedEl.insertAdjacentHTML('beforeend', html);
+    } else {
+      feedEl.innerHTML = html;
+    }
+
+    // Bouton "Charger plus" uniquement si la page est pleine : il y a
+    // probablement encore des publications plus anciennes a recuperer.
+    if (snap.docs.length === 30) {
+      feedEl.insertAdjacentHTML('beforeend',
+        '<button class="btn btn-outline" id="home-feed-load-more" style="width:100%;margin-top:10px" onclick="loadHomeFeed(true)">Charger plus</button>');
+    }
   } catch (e) {
-    feedEl.innerHTML = `<p class="muted"><span data-i18n="shop_load_error_prefix">Erreur de chargement :</span> ${e.message}</p>`;
+    if (!append) {
+      feedEl.innerHTML = `<p class="muted"><span data-i18n="shop_load_error_prefix">Erreur de chargement :</span> ${e.message}</p>`;
+    } else {
+      showToast('Erreur : ' + e.message, 'error');
+    }
   }
 }
 
@@ -2598,9 +2625,15 @@ async function loadShopFeed() {
   const feedEl = document.getElementById('shop-feed');
   feedEl.innerHTML = '<p class="muted" data-i18n="shop_loading">Chargement...</p>';
   try {
+    // Limite de securite : la recherche/filtre boutique se fait cote
+    // telephone sur cette liste, donc une vraie pagination "Charger plus"
+    // casserait la recherche (des resultats pourraient manquer). En
+    // attendant une vraie recherche cote serveur, on plafonne a 200 pour
+    // eviter que le chargement devienne trop lourd avec le temps.
     const snap = await db.collection('publications')
       .where('status', '==', 'published')
       .orderBy('createdAt', 'desc')
+      .limit(200)
       .get();
 
     shopFeedItems = snap.docs
@@ -2787,8 +2820,16 @@ function escapeForJs(str) {
   return (str || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
 }
 
+// Empeche un clic rapide et repete (ou un double-tap) de declencher
+// plusieurs requetes en meme temps sur le meme like.
+const likeInFlight = new Set();
+
 async function toggleShopLike(pubId) {
   if (!currentUser) { openAuth('register'); return; }
+  const lockKey = pubId + '_' + currentUser.uid;
+  if (likeInFlight.has(lockKey)) return;
+  likeInFlight.add(lockKey);
+
   const likeRef = db.collection('publication_likes').doc(`${pubId}_${currentUser.uid}`);
   const pubRef = db.collection('publications').doc(pubId);
   // querySelectorAll : le meme bouton peut exister a la fois dans le fil ET
@@ -2828,6 +2869,8 @@ async function toggleShopLike(pubId) {
     }
   } catch (e) {
     console.log('[shop] Erreur like :', e.message);
+  } finally {
+    likeInFlight.delete(lockKey);
   }
 }
 
@@ -2933,6 +2976,18 @@ async function addShopComment(pubId) {
   if (!input) return;
   const text = input.value.trim();
   if (!text) return;
+
+  if (text.length > 500) {
+    showToast('Commentaire trop long (500 caractères maximum).', 'error');
+    return;
+  }
+  const now = Date.now();
+  const lastCommentAt = Number(localStorage.getItem('lastCommentAt') || 0);
+  if (now - lastCommentAt < 4000) {
+    showToast('Attends quelques secondes avant de commenter à nouveau.', 'error');
+    return;
+  }
+  localStorage.setItem('lastCommentAt', String(now));
 
   try {
     await db.collection('publication_comments').add({
