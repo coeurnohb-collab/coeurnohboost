@@ -1431,6 +1431,42 @@ async function saveAccountPassword() {
   }
 }
 
+// Supprime definitivement le compte : demande le mot de passe pour
+// reauthentifier (obligatoire cote Firebase pour une action aussi sensible),
+// puis demande au serveur de supprimer le compte de connexion, la fiche
+// personnelle et les publications. Les commandes deja passees restent.
+async function deleteMyAccount() {
+  if (!currentUser || !auth.currentUser) return;
+  const msgEl = document.getElementById('delete-account-msg');
+  msgEl.style.color = 'var(--red)';
+  const password = document.getElementById('delete-account-pass').value;
+  if (!password) {
+    msgEl.textContent = 'Merci de saisir ton mot de passe pour confirmer.';
+    return;
+  }
+  if (!confirm('Dernière confirmation : ton compte, tes publications et ton solde seront supprimés définitivement. Continuer ?')) {
+    return;
+  }
+  try {
+    await reauthenticateCurrentUser(password);
+    const idToken = await auth.currentUser.getIdToken();
+    const resp = await fetch('/api/notify-user', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'delete-account', idToken })
+    });
+    const data = await resp.json().catch(() => ({}));
+    if (data && data.success) {
+      alert('Ton compte a bien été supprimé.');
+      logout();
+    } else {
+      msgEl.textContent = 'Une erreur est survenue. Réessaie dans un instant.';
+    }
+  } catch (e) {
+    msgEl.textContent = friendlyAuthError(e);
+  }
+}
+
 // Invalide immediatement TOUTES les sessions actives de ce compte (tous les
 // appareils, y compris celui-ci) via Firebase Admin, cote serveur.
 async function logoutAllDevices() {
@@ -2942,7 +2978,13 @@ async function registerPushNotifications() {
     const token = await messaging.getToken({ vapidKey: FCM_VAPID_KEY, serviceWorkerRegistration: swReg });
 
     if (token) {
-      await db.collection('users').doc(currentUser.uid).update({ fcmToken: token });
+      // fcmTokens est une LISTE : chaque appareil connecte ajoute son jeton
+      // sans effacer celui des autres appareils du meme compte (avant, un
+      // seul champ "fcmToken" etait ecrase a chaque nouvelle connexion, ce
+      // qui coupait silencieusement les notifications des autres appareils).
+      await db.collection('users').doc(currentUser.uid).update({
+        fcmTokens: firebase.firestore.FieldValue.arrayUnion(token)
+      });
       console.log('[push] Jeton enregistre avec succes');
     }
 
