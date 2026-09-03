@@ -815,7 +815,14 @@
 <div id="view-notifications" class="hidden">
   <div class="wrap dash-wrap">
     <button class="btn btn-outline" style="margin-bottom:16px" onclick="showDashboard()">← Retour</button>
-    <h2 class="page-title" style="margin-bottom:14px">🔔 Notifications</h2>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:10px">
+      <h2 class="page-title" style="margin-bottom:0">🔔 Notifications</h2>
+      <button class="btn btn-outline btn-sm" id="notif-select-toggle" onclick="toggleNotifSelectMode()">Sélectionner</button>
+    </div>
+    <div id="notif-select-bar" class="hidden" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <label style="display:flex;align-items:center;gap:6px;font-size:0.85rem"><input type="checkbox" id="notif-select-all" onchange="toggleSelectAllNotifs(this.checked)"> Tout sélectionner</label>
+      <button class="btn btn-outline btn-sm" style="color:var(--red);border-color:var(--red)" onclick="deleteSelectedNotifs()">🗑️ Supprimer la sélection</button>
+    </div>
     <div id="notif-list"><p class="muted">Chargement...</p></div>
   </div>
 </div>
@@ -835,6 +842,14 @@
   <div class="modal post-detail-modal-inner">
     <button class="modal-close" onclick="closePostDetail()">×</button>
     <div id="post-detail-body"></div>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="notif-detail-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeNotifDetailModal()">×</button>
+    <h3 id="notif-detail-title" style="margin-bottom:10px"></h3>
+    <p id="notif-detail-body" class="muted"></p>
   </div>
 </div>
 

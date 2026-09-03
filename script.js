@@ -2055,6 +2055,9 @@ function renderPostCard(item, isLiked) {
         <strong>${item.sellerName || 'CoeurnohBoost'}</strong>
         <div class="post-time">${timeStr}</div>
       </div>
+      ${currentUser && currentUser.uid === item.sellerUid ? `
+      <button class="post-delete-btn" onclick="deleteMyPublication('${item.id}')" title="Supprimer">🗑️</button>
+      ` : ''}
     </div>
     ${item.description ? `<p class="post-caption">${item.description}</p>` : ''}
     ${mediaHtml}
@@ -2711,6 +2714,10 @@ function renderShopCard(item, isLiked, isPurchased) {
 
   const shareHtml = `<button class="shop-action-btn" onclick="shareShopItem('${item.id}','${escapeForJs(item.title)}')" title="Partager">${ICON_SHARE}</button>`;
 
+  const deleteHtml = (currentUser && currentUser.uid === item.sellerUid)
+    ? `<button class="shop-action-btn" onclick="deleteMyPublication('${item.id}')" title="Supprimer" style="color:var(--red)">🗑️</button>`
+    : '';
+
   const sellerLine = item.sellerName
     ? `<span class="shop-card-seller">Vendu par ${item.sellerName}</span>`
     : '';
@@ -2744,6 +2751,7 @@ function renderShopCard(item, isLiked, isPurchased) {
         </button>
         ${whatsappHtml}
         ${shareHtml}
+        ${deleteHtml}
         ${buyButtonHtml}
       </div>
     </div>
@@ -3246,6 +3254,54 @@ async function toggleNotifPanelContent() {
   }
 }
 
+let notifSelectMode = false;
+let selectedNotifIds = new Set();
+
+function toggleNotifSelectMode() {
+  notifSelectMode = !notifSelectMode;
+  selectedNotifIds.clear();
+  const bar = document.getElementById('notif-select-bar');
+  const toggleBtn = document.getElementById('notif-select-toggle');
+  const selectAllBox = document.getElementById('notif-select-all');
+  if (bar) bar.classList.toggle('hidden', !notifSelectMode);
+  if (toggleBtn) toggleBtn.textContent = notifSelectMode ? 'Annuler' : 'Sélectionner';
+  if (selectAllBox) selectAllBox.checked = false;
+  renderNotifPanel();
+}
+
+function toggleSelectAllNotifs(checked) {
+  document.querySelectorAll('.notif-select-checkbox').forEach((cb) => {
+    cb.checked = checked;
+    if (checked) selectedNotifIds.add(cb.dataset.id); else selectedNotifIds.delete(cb.dataset.id);
+  });
+}
+
+function toggleNotifSelected(id, checked) {
+  if (checked) selectedNotifIds.add(id); else selectedNotifIds.delete(id);
+}
+
+// Supprime toutes les notifications personnelles cochees d'un coup (les
+// annonces globales ne sont jamais proposees a la selection : elles
+// concernent tout le monde et restent gerees par l'admin).
+async function deleteSelectedNotifs() {
+  if (selectedNotifIds.size === 0) {
+    showToast('Coche au moins une notification.', 'error');
+    return;
+  }
+  if (!confirm(`Supprimer ${selectedNotifIds.size} notification(s) ?`)) return;
+  try {
+    const batch = db.batch();
+    selectedNotifIds.forEach((id) => batch.delete(db.collection('notifications').doc(id)));
+    await batch.commit();
+    notifCache = notifCache.filter((n) => !selectedNotifIds.has(n.id));
+    showToast('Notifications supprimées.', 'success');
+    toggleNotifSelectMode();
+    updateNotifBadge();
+  } catch (e) {
+    showToast('Erreur : ' + e.message, 'error');
+  }
+}
+
 function renderNotifPanel() {
   const listEl = document.getElementById('notif-list');
   if (!listEl) return;
@@ -3266,31 +3322,48 @@ function renderNotifPanel() {
   };
 
   const lastSeen = getLastSeenAnnouncementAt();
-  listEl.innerHTML = merged.map(n => `
-    <div class="notif-row ${(!n.isAnnouncement && !n.read) || (n.isAnnouncement && n.createdAt > lastSeen) ? 'unread' : ''}" onclick="openNotifRow('${n.url || ''}')">
+  listEl.innerHTML = merged.map(n => {
+    const canSelect = notifSelectMode && !n.isAnnouncement;
+    const rowClick = notifSelectMode ? '' : `onclick="openNotifRow('${n.id}', ${n.isAnnouncement})"`;
+    return `
+    <div class="notif-row ${(!n.isAnnouncement && !n.read) || (n.isAnnouncement && n.createdAt > lastSeen) ? 'unread' : ''}" ${rowClick}>
+      ${canSelect ? `<input type="checkbox" class="notif-select-checkbox" data-id="${n.id}" onclick="event.stopPropagation()" onchange="toggleNotifSelected('${n.id}', this.checked)">` : ''}
       <span class="notif-icon">${typeIcons[n.type] || '🔔'}</span>
       <div class="notif-content">
         <strong>${n.title}</strong>
         <p>${n.body}</p>
         <span class="notif-time">${timeAgo(n.createdAt)}</span>
       </div>
-      ${n.isAnnouncement ? '' : `<button class="notif-delete-btn" onclick="event.stopPropagation(); deleteNotifRow('${n.id}')">🗑️</button>`}
+      ${(!notifSelectMode && !n.isAnnouncement) ? `<button class="notif-delete-btn" onclick="event.stopPropagation(); deleteNotifRow('${n.id}')">🗑️</button>` : ''}
     </div>
-  `).join('');
+  `;
+  }).join('');
 }
 
 // Ouvre le contenu lie a une notification (publication, onglet commandes...)
-// quand on clique dessus dans le panneau — au lieu de ne rien faire.
-function openNotifRow(url) {
-  if (!url) return;
-  const params = new URLSearchParams(url.split('?')[1] || '');
-  const pubId = params.get('open');
-  const tab = params.get('openTab');
-  if (pubId) {
-    openPostDetail(pubId);
-  } else if (tab) {
-    showDashTab(tab);
+// quand on clique dessus. Si la notification n'a pas de lien precis (ancienne
+// notification, ou info generale sans cible), affiche quand meme le message
+// complet dans une petite fenetre, pour que la personne puisse le relire en
+// entier.
+function openNotifRow(id, isAnnouncement) {
+  const list = isAnnouncement ? announcementsCache : notifCache;
+  const n = list.find((x) => x.id === id);
+  if (!n) return;
+
+  if (n.url) {
+    const params = new URLSearchParams(n.url.split('?')[1] || '');
+    const pubId = params.get('open');
+    const tab = params.get('openTab');
+    if (pubId) { openPostDetail(pubId); return; }
+    if (tab) { showDashTab(tab); return; }
   }
+  document.getElementById('notif-detail-title').textContent = n.title || '';
+  document.getElementById('notif-detail-body').textContent = n.body || '';
+  document.getElementById('notif-detail-modal').classList.remove('hidden');
+}
+
+function closeNotifDetailModal() {
+  document.getElementById('notif-detail-modal').classList.add('hidden');
 }
 
 // Supprime une notification personnelle de la liste (pas les annonces
