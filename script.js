@@ -173,7 +173,7 @@ function showDashTab(tab) {
     if (shopFeedEl) shopFeedEl.innerHTML = '';
     loadHomeFeed();
   }
-  if (tab === 'account') { renderReferralBox(); applyNotifPrefsToUI(); }
+  if (tab === 'account') { renderReferralBox(); applyNotifPrefsToUI(); fillAccountForm(); }
 }
 function showServices() {
   hideAllViews();
@@ -1311,6 +1311,122 @@ async function signInWithGoogle() {
 function logout() {
   if (fbReady) auth.signOut();
   showHome();
+}
+
+/* ================= MODIFIER MON COMPTE (page Parametres > Compte) ================= */
+function fillAccountForm() {
+  if (!currentUser) return;
+  const nameEl = document.getElementById('account-name-input');
+  const emailEl = document.getElementById('account-email-input');
+  if (nameEl) nameEl.value = currentUser.name || '';
+  if (emailEl) emailEl.value = currentUser.email || '';
+  const emailMsg = document.getElementById('account-email-msg');
+  const passMsg = document.getElementById('account-pass-msg');
+  if (emailMsg) emailMsg.textContent = '';
+  if (passMsg) passMsg.textContent = '';
+}
+
+// Traduit les erreurs Firebase (techniques) en messages comprehensibles.
+function friendlyAuthError(e) {
+  const code = e && e.code;
+  if (code === 'auth/wrong-password') return "Mot de passe actuel incorrect.";
+  if (code === 'auth/too-many-requests') return "Trop de tentatives. Réessaie dans quelques minutes.";
+  if (code === 'auth/email-already-in-use') return "Cette adresse e-mail est déjà utilisée par un autre compte.";
+  if (code === 'auth/invalid-email') return "Adresse e-mail invalide.";
+  if (code === 'auth/requires-recent-login') return "Merci de te reconnecter puis de réessayer.";
+  if (code === 'auth/weak-password') return "Mot de passe trop faible (6 caractères minimum).";
+  return "Une erreur est survenue. Réessaie dans un instant.";
+}
+
+async function saveAccountName() {
+  if (!currentUser) return;
+  const name = document.getElementById('account-name-input').value.trim();
+  if (!name) { alert("Merci d'indiquer un nom."); return; }
+  try {
+    await db.collection('users').doc(currentUser.uid).update({ name });
+    currentUser.name = name;
+    document.getElementById('dash-name').textContent = name;
+    document.getElementById('profile-name').textContent = name;
+    alert('Nom mis à jour !');
+  } catch (e) {
+    alert('Erreur : ' + e.message);
+  }
+}
+
+// Redemande le mot de passe actuel — obligatoire cote Firebase avant tout
+// changement sensible (email, mot de passe), meme si l'utilisateur est
+// deja connecte, pour eviter qu'un telephone laisse deverrouille suffise
+// a detourner un compte.
+async function reauthenticateCurrentUser(currentPassword) {
+  const user = auth.currentUser;
+  const cred = firebase.auth.EmailAuthProvider.credential(user.email, currentPassword);
+  await user.reauthenticateWithCredential(cred);
+}
+
+async function saveAccountEmail() {
+  if (!currentUser) return;
+  const msgEl = document.getElementById('account-email-msg');
+  msgEl.style.color = 'var(--red)';
+  const newEmail = document.getElementById('account-email-input').value.trim();
+  const currentPassword = document.getElementById('account-email-currentpass').value;
+  if (!newEmail || !currentPassword) {
+    msgEl.textContent = "Merci de remplir le nouvel e-mail et ton mot de passe actuel.";
+    return;
+  }
+  try {
+    await reauthenticateCurrentUser(currentPassword);
+    await auth.currentUser.updateEmail(newEmail);
+    await db.collection('users').doc(currentUser.uid).update({ email: newEmail });
+    currentUser.email = newEmail;
+    document.getElementById('profile-email').textContent = newEmail;
+    document.getElementById('account-email-currentpass').value = '';
+    msgEl.style.color = 'var(--green)';
+    msgEl.textContent = 'E-mail mis à jour avec succès.';
+  } catch (e) {
+    msgEl.textContent = friendlyAuthError(e);
+  }
+}
+
+async function saveAccountPassword() {
+  if (!currentUser) return;
+  const msgEl = document.getElementById('account-pass-msg');
+  msgEl.style.color = 'var(--red)';
+  const currentPassword = document.getElementById('account-pass-current').value;
+  const newPassword = document.getElementById('account-pass-new').value;
+  if (!currentPassword || !newPassword) {
+    msgEl.textContent = 'Merci de remplir les deux champs.';
+    return;
+  }
+  if (newPassword.length < 6) {
+    msgEl.textContent = 'Le nouveau mot de passe doit faire au moins 6 caractères.';
+    return;
+  }
+  try {
+    await reauthenticateCurrentUser(currentPassword);
+    await auth.currentUser.updatePassword(newPassword);
+    document.getElementById('account-pass-current').value = '';
+    document.getElementById('account-pass-new').value = '';
+    msgEl.style.color = 'var(--green)';
+    msgEl.textContent = 'Mot de passe changé avec succès.';
+  } catch (e) {
+    msgEl.textContent = friendlyAuthError(e);
+  }
+}
+
+// Invalide immediatement TOUTES les sessions actives de ce compte (tous les
+// appareils, y compris celui-ci) via Firebase Admin, cote serveur.
+async function logoutAllDevices() {
+  if (!currentUser || !auth.currentUser) return;
+  if (!confirm("Ça va te déconnecter de TOUS les appareils, y compris celui-ci. Continuer ?")) return;
+  try {
+    const idToken = await auth.currentUser.getIdToken();
+    await fetch('/api/revoke-sessions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken })
+    });
+  } catch (e) { /* on se deconnecte quand meme localement, meme si l'appel echoue */ }
+  logout();
 }
 
 /* =========================================================
