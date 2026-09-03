@@ -807,6 +807,7 @@ async function publishShopItem() {
       title: discountPercent > 0 ? 'Promotion disponible 🎉' : 'Nouveau produit disponible 🆕',
       body: `${title} — ${price.toFixed(2)}$${discountPercent > 0 ? ` (-${discountPercent}%)` : ''}`,
       type: 'announcement',
+      url: '/?open=' + newPubRef.id,
       createdAt: new Date().toISOString()
     });
 
@@ -972,6 +973,7 @@ async function sendAnnouncement() {
       title: `📢 ${title}`,
       body,
       type: 'admin_message',
+      url: '/?openTab=notifs',
       createdAt: new Date().toISOString()
     });
 

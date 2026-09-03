@@ -1564,14 +1564,44 @@ if (fbReady) {
       openSharedProductIfAny();
       openNotifTargetIfAny();
       registerPushNotifications();
+      installBackTrap();
+      hideAppSplash();
     } else {
       currentUser = null;
       renderLoggedOutNav();
       showHome();
+      hideAppSplash();
     }
   });
 } else {
   renderLoggedOutNav();
+  hideAppSplash();
+}
+
+// Cache l'ecran de chargement initial, une fois qu'on sait si la personne
+// est deja connectee ou non — evite qu'un compte deja connecte revoie
+// brievement la page d'accueil publique (Se connecter / Creer un compte)
+// avant de basculer sur son tableau de bord.
+function hideAppSplash() {
+  const splash = document.getElementById('app-splash');
+  if (splash) splash.classList.add('hidden');
+}
+
+// Empeche le bouton "retour" (telephone/navigateur) de ramener un compte
+// deja connecte sur la page d'accueil publique. Tant qu'on est connecte,
+// un retour arriere revient simplement au tableau de bord — il faut se
+// deconnecter explicitement (bouton "Se deconnecter") pour quitter le compte.
+let backTrapInstalled = false;
+function installBackTrap() {
+  if (backTrapInstalled) return;
+  backTrapInstalled = true;
+  history.pushState({ app: true }, '', window.location.href);
+  window.addEventListener('popstate', () => {
+    if (currentUser) {
+      history.pushState({ app: true }, '', window.location.href);
+      showDashboard();
+    }
+  });
 }
 
 /* Applique la langue détectée (ou choisie) dès que la page est prête */
@@ -1958,7 +1988,7 @@ async function submitSellForm() {
     const annTitle = discountPercent > 0 ? 'Promotion disponible 🎉' : 'Nouveau produit disponible 🆕';
     const annBody = `${title} — ${price.toFixed(2)}$${discountPercent > 0 ? ` (-${discountPercent}%)` : ''}`;
     await db.collection('announcements').add({
-      title: annTitle, body: annBody, type: 'announcement', createdAt: new Date().toISOString()
+      title: annTitle, body: annBody, type: 'announcement', url: '/?open=' + newPubRef.id, createdAt: new Date().toISOString()
     });
     broadcastPush(annTitle, annBody, 'content', '/?open=' + newPubRef.id);
 
@@ -2061,6 +2091,11 @@ async function notifyPublicationShared(pubId) {
     const pubSnap = await db.collection('publications').doc(pubId).get();
     const pub = pubSnap.data();
     if (pub && pub.sellerUid && pub.sellerUid !== currentUser.uid) {
+      const title = 'Partage 🔗';
+      const body = `${currentUser.name || 'Quelqu\'un'} a partagé "${pub.title || pub.description || 'ta publication'}".`;
+      await db.collection('notifications').add({
+        uid: pub.sellerUid, title, body, type: 'share', read: false, url: '/?open=' + pubId, createdAt: new Date().toISOString()
+      });
       notifyUserPush(pub.sellerUid, title, body, 'activity', '/?open=' + pubId);
     }
   } catch (e) { /* pas grave si la notification echoue */ }
@@ -2153,7 +2188,7 @@ async function submitCreatePost() {
     const annTitle = 'Nouvelle publication 📸';
     const annBody = `${currentUser.name || 'Quelqu\'un'} a publié ${mediaLabel}${caption ? ` : "${caption.slice(0, 60)}"` : ''}`;
     db.collection('announcements').add({
-      title: annTitle, body: annBody, type: 'announcement', createdAt: new Date().toISOString()
+      title: annTitle, body: annBody, type: 'announcement', url: '/?open=' + newPubRef.id, createdAt: new Date().toISOString()
     }).catch(() => {});
     broadcastPush(annTitle, annBody, 'content', '/?open=' + newPubRef.id);
 
@@ -2537,12 +2572,14 @@ async function loadMyPublications() {
 }
 
 async function deleteMyPublication(pubId) {
-  if (!confirm("Supprimer definitivement cette publication ?")) return;
+  if (!confirm("Supprimer definitivement cette publication ?")) return false;
   try {
     await db.collection('publications').doc(pubId).delete();
     loadMyPublications();
+    return true;
   } catch (e) {
     showToast('Erreur : ' + e.message, 'error');
+    return false;
   }
 }
 
@@ -2772,6 +2809,11 @@ async function toggleShopLike(pubId) {
         const pubSnap = await pubRef.get();
         const pub = pubSnap.data();
         if (pub && pub.sellerUid && pub.sellerUid !== currentUser.uid) {
+          const title = 'Nouveau like ❤️';
+          const body = `${currentUser.name || 'Quelqu\'un'} a aimé "${pub.title || pub.description || 'ta publication'}".`;
+          await db.collection('notifications').add({
+            uid: pub.sellerUid, title, body, type: 'like', read: false, url: '/?open=' + pubId, createdAt: new Date().toISOString()
+          });
           notifyUserPush(pub.sellerUid, title, body, 'activity', '/?open=' + pubId);
         }
       } catch (e) { /* pas grave si la notification echoue */ }
@@ -2831,6 +2873,9 @@ async function openPostDetail(pubId) {
           <button class="btn btn-outline btn-sm" onclick="addShopComment('${item.id}')">Envoyer</button>
         </div>
       </div>
+      ${currentUser && currentUser.uid === item.sellerUid ? `
+      <button class="btn btn-outline" style="margin-top:14px;color:var(--red);border-color:var(--red)" onclick="deletePublicationFromDetail('${item.id}')">🗑️ Supprimer cette publication</button>
+      ` : ''}
     `;
     document.getElementById('post-detail-modal').classList.remove('hidden');
     await loadShopComments(pubId);
@@ -2842,6 +2887,14 @@ async function openPostDetail(pubId) {
 function closePostDetail() {
   document.getElementById('post-detail-modal').classList.add('hidden');
   document.getElementById('post-detail-body').innerHTML = '';
+}
+
+// Supprime la publication ouverte dans la fiche detaillee (reutilise la
+// meme fonction que "Mes ventes", qui demande deja confirmation), puis
+// ferme la fiche.
+async function deletePublicationFromDetail(pubId) {
+  const deleted = await deleteMyPublication(pubId);
+  if (deleted) closePostDetail();
 }
 
 async function loadShopComments(pubId) {
@@ -2895,6 +2948,11 @@ async function addShopComment(pubId) {
       const pubSnap = await db.collection('publications').doc(pubId).get();
       const pub = pubSnap.data();
       if (pub && pub.sellerUid && pub.sellerUid !== currentUser.uid) {
+        const title = 'Nouveau commentaire 💬';
+        const body = `${currentUser.name || 'Quelqu\'un'} a commenté "${pub.title || pub.description || 'ta publication'}" : "${text.slice(0, 60)}"`;
+        await db.collection('notifications').add({
+          uid: pub.sellerUid, title, body, type: 'comment', read: false, url: '/?open=' + pubId, createdAt: new Date().toISOString()
+        });
         notifyUserPush(pub.sellerUid, title, body, 'activity', '/?open=' + pubId);
       }
     } catch (e) { /* pas grave si la notification echoue */ }
@@ -3209,15 +3267,43 @@ function renderNotifPanel() {
 
   const lastSeen = getLastSeenAnnouncementAt();
   listEl.innerHTML = merged.map(n => `
-    <div class="notif-row ${(!n.isAnnouncement && !n.read) || (n.isAnnouncement && n.createdAt > lastSeen) ? 'unread' : ''}">
+    <div class="notif-row ${(!n.isAnnouncement && !n.read) || (n.isAnnouncement && n.createdAt > lastSeen) ? 'unread' : ''}" onclick="openNotifRow('${n.url || ''}')">
       <span class="notif-icon">${typeIcons[n.type] || '🔔'}</span>
       <div class="notif-content">
         <strong>${n.title}</strong>
         <p>${n.body}</p>
         <span class="notif-time">${timeAgo(n.createdAt)}</span>
       </div>
+      ${n.isAnnouncement ? '' : `<button class="notif-delete-btn" onclick="event.stopPropagation(); deleteNotifRow('${n.id}')">🗑️</button>`}
     </div>
   `).join('');
+}
+
+// Ouvre le contenu lie a une notification (publication, onglet commandes...)
+// quand on clique dessus dans le panneau — au lieu de ne rien faire.
+function openNotifRow(url) {
+  if (!url) return;
+  const params = new URLSearchParams(url.split('?')[1] || '');
+  const pubId = params.get('open');
+  const tab = params.get('openTab');
+  if (pubId) {
+    openPostDetail(pubId);
+  } else if (tab) {
+    showDashTab(tab);
+  }
+}
+
+// Supprime une notification personnelle de la liste (pas les annonces
+// globales, qui concernent tout le monde et restent gerees par l'admin).
+async function deleteNotifRow(notifId) {
+  try {
+    await db.collection('notifications').doc(notifId).delete();
+    notifCache = notifCache.filter(n => n.id !== notifId);
+    renderNotifPanel();
+    updateNotifBadge();
+  } catch (e) {
+    showToast('Erreur : ' + e.message, 'error');
+  }
 }
 
 function timeAgo(isoDate) {
