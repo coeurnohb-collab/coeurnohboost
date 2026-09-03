@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta name="cryptomus" content="cc5bb488" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coeurnoh Boost — Panel de croissance réseaux sociaux</title>
+
+<!-- SEO -->
+<meta name="description" content="Coeurnoh Boost — panel de croissance pour TikTok, Instagram, YouTube, Facebook et plus. Followers, vues, likes réels. Paiement Mobile Money, crypto et carte, partout en Afrique francophone.">
+<meta name="keywords" content="booster tiktok, followers instagram, vues youtube, likes facebook, smm panel afrique, mobile money, coeurnoh boost">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://coeurnohboost.vercel.app/">
+
+<!-- Open Graph (Facebook, WhatsApp, Telegram...) -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Coeurnoh Boost — Panel de croissance réseaux sociaux">
+<meta property="og:description" content="TikTok, Instagram, YouTube, Facebook et plus — followers, vues, likes réels. Paiement Mobile Money, crypto et carte, partout en Afrique francophone.">
+<meta property="og:url" content="https://coeurnohboost.vercel.app/">
+<meta property="og:locale" content="fr_FR">
+<meta property="og:site_name" content="Coeurnoh Boost">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Coeurnoh Boost — Panel de croissance réseaux sociaux">
+<meta name="twitter:description" content="TikTok, Instagram, YouTube, Facebook et plus — followers, vues, likes réels. Paiement Mobile Money, crypto et carte, partout en Afrique francophone.">
+
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🚀%3C/text%3E%3C/svg%3E">
+
+<!-- PWA / Installation en application (Android, Google Play via TWA) -->
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0e0a0c">
+<link rel="apple-touch-icon" href="/icon-192.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"></script>
+</head>
+<body>
+<div id="toast-container"></div>
+
+<!-- ================= NAV ================= -->
+<nav id="nav">
+  <div class="wrap nav-inner">
+    <div class="logo" onclick="showHome()">Coeurnoh<span>Boost</span></div>
+    <div class="nav-right">
+      <select id="lang-select" class="lang-select" onchange="changeLanguage(this.value)">
+        <option value="fr">🇫🇷 FR</option>
+        <option value="en">🇬🇧 EN</option>
+        <option value="es">🇪🇸 ES</option>
+        <option value="it">🇮🇹 IT</option>
+        <option value="pt">🇵🇹 PT</option>
+      </select>
+      <button class="btn btn-outline" id="nav-login-btn" data-i18n="nav_login" onclick="openAuth('login')">Se connecter</button>
+      <button class="btn btn-primary" id="nav-register-btn" data-i18n="nav_register" onclick="openAuth('register')">Créer un compte</button>
+      <button class="btn btn-outline hidden" id="nav-dashboard-btn" data-i18n="nav_account" onclick="showDashboard()">Mon compte</button>
+      <a href="admin.html" class="btn admin-shortcut hidden" id="admin-shortcut-btn">⚙️</a>
+      <button class="btn help-shortcut" id="help-shortcut-btn" onclick="openTutorial()" aria-label="Aide / Tutoriel" title="Comment ça marche ?">❓</button>
+      <button class="btn btn-primary hidden" id="install-app-btn" onclick="installApp()">📲 <span data-i18n="install_app_btn">Installer l'app</span></button>
+    </div>
+  </div>
+
+  <!-- Panneau notifications -->
+  <div class="notif-panel hidden" id="notif-panel">
+    <div class="notif-panel-header">
+      <strong>Notifications</strong>
+      <button class="modal-close" onclick="closeNotifPanel()">×</button>
+    </div>
+    <div class="notif-panel-list" id="notif-panel-list"><p class="muted small" style="padding:16px">Chargement...</p></div>
+  </div>
+</nav>
+
+<!-- ================= BANDEAU PROMO DÉFILANT ================= -->
+<div class="promo-marquee">
+  <div class="promo-marquee-track">
+    <span data-i18n="promo_1">🔥 Livraison rapide sur tous les services TikTok, Instagram, YouTube et Facebook</span>
+    <span data-i18n="promo_2">💳 Paiement Mobile Money automatique dans 12 pays d'Afrique</span>
+    <span data-i18n="promo_3">🎁 Parraine un ami et gagne 5% sur chacune de ses recharges</span>
+    <span data-i18n="promo_1">🔥 Livraison rapide sur tous les services TikTok, Instagram, YouTube et Facebook</span>
+    <span data-i18n="promo_2">💳 Paiement Mobile Money automatique dans 12 pays d'Afrique</span>
+    <span data-i18n="promo_3">🎁 Parraine un ami et gagne 5% sur chacune de ses recharges</span>
+  </div>
+</div>
+
+<!-- ================= PUBLIC HOME ================= -->
+<div id="view-home">
+  <section class="hero">
+    <div class="wrap">
+      <span class="eyebrow" data-i18n="hero_eyebrow">Panel de croissance réseaux sociaux</span>
+      <h1><span data-i18n="hero_title">Boost réel, paiement mobile,</span><br><em data-i18n="hero_title_em">résultats qui comptent.</em></h1>
+      <p class="lead" data-i18n="hero_lead">TikTok, Instagram, YouTube, Facebook, Spotify et plus — followers, vues, likes, commentaires. Paiement mobile money, crypto et carte, partout en Afrique francophone.</p>
+      <div class="hero-actions">
+        <button class="btn btn-primary btn-lg" data-i18n="hero_cta" onclick="openAuth('register')">Créer mon compte gratuit →</button>
+      </div>
+      <div class="pay-icons">
+        <span>📱 M-Pesa</span><span>📱 Airtel Money</span><span>📱 Orange Money</span><span>📱 MTN MoMo</span><span>₿ Bitcoin</span><span>₮ USDT</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="stats-bar">
+    <div class="wrap stats-grid">
+      <div class="stat"><strong>14+</strong><span data-i18n="stat_platforms">Plateformes</span></div>
+      <div class="stat"><strong>24/7</strong><span data-i18n="stat_support">Support actif</span></div>
+      <div class="stat"><strong>3</strong><span data-i18n="stat_quality">Niveaux de qualité</span></div>
+      <div class="stat"><strong>20+</strong><span data-i18n="stat_countries">Pays couverts</span></div>
+    </div>
+  </section>
+
+  <section class="wrap services-teaser">
+    <h2 class="page-title" data-i18n="services_title">Services populaires</h2>
+    <p class="muted" style="text-align:center;margin-bottom:20px" data-i18n="catalog_public_sub">Découvre nos tarifs — crée ton compte pour commander.</p>
+
+    <input type="text" id="home-platform-search" class="text-input" data-i18n-placeholder="search_placeholder" placeholder="🔍 Rechercher un réseau..." style="margin-bottom:16px" oninput="filterPlatformGrid('home-platform-grid', this.value)">
+    <div class="platform-grid" id="home-platform-grid"></div>
+  </section>
+
+  <section class="wrap how-it-works">
+    <h2 class="page-title" data-i18n="how_title">Comment ça marche</h2>
+    <div class="steps-grid">
+      <div class="step"><span class="step-num">1</span><h3 data-i18n="how_step1_title">Crée ton compte</h3><p data-i18n="how_step1_text">Inscription en moins d'une minute, par email ou Google.</p></div>
+      <div class="step"><span class="step-num">2</span><h3 data-i18n="how_step2_title">Recharge ton solde</h3><p data-i18n="how_step2_text">Mobile money, crypto ou carte virtuelle.</p></div>
+      <div class="step"><span class="step-num">3</span><h3 data-i18n="how_step3_title">Lance ta commande</h3><p data-i18n="how_step3_text">Choisis ton service, ta quantité, et regarde les résultats arriver.</p></div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="wrap">
+      <p>© 2026 Coeurnoh Business — Coeurnoh Boost. <span data-i18n="footer_rights">Tous droits réservés</span>.</p>
+      <div class="footer-links">
+        <a href="https://wa.me/243825001290">WhatsApp</a>
+        <a href="mailto:coeurnohb@gmail.com">Email</a>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<!-- ================= DASHBOARD (après connexion) ================= -->
+<div id="view-dashboard" class="hidden">
+  <div class="wrap dash-wrap">
+
+    <!-- ---- Onglet Accueil ---- -->
+    <div class="dash-tab" id="dash-tab-home">
+      <div class="dash-header">
+        <h2><span data-i18n="dash_hello">Bonjour</span>, <span id="dash-name">—</span> 👋</h2>
+      </div>
+
+      <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:14px" onclick="openCreatePostForm()">➕ Publier une photo, vidéo ou un texte</button>
+
+      <div id="home-feed"><p class="muted">Chargement...</p></div>
+    </div>
+
+    <!-- ---- Onglet Commandes ---- -->
+    <div class="dash-tab hidden" id="dash-tab-orders">
+      <h2 class="page-title" style="margin-bottom:14px" data-i18n="tab_orders">Commandes</h2>
+
+      <div class="order-box">
+        <h3>🛒 <span data-i18n="dash_orders_title">Nouvelle commande</span></h3>
+        <p class="muted" style="margin-bottom:12px" data-i18n="dash_orders_sub">Découvre nos services par plateforme et leurs prix.</p>
+        <button class="btn btn-primary" data-i18n="dash_orders_cta" onclick="showServices()">Voir les services →</button>
+      </div>
+
+      <button class="quick-link" style="width:100%;margin-bottom:16px" onclick="showMonetization()">💡 <span data-i18n="monetization_title">Monétisation</span></button>
+
+      <div class="order-box">
+        <p class="muted" data-i18n="orders_empty">Tu n'as pas encore passé de commande.</p>
+      </div>
+    </div>
+
+    <!-- ---- Onglet Portefeuille ---- -->
+    <div class="dash-tab hidden" id="dash-tab-wallet">
+      <h2 class="page-title" style="margin-bottom:14px" data-i18n="tab_wallet">Portefeuille</h2>
+      <div class="order-box wallet-box">
+        <p class="muted" data-i18n="dash_balance">Solde</p>
+        <div class="wallet-amount" id="wallet-balance">0.00$</div>
+        <button class="btn btn-primary" data-i18n="wallet_recharge" onclick="showRecharge()">Recharger →</button>
+      </div>
+      <div class="order-box">
+        <h3 data-i18n="wallet_history_title">Historique des transactions</h3>
+        <p class="muted" data-i18n="wallet_history_empty">Aucune transaction pour l'instant.</p>
+      </div>
+    </div>
+
+    <!-- ---- Onglet Compte ---- -->
+    <div class="dash-tab hidden" id="dash-tab-account">
+      <h2 class="page-title" style="margin-bottom:14px" data-i18n="tab_account">Mon compte</h2>
+
+      <div class="order-box">
+        <h3>🎁 <span data-i18n="referral_title">Parrainage</span></h3>
+        <p class="muted" style="margin-bottom:12px" data-i18n="referral_sub">Invite tes amis et gagne 5% sur chacune de leurs recharges.</p>
+        <div class="referral-box">
+          <span id="referral-link-text" class="referral-link-text">—</span>
+          <button class="btn btn-outline" onclick="copyReferralLink()" data-i18n="referral_copy">Copier</button>
+        </div>
+        <p class="muted small" style="margin-top:8px" id="referral-count-text"></p>
+      </div>
+
+      <div class="order-box">
+        <h3 data-i18n="dash_profile_title">Mon profil</h3>
+        <div class="profile-row"><span data-i18n="dash_profile_name">Nom</span><span id="profile-name">—</span></div>
+        <div class="profile-row"><span data-i18n="dash_profile_email">Email</span><span id="profile-email">—</span></div>
+        <div class="profile-row"><span data-i18n="dash_profile_since">Membre depuis</span><span id="profile-since">—</span></div>
+        <div class="profile-row"><span data-i18n="dash_profile_loyalty">Points de fidélité</span><span id="profile-loyalty">0</span></div>
+      </div>
+
+      <div class="order-box">
+        <h3>💬 <span data-i18n="contact_title">Besoin d'aide ?</span></h3>
+        <p class="muted" style="margin-bottom:12px" data-i18n="contact_sub">Contacte-nous directement, on te répond vite.</p>
+        <div class="contact-grid">
+          <a class="contact-btn" href="https://wa.me/243825001290" target="_blank"><span class="contact-icon" style="background:#25D366"><svg viewBox="0 0 24 24" fill="#fff"><path d="M12 3a9 9 0 0 0-7.7 13.6L3 21l4.5-1.3A9 9 0 1 0 12 3zm0 1.8a7.2 7.2 0 0 1 6.1 11l-.2.3.3 3.4-3.4-1-.3.1a7.2 7.2 0 1 1-2.5-13.8zm-3.5 3.9c-.2 0-.5 0-.7.3-.3.3-1 1-1 2.3s1 2.7 1.2 2.9c.15.2 2 3.1 4.9 4.2 2.4.9 2.9.7 3.4.7.5 0 1.7-.7 1.9-1.4.2-.7.2-1.2.15-1.4-.05-.1-.2-.2-.4-.35-.2-.1-1.3-.6-1.5-.7-.2-.1-.35-.15-.5.15-.15.3-.6.7-.7.85-.15.15-.25.15-.45.05-.2-.1-.9-.35-1.7-1.1-.6-.55-1.05-1.25-1.15-1.45-.15-.25 0-.35.1-.5.1-.1.2-.25.3-.4.1-.15.15-.25.2-.4.05-.15.05-.3 0-.4-.05-.1-.5-1.3-.7-1.75-.2-.45-.35-.4-.5-.4z"/></svg></span>WhatsApp<br><small>+243 825 001 290</small></a>
+          <a class="contact-btn" href="https://wa.me/243999082973" target="_blank"><span class="contact-icon" style="background:#25D366"><svg viewBox="0 0 24 24" fill="#fff"><path d="M12 3a9 9 0 0 0-7.7 13.6L3 21l4.5-1.3A9 9 0 1 0 12 3zm0 1.8a7.2 7.2 0 0 1 6.1 11l-.2.3.3 3.4-3.4-1-.3.1a7.2 7.2 0 1 1-2.5-13.8zm-3.5 3.9c-.2 0-.5 0-.7.3-.3.3-1 1-1 2.3s1 2.7 1.2 2.9c.15.2 2 3.1 4.9 4.2 2.4.9 2.9.7 3.4.7.5 0 1.7-.7 1.9-1.4.2-.7.2-1.2.15-1.4-.05-.1-.2-.2-.4-.35-.2-.1-1.3-.6-1.5-.7-.2-.1-.35-.15-.5.15-.15.3-.6.7-.7.85-.15.15-.25.15-.45.05-.2-.1-.9-.35-1.7-1.1-.6-.55-1.05-1.25-1.15-1.45-.15-.25 0-.35.1-.5.1-.1.2-.25.3-.4.1-.15.15-.25.2-.4.05-.15.05-.3 0-.4-.05-.1-.5-1.3-.7-1.75-.2-.45-.35-.4-.5-.4z"/></svg></span>WhatsApp<br><small>+243 999 082 973</small></a>
+          <a class="contact-btn" href="https://t.me/243825001290" target="_blank"><span class="contact-icon" style="background:#26A5E4"><svg viewBox="0 0 24 24" fill="#fff"><path d="M21 4.3 3.4 11.2c-.9.35-.87 1.65.04 1.94l4.4 1.4 1.7 5.35c.25.78 1.24.95 1.75.3l2.5-3.1 4.55 3.36c.7.5 1.7.13 1.9-.72L23 5.4c.2-.9-.7-1.6-1.5-1.1zM8.8 13.7l8.6-6c.2-.14.4.1.2.3l-7 6.7-.3 3.3-1.5-4.3z"/></svg></span>Telegram<br><small>@coeurnoh</small></a>
+          <a class="contact-btn" href="mailto:coeurnohb@gmail.com" target="_blank"><span class="contact-icon" style="background:#6b7280">✉️</span>Email<br><small>coeurnohb@gmail.com</small></a>
+        </div>
+      </div>
+
+      <div class="order-box">
+        <h3>❓ <span data-i18n="faq_title">Questions fréquentes</span></h3>
+        <div id="faq-list"></div>
+      </div>
+
+      <div class="order-box">
+        <h3>✏️ Modifier mon compte</h3>
+
+        <div class="field">
+          <label>Nom</label>
+          <input type="text" id="account-name-input">
+        </div>
+        <button class="btn btn-outline" onclick="saveAccountName()">Enregistrer le nom</button>
+
+        <div class="field" style="margin-top:18px">
+          <label>Adresse e-mail</label>
+          <input type="email" id="account-email-input">
+        </div>
+        <div class="field">
+          <label>Mot de passe actuel (requis pour changer l'e-mail)</label>
+          <input type="password" id="account-email-currentpass">
+        </div>
+        <button class="btn btn-outline" onclick="saveAccountEmail()">Mettre à jour l'e-mail</button>
+        <p class="muted small" id="account-email-msg" style="margin-top:6px"></p>
+
+        <div class="field" style="margin-top:18px">
+          <label>Mot de passe actuel</label>
+          <input type="password" id="account-pass-current">
+        </div>
+        <div class="field">
+          <label>Nouveau mot de passe (6 caractères min.)</label>
+          <input type="password" id="account-pass-new">
+        </div>
+        <button class="btn btn-outline" onclick="saveAccountPassword()">Changer le mot de passe</button>
+        <p class="muted small" id="account-pass-msg" style="margin-top:6px"></p>
+
+        <button class="btn btn-outline" style="margin-top:18px;color:var(--red);border-color:var(--red)" onclick="logoutAllDevices()">🔒 Se déconnecter de tous les appareils</button>
+      </div>
+
+      <div class="order-box">
+        <h3>🎨 Apparence</h3>
+        <p class="muted small" style="margin-bottom:8px">Thème</p>
+        <div class="shop-filter-tabs">
+          <button class="theme-choice" data-theme="light" onclick="setTheme('light')">☀️ Clair</button>
+          <button class="theme-choice" data-theme="dark" onclick="setTheme('dark')">🌙 Sombre</button>
+          <button class="theme-choice" data-theme="auto" onclick="setTheme('auto')">⚙️ Auto</button>
+        </div>
+        <p class="muted small" style="margin:14px 0 8px">Taille du texte</p>
+        <div class="shop-filter-tabs">
+          <button class="fontsize-choice" data-fontsize="small" onclick="setFontSize('small')">Petite</button>
+          <button class="fontsize-choice" data-fontsize="normal" onclick="setFontSize('normal')">Normale</button>
+          <button class="fontsize-choice" data-fontsize="large" onclick="setFontSize('large')">Grande</button>
+          <button class="fontsize-choice" data-fontsize="xlarge" onclick="setFontSize('xlarge')">Très grande</button>
+        </div>
+      </div>
+
+      <div class="order-box">
+        <h3>🔔 Préférences de notifications</h3>
+        <p class="muted small" style="margin-bottom:6px">Choisis les alertes que tu veux recevoir.</p>
+        <div class="profile-row"><span>Notifications push</span>
+          <label class="switch"><input type="checkbox" id="notifpref-push" onchange="saveNotifPrefs()"><span class="slider"></span></label>
+        </div>
+        <div class="profile-row"><span>Notifications par e-mail</span>
+          <label class="switch"><input type="checkbox" id="notifpref-email" onchange="saveNotifPrefs()"><span class="slider"></span></label>
+        </div>
+        <div class="profile-row"><span>Nouveaux contenus &amp; promos</span>
+          <label class="switch"><input type="checkbox" id="notifpref-content" onchange="saveNotifPrefs()"><span class="slider"></span></label>
+        </div>
+        <div class="profile-row"><span>Activité (likes, commentaires, partages)</span>
+          <label class="switch"><input type="checkbox" id="notifpref-activity" onchange="saveNotifPrefs()"><span class="slider"></span></label>
+        </div>
+        <div class="profile-row" style="border-bottom:none"><span>Commandes &amp; achats</span>
+          <label class="switch"><input type="checkbox" id="notifpref-orders" onchange="saveNotifPrefs()"><span class="slider"></span></label>
+        </div>
+        <p class="muted small" style="margin-top:10px">🔒 Les annonces administratives importantes restent toujours actives, pour ta sécurité.</p>
+      </div>
+
+      <div class="order-box">
+        <h3>🔐 Confidentialité et sécurité</h3>
+        <p class="muted small" style="margin-bottom:10px">Tes données (nom, e-mail, publications) sont stockées de façon sécurisée et ne sont jamais partagées avec des tiers.</p>
+        <p class="muted small" style="margin-bottom:10px">⚠️ Supprimer ton compte est <strong>définitif</strong> : tu perdras ton solde restant et tes publications. Tes commandes déjà passées restent conservées pour les vendeurs/acheteurs concernés.</p>
+        <div class="field">
+          <label>Mot de passe actuel (pour confirmer)</label>
+          <input type="password" id="delete-account-pass">
+        </div>
+        <button class="btn btn-outline" style="color:var(--red);border-color:var(--red)" onclick="deleteMyAccount()">🗑️ Supprimer mon compte définitivement</button>
+        <p class="muted small" id="delete-account-msg" style="margin-top:6px"></p>
+      </div>
+
+      <div class="order-box">
+        <h3>📤 Partager CoeurNoh Boost</h3>
+        <p class="muted small" style="margin-bottom:10px">Fais connaître l'application à ton entourage.</p>
+        <button class="btn btn-outline" onclick="shareApp()">📤 Partager l'application</button>
+      </div>
+
+      <div class="order-box">
+        <h3>ℹ️ À propos</h3>
+        <p class="muted small">CoeurnohBoost — panel de croissance réseaux sociaux (TikTok, Instagram, YouTube, Facebook), avec paiement Mobile Money, crypto et carte, pour l'Afrique francophone.</p>
+      </div>
+
+      <button class="btn btn-outline" data-i18n="dash_logout" onclick="logout()">Se déconnecter</button>
+    </div>
+
+  </div>
+
+  <!-- ---- Barre de navigation basse (mobile, style SMM panel) ---- -->
+  <nav class="bottom-nav">
+    <button class="bnav-btn active" id="bnav-home" onclick="showDashTab('home')">
+      <span class="bnav-icon">🏠</span><span data-i18n="tab_home">Accueil</span>
+    </button>
+    <button class="bnav-btn" id="bnav-orders" onclick="showDashTab('orders')">
+      <span class="bnav-icon">🛒</span><span data-i18n="tab_orders">Commandes</span>
+    </button>
+    <button class="bnav-btn" id="bnav-wallet" onclick="showDashTab('wallet')">
+      <span class="bnav-icon">💰</span><span data-i18n="tab_wallet">Portefeuille</span>
+    </button>
+    <button class="bnav-btn" id="bnav-shop" onclick="showShop()">
+      <span class="bnav-icon">🏪</span><span data-i18n="shop_title">Boutique</span>
+    </button>
+    <button class="bnav-btn" id="bnav-notif" onclick="openNotifPanel()" style="position:relative">
+      <span class="bnav-icon">🔔<span class="notif-badge hidden" id="notif-badge-bnav">0</span></span><span>Notifs</span>
+    </button>
+    <button class="bnav-btn" id="bnav-account" onclick="showDashTab('account')">
+      <span class="bnav-icon">👤</span><span data-i18n="tab_account">Compte</span>
+    </button>
+  </nav>
+</div>
+
+<!-- ================= CATALOGUE — GRILLE DES 14 PLATEFORMES ================= -->
+<div id="view-services" class="hidden">
+  <div class="wrap dash-wrap">
+    <button class="btn btn-outline" style="margin-bottom:16px" data-i18n="services_back" onclick="showDashboard()">← Retour</button>
+    <h2 class="page-title" style="margin-bottom:4px" data-i18n="services_available">Services disponibles</h2>
+    <p class="muted" style="margin-bottom:18px" data-i18n="platforms_pick_sub">Choisis un réseau pour voir les services disponibles.</p>
+
+    <input type="text" id="platform-search" class="text-input" data-i18n-placeholder="search_placeholder" placeholder="🔍 Rechercher un réseau..." style="margin-bottom:14px" oninput="filterPlatformGrid('platform-grid', this.value)">
+    <div class="platform-grid" id="platform-grid"></div>
+  </div>
+</div>
+
+<!-- ================= FORMULAIRE DE COMMANDE ================= -->
+<div id="view-order" class="hidden">
+  <div class="wrap dash-wrap">
+    <button class="btn btn-outline" style="margin-bottom:16px" onclick="showServices()" data-i18n="services_back">← Retour</button>
+
+    <div class="order-platform-header" id="order-platform-header"></div>
+
+    <div class="order-box" id="bundles-box">
+      <h3 data-i18n="bundles_title">Forfaits (prix fixe)</h3>
+      <div id="bundles-list"></div>
+    </div>
+
+    <div class="order-box">
+      <h3 data-i18n="order_alacarte_title">À la carte</h3>
+      <label class="field-label" data-i18n="order_service_label">Service</label>
+      <select id="order-service-select" class="select-input" onchange="onOrderInputChange()"></select>
+
+      <label class="field-label" style="margin-top:16px" data-i18n="order_quality_label">Catégorie</label>
+      <div class="quality-grid" id="quality-grid"></div>
+
+      <label class="field-label" style="margin-top:16px" data-i18n="order_link_label">Lien</label>
+      <input type="url" id="order-link" class="text-input" data-i18n-placeholder="order_link_ph" placeholder="https://...">
+
+      <label class="field-label" style="margin-top:16px" data-i18n="order_qty_label">Quantité</label>
+      <input type="number" id="order-qty" class="text-input" oninput="onOrderInputChange()" placeholder="0">
+      <p class="muted small" id="order-qty-hint"></p>
+
+      <div class="order-summary">
+        <div class="order-summary-row"><span data-i18n="order_price_label">Prix total</span><strong id="order-total-price">0.00$</strong></div>
+        <div class="order-summary-row"><span data-i18n="dash_balance">Solde</span><span id="order-user-balance">0.00$</span></div>
+      </div>
+
+      <div class="modal-error hidden" id="order-error"></div>
+
+      <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:14px" data-i18n="order_submit" onclick="submitOrder()">Passer la commande</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= RECHARGE / PAIEMENT ================= -->
+<div id="view-recharge" class="hidden">
+  <div class="wrap dash-wrap">
+    <button class="btn btn-outline" style="margin-bottom:16px" onclick="showDashboard()" data-i18n="services_back">← Retour</button>
+    <h2 class="page-title" style="margin-bottom:4px" data-i18n="pay_title">Recharger mon solde</h2>
+    <p class="muted" style="margin-bottom:18px" data-i18n="pay_sub">Choisis ton moyen de paiement.</p>
+
+    <div class="segmented" id="pay-method-tabs"></div>
+
+    <div class="order-box">
+
+      <!-- Mobile Money -->
+      <div id="pay-panel-mobile">
+        <label class="field-label" data-i18n="pay_country_label">Pays</label>
+        <select id="pay-country-select" class="select-input" onchange="onPayCountryChange()"></select>
+        <div class="op-grid" id="pay-operators" style="margin-top:12px"></div>
+        <label class="field-label" style="margin-top:16px" data-i18n="pay_phone_label">Numéro de téléphone</label>
+        <input type="tel" id="recharge-phone" class="text-input" data-i18n-placeholder="pay_phone_ph" placeholder="+243 8xx xxx xxx">
+      </div>
+
+      <!-- Crypto -->
+      <div id="pay-panel-crypto" class="hidden">
+        <label class="field-label" data-i18n="pay_crypto_label">Choisis ta crypto</label>
+        <div class="op-grid" id="pay-crypto-list"></div>
+        <p class="muted small" data-i18n="pay_crypto_note">L'adresse de paiement te sera envoyée par WhatsApp après ta demande.</p>
+      </div>
+
+      <!-- Carte virtuelle -->
+      <div id="pay-panel-card" class="hidden">
+        <p class="muted" data-i18n="pay_card_note">Paiement par carte virtuelle : bientôt disponible, en cours de mise en place.</p>
+      </div>
+
+      <div id="recharge-amount-block">
+        <label class="field-label" style="margin-top:16px" id="recharge-amount-label" data-i18n="pay_amount_label">Montant (USD)</label>
+        <div class="segmented" id="pay-currency-toggle" style="margin-bottom:10px"></div>
+        <input type="number" id="recharge-amount" class="text-input" placeholder="Ex: 1" oninput="updateRechargeEquivalent()">
+        <p class="muted small" id="recharge-equivalent"></p>
+      </div>
+
+      <div class="modal-error hidden" id="recharge-error"></div>
+      <div class="modal-loading hidden" id="recharge-success"></div>
+
+      <button class="btn btn-primary" id="recharge-submit-btn" style="width:100%;justify-content:center;margin-top:14px" data-i18n="pay_submit" onclick="submitRecharge()">Envoyer la demande</button>
+    </div>
+
+    <p class="muted small" style="text-align:center;margin-top:12px" data-i18n="pay_manual_note">Chaque demande est validée manuellement après réception du paiement (généralement sous quelques minutes).</p>
+  </div>
+</div>
+
+<!-- ================= MONÉTISATION ================= -->
+<div id="view-monetization" class="hidden">
+  <div class="wrap dash-wrap">
+    <button class="btn btn-outline" style="margin-bottom:16px" onclick="showDashboard()" data-i18n="services_back">← Retour</button>
+    <h2 class="page-title" style="margin-bottom:4px" data-i18n="monetization_title">Monétisation</h2>
+    <p class="muted" style="margin-bottom:18px" data-i18n="monetization_sub">Découvre les critères pour monétiser ton compte, et les services pour les atteindre plus vite.</p>
+
+    <div class="platform-grid" id="monetization-grid" style="margin-bottom:18px"></div>
+    <div id="monetization-detail"></div>
+  </div>
+</div>
+
+<!-- ================= BOUTIQUE (livres & produits) ================= -->
+<div id="view-shop" class="hidden">
+  <div class="wrap dash-wrap">
+    <button class="btn btn-outline" style="margin-bottom:16px" onclick="showDashboard()" data-i18n="services_back">← Retour</button>
+    <h2 class="page-title" style="margin-bottom:4px" data-i18n="shop_title">Boutique</h2>
+    <p class="muted" style="margin-bottom:18px" data-i18n="shop_sub">Livres et produits Coeurnoh — like, commente et commande.</p>
+
+    <input type="text" id="shop-search-input" class="text-input" style="margin-bottom:12px" data-i18n-placeholder="shop_search_ph" placeholder="🔎 Rechercher un livre ou un produit..." oninput="renderShopFeed()">
+
+    <div style="display:flex;gap:10px;margin-bottom:14px">
+      <button class="btn btn-outline" style="flex:1;justify-content:center" onclick="openSellForm()"><span data-i18n="shop_sell_btn">➕ Vendre</span></button>
+      <button class="btn btn-outline" style="flex:1;justify-content:center" onclick="showSellerPage()"><span data-i18n="shop_seller_btn">💼 Vendeur</span></button>
+      <button class="btn btn-outline" style="position:relative" onclick="openCart()">🛒<span class="cart-badge hidden" id="cart-badge">0</span></button>
+    </div>
+
+    <button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:14px" onclick="showLibrary()"><span data-i18n="shop_goto_library">📚 Aller à la Bibliothèque (livres uniquement)</span></button>
+
+    <div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap">
+      <div class="shop-filter-tabs" id="shop-filter-tabs" style="margin-bottom:0;flex:1">
+        <button class="active" data-filter="all" onclick="setShopFilter('all')" data-i18n="shop_filter_all">Tous</button>
+        <button data-filter="book" onclick="setShopFilter('book')" data-i18n="shop_filter_books">📖 Livres</button>
+        <button data-filter="product" onclick="setShopFilter('product')" data-i18n="shop_filter_products">🛍️ Produits</button>
+      </div>
+      <select id="shop-sort-select" class="select-input" style="width:auto" onchange="setShopSort(this.value)">
+        <option value="recent" data-i18n="shop_sort_recent">🆕 Plus récents</option>
+        <option value="popular" data-i18n="shop_sort_popular">🔥 Plus populaires</option>
+      </select>
+      <select id="shop-category-select" class="select-input" style="width:auto" onchange="setShopCategory(this.value)">
+        <option value="all" data-i18n="shop_cat_all">Toutes catégories</option>
+        <option value="ebooks" data-i18n="shop_cat_ebooks">📚 Livres & Ebooks</option>
+        <option value="beaute" data-i18n="shop_cat_beaute">💄 Beauté & Bien-être</option>
+        <option value="mode" data-i18n="shop_cat_mode">👗 Mode & Accessoires</option>
+        <option value="electronique" data-i18n="shop_cat_electronique">🔌 Électronique</option>
+        <option value="maison" data-i18n="shop_cat_maison">🏠 Maison & Déco</option>
+        <option value="autres" data-i18n="shop_cat_autres">📦 Autres</option>
+      </select>
+    </div>
+
+    <div id="shop-feed"><p class="muted" data-i18n="shop_loading">Chargement...</p></div>
+  </div>
+</div>
+
+<!-- ================= BIBLIOTHEQUE (livres uniquement) =================
+     Reutilise exactement le meme systeme que la Boutique (like, commentaire,
+     partage, achat -> telechargement immediat), juste filtre sur les livres
+     et affiche dans un espace dedie avec sa propre recherche. -->
+<div id="view-library" class="hidden">
+  <div class="wrap dash-wrap">
+    <button class="btn btn-outline" style="margin-bottom:16px" onclick="showShop()" data-i18n="library_back">← Retour à la Boutique</button>
+    <h2 class="page-title" style="margin-bottom:4px" data-i18n="library_title">📚 Bibliothèque</h2>
+    <p class="muted" style="margin-bottom:18px" data-i18n="library_sub">Tous les livres et ebooks disponibles — cherche, like, commente et achète. Le téléchargement est débloqué automatiquement après l'achat.</p>
+
+    <input type="text" id="library-search-input" class="text-input" style="margin-bottom:14px" data-i18n-placeholder="library_search_ph" placeholder="🔎 Rechercher un livre par titre ou description..." oninput="renderLibraryFeed()">
+
+    <button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:14px" onclick="openSellForm()"><span data-i18n="library_publish_btn">➕ Publier un livre à vendre</span></button>
+
+    <div id="library-feed"><p class="muted" data-i18n="shop_loading">Chargement...</p></div>
+  </div>
+</div>
+
+<!-- ================= ESPACE VENDEUR ================= -->
+<div id="view-seller" class="hidden">
+  <div class="wrap dash-wrap">
+    <button class="btn btn-outline" style="margin-bottom:16px" onclick="showShop()">← Retour à la Boutique</button>
+    <h2 class="page-title" style="margin-bottom:4px">💼 Mon espace vendeur</h2>
+    <p class="muted" style="margin-bottom:18px">Tes ventes, tes revenus, ton niveau.</p>
+
+    <div id="seller-badge-card"><p class="muted">Chargement...</p></div>
+
+    <div class="seller-stats-grid" id="seller-stats-grid"></div>
+
+    <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:14px" onclick="openWithdrawForm()">💸 Demander un retrait</button>
+
+    <h3 style="margin:20px 0 10px 0">💸 Mes demandes de retrait</h3>
+    <div id="seller-withdrawals-list"><p class="muted">Chargement...</p></div>
+
+    <h3 style="margin:20px 0 10px 0">📦 Mes publications</h3>
+    <div id="seller-publications-list"><p class="muted">Chargement...</p></div>
+
+    <h3 style="margin:20px 0 10px 0">🧾 Ventes récentes</h3>
+    <div id="seller-recent-sales"><p class="muted">Chargement...</p></div>
+  </div>
+</div>
+
+
+<!-- ================= AUTH MODAL ================= -->
+<div class="modal-overlay hidden" id="auth-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeAuth()">×</button>
+    <h2 id="auth-title" data-i18n="auth_title_register">Créer un compte</h2>
+    <p class="sub" data-i18n="auth_sub">Rejoins Coeurnoh Boost en moins d'une minute.</p>
+    <div class="modal-error hidden" id="auth-error"></div>
+    <div class="modal-loading hidden" id="auth-loading">⏳ Connexion en cours...</div>
+
+    <button class="google-btn" id="google-btn" onclick="signInWithGoogle()">
+      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.6-6 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 3l5.7-5.7C34.6 6 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.2-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 15.9 18.9 13 24 13c3 0 5.8 1.1 7.9 3l5.7-5.7C34.6 6 29.6 4 24 4c-7.4 0-13.7 4.1-17.1 10.2z"/><path fill="#4CAF50" d="M24 44c5.5 0 10.4-1.9 14.2-5.1l-6.6-5.4C29.6 35 26.9 36 24 36c-5.3 0-9.7-3.4-11.3-8.1l-6.6 5c3.3 6.6 10.1 11.1 18 11.1z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.2 4.2-4.1 5.5l6.6 5.4C41.7 35.9 44 30.4 44 24c0-1.2-.1-2.4-.4-3.5z"/></svg>
+      <span data-i18n="auth_google">Continuer avec Google</span>
+    </button>
+    <div class="divider-or" data-i18n="auth_or">ou</div>
+
+    <div class="field" id="auth-name-field">
+      <label data-i18n="auth_name_label">Nom / Pseudo</label>
+      <input type="text" id="auth-name" data-i18n-placeholder="auth_name_ph" placeholder="Ton nom">
+    </div>
+    <div class="field">
+      <label data-i18n="auth_email_label">Email</label>
+      <input type="email" id="auth-email" data-i18n-placeholder="auth_email_ph" placeholder="toi@email.com">
+    </div>
+    <div class="field">
+      <label data-i18n="auth_password_label">Mot de passe</label>
+      <div class="password-wrap">
+        <input type="password" id="auth-password" data-i18n-placeholder="auth_password_ph" placeholder="•••••••• (6 caractères min.)">
+        <button type="button" class="password-toggle" id="password-toggle-btn" onclick="togglePasswordVisibility()" data-i18n="auth_show_password">Afficher</button>
+      </div>
+    </div>
+    <button class="btn btn-primary" id="auth-submit" data-i18n="auth_submit_register" onclick="submitAuth()">Créer mon compte</button>
+    <div class="modal-switch">
+      <span id="auth-switch-text" data-i18n="auth_switch_to_login">Déjà un compte ?</span>
+      <button onclick="toggleAuthMode()" id="auth-switch-btn" data-i18n="auth_switch_btn_login">Se connecter</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= TUTORIEL / GUIDE D'UTILISATION ================= -->
+<div class="modal-overlay hidden" id="tutorial-modal">
+  <div class="modal tutorial-modal">
+    <button class="modal-close" onclick="closeTutorial()">×</button>
+
+    <div class="tutorial-dots" id="tutorial-dots"></div>
+
+    <!-- Etape 0 : Bienvenue -->
+    <div class="tutorial-step" data-tutorial-step="0">
+      <div class="tutorial-emoji">👋</div>
+      <h2 data-i18n="tuto_welcome_title">Bienvenue sur CoeurnohBoost</h2>
+      <p class="sub" data-i18n="tuto_welcome_text">
+        Ce guide t'explique tout : commander, choisir un niveau, recharger ton solde
+        (Mobile Money, Crypto), le parrainage et la monétisation.
+        Tu peux le rouvrir à tout moment avec le bouton <strong>❓</strong> en haut de l'écran.
+      </p>
+    </div>
+
+    <!-- Etape 1 : Le fil d'actualite (publier, liker, commenter, partager) -->
+    <div class="tutorial-step hidden" data-tutorial-step="1">
+      <div class="tutorial-emoji">📸</div>
+      <h2>Le fil d'actualité</h2>
+      <p class="sub">Sur l'Accueil, tu peux publier et interagir comme sur les réseaux sociaux :</p>
+      <ol class="tutorial-list">
+        <li><strong>1.</strong> Appuie sur <strong>« Publier une photo, vidéo ou un texte »</strong> en haut de l'Accueil.</li>
+        <li><strong>2.</strong> ❤️ Like, 💬 commente ou 🔗 partage n'importe quelle publication — appuie sur la photo/vidéo ou sur les commentaires pour ouvrir la fiche complète.</li>
+        <li><strong>3.</strong> La personne concernée reçoit une vraie notification, même si son téléphone est fermé.</li>
+      </ol>
+    </div>
+
+    <!-- Etape 2 : Comment commander (ex-etape 1) -->
+    <div class="tutorial-step hidden" data-tutorial-step="2">
+      <div class="tutorial-emoji">🛒</div>
+      <h2 data-i18n="tuto_order_title">Comment commander</h2>
+      <ol class="tutorial-list">
+        <li data-i18n="tuto_order_step1"><strong>1.</strong> Appuie sur <strong>« Voir les services »</strong> depuis l'accueil.</li>
+        <li data-i18n="tuto_order_step2"><strong>2.</strong> Choisis le réseau social : TikTok, Instagram, YouTube, Facebook...</li>
+        <li data-i18n="tuto_order_step3"><strong>3.</strong> Choisis le service : Abonnés, Likes, Vues, Commentaires...</li>
+        <li data-i18n="tuto_order_step4"><strong>4.</strong> Colle le lien de ton profil ou de ta publication.</li>
+        <li data-i18n="tuto_order_step5"><strong>5.</strong> Appuie sur <strong>« Acheter »</strong> — la livraison démarre automatiquement, sans intervention manuelle.</li>
+      </ol>
+    </div>
+
+    <!-- Etape 3 : Forfaits vs services a la carte (ex-etape 2) -->
+    <div class="tutorial-step hidden" data-tutorial-step="3">
+      <div class="tutorial-emoji">📦</div>
+      <h2 data-i18n="tuto_packages_title">Forfaits ou à la carte ?</h2>
+      <p class="sub" data-i18n="tuto_packages_sub">Sur chaque service, tu as deux façons de commander :</p>
+      <div class="tutorial-tier">
+        <span class="tutorial-tier-badge tier-standard" data-i18n="tuto_packages_alacarte_badge">À la carte</span>
+        <span data-i18n="tuto_packages_alacarte_text">Tu choisis toi-même la quantité exacte (ex: 350 abonnés) et le prix s'ajuste automatiquement.</span>
+      </div>
+      <div class="tutorial-tier">
+        <span class="tutorial-tier-badge tier-premium" data-i18n="tuto_packages_forfait_badge">Forfait (prix fixe)</span>
+        <span data-i18n="tuto_packages_forfait_text">Un pack tout prêt (ex: 200 Abonnés + 200 Likes + 200 Vues) à un prix fixe avantageux.</span>
+      </div>
+    </div>
+
+    <!-- Etape 4 : Standard / Premium / VIP (ex-etape 3) -->
+    <div class="tutorial-step hidden" data-tutorial-step="4">
+      <div class="tutorial-emoji">⭐</div>
+      <h2 data-i18n="tuto_tiers_title">Standard, Premium ou VIP ?</h2>
+      <p class="sub" data-i18n="tuto_tiers_sub">Chaque service propose 3 niveaux de qualité :</p>
+      <div class="tutorial-tier">
+        <span class="tutorial-tier-badge tier-standard">Standard</span>
+        <span data-i18n="tuto_tier_standard">Bon rapport qualité-prix — le choix le plus économique.</span>
+      </div>
+      <div class="tutorial-tier">
+        <span class="tutorial-tier-badge tier-premium">Premium</span>
+        <span data-i18n="tuto_tier_premium">Plus rapide, meilleure rétention dans le temps.</span>
+      </div>
+      <div class="tutorial-tier">
+        <span class="tutorial-tier-badge tier-vip">VIP</span>
+        <span data-i18n="tuto_tier_vip">Ultra rapide, qualité maximale.</span>
+      </div>
+    </div>
+
+    <!-- Etape 5 : Portefeuille - vue d'ensemble (ex-etape 4) -->
+    <div class="tutorial-step hidden" data-tutorial-step="5">
+      <div class="tutorial-emoji">💰</div>
+      <h2 data-i18n="tuto_wallet_intro_title">Le Portefeuille</h2>
+      <p class="sub" data-i18n="tuto_wallet_intro_text">
+        Pour commander, ton compte doit avoir du solde. Va dans l'onglet <strong>« Portefeuille »</strong>
+        en bas de l'écran, puis choisis un mode de paiement parmi les trois proposés : Mobile Money, Crypto ou Carte.
+        Les étapes suivantes détaillent chacun.
+      </p>
+    </div>
+
+    <!-- Etape 6 : Recharge Mobile Money (ex-etape 5) -->
+    <div class="tutorial-step hidden" data-tutorial-step="6">
+      <div class="tutorial-emoji">📱</div>
+      <h2 data-i18n="tuto_mobile_title">Recharger par Mobile Money</h2>
+      <ol class="tutorial-list">
+        <li data-i18n="tuto_mobile_step1"><strong>1.</strong> Choisis ton pays, puis ton opérateur (Orange Money, MTN, M-Pesa, Airtel Money...).</li>
+        <li data-i18n="tuto_mobile_step2"><strong>2.</strong> Entre ton numéro de téléphone Mobile Money et le montant à recharger.</li>
+        <li data-i18n="tuto_mobile_step3"><strong>3.</strong> Appuie sur « Envoyer la demande ».</li>
+        <li data-i18n="tuto_mobile_step4"><strong>4.</strong> Ton téléphone reçoit une notification de <em>ton opérateur</em> te demandant ton code secret Mobile Money pour valider — c'est normal, c'est la sécurité de ton opérateur, jamais CoeurnohBoost ne te demande ce code.</li>
+        <li data-i18n="tuto_mobile_step5"><strong>5.</strong> Ton solde est crédité automatiquement, généralement en quelques minutes (jusqu'à 30 min selon l'opérateur).</li>
+      </ol>
+    </div>
+
+    <!-- Etape 7 : Recharge Crypto (ex-etape 6) -->
+    <div class="tutorial-step hidden" data-tutorial-step="7">
+      <div class="tutorial-emoji">₿</div>
+      <h2 data-i18n="tuto_crypto_title">Recharger en Crypto</h2>
+      <ol class="tutorial-list">
+        <li data-i18n="tuto_crypto_step1"><strong>1.</strong> Choisis ta crypto (USDT, Bitcoin...) et le montant en dollars.</li>
+        <li data-i18n="tuto_crypto_step2"><strong>2.</strong> Tu es redirigé vers une page de paiement sécurisée avec l'adresse et le QR code exacts.</li>
+        <li data-i18n="tuto_crypto_step3"><strong>3.</strong> Envoie le montant exact affiché, depuis ton portefeuille crypto ou ton exchange.</li>
+        <li data-i18n="tuto_crypto_step4"><strong>4.</strong> Dès la confirmation sur la blockchain, ton solde est crédité automatiquement — aucune action manuelle de notre part.</li>
+      </ol>
+    </div>
+
+    <!-- Etape 8 : Parrainage (ex-etape 7) -->
+    <div class="tutorial-step hidden" data-tutorial-step="8">
+      <div class="tutorial-emoji">🎁</div>
+      <h2 data-i18n="tuto_referral_title">Le Parrainage</h2>
+      <ol class="tutorial-list">
+        <li data-i18n="tuto_referral_step1"><strong>1.</strong> Dans ton compte, copie ton lien de parrainage personnel.</li>
+        <li data-i18n="tuto_referral_step2"><strong>2.</strong> Partage-le à tes amis — quand ils s'inscrivent avec ce lien, ils sont liés à ton compte.</li>
+        <li data-i18n="tuto_referral_step3"><strong>3.</strong> Tu gagnes automatiquement <strong>5%</strong> de chacune de leurs recharges, à vie, crédité sur ton solde.</li>
+      </ol>
+    </div>
+
+    <!-- Etape 9 : Monetisation (ex-etape 8) -->
+    <div class="tutorial-step hidden" data-tutorial-step="9">
+      <div class="tutorial-emoji">💡</div>
+      <h2 data-i18n="tuto_monetization_title">La Monétisation</h2>
+      <p class="sub" data-i18n="tuto_monetization_text">
+        Dans l'onglet <strong>« Monétisation »</strong>, découvre les critères exacts que chaque plateforme
+        (YouTube, TikTok, Facebook...) exige pour activer la monétisation de ton compte, ainsi que les
+        services adaptés pour les atteindre plus rapidement.
+      </p>
+    </div>
+
+    <!-- Etape 10 : Boutique - acheter (ex-etape 9) -->
+    <div class="tutorial-step hidden" data-tutorial-step="10">
+      <div class="tutorial-emoji">🏪</div>
+      <h2 data-i18n="tuto_shopbuy_title">Acheter dans la Boutique</h2>
+      <ol class="tutorial-list">
+        <li data-i18n="tuto_shopbuy_step1"><strong>1.</strong> Va dans <strong>« Boutique »</strong> depuis l'accueil.</li>
+        <li data-i18n="tuto_shopbuy_step2"><strong>2.</strong> Utilise la recherche ou les onglets Livres/Produits pour trouver ce que tu veux.</li>
+        <li data-i18n="tuto_shopbuy_step3"><strong>3.</strong> Appuie sur <strong>« Commander »</strong> — le prix est débité de ton solde, instantanément.</li>
+        <li data-i18n="tuto_shopbuy_step4"><strong>4.</strong> Pour un livre, le téléchargement apparaît tout de suite, et reste accessible pour toujours.</li>
+        <li data-i18n="tuto_shopbuy_step5"><strong>5.</strong> Pour un produit, utilise le bouton WhatsApp sur l'article pour coordonner la livraison avec le vendeur.</li>
+      </ol>
+    </div>
+
+    <!-- Etape 11 : La Bibliotheque (NOUVEAU) -->
+    <div class="tutorial-step hidden" data-tutorial-step="11">
+      <div class="tutorial-emoji">📚</div>
+      <h2>La Bibliothèque</h2>
+      <p class="sub">Un espace dédié, uniquement pour les livres et ebooks, avec sa propre recherche.</p>
+      <ol class="tutorial-list">
+        <li><strong>1.</strong> Depuis « Boutique », appuie sur <strong>« 📚 Aller à la Bibliothèque »</strong>.</li>
+        <li><strong>2.</strong> Cherche un livre par titre ou description.</li>
+        <li><strong>3.</strong> Achète et télécharge immédiatement — comme dans la Boutique.</li>
+        <li><strong>4.</strong> Toi aussi tu peux y publier tes propres livres à vendre, avec le même partage 90/10 que la Boutique.</li>
+      </ol>
+    </div>
+
+    <!-- Etape 12 : Boutique - vendre (ex-etape 10) -->
+    <div class="tutorial-step hidden" data-tutorial-step="12">
+      <div class="tutorial-emoji">💼</div>
+      <h2 data-i18n="tuto_shopsell_title">Vendre dans la Boutique</h2>
+      <p class="sub" data-i18n="tuto_shopsell_sub">
+        N'importe quel compte peut vendre un livre ou un produit. CoeurnohBoost prélève <strong>10% de commission</strong>
+        sur chaque vente ; tu reçois <strong>90%</strong> directement sur ton solde, automatiquement.
+      </p>
+      <ol class="tutorial-list">
+        <li data-i18n="tuto_shopsell_step1"><strong>1.</strong> Dans « Boutique », appuie sur <strong>« ➕ Vendre un article »</strong>.</li>
+        <li data-i18n="tuto_shopsell_step2"><strong>2.</strong> Remplis le titre, la description et le prix.</li>
+        <li data-i18n="tuto_shopsell_step3"><strong>3.</strong> Ajoute le lien de ta photo (voir étape suivante pour savoir comment l'obtenir).</li>
+        <li data-i18n="tuto_shopsell_step4"><strong>4.</strong> Pour un livre, ajoute aussi le lien du PDF. Pour un produit, ajoute ton numéro WhatsApp.</li>
+        <li data-i18n="tuto_shopsell_step5"><strong>5.</strong> Publie — ton article apparaît immédiatement dans la Boutique. Va dans <strong>« 💼 Vendeur »</strong> pour suivre tes ventes et demander un retrait.</li>
+      </ol>
+    </div>
+
+    <!-- Etape 13 : Comment obtenir un lien photo / PDF (ex-etape 11) -->
+    <div class="tutorial-step hidden" data-tutorial-step="13">
+      <div class="tutorial-emoji">🔗</div>
+      <h2 data-i18n="tuto_links_title">Obtenir un lien photo ou PDF</h2>
+      <p class="sub" data-i18n="tuto_links_sub">Ces liens sont gratuits et ne demandent pas de compte :</p>
+      <div class="tutorial-tier">
+        <span class="tutorial-tier-badge tier-standard">📷 Photo</span>
+        <span data-i18n="tuto_links_image">Va sur <strong>postimages.org</strong> → « Choose images » → sélectionne ta photo → une fois uploadée, copie le lien <strong>« Lien direct »</strong> (pas les autres formats).</span>
+      </div>
+      <div class="tutorial-tier">
+        <span class="tutorial-tier-badge tier-premium">📄 PDF</span>
+        <span data-i18n="tuto_links_pdf">Uploade ton PDF sur <strong>Google Drive</strong> → appuie sur les 3 points ⋮ → « Partager » → choisis « Tous les utilisateurs disposant du lien » → copie le lien.</span>
+      </div>
+    </div>
+
+    <!-- Etape 14 : Installer l'application (NOUVEAU) -->
+    <div class="tutorial-step hidden" data-tutorial-step="14">
+      <div class="tutorial-emoji">📲</div>
+      <h2>Installer l'application</h2>
+      <p class="sub">
+        Tu utilises encore CoeurnohBoost dans ton navigateur ? Appuie sur le bouton
+        <strong>« 📲 Installer l'app »</strong> en haut de l'écran pour l'ajouter comme une vraie
+        application, avec une icône sur ton écran d'accueil — plus rapide, et les notifications
+        arrivent mieux.
+      </p>
+    </div>
+
+    <!-- Etape 15 : Fin (ex-etape 12) -->
+    <div class="tutorial-step hidden" data-tutorial-step="15">
+      <div class="tutorial-emoji">🚀</div>
+      <h2 data-i18n="tuto_finish_title">Prêt à décoller !</h2>
+      <p class="sub" data-i18n="tuto_finish_text">
+        Tu sais maintenant tout utiliser. Une question reste ? Le bouton WhatsApp en bas à droite
+        te met en contact direct avec nous, à tout moment.
+      </p>
+      <button class="btn btn-primary" style="width:100%;margin-top:14px" onclick="closeTutorial()" data-i18n="tuto_finish_cta">C'est compris, commencer →</button>
+    </div>
+
+    <div class="tutorial-nav">
+      <button class="btn btn-outline" id="tutorial-prev" onclick="tutorialPrev()" data-i18n="tuto_prev">← Précédent</button>
+      <button class="btn btn-primary" id="tutorial-next" onclick="tutorialNext()" data-i18n="tuto_next">Suivant →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= PAGE NOTIFICATIONS (plein ecran) ================= -->
+<div id="view-notifications" class="hidden">
+  <div class="wrap dash-wrap">
+    <button class="btn btn-outline" style="margin-bottom:16px" onclick="showDashboard()">← Retour</button>
+    <h2 class="page-title" style="margin-bottom:14px">🔔 Notifications</h2>
+    <div id="notif-list"><p class="muted">Chargement...</p></div>
+  </div>
+</div>
+
+<!-- ================= VISIONNEUSE PLEIN ECRAN (photo/video) ================= -->
+<div class="media-viewer hidden" id="media-viewer">
+  <button class="media-viewer-close" onclick="closeMediaViewer()">×</button>
+  <div class="media-viewer-content" id="media-viewer-content"></div>
+  <button class="btn btn-primary media-viewer-download" id="media-viewer-download-btn">⬇️ Télécharger</button>
+</div>
+
+<!-- ================= FICHE PUBLICATION PLEIN ECRAN (style Facebook) =================
+     Ouverte par openPostDetail() : c'est ici, et seulement ici, que les
+     commentaires sont visibles (tap sur une photo/video ou sur le nombre
+     de commentaires depuis le fil ou la boutique). -->
+<div class="modal-overlay hidden" id="post-detail-modal">
+  <div class="modal post-detail-modal-inner">
+    <button class="modal-close" onclick="closePostDetail()">×</button>
+    <div id="post-detail-body"></div>
+  </div>
+</div>
+
+<!-- ================= NOUVELLE PUBLICATION (Accueil, style Facebook) ================= -->
+<div class="modal-overlay hidden" id="create-post-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeCreatePostForm()">×</button>
+    <h2>➕ Nouvelle publication</h2>
+    <div class="modal-error hidden" id="post-form-error"></div>
+
+    <div class="field">
+      <label>Type</label>
+      <select id="post-media-type" class="text-input" onchange="togglePostMediaField()">
+        <option value="photo">📷 Photo</option>
+        <option value="video">🎥 Vidéo</option>
+        <option value="text">✍️ Texte seul</option>
+      </select>
+    </div>
+    <div class="field" id="post-media-url-field">
+      <label>Lien du média</label>
+      <input type="url" id="post-media-url" class="text-input" placeholder="https://i.postimg.cc/... ou https://drive.google.com/...">
+      <p class="muted small" style="margin-top:4px">Photo : uploade sur <strong>postimages.org</strong>, copie le "Lien direct". Vidéo : uploade sur <strong>Google Drive</strong>, partage en "Accessible à tous", colle le lien.</p>
+    </div>
+    <div class="field">
+      <label>Texte / légende</label>
+      <textarea id="post-caption" class="text-input" rows="3" placeholder="Qu'as-tu envie de partager ?"></textarea>
+    </div>
+
+    <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:10px" onclick="submitCreatePost()">Publier</button>
+  </div>
+</div>
+
+<!-- ================= BOUTON CHAT FLOTTANT ================= -->
+<a href="https://wa.me/243825001290" target="_blank" class="floating-chat-btn" aria-label="WhatsApp">
+  <svg viewBox="0 0 24 24" fill="#fff" width="26" height="26"><path d="M12 3a9 9 0 0 0-7.7 13.6L3 21l4.5-1.3A9 9 0 1 0 12 3zm0 1.8a7.2 7.2 0 0 1 6.1 11l-.2.3.3 3.4-3.4-1-.3.1a7.2 7.2 0 1 1-2.5-13.8zm-3.5 3.9c-.2 0-.5 0-.7.3-.3.3-1 1-1 2.3s1 2.7 1.2 2.9c.15.2 2 3.1 4.9 4.2 2.4.9 2.9.7 3.4.7.5 0 1.7-.7 1.9-1.4.2-.7.2-1.2.15-1.4-.05-.1-.2-.2-.4-.35-.2-.1-1.3-.6-1.5-.7-.2-.1-.35-.15-.5.15-.15.3-.6.7-.7.85-.15.15-.25.15-.45.05-.2-.1-.9-.35-1.7-1.1-.6-.55-1.05-1.25-1.15-1.45-.15-.25 0-.35.1-.5.1-.1.2-.25.3-.4.1-.15.15-.25.2-.4.05-.15.05-.3 0-.4-.05-.1-.5-1.3-.7-1.75-.2-.45-.35-.4-.5-.4z"/></svg>
+</a>
+
+<script src="translations.js"></script>
+<script src="catalog-data.js"></script>
+<script src="script.js"></script>
+
+<!-- PWA : activation du service worker (installation en app) -->
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch((err) => {
+      console.log('Service worker non enregistre :', err.message);
+    });
+  });
+}
+</script>
+</body>
+</html>

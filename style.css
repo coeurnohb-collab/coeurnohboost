@@ -135,6 +135,20 @@ a{text-decoration:none;color:inherit}
 .switch .slider:before{content:"";position:absolute;height:18px;width:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,0.2)}
 .switch input:checked + .slider{background:var(--green)}
 .switch input:checked + .slider:before{transform:translateX(20px)}
+#toast-container{
+  position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:9999;
+  display:flex;flex-direction:column;gap:8px;align-items:center;
+  pointer-events:none;width:100%;padding:0 16px;
+}
+.toast{
+  background:var(--ink);color:#fff;padding:12px 18px;border-radius:999px;
+  font-size:0.88rem;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,0.2);
+  max-width:420px;text-align:center;opacity:0;transform:translateY(-10px);
+  transition:opacity .25s,transform .25s;
+}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.toast-success{background:var(--green)}
+.toast.toast-error{background:var(--red)}
 
 /* QUICK LINKS */
 .quick-links{display:flex;gap:10px}

@@ -13,6 +13,24 @@ const firebaseConfig = {
 const ADMIN_UID = "8BqWONj07hVZePHe2DrkHWYRjse2";
 const FCM_VAPID_KEY = "BCwBF4M8jxL1uYPBERZvSFz0lYZk34m7vNLUtBby1lUwfoYVLFgY4c23OX6r7QCSCtEOu4GWG8_enFL_Ff5muck";
 
+/* ================= NOTIFICATIONS "TOAST" (bannieres discretes) =================
+   Remplace les alert() bloquants pour les messages courts (succes, erreur,
+   confirmation) — sauf pour les instructions longues et le fallback de
+   copie manuelle, ou une vraie boite de dialogue reste plus adaptee. */
+function showToast(message, type = 'info') {
+  const container = document.getElementById('toast-container');
+  if (!container) { alert(message); return; }
+  const toast = document.createElement('div');
+  toast.className = 'toast toast-' + type;
+  toast.textContent = message;
+  container.appendChild(toast);
+  requestAnimationFrame(() => toast.classList.add('show'));
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 300);
+  }, 3200);
+}
+
 let fbReady = false;
 let auth = null;
 let db = null;
@@ -1158,7 +1176,7 @@ function renderReferralBox() {
 function copyReferralLink() {
   const link = document.getElementById('referral-link-text').textContent;
   if (navigator.clipboard) {
-    navigator.clipboard.writeText(link).then(() => alert(t('referral_copied')));
+    navigator.clipboard.writeText(link).then(() => showToast(t('referral_copied'), 'success'));
   }
 }
 
@@ -1341,7 +1359,7 @@ async function shareApp() {
   } else {
     try {
       await navigator.clipboard.writeText(`${shareText} ${url}`);
-      alert('Lien copié ! Tu peux le coller où tu veux (WhatsApp, Facebook...).');
+      showToast('Lien copié !', 'success');
     } catch (e) {
       alert(url);
     }
@@ -1376,15 +1394,15 @@ function friendlyAuthError(e) {
 async function saveAccountName() {
   if (!currentUser) return;
   const name = document.getElementById('account-name-input').value.trim();
-  if (!name) { alert("Merci d'indiquer un nom."); return; }
+  if (!name) { showToast("Merci d'indiquer un nom.", 'error'); return; }
   try {
     await db.collection('users').doc(currentUser.uid).update({ name });
     currentUser.name = name;
     document.getElementById('dash-name').textContent = name;
     document.getElementById('profile-name').textContent = name;
-    alert('Nom mis à jour !');
+    showToast('Nom mis à jour !', 'success');
   } catch (e) {
-    alert('Erreur : ' + e.message);
+    showToast('Erreur : ' + e.message, 'error');
   }
 }
 
@@ -1474,7 +1492,7 @@ async function deleteMyAccount() {
     });
     const data = await resp.json().catch(() => ({}));
     if (data && data.success) {
-      alert('Ton compte a bien été supprimé.');
+      showToast('Ton compte a bien été supprimé.', 'success');
       logout();
     } else {
       msgEl.textContent = 'Une erreur est survenue. Réessaie dans un instant.';
@@ -2030,7 +2048,7 @@ function sharePost(pubId, caption, url) {
     navigator.share({ title: 'CoeurnohBoost', text: caption || 'Regarde cette publication', url }).catch(() => {});
   } else {
     navigator.clipboard.writeText(url);
-    alert('Lien copié !');
+    showToast('Lien copié !', 'success');
   }
   notifyPublicationShared(pubId);
 }
@@ -2076,7 +2094,7 @@ async function downloadMedia(url, type) {
     a.remove();
     URL.revokeObjectURL(blobUrl);
   } catch (e) {
-    alert("Téléchargement automatique impossible. Fais un appui long sur l'image/vidéo puis choisis \"Enregistrer\".");
+    showToast("Téléchargement auto impossible : appui long sur l'image/vidéo puis \"Enregistrer\".", 'info');
   }
 }
 
@@ -2524,7 +2542,7 @@ async function deleteMyPublication(pubId) {
     await db.collection('publications').doc(pubId).delete();
     loadMyPublications();
   } catch (e) {
-    alert("Erreur : " + e.message);
+    showToast('Erreur : ' + e.message, 'error');
   }
 }
 
@@ -2712,7 +2730,7 @@ async function shareShopItem(pubId, title) {
     // Repli pour les navigateurs desktop qui n'ont pas le partage natif
     try {
       await navigator.clipboard.writeText(`${shareText} ${shareUrl}`);
-      alert('Lien copié ! Tu peux le coller où tu veux (WhatsApp, Facebook...).');
+      showToast('Lien copié !', 'success');
     } catch (e) {
       prompt('Copie ce lien :', shareUrl);
     }
@@ -2817,7 +2835,7 @@ async function openPostDetail(pubId) {
     document.getElementById('post-detail-modal').classList.remove('hidden');
     await loadShopComments(pubId);
   } catch (e) {
-    alert("Impossible d'ouvrir la publication : " + e.message);
+    showToast("Impossible d'ouvrir la publication : " + e.message, 'error');
   }
 }
 
@@ -2881,7 +2899,7 @@ async function addShopComment(pubId) {
       }
     } catch (e) { /* pas grave si la notification echoue */ }
   } catch (e) {
-    alert("Erreur lors de l'envoi du commentaire : " + e.message);
+    showToast("Erreur lors de l'envoi du commentaire : " + e.message, 'error');
   }
 }
 
