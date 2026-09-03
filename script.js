@@ -1122,6 +1122,23 @@ async function openSharedProductIfAny() {
   }, 900);
 }
 
+// Ouvre automatiquement le bon contenu quand on arrive depuis le clic sur
+// une notification (ex: ?open=ID_PUBLICATION ou ?openTab=orders). Avant,
+// cliquer sur une notification ouvrait toujours juste l'accueil.
+function openNotifTargetIfAny() {
+  const params = new URLSearchParams(window.location.search);
+  const pubId = params.get('open');
+  const tab = params.get('openTab');
+  if (pubId) {
+    openPostDetail(pubId);
+  } else if (tab) {
+    showDashTab(tab);
+  }
+  if (pubId || tab) {
+    window.history.replaceState({}, '', window.location.pathname);
+  }
+}
+
 function getPendingReferrerUid() {
   const params = new URLSearchParams(window.location.search);
   return params.get('ref') || null;
@@ -1527,6 +1544,7 @@ if (fbReady) {
 
       showDashboard();
       openSharedProductIfAny();
+      openNotifTargetIfAny();
       registerPushNotifications();
     } else {
       currentUser = null;
@@ -1902,7 +1920,7 @@ async function submitSellForm() {
   }
 
   try {
-    await db.collection('publications').add({
+    const newPubRef = await db.collection('publications').add({
       type, title, description, price, category, imageUrl,
       fileUrl: type === 'book' ? fileUrl : null,
       sellerUid: currentUser.uid,
@@ -1924,7 +1942,7 @@ async function submitSellForm() {
     await db.collection('announcements').add({
       title: annTitle, body: annBody, type: 'announcement', createdAt: new Date().toISOString()
     });
-    broadcastPush(annTitle, annBody);
+    broadcastPush(annTitle, annBody, 'content', '/?open=' + newPubRef.id);
 
     document.getElementById('sell-modal').remove();
     loadShopFeed();
@@ -2025,12 +2043,7 @@ async function notifyPublicationShared(pubId) {
     const pubSnap = await db.collection('publications').doc(pubId).get();
     const pub = pubSnap.data();
     if (pub && pub.sellerUid && pub.sellerUid !== currentUser.uid) {
-      const title = 'Partage 🔗';
-      const body = `${currentUser.name || 'Quelqu\'un'} a partagé "${pub.title || pub.description || 'ta publication'}".`;
-      await db.collection('notifications').add({
-        uid: pub.sellerUid, title, body, type: 'share', read: false, createdAt: new Date().toISOString()
-      });
-      notifyUserPush(pub.sellerUid, title, body);
+      notifyUserPush(pub.sellerUid, title, body, 'activity', '/?open=' + pubId);
     }
   } catch (e) { /* pas grave si la notification echoue */ }
 }
@@ -2103,7 +2116,7 @@ async function submitCreatePost() {
   }
 
   try {
-    await db.collection('publications').add({
+    const newPubRef = await db.collection('publications').add({
       type: 'post',
       mediaType,
       imageUrl: mediaType === 'photo' ? mediaUrl : null,
@@ -2124,7 +2137,7 @@ async function submitCreatePost() {
     db.collection('announcements').add({
       title: annTitle, body: annBody, type: 'announcement', createdAt: new Date().toISOString()
     }).catch(() => {});
-    broadcastPush(annTitle, annBody);
+    broadcastPush(annTitle, annBody, 'content', '/?open=' + newPubRef.id);
 
     document.getElementById('post-media-url').value = '';
     document.getElementById('post-caption').value = '';
@@ -2741,12 +2754,7 @@ async function toggleShopLike(pubId) {
         const pubSnap = await pubRef.get();
         const pub = pubSnap.data();
         if (pub && pub.sellerUid && pub.sellerUid !== currentUser.uid) {
-          const title = 'Nouveau like ❤️';
-          const body = `${currentUser.name || 'Quelqu\'un'} a aimé "${pub.title || pub.description || 'ta publication'}".`;
-          await db.collection('notifications').add({
-            uid: pub.sellerUid, title, body, type: 'like', read: false, createdAt: new Date().toISOString()
-          });
-          notifyUserPush(pub.sellerUid, title, body);
+          notifyUserPush(pub.sellerUid, title, body, 'activity', '/?open=' + pubId);
         }
       } catch (e) { /* pas grave si la notification echoue */ }
     }
@@ -2869,12 +2877,7 @@ async function addShopComment(pubId) {
       const pubSnap = await db.collection('publications').doc(pubId).get();
       const pub = pubSnap.data();
       if (pub && pub.sellerUid && pub.sellerUid !== currentUser.uid) {
-        const title = 'Nouveau commentaire 💬';
-        const body = `${currentUser.name || 'Quelqu\'un'} a commenté "${pub.title || pub.description || 'ta publication'}" : "${text.slice(0, 60)}"`;
-        await db.collection('notifications').add({
-          uid: pub.sellerUid, title, body, type: 'comment', read: false, createdAt: new Date().toISOString()
-        });
-        notifyUserPush(pub.sellerUid, title, body);
+        notifyUserPush(pub.sellerUid, title, body, 'activity', '/?open=' + pubId);
       }
     } catch (e) { /* pas grave si la notification echoue */ }
   } catch (e) {
@@ -3024,25 +3027,25 @@ function playNotifSound() {
 
 /* ================= HELPERS D'ENVOI DE PUSH REEL (serveur) ================= */
 // Notifie UN utilisateur precis (like, commentaire, partage...).
-async function notifyUserPush(uid, title, body, category = 'activity') {
+async function notifyUserPush(uid, title, body, category = 'activity', url = null) {
   if (!currentUser || !uid) return;
   try {
     await fetch('/api/notify-user', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fromUid: currentUser.uid, uid, title, body, category })
+      body: JSON.stringify({ fromUid: currentUser.uid, uid, title, body, category, url })
     });
   } catch (e) { /* pas grave si le push echoue, la notif Firestore reste visible dans l'app */ }
 }
 
 // Notifie TOUT LE MONDE (nouvelle publication, produit, promo...).
-async function broadcastPush(title, body, category = 'content') {
+async function broadcastPush(title, body, category = 'content', url = null) {
   if (!currentUser) return;
   try {
     await fetch('/api/broadcast-notification', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fromUid: currentUser.uid, excludeUid: currentUser.uid, title, body, category })
+      body: JSON.stringify({ fromUid: currentUser.uid, excludeUid: currentUser.uid, title, body, category, url })
     });
   } catch (e) { /* pas grave si le push echoue, l'annonce reste visible dans le panneau */ }
 }

@@ -31,7 +31,8 @@ messaging.onBackgroundMessage((payload) => {
     vibrate: [200, 100, 200],
     tag: (payload.data && payload.data.tag) || undefined,
     renotify: true,
-    requireInteraction: false
+    requireInteraction: false,
+    data: payload.data || {}
   };
   self.registration.showNotification(title, options);
 
@@ -53,12 +54,17 @@ messaging.onBackgroundMessage((payload) => {
 // Au clic sur la notification, on ouvre (ou on remet au premier plan) l'app
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
+  const targetUrl = (event.notification.data && event.notification.data.url) || '/';
   event.waitUntil(
     self.clients.matchAll({ type: 'window' }).then((clientList) => {
       for (const client of clientList) {
-        if ('focus' in client) return client.focus();
+        if ('focus' in client) {
+          client.focus();
+          if ('navigate' in client) client.navigate(targetUrl).catch(() => {});
+          return;
+        }
       }
-      if (self.clients.openWindow) return self.clients.openWindow('/');
+      if (self.clients.openWindow) return self.clients.openWindow(targetUrl);
     })
   );
 });

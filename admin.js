@@ -188,7 +188,7 @@ async function updateOrderStatus(orderId, status) {
       fetch('/api/notify-user', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ adminUid: auth.currentUser ? auth.currentUser.uid : null, uid: o.uid, title, body, category: 'orders' })
+        body: JSON.stringify({ adminUid: auth.currentUser ? auth.currentUser.uid : null, uid: o.uid, title, body, category: 'orders', url: '/?openTab=orders' })
       }).catch(() => {});
     }
     loadOrdersAdmin();
@@ -781,7 +781,7 @@ async function publishShopItem() {
   }
 
   try {
-    await db.collection('publications').add({
+    const newPubRef = await db.collection('publications').add({
       type,
       title,
       description,
@@ -818,7 +818,8 @@ async function publishShopItem() {
         adminUid: auth.currentUser ? auth.currentUser.uid : null,
         title: discountPercent > 0 ? 'Promotion disponible 🎉' : 'Nouveau produit disponible 🆕',
         body: `${title} — ${price.toFixed(2)}$${discountPercent > 0 ? ` (-${discountPercent}%)` : ''}`,
-        category: 'content'
+        category: 'content',
+        url: '/?open=' + newPubRef.id
       })
     }).catch(() => {});
 
@@ -982,7 +983,8 @@ async function sendAnnouncement() {
         adminUid: auth.currentUser ? auth.currentUser.uid : null,
         title: `📢 ${title}`,
         body,
-        category: 'admin'
+        category: 'admin',
+        url: '/?openTab=notifs'
       })
     }).catch(() => {});
 
