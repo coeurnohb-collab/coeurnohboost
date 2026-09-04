@@ -11,6 +11,20 @@ const firebaseConfig = {
 };
 const ADMIN_UID = "8BqWONj07hVZePHe2DrkHWYRjse2";
 
+// Protege contre l'injection de code (XSS) : un titre ou une description
+// soumis par un utilisateur ne doit jamais s'executer comme du code dans
+// le navigateur de l'admin qui modere le contenu -- c'est la cible la plus
+// sensible de toutes, puisque son compte a tous les droits.
+function escapeHtml(str) {
+  if (str == null) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 let auth, db;
 try {
   firebase.initializeApp(firebaseConfig);
@@ -150,8 +164,8 @@ async function loadOrdersAdmin() {
       <div class="admin-row">
         <div class="admin-row-top">
           <div>
-            <div class="admin-row-title">${d.platform || ''} — ${d.service || ''}</div>
-            <div class="admin-row-meta">${d.email || ''}<br>${d.link || ''}<br>${d.quantity ? d.quantity + ' unités · ' : ''}${(d.price || 0).toFixed(2)}$ · ${new Date(d.createdAt).toLocaleString('fr-FR')}${d.debugReason ? `<br><span style="color:var(--red)">⚠️ Automatisation : ${d.debugReason}</span>` : ''}</div>
+            <div class="admin-row-title">${escapeHtml(d.platform || '')} — ${escapeHtml(d.service || '')}</div>
+            <div class="admin-row-meta">${escapeHtml(d.email || '')}<br>${escapeHtml(d.link || '')}<br>${d.quantity ? d.quantity + ' unités · ' : ''}${(d.price || 0).toFixed(2)}$ · ${new Date(d.createdAt).toLocaleString('fr-FR')}${d.debugReason ? `<br><span style="color:var(--red)">⚠️ Automatisation : ${escapeHtml(d.debugReason)}</span>` : ''}</div>
           </div>
           <span class="admin-badge ${status}">${status}</span>
         </div>
@@ -531,8 +545,8 @@ async function loadUsersAdmin() {
       <div class="admin-row">
         <div class="admin-row-top">
           <div>
-            <div class="admin-row-title">${d.name || '—'}</div>
-            <div class="admin-row-meta">${d.email || ''}<br>Solde : ${(d.balance || 0).toFixed(2)}$ · Membre depuis ${d.createdAt ? new Date(d.createdAt).toLocaleDateString('fr-FR') : '—'}</div>
+            <div class="admin-row-title">${escapeHtml(d.name || '—')}</div>
+            <div class="admin-row-meta">${escapeHtml(d.email || '')}<br>Solde : ${(d.balance || 0).toFixed(2)}$ · Membre depuis ${d.createdAt ? new Date(d.createdAt).toLocaleDateString('fr-FR') : '—'}</div>
           </div>
         </div>
       </div>`;
@@ -549,7 +563,10 @@ async function loadAutomationStatus() {
   const el = document.getElementById('automation-status');
   el.textContent = "Vérification...";
   try {
-    const res = await fetch('/api/mtp-balance');
+    const idToken = auth.currentUser ? await auth.currentUser.getIdToken() : null;
+    const res = await fetch('/api/mtp-balance', {
+      headers: idToken ? { 'Authorization': 'Bearer ' + idToken } : {}
+    });
     const data = await res.json();
     if (res.ok) {
       el.innerHTML = `🟢 Connecté à MoreThanPanel — solde fournisseur : ${data.balance || '—'} ${data.currency || ''}`;
@@ -853,7 +870,7 @@ async function loadShopAdmin() {
           <div style="display:flex;gap:12px;align-items:flex-start">
             <img src="${d.imageUrl}" alt="" style="width:56px;height:56px;border-radius:10px;object-fit:cover;flex:0 0 auto">
             <div>
-              <div class="admin-row-title">${typeLabel} — ${d.title}</div>
+              <div class="admin-row-title">${typeLabel} — ${escapeHtml(d.title)}</div>
               <div class="admin-row-meta">${(d.price || 0).toFixed(2)}$ · ❤️ ${d.likesCount || 0} · 💬 ${d.commentsCount || 0}</div>
             </div>
           </div>
@@ -908,8 +925,8 @@ async function loadWithdrawalsAdmin() {
       <div class="admin-row">
         <div class="admin-row-top">
           <div>
-            <div class="admin-row-title">${w.amountUSD.toFixed(2)}$ — ${w.sellerName || 'Vendeur'}</div>
-            <div class="admin-row-meta">${methodLabels[w.method] || w.method} · ${w.accountDetails}</div>
+            <div class="admin-row-title">${w.amountUSD.toFixed(2)}$ — ${escapeHtml(w.sellerName || 'Vendeur')}</div>
+            <div class="admin-row-meta">${escapeHtml(methodLabels[w.method] || w.method)} · ${escapeHtml(w.accountDetails)}</div>
           </div>
           <span class="admin-badge ${w.status}">${w.status}</span>
         </div>
@@ -1010,8 +1027,8 @@ async function loadAnnouncementsAdmin() {
       <div class="admin-row">
         <div class="admin-row-top">
           <div>
-            <div class="admin-row-title">${a.title}</div>
-            <div class="admin-row-meta">${a.body}</div>
+            <div class="admin-row-title">${escapeHtml(a.title)}</div>
+            <div class="admin-row-meta">${escapeHtml(a.body)}</div>
           </div>
         </div>
         <div class="admin-row-actions">
