@@ -545,14 +545,31 @@ async function loadUsersAdmin() {
       <div class="admin-row">
         <div class="admin-row-top">
           <div>
-            <div class="admin-row-title">${escapeHtml(d.name || '—')}</div>
+            <div class="admin-row-title">${d.verified ? '✔️ ' : ''}${escapeHtml(d.name || '—')}</div>
             <div class="admin-row-meta">${escapeHtml(d.email || '')}<br>Solde : ${(d.balance || 0).toFixed(2)}$ · Membre depuis ${d.createdAt ? new Date(d.createdAt).toLocaleDateString('fr-FR') : '—'}</div>
           </div>
+        </div>
+        <div class="admin-row-actions">
+          <button class="btn btn-outline btn-sm" onclick="toggleUserVerified('${doc.id}', ${!d.verified})">
+            ${d.verified ? '❌ Retirer la vérification' : '✔️ Vérifier ce vendeur'}
+          </button>
         </div>
       </div>`;
     }).join('');
   } catch (e) {
     el.innerHTML = `<p class="admin-empty">Erreur : ${e.message}</p>`;
+  }
+}
+
+// Bascule le badge "vendeur verifie" (coche bleue) d'un compte. Ce badge
+// s'affiche desormais a cote de son nom partout ou ses publications
+// apparaissent (fil, boutique, fiche detaillee).
+async function toggleUserVerified(uid, verified) {
+  try {
+    await db.collection('users').doc(uid).update({ verified });
+    loadUsersAdmin();
+  } catch (e) {
+    alert('Erreur : ' + e.message);
   }
 }
 
@@ -808,6 +825,7 @@ async function publishShopItem() {
       fileUrl: type === 'book' ? fileUrl : null,
       sellerUid: "8BqWONj07hVZePHe2DrkHWYRjse2",
       sellerName: "CoeurnohBoost",
+      sellerVerified: true,
       sellerPhone: type === 'product' ? "243825001290" : null,
       discountPercent: discountPercent,
       promoExpiresAt: (discountPercent > 0 && discountDurationHours > 0)

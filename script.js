@@ -1938,6 +1938,7 @@ async function submitSellForm() {
       fileUrl: type === 'book' ? fileUrl : null,
       sellerUid: currentUser.uid,
       sellerName: currentUser.name || 'Vendeur CoeurnohBoost',
+      sellerVerified: !!currentUser.verified,
       sellerPhone: type === 'product' ? phone : null,
       discountPercent: discountPercent,
       promoExpiresAt: (discountPercent > 0 && discountDurationHours > 0)
@@ -2044,7 +2045,7 @@ function renderPostCard(item, isLiked) {
     <div class="post-card-header">
       <div class="post-avatar">${escapeHtml((item.sellerName || 'C')[0].toUpperCase())}</div>
       <div>
-        <strong>${escapeHtml(item.sellerName || 'CoeurnohBoost')}</strong>
+        <strong>${escapeHtml(item.sellerName || 'CoeurnohBoost')}${item.sellerVerified ? ' ✔️' : ''}</strong>
         <div class="post-time">${timeStr}</div>
       </div>
       ${currentUser && currentUser.uid === item.sellerUid ? `
@@ -2172,6 +2173,7 @@ async function submitCreatePost() {
       description: caption,
       sellerUid: currentUser.uid,
       sellerName: currentUser.name || 'Utilisateur',
+      sellerVerified: !!currentUser.verified,
       status: 'published',
       likesCount: 0,
       commentsCount: 0,
@@ -2715,7 +2717,7 @@ function renderShopCard(item, isLiked, isPurchased) {
     : '';
 
   const sellerLine = item.sellerName
-    ? `<span class="shop-card-seller">Vendu par ${escapeHtml(item.sellerName)}</span>`
+    ? `<span class="shop-card-seller">Vendu par ${escapeHtml(item.sellerName)}${item.sellerVerified ? ' ✔️' : ''}</span>`
     : '';
 
   const categoryLabels = {
@@ -2866,7 +2868,7 @@ async function openPostDetail(pubId) {
       <div class="post-card-header">
         <div class="post-avatar">${escapeHtml((item.sellerName || 'C')[0].toUpperCase())}</div>
         <div>
-          <strong>${escapeHtml(item.sellerName || 'CoeurnohBoost')}</strong>
+          <strong>${escapeHtml(item.sellerName || 'CoeurnohBoost')}${item.sellerVerified ? ' ✔️' : ''}</strong>
           <div class="post-time">${timeAgo(item.createdAt)}</div>
         </div>
       </div>
