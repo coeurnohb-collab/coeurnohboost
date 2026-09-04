@@ -428,23 +428,25 @@ async function buyBundle(platformId, idx) {
   }
 
   try {
-    const newBalance = (currentUser.balance || 0) - price;
-    await db.collection('users').doc(currentUser.uid).update({ balance: newBalance });
-    currentUser.balance = newBalance;
-    await db.collection('orders').add({
-      uid: currentUser.uid,
-      email: currentUser.email,
-      platform: p.name,
-      service: bundleLabel(platformId, bundle),
-      quality: 'bundle',
-      link,
-      quantity: null,
-      price,
-      status: 'pending',
-      createdAt: new Date().toISOString()
+    const idToken = await auth.currentUser.getIdToken();
+    const resp = await fetch('/api/place-smm-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        idToken, orderKind: 'bundle', price,
+        platform: platformId, platformName: p.name,
+        service: bundleLabel(platformId, bundle), quality: 'bundle', link
+      })
     });
-    document.getElementById('dash-balance').textContent = newBalance.toFixed(2) + '$';
-    document.getElementById('wallet-balance').textContent = newBalance.toFixed(2) + '$';
+    const data = await resp.json();
+    if (!data.success) {
+      errEl.textContent = data.error || t('pay_err_generic');
+      errEl.classList.remove('hidden');
+      return;
+    }
+    currentUser.balance = data.newBalance;
+    document.getElementById('dash-balance').textContent = data.newBalance.toFixed(2) + '$';
+    document.getElementById('wallet-balance').textContent = data.newBalance.toFixed(2) + '$';
     okEl.textContent = t('order_success');
     okEl.classList.remove('hidden');
   } catch (e) {
@@ -491,38 +493,9 @@ function onOrderInputChange() {
   document.getElementById('order-user-balance').textContent = ((currentUser && currentUser.balance) || 0).toFixed(2) + '$';
 }
 
-/* Tente de transmettre la commande automatiquement à MoreThanPanel via le serveur.
-   Si l'automatisation n'est pas encore branchée (pas de clé API, pas d'ID service),
-   la commande reste simplement en attente pour un traitement manuel — rien ne casse. */
-async function attemptAutomatedFulfillment(orderId, platformId, type, quality, link, quantity) {
-  try {
-    const res = await fetch('/api/place-smm-order', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ platform: platformId, type, quality, link, quantity })
-    });
-    const data = await res.json();
-    if (data.automated) {
-      await db.collection('orders').doc(orderId).update({
-        status: 'processing',
-        mtpOrderId: data.mtpOrderId,
-        mtpCost: data.mtpCost != null ? data.mtpCost : null,
-        mtpCurrency: data.mtpCurrency || null
-      });
-    } else {
-      await db.collection('orders').doc(orderId).update({
-        debugReason: data.reason || 'Raison inconnue (reponse sans "reason")'
-      });
-    }
-  } catch (e) {
-    console.warn('Automatisation non disponible pour cette commande :', e.message);
-    try {
-      await db.collection('orders').doc(orderId).update({
-        debugReason: 'Erreur fetch cote client : ' + e.message
-      });
-    } catch (e2) { /* rien de plus a faire */ }
-  }
-}
+/* L'automatisation MoreThanPanel se fait desormais entierement cote
+   serveur (voir api/place-smm-order.js), dans le meme appel que le debit
+   du solde -- plus besoin d'une etape separee ici. */
 
 async function submitOrder() {
   const errEl = document.getElementById('order-error');
@@ -535,6 +508,7 @@ async function submitOrder() {
   const link = document.getElementById('order-link').value.trim();
   const price = (qty / 1000) * service.price[selectedQuality];
   const qualityInfo = QUALITY_TIERS.find(q => q.id === selectedQuality);
+  const p = PLATFORMS.find(x => x.id === selectedPlatformId);
 
   if (!link) { errEl.textContent = "Merci d'indiquer le lien à booster."; errEl.classList.remove('hidden'); return; }
   if (!qty || qty < service.min || qty > service.max) {
@@ -549,21 +523,24 @@ async function submitOrder() {
   }
 
   try {
-    const newBalance = currentUser.balance - price;
-    const orderRef = await db.collection('orders').add({
-      uid: currentUser.uid,
-      email: currentUser.email,
-      platform: selectedPlatformId,
-      service: service.label,
-      quality: qualityInfo.name,
-      link, quantity: qty, price,
-      status: 'pending',
-      createdAt: new Date().toISOString()
+    const idToken = await auth.currentUser.getIdToken();
+    const resp = await fetch('/api/place-smm-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        idToken, orderKind: 'service', price,
+        platform: selectedPlatformId, platformName: (p && p.name) || selectedPlatformId,
+        service: service.label, quality: qualityInfo.name,
+        link, quantity: qty, type: service.type
+      })
     });
-    await db.collection('users').doc(currentUser.uid).update({ balance: newBalance });
-    currentUser.balance = newBalance;
-
-    attemptAutomatedFulfillment(orderRef.id, selectedPlatformId, service.type, selectedQuality, link, qty);
+    const data = await resp.json();
+    if (!data.success) {
+      errEl.textContent = data.error || "Erreur lors de l'enregistrement. Réessaie.";
+      errEl.classList.remove('hidden');
+      return;
+    }
+    currentUser.balance = data.newBalance;
 
     showDashboard();
     showDashTab('orders');
@@ -1087,23 +1064,25 @@ async function buyMonetizationPackage(platformId) {
   }
 
   try {
-    const newBalance = (currentUser.balance || 0) - m.pack.price;
-    await db.collection('users').doc(currentUser.uid).update({ balance: newBalance });
-    currentUser.balance = newBalance;
-    await db.collection('orders').add({
-      uid: currentUser.uid,
-      email: currentUser.email,
-      platform: p.name,
-      service: m.pack.title,
-      quality: 'package',
-      link,
-      quantity: null,
-      price: m.pack.price,
-      status: 'pending',
-      createdAt: new Date().toISOString()
+    const idToken = await auth.currentUser.getIdToken();
+    const resp = await fetch('/api/place-smm-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        idToken, orderKind: 'package', price: m.pack.price,
+        platform: platformId, platformName: p.name,
+        service: m.pack.title, quality: 'package', link
+      })
     });
-    document.getElementById('dash-balance').textContent = newBalance.toFixed(2) + '$';
-    document.getElementById('wallet-balance').textContent = newBalance.toFixed(2) + '$';
+    const data = await resp.json();
+    if (!data.success) {
+      errEl.textContent = data.error || t('pay_err_generic');
+      errEl.classList.remove('hidden');
+      return;
+    }
+    currentUser.balance = data.newBalance;
+    document.getElementById('dash-balance').textContent = data.newBalance.toFixed(2) + '$';
+    document.getElementById('wallet-balance').textContent = data.newBalance.toFixed(2) + '$';
     okEl.textContent = t('order_success');
     okEl.classList.remove('hidden');
   } catch (e) {
@@ -2446,21 +2425,19 @@ async function submitWithdrawRequest() {
   }
 
   try {
-    const newBalance = Math.round((currentUser.balance - amount) * 100) / 100;
-    // On retire le montant du solde tout de suite pour eviter qu'il soit depense ailleurs
-    // pendant que la demande est en attente de traitement manuel.
-    await db.collection('users').doc(currentUser.uid).update({ balance: newBalance });
-    currentUser.balance = newBalance;
-
-    await db.collection('withdrawal_requests').add({
-      uid: currentUser.uid,
-      sellerName: currentUser.name || 'Vendeur',
-      method,
-      accountDetails,
-      amountUSD: amount,
-      status: 'pending',
-      createdAt: new Date().toISOString()
+    const idToken = await auth.currentUser.getIdToken();
+    const resp = await fetch('/api/notify-user', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'request-withdrawal', idToken, amount, method, accountDetails })
     });
+    const data = await resp.json();
+    if (!data.success) {
+      errEl.textContent = data.error || 'Erreur : réessaie.';
+      errEl.classList.remove('hidden');
+      return;
+    }
+    currentUser.balance = data.newBalance;
 
     document.getElementById('withdraw-modal').remove();
     loadSellerWithdrawals();
