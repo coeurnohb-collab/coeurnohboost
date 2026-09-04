@@ -151,6 +151,46 @@ async function loadStats() {
 /* =========================================================
    COMMANDES
    ========================================================= */
+// Exporte les commandes recentes (jusqu'a 2000) dans un fichier CSV
+// telechargeable, pour la comptabilite ou une analyse dans un tableur.
+async function exportOrdersCSV() {
+  try {
+    const snap = await db.collection('orders').orderBy('createdAt', 'desc').limit(2000).get();
+    if (snap.empty) { alert('Aucune commande à exporter.'); return; }
+
+    const csvField = (val) => `"${String(val == null ? '' : val).replace(/"/g, '""')}"`;
+    const headers = ['Date', 'Email', 'Plateforme', 'Service', 'Quantité', 'Prix ($)', 'Statut', 'Lien'];
+    const rows = snap.docs.map(doc => {
+      const d = doc.data();
+      return [
+        csvField(d.createdAt ? new Date(d.createdAt).toLocaleString('fr-FR') : ''),
+        csvField(d.email || ''),
+        csvField(d.platform || ''),
+        csvField(d.service || ''),
+        csvField(d.quantity || ''),
+        csvField((d.price || 0).toFixed(2)),
+        csvField(d.status || 'pending'),
+        csvField(d.link || '')
+      ].join(',');
+    });
+
+    // Le prefixe \uFEFF (BOM) garantit que les accents francais s'affichent
+    // correctement en ouvrant le fichier dans Excel.
+    const csvContent = '\uFEFF' + [headers.map(csvField).join(','), ...rows].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `commandes-coeurnohboost-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch (e) {
+    alert('Erreur export : ' + e.message);
+  }
+}
+
 async function loadOrdersAdmin() {
   const el = document.getElementById('admin-orders-list');
   el.innerHTML = `<p class="admin-empty">Chargement...</p>`;

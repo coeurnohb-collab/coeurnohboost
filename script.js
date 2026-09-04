@@ -2864,6 +2864,13 @@ async function openPostDetail(pubId) {
       mediaHtml = `<img src="${mediaUrl}" class="post-detail-media" alt="" loading="lazy">`;
     }
 
+    // Avis clients -- uniquement pour les articles boutique (livre/produit),
+    // pas pour les publications sociales (photo/video/texte).
+    let reviewsHtml = '';
+    if (item.type && item.type !== 'post') {
+      reviewsHtml = await renderReviewsSection(pubId, item.sellerUid);
+    }
+
     document.getElementById('post-detail-body').innerHTML = `
       <div class="post-card-header">
         <div class="post-avatar">${escapeHtml((item.sellerName || 'C')[0].toUpperCase())}</div>
@@ -2889,6 +2896,7 @@ async function openPostDetail(pubId) {
           <button class="btn btn-outline btn-sm" onclick="addShopComment('${item.id}')">Envoyer</button>
         </div>
       </div>
+      ${reviewsHtml}
       ${currentUser && currentUser.uid === item.sellerUid ? `
       <button class="btn btn-outline" style="margin-top:14px;color:var(--red);border-color:var(--red)" onclick="deletePublicationFromDetail('${item.id}')">🗑️ Supprimer cette publication</button>
       ` : ''}
@@ -2903,6 +2911,96 @@ async function openPostDetail(pubId) {
 function closePostDetail() {
   document.getElementById('post-detail-modal').classList.add('hidden');
   document.getElementById('post-detail-body').innerHTML = '';
+}
+
+/* ================= AVIS / NOTES (apres un achat confirme) ================= */
+function renderStars(rating) {
+  const full = Math.round(rating);
+  return '⭐'.repeat(full) + '☆'.repeat(5 - full);
+}
+
+// Recupere les avis existants d'un article, et propose le formulaire
+// d'avis SEULEMENT a un acheteur ayant une commande confirmee pour cet
+// article et n'ayant pas deja laisse d'avis (un avis par achat).
+async function renderReviewsSection(pubId, sellerUid) {
+  const snap = await db.collection('reviews').where('pubId', '==', pubId).orderBy('createdAt', 'desc').limit(20).get();
+  const reviews = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  const avg = reviews.length ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0;
+
+  let formHtml = '';
+  if (currentUser && currentUser.uid !== sellerUid) {
+    try {
+      const orderSnap = await db.collection('shop_orders')
+        .where('uid', '==', currentUser.uid)
+        .where('pubId', '==', pubId)
+        .where('status', '==', 'completed')
+        .limit(1).get();
+      if (!orderSnap.empty) {
+        const orderId = orderSnap.docs[0].id;
+        const already = reviews.some(r => r.id === orderId);
+        if (!already) {
+          formHtml = `
+            <div class="review-form">
+              <p class="muted small" style="margin-bottom:6px">Tu as acheté cet article — laisse ton avis :</p>
+              <div class="star-picker" id="star-picker-${pubId}">
+                ${[1, 2, 3, 4, 5].map(n => `<span data-star="${n}" onclick="setReviewStars('${pubId}', ${n})">☆</span>`).join('')}
+              </div>
+              <textarea class="text-input" id="review-comment-${pubId}" placeholder="Ton avis (optionnel)" style="margin-top:8px;min-height:60px;width:100%"></textarea>
+              <button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="submitReview('${pubId}', '${sellerUid}', '${orderId}')">Envoyer mon avis</button>
+            </div>
+          `;
+        }
+      }
+    } catch (e) { /* si la verification d'achat echoue, on n'affiche simplement pas le formulaire */ }
+  }
+
+  const listHtml = reviews.length
+    ? reviews.map(r => `
+        <div class="review-row">
+          <strong>${escapeHtml(r.buyerName || 'Client')}</strong> ${renderStars(r.rating)}
+          ${r.comment ? `<p>${escapeHtml(r.comment)}</p>` : ''}
+          <span class="notif-time">${timeAgo(r.createdAt)}</span>
+        </div>
+      `).join('')
+    : '<p class="muted small">Aucun avis pour l\'instant.</p>';
+
+  return `
+    <div class="reviews-section">
+      <h4>⭐ Avis ${reviews.length ? `— ${avg.toFixed(1)}/5 (${reviews.length})` : ''}</h4>
+      ${formHtml}
+      <div class="reviews-list">${listHtml}</div>
+    </div>
+  `;
+}
+
+let selectedReviewStars = {};
+function setReviewStars(pubId, n) {
+  selectedReviewStars[pubId] = n;
+  document.querySelectorAll(`#star-picker-${pubId} span`).forEach((el, i) => {
+    el.textContent = (i < n) ? '⭐' : '☆';
+  });
+}
+
+// Un avis = un achat : le document est enregistre sous l'id de la
+// commande elle-meme, donc impossible d'en laisser deux pour le meme achat.
+async function submitReview(pubId, sellerUid, orderId) {
+  const rating = selectedReviewStars[pubId] || 0;
+  if (!rating) { showToast('Choisis une note (1 à 5 étoiles).', 'error'); return; }
+  const commentEl = document.getElementById(`review-comment-${pubId}`);
+  const comment = commentEl ? commentEl.value.trim() : '';
+  try {
+    await db.collection('reviews').doc(orderId).set({
+      orderId, pubId, sellerUid,
+      buyerUid: currentUser.uid,
+      buyerName: currentUser.name || 'Client',
+      rating, comment,
+      createdAt: new Date().toISOString()
+    });
+    showToast('Merci pour ton avis !', 'success');
+    openPostDetail(pubId);
+  } catch (e) {
+    showToast('Erreur : ' + e.message, 'error');
+  }
 }
 
 // Supprime la publication ouverte dans la fiche detaillee (reutilise la

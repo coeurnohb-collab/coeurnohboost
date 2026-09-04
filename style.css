@@ -424,6 +424,13 @@ a{text-decoration:none;color:inherit}
 .shop-comments{margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
 .shop-comments-list{margin-bottom:10px;max-height:220px;overflow-y:auto}
 .shop-comment{padding:8px 0;border-bottom:1px solid var(--line);font-size:0.85rem}
+.reviews-section{margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
+.reviews-section h4{margin-bottom:10px;font-size:0.95rem}
+.review-form{background:var(--cream);border:1px solid var(--line);border-radius:var(--radius);padding:12px;margin-bottom:12px}
+.star-picker span{font-size:1.5rem;cursor:pointer;margin-right:2px}
+.review-row{padding:8px 0;border-bottom:1px solid var(--line);font-size:0.85rem}
+.review-row:last-child{border-bottom:none}
+.review-row p{margin-top:4px;color:var(--muted)}
 .shop-comment:last-child{border-bottom:none}
 .shop-comment strong{display:block;color:var(--ink);margin-bottom:2px;font-size:0.8rem}
 .shop-comment span{color:var(--muted)}

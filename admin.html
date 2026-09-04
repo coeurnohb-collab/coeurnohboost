@@ -57,7 +57,10 @@
 
     <!-- ---- Commandes ---- -->
     <div class="admin-tab hidden" id="admin-tab-orders">
-      <h2 class="page-title">Commandes</h2>
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+        <h2 class="page-title" style="margin-bottom:0">Commandes</h2>
+        <button class="btn btn-outline btn-sm" onclick="exportOrdersCSV()">📄 Exporter en CSV</button>
+      </div>
       <div id="admin-orders-list"></div>
     </div>
 
