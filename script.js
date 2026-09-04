@@ -818,20 +818,9 @@ async function submitRecharge() {
         return;
       }
 
-      // On enregistre la demande en attente, en gardant l'ID de facture pour le suivi
-      await db.collection('topup_requests').add({
-        uid: currentUser.uid,
-        email: currentUser.email,
-        method: payMethod,
-        crypto: crypto ? crypto.name : null,
-        amountUSD: amount,
-        status: 'pending_payment',
-        cryptomusOrderId: data.orderId,
-        cryptomusInvoiceId: data.invoiceId,
-        createdAt: new Date().toISOString()
-      });
-
-      // On redirige l'utilisateur vers la page de paiement Cryptomus
+      // La demande de recharge est desormais enregistree cote serveur
+      // (api/cryptomus-payment.js), avec un montant fiable et non
+      // falsifiable -- on redirige simplement vers la page de paiement.
       window.location.href = data.paymentUrl;
       return;
     }
@@ -853,21 +842,11 @@ async function submitRecharge() {
       const data = await response.json();
 
       if (data.supported && data.success) {
-        // Automatise : le client va recevoir une invite mobile money sur son telephone
-        await db.collection('topup_requests').add({
-          uid: currentUser.uid,
-          email: currentUser.email,
-          method: payMethod,
-          country: country ? country.name : null,
-          operator: payOperator || null,
-          phone,
-          amountUSD: amount,
-          localAmount: data.localAmount,
-          localCurrency: data.currency,
-          status: 'pending_payment',
-          mbotepayReference: data.reference,
-          createdAt: new Date().toISOString()
-        });
+        // La demande de recharge est desormais enregistree cote serveur
+        // (api/mbotepay-payment.js), avec un montant fiable et non
+        // falsifiable -- avant, le navigateur l'ecrivait lui-meme, ce qui
+        // permettait de payer une petite somme reelle tout en enregistrant
+        // un montant bien plus eleve.
         okEl.textContent = "Demande envoyée ! Confirme le paiement sur ton téléphone.";
         okEl.classList.remove('hidden');
         return;
@@ -879,6 +858,11 @@ async function submitRecharge() {
       }
       // data.supported === false : pays non couvert par MboтePay, on tente CinetPay ci-dessous
 
+      // ⚠️ CinetPay n'est pas encore reconstruit (retire temporairement).
+      // Quand il sera de retour, la demande de recharge devra etre creee
+      // DANS api/cinetpay-payment.js (cote serveur), avec le meme montant
+      // que celui de la vraie facture -- surtout PAS ici cote client, pour
+      // les memes raisons de securite que Cryptomus et MboтePay ci-dessus.
       const cinetpayResponse = await fetch('/api/cinetpay-payment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -893,21 +877,9 @@ async function submitRecharge() {
       const cinetpayData = await cinetpayResponse.json();
 
       if (cinetpayData.supported && cinetpayData.success) {
-        // Automatise : on enregistre la demande puis on redirige vers la page CinetPay
-        // (Mobile Money OU Carte Bancaire selon le choix du client sur leur guichet)
-        await db.collection('topup_requests').add({
-          uid: currentUser.uid,
-          email: currentUser.email,
-          method: payMethod,
-          country: country ? country.name : null,
-          phone,
-          amountUSD: amount,
-          localAmount: cinetpayData.localAmount,
-          localCurrency: cinetpayData.currency,
-          status: 'pending_payment',
-          cinetpayReference: cinetpayData.reference,
-          createdAt: new Date().toISOString()
-        });
+        // Quand CinetPay sera reconstruit, la demande de recharge devra
+        // etre creee cote serveur dans api/cinetpay-payment.js (voir le
+        // commentaire ci-dessus) -- pas ici.
         window.location.href = cinetpayData.paymentUrl;
         return;
       }
