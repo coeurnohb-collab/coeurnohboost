@@ -31,6 +31,20 @@ function showToast(message, type = 'info') {
   }, 3200);
 }
 
+// Protege contre l'injection de code (XSS) : transforme un texte libre
+// (nom, titre, description, commentaire...) pour qu'il s'affiche tel quel
+// au lieu d'etre interprete comme du HTML/JavaScript. A utiliser partout
+// ou du texte saisi par un utilisateur est affiche a l'ecran.
+function escapeHtml(str) {
+  if (str == null) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 let fbReady = false;
 let auth = null;
 let db = null;
@@ -2056,16 +2070,16 @@ function renderPostCard(item, isLiked) {
   return `
   <div class="post-card" id="shop-card-${item.id}">
     <div class="post-card-header">
-      <div class="post-avatar">${(item.sellerName || 'C')[0].toUpperCase()}</div>
+      <div class="post-avatar">${escapeHtml((item.sellerName || 'C')[0].toUpperCase())}</div>
       <div>
-        <strong>${item.sellerName || 'CoeurnohBoost'}</strong>
+        <strong>${escapeHtml(item.sellerName || 'CoeurnohBoost')}</strong>
         <div class="post-time">${timeStr}</div>
       </div>
       ${currentUser && currentUser.uid === item.sellerUid ? `
       <button class="post-delete-btn" onclick="deleteMyPublication('${item.id}')" title="Supprimer">🗑️</button>
       ` : ''}
     </div>
-    ${item.description ? `<p class="post-caption">${item.description}</p>` : ''}
+    ${item.description ? `<p class="post-caption">${escapeHtml(item.description)}</p>` : ''}
     ${mediaHtml}
     <div class="post-actions">
       <button class="shop-action-btn ${isLiked ? 'liked' : ''}" data-like-btn="${item.id}" onclick="toggleShopLike('${item.id}')">
@@ -2567,7 +2581,7 @@ async function loadMyPublications() {
       <div class="seller-pub-row">
         <img src="${d.imageUrl}" alt="" class="seller-pub-img" loading="lazy">
         <div class="seller-pub-info">
-          <strong>${typeLabel} ${d.title}</strong>
+          <strong>${typeLabel} ${escapeHtml(d.title)}</strong>
           <div class="muted small">${(d.price || 0).toFixed(2)}$ · ❤️ ${d.likesCount || 0}</div>
         </div>
         <button class="shop-action-btn" onclick="deleteMyPublication('${doc.id}')">🗑️</button>
@@ -2729,7 +2743,7 @@ function renderShopCard(item, isLiked, isPurchased) {
     : '';
 
   const sellerLine = item.sellerName
-    ? `<span class="shop-card-seller">Vendu par ${item.sellerName}</span>`
+    ? `<span class="shop-card-seller">Vendu par ${escapeHtml(item.sellerName)}</span>`
     : '';
 
   const categoryLabels = {
@@ -2742,13 +2756,13 @@ function renderShopCard(item, isLiked, isPurchased) {
 
   return `
   <div class="shop-card" id="shop-card-${item.id}">
-    <img src="${item.imageUrl}" alt="${item.title}" class="shop-card-img" loading="lazy" onclick="openPostDetail('${item.id}')">
+    <img src="${item.imageUrl}" alt="${escapeHtml(item.title)}" class="shop-card-img" loading="lazy" onclick="openPostDetail('${item.id}')">
     <div class="shop-card-body">
       <span class="shop-card-type">${typeLabel}${alreadyOwned ? ' · ✅ Déjà acheté' : ''}</span>
       ${categoryLine}
-      <h3 class="shop-card-title">${item.title}</h3>
+      <h3 class="shop-card-title">${escapeHtml(item.title)}</h3>
       ${sellerLine}
-      <p class="shop-card-desc">${item.description}</p>
+      <p class="shop-card-desc">${escapeHtml(item.description)}</p>
       ${priceHtml}
 
       <div class="shop-card-actions">
@@ -2878,14 +2892,14 @@ async function openPostDetail(pubId) {
 
     document.getElementById('post-detail-body').innerHTML = `
       <div class="post-card-header">
-        <div class="post-avatar">${(item.sellerName || 'C')[0].toUpperCase()}</div>
+        <div class="post-avatar">${escapeHtml((item.sellerName || 'C')[0].toUpperCase())}</div>
         <div>
-          <strong>${item.sellerName || 'CoeurnohBoost'}</strong>
+          <strong>${escapeHtml(item.sellerName || 'CoeurnohBoost')}</strong>
           <div class="post-time">${timeAgo(item.createdAt)}</div>
         </div>
       </div>
-      ${item.title ? `<h3 class="post-detail-title">${item.title}</h3>` : ''}
-      ${item.description ? `<p class="post-caption">${item.description}</p>` : ''}
+      ${item.title ? `<h3 class="post-detail-title">${escapeHtml(item.title)}</h3>` : ''}
+      ${item.description ? `<p class="post-caption">${escapeHtml(item.description)}</p>` : ''}
       ${mediaHtml}
       <div class="post-actions">
         <button class="shop-action-btn ${isLiked ? 'liked' : ''}" data-like-btn="${item.id}" onclick="toggleShopLike('${item.id}')">
@@ -2940,7 +2954,7 @@ async function loadShopComments(pubId) {
     }
     listEl.innerHTML = snap.docs.map(doc => {
       const c = doc.data();
-      return `<div class="shop-comment"><strong>${c.name || 'Client'}</strong><span>${c.text}</span></div>`;
+      return `<div class="shop-comment"><strong>${escapeHtml(c.name || 'Client')}</strong><span>${escapeHtml(c.text)}</span></div>`;
     }).join('');
   } catch (e) {
     listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
@@ -3362,8 +3376,8 @@ function renderNotifPanel() {
       ${canSelect ? `<input type="checkbox" class="notif-select-checkbox" data-id="${n.id}" onclick="event.stopPropagation()" onchange="toggleNotifSelected('${n.id}', this.checked)">` : ''}
       <span class="notif-icon">${typeIcons[n.type] || '🔔'}</span>
       <div class="notif-content">
-        <strong>${n.title}</strong>
-        <p>${n.body}</p>
+        <strong>${escapeHtml(n.title)}</strong>
+        <p>${escapeHtml(n.body)}</p>
         <span class="notif-time">${timeAgo(n.createdAt)}</span>
       </div>
       ${(!notifSelectMode && !n.isAnnouncement) ? `<button class="notif-delete-btn" onclick="event.stopPropagation(); deleteNotifRow('${n.id}')">🗑️</button>` : ''}
