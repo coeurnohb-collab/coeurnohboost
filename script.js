@@ -1345,6 +1345,21 @@ function fillAccountForm() {
 }
 
 // Traduit les erreurs Firebase (techniques) en messages comprehensibles.
+// Traduit une erreur technique (Firebase, reseau...) en message
+// comprehensible pour la personne. Ne renvoie JAMAIS le message brut —
+// les details techniques restent uniquement dans la console (console.log),
+// pour le developpeur qui diagnostique un probleme.
+function friendlyErrorMessage(e) {
+  const code = e && e.code;
+  console.log('[erreur]', code || '', e && e.message);
+  if (code === 'permission-denied') return "Tu n'as pas la permission de faire ça.";
+  if (code === 'unavailable' || code === 'network-request-failed') return 'Problème de connexion. Vérifie ton internet et réessaie.';
+  if (code === 'not-found') return "Élément introuvable (peut-être déjà supprimé).";
+  if (code === 'resource-exhausted') return 'Trop de demandes en même temps. Réessaie dans un instant.';
+  if (code && code.startsWith('auth/')) return friendlyAuthError(e);
+  return 'Une erreur est survenue. Réessaie dans un instant.';
+}
+
 function friendlyAuthError(e) {
   const code = e && e.code;
   if (code === 'auth/wrong-password') return "Mot de passe actuel incorrect.";
@@ -1367,7 +1382,7 @@ async function saveAccountName() {
     document.getElementById('profile-name').textContent = name;
     showToast('Nom mis à jour !', 'success');
   } catch (e) {
-    showToast('Erreur : ' + e.message, 'error');
+    showToast(friendlyErrorMessage(e), 'error');
   }
 }
 
@@ -1720,7 +1735,7 @@ function openCart() {
     document.body.insertAdjacentHTML('beforeend', `
       <div class="modal-overlay" id="cart-modal">
         <div class="modal">
-          <button class="modal-close" onclick="document.getElementById('cart-modal').classList.add('hidden')">×</button>
+          <button class="modal-close" onclick="document.getElementById('cart-modal').classList.add('hidden')" aria-label="Fermer">×</button>
           <h2>🛒 Mon panier</h2>
           <div class="modal-error hidden" id="cart-error"></div>
           <div id="cart-items-list"></div>
@@ -1790,7 +1805,7 @@ async function checkoutCart() {
     renderShopFeed();
   } catch (e) {
     document.getElementById('cart-checkout-btn').classList.remove('hidden');
-    errEl.textContent = e.message;
+    errEl.textContent = friendlyErrorMessage(e);
     errEl.classList.remove('hidden');
   }
 }
@@ -1817,7 +1832,7 @@ function openSellForm() {
   const modalHtml = `
     <div class="modal-overlay" id="sell-modal">
       <div class="modal">
-        <button class="modal-close" onclick="document.getElementById('sell-modal').remove()">×</button>
+        <button class="modal-close" onclick="document.getElementById('sell-modal').remove()" aria-label="Fermer">×</button>
         <h2>➕ Vendre un article</h2>
         <p class="sub">CoeurnohBoost prélève 10% de commission sur chaque vente. Tu reçois 90% directement sur ton solde.</p>
         <div class="modal-error hidden" id="sell-form-error"></div>
@@ -1961,7 +1976,7 @@ async function submitSellForm() {
     document.getElementById('sell-modal').remove();
     loadShopFeed();
   } catch (e) {
-    errEl.textContent = "Erreur lors de la publication : " + e.message;
+    errEl.textContent = friendlyErrorMessage(e);
     errEl.classList.remove('hidden');
   }
 }
@@ -2024,7 +2039,7 @@ async function loadHomeFeed(append = false) {
     if (!append) {
       feedEl.innerHTML = `<p class="muted"><span data-i18n="shop_load_error_prefix">Erreur de chargement :</span> ${e.message}</p>`;
     } else {
-      showToast('Erreur : ' + e.message, 'error');
+      showToast(friendlyErrorMessage(e), 'error');
     }
   }
 }
@@ -2049,7 +2064,7 @@ function renderPostCard(item, isLiked) {
         <div class="post-time">${timeStr}</div>
       </div>
       ${currentUser && currentUser.uid === item.sellerUid ? `
-      <button class="post-delete-btn" onclick="deleteMyPublication('${item.id}')" title="Supprimer">🗑️</button>
+      <button class="post-delete-btn" onclick="deleteMyPublication('${item.id}')" title="Supprimer" aria-label="Supprimer cette publication">🗑️</button>
       ` : ''}
     </div>
     ${item.description ? `<p class="post-caption">${escapeHtml(item.description)}</p>` : ''}
@@ -2194,7 +2209,7 @@ async function submitCreatePost() {
     closeCreatePostForm();
     loadHomeFeed();
   } catch (e) {
-    errEl.textContent = "Erreur lors de la publication : " + e.message;
+    errEl.textContent = friendlyErrorMessage(e);
     errEl.classList.remove('hidden');
   }
 }
@@ -2276,7 +2291,7 @@ function openWithdrawForm() {
   const modalHtml = `
     <div class="modal-overlay" id="withdraw-modal">
       <div class="modal">
-        <button class="modal-close" onclick="document.getElementById('withdraw-modal').remove()">×</button>
+        <button class="modal-close" onclick="document.getElementById('withdraw-modal').remove()" aria-label="Fermer">×</button>
         <h2>💸 Demander un retrait</h2>
         <p class="sub">Ton solde disponible : <strong>${balance.toFixed(2)}$</strong></p>
         <p class="muted small" style="margin-bottom:14px">Ta demande sera traitée manuellement par CoeurnohBoost, généralement sous 24-48h.</p>
@@ -2431,7 +2446,7 @@ async function submitWithdrawRequest() {
     loadSellerWithdrawals();
     loadSellerStats();
   } catch (e) {
-    errEl.textContent = "Erreur : " + e.message;
+    errEl.textContent = friendlyErrorMessage(e);
     errEl.classList.remove('hidden');
   }
 }
@@ -2573,7 +2588,7 @@ async function deleteMyPublication(pubId) {
     loadMyPublications();
     return true;
   } catch (e) {
-    showToast('Erreur : ' + e.message, 'error');
+    showToast(friendlyErrorMessage(e), 'error');
     return false;
   }
 }
@@ -2904,7 +2919,7 @@ async function openPostDetail(pubId) {
     document.getElementById('post-detail-modal').classList.remove('hidden');
     await loadShopComments(pubId);
   } catch (e) {
-    showToast("Impossible d'ouvrir la publication : " + e.message, 'error');
+    showToast(friendlyErrorMessage(e), 'error');
   }
 }
 
@@ -2999,7 +3014,7 @@ async function submitReview(pubId, sellerUid, orderId) {
     showToast('Merci pour ton avis !', 'success');
     openPostDetail(pubId);
   } catch (e) {
-    showToast('Erreur : ' + e.message, 'error');
+    showToast(friendlyErrorMessage(e), 'error');
   }
 }
 
@@ -3083,7 +3098,7 @@ async function addShopComment(pubId) {
       }
     } catch (e) { /* pas grave si la notification echoue */ }
   } catch (e) {
-    showToast("Erreur lors de l'envoi du commentaire : " + e.message, 'error');
+    showToast(friendlyErrorMessage(e), 'error');
   }
 }
 
@@ -3094,7 +3109,7 @@ function buyShopItem(pubId, title, price, itemType) {
   const modalHtml = `
     <div class="modal-overlay" id="shop-checkout-modal">
       <div class="modal">
-        <button class="modal-close" onclick="closeShopCheckout()">×</button>
+        <button class="modal-close" onclick="closeShopCheckout()" aria-label="Fermer">×</button>
         <h2>🛍️ ${title}</h2>
         <p class="sub">Prix : <strong>${price.toFixed(2)}$</strong> — Ton solde : <strong>${(currentUser.balance || 0).toFixed(2)}$</strong></p>
         <div class="modal-error hidden" id="shop-checkout-error"></div>
@@ -3154,7 +3169,7 @@ async function confirmShopPurchase(pubId, title, price, itemType) {
     }
   } catch (e) {
     document.getElementById('shop-checkout-submit').classList.remove('hidden');
-    errEl.textContent = e.message;
+    errEl.textContent = friendlyErrorMessage(e);
     errEl.classList.remove('hidden');
   }
 }
@@ -3416,7 +3431,7 @@ async function deleteSelectedNotifs() {
     toggleNotifSelectMode();
     updateNotifBadge();
   } catch (e) {
-    showToast('Erreur : ' + e.message, 'error');
+    showToast(friendlyErrorMessage(e), 'error');
   }
 }
 
@@ -3452,7 +3467,7 @@ function renderNotifPanel() {
         <p>${escapeHtml(n.body)}</p>
         <span class="notif-time">${timeAgo(n.createdAt)}</span>
       </div>
-      ${(!notifSelectMode && !n.isAnnouncement) ? `<button class="notif-delete-btn" onclick="event.stopPropagation(); deleteNotifRow('${n.id}')">🗑️</button>` : ''}
+      ${(!notifSelectMode && !n.isAnnouncement) ? `<button class="notif-delete-btn" onclick="event.stopPropagation(); deleteNotifRow('${n.id}')" aria-label="Supprimer cette notification">🗑️</button>` : ''}
     </div>
   `;
   }).join('');
@@ -3493,7 +3508,7 @@ async function deleteNotifRow(notifId) {
     renderNotifPanel();
     updateNotifBadge();
   } catch (e) {
-    showToast('Erreur : ' + e.message, 'error');
+    showToast(friendlyErrorMessage(e), 'error');
   }
 }
 
