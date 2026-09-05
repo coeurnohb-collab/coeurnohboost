@@ -205,7 +205,7 @@ function showDashTab(tab) {
     if (shopFeedEl) shopFeedEl.innerHTML = '';
     loadHomeFeed();
   }
-  if (tab === 'account') { renderReferralBox(); applyNotifPrefsToUI(); fillAccountForm(); }
+  if (tab === 'account') { renderReferralBox(); applyNotifPrefsToUI(); fillAccountForm(); loadSavedFeed(); }
 }
 function showServices() {
   hideAllViews();
@@ -2053,14 +2053,23 @@ async function loadHomeFeed(append = false) {
     const items = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
     let likedMap = {};
+    let savedMap = {};
     if (currentUser) {
-      const likeChecks = await Promise.all(items.map(item =>
-        db.collection('publication_likes').doc(`${item.id}_${currentUser.uid}`).get()
-      ));
-      items.forEach((item, i) => { likedMap[item.id] = likeChecks[i].exists; });
+      const [likeChecks, saveChecks] = await Promise.all([
+        Promise.all(items.map(item =>
+          db.collection('publication_likes').doc(`${item.id}_${currentUser.uid}`).get()
+        )),
+        Promise.all(items.map(item =>
+          db.collection('saved_items').doc(`${item.id}_${currentUser.uid}`).get()
+        ))
+      ]);
+      items.forEach((item, i) => {
+        likedMap[item.id] = likeChecks[i].exists;
+        savedMap[item.id] = saveChecks[i].exists;
+      });
     }
 
-    const html = items.map(item => renderPostCard(item, likedMap[item.id])).join('');
+    const html = items.map(item => renderPostCard(item, likedMap[item.id], savedMap[item.id])).join('');
     if (append) {
       feedEl.insertAdjacentHTML('beforeend', html);
     } else {
@@ -2082,7 +2091,7 @@ async function loadHomeFeed(append = false) {
   }
 }
 
-function renderPostCard(item, isLiked) {
+function renderPostCard(item, isLiked, isSaved) {
   const timeStr = timeAgo(item.createdAt);
   let mediaHtml = '';
   if (item.mediaType === 'photo' && item.imageUrl) {
@@ -2117,6 +2126,9 @@ function renderPostCard(item, isLiked) {
       </button>
       <button class="shop-action-btn" onclick="sharePost('${item.id}','${escapeForJs(item.description || '')}','${shareUrl}')">
         ${ICON_SHARE} Partager
+      </button>
+      <button class="shop-action-btn ${isSaved ? 'liked' : ''}" data-save-btn="${item.id}" onclick="toggleSavePost('${item.id}')" title="Enregistrer" aria-label="Enregistrer cette publication" style="margin-left:auto">
+        <span data-save-icon="${item.id}">${isSaved ? ICON_BOOKMARK_FILLED : ICON_BOOKMARK}</span>
       </button>
     </div>
   </div>`;
@@ -2824,6 +2836,8 @@ const ICON_SHIELD = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none"
 const ICON_INFO = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>`;
 const ICON_HEART_OUTLINE = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/></svg>`;
 const ICON_HEART_FILLED = `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/></svg>`;
+const ICON_BOOKMARK = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21 12 16l-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
+const ICON_BOOKMARK_FILLED = `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 21 12 16l-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
 const ICON_COMMENT = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z"/></svg>`;
 const ICON_CART = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg>`;
 const ICON_WALLET = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5h-4a2 2 0 0 1 0-4h4Z"/></svg>`;
@@ -2912,6 +2926,78 @@ async function toggleShopLike(pubId) {
     console.log('[shop] Erreur like :', e.message);
   } finally {
     likeInFlight.delete(lockKey);
+  }
+}
+
+/* ================= CONTENUS ENREGISTRÉS ================= */
+async function toggleSavePost(pubId) {
+  if (!currentUser) { openAuth('register'); return; }
+  const lockKey = 'save_' + pubId + '_' + currentUser.uid;
+  if (likeInFlight.has(lockKey)) return;
+  likeInFlight.add(lockKey);
+
+  const saveRef = db.collection('saved_items').doc(`${pubId}_${currentUser.uid}`);
+  const iconEls = document.querySelectorAll(`[data-save-icon="${pubId}"]`);
+  const btnEls = document.querySelectorAll(`[data-save-btn="${pubId}"]`);
+
+  try {
+    const saveDoc = await saveRef.get();
+    if (saveDoc.exists) {
+      await saveRef.delete();
+      iconEls.forEach(el => el.innerHTML = ICON_BOOKMARK);
+      btnEls.forEach(el => el.classList.remove('liked'));
+      showToast('Retiré des enregistrements', 'info');
+    } else {
+      await saveRef.set({ pubId, uid: currentUser.uid, createdAt: new Date().toISOString() });
+      iconEls.forEach(el => el.innerHTML = ICON_BOOKMARK_FILLED);
+      btnEls.forEach(el => el.classList.add('liked'));
+      showToast('Enregistré', 'success');
+    }
+  } catch (e) {
+    console.log('[shop] Erreur enregistrement :', e.message);
+  } finally {
+    likeInFlight.delete(lockKey);
+  }
+}
+
+async function loadSavedFeed() {
+  const feedEl = document.getElementById('saved-feed');
+  if (!feedEl || !currentUser) return;
+  feedEl.innerHTML = renderFeedSkeletons(2);
+  try {
+    // Pas d'orderBy ici : evite d'exiger un nouvel index composite Firestore
+    // pour cette collection ("saved_items" est nouvelle). Le tri se fait
+    // cote telephone juste apres, comme pour d'autres listes de l'app.
+    const savedSnap = await db.collection('saved_items')
+      .where('uid', '==', currentUser.uid)
+      .limit(30)
+      .get();
+
+    if (savedSnap.empty) {
+      feedEl.innerHTML = '<p class="muted small">Aucun contenu enregistré pour l\'instant. Appuie sur le signet sous une publication pour la retrouver ici.</p>';
+      return;
+    }
+
+    const savedDocs = savedSnap.docs.slice().sort((a, b) =>
+      new Date(b.data().createdAt) - new Date(a.data().createdAt));
+
+    const pubDocs = await Promise.all(
+      savedDocs.map(d => db.collection('publications').doc(d.data().pubId).get())
+    );
+    const items = pubDocs.filter(d => d.exists).map(d => ({ id: d.id, ...d.data() }));
+
+    if (items.length === 0) {
+      feedEl.innerHTML = '<p class="muted small">Aucun contenu enregistré pour l\'instant.</p>';
+      return;
+    }
+
+    feedEl.innerHTML = items.map(item =>
+      item.type === 'book' || item.type === 'product'
+        ? renderShopCard(item, false, false)
+        : renderPostCard(item, false, true)
+    ).join('');
+  } catch (e) {
+    feedEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
   }
 }
 
