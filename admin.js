@@ -593,9 +593,41 @@ async function loadUsersAdmin() {
           <button class="btn btn-outline btn-sm" onclick="toggleUserVerified('${doc.id}', ${!d.verified})">
             ${d.verified ? '❌ Retirer la vérification' : '✔️ Vérifier ce vendeur'}
           </button>
+          <button class="btn btn-outline btn-sm" onclick="diagnoseUserNotifs('${doc.id}')">🔍 Diagnostic notifs</button>
         </div>
+        <div id="notif-diag-${doc.id}"></div>
       </div>`;
     }).join('');
+  } catch (e) {
+    el.innerHTML = `<p class="admin-empty">Erreur : ${e.message}</p>`;
+  }
+}
+
+// Affiche les 20 dernieres tentatives d'envoi de notification pour ce
+// compte precis (succes, echec, raison) -- permet de repondre precisement
+// a "je n'ai pas recu ma notification" au lieu de deviner.
+async function diagnoseUserNotifs(uid) {
+  const el = document.getElementById(`notif-diag-${uid}`);
+  el.innerHTML = `<p class="admin-empty">Chargement du diagnostic...</p>`;
+  try {
+    const snap = await db.collection('notif_logs')
+      .where('uid', '==', uid)
+      .orderBy('createdAt', 'desc')
+      .limit(20)
+      .get();
+    if (snap.empty) {
+      el.innerHTML = `<p class="admin-empty">Aucune tentative d'envoi enregistrée pour ce compte.</p>`;
+      return;
+    }
+    el.innerHTML = `<div style="margin-top:10px;border-top:1px solid #e3e6eb;padding-top:10px">` + snap.docs.map(doc => {
+      const l = doc.data();
+      const icon = l.success ? '✅' : '❌';
+      return `<div style="padding:6px 0;font-size:0.85rem;border-bottom:1px solid #f0f0f0">
+        ${icon} <strong>${escapeHtml(l.title || l.category || '')}</strong>
+        <span style="color:#888"> · ${escapeHtml(l.channel)} · ${new Date(l.createdAt).toLocaleString('fr-FR')}</span>
+        <div style="color:#888">${escapeHtml(l.reason || '')}</div>
+      </div>`;
+    }).join('') + `</div>`;
   } catch (e) {
     el.innerHTML = `<p class="admin-empty">Erreur : ${e.message}</p>`;
   }
