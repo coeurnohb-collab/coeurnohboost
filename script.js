@@ -1765,7 +1765,7 @@ function renderCartModal() {
     <div class="cart-row">
       <img src="${c.imageUrl}" class="cart-row-img" alt="" loading="lazy">
       <div class="cart-row-info"><strong>${c.title}</strong><div class="muted small">${c.price.toFixed(2)}$</div></div>
-      <button class="shop-action-btn" onclick="removeFromCart('${c.id}')">🗑️</button>
+      <button class="shop-action-btn" onclick="removeFromCart('${c.id}')" aria-label="Retirer du panier">${ICON_TRASH}</button>
     </div>
   `).join('');
 
@@ -2064,7 +2064,7 @@ function renderPostCard(item, isLiked) {
         <div class="post-time">${timeStr}</div>
       </div>
       ${currentUser && currentUser.uid === item.sellerUid ? `
-      <button class="post-delete-btn" onclick="deleteMyPublication('${item.id}')" title="Supprimer" aria-label="Supprimer cette publication">🗑️</button>
+      <button class="post-delete-btn" onclick="deleteMyPublication('${item.id}')" title="Supprimer" aria-label="Supprimer cette publication">${ICON_TRASH}</button>
       ` : ''}
     </div>
     ${item.description ? `<p class="post-caption">${escapeHtml(item.description)}</p>` : ''}
@@ -2573,7 +2573,7 @@ async function loadMyPublications() {
           <strong>${typeLabel} ${escapeHtml(d.title)}</strong>
           <div class="muted small">${(d.price || 0).toFixed(2)}$ · ❤️ ${d.likesCount || 0}</div>
         </div>
-        <button class="shop-action-btn" onclick="deleteMyPublication('${doc.id}')" aria-label="Supprimer cette publication">🗑️</button>
+        <button class="shop-action-btn" onclick="deleteMyPublication('${doc.id}')" aria-label="Supprimer cette publication">${ICON_TRASH}</button>
       </div>`;
     }).join('');
   } catch (e) {
@@ -2728,7 +2728,7 @@ function renderShopCard(item, isLiked, isPurchased) {
   const shareHtml = `<button class="shop-action-btn" onclick="shareShopItem('${item.id}','${escapeForJs(item.title)}')" title="Partager">${ICON_SHARE}</button>`;
 
   const deleteHtml = (currentUser && currentUser.uid === item.sellerUid)
-    ? `<button class="shop-action-btn" onclick="deleteMyPublication('${item.id}')" title="Supprimer" aria-label="Supprimer cette publication" style="color:var(--red)">🗑️</button>`
+    ? `<button class="shop-action-btn" onclick="deleteMyPublication('${item.id}')" title="Supprimer" aria-label="Supprimer cette publication" style="color:var(--red)">${ICON_TRASH}</button>`
     : '';
 
   const sellerLine = item.sellerName
@@ -2773,6 +2773,17 @@ function renderShopCard(item, isLiked, isPurchased) {
 
 const ICON_WHATSAPP = `<svg width="16" height="16" viewBox="0 0 24 24" fill="#25D366"><path d="M17.6 6.32A7.85 7.85 0 0 0 12.05 4a7.94 7.94 0 0 0-6.9 11.9L4 20l4.2-1.1a7.9 7.9 0 0 0 3.85 1h.01a7.94 7.94 0 0 0 5.54-13.58zM12.06 18.4a6.6 6.6 0 0 1-3.36-.92l-.24-.14-2.5.65.67-2.43-.16-.25a6.58 6.58 0 0 1 10.24-8.13 6.55 6.55 0 0 1 1.94 4.66 6.6 6.6 0 0 1-6.59 6.56zm3.6-4.93c-.2-.1-1.17-.58-1.35-.64s-.32-.1-.45.1-.5.64-.62.77-.23.15-.43.05a5.4 5.4 0 0 1-1.6-.98 6 6 0 0 1-1.1-1.37c-.12-.2 0-.3.09-.4s.2-.23.3-.35.13-.2.2-.33a.36.36 0 0 0 0-.35c-.05-.1-.45-1.08-.61-1.48s-.32-.33-.45-.33h-.38a.74.74 0 0 0-.53.25 2.24 2.24 0 0 0-.7 1.67 3.9 3.9 0 0 0 .81 2.05 8.9 8.9 0 0 0 3.4 3c.48.2.85.33 1.14.42a2.74 2.74 0 0 0 1.26.08 2.07 2.07 0 0 0 1.35-.95 1.68 1.68 0 0 0 .12-.95c-.05-.08-.18-.13-.38-.23z"/></svg>`;
 const ICON_SHARE = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.6" x2="15.4" y2="6.4"/><line x1="8.6" y1="13.4" x2="15.4" y2="17.6"/></svg>`;
+
+// Jeu d'icones professionnelles (lignes fines, style Instagram/Facebook),
+// pour remplacer les emoji sur les actions et sections principales.
+const ICON_TRASH = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>`;
+const ICON_CLOSE = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+const ICON_CHECK = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+const ICON_EDIT = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>`;
+const ICON_PALETTE = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2a10 10 0 1 0 10 10c0-1-1-2-2-2h-2.5a2.5 2.5 0 0 1 0-5H19a2 2 0 0 0 2-2c0-2-4-3-9-3Z"/></svg>`;
+const ICON_BELL = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>`;
+const ICON_SHIELD = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg>`;
+const ICON_INFO = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>`;
 
 async function shareShopItem(pubId, title) {
   const shareUrl = `https://coeurnohboost.vercel.app/?produit=${pubId}`;
@@ -2913,7 +2924,7 @@ async function openPostDetail(pubId) {
       </div>
       ${reviewsHtml}
       ${currentUser && currentUser.uid === item.sellerUid ? `
-      <button class="btn btn-outline" style="margin-top:14px;color:var(--red);border-color:var(--red)" onclick="deletePublicationFromDetail('${item.id}')">🗑️ Supprimer cette publication</button>
+      <button class="btn btn-outline" style="margin-top:14px;color:var(--red);border-color:var(--red);display:inline-flex;align-items:center;gap:6px" onclick="deletePublicationFromDetail('${item.id}')">${ICON_TRASH} Supprimer cette publication</button>
       ` : ''}
     `;
     document.getElementById('post-detail-modal').classList.remove('hidden');
@@ -3309,7 +3320,7 @@ function startNotifWatch() {
     .onSnapshot((snap) => {
       notifCache = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       updateNotifBadge();
-      if (!document.getElementById('notif-panel').classList.contains('hidden')) {
+      if (!document.getElementById('view-notifications').classList.contains('hidden')) {
         renderNotifPanel();
       }
     }, (err) => console.log('[notif] Erreur suivi notifications :', err.message));
@@ -3323,7 +3334,7 @@ function startNotifWatch() {
       .onSnapshot((snap) => {
         announcementsCache = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         updateNotifBadge();
-        if (!document.getElementById('notif-panel').classList.contains('hidden')) {
+        if (!document.getElementById('view-notifications').classList.contains('hidden')) {
           renderNotifPanel();
         }
       }, (err) => console.log('[notif] Erreur suivi annonces :', err.message));
@@ -3389,28 +3400,69 @@ async function toggleNotifPanelContent() {
 
 let notifSelectMode = false;
 let selectedNotifIds = new Set();
+let notifLongPressTimer = null;
+let notifLongPressFired = false;
+
+// Met a jour l'affichage de l'entete (normal ou barre de selection) et le
+// compteur, sans tout re-generer.
+function syncNotifSelectHeader() {
+  const normal = document.getElementById('notif-header-normal');
+  const select = document.getElementById('notif-header-select');
+  const hint = document.getElementById('notif-select-hint');
+  const count = document.getElementById('notif-select-count');
+  if (normal) normal.classList.toggle('hidden', notifSelectMode);
+  if (select) select.classList.toggle('hidden', !notifSelectMode);
+  if (hint) hint.classList.toggle('hidden', notifSelectMode);
+  if (count) count.textContent = `${selectedNotifIds.size} sélectionnée(s)`;
+}
 
 function toggleNotifSelectMode() {
   notifSelectMode = !notifSelectMode;
   selectedNotifIds.clear();
-  const bar = document.getElementById('notif-select-bar');
-  const toggleBtn = document.getElementById('notif-select-toggle');
-  const selectAllBox = document.getElementById('notif-select-all');
-  if (bar) bar.classList.toggle('hidden', !notifSelectMode);
-  if (toggleBtn) toggleBtn.textContent = notifSelectMode ? 'Annuler' : 'Sélectionner';
-  if (selectAllBox) selectAllBox.checked = false;
+  syncNotifSelectHeader();
   renderNotifPanel();
 }
 
-function toggleSelectAllNotifs(checked) {
-  document.querySelectorAll('.notif-select-checkbox').forEach((cb) => {
-    cb.checked = checked;
-    if (checked) selectedNotifIds.add(cb.dataset.id); else selectedNotifIds.delete(cb.dataset.id);
-  });
+// Reste appuye ~500ms sur une notification = entre en mode selection et
+// coche celle-ci directement, exactement comme sur Instagram/WhatsApp/TikTok.
+function handleNotifPressStart(id, isAnnouncement) {
+  if (isAnnouncement) return; // les annonces globales ne se selectionnent pas
+  notifLongPressFired = false;
+  clearTimeout(notifLongPressTimer);
+  notifLongPressTimer = setTimeout(() => {
+    notifLongPressFired = true;
+    if (!notifSelectMode) {
+      notifSelectMode = true;
+      syncNotifSelectHeader();
+    }
+    toggleNotifRowSelected(id);
+    if (navigator.vibrate) { try { navigator.vibrate(25); } catch (e) { /* pas grave */ } }
+  }, 500);
 }
 
-function toggleNotifSelected(id, checked) {
-  if (checked) selectedNotifIds.add(id); else selectedNotifIds.delete(id);
+function handleNotifPressEnd() {
+  clearTimeout(notifLongPressTimer);
+}
+
+// Clic normal sur une ligne : ouvre la notification, SAUF en mode
+// selection ou il coche/decoche a la place (comme sur Instagram).
+function handleNotifRowClick(id, isAnnouncement) {
+  if (notifLongPressFired) { notifLongPressFired = false; return; }
+  if (notifSelectMode) {
+    if (!isAnnouncement) toggleNotifRowSelected(id);
+    return;
+  }
+  openNotifRow(id, isAnnouncement);
+}
+
+function toggleNotifRowSelected(id) {
+  if (selectedNotifIds.has(id)) selectedNotifIds.delete(id);
+  else selectedNotifIds.add(id);
+  if (selectedNotifIds.size === 0) {
+    notifSelectMode = false;
+  }
+  syncNotifSelectHeader();
+  renderNotifPanel();
 }
 
 // Supprime toutes les notifications personnelles cochees d'un coup (les
@@ -3418,7 +3470,7 @@ function toggleNotifSelected(id, checked) {
 // concernent tout le monde et restent gerees par l'admin).
 async function deleteSelectedNotifs() {
   if (selectedNotifIds.size === 0) {
-    showToast('Coche au moins une notification.', 'error');
+    showToast('Sélectionne au moins une notification.', 'error');
     return;
   }
   if (!confirm(`Supprimer ${selectedNotifIds.size} notification(s) ?`)) return;
@@ -3456,18 +3508,24 @@ function renderNotifPanel() {
 
   const lastSeen = getLastSeenAnnouncementAt();
   listEl.innerHTML = merged.map(n => {
-    const canSelect = notifSelectMode && !n.isAnnouncement;
-    const rowClick = notifSelectMode ? '' : `onclick="openNotifRow('${n.id}', ${n.isAnnouncement})"`;
+    const isSelected = selectedNotifIds.has(n.id);
+    const pressHandlers = n.isAnnouncement ? '' : `
+      onpointerdown="handleNotifPressStart('${n.id}', false)"
+      onpointerup="handleNotifPressEnd()"
+      onpointerleave="handleNotifPressEnd()"
+    `;
     return `
-    <div class="notif-row ${(!n.isAnnouncement && !n.read) || (n.isAnnouncement && n.createdAt > lastSeen) ? 'unread' : ''}" ${rowClick}>
-      ${canSelect ? `<input type="checkbox" class="notif-select-checkbox" data-id="${n.id}" onclick="event.stopPropagation()" onchange="toggleNotifSelected('${n.id}', this.checked)">` : ''}
+    <div class="notif-row ${(!n.isAnnouncement && !n.read) || (n.isAnnouncement && n.createdAt > lastSeen) ? 'unread' : ''} ${isSelected ? 'notif-row-selected' : ''}"
+      ${pressHandlers}
+      onclick="handleNotifRowClick('${n.id}', ${n.isAnnouncement})">
+      ${notifSelectMode && !n.isAnnouncement ? `<span class="notif-select-dot ${isSelected ? 'checked' : ''}">${ICON_CHECK}</span>` : ''}
       <span class="notif-icon">${typeIcons[n.type] || '🔔'}</span>
       <div class="notif-content">
         <strong>${escapeHtml(n.title)}</strong>
         <p>${escapeHtml(n.body)}</p>
         <span class="notif-time">${timeAgo(n.createdAt)}</span>
       </div>
-      ${(!notifSelectMode && !n.isAnnouncement) ? `<button class="notif-delete-btn" onclick="event.stopPropagation(); deleteNotifRow('${n.id}')" aria-label="Supprimer cette notification">🗑️</button>` : ''}
+      ${(!notifSelectMode && !n.isAnnouncement) ? `<button class="notif-delete-btn" onclick="event.stopPropagation(); deleteNotifRow('${n.id}')" aria-label="Supprimer cette notification">${ICON_TRASH}</button>` : ''}
     </div>
   `;
   }).join('');

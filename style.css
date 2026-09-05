@@ -611,7 +611,14 @@ a{text-decoration:none;color:inherit}
 
 /* Panneau notifications (modale, coherent avec le reste du site) */
 .notif-modal{max-height:75vh;overflow-y:auto}
-.notif-row{display:flex;gap:10px;padding:12px 0;border-bottom:1px solid var(--line);cursor:pointer;align-items:flex-start}
+.notif-row{display:flex;gap:10px;padding:12px 0;border-bottom:1px solid var(--line);cursor:pointer;align-items:flex-start;-webkit-user-select:none;user-select:none;touch-action:pan-y}
+.notif-row-selected{background:var(--green-light);margin:0 -14px;padding:12px 14px;border-radius:10px}
+.notif-select-dot{
+  width:22px;height:22px;border-radius:50%;border:2px solid var(--line);
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  color:#fff;margin-top:2px;transition:0.15s;
+}
+.notif-select-dot.checked{background:var(--green);border-color:var(--green)}
 .notif-delete-btn{background:none;border:none;font-size:1rem;opacity:0.5;cursor:pointer;padding:4px;flex-shrink:0;min-width:40px;min-height:40px}
 .notif-delete-btn:hover{opacity:1}
 .notif-row:last-child{border-bottom:none}
