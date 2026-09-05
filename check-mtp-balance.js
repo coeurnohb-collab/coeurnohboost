@@ -3,6 +3,23 @@
 // Si le solde est trop bas, envoie une alerte automatique par WhatsApp
 // (via CallMeBot) et par email (via Resend), pour eviter que les commandes
 // des clients echouent silencieusement par manque de fonds.
+//
+// Profite aussi de ce passage quotidien pour nettoyer les vieux journaux
+// de notifications (notif_logs) de plus de 30 jours, pour que cette
+// collection ne grossisse pas indefiniment.
+
+import admin from 'firebase-admin';
+
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert({
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      privateKey: (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n')
+    })
+  });
+}
+const db = admin.firestore();
 
 const SEUIL_ALERTE_USD = 2;
 
@@ -42,9 +59,19 @@ export default async function handler(req, res) {
     const currency = data.currency || 'USD';
     console.log(`[check-mtp-balance] Solde actuel MTP : ${balance} ${currency}`);
 
+    // --- Nettoyage quotidien des vieux journaux de notifications ---
+    // Ne bloque jamais la verification du solde meme si ca echoue.
+    const logsDeleted = await cleanupOldNotifLogs().catch((e) => {
+      console.error('[check-mtp-balance] Erreur nettoyage notif_logs :', e.message);
+      return 0;
+    });
+    if (logsDeleted > 0) {
+      console.log(`[check-mtp-balance] ${logsDeleted} vieux journaux de notifications supprimes`);
+    }
+
     // --- 2. Si le solde est suffisant, rien a faire ---
     if (balance >= SEUIL_ALERTE_USD) {
-      return res.status(200).json({ balance, currency, alertSent: false, reason: 'Solde suffisant' });
+      return res.status(200).json({ balance, currency, alertSent: false, reason: 'Solde suffisant', logsDeleted });
     }
 
     // --- 3. Solde trop bas : on prepare le message d'alerte ---
@@ -102,4 +129,21 @@ export default async function handler(req, res) {
     console.error('[check-mtp-balance] Exception :', err.message);
     return res.status(500).json({ error: err.message });
   }
+}
+
+// Supprime les journaux de notifications (notif_logs) vieux de plus de 30
+// jours. Limite a 500 suppressions par jour (limite d'un batch Firestore) —
+// si un gros retard s'est accumule, ca se rattrape sur quelques jours,
+// sans jamais bloquer ou ralentir la verification du solde.
+async function cleanupOldNotifLogs() {
+  const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+  const snap = await db.collection('notif_logs')
+    .where('createdAt', '<', cutoff)
+    .limit(500)
+    .get();
+  if (snap.empty) return 0;
+  const batch = db.batch();
+  snap.docs.forEach((doc) => batch.delete(doc.ref));
+  await batch.commit();
+  return snap.size;
 }
