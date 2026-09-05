@@ -343,10 +343,27 @@ function initHomeCatalog() {
 }
 function filterPlatformGrid(gridId, query) {
   const q = query.trim().toLowerCase();
-  document.querySelectorAll(`#${gridId} .platform-badge`).forEach(card => {
+  const grid = document.getElementById(gridId);
+  let visibleCount = 0;
+  grid.querySelectorAll('.platform-badge').forEach(card => {
     const name = card.querySelector('.p-name').textContent.toLowerCase();
-    card.style.display = name.includes(q) ? '' : 'none';
+    const match = name.includes(q);
+    card.style.display = match ? '' : 'none';
+    if (match) visibleCount++;
   });
+  let emptyMsg = grid.parentElement.querySelector('.platform-search-empty');
+  if (visibleCount === 0) {
+    if (!emptyMsg) {
+      emptyMsg = document.createElement('p');
+      emptyMsg.className = 'muted platform-search-empty';
+      emptyMsg.style.cssText = 'text-align:center;padding:20px 0';
+      emptyMsg.textContent = 'Aucun réseau trouvé. Essaie une autre recherche.';
+      grid.insertAdjacentElement('afterend', emptyMsg);
+    }
+    emptyMsg.style.display = '';
+  } else if (emptyMsg) {
+    emptyMsg.style.display = 'none';
+  }
 }
 
 /* Sur l'accueil public (non connecté) → ouvre l'inscription.
@@ -1986,11 +2003,32 @@ async function submitSellForm() {
    Boutique (pas de prix, media en plein format, legende en dessous). */
 let homeFeedLastDoc = null;
 
+function renderFeedSkeletons(count = 3) {
+  return Array.from({ length: count }).map(() => `
+    <div class="skeleton-card">
+      <div class="skeleton-body">
+        <div class="skeleton-avatar-row">
+          <div class="skeleton-avatar skeleton-shine"></div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:6px">
+            <div class="skeleton-line w-40 skeleton-shine"></div>
+            <div class="skeleton-line w-60 skeleton-shine" style="height:8px"></div>
+          </div>
+        </div>
+      </div>
+      <div class="skeleton-media skeleton-shine"></div>
+      <div class="skeleton-body">
+        <div class="skeleton-line w-90 skeleton-shine"></div>
+        <div class="skeleton-line w-60 skeleton-shine"></div>
+      </div>
+    </div>
+  `).join('');
+}
+
 async function loadHomeFeed(append = false) {
   const feedEl = document.getElementById('home-feed');
   if (!feedEl) return;
   if (!append) {
-    feedEl.innerHTML = '<p class="muted" data-i18n="shop_loading">Chargement...</p>';
+    feedEl.innerHTML = renderFeedSkeletons(3);
     homeFeedLastDoc = null;
   }
   try {
@@ -2603,7 +2641,7 @@ function setShopFilter(filter) {
 
 async function loadShopFeed() {
   const feedEl = document.getElementById('shop-feed');
-  feedEl.innerHTML = '<p class="muted" data-i18n="shop_loading">Chargement...</p>';
+  feedEl.innerHTML = renderFeedSkeletons(4);
   try {
     // Limite de securite : la recherche/filtre boutique se fait cote
     // telephone sur cette liste, donc une vraie pagination "Charger plus"
@@ -2788,6 +2826,9 @@ const ICON_HEART_OUTLINE = `<svg width="16" height="16" viewBox="0 0 24 24" fill
 const ICON_HEART_FILLED = `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/></svg>`;
 const ICON_COMMENT = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z"/></svg>`;
 const ICON_CART = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg>`;
+const ICON_WALLET = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5h-4a2 2 0 0 1 0-4h4Z"/></svg>`;
+const ICON_PACKAGE = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5Z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>`;
+const ICON_TAG = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 12.3 12.7 20.2a2 2 0 0 1-2.8 0l-7.1-7.1a2 2 0 0 1 0-2.8L10.7 2.3a2 2 0 0 1 1.4-.6H19a2 2 0 0 1 2 2v6.9a2 2 0 0 1-.4 1.7Z"/><circle cx="15.5" cy="7.5" r="1.5"/></svg>`;
 
 async function shareShopItem(pubId, title) {
   const shareUrl = `https://coeurnohboost.vercel.app/?produit=${pubId}`;
@@ -2844,7 +2885,12 @@ async function toggleShopLike(pubId) {
     } else {
       await likeRef.set({ pubId, uid: currentUser.uid, createdAt: new Date().toISOString() });
       await pubRef.update({ likesCount: firebase.firestore.FieldValue.increment(1) });
-      iconEls.forEach(el => el.innerHTML = ICON_HEART_FILLED);
+      iconEls.forEach(el => {
+        el.innerHTML = ICON_HEART_FILLED;
+        el.classList.remove('like-pop');
+        void el.offsetWidth;
+        el.classList.add('like-pop');
+      });
       btnEls.forEach(el => el.classList.add('liked'));
       countEls.forEach(el => el.textContent = parseInt(el.textContent, 10) + 1);
 
@@ -3506,8 +3552,8 @@ function renderNotifPanel() {
   }
 
   const typeIcons = {
-    recharge: '💰', purchase: '🛒', sale: '🎉', like: '❤️', comment: '💬',
-    share: '🔗', order: '📦', announcement: '📢', admin_message: '📢'
+    recharge: ICON_WALLET, purchase: ICON_CART, sale: ICON_TAG, like: ICON_HEART_FILLED, comment: ICON_COMMENT,
+    share: ICON_SHARE, order: ICON_PACKAGE, announcement: ICON_BELL, admin_message: ICON_SHIELD
   };
 
   const lastSeen = getLastSeenAnnouncementAt();
@@ -3517,7 +3563,7 @@ function renderNotifPanel() {
     <div class="notif-row ${(!n.isAnnouncement && !n.read) || (n.isAnnouncement && n.createdAt > lastSeen) ? 'unread' : ''} ${isSelected ? 'notif-row-selected' : ''}"
       data-id="${n.id}" data-announcement="${n.isAnnouncement ? '1' : '0'}">
       ${notifSelectMode && !n.isAnnouncement ? `<span class="notif-select-dot ${isSelected ? 'checked' : ''}">${ICON_CHECK}</span>` : ''}
-      <span class="notif-icon">${typeIcons[n.type] || '🔔'}</span>
+      <span class="notif-icon">${typeIcons[n.type] || ICON_BELL}</span>
       <div class="notif-content">
         <strong>${escapeHtml(n.title)}</strong>
         <p>${escapeHtml(n.body)}</p>

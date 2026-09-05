@@ -66,9 +66,12 @@ a{text-decoration:none;color:inherit}
 .btn-lg{padding:15px 28px;font-size:1rem}
 .admin-shortcut{
   background:var(--ink);color:#fff;width:38px;height:38px;padding:0;border-radius:50%;
-  font-size:1.05rem;flex:0 0 auto;
+  font-size:1.05rem;flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;
 }
 .admin-shortcut:hover{background:var(--green-dark)}
+.icon-svg{width:18px;height:18px;flex:0 0 auto;display:block}
+.bnav-icon .icon-svg{width:22px;height:22px}
+.notif-icon .icon-svg{width:20px;height:20px}
 
 /* HERO */
 .hero{padding:60px 0 40px;text-align:center;background:var(--cream)}
@@ -186,7 +189,7 @@ a{text-decoration:none;color:inherit}
   color:var(--muted);font-size:0.62rem;font-weight:600;cursor:pointer;padding:4px 2px;flex:1;
   min-width:0;
 }
-.bnav-icon{font-size:1.15rem;position:relative;display:inline-block}
+.bnav-icon{position:relative;display:inline-flex;align-items:center;justify-content:center}
 .bnav-icon .notif-badge{position:absolute;top:-6px;right:-10px}
 .bnav-btn.active{color:var(--green)}
 
@@ -403,6 +406,19 @@ a{text-decoration:none;color:inherit}
 .shop-filter-tabs button.active{background:var(--green);border-color:var(--green);color:#fff}
 
 /* BOUTIQUE PUBLIQUE */
+/* ================= SKELETONS DE CHARGEMENT ================= */
+@keyframes skeletonShimmer{0%{background-position:-200px 0}100%{background-position:calc(200px + 100%) 0}}
+.skeleton-shine{background:linear-gradient(90deg,var(--line) 25%,#e9e4d8 37%,var(--line) 63%);background-size:400px 100%;animation:skeletonShimmer 1.4s ease-in-out infinite}
+.skeleton-card{border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:14px;background:#fff}
+.skeleton-card .skeleton-media{width:100%;height:220px}
+.skeleton-card .skeleton-body{padding:16px;display:flex;flex-direction:column;gap:10px}
+.skeleton-card .skeleton-avatar-row{display:flex;align-items:center;gap:10px}
+.skeleton-card .skeleton-avatar{width:38px;height:38px;border-radius:50%;flex:0 0 auto}
+.skeleton-card .skeleton-line{height:11px;border-radius:6px}
+.skeleton-card .skeleton-line.w-60{width:60%}
+.skeleton-card .skeleton-line.w-40{width:40%}
+.skeleton-card .skeleton-line.w-90{width:90%}
+
 .shop-card{
   background:#fff;border-radius:var(--radius);overflow:hidden;margin-bottom:18px;
   border:1px solid var(--line);box-shadow:0 2px 8px rgba(0,0,0,0.04);
@@ -422,6 +438,8 @@ a{text-decoration:none;color:inherit}
   padding:8px 14px;font-size:0.85rem;font-weight:600;color:var(--ink);cursor:pointer;transition:0.15s;
 }
 .shop-action-btn.liked{background:#fdecea;color:var(--red)}
+@keyframes likePop{0%{transform:scale(1)}35%{transform:scale(1.35)}60%{transform:scale(0.92)}100%{transform:scale(1)}}
+.like-pop{animation:likePop 0.35s ease}
 .shop-comments{margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
 .shop-comments-list{margin-bottom:10px;max-height:220px;overflow-y:auto}
 .shop-comment{padding:8px 0;border-bottom:1px solid var(--line);font-size:0.85rem}
@@ -633,7 +651,7 @@ a{text-decoration:none;color:inherit}
 .notif-delete-btn:hover{opacity:1}
 .notif-row:last-child{border-bottom:none}
 .notif-row.unread{background:var(--green-light);border-radius:10px;padding:12px 10px;margin-bottom:2px}
-.notif-icon{font-size:1.3rem;flex:0 0 auto}
+.notif-icon{color:var(--green);flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;background:var(--green-light);border-radius:50%}
 .notif-content{flex:1;min-width:0}
 .notif-content strong{display:block;font-size:0.9rem;margin-bottom:2px;color:var(--ink)}
 .notif-content p{font-size:0.85rem;color:var(--muted);margin-bottom:3px;line-height:1.4}

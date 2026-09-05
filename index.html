@@ -65,8 +65,8 @@
       <button class="btn btn-outline" id="nav-login-btn" data-i18n="nav_login" onclick="openAuth('login')">Se connecter</button>
       <button class="btn btn-primary" id="nav-register-btn" data-i18n="nav_register" onclick="openAuth('register')">Créer un compte</button>
       <button class="btn btn-outline hidden" id="nav-dashboard-btn" data-i18n="nav_account" onclick="showDashboard()">Mon compte</button>
-      <a href="admin.html" class="btn admin-shortcut hidden" id="admin-shortcut-btn">⚙️</a>
-      <button class="btn help-shortcut" id="help-shortcut-btn" onclick="openTutorial()" aria-label="Aide / Tutoriel" title="Comment ça marche ?">❓</button>
+      <a href="admin.html" class="btn admin-shortcut hidden" id="admin-shortcut-btn" aria-label="Administration"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></a>
+      <button class="btn help-shortcut" id="help-shortcut-btn" onclick="openTutorial()" aria-label="Aide / Tutoriel" title="Comment ça marche ?"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 2-3 4"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></button>
       <button class="btn btn-primary hidden" id="install-app-btn" onclick="installApp()">📲 <span data-i18n="install_app_btn">Installer l'app</span></button>
     </div>
   </div>
@@ -324,22 +324,22 @@
   <!-- ---- Barre de navigation basse (mobile, style SMM panel) ---- -->
   <nav class="bottom-nav">
     <button class="bnav-btn active" id="bnav-home" onclick="showDashTab('home')">
-      <span class="bnav-icon">🏠</span><span data-i18n="tab_home">Accueil</span>
+      <span class="bnav-icon"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10"/></svg></span><span data-i18n="tab_home">Accueil</span>
     </button>
     <button class="bnav-btn" id="bnav-orders" onclick="showDashTab('orders')">
-      <span class="bnav-icon">🛒</span><span data-i18n="tab_orders">Commandes</span>
+      <span class="bnav-icon"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M1 1h4l2.6 13.4a2 2 0 0 0 2 1.6h9.8a2 2 0 0 0 2-1.6L23 6H6"/></svg></span><span data-i18n="tab_orders">Commandes</span>
     </button>
     <button class="bnav-btn" id="bnav-wallet" onclick="showDashTab('wallet')">
-      <span class="bnav-icon">💰</span><span data-i18n="tab_wallet">Portefeuille</span>
+      <span class="bnav-icon"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5h-4a2 2 0 0 1 0-4h4Z"/></svg></span><span data-i18n="tab_wallet">Portefeuille</span>
     </button>
     <button class="bnav-btn" id="bnav-shop" onclick="showShop()">
-      <span class="bnav-icon">🏪</span><span data-i18n="shop_title">Boutique</span>
+      <span class="bnav-icon"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9V6a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v3"/><path d="M3 9a2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0"/><path d="M4 9v10a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9"/><path d="M9 21v-5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v5"/></svg></span><span data-i18n="shop_title">Boutique</span>
     </button>
     <button class="bnav-btn" id="bnav-notif" onclick="openNotifPanel()" style="position:relative">
-      <span class="bnav-icon">🔔<span class="notif-badge hidden" id="notif-badge-bnav">0</span></span><span>Notifs</span>
+      <span class="bnav-icon"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="notif-badge hidden" id="notif-badge-bnav">0</span></span><span>Notifs</span>
     </button>
     <button class="bnav-btn" id="bnav-account" onclick="showDashTab('account')">
-      <span class="bnav-icon">👤</span><span data-i18n="tab_account">Compte</span>
+      <span class="bnav-icon"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span><span data-i18n="tab_account">Compte</span>
     </button>
   </nav>
 </div>
