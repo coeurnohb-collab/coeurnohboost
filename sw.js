@@ -54,9 +54,10 @@ messaging.onBackgroundMessage((payload) => {
 // Au clic sur la notification, on ouvre (ou on remet au premier plan) l'app
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const targetUrl = (event.notification.data && event.notification.data.url) || '/';
+  const relativeUrl = (event.notification.data && event.notification.data.url) || '/';
+  const targetUrl = new URL(relativeUrl, self.location.origin).href;
   event.waitUntil(
-    self.clients.matchAll({ type: 'window' }).then((clientList) => {
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
       for (const client of clientList) {
         if ('focus' in client) {
           client.focus();

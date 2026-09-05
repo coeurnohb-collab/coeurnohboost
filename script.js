@@ -3549,6 +3549,19 @@ function bindNotifListEvents() {
     listEl.addEventListener(evt, () => handleNotifPressEnd());
   });
 
+  // Repli avec les evenements tactiles natifs (touchstart/touchend), plus
+  // anciens mais parfois plus fiables que Pointer Events selon la version
+  // Android/WebView -- les deux systemes cohabitent sans se doubler grace
+  // au minuteur qui est toujours annule/relance proprement.
+  listEl.addEventListener('touchstart', (e) => {
+    const row = e.target.closest('.notif-row');
+    if (!row) return;
+    handleNotifPressStart(row.dataset.id, row.dataset.announcement === '1');
+  }, { passive: true });
+  ['touchend', 'touchcancel', 'touchmove'].forEach((evt) => {
+    listEl.addEventListener(evt, () => handleNotifPressEnd(), { passive: true });
+  });
+
   listEl.addEventListener('click', (e) => {
     const deleteBtn = e.target.closest('.notif-delete-btn');
     if (deleteBtn) {
