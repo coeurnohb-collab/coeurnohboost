@@ -1736,7 +1736,7 @@ function openCart() {
       <div class="modal-overlay" id="cart-modal">
         <div class="modal">
           <button class="modal-close" onclick="document.getElementById('cart-modal').classList.add('hidden')" aria-label="Fermer">×</button>
-          <h2>🛒 Mon panier</h2>
+          <h2>${ICON_CART} Mon panier</h2>
           <div class="modal-error hidden" id="cart-error"></div>
           <div id="cart-items-list"></div>
           <div id="cart-summary"></div>
@@ -2071,11 +2071,11 @@ function renderPostCard(item, isLiked) {
     ${mediaHtml}
     <div class="post-actions">
       <button class="shop-action-btn ${isLiked ? 'liked' : ''}" data-like-btn="${item.id}" onclick="toggleShopLike('${item.id}')">
-        <span data-like-icon="${item.id}">${isLiked ? '❤️' : '🤍'}</span>
+        <span data-like-icon="${item.id}">${isLiked ? ICON_HEART_FILLED : ICON_HEART_OUTLINE}</span>
         <span data-like-count="${item.id}">${item.likesCount || 0}</span>
       </button>
       <button class="shop-action-btn" onclick="openPostDetail('${item.id}')">
-        💬 <span data-comment-count="${item.id}">${item.commentsCount || 0}</span>
+        ${ICON_COMMENT} <span data-comment-count="${item.id}">${item.commentsCount || 0}</span>
       </button>
       <button class="shop-action-btn" onclick="sharePost('${item.id}','${escapeForJs(item.description || '')}','${shareUrl}')">
         ${ICON_SHARE} Partager
@@ -2571,7 +2571,7 @@ async function loadMyPublications() {
         <img src="${d.imageUrl}" alt="" class="seller-pub-img" loading="lazy">
         <div class="seller-pub-info">
           <strong>${typeLabel} ${escapeHtml(d.title)}</strong>
-          <div class="muted small">${(d.price || 0).toFixed(2)}$ · ❤️ ${d.likesCount || 0}</div>
+          <div class="muted small">${(d.price || 0).toFixed(2)}$ · ${ICON_HEART_FILLED} ${d.likesCount || 0}</div>
         </div>
         <button class="shop-action-btn" onclick="deleteMyPublication('${doc.id}')" aria-label="Supprimer cette publication">${ICON_TRASH}</button>
       </div>`;
@@ -2709,12 +2709,12 @@ function renderShopCard(item, isLiked, isPurchased) {
 
   let buyButtonHtml;
   if (alreadyOwned) {
-    buyButtonHtml = `<a class="btn btn-primary btn-sm" style="margin-left:auto" href="${item.fileUrl}" target="_blank">📖 Télécharger</a>`;
+    buyButtonHtml = `<a class="btn btn-primary btn-sm btn-buy-full" href="${item.fileUrl}" target="_blank">📖 Télécharger</a>`;
   } else if (item.type === 'book') {
-    buyButtonHtml = `<button class="btn btn-primary btn-sm" style="margin-left:auto" onclick="buyShopItem('${item.id}','${escapeForJs(item.title)}',${effectivePrice},'${item.type}')" data-i18n="shop_buy">Commander</button>`;
+    buyButtonHtml = `<button class="btn btn-primary btn-sm btn-buy-full" onclick="buyShopItem('${item.id}','${escapeForJs(item.title)}',${effectivePrice},'${item.type}')" data-i18n="shop_buy">Commander</button>`;
   } else {
     const inCart = cartItems.some(c => c.id === item.id);
-    buyButtonHtml = `<button class="btn ${inCart ? 'btn-outline' : 'btn-primary'} btn-sm" style="margin-left:auto" onclick="toggleCartItem('${item.id}','${escapeForJs(item.title)}',${effectivePrice},'${item.imageUrl}')">${inCart ? '✓ Dans le panier' : '🛒 Ajouter'}</button>`;
+    buyButtonHtml = `<button class="btn ${inCart ? 'btn-outline' : 'btn-primary'} btn-sm btn-buy-full" onclick="toggleCartItem('${item.id}','${escapeForJs(item.title)}',${effectivePrice},'${item.imageUrl}')">${inCart ? ICON_CHECK + ' Dans le panier' : ICON_CART + ' Ajouter'}</button>`;
   }
 
   // Le bouton WhatsApp n'apparait que sur les PRODUITS (coordination livraison),
@@ -2756,11 +2756,11 @@ function renderShopCard(item, isLiked, isPurchased) {
 
       <div class="shop-card-actions">
         <button class="shop-action-btn ${isLiked ? 'liked' : ''}" data-like-btn="${item.id}" onclick="toggleShopLike('${item.id}')">
-          <span data-like-icon="${item.id}">${isLiked ? '❤️' : '🤍'}</span>
+          <span data-like-icon="${item.id}">${isLiked ? ICON_HEART_FILLED : ICON_HEART_OUTLINE}</span>
           <span data-like-count="${item.id}">${item.likesCount || 0}</span>
         </button>
         <button class="shop-action-btn" onclick="openPostDetail('${item.id}')">
-          💬 <span data-comment-count="${item.id}">${item.commentsCount || 0}</span>
+          ${ICON_COMMENT} <span data-comment-count="${item.id}">${item.commentsCount || 0}</span>
         </button>
         ${whatsappHtml}
         ${shareHtml}
@@ -2784,6 +2784,10 @@ const ICON_PALETTE = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none
 const ICON_BELL = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>`;
 const ICON_SHIELD = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg>`;
 const ICON_INFO = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>`;
+const ICON_HEART_OUTLINE = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/></svg>`;
+const ICON_HEART_FILLED = `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/></svg>`;
+const ICON_COMMENT = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z"/></svg>`;
+const ICON_CART = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg>`;
 
 async function shareShopItem(pubId, title) {
   const shareUrl = `https://coeurnohboost.vercel.app/?produit=${pubId}`;
@@ -2834,13 +2838,13 @@ async function toggleShopLike(pubId) {
     if (likeDoc.exists) {
       await likeRef.delete();
       await pubRef.update({ likesCount: firebase.firestore.FieldValue.increment(-1) });
-      iconEls.forEach(el => el.textContent = '🤍');
+      iconEls.forEach(el => el.innerHTML = ICON_HEART_OUTLINE);
       btnEls.forEach(el => el.classList.remove('liked'));
       countEls.forEach(el => el.textContent = Math.max(0, parseInt(el.textContent, 10) - 1));
     } else {
       await likeRef.set({ pubId, uid: currentUser.uid, createdAt: new Date().toISOString() });
       await pubRef.update({ likesCount: firebase.firestore.FieldValue.increment(1) });
-      iconEls.forEach(el => el.textContent = '❤️');
+      iconEls.forEach(el => el.innerHTML = ICON_HEART_FILLED);
       btnEls.forEach(el => el.classList.add('liked'));
       countEls.forEach(el => el.textContent = parseInt(el.textContent, 10) + 1);
 
@@ -2910,10 +2914,10 @@ async function openPostDetail(pubId) {
       ${mediaHtml}
       <div class="post-actions">
         <button class="shop-action-btn ${isLiked ? 'liked' : ''}" data-like-btn="${item.id}" onclick="toggleShopLike('${item.id}')">
-          <span data-like-icon="${item.id}">${isLiked ? '❤️' : '🤍'}</span>
+          <span data-like-icon="${item.id}">${isLiked ? ICON_HEART_FILLED : ICON_HEART_OUTLINE}</span>
           <span data-like-count="${item.id}">${item.likesCount || 0}</span>
         </button>
-        <span class="shop-action-btn">💬 <span data-comment-count="${item.id}">${item.commentsCount || 0}</span></span>
+        <span class="shop-action-btn">${ICON_COMMENT} <span data-comment-count="${item.id}">${item.commentsCount || 0}</span></span>
       </div>
       <div class="shop-comments" id="shop-comments-${item.id}">
         <div class="shop-comments-list" id="shop-comments-list-${item.id}"><p class="muted small">Chargement des commentaires...</p></div>
@@ -3509,15 +3513,9 @@ function renderNotifPanel() {
   const lastSeen = getLastSeenAnnouncementAt();
   listEl.innerHTML = merged.map(n => {
     const isSelected = selectedNotifIds.has(n.id);
-    const pressHandlers = n.isAnnouncement ? '' : `
-      onpointerdown="handleNotifPressStart('${n.id}', false)"
-      onpointerup="handleNotifPressEnd()"
-      onpointerleave="handleNotifPressEnd()"
-    `;
     return `
     <div class="notif-row ${(!n.isAnnouncement && !n.read) || (n.isAnnouncement && n.createdAt > lastSeen) ? 'unread' : ''} ${isSelected ? 'notif-row-selected' : ''}"
-      ${pressHandlers}
-      onclick="handleNotifRowClick('${n.id}', ${n.isAnnouncement})">
+      data-id="${n.id}" data-announcement="${n.isAnnouncement ? '1' : '0'}">
       ${notifSelectMode && !n.isAnnouncement ? `<span class="notif-select-dot ${isSelected ? 'checked' : ''}">${ICON_CHECK}</span>` : ''}
       <span class="notif-icon">${typeIcons[n.type] || '🔔'}</span>
       <div class="notif-content">
@@ -3525,10 +3523,43 @@ function renderNotifPanel() {
         <p>${escapeHtml(n.body)}</p>
         <span class="notif-time">${timeAgo(n.createdAt)}</span>
       </div>
-      ${(!notifSelectMode && !n.isAnnouncement) ? `<button class="notif-delete-btn" onclick="event.stopPropagation(); deleteNotifRow('${n.id}')" aria-label="Supprimer cette notification">${ICON_TRASH}</button>` : ''}
+      ${(!notifSelectMode && !n.isAnnouncement) ? `<button class="notif-delete-btn" data-notif-delete="${n.id}" aria-label="Supprimer cette notification">${ICON_TRASH}</button>` : ''}
     </div>
   `;
   }).join('');
+  bindNotifListEvents();
+}
+
+// Delegation d'evenements unique sur le conteneur (au lieu d'attributs en
+// ligne sur chaque ligne) : plus fiable sur mobile/webview, et continue de
+// fonctionner meme apres un reaffichage de la liste puisqu'elle est
+// attachee une seule fois au conteneur parent, qui lui ne change jamais.
+let notifListenersBound = false;
+function bindNotifListEvents() {
+  const listEl = document.getElementById('notif-list');
+  if (!listEl || notifListenersBound) return;
+  notifListenersBound = true;
+
+  listEl.addEventListener('pointerdown', (e) => {
+    const row = e.target.closest('.notif-row');
+    if (!row) return;
+    handleNotifPressStart(row.dataset.id, row.dataset.announcement === '1');
+  });
+  ['pointerup', 'pointerleave', 'pointercancel'].forEach((evt) => {
+    listEl.addEventListener(evt, () => handleNotifPressEnd());
+  });
+
+  listEl.addEventListener('click', (e) => {
+    const deleteBtn = e.target.closest('.notif-delete-btn');
+    if (deleteBtn) {
+      e.stopPropagation();
+      deleteNotifRow(deleteBtn.dataset.notifDelete);
+      return;
+    }
+    const row = e.target.closest('.notif-row');
+    if (!row) return;
+    handleNotifRowClick(row.dataset.id, row.dataset.announcement === '1');
+  });
 }
 
 // Ouvre le contenu lie a une notification (publication, onglet commandes...)
