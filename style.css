@@ -355,7 +355,7 @@ a{text-decoration:none;color:inherit}
   background:#fff;border-radius:18px;padding:26px;width:100%;max-width:400px;
   max-height:90vh;overflow-y:auto;position:relative;
 }
-.modal-close{position:absolute;top:14px;right:14px;background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--muted)}
+.modal-close{position:absolute;top:14px;right:14px;background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--muted);min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center}
 .modal h2{font-size:1.3rem;margin-bottom:4px}
 .modal .sub{color:var(--muted);font-size:0.85rem;margin-bottom:16px}
 .modal-error{background:#fdecea;color:#c0392b;border-radius:10px;padding:10px 12px;font-size:0.85rem;margin-bottom:14px}
@@ -427,7 +427,7 @@ a{text-decoration:none;color:inherit}
 .reviews-section{margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
 .reviews-section h4{margin-bottom:10px;font-size:0.95rem}
 .review-form{background:var(--cream);border:1px solid var(--line);border-radius:var(--radius);padding:12px;margin-bottom:12px}
-.star-picker span{font-size:1.5rem;cursor:pointer;margin-right:2px}
+.star-picker span{font-size:1.5rem;cursor:pointer;padding:6px;display:inline-block;line-height:1}
 .review-row{padding:8px 0;border-bottom:1px solid var(--line);font-size:0.85rem}
 .review-row:last-child{border-bottom:none}
 .review-row p{margin-top:4px;color:var(--muted)}
@@ -612,7 +612,7 @@ a{text-decoration:none;color:inherit}
 /* Panneau notifications (modale, coherent avec le reste du site) */
 .notif-modal{max-height:75vh;overflow-y:auto}
 .notif-row{display:flex;gap:10px;padding:12px 0;border-bottom:1px solid var(--line);cursor:pointer;align-items:flex-start}
-.notif-delete-btn{background:none;border:none;font-size:1rem;opacity:0.5;cursor:pointer;padding:4px;flex-shrink:0}
+.notif-delete-btn{background:none;border:none;font-size:1rem;opacity:0.5;cursor:pointer;padding:4px;flex-shrink:0;min-width:40px;min-height:40px}
 .notif-delete-btn:hover{opacity:1}
 .notif-row:last-child{border-bottom:none}
 .notif-row.unread{background:var(--green-light);border-radius:10px;padding:12px 10px;margin-bottom:2px}
@@ -638,7 +638,7 @@ a{text-decoration:none;color:inherit}
   border:1px solid var(--line);box-shadow:0 2px 8px rgba(0,0,0,0.04);
 }
 .post-card-header{display:flex;align-items:center;gap:10px;padding:12px 14px}
-.post-delete-btn{margin-left:auto;background:none;border:none;font-size:1rem;opacity:0.45;cursor:pointer;padding:6px}
+.post-delete-btn{margin-left:auto;background:none;border:none;font-size:1rem;opacity:0.45;cursor:pointer;padding:6px;min-width:40px;min-height:40px}
 .post-delete-btn:hover{opacity:1}
 .post-avatar{
   width:38px;height:38px;border-radius:50%;background:var(--green);color:#fff;

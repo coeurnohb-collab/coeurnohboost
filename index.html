@@ -75,7 +75,7 @@
   <div class="notif-panel hidden" id="notif-panel">
     <div class="notif-panel-header">
       <strong>Notifications</strong>
-      <button class="modal-close" onclick="closeNotifPanel()">×</button>
+      <button class="modal-close" onclick="closeNotifPanel()" aria-label="Fermer">×</button>
     </div>
     <div class="notif-panel-list" id="notif-panel-list"><p class="muted small" style="padding:16px">Chargement...</p></div>
   </div>
@@ -234,28 +234,28 @@
         <h3>✏️ Modifier mon compte</h3>
 
         <div class="field">
-          <label>Nom</label>
+          <label for="account-name-input">Nom</label>
           <input type="text" id="account-name-input">
         </div>
         <button class="btn btn-outline" onclick="saveAccountName()">Enregistrer le nom</button>
 
         <div class="field" style="margin-top:18px">
-          <label>Adresse e-mail</label>
+          <label for="account-email-input">Adresse e-mail</label>
           <input type="email" id="account-email-input">
         </div>
         <div class="field">
-          <label>Mot de passe actuel (requis pour changer l'e-mail)</label>
+          <label for="account-email-currentpass">Mot de passe actuel (requis pour changer l'e-mail)</label>
           <input type="password" id="account-email-currentpass">
         </div>
         <button class="btn btn-outline" onclick="saveAccountEmail()">Mettre à jour l'e-mail</button>
         <p class="muted small" id="account-email-msg" style="margin-top:6px"></p>
 
         <div class="field" style="margin-top:18px">
-          <label>Mot de passe actuel</label>
+          <label for="account-pass-current">Mot de passe actuel</label>
           <input type="password" id="account-pass-current">
         </div>
         <div class="field">
-          <label>Nouveau mot de passe (6 caractères min.)</label>
+          <label for="account-pass-new">Nouveau mot de passe (6 caractères min.)</label>
           <input type="password" id="account-pass-new">
         </div>
         <button class="btn btn-outline" onclick="saveAccountPassword()">Changer le mot de passe</button>
@@ -307,7 +307,7 @@
         <p class="muted small" style="margin-bottom:10px">Tes données (nom, e-mail, publications) sont stockées de façon sécurisée et ne sont jamais partagées avec des tiers.</p>
         <p class="muted small" style="margin-bottom:10px">⚠️ Supprimer ton compte est <strong>définitif</strong> : tu perdras ton solde restant et tes publications. Tes commandes déjà passées restent conservées pour les vendeurs/acheteurs concernés.</p>
         <div class="field">
-          <label>Mot de passe actuel (pour confirmer)</label>
+          <label for="delete-account-pass">Mot de passe actuel (pour confirmer)</label>
           <input type="password" id="delete-account-pass">
         </div>
         <button class="btn btn-outline" style="color:var(--red);border-color:var(--red)" onclick="deleteMyAccount()">🗑️ Supprimer mon compte définitivement</button>
@@ -379,16 +379,16 @@
 
     <div class="order-box">
       <h3 data-i18n="order_alacarte_title">À la carte</h3>
-      <label class="field-label" data-i18n="order_service_label">Service</label>
+      <label class="field-label" data-i18n="order_service_label" for="order-service-select">Service</label>
       <select id="order-service-select" class="select-input" onchange="onOrderInputChange()"></select>
 
       <label class="field-label" style="margin-top:16px" data-i18n="order_quality_label">Catégorie</label>
       <div class="quality-grid" id="quality-grid"></div>
 
-      <label class="field-label" style="margin-top:16px" data-i18n="order_link_label">Lien</label>
+      <label class="field-label" style="margin-top:16px" data-i18n="order_link_label" for="order-link">Lien</label>
       <input type="url" id="order-link" class="text-input" data-i18n-placeholder="order_link_ph" placeholder="https://...">
 
-      <label class="field-label" style="margin-top:16px" data-i18n="order_qty_label">Quantité</label>
+      <label class="field-label" style="margin-top:16px" data-i18n="order_qty_label" for="order-qty">Quantité</label>
       <input type="number" id="order-qty" class="text-input" oninput="onOrderInputChange()" placeholder="0">
       <p class="muted small" id="order-qty-hint"></p>
 
@@ -417,10 +417,10 @@
 
       <!-- Mobile Money -->
       <div id="pay-panel-mobile">
-        <label class="field-label" data-i18n="pay_country_label">Pays</label>
+        <label class="field-label" data-i18n="pay_country_label" for="pay-country-select">Pays</label>
         <select id="pay-country-select" class="select-input" onchange="onPayCountryChange()"></select>
         <div class="op-grid" id="pay-operators" style="margin-top:12px"></div>
-        <label class="field-label" style="margin-top:16px" data-i18n="pay_phone_label">Numéro de téléphone</label>
+        <label class="field-label" style="margin-top:16px" data-i18n="pay_phone_label" for="recharge-phone">Numéro de téléphone</label>
         <input type="tel" id="recharge-phone" class="text-input" data-i18n-placeholder="pay_phone_ph" placeholder="+243 8xx xxx xxx">
       </div>
 
@@ -553,7 +553,7 @@
 <!-- ================= AUTH MODAL ================= -->
 <div class="modal-overlay hidden" id="auth-modal">
   <div class="modal">
-    <button class="modal-close" onclick="closeAuth()">×</button>
+    <button class="modal-close" onclick="closeAuth()" aria-label="Fermer">×</button>
     <h2 id="auth-title" data-i18n="auth_title_register">Créer un compte</h2>
     <p class="sub" data-i18n="auth_sub">Rejoins Coeurnoh Boost en moins d'une minute.</p>
     <div class="modal-error hidden" id="auth-error"></div>
@@ -591,7 +591,7 @@
 <!-- ================= TUTORIEL / GUIDE D'UTILISATION ================= -->
 <div class="modal-overlay hidden" id="tutorial-modal">
   <div class="modal tutorial-modal">
-    <button class="modal-close" onclick="closeTutorial()">×</button>
+    <button class="modal-close" onclick="closeTutorial()" aria-label="Fermer">×</button>
 
     <div class="tutorial-dots" id="tutorial-dots"></div>
 
@@ -840,14 +840,14 @@
      de commentaires depuis le fil ou la boutique). -->
 <div class="modal-overlay hidden" id="post-detail-modal">
   <div class="modal post-detail-modal-inner">
-    <button class="modal-close" onclick="closePostDetail()">×</button>
+    <button class="modal-close" onclick="closePostDetail()" aria-label="Fermer">×</button>
     <div id="post-detail-body"></div>
   </div>
 </div>
 
 <div class="modal-overlay hidden" id="notif-detail-modal">
   <div class="modal">
-    <button class="modal-close" onclick="closeNotifDetailModal()">×</button>
+    <button class="modal-close" onclick="closeNotifDetailModal()" aria-label="Fermer">×</button>
     <h3 id="notif-detail-title" style="margin-bottom:10px"></h3>
     <p id="notif-detail-body" class="muted"></p>
   </div>
@@ -856,12 +856,12 @@
 <!-- ================= NOUVELLE PUBLICATION (Accueil, style Facebook) ================= -->
 <div class="modal-overlay hidden" id="create-post-modal">
   <div class="modal">
-    <button class="modal-close" onclick="closeCreatePostForm()">×</button>
+    <button class="modal-close" onclick="closeCreatePostForm()" aria-label="Fermer">×</button>
     <h2>➕ Nouvelle publication</h2>
     <div class="modal-error hidden" id="post-form-error"></div>
 
     <div class="field">
-      <label>Type</label>
+      <label for="post-media-type">Type</label>
       <select id="post-media-type" class="text-input" onchange="togglePostMediaField()">
         <option value="photo">📷 Photo</option>
         <option value="video">🎥 Vidéo</option>
@@ -869,12 +869,12 @@
       </select>
     </div>
     <div class="field" id="post-media-url-field">
-      <label>Lien du média</label>
+      <label for="post-media-url">Lien du média</label>
       <input type="url" id="post-media-url" class="text-input" placeholder="https://i.postimg.cc/... ou https://drive.google.com/...">
       <p class="muted small" style="margin-top:4px">Photo : uploade sur <strong>postimages.org</strong>, copie le "Lien direct". Vidéo : uploade sur <strong>Google Drive</strong>, partage en "Accessible à tous", colle le lien.</p>
     </div>
     <div class="field">
-      <label>Texte / légende</label>
+      <label for="post-caption">Texte / légende</label>
       <textarea id="post-caption" class="text-input" rows="3" placeholder="Qu'as-tu envie de partager ?"></textarea>
     </div>
 

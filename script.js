@@ -2573,7 +2573,7 @@ async function loadMyPublications() {
           <strong>${typeLabel} ${escapeHtml(d.title)}</strong>
           <div class="muted small">${(d.price || 0).toFixed(2)}$ · ❤️ ${d.likesCount || 0}</div>
         </div>
-        <button class="shop-action-btn" onclick="deleteMyPublication('${doc.id}')">🗑️</button>
+        <button class="shop-action-btn" onclick="deleteMyPublication('${doc.id}')" aria-label="Supprimer cette publication">🗑️</button>
       </div>`;
     }).join('');
   } catch (e) {
@@ -2728,7 +2728,7 @@ function renderShopCard(item, isLiked, isPurchased) {
   const shareHtml = `<button class="shop-action-btn" onclick="shareShopItem('${item.id}','${escapeForJs(item.title)}')" title="Partager">${ICON_SHARE}</button>`;
 
   const deleteHtml = (currentUser && currentUser.uid === item.sellerUid)
-    ? `<button class="shop-action-btn" onclick="deleteMyPublication('${item.id}')" title="Supprimer" style="color:var(--red)">🗑️</button>`
+    ? `<button class="shop-action-btn" onclick="deleteMyPublication('${item.id}')" title="Supprimer" aria-label="Supprimer cette publication" style="color:var(--red)">🗑️</button>`
     : '';
 
   const sellerLine = item.sellerName
@@ -2958,7 +2958,7 @@ async function renderReviewsSection(pubId, sellerUid) {
             <div class="review-form">
               <p class="muted small" style="margin-bottom:6px">Tu as acheté cet article — laisse ton avis :</p>
               <div class="star-picker" id="star-picker-${pubId}">
-                ${[1, 2, 3, 4, 5].map(n => `<span data-star="${n}" onclick="setReviewStars('${pubId}', ${n})">☆</span>`).join('')}
+                ${[1, 2, 3, 4, 5].map(n => `<span data-star="${n}" role="button" tabindex="0" aria-label="${n} étoile${n > 1 ? 's' : ''}" onclick="setReviewStars('${pubId}', ${n})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();setReviewStars('${pubId}', ${n})}">☆</span>`).join('')}
               </div>
               <textarea class="text-input" id="review-comment-${pubId}" placeholder="Ton avis (optionnel)" style="margin-top:8px;min-height:60px;width:100%"></textarea>
               <button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="submitReview('${pubId}', '${sellerUid}', '${orderId}')">Envoyer mon avis</button>
