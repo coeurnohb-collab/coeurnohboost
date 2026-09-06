@@ -2838,6 +2838,7 @@ const ICON_HEART_OUTLINE = `<svg width="16" height="16" viewBox="0 0 24 24" fill
 const ICON_HEART_FILLED = `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/></svg>`;
 const ICON_BOOKMARK = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21 12 16l-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
 const ICON_BOOKMARK_FILLED = `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 21 12 16l-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
+const ICON_FLAG = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>`;
 const ICON_COMMENT = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z"/></svg>`;
 const ICON_CART = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg>`;
 const ICON_WALLET = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5h-4a2 2 0 0 1 0-4h4Z"/></svg>`;
@@ -3001,6 +3002,55 @@ async function loadSavedFeed() {
   }
 }
 
+/* ================= SIGNALEMENT DE CONTENU ================= */
+let reportTargetId = null;
+let reportTargetOwnerUid = null;
+
+function openReportModal(pubId, ownerUid) {
+  if (!currentUser) { openAuth('register'); return; }
+  reportTargetId = pubId;
+  reportTargetOwnerUid = ownerUid;
+  document.querySelectorAll('input[name="report-reason"]').forEach(el => el.checked = false);
+  document.getElementById('report-comment').value = '';
+  document.getElementById('report-error').style.display = 'none';
+  document.getElementById('report-modal').classList.remove('hidden');
+}
+
+function closeReportModal() {
+  document.getElementById('report-modal').classList.add('hidden');
+  reportTargetId = null;
+  reportTargetOwnerUid = null;
+}
+
+async function submitReport() {
+  const errorEl = document.getElementById('report-error');
+  const checked = document.querySelector('input[name="report-reason"]:checked');
+  if (!checked) {
+    errorEl.textContent = 'Choisis une raison avant d\'envoyer.';
+    errorEl.style.display = 'block';
+    return;
+  }
+  if (!currentUser || !reportTargetId) { closeReportModal(); return; }
+
+  try {
+    await db.collection('reports').add({
+      targetType: 'publication',
+      targetId: reportTargetId,
+      targetOwnerUid: reportTargetOwnerUid || null,
+      reason: checked.value,
+      comment: (document.getElementById('report-comment').value || '').trim().slice(0, 500),
+      reporterUid: currentUser.uid,
+      status: 'pending',
+      createdAt: new Date().toISOString()
+    });
+    closeReportModal();
+    showToast('Signalement envoyé, merci pour ta vigilance', 'success');
+  } catch (e) {
+    errorEl.textContent = friendlyErrorMessage(e);
+    errorEl.style.display = 'block';
+  }
+}
+
 /* ================= FICHE PUBLICATION PLEIN ECRAN (comme Facebook) =================
    Un tap sur la photo/video ou sur le compteur de commentaires ouvre cette fiche :
    c'est LA seule ou les commentaires sont visibles. Le J'aime reste utilisable
@@ -3061,7 +3111,9 @@ async function openPostDetail(pubId) {
       ${reviewsHtml}
       ${currentUser && currentUser.uid === item.sellerUid ? `
       <button class="btn btn-outline" style="margin-top:14px;color:var(--red);border-color:var(--red);display:inline-flex;align-items:center;gap:6px" onclick="deletePublicationFromDetail('${item.id}')">${ICON_TRASH} Supprimer cette publication</button>
-      ` : ''}
+      ` : `
+      <button class="btn btn-outline btn-sm" style="margin-top:14px;color:var(--muted);border-color:var(--line);display:inline-flex;align-items:center;gap:6px" onclick="openReportModal('${item.id}', '${item.sellerUid || ''}')">${ICON_FLAG} Signaler ce contenu</button>
+      `}
     `;
     document.getElementById('post-detail-modal').classList.remove('hidden');
     await loadShopComments(pubId);

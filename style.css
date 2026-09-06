@@ -418,6 +418,9 @@ a{text-decoration:none;color:inherit}
 .skeleton-card .skeleton-line.w-60{width:60%}
 .skeleton-card .skeleton-line.w-40{width:40%}
 .skeleton-card .skeleton-line.w-90{width:90%}
+.report-reason-option{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;cursor:pointer;font-size:0.92rem}
+.report-reason-option:has(input:checked){border-color:var(--green);background:var(--green-light)}
+.report-reason-option input{accent-color:var(--green)}
 
 .shop-card{
   background:#fff;border-radius:var(--radius);overflow:hidden;margin-bottom:18px;

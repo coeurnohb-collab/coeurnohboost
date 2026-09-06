@@ -849,6 +849,23 @@
   </div>
 </div>
 
+<div class="modal-overlay hidden" id="report-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeReportModal()" aria-label="Fermer">×</button>
+    <h3 style="margin-bottom:4px">Signaler ce contenu</h3>
+    <p class="muted small" style="margin-bottom:14px">Dis-nous pourquoi ce contenu te semble inapproprié. Notre équipe va l'examiner.</p>
+    <div id="report-reason-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px">
+      <label class="report-reason-option"><input type="radio" name="report-reason" value="spam"> Spam ou publicité non désirée</label>
+      <label class="report-reason-option"><input type="radio" name="report-reason" value="inapproprie"> Contenu inapproprié ou choquant</label>
+      <label class="report-reason-option"><input type="radio" name="report-reason" value="arnaque"> Arnaque ou tentative de fraude</label>
+      <label class="report-reason-option"><input type="radio" name="report-reason" value="autre"> Autre raison</label>
+    </div>
+    <textarea id="report-comment" class="text-input" rows="2" placeholder="Précise si tu veux (facultatif)" style="margin-bottom:14px;resize:vertical"></textarea>
+    <p class="muted small" id="report-error" style="color:var(--red);display:none;margin-bottom:10px"></p>
+    <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="submitReport()">Envoyer le signalement</button>
+  </div>
+</div>
+
 <div class="modal-overlay hidden" id="notif-detail-modal">
   <div class="modal">
     <button class="modal-close" onclick="closeNotifDetailModal()" aria-label="Fermer">×</button>
