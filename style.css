@@ -443,6 +443,12 @@ a{text-decoration:none;color:inherit}
 .shop-action-btn.liked{background:#fdecea;color:var(--red)}
 @keyframes likePop{0%{transform:scale(1)}35%{transform:scale(1.35)}60%{transform:scale(0.92)}100%{transform:scale(1)}}
 .like-pop{animation:likePop 0.35s ease}
+.follow-btn{
+  background:var(--green);color:#fff;border:none;border-radius:999px;
+  padding:6px 14px;font-size:0.82rem;font-weight:700;cursor:pointer;
+  flex:0 0 auto;margin-left:auto;
+}
+.follow-btn.following{background:transparent;color:var(--muted);border:1px solid var(--line)}
 .shop-comments{margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
 .shop-comments-list{margin-bottom:10px;max-height:220px;overflow-y:auto}
 .shop-comment{padding:8px 0;border-bottom:1px solid var(--line);font-size:0.85rem}

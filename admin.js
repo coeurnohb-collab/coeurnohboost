@@ -87,6 +87,7 @@ const ADMIN_TABS = [
   { id: "monetization", label: "💵 Monétisation" },
   { id: "shop",         label: "🏪 Boutique" },
   { id: "withdrawals",  label: "💸 Retraits" },
+  { id: "reports",      label: "🚩 Signalements" },
   { id: "announcements",label: "📢 Annonces" },
   { id: "users",        label: "👤 Utilisateurs" },
   { id: "automation",   label: "🤖 Automatisation" }
@@ -113,6 +114,7 @@ function showAdminTab(tab) {
   if (tab === 'monetization') loadMonetizationAdmin();
   if (tab === 'shop') loadShopAdmin();
   if (tab === 'withdrawals') loadWithdrawalsAdmin();
+  if (tab === 'reports') loadReportsAdmin();
   if (tab === 'announcements') loadAnnouncementsAdmin();
   if (tab === 'users') loadUsersAdmin();
   if (tab === 'automation') { loadAutomationStatus(); loadServiceMapAdmin(); }
@@ -1029,6 +1031,57 @@ async function loadWithdrawalsAdmin() {
     }).join('');
   } catch (e) {
     el.innerHTML = `<p class="admin-empty">Erreur : ${e.message}</p>`;
+  }
+}
+
+/* =========================================================
+   SIGNALEMENTS DE CONTENU
+   ========================================================= */
+async function loadReportsAdmin() {
+  const el = document.getElementById('admin-reports-list');
+  el.innerHTML = `<p class="admin-empty">Chargement...</p>`;
+  try {
+    const snap = await db.collection('reports').orderBy('createdAt', 'desc').limit(100).get();
+    if (snap.empty) { el.innerHTML = `<p class="admin-empty">Aucun signalement pour l'instant.</p>`; return; }
+
+    const reasonLabels = {
+      spam: 'Spam ou publicité', inapproprie: 'Contenu inapproprié',
+      arnaque: 'Arnaque / fraude', autre: 'Autre raison'
+    };
+
+    el.innerHTML = snap.docs.map(doc => {
+      const r = doc.data();
+      const status = r.status || 'pending';
+      return `
+      <div class="admin-row">
+        <div class="admin-row-top">
+          <div>
+            <div class="admin-row-title">${escapeHtml(reasonLabels[r.reason] || r.reason)}</div>
+            <div class="admin-row-meta">Publication : ${escapeHtml(r.targetId)} · Signalé par : ${escapeHtml(r.reporterUid)}</div>
+            ${r.comment ? `<div class="admin-row-meta">💬 ${escapeHtml(r.comment)}</div>` : ''}
+          </div>
+          <span class="admin-badge ${status}">${status === 'pending' ? 'en attente' : status === 'resolved' ? 'traité' : 'rejeté'}</span>
+        </div>
+        <div class="admin-row-actions">
+          <button class="btn btn-outline btn-sm" onclick="window.open('index.html?produit=${r.targetId}','_blank')">👁️ Voir la publication</button>
+          ${status === 'pending' ? `
+          <button class="btn btn-outline btn-sm" onclick="resolveReport('${doc.id}','resolved')">✅ Marquer comme traité</button>
+          <button class="btn btn-outline btn-sm" onclick="resolveReport('${doc.id}','dismissed')">❌ Rejeter</button>
+          ` : ''}
+        </div>
+      </div>`;
+    }).join('');
+  } catch (e) {
+    el.innerHTML = `<p class="admin-empty">Erreur : ${e.message}</p>`;
+  }
+}
+
+async function resolveReport(reportId, newStatus) {
+  try {
+    await db.collection('reports').doc(reportId).update({ status: newStatus });
+    loadReportsAdmin();
+  } catch (e) {
+    alert('Erreur : ' + e.message);
   }
 }
 

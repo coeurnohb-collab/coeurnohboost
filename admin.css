@@ -176,6 +176,8 @@ body:has(#admin-panel){ background:var(--bg); }
 .admin-badge.completed{background:var(--green-light);color:var(--green-dark)}
 .admin-badge.approved{background:var(--green-light);color:var(--green-dark)}
 .admin-badge.rejected{background:#fdecea;color:#c0392b}
+.admin-badge.resolved{background:var(--green-light);color:var(--green-dark)}
+.admin-badge.dismissed{background:#fdecea;color:#c0392b}
 
 .admin-empty{
   text-align:center;color:var(--muted);font-size:0.88rem;

@@ -3,7 +3,7 @@
 <head>
 <meta name="cryptomus" content="cc5bb488" />
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Coeurnoh Boost — Panel de croissance réseaux sociaux</title>
 
 <!-- SEO -->
@@ -474,7 +474,7 @@
     <div style="display:flex;gap:10px;margin-bottom:14px">
       <button class="btn btn-outline" style="flex:1;justify-content:center" onclick="openSellForm()"><span data-i18n="shop_sell_btn">➕ Vendre</span></button>
       <button class="btn btn-outline" style="flex:1;justify-content:center" onclick="showSellerPage()"><span data-i18n="shop_seller_btn">💼 Vendeur</span></button>
-      <button class="btn btn-outline" style="position:relative" onclick="openCart()">🛒<span class="cart-badge hidden" id="cart-badge">0</span></button>
+      <button class="btn btn-outline" style="position:relative" onclick="openCart()" aria-label="Panier">🛒<span class="cart-badge hidden" id="cart-badge">0</span></button>
     </div>
 
     <button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:14px" onclick="showLibrary()"><span data-i18n="shop_goto_library">📚 Aller à la Bibliothèque (livres uniquement)</span></button>
@@ -833,7 +833,7 @@
 
 <!-- ================= VISIONNEUSE PLEIN ECRAN (photo/video) ================= -->
 <div class="media-viewer hidden" id="media-viewer">
-  <button class="media-viewer-close" onclick="closeMediaViewer()">×</button>
+  <button class="media-viewer-close" onclick="closeMediaViewer()" aria-label="Fermer">×</button>
   <div class="media-viewer-content" id="media-viewer-content"></div>
   <button class="btn btn-primary media-viewer-download" id="media-viewer-download-btn">⬇️ Télécharger</button>
 </div>

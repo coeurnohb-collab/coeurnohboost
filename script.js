@@ -2002,6 +2002,7 @@ async function submitSellForm() {
    rendu style Instagram/Facebook — volontairement different des cartes
    Boutique (pas de prix, media en plein format, legende en dessous). */
 let homeFeedLastDoc = null;
+let followingSet = new Set();
 
 function renderFeedSkeletons(count = 3) {
   return Array.from({ length: count }).map(() => `
@@ -2055,18 +2056,20 @@ async function loadHomeFeed(append = false) {
     let likedMap = {};
     let savedMap = {};
     if (currentUser) {
-      const [likeChecks, saveChecks] = await Promise.all([
+      const [likeChecks, saveChecks, followSnap] = await Promise.all([
         Promise.all(items.map(item =>
           db.collection('publication_likes').doc(`${item.id}_${currentUser.uid}`).get()
         )),
         Promise.all(items.map(item =>
           db.collection('saved_items').doc(`${item.id}_${currentUser.uid}`).get()
-        ))
+        )),
+        db.collection('follows').where('followerUid', '==', currentUser.uid).get()
       ]);
       items.forEach((item, i) => {
         likedMap[item.id] = likeChecks[i].exists;
         savedMap[item.id] = saveChecks[i].exists;
       });
+      followingSet = new Set(followSnap.docs.map(d => d.data().followedUid));
     }
 
     const html = items.map(item => renderPostCard(item, likedMap[item.id], savedMap[item.id])).join('');
@@ -2101,6 +2104,13 @@ function renderPostCard(item, isLiked, isSaved) {
   }
 
   const shareUrl = `https://coeurnohboost.vercel.app/?produit=${item.id}`;
+  const isOwnPost = currentUser && currentUser.uid === item.sellerUid;
+  const isFollowing = item.sellerUid && followingSet.has(item.sellerUid);
+  const followBtnHtml = (item.sellerUid && !isOwnPost) ? `
+    <button class="follow-btn ${isFollowing ? 'following' : ''}" data-follow-btn="${item.sellerUid}"
+      onclick="toggleFollow('${item.sellerUid}','${escapeForJs(item.sellerName || 'ce compte')}')">
+      <span data-follow-label="${item.sellerUid}">${isFollowing ? 'Abonné' : '+ Suivre'}</span>
+    </button>` : '';
 
   return `
   <div class="post-card" id="shop-card-${item.id}">
@@ -2110,7 +2120,8 @@ function renderPostCard(item, isLiked, isSaved) {
         <strong>${escapeHtml(item.sellerName || 'CoeurnohBoost')}${item.sellerVerified ? ' ✔️' : ''}</strong>
         <div class="post-time">${timeStr}</div>
       </div>
-      ${currentUser && currentUser.uid === item.sellerUid ? `
+      ${followBtnHtml}
+      ${isOwnPost ? `
       <button class="post-delete-btn" onclick="deleteMyPublication('${item.id}')" title="Supprimer" aria-label="Supprimer cette publication">${ICON_TRASH}</button>
       ` : ''}
     </div>
@@ -2956,6 +2967,43 @@ async function toggleSavePost(pubId) {
     }
   } catch (e) {
     console.log('[shop] Erreur enregistrement :', e.message);
+  } finally {
+    likeInFlight.delete(lockKey);
+  }
+}
+
+/* ================= ABONNEMENTS (SUIVRE UN COMPTE) ================= */
+async function toggleFollow(sellerUid, sellerName) {
+  if (!currentUser) { openAuth('register'); return; }
+  if (sellerUid === currentUser.uid) return;
+  const lockKey = 'follow_' + sellerUid;
+  if (likeInFlight.has(lockKey)) return;
+  likeInFlight.add(lockKey);
+
+  const followRef = db.collection('follows').doc(`${currentUser.uid}_${sellerUid}`);
+  const btnEls = document.querySelectorAll(`[data-follow-btn="${sellerUid}"]`);
+  const labelEls = document.querySelectorAll(`[data-follow-label="${sellerUid}"]`);
+
+  try {
+    if (followingSet.has(sellerUid)) {
+      await followRef.delete();
+      followingSet.delete(sellerUid);
+      btnEls.forEach(el => el.classList.remove('following'));
+      labelEls.forEach(el => el.textContent = '+ Suivre');
+    } else {
+      await followRef.set({
+        followerUid: currentUser.uid,
+        followedUid: sellerUid,
+        followedName: sellerName || '',
+        createdAt: new Date().toISOString()
+      });
+      followingSet.add(sellerUid);
+      btnEls.forEach(el => el.classList.add('following'));
+      labelEls.forEach(el => el.textContent = 'Abonné');
+      showToast(`Tu suis maintenant ${sellerName || 'ce compte'}`, 'success');
+    }
+  } catch (e) {
+    showToast(friendlyErrorMessage(e), 'error');
   } finally {
     likeInFlight.delete(lockKey);
   }
