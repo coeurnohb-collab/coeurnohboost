@@ -205,7 +205,7 @@ function showDashTab(tab) {
     if (shopFeedEl) shopFeedEl.innerHTML = '';
     loadHomeFeed();
   }
-  if (tab === 'account') { renderReferralBox(); applyNotifPrefsToUI(); fillAccountForm(); loadSavedFeed(); }
+  if (tab === 'account') { renderReferralBox(); applyNotifPrefsToUI(); fillAccountForm(); loadSavedFeed(); loadFollowingList(); }
 }
 function showServices() {
   hideAllViews();
@@ -2070,6 +2070,17 @@ async function loadHomeFeed(append = false) {
         savedMap[item.id] = saveChecks[i].exists;
       });
       followingSet = new Set(followSnap.docs.map(d => d.data().followedUid));
+
+      // Priorise les publications des comptes suivis, sans casser l'ordre
+      // chronologique a l'interieur de chaque groupe (tri stable JS).
+      // Pas de nouvelle requete, pas d'IA : juste un reclassement simple.
+      if (followingSet.size > 0) {
+        items.sort((a, b) => {
+          const aFollowed = followingSet.has(a.sellerUid) ? 0 : 1;
+          const bFollowed = followingSet.has(b.sellerUid) ? 0 : 1;
+          return aFollowed - bFollowed;
+        });
+      }
     }
 
     const html = items.map(item => renderPostCard(item, likedMap[item.id], savedMap[item.id])).join('');
@@ -2094,7 +2105,7 @@ async function loadHomeFeed(append = false) {
   }
 }
 
-function renderPostCard(item, isLiked, isSaved) {
+function renderPostCard(item, isLiked, isSaved, hideFollowBtn) {
   const timeStr = timeAgo(item.createdAt);
   let mediaHtml = '';
   if (item.mediaType === 'photo' && item.imageUrl) {
@@ -2106,17 +2117,21 @@ function renderPostCard(item, isLiked, isSaved) {
   const shareUrl = `https://coeurnohboost.vercel.app/?produit=${item.id}`;
   const isOwnPost = currentUser && currentUser.uid === item.sellerUid;
   const isFollowing = item.sellerUid && followingSet.has(item.sellerUid);
-  const followBtnHtml = (item.sellerUid && !isOwnPost) ? `
+  const followBtnHtml = (item.sellerUid && !isOwnPost && !hideFollowBtn) ? `
     <button class="follow-btn ${isFollowing ? 'following' : ''}" data-follow-btn="${item.sellerUid}"
       onclick="toggleFollow('${item.sellerUid}','${escapeForJs(item.sellerName || 'ce compte')}')">
       <span data-follow-label="${item.sellerUid}">${isFollowing ? 'Abonné' : '+ Suivre'}</span>
     </button>` : '';
 
+  const profileClick = item.sellerUid
+    ? `onclick="openProfileModal('${item.sellerUid}','${escapeForJs(item.sellerName || 'CoeurnohBoost')}',${item.sellerVerified ? 'true' : 'false'})" style="cursor:pointer"`
+    : '';
+
   return `
   <div class="post-card" id="shop-card-${item.id}">
     <div class="post-card-header">
-      <div class="post-avatar">${escapeHtml((item.sellerName || 'C')[0].toUpperCase())}</div>
-      <div>
+      <div class="post-avatar" ${profileClick}>${escapeHtml((item.sellerName || 'C')[0].toUpperCase())}</div>
+      <div ${profileClick}>
         <strong>${escapeHtml(item.sellerName || 'CoeurnohBoost')}${item.sellerVerified ? ' ✔️' : ''}</strong>
         <div class="post-time">${timeStr}</div>
       </div>
@@ -3007,6 +3022,103 @@ async function toggleFollow(sellerUid, sellerName) {
   } finally {
     likeInFlight.delete(lockKey);
   }
+}
+
+/* ================= PROFIL PUBLIC (mini version) ================= */
+async function openProfileModal(sellerUid, sellerName, sellerVerified) {
+  const modal = document.getElementById('profile-modal');
+  const body = document.getElementById('profile-modal-body');
+  modal.classList.remove('hidden');
+  body.innerHTML = renderFeedSkeletons(2);
+
+  try {
+    const isOwn = currentUser && currentUser.uid === sellerUid;
+    const isFollowing = followingSet.has(sellerUid);
+
+    // Pas d'orderBy ici (evite un nouvel index Firestore composite) :
+    // on filtre/trie cote telephone, comme pour "Enregistres".
+    const [pubsSnap, followersSnap] = await Promise.all([
+      db.collection('publications').where('sellerUid', '==', sellerUid).limit(50).get(),
+      db.collection('follows').where('followedUid', '==', sellerUid).get()
+    ]);
+
+    const posts = pubsSnap.docs
+      .map(d => ({ id: d.id, ...d.data() }))
+      .filter(p => p.status === 'published' && p.type === 'post')
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    const followerCount = followersSnap.size;
+
+    // Vrai etat like/enregistre pour chaque publication (comme loadHomeFeed),
+    // pour que le coeur/signet refletent bien ce que l'utilisateur a deja fait.
+    let likedMap = {};
+    let savedMap = {};
+    if (currentUser && posts.length > 0) {
+      const [likeChecks, saveChecks] = await Promise.all([
+        Promise.all(posts.map(p => db.collection('publication_likes').doc(`${p.id}_${currentUser.uid}`).get())),
+        Promise.all(posts.map(p => db.collection('saved_items').doc(`${p.id}_${currentUser.uid}`).get()))
+      ]);
+      posts.forEach((p, i) => {
+        likedMap[p.id] = likeChecks[i].exists;
+        savedMap[p.id] = saveChecks[i].exists;
+      });
+    }
+
+    const followBtnHtml = !isOwn ? `
+      <button class="follow-btn ${isFollowing ? 'following' : ''}" data-follow-btn="${sellerUid}"
+        onclick="toggleFollow('${sellerUid}','${escapeForJs(sellerName)}')" style="margin:14px 0 0 0">
+        <span data-follow-label="${sellerUid}">${isFollowing ? 'Abonné' : '+ Suivre'}</span>
+      </button>` : '';
+
+    body.innerHTML = `
+      <div style="text-align:center;padding:10px 0 18px">
+        <div class="post-avatar" style="width:64px;height:64px;font-size:1.6rem;margin:0 auto 10px">${escapeHtml((sellerName || 'C')[0].toUpperCase())}</div>
+        <h3 style="margin-bottom:4px">${escapeHtml(sellerName || 'CoeurnohBoost')}${sellerVerified ? ' ✔️' : ''}</h3>
+        <p class="muted small">${posts.length} publication${posts.length > 1 ? 's' : ''} · ${followerCount} abonné${followerCount > 1 ? 's' : ''}</p>
+        ${followBtnHtml}
+      </div>
+      <div id="profile-posts-list">
+        ${posts.length === 0
+          ? '<p class="muted small" style="text-align:center">Aucune publication pour l\'instant.</p>'
+          : posts.map(p => renderPostCard(p, likedMap[p.id], savedMap[p.id], true)).join('')}
+      </div>
+    `;
+  } catch (e) {
+    body.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+  }
+}
+
+function closeProfileModal() {
+  document.getElementById('profile-modal').classList.add('hidden');
+}
+
+async function loadFollowingList() {
+  const el = document.getElementById('following-list');
+  if (!el || !currentUser) return;
+  el.innerHTML = '<p class="muted small">Chargement...</p>';
+  try {
+    const snap = await db.collection('follows').where('followerUid', '==', currentUser.uid).get();
+    if (snap.empty) {
+      el.innerHTML = '<p class="muted small">Tu ne suis encore personne. Ouvre le profil d\'un vendeur depuis le fil d\'accueil pour le suivre.</p>';
+      return;
+    }
+    el.innerHTML = snap.docs.map(doc => {
+      const f = doc.data();
+      return `
+      <div class="admin-row" style="padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px">
+        <span style="cursor:pointer;font-weight:600" onclick="openProfileModal('${f.followedUid}','${escapeForJs(f.followedName || 'ce compte')}',false)">${escapeHtml(f.followedName || 'Compte')}</span>
+        <button class="btn btn-outline btn-sm" onclick="unfollowFromList('${f.followedUid}')">Ne plus suivre</button>
+      </div>`;
+    }).join('');
+  } catch (e) {
+    el.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+  }
+}
+
+async function unfollowFromList(sellerUid) {
+  followingSet.add(sellerUid); // pour que toggleFollow bascule bien vers "ne plus suivre"
+  await toggleFollow(sellerUid, '');
+  loadFollowingList();
 }
 
 async function loadSavedFeed() {
