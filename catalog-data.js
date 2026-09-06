@@ -271,3 +271,12 @@ function applyPricingOverrides(overrides) {
     });
   });
 }
+
+/* Rend ce fichier utilisable aussi cote serveur (Node.js, fonctions /api)
+   sans rien changer pour le navigateur : "module" n'existe que sous Node,
+   jamais dans un <script> charge par index.html. Ajoute ici toute donnee
+   dont une fonction serveur pourrait avoir besoin pour recalculer un prix
+   de maniere fiable (verification anti-fraude). */
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { SERVICE_CATALOG, QUALITY_TIERS, applyPricingOverrides };
+}
