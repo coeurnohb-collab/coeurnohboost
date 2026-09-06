@@ -241,10 +241,12 @@ async function updateOrderStatus(orderId, status) {
         createdAt: new Date().toISOString()
       });
       // Vraie alerte push (en plus de la notification dans l'app)
-      fetch('/api/notify-user', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ adminUid: auth.currentUser ? auth.currentUser.uid : null, uid: o.uid, title, body, category: 'orders', url: '/?openTab=orders' })
+      auth.currentUser.getIdToken().then(idToken => {
+        fetch('/api/notify-user', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ idToken, uid: o.uid, title, body, category: 'orders', url: '/?openTab=orders' })
+        }).catch(() => {});
       }).catch(() => {});
     }
     loadOrdersAdmin();
@@ -921,11 +923,12 @@ async function publishShopItem() {
     });
 
     // Vraie alerte push a TOUS les utilisateurs (meme app fermee) — manquait ici
+    const broadcastIdToken1 = await auth.currentUser.getIdToken();
     fetch('/api/broadcast-notification', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        adminUid: auth.currentUser ? auth.currentUser.uid : null,
+        idToken: broadcastIdToken1,
         title: discountPercent > 0 ? 'Promotion disponible 🎉' : 'Nouveau produit disponible 🆕',
         body: `${title} — ${price.toFixed(2)}$${discountPercent > 0 ? ` (-${discountPercent}%)` : ''}`,
         category: 'content',
@@ -1138,11 +1141,12 @@ async function sendAnnouncement() {
     });
 
     // Vraie alerte push a TOUS les utilisateurs (meme app fermee)
+    const broadcastIdToken2 = await auth.currentUser.getIdToken();
     fetch('/api/broadcast-notification', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        adminUid: auth.currentUser ? auth.currentUser.uid : null,
+        idToken: broadcastIdToken2,
         title: `📢 ${title}`,
         body,
         category: 'admin',

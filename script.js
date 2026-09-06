@@ -1806,10 +1806,11 @@ async function checkoutCart() {
 
   document.getElementById('cart-checkout-btn').classList.add('hidden');
   try {
+    const idToken = await auth.currentUser.getIdToken();
     const response = await fetch('/api/shop-purchase', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ uid: currentUser.uid, pubIds: cartItems.map(c => c.id) })
+      body: JSON.stringify({ idToken, pubIds: cartItems.map(c => c.id) })
     });
     const data = await response.json();
     if (!data.success) throw new Error(data.error || "Erreur lors du paiement");
@@ -3542,10 +3543,11 @@ async function confirmShopPurchase(pubId, title, price, itemType) {
   document.getElementById('shop-checkout-submit').classList.add('hidden');
 
   try {
+    const idToken = await auth.currentUser.getIdToken();
     const response = await fetch('/api/shop-purchase', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ uid: currentUser.uid, pubId })
+      body: JSON.stringify({ idToken, pubId })
     });
     const data = await response.json();
 
@@ -3647,10 +3649,11 @@ function playNotifSound() {
 async function notifyUserPush(uid, title, body, category = 'activity', url = null) {
   if (!currentUser || !uid) return;
   try {
+    const idToken = await auth.currentUser.getIdToken();
     await fetch('/api/notify-user', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fromUid: currentUser.uid, uid, title, body, category, url })
+      body: JSON.stringify({ idToken, uid, title, body, category, url })
     });
   } catch (e) { /* pas grave si le push echoue, la notif Firestore reste visible dans l'app */ }
 }
@@ -3659,10 +3662,11 @@ async function notifyUserPush(uid, title, body, category = 'activity', url = nul
 async function broadcastPush(title, body, category = 'content', url = null) {
   if (!currentUser) return;
   try {
+    const idToken = await auth.currentUser.getIdToken();
     await fetch('/api/broadcast-notification', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fromUid: currentUser.uid, excludeUid: currentUser.uid, title, body, category, url })
+      body: JSON.stringify({ idToken, title, body, category, url })
     });
   } catch (e) { /* pas grave si le push echoue, l'annonce reste visible dans le panneau */ }
 }
