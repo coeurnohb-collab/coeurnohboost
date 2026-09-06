@@ -706,7 +706,10 @@ async function importDefaultServiceMap() {
   const el = document.getElementById('service-map-editor');
   el.innerHTML = `<p class="admin-empty">Import en cours...</p>`;
   try {
-    const res = await fetch(`/api/get-service-map-defaults?adminUid=${auth.currentUser.uid}`);
+    const idToken = await auth.currentUser.getIdToken();
+    const res = await fetch('/api/get-service-map-defaults', {
+      headers: { 'Authorization': 'Bearer ' + idToken }
+    });
     const defaults = await res.json();
     if (!res.ok) throw new Error(defaults.error || 'Erreur serveur');
     const batch = db.batch();
