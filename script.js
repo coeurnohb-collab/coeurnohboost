@@ -1544,6 +1544,7 @@ function renderLoggedOutNav() {
   document.getElementById('nav-dashboard-btn').classList.add('hidden');
   document.getElementById('admin-shortcut-btn').classList.add('hidden');
   stopNotifWatch();
+  stopPresenceUpdates();
 }
 function renderLoggedInNav(uid) {
   document.getElementById('nav-login-btn').classList.add('hidden');
@@ -1551,6 +1552,34 @@ function renderLoggedInNav(uid) {
   document.getElementById('nav-dashboard-btn').classList.remove('hidden');
   document.getElementById('admin-shortcut-btn').classList.toggle('hidden', uid !== ADMIN_UID);
   startNotifWatch();
+  startPresenceUpdates();
+}
+
+/* ================= STATUT EN LIGNE (leger, sans systeme lourd) =================
+   Stocke dans sa propre collection "presence" (juste un horodatage), separee
+   de "users" qui contient des donnees sensibles (email, solde...) et n'est
+   lisible que par soi-meme/l'admin. "presence" est publique en lecture pour
+   que le profil d'un vendeur puisse afficher "En ligne" / "Vu il y a...". */
+let presenceInterval = null;
+
+async function touchPresence() {
+  if (!currentUser) return;
+  try {
+    await db.collection('presence').doc(currentUser.uid).set({
+      lastActiveAt: new Date().toISOString()
+    });
+  } catch (e) { /* pas grave, pas une fonctionnalite critique */ }
+}
+
+function startPresenceUpdates() {
+  touchPresence();
+  if (presenceInterval) clearInterval(presenceInterval);
+  presenceInterval = setInterval(touchPresence, 2 * 60 * 1000); // toutes les 2 min
+}
+
+function stopPresenceUpdates() {
+  if (presenceInterval) clearInterval(presenceInterval);
+  presenceInterval = null;
 }
 
 if (fbReady) {
@@ -3100,6 +3129,25 @@ async function openProfileModal(sellerUid, sellerName, sellerVerified) {
 
     const followerCount = followersSnap.size;
 
+    // Statut en ligne -- isole dans son propre try/catch (comme les autres
+    // requetes secondaires de ce fichier) : si ca echoue, le profil s'affiche
+    // quand meme, juste sans le badge "En ligne".
+    let onlineStatusHtml = '';
+    try {
+      const presenceDoc = await db.collection('presence').doc(sellerUid).get();
+      if (presenceDoc.exists) {
+        const lastActive = new Date(presenceDoc.data().lastActiveAt);
+        const minutesAgo = (Date.now() - lastActive.getTime()) / 60000;
+        if (minutesAgo < 5) {
+          onlineStatusHtml = `<p class="muted small" style="color:var(--green)"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);margin-right:5px"></span>En ligne</p>`;
+        } else {
+          onlineStatusHtml = `<p class="muted small">Vu ${timeAgo(presenceDoc.data().lastActiveAt)}</p>`;
+        }
+      }
+    } catch (e) {
+      console.log('[presence] non bloquant :', e.message);
+    }
+
     // Vrai etat like/enregistre pour chaque publication (comme loadHomeFeed),
     // pour que le coeur/signet refletent bien ce que l'utilisateur a deja fait.
     let likedMap = {};
@@ -3125,6 +3173,7 @@ async function openProfileModal(sellerUid, sellerName, sellerVerified) {
       <div style="text-align:center;padding:10px 0 18px">
         <div class="post-avatar" style="width:64px;height:64px;font-size:1.6rem;margin:0 auto 10px">${escapeHtml((sellerName || 'C')[0].toUpperCase())}</div>
         <h3 style="margin-bottom:4px">${escapeHtml(sellerName || 'CoeurnohBoost')}${sellerVerified ? ' ✔️' : ''}</h3>
+        ${onlineStatusHtml}
         <p class="muted small">${posts.length} publication${posts.length > 1 ? 's' : ''} · ${followerCount} abonné${followerCount > 1 ? 's' : ''}</p>
         ${followBtnHtml}
       </div>
