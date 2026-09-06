@@ -835,11 +835,12 @@ async function submitRecharge() {
 
     if (payMethod === 'crypto') {
       // Paiement crypto : on cree une vraie facture Cryptomus via notre API serveur
+      const idToken = await auth.currentUser.getIdToken();
       const response = await fetch('/api/cryptomus-payment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          uid: currentUser.uid,
+          idToken,
           amount: amount,
           currency: 'USD'
         })
@@ -862,11 +863,12 @@ async function submitRecharge() {
 
     // Mobile Money : on tente MboтePay (pays couverts), sinon flux manuel comme avant
     if (payMethod === 'mobile') {
+      const idToken = await auth.currentUser.getIdToken();
       const response = await fetch('/api/mbotepay-payment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          uid: currentUser.uid,
+          idToken,
           amountUSD: amount,
           countryCode: payCountryCode,
           operatorName: payOperator,
