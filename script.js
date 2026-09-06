@@ -2718,18 +2718,25 @@ async function loadShopFeed() {
     shopPurchasedSet = new Set();
 
     if (currentUser) {
-      // Verifie en parallele les likes et les achats deja effectues (acces livres)
-      const [likeChecks, ordersSnap] = await Promise.all([
-        Promise.all(shopFeedItems.map(item =>
-          db.collection('publication_likes').doc(`${item.id}_${currentUser.uid}`).get()
-        )),
-        db.collection('shop_orders')
-          .where('uid', '==', currentUser.uid)
-          .where('status', '==', 'completed')
-          .get()
-      ]);
-      shopFeedItems.forEach((item, i) => { shopLikedMap[item.id] = likeChecks[i].exists; });
-      ordersSnap.docs.forEach(doc => shopPurchasedSet.add(doc.data().pubId));
+      // Verifie en parallele les likes et les achats deja effectues (acces
+      // livres). Isole dans son propre try/catch : si ca echoue, la
+      // boutique s'affiche quand meme (juste sans ces etats precalcules)
+      // au lieu de disparaitre completement derriere un message d'erreur.
+      try {
+        const [likeChecks, ordersSnap] = await Promise.all([
+          Promise.all(shopFeedItems.map(item =>
+            db.collection('publication_likes').doc(`${item.id}_${currentUser.uid}`).get()
+          )),
+          db.collection('shop_orders')
+            .where('uid', '==', currentUser.uid)
+            .where('status', '==', 'completed')
+            .get()
+        ]);
+        shopFeedItems.forEach((item, i) => { shopLikedMap[item.id] = likeChecks[i].exists; });
+        ordersSnap.docs.forEach(doc => shopPurchasedSet.add(doc.data().pubId));
+      } catch (e) {
+        console.log('[shop like/achat] non bloquant :', e.message);
+      }
     }
 
     renderShopFeed();
