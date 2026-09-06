@@ -694,6 +694,26 @@ a{text-decoration:none;color:inherit}
 .post-media{width:100%;max-height:520px;object-fit:cover;display:block;background:#000;cursor:pointer}
 .post-actions{display:flex;gap:10px;padding:10px 14px}
 
+/* Fiche detail plein ecran (post-detail-modal) : ces classes n'avaient
+   AUCUNE regle avant, donc l'image s'affichait a sa taille reelle et
+   debordait de l'ecran ("zoom" signale par l'utilisateur). Le modal perd
+   son padding horizontal (pour que l'image aille bord a bord comme sur
+   Facebook) ; .post-card-header/.post-caption/.post-actions ont deja
+   leur propre padding interne, donc rien a ajouter pour elles. */
+.post-detail-modal-inner{max-width:480px;padding:20px 0}
+.post-detail-modal-inner .modal-close{right:14px;top:14px}
+.post-detail-modal-inner #post-detail-body > .post-detail-title,
+.post-detail-modal-inner #post-detail-body > .shop-comments,
+.post-detail-modal-inner #post-detail-body > .btn,
+.post-detail-modal-inner #post-detail-body > [class*="reviews"]{
+  margin-left:14px;margin-right:14px;
+}
+.post-detail-title{font-size:1.05rem;margin:0 0 6px;color:var(--ink)}
+.post-detail-media{
+  display:block;width:100%;max-height:65vh;object-fit:contain;
+  background:#000;margin:10px 0;
+}
+
 /* Visionneuse plein ecran */
 .media-viewer{
   position:fixed;inset:0;background:rgba(0,0,0,0.94);z-index:600;

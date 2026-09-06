@@ -2056,20 +2056,35 @@ async function loadHomeFeed(append = false) {
     let likedMap = {};
     let savedMap = {};
     if (currentUser) {
-      const [likeChecks, saveChecks, followSnap] = await Promise.all([
-        Promise.all(items.map(item =>
-          db.collection('publication_likes').doc(`${item.id}_${currentUser.uid}`).get()
-        )),
-        Promise.all(items.map(item =>
-          db.collection('saved_items').doc(`${item.id}_${currentUser.uid}`).get()
-        )),
-        db.collection('follows').where('followerUid', '==', currentUser.uid).get()
-      ]);
-      items.forEach((item, i) => {
-        likedMap[item.id] = likeChecks[i].exists;
-        savedMap[item.id] = saveChecks[i].exists;
-      });
-      followingSet = new Set(followSnap.docs.map(d => d.data().followedUid));
+      try {
+        const [likeChecks, saveChecks] = await Promise.all([
+          Promise.all(items.map(item =>
+            db.collection('publication_likes').doc(`${item.id}_${currentUser.uid}`).get()
+          )),
+          Promise.all(items.map(item =>
+            db.collection('saved_items').doc(`${item.id}_${currentUser.uid}`).get()
+          ))
+        ]);
+        items.forEach((item, i) => {
+          likedMap[item.id] = likeChecks[i].exists;
+          savedMap[item.id] = saveChecks[i].exists;
+        });
+      } catch (e) {
+        // Non bloquant : le fil s'affiche quand meme, juste sans les etats
+        // like/enregistre precalcules (ils se corrigeront au premier clic).
+        console.log('[like/save] non bloquant :', e.message);
+      }
+
+      // Requete isolee dans son propre try/catch : si "follows" a un souci
+      // (regles pas encore publiees, etc.), le fil d'accueil continue quand
+      // meme a s'afficher normalement -- juste sans le tri par abonnements.
+      try {
+        const followSnap = await db.collection('follows').where('followerUid', '==', currentUser.uid).get();
+        followingSet = new Set(followSnap.docs.map(d => d.data().followedUid));
+      } catch (e) {
+        console.log('[follows] non bloquant :', e.message);
+        followingSet = new Set();
+      }
 
       // Priorise les publications des comptes suivis, sans casser l'ordre
       // chronologique a l'interieur de chaque groupe (tri stable JS).
@@ -3036,15 +3051,22 @@ async function openProfileModal(sellerUid, sellerName, sellerVerified) {
     const isFollowing = followingSet.has(sellerUid);
 
     // Pas d'orderBy ici (evite un nouvel index Firestore composite) :
-    // on filtre/trie cote telephone, comme pour "Enregistres".
+    // on trie cote telephone, comme pour "Enregistres". Le filtre
+    // status=='published' est fait ICI (pas juste apres coup) car les
+    // regles Firestore refusent toute la requete si elle pourrait
+    // retourner un brouillon d'un autre utilisateur -- il faut donc
+    // que le filtre soit deja dans la requete elle-meme.
     const [pubsSnap, followersSnap] = await Promise.all([
-      db.collection('publications').where('sellerUid', '==', sellerUid).limit(50).get(),
+      db.collection('publications')
+        .where('sellerUid', '==', sellerUid)
+        .where('status', '==', 'published')
+        .limit(50).get(),
       db.collection('follows').where('followedUid', '==', sellerUid).get()
     ]);
 
     const posts = pubsSnap.docs
       .map(d => ({ id: d.id, ...d.data() }))
-      .filter(p => p.status === 'published' && p.type === 'post')
+      .filter(p => p.type === 'post')
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
     const followerCount = followersSnap.size;
@@ -3237,10 +3259,16 @@ async function openPostDetail(pubId) {
     }
 
     // Avis clients -- uniquement pour les articles boutique (livre/produit),
-    // pas pour les publications sociales (photo/video/texte).
+    // pas pour les publications sociales (photo/video/texte). Isole dans son
+    // propre try/catch : si les avis ont un souci, la fiche s'ouvre quand
+    // meme, juste sans cette section.
     let reviewsHtml = '';
     if (item.type && item.type !== 'post') {
-      reviewsHtml = await renderReviewsSection(pubId, item.sellerUid);
+      try {
+        reviewsHtml = await renderReviewsSection(pubId, item.sellerUid);
+      } catch (e) {
+        console.log('[reviews] non bloquant :', e.message);
+      }
     }
 
     document.getElementById('post-detail-body').innerHTML = `
@@ -3297,8 +3325,14 @@ function renderStars(rating) {
 // d'avis SEULEMENT a un acheteur ayant une commande confirmee pour cet
 // article et n'ayant pas deja laisse d'avis (un avis par achat).
 async function renderReviewsSection(pubId, sellerUid) {
-  const snap = await db.collection('reviews').where('pubId', '==', pubId).orderBy('createdAt', 'desc').limit(20).get();
-  const reviews = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  // Pas d'orderBy ici : "reviews" n'a pas d'index compose pour
+  // (pubId, createdAt), et Firestore refuse la requete entiere dans ce
+  // cas -- c'est ce qui causait l'erreur generique au clic sur un livre.
+  // On trie cote telephone a la place.
+  const snap = await db.collection('reviews').where('pubId', '==', pubId).limit(20).get();
+  const reviews = snap.docs
+    .map(d => ({ id: d.id, ...d.data() }))
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   const avg = reviews.length ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0;
 
   let formHtml = '';
@@ -3879,6 +3913,10 @@ function renderNotifPanel() {
 // fonctionner meme apres un reaffichage de la liste puisqu'elle est
 // attachee une seule fois au conteneur parent, qui lui ne change jamais.
 let notifListenersBound = false;
+let notifPressStartX = 0;
+let notifPressStartY = 0;
+const NOTIF_MOVE_THRESHOLD = 12; // px : en dessous, on considere que c'est un appui immobile
+
 function bindNotifListEvents() {
   const listEl = document.getElementById('notif-list');
   if (!listEl || notifListenersBound) return;
@@ -3887,7 +3925,14 @@ function bindNotifListEvents() {
   listEl.addEventListener('pointerdown', (e) => {
     const row = e.target.closest('.notif-row');
     if (!row) return;
+    notifPressStartX = e.clientX;
+    notifPressStartY = e.clientY;
     handleNotifPressStart(row.dataset.id, row.dataset.announcement === '1');
+  });
+  listEl.addEventListener('pointermove', (e) => {
+    const dx = Math.abs(e.clientX - notifPressStartX);
+    const dy = Math.abs(e.clientY - notifPressStartY);
+    if (dx > NOTIF_MOVE_THRESHOLD || dy > NOTIF_MOVE_THRESHOLD) handleNotifPressEnd();
   });
   ['pointerup', 'pointerleave', 'pointercancel'].forEach((evt) => {
     listEl.addEventListener(evt, () => handleNotifPressEnd());
@@ -3897,12 +3942,27 @@ function bindNotifListEvents() {
   // anciens mais parfois plus fiables que Pointer Events selon la version
   // Android/WebView -- les deux systemes cohabitent sans se doubler grace
   // au minuteur qui est toujours annule/relance proprement.
+  //
+  // IMPORTANT : avant, "touchmove" annulait l'appui long au moindre pixel
+  // de mouvement -- un tremblement naturel du doigt pendant les 500ms
+  // suffisait a annuler la selection avant qu'elle se declenche. Comme sur
+  // Instagram/WhatsApp, on tolere maintenant un petit deplacement.
   listEl.addEventListener('touchstart', (e) => {
     const row = e.target.closest('.notif-row');
     if (!row) return;
+    const t = e.touches[0];
+    notifPressStartX = t.clientX;
+    notifPressStartY = t.clientY;
     handleNotifPressStart(row.dataset.id, row.dataset.announcement === '1');
   }, { passive: true });
-  ['touchend', 'touchcancel', 'touchmove'].forEach((evt) => {
+  listEl.addEventListener('touchmove', (e) => {
+    const t = e.touches[0];
+    if (!t) return;
+    const dx = Math.abs(t.clientX - notifPressStartX);
+    const dy = Math.abs(t.clientY - notifPressStartY);
+    if (dx > NOTIF_MOVE_THRESHOLD || dy > NOTIF_MOVE_THRESHOLD) handleNotifPressEnd();
+  }, { passive: true });
+  ['touchend', 'touchcancel'].forEach((evt) => {
     listEl.addEventListener(evt, () => handleNotifPressEnd(), { passive: true });
   });
 
