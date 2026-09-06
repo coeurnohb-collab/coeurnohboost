@@ -329,6 +329,24 @@ async function loadPricingOverrides() {
   }
 }
 
+/* Charge les prix de forfaits personnalisés (collection Firestore
+   "bundle_pricing", onglet "Packages" de l'admin). AVANT, cette fonction
+   n'existait pas : l'admin pouvait modifier le prix d'un forfait, ça
+   s'enregistrait bien, mais le site public ne le chargeait jamais --
+   les clients voyaient toujours le prix par defaut calcule automatiquement,
+   jamais le prix personnalise. */
+async function loadBundlePricingOverrides() {
+  try {
+    const snap = await db.collection('bundle_pricing').get();
+    const overrides = {};
+    snap.forEach(doc => { overrides[doc.id] = doc.data().bundles || []; });
+    applyBundlePricingOverrides(overrides);
+    console.log('✅ Prix de forfaits personnalisés chargés');
+  } catch (e) {
+    console.warn('⚠️ Pas de prix de forfaits personnalisés (utilisation des prix par défaut).', e.message);
+  }
+}
+
 function renderPlatformGrid(gridId) {
   const el = document.getElementById(gridId);
   el.innerHTML = PLATFORMS.map(p => `
@@ -1535,6 +1553,7 @@ function renderLoggedInNav(uid) {
 
 if (fbReady) {
   loadPricingOverrides();
+  loadBundlePricingOverrides();
   auth.onAuthStateChanged(async (user) => {
     if (user) {
       let data;
