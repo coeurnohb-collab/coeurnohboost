@@ -159,7 +159,7 @@
 
     <!-- ---- Onglet Commandes ---- -->
     <div class="dash-tab hidden" id="dash-tab-orders">
-      <h2 class="page-title" style="margin-bottom:14px" data-i18n="tab_orders">Commandes</h2>
+      <h2 class="page-title" style="margin-bottom:14px" data-i18n="tab_network">Réseau</h2>
 
       <div class="order-box">
         <h3>🛒 <span data-i18n="dash_orders_title">Nouvelle commande</span></h3>
@@ -192,7 +192,7 @@
     <div class="dash-tab hidden" id="dash-tab-account">
       <h2 class="page-title" style="margin-bottom:14px" data-i18n="tab_account">Mon compte</h2>
 
-      <div class="order-box">
+      <div class="order-box" id="section-referral">
         <h3>🎁 <span data-i18n="referral_title">Parrainage</span></h3>
         <p class="muted" style="margin-bottom:12px" data-i18n="referral_sub">Invite tes amis et gagne 5% sur chacune de leurs recharges.</p>
         <div class="referral-box">
@@ -202,31 +202,31 @@
         <p class="muted small" style="margin-top:8px" id="referral-count-text"></p>
       </div>
 
-      <div class="order-box">
+      <div class="order-box" id="section-saved">
         <h3><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:6px"><path d="M19 21 12 16l-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>Enregistrés</h3>
         <p class="muted small" style="margin-bottom:12px">Retrouve ici les publications que tu as enregistrées.</p>
         <div id="saved-feed"><p class="muted small">Chargement...</p></div>
       </div>
 
-      <div class="order-box">
+      <div class="order-box" id="section-followers">
         <h3><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:6px"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Mes abonnés</h3>
         <p class="muted small" style="margin-bottom:12px">Les comptes qui te suivent.</p>
         <div id="followers-list"><p class="muted small">Chargement...</p></div>
       </div>
 
-      <div class="order-box">
+      <div class="order-box" id="section-following">
         <h3><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:6px"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Mes abonnements</h3>
         <p class="muted small" style="margin-bottom:12px">Les comptes que tu suis.</p>
         <div id="following-list"><p class="muted small">Chargement...</p></div>
       </div>
 
-      <div class="order-box">
+      <div class="order-box" id="section-blocked">
         <h3><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:6px"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>Comptes bloqués</h3>
         <p class="muted small" style="margin-bottom:12px">Ces comptes n'apparaissent plus dans ton fil ni dans la recherche.</p>
         <div id="blocked-list"><p class="muted small">Chargement...</p></div>
       </div>
 
-      <div class="order-box">
+      <div class="order-box" id="section-profile">
         <h3 data-i18n="dash_profile_title">Mon profil</h3>
         <button class="btn btn-outline btn-sm" style="margin-bottom:14px" onclick="shareMyProfile()">🔗 Partager mon profil</button>
         <div class="profile-row"><span data-i18n="dash_profile_name">Nom</span><span id="profile-name">—</span></div>
@@ -235,7 +235,7 @@
         <div class="profile-row"><span data-i18n="dash_profile_loyalty">Points de fidélité</span><span id="profile-loyalty">0</span></div>
       </div>
 
-      <div class="order-box">
+      <div class="order-box" id="section-contact">
         <h3>💬 <span data-i18n="contact_title">Besoin d'aide ?</span></h3>
         <p class="muted" style="margin-bottom:12px" data-i18n="contact_sub">Contacte-nous directement, on te répond vite.</p>
         <div class="contact-grid">
@@ -246,12 +246,12 @@
         </div>
       </div>
 
-      <div class="order-box">
+      <div class="order-box" id="section-faq">
         <h3>❓ <span data-i18n="faq_title">Questions fréquentes</span></h3>
         <div id="faq-list"></div>
       </div>
 
-      <div class="order-box">
+      <div class="order-box" id="section-editaccount">
         <h3><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:6px"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Modifier mon compte</h3>
 
         <div class="field">
@@ -285,7 +285,7 @@
         <button class="btn btn-outline" style="margin-top:18px;color:var(--red);border-color:var(--red)" onclick="logoutAllDevices()">🔒 Se déconnecter de tous les appareils</button>
       </div>
 
-      <div class="order-box">
+      <div class="order-box" id="section-appearance">
         <h3><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:6px"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2a10 10 0 1 0 10 10c0-1-1-2-2-2h-2.5a2.5 2.5 0 0 1 0-5H19a2 2 0 0 0 2-2c0-2-4-3-9-3Z"/></svg>Apparence</h3>
         <p class="muted small" style="margin-bottom:8px">Thème</p>
         <div class="shop-filter-tabs">
@@ -302,7 +302,7 @@
         </div>
       </div>
 
-      <div class="order-box">
+      <div class="order-box" id="section-notifprefs">
         <h3><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:6px"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>Préférences de notifications</h3>
         <p class="muted small" style="margin-bottom:6px">Choisis les alertes que tu veux recevoir.</p>
         <div class="profile-row"><span>Notifications push</span>
@@ -323,7 +323,7 @@
         <p class="muted small" style="margin-top:10px">🔒 Les annonces administratives importantes restent toujours actives, pour ta sécurité.</p>
       </div>
 
-      <div class="order-box">
+      <div class="order-box" id="section-privacy">
         <h3><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:6px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg>Confidentialité et sécurité</h3>
         <p class="muted small" style="margin-bottom:10px">Tes données (nom, e-mail, publications) sont stockées de façon sécurisée et ne sont jamais partagées avec des tiers.</p>
         <p class="muted small" style="margin-bottom:10px">⚠️ Supprimer ton compte est <strong>définitif</strong> : tu perdras ton solde restant et tes publications. Tes commandes déjà passées restent conservées pour les vendeurs/acheteurs concernés.</p>
@@ -341,7 +341,7 @@
         <button class="btn btn-outline" onclick="shareApp()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:5px"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.6" x2="15.4" y2="6.4"/><line x1="8.6" y1="13.4" x2="15.4" y2="17.6"/></svg>Partager l'application</button>
       </div>
 
-      <div class="order-box">
+      <div class="order-box" id="section-about">
         <h3><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:6px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>À propos</h3>
         <p class="muted small">CoeurnohBoost — panel de croissance réseaux sociaux (TikTok, Instagram, YouTube, Facebook), avec paiement Mobile Money, crypto et carte, pour l'Afrique francophone.</p>
       </div>
@@ -357,7 +357,7 @@
       <span class="bnav-icon"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10"/></svg></span><span data-i18n="tab_home">Accueil</span>
     </button>
     <button class="bnav-btn" id="bnav-orders" onclick="showDashTab('orders')">
-      <span class="bnav-icon"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M1 1h4l2.6 13.4a2 2 0 0 0 2 1.6h9.8a2 2 0 0 0 2-1.6L23 6H6"/></svg></span><span data-i18n="tab_orders">Commandes</span>
+      <span class="bnav-icon"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="5" cy="6" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="5" cy="18" r="2"/><circle cx="19" cy="18" r="2"/><line x1="9.5" y1="10.5" x2="6.5" y2="7.5"/><line x1="14.5" y1="10.5" x2="17.5" y2="7.5"/><line x1="9.5" y1="13.5" x2="6.5" y2="16.5"/><line x1="14.5" y1="13.5" x2="17.5" y2="16.5"/></svg></span><span data-i18n="tab_network">Réseau</span>
     </button>
     <button class="bnav-btn" id="bnav-wallet" onclick="showDashTab('wallet')">
       <span class="bnav-icon"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5h-4a2 2 0 0 1 0-4h4Z"/></svg></span><span data-i18n="tab_wallet">Portefeuille</span>
@@ -368,8 +368,8 @@
     <button class="bnav-btn" id="bnav-notif" onclick="openNotifPanel()" style="position:relative">
       <span class="bnav-icon"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="notif-badge hidden" id="notif-badge-bnav">0</span></span><span>Notifs</span>
     </button>
-    <button class="bnav-btn" id="bnav-account" onclick="showDashTab('account')">
-      <span class="bnav-icon"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span><span data-i18n="tab_account">Compte</span>
+    <button class="bnav-btn" id="bnav-menu" onclick="openMainMenu()">
+      <span class="bnav-icon"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></span><span data-i18n="tab_menu">Menu</span>
     </button>
   </nav>
 </div>
@@ -866,6 +866,94 @@
      Ouverte par openPostDetail() : c'est ici, et seulement ici, que les
      commentaires sont visibles (tap sur une photo/video ou sur le nombre
      de commentaires depuis le fil ou la boutique). -->
+<div class="modal-overlay hidden" id="main-menu-modal" style="align-items:stretch;justify-content:flex-end;padding:0">
+  <div class="modal main-menu-panel">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+      <h2 style="margin:0">Menu</h2>
+      <button class="modal-close" style="position:static" onclick="closeMainMenu()" aria-label="Fermer">×</button>
+    </div>
+
+    <div class="menu-category">
+      <h4>Mon espace</h4>
+      <button class="menu-item" onclick="goToAccountSection('section-profile')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Mon profil
+      </button>
+      <button class="menu-item" onclick="goToAccountSection('section-saved')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21 12 16l-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        Enregistrés
+      </button>
+      <button class="menu-item" onclick="goToAccountSection('section-following')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Abonnés et abonnements
+      </button>
+      <button class="menu-item" onclick="goToAccountSection('section-referral')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.42 4.58a5.4 5.4 0 0 0-7.65 0L12 5.34l-.77-.76a5.4 5.4 0 0 0-7.65 7.65l.77.77L12 21l7.65-7.65.77-.77a5.4 5.4 0 0 0 0-7.65Z"/></svg>
+        Parrainage
+      </button>
+      <button class="menu-item" onclick="showDashTab('orders'); closeMainMenu();">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M1 1h4l2.6 13.4a2 2 0 0 0 2 1.6h9.8a2 2 0 0 0 2-1.6L23 6H6"/></svg>
+        Mes activités (commandes)
+      </button>
+    </div>
+
+    <div class="menu-category">
+      <h4>Paramètres</h4>
+      <button class="menu-item" onclick="goToAccountSection('section-editaccount')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+        Compte (nom, e-mail, mot de passe)
+      </button>
+      <button class="menu-item" onclick="goToAccountSection('section-privacy')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg>
+        Sécurité
+      </button>
+      <button class="menu-item" onclick="goToAccountSection('section-blocked')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+        Confidentialité (comptes bloqués)
+      </button>
+      <button class="menu-item" onclick="goToAccountSection('section-notifprefs')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        Notifications
+      </button>
+      <button class="menu-item" onclick="goToAccountSection('section-appearance')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2a10 10 0 1 0 10 10c0-1-1-2-2-2h-2.5a2.5 2.5 0 0 1 0-5H19a2 2 0 0 0 2-2c0-2-4-3-9-3Z"/></svg>
+        Apparence
+      </button>
+      <button class="menu-item" onclick="closeMainMenu(); document.getElementById('lang-select').focus();">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10Z"/></svg>
+        Langue
+      </button>
+    </div>
+
+    <div class="menu-category">
+      <h4>Services Coeurnoh</h4>
+      <p class="muted small" style="padding:0 14px 10px">D'autres services (emploi, immobilier, événements, annuaire pro...) arrivent progressivement. Reste connecté !</p>
+    </div>
+
+    <div class="menu-category">
+      <h4>Aide &amp; informations</h4>
+      <button class="menu-item" onclick="goToAccountSection('section-faq')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 2-3 4"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        Questions fréquentes
+      </button>
+      <button class="menu-item" onclick="goToAccountSection('section-contact')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z"/></svg>
+        Assistance
+      </button>
+      <button class="menu-item" onclick="goToAccountSection('section-about')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        À propos
+      </button>
+      <button class="menu-item" onclick="closeMainMenu(); shareApp();">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.6" x2="15.4" y2="6.4"/><line x1="8.6" y1="13.4" x2="15.4" y2="17.6"/></svg>
+        Partager CoeurnohBoost
+      </button>
+    </div>
+
+    <button class="btn btn-outline" style="width:100%;margin-top:6px;color:var(--red);border-color:var(--red)" onclick="closeMainMenu(); logout();">Se déconnecter</button>
+  </div>
+</div>
+
 <div class="modal-overlay hidden" id="post-detail-modal">
   <div class="modal post-detail-modal-inner">
     <button class="modal-close" onclick="closePostDetail()" aria-label="Fermer">×</button>

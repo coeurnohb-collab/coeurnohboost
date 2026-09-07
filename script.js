@@ -231,7 +231,16 @@ function showDashTab(tab) {
   document.querySelectorAll('.dash-tab').forEach(el => el.classList.add('hidden'));
   document.getElementById('dash-tab-' + tab).classList.remove('hidden');
   document.querySelectorAll('.bnav-btn').forEach(el => el.classList.remove('active'));
-  document.getElementById('bnav-' + tab).classList.add('active');
+  // "account" n'a plus de bouton dedie dans la nav basse depuis qu'il est
+  // accessible via le menu ☰ -- sans cette verification, la ligne suivante
+  // plantait (element introuvable) et empechait TOUT le reste de la
+  // fonction de s'executer (chargement des sections du compte, etc.).
+  const navBtn = document.getElementById('bnav-' + tab);
+  if (navBtn) navBtn.classList.add('active');
+  else if (tab === 'account') {
+    const menuBtn = document.getElementById('bnav-menu');
+    if (menuBtn) menuBtn.classList.add('active');
+  }
   if (tab === 'orders') loadOrders();
   if (tab === 'home') {
     renderFAQ();
@@ -1621,6 +1630,28 @@ function renderLoggedInNav(uid) {
   startNotifWatch();
   startPresenceUpdates();
   loadBlockedSet();
+}
+
+/* ================= MENU PRINCIPAL (☰) =================
+   Reorganise l'ACCES a ce qui existe deja (ancien onglet "Compte") sans
+   rien dupliquer : chaque entree du menu renvoie vers la section deja
+   existante correspondante, elle n'est jamais reconstruite. */
+function openMainMenu() {
+  document.getElementById('main-menu-modal').classList.remove('hidden');
+}
+
+function closeMainMenu() {
+  document.getElementById('main-menu-modal').classList.add('hidden');
+}
+
+function goToAccountSection(sectionId) {
+  closeMainMenu();
+  showDashTab('account');
+  // Petit delai pour laisser l'onglet Compte s'afficher avant de defiler
+  setTimeout(() => {
+    const el = document.getElementById(sectionId);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 50);
 }
 
 /* ================= STATUT EN LIGNE (leger, sans systeme lourd) =================
