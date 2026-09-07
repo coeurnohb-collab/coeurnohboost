@@ -205,7 +205,7 @@ function showDashTab(tab) {
     if (shopFeedEl) shopFeedEl.innerHTML = '';
     loadHomeFeed();
   }
-  if (tab === 'account') { renderReferralBox(); applyNotifPrefsToUI(); fillAccountForm(); loadSavedFeed(); loadFollowingList(); }
+  if (tab === 'account') { renderReferralBox(); applyNotifPrefsToUI(); fillAccountForm(); loadSavedFeed(); loadFollowingList(); loadBlockedList(); }
 }
 function showServices() {
   hideAllViews();
@@ -1545,6 +1545,7 @@ function renderLoggedOutNav() {
   document.getElementById('admin-shortcut-btn').classList.add('hidden');
   stopNotifWatch();
   stopPresenceUpdates();
+  blockedSet = new Set();
 }
 function renderLoggedInNav(uid) {
   document.getElementById('nav-login-btn').classList.add('hidden');
@@ -1553,6 +1554,7 @@ function renderLoggedInNav(uid) {
   document.getElementById('admin-shortcut-btn').classList.toggle('hidden', uid !== ADMIN_UID);
   startNotifWatch();
   startPresenceUpdates();
+  loadBlockedSet();
 }
 
 /* ================= STATUT EN LIGNE (leger, sans systeme lourd) =================
@@ -2102,7 +2104,13 @@ async function loadHomeFeed(append = false) {
     }
 
     homeFeedLastDoc = snap.docs[snap.docs.length - 1];
-    const items = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    let items = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    items = items.filter(item => !blockedSet.has(item.sellerUid));
+
+    if (items.length === 0 && !append) {
+      feedEl.innerHTML = '<p class="muted">Aucune publication pour l\'instant. Sois le premier à publier !</p>';
+      return;
+    }
 
     let likedMap = {};
     let savedMap = {};
@@ -3103,6 +3111,69 @@ async function toggleFollow(sellerUid, sellerName) {
   }
 }
 
+/* ================= BLOCAGE DE COMPTE ================= */
+// Effet du blocage : les publications du compte bloque disparaissent de
+// ton fil d'accueil et de la recherche de comptes. Prive (personne d'autre
+// ne peut voir qui tu as bloque), et bloquer quelqu'un annule
+// automatiquement un eventuel abonnement dans les deux sens.
+let blockedSet = new Set();
+
+async function toggleBlockAccount(targetUid, targetName) {
+  if (!currentUser) return;
+  const lockKey = 'block_' + targetUid;
+  if (likeInFlight.has(lockKey)) return;
+  likeInFlight.add(lockKey);
+
+  const blockRef = db.collection('blocks').doc(`${currentUser.uid}_${targetUid}`);
+  const labelEls = document.querySelectorAll(`[data-block-label="${targetUid}"]`);
+
+  try {
+    const blockDoc = await blockRef.get();
+    if (blockDoc.exists) {
+      await blockRef.delete();
+      blockedSet.delete(targetUid);
+      labelEls.forEach(el => el.textContent = 'Bloquer ce compte');
+      showToast(`${targetName || 'Ce compte'} débloqué`, 'info');
+    } else {
+      if (!confirm(`Bloquer ${targetName || 'ce compte'} ? Ses publications n'apparaîtront plus dans ton fil.`)) {
+        return;
+      }
+      await blockRef.set({
+        blockerUid: currentUser.uid,
+        blockedUid: targetUid,
+        blockedName: targetName || '',
+        createdAt: new Date().toISOString()
+      });
+      blockedSet.add(targetUid);
+      labelEls.forEach(el => el.textContent = 'Débloquer ce compte');
+      showToast(`${targetName || 'Ce compte'} bloqué`, 'success');
+
+      // Si on se suivait mutuellement, on annule la relation (ca n'a plus de sens)
+      if (followingSet.has(targetUid)) {
+        try {
+          await db.collection('follows').doc(`${currentUser.uid}_${targetUid}`).delete();
+          followingSet.delete(targetUid);
+        } catch (e) { /* pas grave */ }
+      }
+      closeProfileModal();
+    }
+  } catch (e) {
+    showToast(friendlyErrorMessage(e), 'error');
+  } finally {
+    likeInFlight.delete(lockKey);
+  }
+}
+
+async function loadBlockedSet() {
+  if (!currentUser) { blockedSet = new Set(); return; }
+  try {
+    const snap = await db.collection('blocks').where('blockerUid', '==', currentUser.uid).get();
+    blockedSet = new Set(snap.docs.map(d => d.data().blockedUid));
+  } catch (e) {
+    console.log('[blocks] chargement non bloquant :', e.message);
+  }
+}
+
 /* ================= PROFIL PUBLIC (mini version) ================= */
 async function openProfileModal(sellerUid, sellerName, sellerVerified) {
   const modal = document.getElementById('profile-modal');
@@ -3127,6 +3198,18 @@ async function openProfileModal(sellerUid, sellerName, sellerVerified) {
         .limit(50).get(),
       db.collection('follows').where('followedUid', '==', sellerUid).get()
     ]);
+
+    // Statut bloque -- isole dans son propre try/catch comme les autres
+    // requetes secondaires de cette fiche (presence, etc.).
+    let isBlocked = false;
+    try {
+      if (currentUser && !isOwn) {
+        const blockDoc = await db.collection('blocks').doc(`${currentUser.uid}_${sellerUid}`).get();
+        isBlocked = blockDoc.exists;
+      }
+    } catch (e) {
+      console.log('[blocks] non bloquant :', e.message);
+    }
 
     const posts = pubsSnap.docs
       .map(d => ({ id: d.id, ...d.data() }))
@@ -3175,6 +3258,14 @@ async function openProfileModal(sellerUid, sellerName, sellerVerified) {
         <span data-follow-label="${sellerUid}">${isFollowing ? 'Abonné' : '+ Suivre'}</span>
       </button>` : '';
 
+    const blockLinkHtml = !isOwn ? `
+      <p style="margin-top:8px">
+        <span style="color:var(--muted);font-size:0.82rem;text-decoration:underline;cursor:pointer" data-block-label="${sellerUid}"
+          onclick="toggleBlockAccount('${sellerUid}','${escapeForJs(sellerName)}')">
+          ${isBlocked ? 'Débloquer ce compte' : 'Bloquer ce compte'}
+        </span>
+      </p>` : '';
+
     body.innerHTML = `
       <div style="text-align:center;padding:10px 0 18px">
         <div class="post-avatar" style="width:64px;height:64px;font-size:1.6rem;margin:0 auto 10px">${escapeHtml((sellerName || 'C')[0].toUpperCase())}</div>
@@ -3182,6 +3273,7 @@ async function openProfileModal(sellerUid, sellerName, sellerVerified) {
         ${onlineStatusHtml}
         <p class="muted small">${posts.length} publication${posts.length > 1 ? 's' : ''} · ${followerCount} abonné${followerCount > 1 ? 's' : ''}</p>
         ${followBtnHtml}
+        ${blockLinkHtml}
       </div>
       <div id="profile-posts-list">
         ${posts.length === 0
@@ -3241,7 +3333,10 @@ async function runAccountSearch(q) {
   }
 
   const qLower = q.toLowerCase();
-  const matches = allSellersCache.filter(s => s.name.toLowerCase().includes(qLower)).slice(0, 15);
+  const matches = allSellersCache
+    .filter(s => !blockedSet.has(s.uid))
+    .filter(s => s.name.toLowerCase().includes(qLower))
+    .slice(0, 15);
 
   resultsEl.innerHTML = matches.length === 0
     ? '<p class="muted small" style="padding:10px">Aucun compte trouvé.</p>'
@@ -3294,6 +3389,43 @@ async function unfollowFromList(sellerUid) {
   followingSet.add(sellerUid); // pour que toggleFollow bascule bien vers "ne plus suivre"
   await toggleFollow(sellerUid, '');
   loadFollowingList();
+}
+
+async function loadBlockedList() {
+  const el = document.getElementById('blocked-list');
+  if (!el || !currentUser) return;
+  el.innerHTML = '<p class="muted small">Chargement...</p>';
+  try {
+    const snap = await db.collection('blocks').where('blockerUid', '==', currentUser.uid).get();
+    if (snap.empty) {
+      el.innerHTML = '<p class="muted small">Aucun compte bloqué.</p>';
+      return;
+    }
+    el.innerHTML = snap.docs.map(doc => {
+      const b = doc.data();
+      return `
+      <div class="admin-row" style="padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px">
+        <span style="font-weight:600">${escapeHtml(b.blockedName || 'Compte')}</span>
+        <button class="btn btn-outline btn-sm" onclick="unblockFromList('${b.blockedUid}')">Débloquer</button>
+      </div>`;
+    }).join('');
+  } catch (e) {
+    el.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+  }
+}
+
+async function unblockFromList(targetUid) {
+  blockedSet.add(targetUid); // pour que toggleBlockAccount bascule bien vers "debloquer"
+  const lockKey = 'block_' + targetUid;
+  likeInFlight.delete(lockKey); // au cas ou, pour ne pas rester bloque par erreur
+  try {
+    await db.collection('blocks').doc(`${currentUser.uid}_${targetUid}`).delete();
+    blockedSet.delete(targetUid);
+    showToast('Compte débloqué', 'info');
+  } catch (e) {
+    showToast(friendlyErrorMessage(e), 'error');
+  }
+  loadBlockedList();
 }
 
 async function loadSavedFeed() {
