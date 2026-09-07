@@ -149,6 +149,11 @@
 
       <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:14px" onclick="openCreatePostForm()">➕ Publier une photo, vidéo ou un texte</button>
 
+      <div style="position:relative;margin-bottom:14px">
+        <input type="text" id="account-search-input" class="text-input" placeholder="🔍 Rechercher un compte..." oninput="searchAccounts(this.value)" onfocus="if(this.value) searchAccounts(this.value)" onblur="closeAccountSearchOnBlur()">
+        <div id="account-search-results" class="account-search-results hidden"></div>
+      </div>
+
       <div id="home-feed"><p class="muted">Chargement...</p></div>
     </div>
 
@@ -875,7 +880,7 @@
     </div>
     <textarea id="report-comment" class="text-input" rows="2" placeholder="Précise si tu veux (facultatif)" style="margin-bottom:14px;resize:vertical"></textarea>
     <p class="muted small" id="report-error" style="color:var(--red);display:none;margin-bottom:10px"></p>
-    <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="submitReport()">Envoyer le signalement</button>
+    <button class="btn btn-primary" id="report-submit-btn" style="width:100%;justify-content:center" onclick="submitReport()">Envoyer le signalement</button>
   </div>
 </div>
 

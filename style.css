@@ -449,6 +449,17 @@ a{text-decoration:none;color:inherit}
   flex:0 0 auto;margin-left:auto;
 }
 .follow-btn.following{background:transparent;color:var(--muted);border:1px solid var(--line)}
+
+.account-search-results{
+  position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;
+  border:1px solid var(--line);border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,0.1);
+  max-height:280px;overflow-y:auto;z-index:50;
+}
+.account-search-row{
+  display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;
+}
+.account-search-row:hover{background:var(--green-light)}
+.account-search-row:not(:last-child){border-bottom:1px solid var(--line)}
 .shop-comments{margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
 .shop-comments-list{margin-bottom:10px;max-height:220px;overflow-y:auto}
 .shop-comment{padding:8px 0;border-bottom:1px solid var(--line);font-size:0.85rem}
@@ -691,7 +702,7 @@ a{text-decoration:none;color:inherit}
 .post-card-header strong{display:block;font-size:0.9rem;color:var(--ink)}
 .post-time{font-size:0.75rem;color:var(--muted)}
 .post-caption{padding:0 14px 10px;font-size:0.92rem;color:var(--ink);line-height:1.5}
-.post-media{width:100%;max-height:520px;object-fit:cover;display:block;background:#000;cursor:pointer}
+.post-media{width:100%;aspect-ratio:1/1;max-height:520px;object-fit:cover;display:block;background:#000;cursor:pointer}
 .post-actions{display:flex;gap:10px;padding:10px 14px}
 
 /* Fiche detail plein ecran (post-detail-modal) : ces classes n'avaient

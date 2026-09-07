@@ -1830,8 +1830,8 @@ function renderCartModal() {
 
   listEl.innerHTML = cartItems.map(c => `
     <div class="cart-row">
-      <img src="${c.imageUrl}" class="cart-row-img" alt="" loading="lazy">
-      <div class="cart-row-info"><strong>${c.title}</strong><div class="muted small">${c.price.toFixed(2)}$</div></div>
+      <img src="${escapeHtml(c.imageUrl)}" class="cart-row-img" alt="" loading="lazy">
+      <div class="cart-row-info"><strong>${escapeHtml(c.title)}</strong><div class="muted small">${c.price.toFixed(2)}$</div></div>
       <button class="shop-action-btn" onclick="removeFromCart('${c.id}')" aria-label="Retirer du panier">${ICON_TRASH}</button>
     </div>
   `).join('');
@@ -2175,9 +2175,9 @@ function renderPostCard(item, isLiked, isSaved, hideFollowBtn) {
   const timeStr = timeAgo(item.createdAt);
   let mediaHtml = '';
   if (item.mediaType === 'photo' && item.imageUrl) {
-    mediaHtml = `<img src="${item.imageUrl}" alt="" class="post-media" loading="lazy" onclick="openPostDetail('${item.id}')">`;
+    mediaHtml = `<img src="${escapeHtml(item.imageUrl)}" alt="" class="post-media" loading="lazy" onclick="openPostDetail('${item.id}')">`;
   } else if (item.mediaType === 'video' && item.videoUrl) {
-    mediaHtml = `<video src="${item.videoUrl}" class="post-media" controls onclick="openPostDetail('${item.id}')"></video>`;
+    mediaHtml = `<video src="${escapeHtml(item.videoUrl)}" class="post-media" controls onclick="openPostDetail('${item.id}')"></video>`;
   }
 
   const shareUrl = `https://coeurnohboost.vercel.app/?produit=${item.id}`;
@@ -2258,8 +2258,8 @@ async function notifyPublicationShared(pubId) {
 function openMediaViewer(url, type) {
   const contentEl = document.getElementById('media-viewer-content');
   contentEl.innerHTML = type === 'video'
-    ? `<video src="${url}" controls autoplay class="media-viewer-media"></video>`
-    : `<img src="${url}" alt="" class="media-viewer-media" loading="lazy">`;
+    ? `<video src="${escapeHtml(url)}" controls autoplay class="media-viewer-media"></video>`
+    : `<img src="${escapeHtml(url)}" alt="" class="media-viewer-media" loading="lazy">`;
   document.getElementById('media-viewer-download-btn').onclick = () => downloadMedia(url, type);
   document.getElementById('media-viewer').classList.remove('hidden');
 }
@@ -2710,7 +2710,7 @@ async function loadMyPublications() {
       const typeLabel = d.type === 'book' ? '📖' : '🛍️';
       return `
       <div class="seller-pub-row">
-        <img src="${d.imageUrl}" alt="" class="seller-pub-img" loading="lazy">
+        <img src="${escapeHtml(d.imageUrl)}" alt="" class="seller-pub-img" loading="lazy">
         <div class="seller-pub-info">
           <strong>${typeLabel} ${escapeHtml(d.title)}</strong>
           <div class="muted small">${(d.price || 0).toFixed(2)}$ · ${ICON_HEART_FILLED} ${d.likesCount || 0}</div>
@@ -2858,12 +2858,12 @@ function renderShopCard(item, isLiked, isPurchased) {
 
   let buyButtonHtml;
   if (alreadyOwned) {
-    buyButtonHtml = `<a class="btn btn-primary btn-sm btn-buy-full" href="${item.fileUrl}" target="_blank">📖 Télécharger</a>`;
+    buyButtonHtml = `<a class="btn btn-primary btn-sm btn-buy-full" href="${escapeHtml(item.fileUrl)}" target="_blank">📖 Télécharger</a>`;
   } else if (item.type === 'book') {
     buyButtonHtml = `<button class="btn btn-primary btn-sm btn-buy-full" onclick="buyShopItem('${item.id}','${escapeForJs(item.title)}',${effectivePrice},'${item.type}')" data-i18n="shop_buy">Commander</button>`;
   } else {
     const inCart = cartItems.some(c => c.id === item.id);
-    buyButtonHtml = `<button class="btn ${inCart ? 'btn-outline' : 'btn-primary'} btn-sm btn-buy-full" onclick="toggleCartItem('${item.id}','${escapeForJs(item.title)}',${effectivePrice},'${item.imageUrl}')">${inCart ? ICON_CHECK + ' Dans le panier' : ICON_CART + ' Ajouter'}</button>`;
+    buyButtonHtml = `<button class="btn ${inCart ? 'btn-outline' : 'btn-primary'} btn-sm btn-buy-full" onclick="toggleCartItem('${item.id}','${escapeForJs(item.title)}',${effectivePrice},'${escapeForJs(item.imageUrl)}')">${inCart ? ICON_CHECK + ' Dans le panier' : ICON_CART + ' Ajouter'}</button>`;
   }
 
   // Le bouton WhatsApp n'apparait que sur les PRODUITS (coordination livraison),
@@ -2894,7 +2894,7 @@ function renderShopCard(item, isLiked, isPurchased) {
 
   return `
   <div class="shop-card" id="shop-card-${item.id}">
-    <img src="${item.imageUrl}" alt="${escapeHtml(item.title)}" class="shop-card-img" loading="lazy" onclick="openPostDetail('${item.id}')">
+    <img src="${escapeHtml(item.imageUrl)}" alt="${escapeHtml(item.title)}" class="shop-card-img" loading="lazy" onclick="openPostDetail('${item.id}')">
     <div class="shop-card-body">
       <span class="shop-card-type">${typeLabel}${alreadyOwned ? ' · ✅ Déjà acheté' : ''}</span>
       ${categoryLine}
@@ -3039,6 +3039,7 @@ async function toggleSavePost(pubId) {
   const saveRef = db.collection('saved_items').doc(`${pubId}_${currentUser.uid}`);
   const iconEls = document.querySelectorAll(`[data-save-icon="${pubId}"]`);
   const btnEls = document.querySelectorAll(`[data-save-btn="${pubId}"]`);
+  btnEls.forEach(el => el.style.opacity = '0.6');
 
   try {
     const saveDoc = await saveRef.get();
@@ -3056,6 +3057,7 @@ async function toggleSavePost(pubId) {
   } catch (e) {
     console.log('[shop] Erreur enregistrement :', e.message);
   } finally {
+    btnEls.forEach(el => el.style.opacity = '');
     likeInFlight.delete(lockKey);
   }
 }
@@ -3071,6 +3073,9 @@ async function toggleFollow(sellerUid, sellerName) {
   const followRef = db.collection('follows').doc(`${currentUser.uid}_${sellerUid}`);
   const btnEls = document.querySelectorAll(`[data-follow-btn="${sellerUid}"]`);
   const labelEls = document.querySelectorAll(`[data-follow-label="${sellerUid}"]`);
+  // AVANT : aucun retour visuel entre le clic et la reponse du serveur
+  // (quelques centaines de ms de silence total, comme si rien ne s'etait passe).
+  btnEls.forEach(el => el.style.opacity = '0.6');
 
   try {
     if (followingSet.has(sellerUid)) {
@@ -3093,6 +3098,7 @@ async function toggleFollow(sellerUid, sellerName) {
   } catch (e) {
     showToast(friendlyErrorMessage(e), 'error');
   } finally {
+    btnEls.forEach(el => el.style.opacity = '');
     likeInFlight.delete(lockKey);
   }
 }
@@ -3190,6 +3196,75 @@ async function openProfileModal(sellerUid, sellerName, sellerVerified) {
 
 function closeProfileModal() {
   document.getElementById('profile-modal').classList.add('hidden');
+}
+
+/* ================= RECHERCHE DE COMPTES ================= */
+// "users" est prive (donnees sensibles : email, solde...), impossible d'y
+// chercher un nom directement. On construit donc la liste des comptes a
+// partir des publications PUBLIQUES deja publiees (meme requete deja
+// utilisee/indexee que la Boutique -- aucun nouvel index Firestore requis),
+// mise en cache pour ne pas re-interroger a chaque lettre tapee.
+let allSellersCache = null;
+let accountSearchDebounce = null;
+
+function searchAccounts(query) {
+  clearTimeout(accountSearchDebounce);
+  accountSearchDebounce = setTimeout(() => runAccountSearch(query.trim()), 250);
+}
+
+async function runAccountSearch(q) {
+  const resultsEl = document.getElementById('account-search-results');
+  if (!q) { resultsEl.classList.add('hidden'); resultsEl.innerHTML = ''; return; }
+
+  resultsEl.classList.remove('hidden');
+
+  if (!allSellersCache) {
+    resultsEl.innerHTML = '<p class="muted small" style="padding:10px">Recherche...</p>';
+    try {
+      const snap = await db.collection('publications')
+        .where('status', '==', 'published')
+        .orderBy('createdAt', 'desc')
+        .limit(300)
+        .get();
+      const sellersMap = {};
+      snap.forEach(doc => {
+        const d = doc.data();
+        if (d.sellerUid && !sellersMap[d.sellerUid]) {
+          sellersMap[d.sellerUid] = { uid: d.sellerUid, name: d.sellerName || 'Compte', verified: !!d.sellerVerified };
+        }
+      });
+      allSellersCache = Object.values(sellersMap);
+    } catch (e) {
+      resultsEl.innerHTML = '<p class="muted small" style="padding:10px">Erreur de recherche.</p>';
+      return;
+    }
+  }
+
+  const qLower = q.toLowerCase();
+  const matches = allSellersCache.filter(s => s.name.toLowerCase().includes(qLower)).slice(0, 15);
+
+  resultsEl.innerHTML = matches.length === 0
+    ? '<p class="muted small" style="padding:10px">Aucun compte trouvé.</p>'
+    : matches.map(s => `
+      <div class="account-search-row" onmousedown="selectAccountSearchResult('${s.uid}','${escapeForJs(s.name)}',${s.verified})">
+        <div class="post-avatar" style="width:34px;height:34px;font-size:0.9rem;flex:0 0 auto">${escapeHtml(s.name[0].toUpperCase())}</div>
+        <span>${escapeHtml(s.name)}${s.verified ? ' ✔️' : ''}</span>
+      </div>
+    `).join('');
+}
+
+function selectAccountSearchResult(uid, name, verified) {
+  document.getElementById('account-search-input').value = '';
+  document.getElementById('account-search-results').classList.add('hidden');
+  openProfileModal(uid, name, verified);
+}
+
+function closeAccountSearchOnBlur() {
+  // Petit delai pour laisser le temps au clic sur un resultat de se
+  // declencher (onmousedown, pas onclick) avant que la liste disparaisse.
+  setTimeout(() => {
+    document.getElementById('account-search-results').classList.add('hidden');
+  }, 150);
 }
 
 async function loadFollowingList() {
@@ -3292,6 +3367,15 @@ async function submitReport() {
   }
   if (!currentUser || !reportTargetId) { closeReportModal(); return; }
 
+  // AVANT : aucune protection anti double-clic ici (contrairement aux
+  // autres actions comme le like ou l'enregistrement) -- un double-tap
+  // rapide pouvait envoyer deux fois le meme signalement.
+  const btn = document.getElementById('report-submit-btn');
+  if (btn.disabled) return;
+  btn.disabled = true;
+  const originalLabel = btn.textContent;
+  btn.textContent = 'Envoi...';
+
   try {
     await db.collection('reports').add({
       targetType: 'publication',
@@ -3308,6 +3392,9 @@ async function submitReport() {
   } catch (e) {
     errorEl.textContent = friendlyErrorMessage(e);
     errorEl.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = originalLabel;
   }
 }
 
@@ -3331,9 +3418,9 @@ async function openPostDetail(pubId) {
     const videoUrl = item.videoUrl || null;
     let mediaHtml = '';
     if (videoUrl) {
-      mediaHtml = `<video src="${videoUrl}" class="post-detail-media" controls autoplay></video>`;
+      mediaHtml = `<video src="${escapeHtml(videoUrl)}" class="post-detail-media" controls autoplay></video>`;
     } else if (mediaUrl) {
-      mediaHtml = `<img src="${mediaUrl}" class="post-detail-media" alt="" loading="lazy">`;
+      mediaHtml = `<img src="${escapeHtml(mediaUrl)}" class="post-detail-media" alt="" loading="lazy">`;
     }
 
     // Avis clients -- uniquement pour les articles boutique (livre/produit),
@@ -3371,7 +3458,7 @@ async function openPostDetail(pubId) {
         <div class="shop-comments-list" id="shop-comments-list-${item.id}"><p class="muted small">Chargement des commentaires...</p></div>
         <div class="shop-comment-form">
           <input type="text" class="text-input" id="shop-comment-input-${item.id}" placeholder="Écris un commentaire...">
-          <button class="btn btn-outline btn-sm" onclick="addShopComment('${item.id}')">Envoyer</button>
+          <button class="btn btn-outline btn-sm" id="shop-comment-btn-${item.id}" onclick="addShopComment('${item.id}')">Envoyer</button>
         </div>
       </div>
       ${reviewsHtml}
@@ -3522,6 +3609,7 @@ async function loadShopComments(pubId) {
 async function addShopComment(pubId) {
   if (!currentUser) { openAuth('register'); return; }
   const input = document.getElementById(`shop-comment-input-${pubId}`);
+  const btn = document.getElementById(`shop-comment-btn-${pubId}`);
   if (!input) return;
   const text = input.value.trim();
   if (!text) return;
@@ -3537,6 +3625,11 @@ async function addShopComment(pubId) {
     return;
   }
   localStorage.setItem('lastCommentAt', String(now));
+
+  // AVANT : aucun retour visuel pendant l'envoi -- rien n'indiquait que le
+  // commentaire partait, et rien n'empechait un double-clic tres rapide.
+  if (btn) { if (btn.disabled) return; btn.disabled = true; btn.textContent = 'Envoi...'; }
+  input.disabled = true;
 
   try {
     await db.collection('publication_comments').add({
@@ -3570,6 +3663,9 @@ async function addShopComment(pubId) {
     } catch (e) { /* pas grave si la notification echoue */ }
   } catch (e) {
     showToast(friendlyErrorMessage(e), 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Envoyer'; }
+    input.disabled = false;
   }
 }
 
@@ -3632,7 +3728,7 @@ async function confirmShopPurchase(pubId, title, price, itemType) {
       shopPurchasedSet.add(pubId);
       if (data.fileUrl) {
         document.getElementById('shop-checkout-download').innerHTML =
-          `<a class="btn btn-primary" style="width:100%;justify-content:center;margin-top:10px" href="${data.fileUrl}" target="_blank">📖 Télécharger le livre</a>`;
+          `<a class="btn btn-primary" style="width:100%;justify-content:center;margin-top:10px" href="${escapeHtml(data.fileUrl)}" target="_blank">📖 Télécharger le livre</a>`;
       }
       renderShopFeed(); // le bouton "Commander" de la carte devient "Télécharger"
     } else {

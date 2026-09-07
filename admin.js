@@ -966,7 +966,7 @@ async function loadShopAdmin() {
       <div class="admin-row">
         <div class="admin-row-top">
           <div style="display:flex;gap:12px;align-items:flex-start">
-            <img src="${d.imageUrl}" alt="" style="width:56px;height:56px;border-radius:10px;object-fit:cover;flex:0 0 auto">
+            <img src="${escapeHtml(d.imageUrl)}" alt="" style="width:56px;height:56px;border-radius:10px;object-fit:cover;flex:0 0 auto">
             <div>
               <div class="admin-row-title">${typeLabel} — ${escapeHtml(d.title)}</div>
               <div class="admin-row-meta">${(d.price || 0).toFixed(2)}$ · ❤️ ${d.likesCount || 0} · 💬 ${d.commentsCount || 0}</div>
