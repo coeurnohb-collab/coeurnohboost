@@ -35,6 +35,40 @@ function showToast(message, type = 'info') {
 // (nom, titre, description, commentaire...) pour qu'il s'affiche tel quel
 // au lieu d'etre interprete comme du HTML/JavaScript. A utiliser partout
 // ou du texte saisi par un utilisateur est affiche a l'ecran.
+// AVANT : un lien de partage Google Drive colle tel quel (ex :
+// https://drive.google.com/file/d/XXXX/view?usp=sharing) ne fonctionne PAS
+// comme source directe d'image/video -- Drive sert une page de visualisation,
+// pas le fichier brut. Resultat : image/video cassee ("boite noire") pour
+// tout le monde qui la regarde. Cette fonction convertit automatiquement le
+// format de partage le plus courant vers un lien qui fonctionne vraiment.
+function normalizeMediaUrl(url) {
+  if (!url) return url;
+  const trimmed = url.trim();
+
+  // Format "https://drive.google.com/file/d/FICHIER_ID/view?..."
+  let m = trimmed.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
+  if (m) return `https://drive.google.com/uc?export=view&id=${m[1]}`;
+
+  // Format "https://drive.google.com/open?id=FICHIER_ID"
+  m = trimmed.match(/drive\.google\.com\/open\?id=([a-zA-Z0-9_-]+)/);
+  if (m) return `https://drive.google.com/uc?export=view&id=${m[1]}`;
+
+  return trimmed;
+}
+
+// Affiche un message propre a la place d'une image/video cassee, plutot
+// que la petite icone cassee du navigateur sur fond noir (mauvaise
+// impression professionnelle, comme signale par un utilisateur).
+function mediaLoadError(el) {
+  if (el.dataset.errorHandled) return;
+  el.dataset.errorHandled = '1';
+  el.style.display = 'none';
+  const msg = document.createElement('div');
+  msg.className = 'media-error-placeholder';
+  msg.innerHTML = `${ICON_INFO || ''} Média indisponible — le lien est peut-être invalide ou expiré.`;
+  el.insertAdjacentElement('afterend', msg);
+}
+
 function escapeHtml(str) {
   if (str == null) return '';
   return String(str)
@@ -205,7 +239,7 @@ function showDashTab(tab) {
     if (shopFeedEl) shopFeedEl.innerHTML = '';
     loadHomeFeed();
   }
-  if (tab === 'account') { renderReferralBox(); applyNotifPrefsToUI(); fillAccountForm(); loadSavedFeed(); loadFollowingList(); loadBlockedList(); }
+  if (tab === 'account') { renderReferralBox(); applyNotifPrefsToUI(); fillAccountForm(); loadSavedFeed(); loadFollowingList(); loadBlockedList(); loadFollowersList(); }
 }
 function showServices() {
   hideAllViews();
@@ -1149,13 +1183,45 @@ function openNotifTargetIfAny() {
   const params = new URLSearchParams(window.location.search);
   const pubId = params.get('open');
   const tab = params.get('openTab');
+  const profileUid = params.get('profile');
   if (pubId) {
     openPostDetail(pubId);
+  } else if (profileUid) {
+    openSharedProfile(profileUid);
   } else if (tab) {
     showDashTab(tab);
   }
-  if (pubId || tab) {
+  if (pubId || tab || profileUid) {
     window.history.replaceState({}, '', window.location.pathname);
+  }
+}
+
+// Ouvre un profil partage via un lien (?profile=UID). On ne connait que
+// l'UID (pas le nom, "users" etant prive) -- on le retrouve via une de ses
+// publications publiques, comme le fait deja la recherche de comptes.
+async function openSharedProfile(uid) {
+  try {
+    const snap = await db.collection('publications')
+      .where('sellerUid', '==', uid)
+      .where('status', '==', 'published')
+      .limit(1).get();
+    if (snap.empty) { showToast('Ce profil est introuvable.', 'error'); return; }
+    const d = snap.docs[0].data();
+    openProfileModal(uid, d.sellerName || 'Compte', !!d.sellerVerified);
+  } catch (e) {
+    showToast('Impossible d\'ouvrir ce profil pour le moment.', 'error');
+  }
+}
+
+function shareMyProfile() {
+  if (!currentUser) return;
+  const url = `${window.location.origin}${window.location.pathname}?profile=${currentUser.uid}`;
+  const caption = `Suis-moi sur CoeurnohBoost !`;
+  if (navigator.share) {
+    navigator.share({ title: 'CoeurnohBoost', text: caption, url }).catch(() => {});
+  } else {
+    navigator.clipboard.writeText(url);
+    showToast('Lien de ton profil copié !', 'success');
   }
 }
 
@@ -2183,9 +2249,9 @@ function renderPostCard(item, isLiked, isSaved, hideFollowBtn) {
   const timeStr = timeAgo(item.createdAt);
   let mediaHtml = '';
   if (item.mediaType === 'photo' && item.imageUrl) {
-    mediaHtml = `<img src="${escapeHtml(item.imageUrl)}" alt="" class="post-media" loading="lazy" onclick="openPostDetail('${item.id}')">`;
+    mediaHtml = `<img src="${escapeHtml(normalizeMediaUrl(item.imageUrl))}" alt="" class="post-media" loading="lazy" onclick="openPostDetail('${item.id}')" onerror="mediaLoadError(this)">`;
   } else if (item.mediaType === 'video' && item.videoUrl) {
-    mediaHtml = `<video src="${escapeHtml(item.videoUrl)}" class="post-media" controls onclick="openPostDetail('${item.id}')"></video>`;
+    mediaHtml = `<video src="${escapeHtml(normalizeMediaUrl(item.videoUrl))}" class="post-media" controls onclick="openPostDetail('${item.id}')" onerror="mediaLoadError(this)"></video>`;
   }
 
   const shareUrl = `https://coeurnohboost.vercel.app/?produit=${item.id}`;
@@ -2315,7 +2381,7 @@ async function submitCreatePost() {
   errEl.classList.add('hidden');
 
   const mediaType = document.getElementById('post-media-type').value;
-  const mediaUrl = document.getElementById('post-media-url').value.trim();
+  const mediaUrl = normalizeMediaUrl(document.getElementById('post-media-url').value.trim());
   const caption = document.getElementById('post-caption').value.trim();
 
   if (mediaType !== 'text' && (!mediaUrl || !mediaUrl.startsWith('http'))) {
@@ -2902,7 +2968,7 @@ function renderShopCard(item, isLiked, isPurchased) {
 
   return `
   <div class="shop-card" id="shop-card-${item.id}">
-    <img src="${escapeHtml(item.imageUrl)}" alt="${escapeHtml(item.title)}" class="shop-card-img" loading="lazy" onclick="openPostDetail('${item.id}')">
+    <img src="${escapeHtml(item.imageUrl)}" alt="${escapeHtml(item.title)}" class="shop-card-img" loading="lazy" onclick="openPostDetail('${item.id}')" onerror="mediaLoadError(this)">
     <div class="shop-card-body">
       <span class="shop-card-type">${typeLabel}${alreadyOwned ? ' · ✅ Déjà acheté' : ''}</span>
       ${categoryLine}
@@ -3094,6 +3160,7 @@ async function toggleFollow(sellerUid, sellerName) {
     } else {
       await followRef.set({
         followerUid: currentUser.uid,
+        followerName: currentUser.name || '',
         followedUid: sellerUid,
         followedName: sellerName || '',
         createdAt: new Date().toISOString()
@@ -3391,6 +3458,28 @@ async function unfollowFromList(sellerUid) {
   loadFollowingList();
 }
 
+async function loadFollowersList() {
+  const el = document.getElementById('followers-list');
+  if (!el || !currentUser) return;
+  el.innerHTML = '<p class="muted small">Chargement...</p>';
+  try {
+    const snap = await db.collection('follows').where('followedUid', '==', currentUser.uid).get();
+    if (snap.empty) {
+      el.innerHTML = '<p class="muted small">Personne ne te suit encore.</p>';
+      return;
+    }
+    el.innerHTML = snap.docs.map(doc => {
+      const f = doc.data();
+      return `
+      <div class="admin-row" style="padding:10px 12px;display:flex;align-items:center;gap:10px">
+        <span style="cursor:pointer;font-weight:600" onclick="openProfileModal('${f.followerUid}','${escapeForJs(f.followerName || 'ce compte')}',false)">${escapeHtml(f.followerName || 'Compte')}</span>
+      </div>`;
+    }).join('');
+  } catch (e) {
+    el.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+  }
+}
+
 async function loadBlockedList() {
   const el = document.getElementById('blocked-list');
   if (!el || !currentUser) return;
@@ -3550,9 +3639,9 @@ async function openPostDetail(pubId) {
     const videoUrl = item.videoUrl || null;
     let mediaHtml = '';
     if (videoUrl) {
-      mediaHtml = `<video src="${escapeHtml(videoUrl)}" class="post-detail-media" controls autoplay></video>`;
+      mediaHtml = `<video src="${escapeHtml(normalizeMediaUrl(videoUrl))}" class="post-detail-media" controls autoplay onerror="mediaLoadError(this)"></video>`;
     } else if (mediaUrl) {
-      mediaHtml = `<img src="${escapeHtml(mediaUrl)}" class="post-detail-media" alt="" loading="lazy">`;
+      mediaHtml = `<img src="${escapeHtml(normalizeMediaUrl(mediaUrl))}" class="post-detail-media" alt="" loading="lazy" onerror="mediaLoadError(this)">`;
     }
 
     // Avis clients -- uniquement pour les articles boutique (livre/produit),
