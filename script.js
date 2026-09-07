@@ -2277,6 +2277,7 @@ function renderPostCard(item, isLiked, isSaved, hideFollowBtn) {
       </div>
       ${followBtnHtml}
       ${isOwnPost ? `
+      <button class="post-delete-btn" onclick="openEditPostForm('${item.id}','${escapeForJs(item.description || '')}')" title="Modifier" aria-label="Modifier cette publication">${ICON_EDIT}</button>
       <button class="post-delete-btn" onclick="deleteMyPublication('${item.id}')" title="Supprimer" aria-label="Supprimer cette publication">${ICON_TRASH}</button>
       ` : ''}
     </div>
@@ -2806,6 +2807,42 @@ async function deleteMyPublication(pubId) {
   } catch (e) {
     showToast(friendlyErrorMessage(e), 'error');
     return false;
+  }
+}
+
+// AVANT : une publication ne pouvait qu'etre supprimee, jamais corrigee --
+// une simple faute de frappe obligeait a tout republier de zero (perdant
+// les likes/commentaires deja recus).
+function openEditPostForm(pubId, currentCaption) {
+  if (document.getElementById('edit-post-modal')) return;
+  const html = `
+    <div class="modal-overlay" id="edit-post-modal">
+      <div class="modal">
+        <button class="modal-close" onclick="document.getElementById('edit-post-modal').remove()" aria-label="Fermer">×</button>
+        <h3 style="margin-bottom:10px">Modifier ta publication</h3>
+        <textarea id="edit-post-caption" class="text-input" rows="4" style="resize:vertical" maxlength="1000">${escapeHtml(currentCaption)}</textarea>
+        <button class="btn btn-primary" id="edit-post-save-btn" style="width:100%;justify-content:center;margin-top:12px" onclick="saveEditPost('${pubId}')">Enregistrer</button>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+async function saveEditPost(pubId) {
+  const btn = document.getElementById('edit-post-save-btn');
+  const newCaption = document.getElementById('edit-post-caption').value.trim();
+  if (btn.disabled) return;
+  btn.disabled = true;
+  btn.textContent = 'Enregistrement...';
+  try {
+    await db.collection('publications').doc(pubId).update({ description: newCaption });
+    const modal = document.getElementById('edit-post-modal');
+    if (modal) modal.remove();
+    showToast('Publication modifiée', 'success');
+    loadHomeFeed();
+  } catch (e) {
+    showToast(friendlyErrorMessage(e), 'error');
+    btn.disabled = false;
+    btn.textContent = 'Enregistrer';
   }
 }
 
@@ -3820,10 +3857,32 @@ async function loadShopComments(pubId) {
     }
     listEl.innerHTML = snap.docs.map(doc => {
       const c = doc.data();
-      return `<div class="shop-comment"><strong>${escapeHtml(c.name || 'Client')}</strong><span>${escapeHtml(c.text)}</span></div>`;
+      const isOwn = currentUser && currentUser.uid === c.uid;
+      return `<div class="shop-comment">
+        <strong>${escapeHtml(c.name || 'Client')}</strong><span>${escapeHtml(c.text)}</span>
+        ${isOwn ? `<button class="comment-delete-btn" onclick="deleteShopComment('${pubId}','${doc.id}')" aria-label="Supprimer ce commentaire">${ICON_TRASH}</button>` : ''}
+      </div>`;
     }).join('');
   } catch (e) {
     listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+  }
+}
+
+async function deleteShopComment(pubId, commentId) {
+  if (!currentUser) return;
+  if (!confirm('Supprimer ce commentaire ?')) return;
+  try {
+    await db.collection('publication_comments').doc(commentId).delete();
+    await db.collection('publications').doc(pubId).update({
+      commentsCount: firebase.firestore.FieldValue.increment(-1)
+    });
+    document.querySelectorAll(`[data-comment-count="${pubId}"]`).forEach(el => {
+      el.textContent = Math.max(0, (parseInt(el.textContent) || 1) - 1);
+    });
+    loadShopComments(pubId);
+    showToast('Commentaire supprimé', 'info');
+  } catch (e) {
+    showToast(friendlyErrorMessage(e), 'error');
   }
 }
 

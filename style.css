@@ -466,7 +466,10 @@ a{text-decoration:none;color:inherit}
 .account-search-row:not(:last-child){border-bottom:1px solid var(--line)}
 .shop-comments{margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
 .shop-comments-list{margin-bottom:10px;max-height:220px;overflow-y:auto}
-.shop-comment{padding:8px 0;border-bottom:1px solid var(--line);font-size:0.85rem}
+.shop-comment{padding:8px 0;border-bottom:1px solid var(--line);font-size:0.85rem;display:flex;align-items:center;gap:8px}
+.shop-comment span{flex:1}
+.comment-delete-btn{background:none;border:none;color:var(--muted);cursor:pointer;flex:0 0 auto;padding:4px;display:flex}
+.comment-delete-btn:hover{color:var(--red)}
 .reviews-section{margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
 .reviews-section h4{margin-bottom:10px;font-size:0.95rem}
 .review-form{background:var(--cream);border:1px solid var(--line);border-radius:var(--radius);padding:12px;margin-bottom:12px}
