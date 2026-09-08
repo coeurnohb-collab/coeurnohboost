@@ -1630,6 +1630,7 @@ function renderLoggedInNav(uid) {
   startNotifWatch();
   startPresenceUpdates();
   loadBlockedSet();
+  loadFollowingSet();
 }
 
 /* ================= MENU PRINCIPAL (☰) =================
@@ -3482,6 +3483,21 @@ async function loadBlockedSet() {
   }
 }
 
+// AVANT : followingSet n'etait charge que dans loadHomeFeed(), donc si
+// quelqu'un allait directement dans Menu -> Mes abonnes sans etre passe
+// par l'Accueil, l'etat "+ Suivre"/"Abonne" pouvait etre incorrect au
+// premier affichage. Charge maintenant aussi a la connexion, comme
+// blockedSet, pour etre toujours a jour peu importe le chemin emprunte.
+async function loadFollowingSet() {
+  if (!currentUser) { followingSet = new Set(); return; }
+  try {
+    const snap = await db.collection('follows').where('followerUid', '==', currentUser.uid).get();
+    followingSet = new Set(snap.docs.map(d => d.data().followedUid));
+  } catch (e) {
+    console.log('[follows] chargement non bloquant :', e.message);
+  }
+}
+
 /* ================= PROFIL PUBLIC (mini version) ================= */
 async function openProfileModal(sellerUid, sellerName, sellerVerified) {
   const modal = document.getElementById('profile-modal');
@@ -3711,9 +3727,14 @@ async function loadFollowersList() {
     }
     el.innerHTML = snap.docs.map(doc => {
       const f = doc.data();
+      const isFollowingBack = followingSet.has(f.followerUid);
       return `
-      <div class="admin-row" style="padding:10px 12px;display:flex;align-items:center;gap:10px">
+      <div class="admin-row" style="padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px">
         <span style="cursor:pointer;font-weight:600" onclick="openProfileModal('${f.followerUid}','${escapeForJs(f.followerName || 'ce compte')}',false)">${escapeHtml(f.followerName || 'Compte')}</span>
+        <button class="follow-btn ${isFollowingBack ? 'following' : ''}" data-follow-btn="${f.followerUid}"
+          onclick="toggleFollow('${f.followerUid}','${escapeForJs(f.followerName || 'ce compte')}')">
+          <span data-follow-label="${f.followerUid}">${isFollowingBack ? 'Abonné' : '+ Suivre'}</span>
+        </button>
       </div>`;
     }).join('');
   } catch (e) {
