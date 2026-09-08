@@ -361,7 +361,7 @@ a{text-decoration:none;color:inherit}
 .modal-close{position:absolute;top:14px;right:14px;background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--muted);min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center}
 .modal h2{font-size:1.3rem;margin-bottom:4px}
 .modal .sub{color:var(--muted);font-size:0.85rem;margin-bottom:16px}
-.modal-error{background:#fdecea;color:#c0392b;border-radius:10px;padding:10px 12px;font-size:0.85rem;margin-bottom:14px}
+.modal-error{background:rgba(195,24,63,0.1);color:var(--red);border:1px solid rgba(195,24,63,0.3);border-radius:10px;padding:10px 12px;font-size:0.85rem;margin-bottom:14px}
 .modal-loading{background:var(--cream);color:var(--green-dark);border-radius:10px;padding:10px 12px;font-size:0.85rem;margin-bottom:14px;text-align:center}
 .google-btn{
   width:100%;display:flex;align-items:center;justify-content:center;gap:10px;
@@ -472,6 +472,12 @@ a{text-decoration:none;color:inherit}
 .coming-soon-badge{
   display:inline-block;background:var(--green-light);color:var(--green-dark);
   font-size:0.8rem;font-weight:700;padding:6px 16px;border-radius:999px;
+}
+
+#post-media-preview:not(:empty){margin-top:10px}
+.post-media-preview-media{
+  display:block;width:100%;max-height:220px;object-fit:contain;
+  background:#000;border-radius:10px;
 }
 
 .shop-card{

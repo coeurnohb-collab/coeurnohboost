@@ -2473,6 +2473,7 @@ async function downloadMedia(url, type) {
 function openCreatePostForm() {
   if (!currentUser) { openAuth('register'); return; }
   document.getElementById('create-post-modal').classList.remove('hidden');
+  document.getElementById('post-media-preview').innerHTML = '';
   togglePostMediaField();
 }
 
@@ -2483,6 +2484,35 @@ function closeCreatePostForm() {
 function togglePostMediaField() {
   const type = document.getElementById('post-media-type').value;
   document.getElementById('post-media-url-field').style.display = type === 'text' ? 'none' : 'block';
+  updatePostMediaPreview();
+}
+
+// Petit delai avant de generer l'apercu : evite de tenter de charger une
+// URL encore incomplete a chaque frappe de touche (l'utilisateur tape
+// encore). Un copier-coller declenche un seul evenement de toute facon.
+let postMediaPreviewDebounce = null;
+function schedulePostMediaPreview() {
+  clearTimeout(postMediaPreviewDebounce);
+  postMediaPreviewDebounce = setTimeout(updatePostMediaPreview, 400);
+}
+
+// Permet de voir tout de suite si le lien colle est casse (ex: mauvais
+// format Google Drive) AVANT de publier, plutot que de le decouvrir apres
+// coup dans le fil d'accueil.
+function updatePostMediaPreview() {
+  const previewEl = document.getElementById('post-media-preview');
+  const type = document.getElementById('post-media-type').value;
+  const rawUrl = document.getElementById('post-media-url').value.trim();
+
+  if (type === 'text' || !rawUrl || !rawUrl.startsWith('http')) {
+    previewEl.innerHTML = '';
+    return;
+  }
+
+  const url = escapeHtml(normalizeMediaUrl(rawUrl));
+  previewEl.innerHTML = type === 'video'
+    ? `<video src="${url}" class="post-media-preview-media" controls onerror="mediaLoadError(this)"></video>`
+    : `<img src="${url}" class="post-media-preview-media" alt="" onerror="mediaLoadError(this)">`;
 }
 
 async function submitCreatePost() {
@@ -2531,6 +2561,7 @@ async function submitCreatePost() {
 
     document.getElementById('post-media-url').value = '';
     document.getElementById('post-caption').value = '';
+    document.getElementById('post-media-preview').innerHTML = '';
     closeCreatePostForm();
     loadHomeFeed();
   } catch (e) {

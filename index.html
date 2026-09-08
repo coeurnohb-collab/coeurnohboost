@@ -1160,8 +1160,9 @@
     </div>
     <div class="field" id="post-media-url-field">
       <label for="post-media-url">Lien du média</label>
-      <input type="url" id="post-media-url" class="text-input" placeholder="https://i.postimg.cc/... ou https://drive.google.com/...">
+      <input type="url" id="post-media-url" class="text-input" placeholder="https://i.postimg.cc/... ou https://drive.google.com/..." oninput="schedulePostMediaPreview()">
       <p class="muted small" style="margin-top:4px">Photo : uploade sur <strong>postimages.org</strong>, copie le "Lien direct". Vidéo : uploade sur <strong>Google Drive</strong>, partage en "Accessible à tous", colle le lien de partage tel quel (il est converti automatiquement).</p>
+      <div id="post-media-preview"></div>
     </div>
     <div class="field">
       <label for="post-caption">Texte / légende</label>
