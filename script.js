@@ -2898,6 +2898,7 @@ async function loadMyPublications() {
           <strong>${typeLabel} ${escapeHtml(d.title)}</strong>
           <div class="muted small">${(d.price || 0).toFixed(2)}$ · ${ICON_HEART_FILLED} ${d.likesCount || 0}</div>
         </div>
+        <button class="shop-action-btn" onclick="openEditPubForm('${doc.id}','${d.type}','${escapeForJs(d.title || '')}','${escapeForJs(d.description || '')}',${d.price || 0})" aria-label="Modifier cette publication">${ICON_EDIT}</button>
         <button class="shop-action-btn" onclick="deleteMyPublication('${doc.id}')" aria-label="Supprimer cette publication">${ICON_TRASH}</button>
       </div>`;
     }).join('');
@@ -2915,6 +2916,70 @@ async function deleteMyPublication(pubId) {
   } catch (e) {
     showToast(friendlyErrorMessage(e), 'error');
     return false;
+  }
+}
+
+// Route vers le bon formulaire de modification selon le type de publication :
+// une publication sociale (post) n'a qu'une legende a corriger, alors qu'un
+// article boutique (livre/produit) a un titre, une description et un prix.
+function openEditPubForm(pubId, type, title, description, price) {
+  if (type === 'post') {
+    openEditPostForm(pubId, description);
+  } else {
+    openEditShopItemForm(pubId, title, description, price);
+  }
+}
+
+function openEditShopItemForm(pubId, title, description, price) {
+  if (document.getElementById('edit-shopitem-modal')) return;
+  const html = `
+    <div class="modal-overlay" id="edit-shopitem-modal">
+      <div class="modal">
+        <button class="modal-close" onclick="document.getElementById('edit-shopitem-modal').remove()" aria-label="Fermer">×</button>
+        <h3 style="margin-bottom:14px">Modifier l'article</h3>
+        <div class="field">
+          <label for="edit-shopitem-title">Titre</label>
+          <input type="text" id="edit-shopitem-title" class="text-input" value="${escapeHtml(title)}" maxlength="120">
+        </div>
+        <div class="field">
+          <label for="edit-shopitem-desc">Description</label>
+          <textarea id="edit-shopitem-desc" class="text-input" rows="4" style="resize:vertical" maxlength="1000">${escapeHtml(description)}</textarea>
+        </div>
+        <div class="field">
+          <label for="edit-shopitem-price">Prix ($)</label>
+          <input type="number" id="edit-shopitem-price" class="text-input" value="${price}" min="0.01" step="0.01">
+        </div>
+        <button class="btn btn-primary" id="edit-shopitem-save-btn" style="width:100%;justify-content:center;margin-top:8px" onclick="saveEditShopItem('${pubId}')">Enregistrer</button>
+        <p class="muted small" id="edit-shopitem-msg" style="margin-top:6px"></p>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+async function saveEditShopItem(pubId) {
+  const btn = document.getElementById('edit-shopitem-save-btn');
+  const msgEl = document.getElementById('edit-shopitem-msg');
+  const title = document.getElementById('edit-shopitem-title').value.trim();
+  const description = document.getElementById('edit-shopitem-desc').value.trim();
+  const price = parseFloat(document.getElementById('edit-shopitem-price').value);
+
+  if (!title) { msgEl.textContent = 'Le titre ne peut pas être vide.'; return; }
+  if (!(price > 0)) { msgEl.textContent = 'Le prix doit être supérieur à 0.'; return; }
+
+  if (btn.disabled) return;
+  btn.disabled = true;
+  btn.textContent = 'Enregistrement...';
+  try {
+    await db.collection('publications').doc(pubId).update({ title, description, price });
+    const modal = document.getElementById('edit-shopitem-modal');
+    if (modal) modal.remove();
+    showToast('Article modifié', 'success');
+    loadMyPublications();
+    renderShopFeed();
+  } catch (e) {
+    msgEl.textContent = friendlyErrorMessage(e);
+    btn.disabled = false;
+    btn.textContent = 'Enregistrer';
   }
 }
 
