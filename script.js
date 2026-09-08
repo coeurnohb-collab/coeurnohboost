@@ -1634,24 +1634,92 @@ function renderLoggedInNav(uid) {
 
 /* ================= MENU PRINCIPAL (☰) =================
    Reorganise l'ACCES a ce qui existe deja (ancien onglet "Compte") sans
-   rien dupliquer : chaque entree du menu renvoie vers la section deja
-   existante correspondante, elle n'est jamais reconstruite. */
+   rien dupliquer : chaque section (profil, securite, notifications...)
+   existe UNE SEULE FOIS dans le HTML. Ouvrir un item du menu deplace
+   physiquement cette section dans l'ecran "contenu" (un seul a la fois,
+   rien de mélangé), puis la replace a son emplacement d'origine quand on
+   revient en arriere -- pas de duplication d'id, pas de code JS refait. */
+let menuContentOriginalParent = null;
+let menuContentOriginalNextSibling = null;
+let menuCurrentCategoryScreen = 'categories';
+
 function openMainMenu() {
+  showMenuScreen('categories');
   document.getElementById('main-menu-modal').classList.remove('hidden');
 }
 
 function closeMainMenu() {
+  // Si une section est actuellement affichee dans "contenu", la remettre
+  // a sa place d'origine avant de fermer, pour ne jamais la perdre.
+  restoreMenuContentSection();
   document.getElementById('main-menu-modal').classList.add('hidden');
 }
 
+function showMenuScreen(screen) {
+  document.querySelectorAll('[id^="menu-screen-"]').forEach(el => el.classList.add('hidden'));
+  const target = document.getElementById('menu-screen-' + screen);
+  if (target) target.classList.remove('hidden');
+  if (screen === 'categories' || screen.startsWith('items-')) {
+    menuCurrentCategoryScreen = screen;
+  }
+}
+
+function restoreMenuContentSection() {
+  const slot = document.getElementById('menu-content-slot');
+  const el = slot.firstElementChild;
+  if (el && menuContentOriginalParent) {
+    if (menuContentOriginalNextSibling) {
+      menuContentOriginalParent.insertBefore(el, menuContentOriginalNextSibling);
+    } else {
+      menuContentOriginalParent.appendChild(el);
+    }
+  }
+  menuContentOriginalParent = null;
+  menuContentOriginalNextSibling = null;
+}
+
 function goToAccountSection(sectionId) {
-  closeMainMenu();
-  showDashTab('account');
-  // Petit delai pour laisser l'onglet Compte s'afficher avant de defiler
-  setTimeout(() => {
-    const el = document.getElementById(sectionId);
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, 50);
+  const el = document.getElementById(sectionId);
+  if (!el) return;
+
+  restoreMenuContentSection(); // au cas ou une autre section etait deja ouverte
+
+  menuContentOriginalParent = el.parentNode;
+  menuContentOriginalNextSibling = el.nextSibling;
+
+  const slot = document.getElementById('menu-content-slot');
+  slot.innerHTML = '';
+  slot.appendChild(el);
+
+  document.getElementById('menu-content-title').textContent = el.dataset.menuTitle || '';
+  showMenuScreen('content');
+
+  // Les donnees de chaque section sont chargees normalement par
+  // showDashTab('account') habituellement -- on les recharge ici au cas
+  // par cas pour la section demandee, sans dupliquer cette logique.
+  refreshMenuSectionData(sectionId);
+}
+
+function menuGoBackFromContent() {
+  restoreMenuContentSection();
+  showMenuScreen(menuCurrentCategoryScreen);
+}
+
+function refreshMenuSectionData(sectionId) {
+  if (!currentUser) return;
+  const refreshers = {
+    'section-referral': renderReferralBox,
+    'section-saved': loadSavedFeed,
+    'section-followers': loadFollowersList,
+    'section-following': loadFollowingList,
+    'section-blocked': loadBlockedList,
+    'section-profile': fillAccountForm,
+    'section-editaccount': fillAccountForm,
+    'section-notifprefs': applyNotifPrefsToUI,
+    'section-faq': renderFAQ
+  };
+  const fn = refreshers[sectionId];
+  if (fn) fn();
 }
 
 /* ================= STATUT EN LIGNE (leger, sans systeme lourd) =================

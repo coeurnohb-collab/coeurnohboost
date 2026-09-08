@@ -1151,6 +1151,10 @@ function applyTranslations(lang) {
 
   const sel = document.getElementById("lang-select");
   if (sel) sel.value = lang;
+
+  document.querySelectorAll('.lang-choice').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.lang === lang);
+  });
 }
 
 function t(key) {
