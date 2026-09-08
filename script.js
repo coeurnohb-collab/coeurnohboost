@@ -1713,7 +1713,6 @@ function refreshMenuSectionData(sectionId) {
     'section-followers': loadFollowersList,
     'section-following': loadFollowingList,
     'section-blocked': loadBlockedList,
-    'section-profile': fillAccountForm,
     'section-editaccount': fillAccountForm,
     'section-notifprefs': applyNotifPrefsToUI,
     'section-faq': renderFAQ
