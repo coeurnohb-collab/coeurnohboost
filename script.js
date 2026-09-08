@@ -1664,6 +1664,16 @@ function showMenuScreen(screen) {
   }
 }
 
+// Ecran generique "Bientot disponible" -- utilise par les 14 futurs
+// services (roadmap) tant qu'ils ne sont pas encore construits. Quand un
+// vrai service sera developpe, seul son bouton dans la liste devra changer
+// pour appeler la vraie fonctionnalite a la place de celle-ci.
+function showComingSoon(title, description) {
+  document.getElementById('comingsoon-title').textContent = title;
+  document.getElementById('comingsoon-desc').textContent = description;
+  showMenuScreen('comingsoon');
+}
+
 function restoreMenuContentSection() {
   const slot = document.getElementById('menu-content-slot');
   const el = slot.firstElementChild;

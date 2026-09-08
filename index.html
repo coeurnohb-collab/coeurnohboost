@@ -986,7 +986,81 @@
         </button>
         <h2>Services CoeurNoh</h2>
       </div>
-      <p class="muted small" style="padding:14px">D'autres services (emploi &amp; freelance, immobilier, événements, annuaire professionnel, réservations...) arrivent progressivement sur CoeurnohBoost. Reste connecté !</p>
+      <p class="muted small" style="padding:0 10px 12px">De nouveaux services arrivent progressivement. Touche-en un pour en savoir plus.</p>
+
+      <button class="menu-item" onclick="showComingSoon('Emploi &amp; Freelance', 'Offres d\'emploi, stages, missions freelance et petits boulots. Publication gratuite pour commencer.', 'briefcase')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+        Emploi &amp; Freelance
+      </button>
+      <button class="menu-item" onclick="showComingSoon('Services à la demande', 'Trouve un professionnel proche de chez toi : plombier, électricien, coiffeur, informaticien et bien plus.', 'wrench')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L2 19l3 3 7.3-7.3a4 4 0 0 0 5.4-5.4l-2.8 2.8-2-2Z"/></svg>
+        Trouver un professionnel
+      </button>
+      <button class="menu-item" onclick="showComingSoon('Création de site & présence numérique', 'Mini-site, boutique en ligne, domaine et adresse e-mail professionnelle avec CoeurnohBoost.', 'globe')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10Z"/></svg>
+        Crée ton site
+      </button>
+      <button class="menu-item" onclick="showComingSoon('CoeurNoh Immo', 'Maisons, appartements, terrains et locaux commerciaux à vendre ou à louer, avec recherche par ville et prix.', 'house')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10"/></svg>
+        CoeurNoh Immo
+      </button>
+      <button class="menu-item" onclick="showComingSoon('Événements & Billetterie', 'Concerts, conférences, formations et mariages : découvre, réserve et achète tes billets.', 'ticket')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v3a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-3a3 3 0 0 1 0-6V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><line x1="13" y1="5" x2="13" y2="19" stroke-dasharray="2 2"/></svg>
+        Événements &amp; Billetterie
+      </button>
+      <button class="menu-item" onclick="showComingSoon('CoeurNoh Academy', 'Apprends l\'informatique, le business, les langues et bien d\'autres compétences. Contenu gratuit pour commencer.', 'academy')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5Z"/><path d="M6 12v5c0 1.5 3 3 6 3s6-1.5 6-3v-5"/></svg>
+        CoeurNoh Academy
+      </button>
+      <button class="menu-item" onclick="showComingSoon('Factures & Reçus', 'Crée une facture professionnelle (produits, quantité, prix, remise) et partage-la en PDF à ton client.', 'invoice')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
+        Factures &amp; Reçus
+      </button>
+      <button class="menu-item" onclick="showComingSoon('CoeurNoh Alertes', 'Enregistre une recherche (ex: « iPhone 13 à moins de 300$ ») et reçois une notification dès qu\'une annonce correspond.', 'bell')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        CoeurNoh Alertes
+      </button>
+      <button class="menu-item" onclick="showComingSoon('CoeurNoh Travel', 'Hôtels, restaurants, lieux touristiques et bons plans pour tes voyages.', 'travel')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5Z"/></svg>
+        CoeurNoh Travel
+      </button>
+      <button class="menu-item" onclick="showComingSoon('CoeurNoh Business', 'Tableau de bord, gestion clients, promotions et fidélité pour les entreprises.', 'business')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="1"/><line x1="9" y1="7" x2="9" y2="7.01"/><line x1="15" y1="7" x2="15" y2="7.01"/><line x1="9" y1="11" x2="9" y2="11.01"/><line x1="15" y1="11" x2="15" y2="11.01"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+        CoeurNoh Business
+      </button>
+      <button class="menu-item" onclick="showComingSoon('Réservation en ligne', 'Salon, restaurant, garage, consultation... les professionnels pourront bientôt gérer leurs rendez-vous ici.', 'calendar')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Réservation en ligne
+      </button>
+      <button class="menu-item" onclick="showComingSoon('Annuaire professionnel', 'Recherche un mécanicien, un graphiste ou tout autre professionnel près de chez toi.', 'directory')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>
+        Annuaire professionnel
+      </button>
+      <button class="menu-item" onclick="showComingSoon('Services près de chez vous', 'Découvre restaurants, coiffeurs, mécaniciens et événements autour de ta ville.', 'nearby')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+        Près de chez vous
+      </button>
+      <button class="menu-item" onclick="showComingSoon('Concours & Récompenses', 'Meilleur créateur, meilleure vidéo, talent de la semaine... des concours organisés régulièrement.', 'trophy')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M17 5h2a2 2 0 0 1 2 2 4 4 0 0 1-4 4"/><path d="M7 5H5a2 2 0 0 0-2 2 4 4 0 0 0 4 4"/></svg>
+        Concours &amp; Récompenses
+      </button>
+    </div>
+
+    <!-- Ecran generique reutilisable "Bientot disponible", pour ne pas
+         creer 14 pages statiques identiques pour du contenu qui n'existe
+         pas encore -- quand un vrai service sera construit, seul son
+         bouton ci-dessus devra changer pour pointer vers la vraie page. -->
+    <div id="menu-screen-comingsoon" class="hidden">
+      <div class="menu-page-header">
+        <button class="menu-back-btn" onclick="showMenuScreen('items-services')" aria-label="Retour">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <h2 id="comingsoon-title">—</h2>
+      </div>
+      <div style="text-align:center;padding:30px 16px">
+        <div class="coming-soon-badge">Bientôt disponible</div>
+        <p class="muted" id="comingsoon-desc" style="margin-top:16px;line-height:1.6"></p>
+      </div>
     </div>
 
     <!-- NIVEAU 2d : liste "Aide & informations" -->

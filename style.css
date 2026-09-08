@@ -469,6 +469,11 @@ a{text-decoration:none;color:inherit}
 
 .lang-choice.active{background:var(--green);border-color:var(--green);color:#fff}
 
+.coming-soon-badge{
+  display:inline-block;background:var(--green-light);color:var(--green-dark);
+  font-size:0.8rem;font-weight:700;padding:6px 16px;border-radius:999px;
+}
+
 .shop-card{
   background:#fff;border-radius:var(--radius);overflow:hidden;margin-bottom:18px;
   border:1px solid var(--line);box-shadow:0 2px 8px rgba(0,0,0,0.04);
