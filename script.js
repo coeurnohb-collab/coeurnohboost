@@ -4456,9 +4456,9 @@ async function checkAlertsForNewProduct(product) {
    n'apparaissent pas encore dans un filtre categorie precis tant que leur
    proprietaire n'a pas complete sa fiche. */
 const NEARBY_CATEGORY_LABELS = {
-  restaurants: '🍽️ Restaurants', coiffeurs: '💇 Coiffeurs', mecaniciens: '🔧 Mécaniciens',
-  photographes: '📷 Photographes', informaticiens: '💻 Informaticiens', boutiques: '🛍️ Boutiques',
-  professionnels: '💼 Professionnels', evenements: '🎉 Événements', services: '🧰 Services'
+  restaurants: 'Restaurants', coiffeurs: 'Coiffeurs', mecaniciens: 'Mécaniciens',
+  photographes: 'Photographes', informaticiens: 'Informaticiens', boutiques: 'Boutiques',
+  professionnels: 'Professionnels', evenements: 'Événements', services: 'Services'
 };
 let nearbySelectedCategory = '';
 let nearbySearchDebounce = null;
@@ -4535,6 +4535,408 @@ function renderNearbyResults(list) {
       ${waLink ? `<a class="btn btn-outline btn-sm" href="${escapeHtml(waLink)}" target="_blank">${ICON_WHATSAPP} Contacter</a>` : ''}
     </div>`;
   }).join('');
+}
+
+/* ================= CONCOURS & RECOMPENSES =================
+   "contests" (cree par l'admin uniquement, comme le panneau d'annonces) --
+   "contest_entries" (une participation = un document, liee a un concours et
+   un utilisateur) -- "contest_votes" (un document par vote, id deterministe
+   "{contestId}_{entryId}_{uid}" pour empecher tout double-vote sans avoir a
+   interroger toute la collection a chaque clic).
+   Le statut (a-venir / en-cours / termine) n'est jamais stocke : il est
+   toujours recalcule a partir des dates de debut/fin, pour ne jamais avoir
+   un concours "bloque" sur un mauvais statut.
+   Concours PAYANTS : le modele de donnees (type, entryFee) est deja en
+   place, mais le debit reel du portefeuille n'est volontairement pas
+   branche tant que je n'ai pas vu le code exact de la fonction serveur qui
+   gere deja les paiements par solde (ex: shop-purchase.js) -- pour reutiliser
+   exactement la meme logique securisee plutot que d'en inventer une
+   deuxieme en parallele qui risquerait un bug de solde. En attendant, la
+   participation a un concours payant affiche clairement l'information au
+   lieu de faire semblant que ca fonctionne. */
+const CONTEST_CATEGORY_META = {
+  createur:     { label: 'Meilleur créateur',      icon: '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>' },
+  entrepreneur: { label: 'Meilleur entrepreneur',   icon: '<rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>' },
+  talent:       { label: 'Talent de la semaine',    icon: '<path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>' },
+  photo:        { label: 'Meilleure photo',         icon: '<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2Z"/><circle cx="12" cy="13" r="4"/>' },
+  video:        { label: 'Meilleure vidéo',         icon: '<path d="m22 8-6 4 6 4V8Z"/><rect x="2" y="6" width="14" height="12" rx="2" ry="2"/>' },
+  vendeur:      { label: 'Meilleur vendeur',        icon: '<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/>' },
+  entreprise:   { label: "Concours d'entreprise",   icon: '<path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 9h1"/><path d="M9 13h1"/><path d="M14 9h1"/><path d="M14 13h1"/><path d="M9 21v-4h6v4"/>' }
+};
+const CONTEST_TROPHY_ICON = '<path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M17 5h2a2 2 0 0 1 2 2 4 4 0 0 1-4 4"/><path d="M7 5H5a2 2 0 0 0-2 2 4 4 0 0 0 4 4"/>';
+const CONTEST_VOTE_ICON = '<path d="M7 10v12"/><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z"/>';
+
+function contestIconSvg(pathHtml, size = 14) {
+  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${pathHtml}</svg>`;
+}
+
+let contestsCache = null;
+let contestStatusFilter = 'active';
+let contestEntriesCache = {}; // { [contestId]: [entries] }
+let contestMyVotesCache = null; // Set des "entryId" deja votes par l'utilisateur courant
+
+function computeContestStatus(c) {
+  const now = Date.now();
+  const start = c.startDate ? new Date(c.startDate).getTime() : 0;
+  const end = c.endDate ? new Date(c.endDate).getTime() : Infinity;
+  if (now < start) return 'upcoming';
+  if (now > end) return 'ended';
+  return 'active';
+}
+
+function openContestsScreen() {
+  showMenuScreen('contests');
+  document.getElementById('contest-create-btn').classList.toggle('hidden', !currentUser || currentUser.uid !== ADMIN_UID);
+  loadContests();
+}
+
+async function loadContests() {
+  const listEl = document.getElementById('contests-list');
+  listEl.innerHTML = renderFeedSkeletons(2);
+  try {
+    const snap = await db.collection('contests').orderBy('startDate', 'desc').limit(100).get();
+    contestsCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderContestsList();
+  } catch (e) {
+    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${escapeHtml(e.message)}</p>`;
+  }
+}
+
+function setContestStatusFilter(status) {
+  contestStatusFilter = status;
+  document.querySelectorAll('#contest-status-tabs button').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.status === status);
+  });
+  renderContestsList();
+}
+
+function renderContestsList() {
+  const listEl = document.getElementById('contests-list');
+  if (!contestsCache) return;
+
+  const filtered = contestsCache.filter(c => computeContestStatus(c) === contestStatusFilter);
+
+  if (filtered.length === 0) {
+    const msg = contestStatusFilter === 'active' ? 'Aucun concours en cours pour le moment.' :
+      contestStatusFilter === 'upcoming' ? 'Aucun concours à venir pour le moment.' :
+      'Aucun concours terminé pour le moment.';
+    listEl.innerHTML = `<p class="muted small" style="text-align:center;padding:20px 0">${msg}</p>`;
+    return;
+  }
+
+  listEl.innerHTML = filtered.map(c => {
+    const meta = CONTEST_CATEGORY_META[c.category] || { label: c.category || 'Concours', icon: CONTEST_TROPHY_ICON };
+    const dateRange = c.startDate && c.endDate
+      ? `${new Date(c.startDate).toLocaleDateString('fr-FR')} — ${new Date(c.endDate).toLocaleDateString('fr-FR')}`
+      : '';
+    const feeBadge = c.type === 'paid'
+      ? `<span class="shop-card-category" style="background:#fdecea;color:#c3183f">Payant · ${(c.entryFee || 0).toFixed(2)}$</span>`
+      : `<span class="shop-card-category">Gratuit</span>`;
+    return `
+    <div class="order-box" style="margin-bottom:12px;cursor:pointer" onclick="viewContest('${c.id}')">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+        <div style="min-width:0">
+          <div class="muted small" style="display:flex;align-items:center;gap:6px;margin-bottom:4px">${contestIconSvg(meta.icon)} ${escapeHtml(meta.label)}</div>
+          <strong style="font-size:1.02rem;word-break:break-word">${escapeHtml(c.title || 'Concours')}</strong>
+        </div>
+        ${feeBadge}
+      </div>
+      ${dateRange ? `<div class="muted small" style="margin-top:8px">${escapeHtml(dateRange)}</div>` : ''}
+      ${c.prize ? `<div class="muted small" style="margin-top:4px">Récompense : ${escapeHtml(c.prize)}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+/* ---- Creation d'un concours (admin uniquement) ---- */
+
+function openContestForm() {
+  if (!currentUser || currentUser.uid !== ADMIN_UID) return;
+  if (document.getElementById('contest-form-modal')) return;
+
+  const catOptions = Object.entries(CONTEST_CATEGORY_META)
+    .map(([val, meta]) => `<option value="${val}">${escapeHtml(meta.label)}</option>`).join('');
+
+  const html = `
+    <div class="modal-overlay" id="contest-form-modal">
+      <div class="modal" style="max-width:460px">
+        <button class="modal-close" onclick="document.getElementById('contest-form-modal').remove()" aria-label="Fermer">×</button>
+        <h3 style="margin-bottom:14px">Nouveau concours</h3>
+
+        <div class="field">
+          <label for="contest-title">Titre du concours</label>
+          <input type="text" id="contest-title" class="text-input" maxlength="100">
+        </div>
+        <div class="field">
+          <label for="contest-category">Catégorie</label>
+          <select id="contest-category" class="select-input">${catOptions}</select>
+        </div>
+        <div class="field">
+          <label for="contest-description">Règlement / description</label>
+          <textarea id="contest-description" class="text-input" rows="3" style="resize:vertical" maxlength="600"></textarea>
+        </div>
+        <div class="field">
+          <label for="contest-prize">Récompense</label>
+          <input type="text" id="contest-prize" class="text-input" placeholder="ex: 50$ + mise en avant sur la page d'accueil" maxlength="120">
+        </div>
+        <div class="field">
+          <label>Dates</label>
+          <div style="display:flex;gap:8px">
+            <input type="date" id="contest-start" class="text-input" style="flex:1">
+            <input type="date" id="contest-end" class="text-input" style="flex:1">
+          </div>
+        </div>
+        <div class="field">
+          <label>Type de concours</label>
+          <div style="display:flex;gap:8px">
+            <select id="contest-type" class="select-input" style="flex:1" onchange="document.getElementById('contest-fee').classList.toggle('hidden', this.value !== 'paid')">
+              <option value="free">Gratuit</option>
+              <option value="paid">Payant</option>
+            </select>
+            <input type="number" id="contest-fee" class="text-input hidden" style="flex:1" placeholder="Frais en $" min="0" step="0.01">
+          </div>
+        </div>
+        <div class="field">
+          <label for="contest-cover">Image de couverture — lien (facultatif)</label>
+          <input type="url" id="contest-cover" class="text-input" placeholder="https://...">
+        </div>
+
+        <button class="btn btn-primary" id="contest-save-btn" style="width:100%;justify-content:center;margin-top:4px" onclick="saveContestForm()">Publier le concours</button>
+        <p class="muted small" id="contest-form-msg" style="margin-top:6px"></p>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+async function saveContestForm() {
+  const btn = document.getElementById('contest-save-btn');
+  const msgEl = document.getElementById('contest-form-msg');
+  const title = document.getElementById('contest-title').value.trim();
+  const category = document.getElementById('contest-category').value;
+  const description = document.getElementById('contest-description').value.trim();
+  const prize = document.getElementById('contest-prize').value.trim();
+  const startDate = document.getElementById('contest-start').value;
+  const endDate = document.getElementById('contest-end').value;
+  const type = document.getElementById('contest-type').value;
+  const entryFee = parseFloat(document.getElementById('contest-fee').value) || 0;
+  const coverImage = document.getElementById('contest-cover').value.trim();
+
+  if (!title || !startDate || !endDate) {
+    msgEl.textContent = 'Merci de remplir au moins le titre et les deux dates.';
+    return;
+  }
+  if (new Date(endDate) < new Date(startDate)) {
+    msgEl.textContent = 'La date de fin doit être après la date de début.';
+    return;
+  }
+  if (type === 'paid' && entryFee <= 0) {
+    msgEl.textContent = 'Indique des frais de participation supérieurs à 0 pour un concours payant.';
+    return;
+  }
+
+  if (btn.disabled) return;
+  btn.disabled = true;
+  btn.textContent = 'Publication...';
+  try {
+    await db.collection('contests').add({
+      title, category, description, prize,
+      startDate: new Date(startDate).toISOString(),
+      endDate: new Date(endDate + 'T23:59:59').toISOString(),
+      type, entryFee: type === 'paid' ? entryFee : 0,
+      coverImage: coverImage || null,
+      organizerUid: currentUser.uid,
+      createdAt: new Date().toISOString()
+    });
+    document.getElementById('contest-form-modal').remove();
+    contestsCache = null;
+    showToast('Concours publié', 'success');
+    loadContests();
+  } catch (e) {
+    msgEl.textContent = friendlyErrorMessage(e);
+    btn.disabled = false;
+    btn.textContent = 'Publier le concours';
+  }
+}
+
+/* ---- Detail d'un concours + participations + votes ---- */
+
+async function viewContest(contestId) {
+  const c = (contestsCache || []).find(x => x.id === contestId);
+  if (!c) return;
+  if (document.getElementById('contest-view-modal')) return;
+
+  const meta = CONTEST_CATEGORY_META[c.category] || { label: c.category || 'Concours', icon: CONTEST_TROPHY_ICON };
+  const status = computeContestStatus(c);
+  const dateRange = `${new Date(c.startDate).toLocaleDateString('fr-FR')} — ${new Date(c.endDate).toLocaleDateString('fr-FR')}`;
+
+  let participateHtml;
+  if (status === 'ended') {
+    participateHtml = '';
+  } else if (!currentUser) {
+    participateHtml = `<button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:14px" onclick="openAuth('login')">Se connecter pour participer</button>`;
+  } else if (c.type === 'paid') {
+    participateHtml = `<div class="order-box" style="margin-bottom:14px">
+      <p class="muted small">Ce concours nécessite ${(c.entryFee || 0).toFixed(2)}$ pour participer. Le paiement par solde arrive très bientôt — la participation payante sera activée sous peu.</p>
+    </div>`;
+  } else {
+    participateHtml = `<button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:14px" onclick="openContestEntryForm('${c.id}')">Participer</button>`;
+  }
+
+  const html = `
+    <div class="modal-overlay" id="contest-view-modal">
+      <div class="modal" style="max-width:480px">
+        <button class="modal-close" onclick="document.getElementById('contest-view-modal').remove()" aria-label="Fermer">×</button>
+        <div class="muted small" style="display:flex;align-items:center;gap:6px;margin-bottom:4px">${contestIconSvg(meta.icon)} ${escapeHtml(meta.label)}</div>
+        <h3 style="margin-bottom:4px">${escapeHtml(c.title)}</h3>
+        <p class="muted small" style="margin-bottom:12px">${escapeHtml(dateRange)}</p>
+        ${c.description ? `<p class="small" style="margin-bottom:10px">${escapeHtml(c.description)}</p>` : ''}
+        ${c.prize ? `<p class="small" style="margin-bottom:14px"><strong>Récompense :</strong> ${escapeHtml(c.prize)}</p>` : ''}
+
+        ${participateHtml}
+
+        <h4 style="margin-bottom:10px;font-size:0.95rem">Participants</h4>
+        <div id="contest-entries-list-${c.id}"><p class="muted small">Chargement...</p></div>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+  loadContestEntries(c.id, status);
+}
+
+async function loadContestEntries(contestId, status) {
+  const listEl = document.getElementById(`contest-entries-list-${contestId}`);
+  try {
+    const snap = await db.collection('contest_entries')
+      .where('contestId', '==', contestId)
+      .orderBy('votesCount', 'desc')
+      .limit(100)
+      .get();
+    const entries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    contestEntriesCache[contestId] = entries;
+
+    if (currentUser && !contestMyVotesCache) {
+      // Charge une seule fois par session tous mes votes existants (id
+      // deterministe "{contestId}_{entryId}_{uid}") pour savoir quels
+      // boutons "Voter" desactiver, sans requete supplementaire par entree.
+      contestMyVotesCache = new Set();
+    }
+
+    renderContestEntries(contestId, entries, status);
+  } catch (e) {
+    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${escapeHtml(e.message)}</p>`;
+  }
+}
+
+function renderContestEntries(contestId, entries, status) {
+  const listEl = document.getElementById(`contest-entries-list-${contestId}`);
+  if (!listEl) return;
+
+  if (entries.length === 0) {
+    listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:14px 0">Aucun participant pour l\'instant.</p>';
+    return;
+  }
+
+  listEl.innerHTML = entries.map((e, i) => {
+    const rank = i + 1;
+    const voteKey = `${contestId}_${e.id}_${currentUser ? currentUser.uid : ''}`;
+    const alreadyVoted = currentUser && contestMyVotesCache && contestMyVotesCache.has(voteKey);
+    const isWinner = status === 'ended' && rank === 1;
+    const canVote = currentUser && status === 'active' && e.uid !== currentUser.uid;
+
+    return `
+    <div class="order-box" style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+        <div style="display:flex;align-items:center;gap:8px;min-width:0">
+          ${isWinner ? contestIconSvg(CONTEST_TROPHY_ICON, 18) : `<span class="muted small" style="min-width:20px">#${rank}</span>`}
+          <strong style="word-break:break-word">${escapeHtml(e.name || 'Participant')}</strong>
+        </div>
+        <span class="muted small" style="white-space:nowrap">${e.votesCount || 0} vote${(e.votesCount || 0) > 1 ? 's' : ''}</span>
+      </div>
+      ${e.caption ? `<p class="muted small" style="margin-top:6px">${escapeHtml(e.caption)}</p>` : ''}
+      ${e.submissionUrl ? `<a href="${escapeHtml(e.submissionUrl)}" target="_blank" class="btn btn-outline btn-sm" style="margin-top:8px">Voir la participation</a>` : ''}
+      ${canVote ? `<button class="btn ${alreadyVoted ? 'btn-outline' : 'btn-primary'} btn-sm" style="margin-top:8px;margin-left:8px" ${alreadyVoted ? 'disabled' : ''} onclick="voteForEntry('${contestId}', '${e.id}')">${contestIconSvg(CONTEST_VOTE_ICON, 14)} ${alreadyVoted ? 'Voté' : 'Voter'}</button>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function openContestEntryForm(contestId) {
+  if (!currentUser) { openAuth('login'); return; }
+  if (document.getElementById('contest-entry-modal')) return;
+
+  const html = `
+    <div class="modal-overlay" id="contest-entry-modal">
+      <div class="modal">
+        <button class="modal-close" onclick="document.getElementById('contest-entry-modal').remove()" aria-label="Fermer">×</button>
+        <h3 style="margin-bottom:14px">Participer au concours</h3>
+        <div class="field">
+          <label for="entry-name">Ton nom / nom d'artiste</label>
+          <input type="text" id="entry-name" class="text-input" maxlength="60" value="${escapeHtml(currentUser.name || '')}">
+        </div>
+        <div class="field">
+          <label for="entry-url">Lien vers ta photo / vidéo / preuve</label>
+          <input type="url" id="entry-url" class="text-input" placeholder="https://...">
+        </div>
+        <div class="field">
+          <label for="entry-caption">Message (facultatif)</label>
+          <textarea id="entry-caption" class="text-input" rows="2" style="resize:vertical" maxlength="200"></textarea>
+        </div>
+        <button class="btn btn-primary" id="entry-save-btn" style="width:100%;justify-content:center" onclick="saveContestEntry('${contestId}')">Envoyer ma participation</button>
+        <p class="muted small" id="entry-form-msg" style="margin-top:6px"></p>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+async function saveContestEntry(contestId) {
+  const btn = document.getElementById('entry-save-btn');
+  const msgEl = document.getElementById('entry-form-msg');
+  const name = document.getElementById('entry-name').value.trim();
+  const submissionUrl = document.getElementById('entry-url').value.trim();
+  const caption = document.getElementById('entry-caption').value.trim();
+
+  if (!name) { msgEl.textContent = 'Merci d\'indiquer ton nom.'; return; }
+  if (!submissionUrl || !submissionUrl.startsWith('http')) { msgEl.textContent = 'Merci de coller un lien valide vers ta participation.'; return; }
+
+  if (btn.disabled) return;
+  btn.disabled = true;
+  btn.textContent = 'Envoi...';
+  try {
+    await db.collection('contest_entries').add({
+      contestId, uid: currentUser.uid, name, submissionUrl, caption,
+      votesCount: 0, createdAt: new Date().toISOString()
+    });
+    document.getElementById('contest-entry-modal').remove();
+    showToast('Participation envoyée', 'success');
+    const status = computeContestStatus((contestsCache || []).find(c => c.id === contestId) || {});
+    loadContestEntries(contestId, status);
+  } catch (e) {
+    msgEl.textContent = friendlyErrorMessage(e);
+    btn.disabled = false;
+    btn.textContent = 'Envoyer ma participation';
+  }
+}
+
+async function voteForEntry(contestId, entryId) {
+  if (!currentUser) { openAuth('login'); return; }
+  const voteKey = `${contestId}_${entryId}_${currentUser.uid}`;
+  const voteRef = db.collection('contest_votes').doc(voteKey);
+  const entryRef = db.collection('contest_entries').doc(entryId);
+  try {
+    await db.runTransaction(async tx => {
+      const voteDoc = await tx.get(voteRef);
+      if (voteDoc.exists) throw new Error('ALREADY_VOTED');
+      tx.set(voteRef, { contestId, entryId, uid: currentUser.uid, createdAt: new Date().toISOString() });
+      tx.update(entryRef, { votesCount: firebase.firestore.FieldValue.increment(1) });
+    });
+    contestMyVotesCache.add(voteKey);
+    showToast('Vote enregistré', 'success');
+    const status = computeContestStatus((contestsCache || []).find(c => c.id === contestId) || {});
+    loadContestEntries(contestId, status);
+  } catch (e) {
+    if (e.message === 'ALREADY_VOTED') {
+      showToast('Tu as déjà voté pour cette participation', 'info');
+    } else {
+      showToast(friendlyErrorMessage(e), 'error');
+    }
+  }
 }
 
 function closeAccountSearchOnBlur() {
