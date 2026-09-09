@@ -3716,12 +3716,22 @@ async function loadDirectoryListings() {
   const resultsEl = document.getElementById('directory-results');
   resultsEl.innerHTML = renderFeedSkeletons(2);
   try {
-    const snap = await db.collection('directory_listings').limit(300).get();
-    directoryCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    await fetchAllListings(true);
     renderDirectoryResults(directoryCache);
   } catch (e) {
     resultsEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
   }
+}
+
+// Charge les fiches professionnelles une seule fois et les met en cache
+// (directoryCache), partagees entre l'Annuaire professionnel ET Pres de
+// chez vous : les deux ecrans affichent les memes fiches, juste filtrees
+// differemment, donc pas besoin de dupliquer la lecture Firestore.
+async function fetchAllListings(force) {
+  if (directoryCache && !force) return directoryCache;
+  const snap = await db.collection('directory_listings').limit(300).get();
+  directoryCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  return directoryCache;
 }
 
 function scheduleDirectorySearch(query) {
@@ -3788,6 +3798,15 @@ function openDirectoryEditForm() {
             <input type="text" id="directory-city" class="text-input" value="${escapeHtml(f.city || '')}" maxlength="60">
           </div>
           <div class="field">
+            <label for="directory-category">Catégorie (pour apparaître dans « Près de chez vous »)</label>
+            <select id="directory-category" class="select-input">
+              <option value="">— Choisir —</option>
+              ${Object.entries(NEARBY_CATEGORY_LABELS).map(([val, label]) =>
+                `<option value="${val}" ${f.category === val ? 'selected' : ''}>${label}</option>`
+              ).join('')}
+            </select>
+          </div>
+          <div class="field">
             <label for="directory-phone">Téléphone WhatsApp</label>
             <input type="tel" id="directory-phone" class="text-input" placeholder="+243..." value="${escapeHtml(f.phone || '')}">
           </div>
@@ -3810,6 +3829,7 @@ async function saveDirectoryListing() {
   const name = document.getElementById('directory-name').value.trim();
   const profession = document.getElementById('directory-profession').value.trim();
   const city = document.getElementById('directory-city').value.trim();
+  const category = document.getElementById('directory-category').value;
   const phone = document.getElementById('directory-phone').value.trim();
   const description = document.getElementById('directory-desc').value.trim();
 
@@ -3824,7 +3844,7 @@ async function saveDirectoryListing() {
   try {
     const payload = {
       ownerUid: currentUser.uid,
-      name, profession, city, phone, description,
+      name, profession, city, category: category || null, phone, description,
       updatedAt: new Date().toISOString()
     };
     if (!directoryIsEditingExisting) payload.createdAt = new Date().toISOString();
@@ -4423,6 +4443,98 @@ async function checkAlertsForNewProduct(product) {
       notifyUserPush(alert.ownerUid, title, body, 'activity', '/?open=' + product.id);
     } catch (e) { /* une alerte en echec ne doit pas bloquer les autres */ }
   }
+}
+
+/* ================= PRES DE CHEZ VOUS =================
+   Reutilise entierement les fiches de l'Annuaire professionnel
+   (directory_listings, meme cache "directoryCache" via fetchAllListings) --
+   aucune nouvelle collection Firestore. Ce service ajoute juste une facon
+   de les DECOUVRIR : par ville tapee et par categorie (restaurants,
+   coiffeurs, mecaniciens...). Chaque fiche peut desormais avoir un champ
+   "category" optionnel (ajoute dans le formulaire de l'Annuaire) ; les
+   fiches existantes sans categorie restent visibles dans "Tous" mais
+   n'apparaissent pas encore dans un filtre categorie precis tant que leur
+   proprietaire n'a pas complete sa fiche. */
+const NEARBY_CATEGORY_LABELS = {
+  restaurants: '🍽️ Restaurants', coiffeurs: '💇 Coiffeurs', mecaniciens: '🔧 Mécaniciens',
+  photographes: '📷 Photographes', informaticiens: '💻 Informaticiens', boutiques: '🛍️ Boutiques',
+  professionnels: '💼 Professionnels', evenements: '🎉 Événements', services: '🧰 Services'
+};
+let nearbySelectedCategory = '';
+let nearbySearchDebounce = null;
+
+function openNearbyScreen() {
+  showMenuScreen('nearby');
+  // Pre-remplit la ville avec celle deja indiquee sur ma propre fiche
+  // professionnelle si j'en ai une, pour eviter une saisie inutile.
+  const cityInput = document.getElementById('nearby-city-input');
+  if (currentUser && !cityInput.value && directoryCache) {
+    const mine = directoryCache.find(f => f.ownerUid === currentUser.uid);
+    if (mine && mine.city) cityInput.value = mine.city;
+  }
+  loadNearbyListings();
+}
+
+async function loadNearbyListings() {
+  const resultsEl = document.getElementById('nearby-results');
+  resultsEl.innerHTML = renderFeedSkeletons(2);
+  try {
+    await fetchAllListings();
+    runNearbyFilter();
+  } catch (e) {
+    resultsEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+  }
+}
+
+function setNearbyCategory(cat) {
+  nearbySelectedCategory = cat;
+  document.querySelectorAll('#nearby-category-tabs button').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.cat === cat);
+  });
+  runNearbyFilter();
+}
+
+function scheduleNearbySearch() {
+  clearTimeout(nearbySearchDebounce);
+  nearbySearchDebounce = setTimeout(runNearbyFilter, 250);
+}
+
+function runNearbyFilter() {
+  if (!directoryCache) return; // encore en train de charger
+  const cityQuery = document.getElementById('nearby-city-input').value.trim().toLowerCase();
+
+  const matches = directoryCache.filter(f => {
+    if (nearbySelectedCategory && f.category !== nearbySelectedCategory) return false;
+    if (cityQuery && !(f.city || '').toLowerCase().includes(cityQuery)) return false;
+    return true;
+  });
+  renderNearbyResults(matches);
+}
+
+function renderNearbyResults(list) {
+  const resultsEl = document.getElementById('nearby-results');
+  const visible = list.filter(f => !blockedSet.has(f.ownerUid));
+
+  if (visible.length === 0) {
+    resultsEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Aucun résultat pour l\'instant dans cette catégorie/ville. Élargis ta recherche, ou invite les professionnels autour de toi à créer leur fiche dans l\'Annuaire.</p>';
+    return;
+  }
+
+  resultsEl.innerHTML = visible.map(f => {
+    const waLink = f.phone ? `https://wa.me/${f.phone.replace(/\D/g, '')}` : null;
+    const catLabel = f.category ? NEARBY_CATEGORY_LABELS[f.category] : null;
+    return `
+    <div class="order-box" style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+        <strong style="font-size:1.02rem">${escapeHtml(f.name || 'Professionnel')}</strong>
+        ${catLabel ? `<span class="shop-card-category" style="white-space:nowrap">${catLabel}</span>` : ''}
+      </div>
+      <div class="muted small" style="margin:4px 0">${escapeHtml(f.profession || '—')}</div>
+      ${f.city ? `<div class="muted small" style="margin-bottom:8px">📍 ${escapeHtml(f.city)}</div>` : ''}
+      ${f.description ? `<p class="muted small" style="margin-bottom:10px">${escapeHtml(f.description)}</p>` : ''}
+      ${waLink ? `<a class="btn btn-outline btn-sm" href="${escapeHtml(waLink)}" target="_blank">${ICON_WHATSAPP} Contacter</a>` : ''}
+    </div>`;
+  }).join('');
 }
 
 function closeAccountSearchOnBlur() {
