@@ -3678,6 +3678,179 @@ function selectAccountSearchResult(uid, name, verified) {
   openProfileModal(uid, name, verified);
 }
 
+/* ================= ANNUAIRE PROFESSIONNEL =================
+   Une fiche par personne (id du document = son propre uid), publique en
+   lecture. Meme principe de recherche que "Rechercher un compte" : on
+   charge un lot de fiches une fois, mis en cache, puis on filtre cote
+   telephone a chaque lettre tapee (pas de nouvel index Firestore requis). */
+let directoryCache = null;
+let directorySearchDebounce = null;
+let directoryIsEditingExisting = false;
+
+function openDirectoryScreen() {
+  showMenuScreen('directory');
+  directoryCache = null; // toujours repartir sur des donnees fraiches en entrant
+  updateDirectoryMyListingButton();
+  loadDirectoryListings();
+}
+
+async function updateDirectoryMyListingButton() {
+  const btn = document.getElementById('directory-my-listing-btn');
+  if (!currentUser) { btn.textContent = '➕ Créer ma fiche professionnelle'; return; }
+  try {
+    const doc = await db.collection('directory_listings').doc(currentUser.uid).get();
+    btn.textContent = doc.exists ? '✏️ Modifier ma fiche professionnelle' : '➕ Créer ma fiche professionnelle';
+  } catch (e) {
+    console.log('[annuaire] non bloquant :', e.message);
+  }
+}
+
+async function loadDirectoryListings() {
+  const resultsEl = document.getElementById('directory-results');
+  resultsEl.innerHTML = renderFeedSkeletons(2);
+  try {
+    const snap = await db.collection('directory_listings').limit(300).get();
+    directoryCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderDirectoryResults(directoryCache);
+  } catch (e) {
+    resultsEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+  }
+}
+
+function scheduleDirectorySearch(query) {
+  clearTimeout(directorySearchDebounce);
+  directorySearchDebounce = setTimeout(() => runDirectorySearch(query.trim()), 250);
+}
+
+function runDirectorySearch(q) {
+  if (!directoryCache) return; // encore en train de charger, la recherche se fera au chargement
+  if (!q) { renderDirectoryResults(directoryCache); return; }
+  const qLower = q.toLowerCase();
+  const matches = directoryCache.filter(f =>
+    (f.profession || '').toLowerCase().includes(qLower) ||
+    (f.city || '').toLowerCase().includes(qLower) ||
+    (f.name || '').toLowerCase().includes(qLower)
+  );
+  renderDirectoryResults(matches);
+}
+
+function renderDirectoryResults(list) {
+  const resultsEl = document.getElementById('directory-results');
+  const visible = list.filter(f => !blockedSet.has(f.ownerUid));
+
+  if (visible.length === 0) {
+    resultsEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Aucune fiche trouvée. Sois peut-être le premier à en créer une !</p>';
+    return;
+  }
+
+  resultsEl.innerHTML = visible.map(f => {
+    const waLink = f.phone ? `https://wa.me/${f.phone.replace(/\D/g, '')}` : null;
+    return `
+    <div class="order-box" style="margin-bottom:12px">
+      <strong style="font-size:1.02rem">${escapeHtml(f.name || 'Professionnel')}</strong>
+      <div class="shop-card-category" style="margin:6px 0">${escapeHtml(f.profession || '—')}</div>
+      ${f.city ? `<div class="muted small" style="margin-bottom:8px">📍 ${escapeHtml(f.city)}</div>` : ''}
+      ${f.description ? `<p class="muted small" style="margin-bottom:10px">${escapeHtml(f.description)}</p>` : ''}
+      ${waLink ? `<a class="btn btn-outline btn-sm" href="${escapeHtml(waLink)}" target="_blank">${ICON_WHATSAPP} Contacter</a>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function openDirectoryEditForm() {
+  if (!currentUser) { openAuth('register'); return; }
+  if (document.getElementById('directory-edit-modal')) return;
+
+  db.collection('directory_listings').doc(currentUser.uid).get().then(doc => {
+    const f = doc.exists ? doc.data() : {};
+    directoryIsEditingExisting = doc.exists;
+    const html = `
+      <div class="modal-overlay" id="directory-edit-modal">
+        <div class="modal">
+          <button class="modal-close" onclick="document.getElementById('directory-edit-modal').remove()" aria-label="Fermer">×</button>
+          <h3 style="margin-bottom:14px">Ma fiche professionnelle</h3>
+          <div class="field">
+            <label for="directory-name">Nom ou nom de l'entreprise</label>
+            <input type="text" id="directory-name" class="text-input" value="${escapeHtml(f.name || '')}" maxlength="80">
+          </div>
+          <div class="field">
+            <label for="directory-profession">Métier</label>
+            <input type="text" id="directory-profession" class="text-input" placeholder="ex: Mécanicien, Graphiste..." value="${escapeHtml(f.profession || '')}" maxlength="60">
+          </div>
+          <div class="field">
+            <label for="directory-city">Ville</label>
+            <input type="text" id="directory-city" class="text-input" value="${escapeHtml(f.city || '')}" maxlength="60">
+          </div>
+          <div class="field">
+            <label for="directory-phone">Téléphone WhatsApp</label>
+            <input type="tel" id="directory-phone" class="text-input" placeholder="+243..." value="${escapeHtml(f.phone || '')}">
+          </div>
+          <div class="field">
+            <label for="directory-desc">Description (facultatif)</label>
+            <textarea id="directory-desc" class="text-input" rows="3" style="resize:vertical" maxlength="400">${escapeHtml(f.description || '')}</textarea>
+          </div>
+          <button class="btn btn-primary" id="directory-save-btn" style="width:100%;justify-content:center;margin-top:8px" onclick="saveDirectoryListing()">Enregistrer</button>
+          ${doc.exists ? `<button class="btn btn-outline" style="width:100%;justify-content:center;margin-top:10px;color:var(--red);border-color:var(--red)" onclick="deleteDirectoryListing()">Supprimer ma fiche</button>` : ''}
+          <p class="muted small" id="directory-form-msg" style="margin-top:6px"></p>
+        </div>
+      </div>`;
+    document.body.insertAdjacentHTML('beforeend', html);
+  }).catch(e => showToast(friendlyErrorMessage(e), 'error'));
+}
+
+async function saveDirectoryListing() {
+  const btn = document.getElementById('directory-save-btn');
+  const msgEl = document.getElementById('directory-form-msg');
+  const name = document.getElementById('directory-name').value.trim();
+  const profession = document.getElementById('directory-profession').value.trim();
+  const city = document.getElementById('directory-city').value.trim();
+  const phone = document.getElementById('directory-phone').value.trim();
+  const description = document.getElementById('directory-desc').value.trim();
+
+  if (!name || !profession || !city || !phone) {
+    msgEl.textContent = 'Merci de remplir au moins le nom, le métier, la ville et le téléphone.';
+    return;
+  }
+
+  if (btn.disabled) return;
+  btn.disabled = true;
+  btn.textContent = 'Enregistrement...';
+  try {
+    const payload = {
+      ownerUid: currentUser.uid,
+      name, profession, city, phone, description,
+      updatedAt: new Date().toISOString()
+    };
+    if (!directoryIsEditingExisting) payload.createdAt = new Date().toISOString();
+
+    await db.collection('directory_listings').doc(currentUser.uid).set(payload, { merge: true });
+    const modal = document.getElementById('directory-edit-modal');
+    if (modal) modal.remove();
+    directoryCache = null;
+    showToast('Fiche enregistrée', 'success');
+    updateDirectoryMyListingButton();
+    loadDirectoryListings();
+  } catch (e) {
+    msgEl.textContent = friendlyErrorMessage(e);
+    btn.disabled = false;
+    btn.textContent = 'Enregistrer';
+  }
+}
+
+async function deleteDirectoryListing() {
+  if (!confirm('Supprimer définitivement ta fiche professionnelle ?')) return;
+  try {
+    await db.collection('directory_listings').doc(currentUser.uid).delete();
+    const modal = document.getElementById('directory-edit-modal');
+    if (modal) modal.remove();
+    directoryCache = null;
+    showToast('Fiche supprimée', 'info');
+    updateDirectoryMyListingButton();
+    loadDirectoryListings();
+  } catch (e) {
+    showToast(friendlyErrorMessage(e), 'error');
+  }
+}
+
 function closeAccountSearchOnBlur() {
   // Petit delai pour laisser le temps au clic sur un resultat de se
   // declencher (onmousedown, pas onclick) avant que la liste disparaisse.

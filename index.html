@@ -1032,7 +1032,7 @@
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
         Réservation en ligne
       </button>
-      <button class="menu-item" onclick="showComingSoon('Annuaire professionnel', 'Recherche un mécanicien, un graphiste ou tout autre professionnel près de chez toi.', 'directory')">
+      <button class="menu-item" onclick="openDirectoryScreen()">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>
         Annuaire professionnel
       </button>
@@ -1061,6 +1061,24 @@
         <div class="coming-soon-badge">Bientôt disponible</div>
         <p class="muted" id="comingsoon-desc" style="margin-top:16px;line-height:1.6"></p>
       </div>
+    </div>
+
+    <!-- ANNUAIRE PROFESSIONNEL -->
+    <div id="menu-screen-directory" class="hidden">
+      <div class="menu-page-header">
+        <button class="menu-back-btn" onclick="showMenuScreen('items-services')" aria-label="Retour">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <h2>Annuaire professionnel</h2>
+      </div>
+
+      <button class="btn btn-primary" id="directory-my-listing-btn" style="width:100%;justify-content:center;margin-bottom:14px" onclick="openDirectoryEditForm()">➕ Créer ma fiche professionnelle</button>
+
+      <div style="position:relative;margin-bottom:14px">
+        <input type="text" id="directory-search-input" class="text-input" placeholder="🔍 Métier ou ville (ex: mécanicien, Kinshasa)" oninput="scheduleDirectorySearch(this.value)">
+      </div>
+
+      <div id="directory-results"><p class="muted small">Chargement...</p></div>
     </div>
 
     <!-- NIVEAU 2d : liste "Aide & informations" -->
