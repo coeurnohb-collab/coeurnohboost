@@ -2218,6 +2218,13 @@ async function submitSellForm() {
     });
     broadcastPush(annTitle, annBody, 'content', '/?open=' + newPubRef.id);
 
+    // CoeurNoh Alertes : notifie les utilisateurs dont une recherche
+    // enregistree correspond a ce nouveau produit (non bloquant : si ca
+    // echoue, la publication du produit reste quand meme reussie).
+    if (type === 'product') {
+      checkAlertsForNewProduct({ id: newPubRef.id, title, description, price, category }).catch(() => {});
+    }
+
     document.getElementById('sell-modal').remove();
     loadShopFeed();
   } catch (e) {
@@ -4221,6 +4228,200 @@ async function deleteInvoiceConfirm(invoiceId) {
     loadInvoices();
   } catch (e) {
     showToast(friendlyErrorMessage(e), 'error');
+  }
+}
+
+/* ================= COEURNOH ALERTES =================
+   Une alerte = une recherche enregistree par l'utilisateur (mot-cle +
+   filtres optionnels prix max / categorie), stockee dans "alerts". Quand un
+   vendeur publie un nouveau produit (voir publishSellItem plus haut), on
+   verifie cote client les alertes actives de TOUS les utilisateurs qui
+   matchent ce produit, et on notifie chaque proprietaire concerne (creation
+   d'un document "notifications" + push reel via notifyUserPush, exactement
+   comme pour les likes/commentaires). Pas de nouvelle infrastructure
+   serveur : on reutilise le systeme de notifications deja en place. */
+let alertsCache = null;
+
+function openAlertsScreen() {
+  if (!currentUser) { openAuth('login'); return; }
+  showMenuScreen('alerts');
+  loadAlerts();
+}
+
+async function loadAlerts() {
+  const listEl = document.getElementById('alerts-list');
+  listEl.innerHTML = renderFeedSkeletons(2);
+  try {
+    const snap = await db.collection('alerts')
+      .where('ownerUid', '==', currentUser.uid)
+      .orderBy('createdAt', 'desc')
+      .get();
+    alertsCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderAlertsList(alertsCache);
+  } catch (e) {
+    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${escapeHtml(e.message)}</p>`;
+  }
+}
+
+const ALERT_CATEGORY_LABELS = {
+  all: 'Toutes catégories', ebooks: '📚 Livres & Ebooks', beaute: '💄 Beauté & Bien-être',
+  mode: '👗 Mode & Accessoires', electronique: '🔌 Électronique', maison: '🏠 Maison & Déco', autres: '📦 Autres'
+};
+
+function renderAlertsList(list) {
+  const listEl = document.getElementById('alerts-list');
+
+  if (!list || list.length === 0) {
+    listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Aucune alerte enregistrée. Touche « Nouvelle alerte » pour créer la première.</p>';
+    return;
+  }
+
+  listEl.innerHTML = list.map(a => {
+    const parts = [];
+    if (a.maxPrice) parts.push(`moins de ${a.maxPrice}$`);
+    if (a.category && a.category !== 'all') parts.push(ALERT_CATEGORY_LABELS[a.category] || a.category);
+    const sub = parts.length ? parts.join(' · ') : 'Toutes catégories, tous prix';
+    return `
+    <div class="order-box" style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
+        <div style="min-width:0">
+          <strong style="font-size:1.02rem;word-break:break-word">${escapeHtml(a.keyword)}</strong>
+          <div class="muted small" style="margin-top:4px">${escapeHtml(sub)}</div>
+        </div>
+        <label class="switch" style="margin-top:2px">
+          <input type="checkbox" ${a.active !== false ? 'checked' : ''} onchange="toggleAlertActive('${a.id}', this.checked)">
+          <span class="slider"></span>
+        </label>
+      </div>
+      <button class="btn btn-outline btn-sm" style="margin-top:12px;color:var(--red);border-color:var(--red)" onclick="deleteAlertConfirm('${a.id}')">Supprimer</button>
+    </div>`;
+  }).join('');
+}
+
+function openAlertForm() {
+  if (!currentUser) { openAuth('login'); return; }
+  if (document.getElementById('alert-form-modal')) return;
+
+  const html = `
+    <div class="modal-overlay" id="alert-form-modal">
+      <div class="modal">
+        <button class="modal-close" onclick="document.getElementById('alert-form-modal').remove()" aria-label="Fermer">×</button>
+        <h3 style="margin-bottom:14px">Nouvelle alerte</h3>
+
+        <div class="field">
+          <label for="alert-keyword">Mot-clé (ex: iPhone 13)</label>
+          <input type="text" id="alert-keyword" class="text-input" maxlength="80" placeholder="Ce que tu recherches">
+        </div>
+        <div class="field">
+          <label for="alert-maxprice">Prix maximum en $ (facultatif)</label>
+          <input type="number" id="alert-maxprice" class="text-input" min="0" step="0.01" placeholder="Aucune limite">
+        </div>
+        <div class="field">
+          <label for="alert-category">Catégorie (facultatif)</label>
+          <select id="alert-category" class="select-input">
+            <option value="all">Toutes catégories</option>
+            <option value="ebooks">📚 Livres & Ebooks</option>
+            <option value="beaute">💄 Beauté & Bien-être</option>
+            <option value="mode">👗 Mode & Accessoires</option>
+            <option value="electronique">🔌 Électronique</option>
+            <option value="maison">🏠 Maison & Déco</option>
+            <option value="autres">📦 Autres</option>
+          </select>
+        </div>
+
+        <button class="btn btn-primary" id="alert-save-btn" style="width:100%;justify-content:center;margin-top:4px" onclick="saveAlert()">Créer l'alerte</button>
+        <p class="muted small" id="alert-form-msg" style="margin-top:6px"></p>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+async function saveAlert() {
+  const btn = document.getElementById('alert-save-btn');
+  const msgEl = document.getElementById('alert-form-msg');
+  const keyword = document.getElementById('alert-keyword').value.trim();
+  const maxPriceRaw = document.getElementById('alert-maxprice').value;
+  const maxPrice = maxPriceRaw ? parseFloat(maxPriceRaw) : null;
+  const category = document.getElementById('alert-category').value;
+
+  if (!keyword) { msgEl.textContent = 'Merci d\'indiquer un mot-clé.'; return; }
+
+  if (btn.disabled) return;
+  btn.disabled = true;
+  btn.textContent = 'Création...';
+  try {
+    await db.collection('alerts').add({
+      ownerUid: currentUser.uid,
+      keyword,
+      keywordLower: keyword.toLowerCase(),
+      maxPrice: (maxPrice && maxPrice > 0) ? maxPrice : null,
+      category: category === 'all' ? null : category,
+      active: true,
+      createdAt: new Date().toISOString()
+    });
+    document.getElementById('alert-form-modal').remove();
+    alertsCache = null;
+    showToast('Alerte créée', 'success');
+    loadAlerts();
+  } catch (e) {
+    msgEl.textContent = friendlyErrorMessage(e);
+    btn.disabled = false;
+    btn.textContent = "Créer l'alerte";
+  }
+}
+
+async function toggleAlertActive(alertId, active) {
+  try {
+    await db.collection('alerts').doc(alertId).update({ active });
+    alertsCache = null;
+    showToast(active ? 'Alerte activée' : 'Alerte mise en pause', 'info');
+  } catch (e) {
+    showToast(friendlyErrorMessage(e), 'error');
+    loadAlerts(); // resynchronise l'affichage si la mise a jour a echoue
+  }
+}
+
+async function deleteAlertConfirm(alertId) {
+  if (!confirm('Supprimer définitivement cette alerte ?')) return;
+  try {
+    await db.collection('alerts').doc(alertId).delete();
+    alertsCache = null;
+    showToast('Alerte supprimée', 'info');
+    loadAlerts();
+  } catch (e) {
+    showToast(friendlyErrorMessage(e), 'error');
+  }
+}
+
+// Verifie les alertes actives de tous les utilisateurs contre un nouveau
+// produit, et notifie (Firestore + push) chaque proprietaire concerne.
+// Plafonne a 500 alertes actives par appel : largement suffisant pour le
+// volume actuel, a revoir seulement si l'app grossit enormement.
+async function checkAlertsForNewProduct(product) {
+  const snap = await db.collection('alerts').where('active', '==', true).limit(500).get();
+  if (snap.empty) return;
+
+  const haystack = `${product.title || ''} ${product.description || ''}`.toLowerCase();
+  const matches = snap.docs
+    .map(d => ({ id: d.id, ...d.data() }))
+    .filter(a => {
+      if (a.ownerUid === currentUser.uid) return false; // pas de notif a soi-meme
+      if (!haystack.includes((a.keywordLower || a.keyword || '').toLowerCase())) return false;
+      if (a.maxPrice && product.price > a.maxPrice) return false;
+      if (a.category && a.category !== product.category) return false;
+      return true;
+    });
+
+  for (const alert of matches) {
+    const title = 'Une annonce correspond à ton alerte 🔔';
+    const body = `« ${alert.keyword} » — ${product.title} à ${(product.price || 0).toFixed(2)}$`;
+    try {
+      await db.collection('notifications').add({
+        uid: alert.ownerUid, title, body, type: 'alert_match',
+        url: '/?open=' + product.id, read: false, createdAt: new Date().toISOString()
+      });
+      notifyUserPush(alert.ownerUid, title, body, 'activity', '/?open=' + product.id);
+    } catch (e) { /* une alerte en echec ne doit pas bloquer les autres */ }
   }
 }
 
