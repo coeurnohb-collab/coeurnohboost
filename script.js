@@ -3851,6 +3851,379 @@ async function deleteDirectoryListing() {
   }
 }
 
+/* ================= FACTURES & REÇUS =================
+   Une facture = un document dans "invoices", possede uniquement par son
+   createur (ownerUid). La numerotation (FA-0001, FA-0002...) est garantie
+   unique via un compteur dans "invoice_counters/{uid}", incremente dans
+   une transaction Firestore -- uniquement a la creation, jamais modifie
+   ensuite meme si la facture est editee ou supprimee. */
+let invoicesCache = null;
+let invoiceRowSeq = 0;
+let invoiceEditingId = null;
+
+function openInvoiceScreen() {
+  if (!currentUser) { openAuth('login'); return; }
+  showMenuScreen('invoices');
+  loadInvoices();
+}
+
+async function loadInvoices() {
+  const listEl = document.getElementById('invoice-list');
+  listEl.innerHTML = renderFeedSkeletons(2);
+  try {
+    const snap = await db.collection('invoices')
+      .where('ownerUid', '==', currentUser.uid)
+      .orderBy('createdAt', 'desc')
+      .limit(200)
+      .get();
+    invoicesCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderInvoiceList(invoicesCache);
+  } catch (e) {
+    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${escapeHtml(e.message)}</p>`;
+  }
+}
+
+function renderInvoiceList(list) {
+  const listEl = document.getElementById('invoice-list');
+
+  if (!list || list.length === 0) {
+    listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Aucune facture pour l\'instant. Touche « Nouvelle facture » pour créer la première.</p>';
+    return;
+  }
+
+  listEl.innerHTML = list.map(inv => {
+    const dateLabel = inv.createdAt ? new Date(inv.createdAt).toLocaleDateString('fr-FR') : '';
+    const currency = inv.currency || 'USD';
+    const total = (inv.total || 0).toFixed(2);
+    return `
+    <div class="order-box" style="margin-bottom:12px;cursor:pointer" onclick="viewInvoice('${inv.id}')">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <strong style="font-size:1.02rem">Facture ${escapeHtml(inv.number || '—')}</strong>
+          <div class="shop-card-category" style="margin:4px 0">${escapeHtml(inv.clientName || 'Client')}</div>
+        </div>
+        <strong style="white-space:nowrap;margin-left:10px">${total} ${escapeHtml(currency)}</strong>
+      </div>
+      <div class="muted small" style="margin-top:6px">${escapeHtml(dateLabel)}</div>
+    </div>`;
+  }).join('');
+}
+
+/* ---- Formulaire de creation / modification ---- */
+
+function openInvoiceForm(invoiceId) {
+  if (!currentUser) { openAuth('login'); return; }
+  if (document.getElementById('invoice-form-modal')) return;
+
+  invoiceEditingId = invoiceId || null;
+  const existing = invoiceEditingId ? (invoicesCache || []).find(i => i.id === invoiceEditingId) : null;
+
+  const html = `
+    <div class="modal-overlay" id="invoice-form-modal">
+      <div class="modal" style="max-width:460px">
+        <button class="modal-close" onclick="closeInvoiceForm()" aria-label="Fermer">×</button>
+        <h3 style="margin-bottom:14px">${existing ? 'Modifier la facture ' + escapeHtml(existing.number || '') : 'Nouvelle facture'}</h3>
+
+        <div class="field">
+          <label for="inv-client-name">Nom du client</label>
+          <input type="text" id="inv-client-name" class="text-input" maxlength="80" value="${existing ? escapeHtml(existing.clientName || '') : ''}">
+        </div>
+        <div class="field">
+          <label for="inv-client-phone">Téléphone / WhatsApp (facultatif)</label>
+          <input type="tel" id="inv-client-phone" class="text-input" placeholder="+243..." value="${existing ? escapeHtml(existing.clientPhone || '') : ''}">
+        </div>
+        <div class="field">
+          <label for="inv-currency">Devise</label>
+          <select id="inv-currency" class="select-input">
+            <option value="USD" ${existing && existing.currency === 'USD' ? 'selected' : ''}>USD ($)</option>
+            <option value="CDF" ${existing && existing.currency === 'CDF' ? 'selected' : ''}>CDF (FC)</option>
+          </select>
+        </div>
+
+        <label class="field-label" style="display:block">Articles / Services</label>
+        <div id="invoice-items-rows"></div>
+        <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:6px 0 14px" onclick="addInvoiceRow()">+ Ajouter une ligne</button>
+
+        <div class="field">
+          <label>Remise</label>
+          <div style="display:flex;gap:8px">
+            <select id="inv-discount-type" class="select-input" style="flex:1" onchange="recalcInvoiceTotals()">
+              <option value="none" ${!existing || !existing.discountType || existing.discountType === 'none' ? 'selected' : ''}>Aucune</option>
+              <option value="percent" ${existing && existing.discountType === 'percent' ? 'selected' : ''}>Pourcentage (%)</option>
+              <option value="amount" ${existing && existing.discountType === 'amount' ? 'selected' : ''}>Montant fixe</option>
+            </select>
+            <input type="number" id="inv-discount-value" class="text-input" style="flex:1" placeholder="0" min="0" step="0.01" value="${existing ? (existing.discountValue || '') : ''}" oninput="recalcInvoiceTotals()">
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="inv-notes">Note (facultatif)</label>
+          <textarea id="inv-notes" class="text-input" rows="2" style="resize:vertical" maxlength="300">${existing ? escapeHtml(existing.notes || '') : ''}</textarea>
+        </div>
+
+        <div class="order-box" style="margin-bottom:14px">
+          <div style="display:flex;justify-content:space-between;font-size:0.88rem;margin-bottom:4px">
+            <span class="muted">Sous-total</span><span id="inv-subtotal-display">0.00</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:0.88rem;margin-bottom:4px">
+            <span class="muted">Remise</span><span id="inv-discount-display">-0.00</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-weight:800;font-size:1.05rem;margin-top:6px;padding-top:6px;border-top:1px solid var(--line)">
+            <span>Total</span><span id="inv-total-display">0.00</span>
+          </div>
+        </div>
+
+        <button class="btn btn-primary" id="invoice-save-btn" style="width:100%;justify-content:center" onclick="saveInvoiceForm()">${existing ? 'Enregistrer les modifications' : 'Enregistrer la facture'}</button>
+        <p class="muted small" id="invoice-form-msg" style="margin-top:6px"></p>
+      </div>
+    </div>`;
+
+  document.body.insertAdjacentHTML('beforeend', html);
+
+  if (existing && Array.isArray(existing.items) && existing.items.length > 0) {
+    existing.items.forEach(it => addInvoiceRow(it));
+  } else {
+    addInvoiceRow();
+  }
+  recalcInvoiceTotals();
+}
+
+function closeInvoiceForm() {
+  const modal = document.getElementById('invoice-form-modal');
+  if (modal) modal.remove();
+  invoiceEditingId = null;
+}
+
+function addInvoiceRow(item) {
+  const rowId = 'row' + (++invoiceRowSeq);
+  const rowsEl = document.getElementById('invoice-items-rows');
+  const qtyVal = item && item.qty != null ? item.qty : 1;
+  const priceVal = item && item.price != null ? item.price : '';
+  const html = `
+    <div class="invoice-item-row" data-row-id="${rowId}">
+      <input type="text" class="text-input inv-item-desc" placeholder="Description" value="${item ? escapeHtml(item.desc || '') : ''}" oninput="recalcInvoiceTotals()">
+      <input type="number" class="text-input inv-item-qty" placeholder="Qté" min="0" step="1" value="${qtyVal}" oninput="recalcInvoiceTotals()">
+      <input type="number" class="text-input inv-item-price" placeholder="Prix" min="0" step="0.01" value="${priceVal}" oninput="recalcInvoiceTotals()">
+      <button type="button" class="invoice-row-remove" onclick="removeInvoiceRow('${rowId}')" aria-label="Retirer la ligne">×</button>
+    </div>`;
+  rowsEl.insertAdjacentHTML('beforeend', html);
+}
+
+function removeInvoiceRow(rowId) {
+  const rowsEl = document.getElementById('invoice-items-rows');
+  const row = rowsEl.querySelector(`[data-row-id="${rowId}"]`);
+  if (row) row.remove();
+  // On garde toujours au moins une ligne visible pour ne pas bloquer la saisie
+  if (rowsEl.children.length === 0) addInvoiceRow();
+  recalcInvoiceTotals();
+}
+
+function readInvoiceItemsFromForm() {
+  const rows = document.querySelectorAll('#invoice-items-rows .invoice-item-row');
+  const items = [];
+  rows.forEach(row => {
+    const desc = row.querySelector('.inv-item-desc').value.trim();
+    const qty = parseFloat(row.querySelector('.inv-item-qty').value) || 0;
+    const price = parseFloat(row.querySelector('.inv-item-price').value) || 0;
+    if (desc && qty > 0) items.push({ desc, qty, price });
+  });
+  return items;
+}
+
+function recalcInvoiceTotals() {
+  const items = readInvoiceItemsFromForm();
+  const subtotal = items.reduce((sum, it) => sum + it.qty * it.price, 0);
+
+  const discountType = document.getElementById('inv-discount-type').value;
+  const discountValueRaw = parseFloat(document.getElementById('inv-discount-value').value) || 0;
+  let discountAmount = 0;
+  if (discountType === 'percent') discountAmount = subtotal * (discountValueRaw / 100);
+  else if (discountType === 'amount') discountAmount = discountValueRaw;
+  discountAmount = Math.min(discountAmount, subtotal);
+
+  const total = subtotal - discountAmount;
+
+  document.getElementById('inv-subtotal-display').textContent = subtotal.toFixed(2);
+  document.getElementById('inv-discount-display').textContent = '-' + discountAmount.toFixed(2);
+  document.getElementById('inv-total-display').textContent = total.toFixed(2);
+
+  return { subtotal, discountAmount, total };
+}
+
+async function saveInvoiceForm() {
+  const btn = document.getElementById('invoice-save-btn');
+  const msgEl = document.getElementById('invoice-form-msg');
+  const clientName = document.getElementById('inv-client-name').value.trim();
+  const clientPhone = document.getElementById('inv-client-phone').value.trim();
+  const currency = document.getElementById('inv-currency').value;
+  const discountType = document.getElementById('inv-discount-type').value;
+  const discountValue = parseFloat(document.getElementById('inv-discount-value').value) || 0;
+  const notes = document.getElementById('inv-notes').value.trim();
+  const items = readInvoiceItemsFromForm();
+
+  if (!clientName) { msgEl.textContent = "Merci d'indiquer le nom du client."; return; }
+  if (items.length === 0) { msgEl.textContent = 'Ajoute au moins un article ou service avec une quantité.'; return; }
+
+  const { subtotal, discountAmount, total } = recalcInvoiceTotals();
+
+  if (btn.disabled) return;
+  btn.disabled = true;
+  btn.textContent = 'Enregistrement...';
+  msgEl.textContent = '';
+
+  const payload = {
+    ownerUid: currentUser.uid,
+    clientName, clientPhone, currency,
+    items, discountType, discountValue,
+    subtotal, discountAmount, total, notes,
+    updatedAt: new Date().toISOString()
+  };
+
+  try {
+    if (invoiceEditingId) {
+      await db.collection('invoices').doc(invoiceEditingId).update(payload);
+    } else {
+      payload.createdAt = new Date().toISOString();
+      const counterRef = db.collection('invoice_counters').doc(currentUser.uid);
+      const invRef = db.collection('invoices').doc();
+      await db.runTransaction(async tx => {
+        const counterDoc = await tx.get(counterRef);
+        const next = (counterDoc.exists ? (counterDoc.data().count || 0) : 0) + 1;
+        payload.number = 'FA-' + String(next).padStart(4, '0');
+        tx.set(counterRef, { count: next }, { merge: true });
+        tx.set(invRef, payload);
+      });
+    }
+    closeInvoiceForm();
+    invoicesCache = null;
+    showToast(invoiceEditingId ? 'Facture modifiée' : 'Facture créée', 'success');
+    loadInvoices();
+  } catch (e) {
+    msgEl.textContent = friendlyErrorMessage(e);
+    btn.disabled = false;
+    btn.textContent = invoiceEditingId ? 'Enregistrer les modifications' : 'Enregistrer la facture';
+  }
+}
+
+/* ---- Consultation / impression / suppression ---- */
+
+async function viewInvoice(invoiceId) {
+  let inv = (invoicesCache || []).find(i => i.id === invoiceId);
+  if (!inv) {
+    try {
+      const doc = await db.collection('invoices').doc(invoiceId).get();
+      if (!doc.exists) { showToast('Facture introuvable', 'error'); return; }
+      inv = { id: doc.id, ...doc.data() };
+    } catch (e) {
+      showToast(friendlyErrorMessage(e), 'error');
+      return;
+    }
+  }
+  if (document.getElementById('invoice-view-modal')) return;
+
+  const dateLabel = inv.createdAt ? new Date(inv.createdAt).toLocaleDateString('fr-FR') : '';
+  const currency = inv.currency || 'USD';
+  const itemsHtml = (inv.items || []).map(it => `
+    <div style="display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-bottom:1px solid var(--line);font-size:0.88rem">
+      <span style="flex:1">${escapeHtml(it.desc)}<br><span class="muted small">${it.qty} × ${(it.price || 0).toFixed(2)}</span></span>
+      <strong>${(it.qty * it.price).toFixed(2)}</strong>
+    </div>`).join('');
+
+  const html = `
+    <div class="modal-overlay" id="invoice-view-modal">
+      <div class="modal" style="max-width:460px">
+        <button class="modal-close" onclick="document.getElementById('invoice-view-modal').remove()" aria-label="Fermer">×</button>
+        <h3 style="margin-bottom:4px">Facture ${escapeHtml(inv.number || '')}</h3>
+        <p class="muted small" style="margin-bottom:14px">${escapeHtml(dateLabel)}</p>
+
+        <p style="margin-bottom:4px"><strong>${escapeHtml(inv.clientName || 'Client')}</strong></p>
+        ${inv.clientPhone ? `<p class="muted small" style="margin-bottom:14px">${escapeHtml(inv.clientPhone)}</p>` : '<div style="margin-bottom:14px"></div>'}
+
+        <div style="margin-bottom:10px">${itemsHtml}</div>
+
+        <div style="display:flex;justify-content:space-between;font-size:0.88rem;margin-bottom:4px">
+          <span class="muted">Sous-total</span><span>${(inv.subtotal || 0).toFixed(2)} ${escapeHtml(currency)}</span>
+        </div>
+        ${inv.discountAmount ? `<div style="display:flex;justify-content:space-between;font-size:0.88rem;margin-bottom:4px">
+          <span class="muted">Remise</span><span>-${(inv.discountAmount || 0).toFixed(2)} ${escapeHtml(currency)}</span>
+        </div>` : ''}
+        <div style="display:flex;justify-content:space-between;font-weight:800;font-size:1.05rem;margin-top:6px;padding-top:6px;border-top:1px solid var(--line);margin-bottom:16px">
+          <span>Total</span><span>${(inv.total || 0).toFixed(2)} ${escapeHtml(currency)}</span>
+        </div>
+        ${inv.notes ? `<p class="muted small" style="margin-bottom:16px">${escapeHtml(inv.notes)}</p>` : ''}
+
+        <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:10px" onclick="printInvoice('${inv.id}')">Imprimer / Télécharger PDF</button>
+        <button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:10px" onclick="document.getElementById('invoice-view-modal').remove();openInvoiceForm('${inv.id}')">Modifier</button>
+        <button class="btn btn-outline" style="width:100%;justify-content:center;color:var(--red);border-color:var(--red)" onclick="deleteInvoiceConfirm('${inv.id}')">Supprimer</button>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+function printInvoice(invoiceId) {
+  const inv = (invoicesCache || []).find(i => i.id === invoiceId);
+  if (!inv) return;
+  const currency = inv.currency || 'USD';
+  const dateLabel = inv.createdAt ? new Date(inv.createdAt).toLocaleDateString('fr-FR') : '';
+  const rowsHtml = (inv.items || []).map(it => `
+    <tr>
+      <td style="padding:6px 4px">${escapeHtml(it.desc)}</td>
+      <td style="padding:6px 4px;text-align:center">${it.qty}</td>
+      <td style="padding:6px 4px;text-align:right">${(it.price || 0).toFixed(2)}</td>
+      <td style="padding:6px 4px;text-align:right">${(it.qty * it.price).toFixed(2)}</td>
+    </tr>`).join('');
+
+  const sheetHtml = `
+    <div style="max-width:700px;margin:0 auto;font-family:Arial,sans-serif;color:#161a1f">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px">
+        <div>
+          <h1 style="font-size:1.4rem;margin:0 0 4px;color:#0e6b45">CoeurNoh Business</h1>
+          <p style="margin:0;font-size:0.85rem;color:#5b6472">Facture ${escapeHtml(inv.number || '')}</p>
+        </div>
+        <div style="text-align:right;font-size:0.85rem;color:#5b6472">${escapeHtml(dateLabel)}</div>
+      </div>
+      <div style="margin-bottom:20px">
+        <p style="margin:0;font-size:0.8rem;color:#5b6472">Facturé à</p>
+        <p style="margin:2px 0 0;font-weight:700">${escapeHtml(inv.clientName || 'Client')}</p>
+        ${inv.clientPhone ? `<p style="margin:2px 0 0;font-size:0.85rem;color:#5b6472">${escapeHtml(inv.clientPhone)}</p>` : ''}
+      </div>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:20px">
+        <thead>
+          <tr style="border-bottom:2px solid #161a1f;font-size:0.8rem;text-align:left">
+            <th style="padding:6px 4px">Description</th>
+            <th style="padding:6px 4px;text-align:center">Qté</th>
+            <th style="padding:6px 4px;text-align:right">Prix</th>
+            <th style="padding:6px 4px;text-align:right">Total</th>
+          </tr>
+        </thead>
+        <tbody style="font-size:0.88rem">${rowsHtml}</tbody>
+      </table>
+      <div style="width:220px;margin-left:auto;font-size:0.9rem">
+        <div style="display:flex;justify-content:space-between;padding:4px 0"><span>Sous-total</span><span>${(inv.subtotal || 0).toFixed(2)} ${escapeHtml(currency)}</span></div>
+        ${inv.discountAmount ? `<div style="display:flex;justify-content:space-between;padding:4px 0"><span>Remise</span><span>-${(inv.discountAmount || 0).toFixed(2)} ${escapeHtml(currency)}</span></div>` : ''}
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-top:2px solid #161a1f;font-weight:800;font-size:1.05rem"><span>Total</span><span>${(inv.total || 0).toFixed(2)} ${escapeHtml(currency)}</span></div>
+      </div>
+      ${inv.notes ? `<p style="margin-top:24px;font-size:0.85rem;color:#5b6472">${escapeHtml(inv.notes)}</p>` : ''}
+    </div>`;
+
+  document.getElementById('invoice-print-sheet').innerHTML = sheetHtml;
+  window.print();
+}
+
+async function deleteInvoiceConfirm(invoiceId) {
+  if (!confirm('Supprimer définitivement cette facture ?')) return;
+  try {
+    await db.collection('invoices').doc(invoiceId).delete();
+    const viewModal = document.getElementById('invoice-view-modal');
+    if (viewModal) viewModal.remove();
+    invoicesCache = null;
+    showToast('Facture supprimée', 'info');
+    loadInvoices();
+  } catch (e) {
+    showToast(friendlyErrorMessage(e), 'error');
+  }
+}
+
 function closeAccountSearchOnBlur() {
   // Petit delai pour laisser le temps au clic sur un resultat de se
   // declencher (onmousedown, pas onclick) avant que la liste disparaisse.

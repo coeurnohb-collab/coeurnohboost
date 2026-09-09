@@ -380,6 +380,24 @@ a{text-decoration:none;color:inherit}
   font-size:0.95rem;background:var(--cream);
 }
 .field input:focus{outline:none;border-color:var(--green)}
+
+/* FACTURES & REÇUS */
+.invoice-item-row{display:flex;gap:6px;margin-bottom:8px;align-items:center}
+.invoice-item-row .inv-item-desc{flex:2;min-width:0}
+.invoice-item-row .inv-item-qty{flex:0 0 54px;padding:11px 6px;text-align:center}
+.invoice-item-row .inv-item-price{flex:0 0 72px;padding:11px 6px;text-align:right}
+.invoice-row-remove{
+  flex:0 0 32px;height:32px;border:none;background:var(--green-light);color:var(--red);
+  border-radius:8px;font-size:1.1rem;line-height:1;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+}
+.invoice-row-remove:hover{background:rgba(195,24,63,0.12)}
+
+@media print{
+  body *{visibility:hidden}
+  #invoice-print-sheet, #invoice-print-sheet *{visibility:visible}
+  #invoice-print-sheet{position:absolute;top:0;left:0;width:100%;padding:24px;display:block!important}
+}
 .password-wrap{position:relative}
 .password-wrap input{padding-right:70px}
 .password-toggle{
