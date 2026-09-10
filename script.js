@@ -537,7 +537,6 @@ async function buyBundle(platformId, idx) {
       return;
     }
     currentUser.balance = data.newBalance;
-    document.getElementById('dash-balance').textContent = data.newBalance.toFixed(2) + '$';
     document.getElementById('wallet-balance').textContent = data.newBalance.toFixed(2) + '$';
     okEl.textContent = t('order_success');
     okEl.classList.remove('hidden');
@@ -1147,7 +1146,6 @@ async function buyMonetizationPackage(platformId) {
       return;
     }
     currentUser.balance = data.newBalance;
-    document.getElementById('dash-balance').textContent = data.newBalance.toFixed(2) + '$';
     document.getElementById('wallet-balance').textContent = data.newBalance.toFixed(2) + '$';
     okEl.textContent = t('order_success');
     okEl.classList.remove('hidden');
@@ -3856,6 +3854,11 @@ async function saveDirectoryListing() {
     showToast('Fiche enregistrée', 'success');
     updateDirectoryMyListingButton();
     loadDirectoryListings();
+    // Si c'est l'ecran "Pres de chez vous" qui est actuellement affiche
+    // (fiche creee via son raccourci), le rafraichir aussi -- sinon la
+    // nouvelle fiche n'apparaissait qu'apres avoir quitte puis rouvert cet ecran.
+    const nearbyScreen = document.getElementById('menu-screen-nearby');
+    if (nearbyScreen && !nearbyScreen.classList.contains('hidden')) loadNearbyListings();
   } catch (e) {
     msgEl.textContent = friendlyErrorMessage(e);
     btn.disabled = false;
@@ -3873,6 +3876,8 @@ async function deleteDirectoryListing() {
     showToast('Fiche supprimée', 'info');
     updateDirectoryMyListingButton();
     loadDirectoryListings();
+    const nearbyScreen = document.getElementById('menu-screen-nearby');
+    if (nearbyScreen && !nearbyScreen.classList.contains('hidden')) loadNearbyListings();
   } catch (e) {
     showToast(friendlyErrorMessage(e), 'error');
   }
@@ -3898,12 +3903,15 @@ async function loadInvoices() {
   const listEl = document.getElementById('invoice-list');
   listEl.innerHTML = renderFeedSkeletons(2);
   try {
+    // Meme raison que pour "alerts" : pas d'orderBy pour eviter d'exiger
+    // un index Firestore compose inexistant sur cette collection neuve.
     const snap = await db.collection('invoices')
       .where('ownerUid', '==', currentUser.uid)
-      .orderBy('createdAt', 'desc')
       .limit(200)
       .get();
-    invoicesCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    invoicesCache = snap.docs
+      .map(d => ({ id: d.id, ...d.data() }))
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     renderInvoiceList(invoicesCache);
   } catch (e) {
     listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${escapeHtml(e.message)}</p>`;
@@ -4272,11 +4280,15 @@ async function loadAlerts() {
   const listEl = document.getElementById('alerts-list');
   listEl.innerHTML = renderFeedSkeletons(2);
   try {
+    // Pas d'orderBy ici : "alerts" est une collection neuve sans index
+    // compose pour (ownerUid, createdAt) -- Firestore refuserait la
+    // requete entiere. Tri fait cote telephone a la place.
     const snap = await db.collection('alerts')
       .where('ownerUid', '==', currentUser.uid)
-      .orderBy('createdAt', 'desc')
       .get();
-    alertsCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    alertsCache = snap.docs
+      .map(d => ({ id: d.id, ...d.data() }))
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     renderAlertsList(alertsCache);
   } catch (e) {
     listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${escapeHtml(e.message)}</p>`;
@@ -4479,7 +4491,11 @@ async function loadNearbyListings() {
   const resultsEl = document.getElementById('nearby-results');
   resultsEl.innerHTML = renderFeedSkeletons(2);
   try {
-    await fetchAllListings();
+    // AVANT : reutilisait le cache existant sans jamais le rafraichir --
+    // une fiche fraichement creee/modifiee pouvait ne pas apparaitre ici
+    // tant que le cache n'etait pas vide ailleurs (ex: en revisitant
+    // l'Annuaire). Force maintenant toujours des donnees a jour.
+    await fetchAllListings(true);
     runNearbyFilter();
   } catch (e) {
     resultsEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
@@ -4804,12 +4820,15 @@ async function viewContest(contestId) {
 async function loadContestEntries(contestId, status) {
   const listEl = document.getElementById(`contest-entries-list-${contestId}`);
   try {
+    // Meme raison que pour "alerts"/"invoices" : "contest_entries" est
+    // une collection neuve sans index compose pour (contestId, votesCount).
     const snap = await db.collection('contest_entries')
       .where('contestId', '==', contestId)
-      .orderBy('votesCount', 'desc')
       .limit(100)
       .get();
-    const entries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const entries = snap.docs
+      .map(d => ({ id: d.id, ...d.data() }))
+      .sort((a, b) => (b.votesCount || 0) - (a.votesCount || 0));
     contestEntriesCache[contestId] = entries;
 
     if (currentUser && !contestMyVotesCache) {
