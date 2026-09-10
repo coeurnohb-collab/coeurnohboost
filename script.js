@@ -3683,92 +3683,35 @@ function selectAccountSearchResult(uid, name, verified) {
   openProfileModal(uid, name, verified);
 }
 
-/* ================= ANNUAIRE PROFESSIONNEL =================
+/* ================= FICHES PROFESSIONNELLES =================
    Une fiche par personne (id du document = son propre uid), publique en
-   lecture. Meme principe de recherche que "Rechercher un compte" : on
-   charge un lot de fiches une fois, mis en cache, puis on filtre cote
-   telephone a chaque lettre tapee (pas de nouvel index Firestore requis). */
+   lecture. Utilisees par le service "Pres de chez vous" (recherche +
+   categories + ville) -- l'ancien ecran separe "Annuaire professionnel"
+   faisait exactement la meme chose avec juste une recherche texte en moins
+   les categories/ville, donc les deux ont ete fusionnes en un seul service
+   pour ne pas avoir deux endroits qui montrent les memes fiches. */
 let directoryCache = null;
-let directorySearchDebounce = null;
 let directoryIsEditingExisting = false;
 
-function openDirectoryScreen() {
-  showMenuScreen('directory');
-  directoryCache = null; // toujours repartir sur des donnees fraiches en entrant
-  updateDirectoryMyListingButton();
-  loadDirectoryListings();
-}
-
 async function updateDirectoryMyListingButton() {
-  const btn = document.getElementById('directory-my-listing-btn');
-  if (!currentUser) { btn.textContent = '➕ Créer ma fiche professionnelle'; return; }
+  const labelEl = document.getElementById('directory-my-listing-label');
+  if (!labelEl) return;
+  if (!currentUser) { labelEl.textContent = 'Créer ma fiche professionnelle'; return; }
   try {
     const doc = await db.collection('directory_listings').doc(currentUser.uid).get();
-    btn.textContent = doc.exists ? '✏️ Modifier ma fiche professionnelle' : '➕ Créer ma fiche professionnelle';
+    labelEl.textContent = doc.exists ? 'Modifier ma fiche professionnelle' : 'Créer ma fiche professionnelle';
   } catch (e) {
-    console.log('[annuaire] non bloquant :', e.message);
-  }
-}
-
-async function loadDirectoryListings() {
-  const resultsEl = document.getElementById('directory-results');
-  resultsEl.innerHTML = renderFeedSkeletons(2);
-  try {
-    await fetchAllListings(true);
-    renderDirectoryResults(directoryCache);
-  } catch (e) {
-    resultsEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+    console.log('[fiches pro] non bloquant :', e.message);
   }
 }
 
 // Charge les fiches professionnelles une seule fois et les met en cache
-// (directoryCache), partagees entre l'Annuaire professionnel ET Pres de
-// chez vous : les deux ecrans affichent les memes fiches, juste filtrees
-// differemment, donc pas besoin de dupliquer la lecture Firestore.
+// (directoryCache), utilisees par "Pres de chez vous".
 async function fetchAllListings(force) {
   if (directoryCache && !force) return directoryCache;
   const snap = await db.collection('directory_listings').limit(300).get();
   directoryCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
   return directoryCache;
-}
-
-function scheduleDirectorySearch(query) {
-  clearTimeout(directorySearchDebounce);
-  directorySearchDebounce = setTimeout(() => runDirectorySearch(query.trim()), 250);
-}
-
-function runDirectorySearch(q) {
-  if (!directoryCache) return; // encore en train de charger, la recherche se fera au chargement
-  if (!q) { renderDirectoryResults(directoryCache); return; }
-  const qLower = q.toLowerCase();
-  const matches = directoryCache.filter(f =>
-    (f.profession || '').toLowerCase().includes(qLower) ||
-    (f.city || '').toLowerCase().includes(qLower) ||
-    (f.name || '').toLowerCase().includes(qLower)
-  );
-  renderDirectoryResults(matches);
-}
-
-function renderDirectoryResults(list) {
-  const resultsEl = document.getElementById('directory-results');
-  const visible = list.filter(f => !blockedSet.has(f.ownerUid));
-
-  if (visible.length === 0) {
-    resultsEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Aucune fiche trouvée. Sois peut-être le premier à en créer une !</p>';
-    return;
-  }
-
-  resultsEl.innerHTML = visible.map(f => {
-    const waLink = f.phone ? `https://wa.me/${f.phone.replace(/\D/g, '')}` : null;
-    return `
-    <div class="order-box" style="margin-bottom:12px">
-      <strong style="font-size:1.02rem">${escapeHtml(f.name || 'Professionnel')}</strong>
-      <div class="shop-card-category" style="margin:6px 0">${escapeHtml(f.profession || '—')}</div>
-      ${f.city ? `<div class="muted small" style="margin-bottom:8px">📍 ${escapeHtml(f.city)}</div>` : ''}
-      ${f.description ? `<p class="muted small" style="margin-bottom:10px">${escapeHtml(f.description)}</p>` : ''}
-      ${waLink ? `<a class="btn btn-outline btn-sm" href="${escapeHtml(waLink)}" target="_blank">${ICON_WHATSAPP} Contacter</a>` : ''}
-    </div>`;
-  }).join('');
 }
 
 function openDirectoryEditForm() {
@@ -3853,12 +3796,7 @@ async function saveDirectoryListing() {
     directoryCache = null;
     showToast('Fiche enregistrée', 'success');
     updateDirectoryMyListingButton();
-    loadDirectoryListings();
-    // Si c'est l'ecran "Pres de chez vous" qui est actuellement affiche
-    // (fiche creee via son raccourci), le rafraichir aussi -- sinon la
-    // nouvelle fiche n'apparaissait qu'apres avoir quitte puis rouvert cet ecran.
-    const nearbyScreen = document.getElementById('menu-screen-nearby');
-    if (nearbyScreen && !nearbyScreen.classList.contains('hidden')) loadNearbyListings();
+    loadNearbyListings();
   } catch (e) {
     msgEl.textContent = friendlyErrorMessage(e);
     btn.disabled = false;
@@ -3875,9 +3813,7 @@ async function deleteDirectoryListing() {
     directoryCache = null;
     showToast('Fiche supprimée', 'info');
     updateDirectoryMyListingButton();
-    loadDirectoryListings();
-    const nearbyScreen = document.getElementById('menu-screen-nearby');
-    if (nearbyScreen && !nearbyScreen.classList.contains('hidden')) loadNearbyListings();
+    loadNearbyListings();
   } catch (e) {
     showToast(friendlyErrorMessage(e), 'error');
   }
@@ -4458,15 +4394,12 @@ async function checkAlertsForNewProduct(product) {
 }
 
 /* ================= PRES DE CHEZ VOUS =================
-   Reutilise entierement les fiches de l'Annuaire professionnel
-   (directory_listings, meme cache "directoryCache" via fetchAllListings) --
-   aucune nouvelle collection Firestore. Ce service ajoute juste une facon
-   de les DECOUVRIR : par ville tapee et par categorie (restaurants,
-   coiffeurs, mecaniciens...). Chaque fiche peut desormais avoir un champ
-   "category" optionnel (ajoute dans le formulaire de l'Annuaire) ; les
-   fiches existantes sans categorie restent visibles dans "Tous" mais
-   n'apparaissent pas encore dans un filtre categorie precis tant que leur
-   proprietaire n'a pas complete sa fiche. */
+   Service unique de decouverte des fiches professionnelles -- fusionne
+   avec l'ancien ecran separe "Annuaire professionnel" (qui affichait les
+   memes fiches avec juste une recherche texte, sans categories ni ville).
+   Desormais un seul endroit : recherche libre (metier, nom, ville) +
+   filtre categorie (restaurants, coiffeurs, mecaniciens...), sur les memes
+   fiches "directory_listings" mises en cache par fetchAllListings(). */
 const NEARBY_CATEGORY_LABELS = {
   restaurants: 'Restaurants', coiffeurs: 'Coiffeurs', mecaniciens: 'Mécaniciens',
   photographes: 'Photographes', informaticiens: 'Informaticiens', boutiques: 'Boutiques',
@@ -4477,13 +4410,7 @@ let nearbySearchDebounce = null;
 
 function openNearbyScreen() {
   showMenuScreen('nearby');
-  // Pre-remplit la ville avec celle deja indiquee sur ma propre fiche
-  // professionnelle si j'en ai une, pour eviter une saisie inutile.
-  const cityInput = document.getElementById('nearby-city-input');
-  if (currentUser && !cityInput.value && directoryCache) {
-    const mine = directoryCache.find(f => f.ownerUid === currentUser.uid);
-    if (mine && mine.city) cityInput.value = mine.city;
-  }
+  updateDirectoryMyListingButton();
   loadNearbyListings();
 }
 
@@ -4491,10 +4418,8 @@ async function loadNearbyListings() {
   const resultsEl = document.getElementById('nearby-results');
   resultsEl.innerHTML = renderFeedSkeletons(2);
   try {
-    // AVANT : reutilisait le cache existant sans jamais le rafraichir --
-    // une fiche fraichement creee/modifiee pouvait ne pas apparaitre ici
-    // tant que le cache n'etait pas vide ailleurs (ex: en revisitant
-    // l'Annuaire). Force maintenant toujours des donnees a jour.
+    // Force toujours des donnees a jour en entrant sur l'ecran : une fiche
+    // fraichement creee/modifiee doit apparaitre immediatement.
     await fetchAllListings(true);
     runNearbyFilter();
   } catch (e) {
@@ -4517,11 +4442,14 @@ function scheduleNearbySearch() {
 
 function runNearbyFilter() {
   if (!directoryCache) return; // encore en train de charger
-  const cityQuery = document.getElementById('nearby-city-input').value.trim().toLowerCase();
+  const query = document.getElementById('nearby-search-input').value.trim().toLowerCase();
 
   const matches = directoryCache.filter(f => {
     if (nearbySelectedCategory && f.category !== nearbySelectedCategory) return false;
-    if (cityQuery && !(f.city || '').toLowerCase().includes(cityQuery)) return false;
+    if (query) {
+      const haystack = `${f.profession || ''} ${f.name || ''} ${f.city || ''}`.toLowerCase();
+      if (!haystack.includes(query)) return false;
+    }
     return true;
   });
   renderNearbyResults(matches);
@@ -4532,7 +4460,7 @@ function renderNearbyResults(list) {
   const visible = list.filter(f => !blockedSet.has(f.ownerUid));
 
   if (visible.length === 0) {
-    resultsEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Aucun résultat pour l\'instant dans cette catégorie/ville. Élargis ta recherche, ou invite les professionnels autour de toi à créer leur fiche dans l\'Annuaire.</p>';
+    resultsEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Aucun résultat pour l\'instant. Élargis ta recherche, ou sois le premier à créer ta fiche.</p>';
     return;
   }
 
@@ -4546,7 +4474,7 @@ function renderNearbyResults(list) {
         ${catLabel ? `<span class="shop-card-category" style="white-space:nowrap">${catLabel}</span>` : ''}
       </div>
       <div class="muted small" style="margin:4px 0">${escapeHtml(f.profession || '—')}</div>
-      ${f.city ? `<div class="muted small" style="margin-bottom:8px">📍 ${escapeHtml(f.city)}</div>` : ''}
+      ${f.city ? `<div class="muted small" style="margin-bottom:8px">${escapeHtml(f.city)}</div>` : ''}
       ${f.description ? `<p class="muted small" style="margin-bottom:10px">${escapeHtml(f.description)}</p>` : ''}
       ${waLink ? `<a class="btn btn-outline btn-sm" href="${escapeHtml(waLink)}" target="_blank">${ICON_WHATSAPP} Contacter</a>` : ''}
     </div>`;
@@ -4790,11 +4718,9 @@ async function viewContest(contestId) {
   } else if (!currentUser) {
     participateHtml = `<button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:14px" onclick="openAuth('login')">Se connecter pour participer</button>`;
   } else if (c.type === 'paid') {
-    participateHtml = `<div class="order-box" style="margin-bottom:14px">
-      <p class="muted small">Ce concours nécessite ${(c.entryFee || 0).toFixed(2)}$ pour participer. Le paiement par solde arrive très bientôt — la participation payante sera activée sous peu.</p>
-    </div>`;
+    participateHtml = `<button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:14px" onclick="openContestEntryForm('${c.id}', true, ${c.entryFee || 0})">Participer — ${(c.entryFee || 0).toFixed(2)}$</button>`;
   } else {
-    participateHtml = `<button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:14px" onclick="openContestEntryForm('${c.id}')">Participer</button>`;
+    participateHtml = `<button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:14px" onclick="openContestEntryForm('${c.id}', false, 0)">Participer</button>`;
   }
 
   const html = `
@@ -4876,7 +4802,7 @@ function renderContestEntries(contestId, entries, status) {
   }).join('');
 }
 
-function openContestEntryForm(contestId) {
+function openContestEntryForm(contestId, isPaid, entryFee) {
   if (!currentUser) { openAuth('login'); return; }
   if (document.getElementById('contest-entry-modal')) return;
 
@@ -4885,6 +4811,7 @@ function openContestEntryForm(contestId) {
       <div class="modal">
         <button class="modal-close" onclick="document.getElementById('contest-entry-modal').remove()" aria-label="Fermer">×</button>
         <h3 style="margin-bottom:14px">Participer au concours</h3>
+        ${isPaid ? `<p class="muted small" style="margin-bottom:14px">Frais de participation : <strong>${entryFee.toFixed(2)}$</strong>, débités de ton solde CoeurnohBoost à l'envoi.</p>` : ''}
         <div class="field">
           <label for="entry-name">Ton nom / nom d'artiste</label>
           <input type="text" id="entry-name" class="text-input" maxlength="60" value="${escapeHtml(currentUser.name || '')}">
@@ -4897,7 +4824,7 @@ function openContestEntryForm(contestId) {
           <label for="entry-caption">Message (facultatif)</label>
           <textarea id="entry-caption" class="text-input" rows="2" style="resize:vertical" maxlength="200"></textarea>
         </div>
-        <button class="btn btn-primary" id="entry-save-btn" style="width:100%;justify-content:center" onclick="saveContestEntry('${contestId}')">Envoyer ma participation</button>
+        <button class="btn btn-primary" id="entry-save-btn" style="width:100%;justify-content:center" onclick="${isPaid ? `payAndSubmitContestEntry('${contestId}')` : `saveContestEntry('${contestId}')`}">${isPaid ? `Payer ${entryFee.toFixed(2)}$ et participer` : 'Envoyer ma participation'}</button>
         <p class="muted small" id="entry-form-msg" style="margin-top:6px"></p>
       </div>
     </div>`;
@@ -4918,10 +4845,13 @@ async function saveContestEntry(contestId) {
   btn.disabled = true;
   btn.textContent = 'Envoi...';
   try {
-    await db.collection('contest_entries').add({
+    // Id deterministe "{contestId}_{uid}" : une seule participation par
+    // personne et par concours (un nouvel envoi remplace la precedente
+    // tant que le concours n'est pas termine).
+    await db.collection('contest_entries').doc(`${contestId}_${currentUser.uid}`).set({
       contestId, uid: currentUser.uid, name, submissionUrl, caption,
-      votesCount: 0, createdAt: new Date().toISOString()
-    });
+      votesCount: 0, paid: false, createdAt: new Date().toISOString()
+    }, { merge: true });
     document.getElementById('contest-entry-modal').remove();
     showToast('Participation envoyée', 'success');
     const status = computeContestStatus((contestsCache || []).find(c => c.id === contestId) || {});
@@ -4930,6 +4860,50 @@ async function saveContestEntry(contestId) {
     msgEl.textContent = friendlyErrorMessage(e);
     btn.disabled = false;
     btn.textContent = 'Envoyer ma participation';
+  }
+}
+
+// Concours PAYANT : passe par le serveur (firebase-admin) qui verifie le
+// jeton, deduit le solde et cree la participation dans UNE SEULE
+// transaction securisee -- exactement le meme principe que le paiement de
+// la Boutique (api/shop-purchase.js). Voir api/contest-entry-payment.js.
+async function payAndSubmitContestEntry(contestId) {
+  const btn = document.getElementById('entry-save-btn');
+  const msgEl = document.getElementById('entry-form-msg');
+  const name = document.getElementById('entry-name').value.trim();
+  const submissionUrl = document.getElementById('entry-url').value.trim();
+  const caption = document.getElementById('entry-caption').value.trim();
+
+  if (!name) { msgEl.textContent = 'Merci d\'indiquer ton nom.'; return; }
+  if (!submissionUrl || !submissionUrl.startsWith('http')) { msgEl.textContent = 'Merci de coller un lien valide vers ta participation.'; return; }
+
+  if (btn.disabled) return;
+  btn.disabled = true;
+  const originalLabel = btn.textContent;
+  btn.textContent = 'Paiement en cours...';
+  msgEl.textContent = '';
+
+  try {
+    const idToken = await auth.currentUser.getIdToken();
+    const resp = await fetch('/api/contest-entry-payment', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken, contestId, name, submissionUrl, caption })
+    });
+    const data = await resp.json();
+    if (!data.success) throw new Error(data.error || 'Le paiement a échoué.');
+
+    currentUser.balance = data.newBalance;
+    const dashBalanceEl = document.getElementById('dash-balance');
+    if (dashBalanceEl) dashBalanceEl.textContent = data.newBalance.toFixed(2) + '$';
+    document.getElementById('contest-entry-modal').remove();
+    showToast('Participation payée et confirmée', 'success');
+    const status = computeContestStatus((contestsCache || []).find(c => c.id === contestId) || {});
+    loadContestEntries(contestId, status);
+  } catch (e) {
+    msgEl.textContent = friendlyErrorMessage(e);
+    btn.disabled = false;
+    btn.textContent = originalLabel;
   }
 }
 
