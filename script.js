@@ -5074,14 +5074,505 @@ async function loadSavedFeed() {
   }
 }
 
+/* ================= EMPLOI & FREELANCE =================
+   "job_offers" (creee par n'importe quel utilisateur, comme une publication
+   -- pas de "profil recruteur" separe a creer, meme logique legere que
+   l'espace Vendeur de la Boutique) -- "job_applications" (une candidature =
+   un document, id deterministe "{offerId}_{uid}" pour empecher les
+   candidatures en double sur la meme offre, meme principe que
+   contest_entries). Le champ "featured" (mise en avant) n'est modifiable
+   que par l'admin via les regles Firestore -- gere depuis l'espace
+   administratif, pas depuis cette interface utilisateur. */
+const JOB_TYPE_LABELS = { emploi: 'Emploi', stage: 'Stage', freelance: 'Freelance', 'petit-boulot': 'Petit boulot' };
+const JOB_CONTRACT_LABELS = { cdi: 'CDI', cdd: 'CDD', freelance: 'Freelance / Prestation', stage: 'Stage', temporaire: 'Temporaire / Ponctuel' };
+const JOB_APP_STATUS_LABELS = { envoyee: 'Envoyée', vue: 'Vue', acceptee: 'Acceptée', refusee: 'Refusée' };
+
+let jobsCache = null; // offres actives, mises en cache pour filtrer sans re-interroger a chaque frappe
+let jobsCurrentTab = 'browse';
+let jobsTypeFilter = '';
+let jobsSearchDebounce = null;
+let myJobOffersCache = null;
+let editingJobOfferId = null; // non-null = formulaire en mode modification
+let currentJobApplyOfferId = null;
+let currentJobDetailId = null;
+
+function openJobsScreen() {
+  showMenuScreen('jobs');
+  setJobsTab(jobsCurrentTab || 'browse');
+}
+
+function setJobsTab(tab) {
+  jobsCurrentTab = tab;
+  document.querySelectorAll('#jobs-main-tabs button').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.tab === tab);
+  });
+  ['browse', 'myapps', 'myoffers'].forEach(t => {
+    document.getElementById('jobs-tab-' + t).classList.toggle('hidden', t !== tab);
+  });
+
+  if (tab === 'browse') {
+    loadJobOffers();
+  } else if (tab === 'myapps') {
+    loadMyJobApplications();
+  } else if (tab === 'myoffers') {
+    loadMyJobOffers();
+  }
+}
+
+async function loadJobOffers() {
+  const listEl = document.getElementById('jobs-browse-list');
+  if (!jobsCache) listEl.innerHTML = renderFeedSkeletons(2);
+  try {
+    const snap = await db.collection('job_offers').where('status', '==', 'active').limit(300).get();
+    jobsCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    runJobsFilter();
+  } catch (e) {
+    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+  }
+}
+
+function setJobsTypeFilter(type) {
+  jobsTypeFilter = type;
+  document.querySelectorAll('#jobs-type-tabs button').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.type === type);
+  });
+  runJobsFilter();
+}
+
+function scheduleJobsSearch() {
+  clearTimeout(jobsSearchDebounce);
+  jobsSearchDebounce = setTimeout(runJobsFilter, 250);
+}
+
+function runJobsFilter() {
+  if (!jobsCache) return;
+  const query = document.getElementById('jobs-search-input').value.trim().toLowerCase();
+
+  const matches = jobsCache.filter(o => {
+    if (jobsTypeFilter && o.type !== jobsTypeFilter) return false;
+    if (query) {
+      const haystack = `${o.title || ''} ${o.category || ''} ${o.location || ''}`.toLowerCase();
+      if (!haystack.includes(query)) return false;
+    }
+    return true;
+  });
+  // Les offres mises en avant par l'admin remontent en premier.
+  matches.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
+  renderJobsBrowseList(matches);
+}
+
+function jobSalaryLabel(o) {
+  if (o.salaryHidden || (!o.salaryMin && !o.salaryMax)) return 'Rémunération non communiquée';
+  if (o.salaryMin && o.salaryMax) return `${o.salaryMin}$ - ${o.salaryMax}$`;
+  return `${(o.salaryMin || o.salaryMax)}$`;
+}
+
+function renderJobsBrowseList(list) {
+  const listEl = document.getElementById('jobs-browse-list');
+  if (list.length === 0) {
+    listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Aucune offre pour l\'instant. Élargis ta recherche, ou sois le premier à en publier une.</p>';
+    return;
+  }
+  listEl.innerHTML = list.map(o => `
+    <div class="order-box" style="margin-bottom:12px${o.featured ? ';border-color:#f5a623' : ''}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+        <strong style="font-size:1.02rem">${escapeHtml(o.title || 'Offre')}</strong>
+        <span class="shop-card-category">${JOB_TYPE_LABELS[o.type] || o.type}</span>
+      </div>
+      ${o.featured ? '<span class="shop-card-category" style="background:#fff4e0;color:#b5720b;margin-top:4px;display:inline-block">Mise en avant</span>' : ''}
+      <div class="muted small" style="margin:4px 0">${escapeHtml(o.location || '—')} · ${JOB_CONTRACT_LABELS[o.contractType] || ''}</div>
+      <div class="muted small" style="margin-bottom:10px">${escapeHtml(jobSalaryLabel(o))}</div>
+      <button class="btn btn-outline btn-sm" onclick="openJobDetail('${o.id}')">Voir l'offre</button>
+    </div>`).join('');
+}
+
+async function openJobDetail(offerId) {
+  currentJobDetailId = offerId;
+  const bodyEl = document.getElementById('job-detail-body');
+  bodyEl.innerHTML = '<p class="muted small">Chargement...</p>';
+  document.getElementById('job-detail-modal').classList.remove('hidden');
+
+  try {
+    const snap = await db.collection('job_offers').doc(offerId).get();
+    if (!snap.exists) {
+      bodyEl.innerHTML = '<p class="muted small">Cette offre n\'existe plus.</p>';
+      return;
+    }
+    const o = { id: snap.id, ...snap.data() };
+    const isOwner = currentUser && currentUser.uid === o.ownerUid;
+
+    let actionHtml;
+    if (isOwner) {
+      actionHtml = `
+        <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:8px" onclick="openJobCandidates('${o.id}')">Voir les candidats (${o.applicationsCount || 0})</button>
+        <button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="openJobForm('${o.id}')">Modifier l'offre</button>
+        <button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="toggleJobOfferStatus('${o.id}', '${o.status === 'active' ? 'closed' : 'active'}')">${o.status === 'active' ? 'Clôturer l\'offre' : 'Réactiver l\'offre'}</button>
+        <button class="btn btn-outline" style="width:100%;justify-content:center;color:var(--red)" onclick="deleteJobOffer('${o.id}')">Supprimer l'offre</button>`;
+    } else if (!currentUser) {
+      actionHtml = `<button class="btn btn-primary" style="width:100%;justify-content:center" onclick="openAuth('register')">Se connecter pour postuler</button>`;
+    } else if (o.status !== 'active') {
+      actionHtml = `<p class="muted small" style="text-align:center">Cette offre n'accepte plus de candidatures.</p>`;
+    } else {
+      actionHtml = `<p class="muted small" id="job-apply-status-slot">Vérification...</p>`;
+    }
+
+    bodyEl.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px">
+        <h3 style="margin:0">${escapeHtml(o.title || 'Offre')}</h3>
+        <span class="shop-card-category">${JOB_TYPE_LABELS[o.type] || o.type}</span>
+      </div>
+      <div class="muted small" style="margin-bottom:10px">${escapeHtml(o.location || '—')} · ${JOB_CONTRACT_LABELS[o.contractType] || ''}${o.category ? ' · ' + escapeHtml(o.category) : ''}</div>
+      <p style="white-space:pre-wrap;margin-bottom:10px">${escapeHtml(o.description || '')}</p>
+      <p class="muted small" style="margin-bottom:16px"><strong>${escapeHtml(jobSalaryLabel(o))}</strong></p>
+      <div id="job-detail-actions">${actionHtml}</div>
+      ${!isOwner && currentUser ? `<button class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin-top:8px" onclick="openReportModal('${o.id}', '${o.ownerUid}', 'job_offer')">Signaler cette offre</button>` : ''}
+    `;
+
+    // Verifie en arriere-plan si l'utilisateur a deja postule, sans bloquer
+    // l'affichage du reste de la fiche.
+    if (!isOwner && currentUser && o.status === 'active') {
+      const appSnap = await db.collection('job_applications').doc(`${o.id}_${currentUser.uid}`).get();
+      const slot = document.getElementById('job-apply-status-slot');
+      if (!slot) return; // la fiche a ete fermee entre-temps
+      if (appSnap.exists) {
+        const status = appSnap.data().status || 'envoyee';
+        slot.outerHTML = `<p class="muted small" style="text-align:center">Tu as déjà postulé — statut : <strong>${JOB_APP_STATUS_LABELS[status] || status}</strong></p>`;
+      } else {
+        slot.outerHTML = `<button class="btn btn-primary" style="width:100%;justify-content:center" onclick="openJobApplyForm('${o.id}', '${escapeHtml(o.title || '')}')">Postuler</button>`;
+      }
+    }
+  } catch (e) {
+    bodyEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+  }
+}
+
+function closeJobDetail() {
+  document.getElementById('job-detail-modal').classList.add('hidden');
+  currentJobDetailId = null;
+}
+
+function openJobForm(offerId = null) {
+  if (!currentUser) { openAuth('register'); return; }
+  editingJobOfferId = offerId;
+  document.getElementById('job-form-error').classList.add('hidden');
+  document.getElementById('job-form-title').textContent = offerId ? "Modifier l'offre" : 'Publier une offre';
+  document.getElementById('job-form-submit-btn').textContent = offerId ? 'Enregistrer' : 'Publier';
+
+  if (offerId) {
+    const cached = (jobsCache || []).find(o => o.id === offerId) || (myJobOffersCache || []).find(o => o.id === offerId);
+    const fill = (o) => {
+      document.getElementById('job-title-input').value = o.title || '';
+      document.getElementById('job-type-select').value = o.type || 'emploi';
+      document.getElementById('job-contract-select').value = o.contractType || 'cdi';
+      document.getElementById('job-category-input').value = o.category || '';
+      document.getElementById('job-location-input').value = o.location || '';
+      document.getElementById('job-description-input').value = o.description || '';
+      document.getElementById('job-salary-min-input').value = o.salaryMin || '';
+      document.getElementById('job-salary-max-input').value = o.salaryMax || '';
+      document.getElementById('job-salary-hidden-input').checked = !!o.salaryHidden;
+    };
+    if (cached) {
+      fill(cached);
+    } else {
+      db.collection('job_offers').doc(offerId).get().then(snap => { if (snap.exists) fill(snap.data()); });
+    }
+  } else {
+    document.getElementById('job-title-input').value = '';
+    document.getElementById('job-type-select').value = 'emploi';
+    document.getElementById('job-contract-select').value = 'cdi';
+    document.getElementById('job-category-input').value = '';
+    document.getElementById('job-location-input').value = '';
+    document.getElementById('job-description-input').value = '';
+    document.getElementById('job-salary-min-input').value = '';
+    document.getElementById('job-salary-max-input').value = '';
+    document.getElementById('job-salary-hidden-input').checked = false;
+  }
+
+  document.getElementById('job-form-modal').classList.remove('hidden');
+}
+
+function closeJobForm() {
+  document.getElementById('job-form-modal').classList.add('hidden');
+  editingJobOfferId = null;
+}
+
+async function saveJobOffer() {
+  const errEl = document.getElementById('job-form-error');
+  errEl.classList.add('hidden');
+
+  const title = document.getElementById('job-title-input').value.trim();
+  const type = document.getElementById('job-type-select').value;
+  const contractType = document.getElementById('job-contract-select').value;
+  const category = document.getElementById('job-category-input').value.trim();
+  const location = document.getElementById('job-location-input').value.trim();
+  const description = document.getElementById('job-description-input').value.trim();
+  const salaryMin = parseFloat(document.getElementById('job-salary-min-input').value) || null;
+  const salaryMax = parseFloat(document.getElementById('job-salary-max-input').value) || null;
+  const salaryHidden = document.getElementById('job-salary-hidden-input').checked;
+
+  if (!title || !location || !description) {
+    errEl.textContent = 'Merci de remplir au moins le titre, la ville et la description.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+
+  const btn = document.getElementById('job-form-submit-btn');
+  if (btn.disabled) return;
+  btn.disabled = true;
+  const originalLabel = btn.textContent;
+  btn.textContent = 'Envoi...';
+
+  try {
+    const payload = { title, type, contractType, category, location, description, salaryMin, salaryMax, salaryHidden };
+    if (editingJobOfferId) {
+      await db.collection('job_offers').doc(editingJobOfferId).update(payload);
+      showToast('Offre mise à jour', 'success');
+    } else {
+      await db.collection('job_offers').add({
+        ...payload,
+        ownerUid: currentUser.uid,
+        ownerName: currentUser.name || 'Utilisateur',
+        status: 'active',
+        featured: false,
+        applicationsCount: 0,
+        createdAt: new Date().toISOString()
+      });
+      showToast('Offre publiée', 'success');
+    }
+    closeJobForm();
+    jobsCache = null; // force un rechargement pour voir l'offre a jour
+    if (jobsCurrentTab === 'browse') loadJobOffers();
+    if (jobsCurrentTab === 'myoffers') loadMyJobOffers();
+  } catch (e) {
+    errEl.textContent = friendlyErrorMessage(e);
+    errEl.classList.remove('hidden');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = originalLabel;
+  }
+}
+
+async function toggleJobOfferStatus(offerId, newStatus) {
+  try {
+    await db.collection('job_offers').doc(offerId).update({ status: newStatus });
+    showToast(newStatus === 'active' ? 'Offre réactivée' : 'Offre clôturée', 'success');
+    jobsCache = null;
+    closeJobDetail();
+    loadMyJobOffers();
+  } catch (e) {
+    showToast(friendlyErrorMessage(e), 'error');
+  }
+}
+
+async function deleteJobOffer(offerId) {
+  if (!confirm('Supprimer définitivement cette offre ? Les candidatures reçues resteront visibles par les candidats mais ne seront plus liées à une offre active.')) return;
+  try {
+    await db.collection('job_offers').doc(offerId).delete();
+    showToast('Offre supprimée', 'success');
+    jobsCache = null;
+    closeJobDetail();
+    loadMyJobOffers();
+  } catch (e) {
+    showToast(friendlyErrorMessage(e), 'error');
+  }
+}
+
+function openJobApplyForm(offerId, offerTitle) {
+  if (!currentUser) { openAuth('register'); return; }
+  currentJobApplyOfferId = offerId;
+  document.getElementById('job-apply-offer-title').textContent = offerTitle ? `Offre : ${offerTitle}` : '';
+  document.getElementById('job-apply-message').value = '';
+  document.getElementById('job-apply-cv').value = '';
+  document.getElementById('job-apply-error').classList.add('hidden');
+  document.getElementById('job-apply-modal').classList.remove('hidden');
+}
+
+function closeJobApplyForm() {
+  document.getElementById('job-apply-modal').classList.add('hidden');
+  currentJobApplyOfferId = null;
+}
+
+async function submitJobApplication() {
+  const errEl = document.getElementById('job-apply-error');
+  errEl.classList.add('hidden');
+  if (!currentUser || !currentJobApplyOfferId) { closeJobApplyForm(); return; }
+
+  const message = document.getElementById('job-apply-message').value.trim();
+  const cvUrl = document.getElementById('job-apply-cv').value.trim();
+  if (!message) {
+    errEl.textContent = 'Merci d\'écrire un message de motivation.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+
+  const btn = document.getElementById('job-apply-submit-btn');
+  if (btn.disabled) return;
+  btn.disabled = true;
+  btn.textContent = 'Envoi...';
+
+  const offerId = currentJobApplyOfferId;
+  try {
+    const offerSnap = await db.collection('job_offers').doc(offerId).get();
+    if (!offerSnap.exists) throw new Error('OFFER_GONE');
+    const offer = offerSnap.data();
+
+    await db.collection('job_applications').doc(`${offerId}_${currentUser.uid}`).set({
+      offerId, offerOwnerUid: offer.ownerUid, offerTitle: offer.title || '',
+      applicantUid: currentUser.uid, applicantName: currentUser.name || 'Utilisateur',
+      message, cvUrl: cvUrl || null, status: 'envoyee', createdAt: new Date().toISOString()
+    });
+
+    // Compteur best-effort : une candidature reussie mais un compteur qui
+    // echoue a s'incrementer ne doit jamais bloquer l'envoi lui-meme.
+    db.collection('job_offers').doc(offerId).update({
+      applicationsCount: firebase.firestore.FieldValue.increment(1)
+    }).catch(() => {});
+
+    const title = 'Nouvelle candidature 📩';
+    const body = `${currentUser.name || "Quelqu'un"} a postulé à ton offre "${offer.title || ''}".`;
+    db.collection('notifications').add({
+      uid: offer.ownerUid, title, body, type: 'job_application', read: false,
+      url: '/?open=' + offerId, createdAt: new Date().toISOString()
+    }).catch(() => {});
+    notifyUserPush(offer.ownerUid, title, body, 'activity', '/?open=' + offerId);
+
+    closeJobApplyForm();
+    showToast('Candidature envoyée', 'success');
+    openJobDetail(offerId); // rafraichit la fiche pour montrer le statut "Envoyee"
+  } catch (e) {
+    if (e.message === 'OFFER_GONE') {
+      errEl.textContent = "Cette offre n'existe plus.";
+    } else if (e.code === 'permission-denied') {
+      errEl.textContent = 'Tu as déjà postulé à cette offre.';
+    } else {
+      errEl.textContent = friendlyErrorMessage(e);
+    }
+    errEl.classList.remove('hidden');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Envoyer ma candidature';
+  }
+}
+
+async function loadMyJobApplications() {
+  const listEl = document.getElementById('jobs-myapps-list');
+  if (!currentUser) { listEl.innerHTML = '<p class="muted small">Connecte-toi pour voir tes candidatures.</p>'; return; }
+  listEl.innerHTML = renderFeedSkeletons(2);
+  try {
+    const snap = await db.collection('job_applications').where('applicantUid', '==', currentUser.uid).get();
+    const apps = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    apps.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+
+    if (apps.length === 0) {
+      listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Tu n\'as encore postulé à aucune offre.</p>';
+      return;
+    }
+    listEl.innerHTML = apps.map(a => `
+      <div class="order-box" style="margin-bottom:12px">
+        <strong>${escapeHtml(a.offerTitle || 'Offre')}</strong>
+        <div class="muted small" style="margin:4px 0">Statut : ${JOB_APP_STATUS_LABELS[a.status] || a.status}</div>
+        <button class="btn btn-outline btn-sm" onclick="openJobDetail('${a.offerId}')">Voir l'offre</button>
+      </div>`).join('');
+  } catch (e) {
+    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+  }
+}
+
+async function loadMyJobOffers() {
+  const listEl = document.getElementById('jobs-myoffers-list');
+  if (!currentUser) { listEl.innerHTML = '<p class="muted small">Connecte-toi pour gérer tes offres.</p>'; return; }
+  listEl.innerHTML = renderFeedSkeletons(2);
+  try {
+    const snap = await db.collection('job_offers').where('ownerUid', '==', currentUser.uid).get();
+    myJobOffersCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    myJobOffersCache.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+
+    if (myJobOffersCache.length === 0) {
+      listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Tu n\'as encore publié aucune offre.</p>';
+      return;
+    }
+    listEl.innerHTML = myJobOffersCache.map(o => `
+      <div class="order-box" style="margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+          <strong>${escapeHtml(o.title || 'Offre')}</strong>
+          <span class="shop-card-category">${o.status === 'active' ? 'Active' : 'Clôturée'}</span>
+        </div>
+        <div class="muted small" style="margin:4px 0">${o.applicationsCount || 0} candidature(s)</div>
+        <button class="btn btn-outline btn-sm" onclick="openJobDetail('${o.id}')">Gérer</button>
+      </div>`).join('');
+  } catch (e) {
+    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+  }
+}
+
+async function openJobCandidates(offerId) {
+  const bodyEl = document.getElementById('job-detail-body');
+  bodyEl.innerHTML = `
+    <button class="menu-back-btn" onclick="openJobDetail('${offerId}')" aria-label="Retour" style="margin-bottom:10px">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <h3 style="margin-bottom:12px">Candidats</h3>
+    <div id="job-candidates-list"><p class="muted small">Chargement...</p></div>`;
+
+  try {
+    const snap = await db.collection('job_applications').where('offerId', '==', offerId).get();
+    const apps = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    apps.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+    const listEl = document.getElementById('job-candidates-list');
+
+    if (apps.length === 0) {
+      listEl.innerHTML = '<p class="muted small">Aucune candidature reçue pour l\'instant.</p>';
+      return;
+    }
+    listEl.innerHTML = apps.map(a => `
+      <div class="order-box" style="margin-bottom:12px">
+        <strong>${escapeHtml(a.applicantName || 'Candidat')}</strong>
+        <div class="muted small" style="margin:6px 0;white-space:pre-wrap">${escapeHtml(a.message || '')}</div>
+        ${a.cvUrl ? `<a class="btn btn-outline btn-sm" href="${escapeHtml(a.cvUrl)}" target="_blank" style="margin-bottom:8px">Voir le CV / portfolio</a>` : ''}
+        <div class="muted small" style="margin-bottom:8px">Statut : ${JOB_APP_STATUS_LABELS[a.status] || a.status}</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-outline btn-sm" onclick="setJobApplicationStatus('${a.id}', 'vue', '${offerId}')">Marquer vue</button>
+          <button class="btn btn-primary btn-sm" onclick="setJobApplicationStatus('${a.id}', 'acceptee', '${offerId}')">Accepter</button>
+          <button class="btn btn-outline btn-sm" style="color:var(--red)" onclick="setJobApplicationStatus('${a.id}', 'refusee', '${offerId}')">Refuser</button>
+        </div>
+      </div>`).join('');
+  } catch (e) {
+    document.getElementById('job-candidates-list').innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+  }
+}
+
+async function setJobApplicationStatus(appId, status, offerId) {
+  try {
+    const appSnap = await db.collection('job_applications').doc(appId).get();
+    if (!appSnap.exists) return;
+    const app = appSnap.data();
+    await db.collection('job_applications').doc(appId).update({ status });
+
+    const title = 'Ta candidature a été mise à jour';
+    const body = `Ta candidature pour "${app.offerTitle || 'une offre'}" est maintenant : ${JOB_APP_STATUS_LABELS[status] || status}.`;
+    db.collection('notifications').add({
+      uid: app.applicantUid, title, body, type: 'job_application_status', read: false,
+      url: '/?open=' + offerId, createdAt: new Date().toISOString()
+    }).catch(() => {});
+    notifyUserPush(app.applicantUid, title, body, 'activity', '/?open=' + offerId);
+
+    showToast('Statut mis à jour', 'success');
+    openJobCandidates(offerId);
+  } catch (e) {
+    showToast(friendlyErrorMessage(e), 'error');
+  }
+}
+
 /* ================= SIGNALEMENT DE CONTENU ================= */
 let reportTargetId = null;
 let reportTargetOwnerUid = null;
+let reportTargetType = 'publication';
 
-function openReportModal(pubId, ownerUid) {
+function openReportModal(pubId, ownerUid, targetType = 'publication') {
   if (!currentUser) { openAuth('register'); return; }
   reportTargetId = pubId;
   reportTargetOwnerUid = ownerUid;
+  reportTargetType = targetType;
   document.querySelectorAll('input[name="report-reason"]').forEach(el => el.checked = false);
   document.getElementById('report-comment').value = '';
   document.getElementById('report-error').style.display = 'none';
@@ -5092,6 +5583,7 @@ function closeReportModal() {
   document.getElementById('report-modal').classList.add('hidden');
   reportTargetId = null;
   reportTargetOwnerUid = null;
+  reportTargetType = 'publication';
 }
 
 async function submitReport() {
@@ -5115,7 +5607,7 @@ async function submitReport() {
 
   try {
     await db.collection('reports').add({
-      targetType: 'publication',
+      targetType: reportTargetType,
       targetId: reportTargetId,
       targetOwnerUid: reportTargetOwnerUid || null,
       reason: checked.value,
