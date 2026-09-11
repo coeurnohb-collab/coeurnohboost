@@ -6115,6 +6115,389 @@ async function openEventAttendees(eventId) {
   }
 }
 
+/* ================= COEURNOH TRAVEL =================
+   Sur le meme modele que "Evenements & Billetterie" : n'importe quel
+   utilisateur connecte peut publier un lieu ("travel_spots"), pas
+   seulement l'admin -- ce n'est pas un annuaire officiel CoeurNoh, mais un
+   espace ouvert de bons plans/lieux partages par la communaute.
+   IMPORTANT (transparence, pas de fausse fonctionnalite) : il n'existe pas
+   ici de reservation reelle d'hotel ni de paiement en ligne -- une vraie
+   reservation d'hotel/vol necessiterait une API de voyage payante (type
+   Amadeus, Booking.com Affiliate...) qui n'est pas configuree. Ce service
+   met donc en relation directe (WhatsApp / site web) entre le voyageur et
+   l'etablissement, exactement comme "Pres de chez vous" le fait deja pour
+   les professionnels -- aucune donnee ni reservation n'est simulee. */
+let travelCache = null;
+let travelFavoritesCache = null; // Set des spotId déjà en favoris pour l'utilisateur courant
+let travelMyCache = null;
+let travelCurrentTab = 'browse';
+let travelSelectedCategory = '';
+let travelSearchDebounce = null;
+let editingTravelSpotId = null;
+
+const TRAVEL_CATEGORY_LABELS = {
+  hotel: 'Hôtel', restaurant: 'Restaurant', site: 'Site touristique',
+  activite: 'Activité', bon_plan: 'Bon plan'
+};
+
+function openTravelScreen() {
+  showMenuScreen('travel');
+  setTravelTab(travelCurrentTab || 'browse');
+}
+
+function setTravelTab(tab) {
+  travelCurrentTab = tab;
+  document.querySelectorAll('#travel-main-tabs button').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.tab === tab);
+  });
+  ['browse', 'favorites', 'mine'].forEach(t => {
+    document.getElementById('travel-tab-' + t).classList.toggle('hidden', t !== tab);
+  });
+
+  if (tab === 'browse') loadTravelSpots();
+  else if (tab === 'favorites') loadTravelFavorites();
+  else if (tab === 'mine') loadMyTravelSpots();
+}
+
+async function loadTravelSpots() {
+  const listEl = document.getElementById('travel-browse-list');
+  if (!travelCache) listEl.innerHTML = renderFeedSkeletons(2);
+  try {
+    const snap = await db.collection('travel_spots').where('status', '==', 'active').limit(300).get();
+    travelCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    travelCache.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+    runTravelFilter();
+  } catch (e) {
+    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+  }
+}
+
+function setTravelCategory(cat) {
+  travelSelectedCategory = cat;
+  document.querySelectorAll('#travel-category-tabs button').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.cat === cat);
+  });
+  runTravelFilter();
+}
+
+function scheduleTravelSearch() {
+  clearTimeout(travelSearchDebounce);
+  travelSearchDebounce = setTimeout(runTravelFilter, 250);
+}
+
+function runTravelFilter() {
+  if (!travelCache) return;
+  const query = document.getElementById('travel-search-input').value.trim().toLowerCase();
+  const matches = travelCache.filter(s => {
+    if (travelSelectedCategory && s.category !== travelSelectedCategory) return false;
+    if (query) {
+      const haystack = `${s.title || ''} ${s.city || ''} ${s.country || ''}`.toLowerCase();
+      if (!haystack.includes(query)) return false;
+    }
+    return true;
+  });
+  renderTravelBrowseList(matches);
+}
+
+function renderTravelBrowseList(list) {
+  renderTravelCards(list, 'travel-browse-list', "Aucun résultat pour l'instant. Sois le premier à publier un lieu ou un bon plan.");
+}
+
+function renderTravelCards(list, targetId, emptyMessage) {
+  const listEl = document.getElementById(targetId);
+  const visible = list.filter(s => !blockedSet.has(s.ownerUid));
+
+  if (visible.length === 0) {
+    listEl.innerHTML = `<p class="muted small" style="text-align:center;padding:20px 0">${escapeHtml(emptyMessage)}</p>`;
+    return;
+  }
+
+  listEl.innerHTML = visible.map(s => `
+    <div class="order-box" style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+        <strong style="font-size:1.02rem">${escapeHtml(s.title || 'Lieu')}</strong>
+        <span class="shop-card-category" style="white-space:nowrap">${escapeHtml(TRAVEL_CATEGORY_LABELS[s.category] || s.category || '—')}</span>
+      </div>
+      <div class="muted small" style="margin:4px 0">${escapeHtml([s.city, s.country].filter(Boolean).join(', ') || '—')}</div>
+      ${s.priceIndication ? `<div class="muted small" style="margin-bottom:8px">${escapeHtml(s.priceIndication)}</div>` : ''}
+      <button class="btn btn-outline btn-sm" onclick="openTravelDetail('${s.id}')">Voir les détails</button>
+    </div>`).join('');
+}
+
+async function openTravelDetail(spotId) {
+  let spot = (travelCache || []).find(s => s.id === spotId) || (travelMyCache || []).find(s => s.id === spotId);
+  if (!spot) {
+    try {
+      const doc = await db.collection('travel_spots').doc(spotId).get();
+      if (!doc.exists) { showToast('Ce lieu n\'existe plus', 'error'); return; }
+      spot = { id: doc.id, ...doc.data() };
+    } catch (e) { showToast(friendlyErrorMessage(e), 'error'); return; }
+  }
+  if (document.getElementById('travel-detail-modal')) return;
+
+  let isFavorited = false;
+  if (currentUser) {
+    if (!travelFavoritesCache) {
+      try {
+        const favSnap = await db.collection('travel_favorites').where('uid', '==', currentUser.uid).get();
+        travelFavoritesCache = new Set(favSnap.docs.map(d => d.data().spotId));
+      } catch (e) { travelFavoritesCache = new Set(); }
+    }
+    isFavorited = travelFavoritesCache.has(spotId);
+  }
+
+  const photos = Array.isArray(spot.photos) ? spot.photos.filter(Boolean) : [];
+  const waLink = spot.whatsapp ? `https://wa.me/${spot.whatsapp.replace(/\D/g, '')}` : null;
+
+  const html = `
+    <div class="modal-overlay" id="travel-detail-modal">
+      <div class="modal" style="max-width:480px">
+        <button class="modal-close" onclick="document.getElementById('travel-detail-modal').remove()" aria-label="Fermer">×</button>
+        <div class="muted small" style="margin-bottom:4px">${escapeHtml(TRAVEL_CATEGORY_LABELS[spot.category] || spot.category || '—')}</div>
+        <h3 style="margin-bottom:4px">${escapeHtml(spot.title || 'Lieu')}</h3>
+        <p class="muted small" style="margin-bottom:12px">${escapeHtml([spot.city, spot.country].filter(Boolean).join(', '))}</p>
+        ${spot.priceIndication ? `<p class="small" style="margin-bottom:10px"><strong>${escapeHtml(spot.priceIndication)}</strong></p>` : ''}
+        ${spot.description ? `<p class="small" style="margin-bottom:14px">${escapeHtml(spot.description)}</p>` : ''}
+        ${photos.length > 0 ? `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">${photos.map((p, i) => `<a href="${escapeHtml(p)}" target="_blank" class="muted small" style="display:inline-flex;align-items:center;gap:4px">${ICON_LINK} Photo ${i + 1}</a>`).join('')}</div>` : ''}
+
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+          ${waLink ? `<a class="btn btn-outline btn-sm" href="${escapeHtml(waLink)}" target="_blank">${ICON_WHATSAPP} WhatsApp</a>` : ''}
+          ${spot.website ? `<a class="btn btn-outline btn-sm" href="${escapeHtml(spot.website)}" target="_blank">${ICON_LINK} Site web</a>` : ''}
+        </div>
+
+        <button class="btn ${isFavorited ? 'btn-outline' : 'btn-primary'}" id="travel-fav-btn" style="width:100%;justify-content:center" onclick="toggleTravelFavorite('${spot.id}')">${isFavorited ? 'Retirer des favoris' : 'Ajouter aux favoris'}</button>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+async function toggleTravelFavorite(spotId) {
+  if (!currentUser) { openAuth('login'); return; }
+  const favRef = db.collection('travel_favorites').doc(`${spotId}_${currentUser.uid}`);
+  const btn = document.getElementById('travel-fav-btn');
+  if (btn) btn.disabled = true;
+  try {
+    if (travelFavoritesCache && travelFavoritesCache.has(spotId)) {
+      await favRef.delete();
+      travelFavoritesCache.delete(spotId);
+      if (btn) { btn.textContent = 'Ajouter aux favoris'; btn.classList.remove('btn-outline'); btn.classList.add('btn-primary'); }
+      showToast('Retiré des favoris', 'info');
+    } else {
+      await favRef.set({ spotId, uid: currentUser.uid, createdAt: new Date().toISOString() });
+      if (!travelFavoritesCache) travelFavoritesCache = new Set();
+      travelFavoritesCache.add(spotId);
+      if (btn) { btn.textContent = 'Retirer des favoris'; btn.classList.add('btn-outline'); btn.classList.remove('btn-primary'); }
+      showToast('Ajouté aux favoris', 'success');
+    }
+    if (travelCurrentTab === 'favorites') loadTravelFavorites();
+  } catch (e) {
+    showToast(friendlyErrorMessage(e), 'error');
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+async function loadTravelFavorites() {
+  const listEl = document.getElementById('travel-favorites-list');
+  if (!currentUser) {
+    listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Connecte-toi pour voir tes favoris.</p>';
+    return;
+  }
+  listEl.innerHTML = renderFeedSkeletons(2);
+  try {
+    const favSnap = await db.collection('travel_favorites').where('uid', '==', currentUser.uid).get();
+    const favDocs = favSnap.docs.slice().sort((a, b) => (b.data().createdAt || '').localeCompare(a.data().createdAt || ''));
+    travelFavoritesCache = new Set(favDocs.map(d => d.data().spotId));
+
+    if (favDocs.length === 0) {
+      listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Aucun favori pour l\'instant. Touche « Ajouter aux favoris » sur un lieu qui t\'intéresse.</p>';
+      return;
+    }
+
+    const spotDocs = await Promise.all(favDocs.map(d => db.collection('travel_spots').doc(d.data().spotId).get()));
+    const spots = spotDocs.filter(d => d.exists).map(d => ({ id: d.id, ...d.data() }));
+    renderTravelCards(spots, 'travel-favorites-list', "Aucun favori pour l'instant. Touche « Ajouter aux favoris » sur un lieu qui t'intéresse.");
+  } catch (e) {
+    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+  }
+}
+
+async function loadMyTravelSpots() {
+  const listEl = document.getElementById('travel-mine-list');
+  if (!currentUser) {
+    listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Connecte-toi pour publier un lieu.</p>';
+    return;
+  }
+  listEl.innerHTML = renderFeedSkeletons(2);
+  try {
+    const snap = await db.collection('travel_spots').where('ownerUid', '==', currentUser.uid).get();
+    travelMyCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    travelMyCache.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+
+    if (travelMyCache.length === 0) {
+      listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Tu n\'as encore rien publié.</p>';
+      return;
+    }
+
+    listEl.innerHTML = travelMyCache.map(s => `
+      <div class="order-box" style="margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+          <strong style="font-size:1.02rem">${escapeHtml(s.title)}</strong>
+          <span class="shop-card-category">${s.status === 'active' ? 'Visible' : 'Masqué'}</span>
+        </div>
+        <div class="muted small" style="margin:4px 0">${escapeHtml(TRAVEL_CATEGORY_LABELS[s.category] || s.category || '—')} · ${escapeHtml([s.city, s.country].filter(Boolean).join(', '))}</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+          <button class="btn btn-outline btn-sm" onclick="openTravelForm('${s.id}')">Modifier</button>
+          <button class="btn btn-outline btn-sm" onclick="toggleTravelSpotStatus('${s.id}', '${s.status === 'active' ? 'inactive' : 'active'}')">${s.status === 'active' ? 'Masquer' : 'Réactiver'}</button>
+          <button class="btn btn-outline btn-sm" style="color:var(--red);border-color:var(--red)" onclick="deleteTravelSpot('${s.id}')">Supprimer</button>
+        </div>
+      </div>`).join('');
+  } catch (e) {
+    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+  }
+}
+
+function openTravelForm(spotId) {
+  if (!currentUser) { openAuth('login'); return; }
+  if (document.getElementById('travel-form-modal')) return;
+  editingTravelSpotId = spotId || null;
+  const existing = editingTravelSpotId ? (travelMyCache || []).find(s => s.id === editingTravelSpotId) : null;
+
+  const catOptions = Object.entries(TRAVEL_CATEGORY_LABELS)
+    .map(([val, label]) => `<option value="${val}" ${existing && existing.category === val ? 'selected' : ''}>${escapeHtml(label)}</option>`).join('');
+
+  const html = `
+    <div class="modal-overlay" id="travel-form-modal">
+      <div class="modal" style="max-width:460px">
+        <button class="modal-close" onclick="document.getElementById('travel-form-modal').remove()" aria-label="Fermer">×</button>
+        <h3 style="margin-bottom:14px">${existing ? 'Modifier le lieu' : 'Publier un lieu / bon plan'}</h3>
+        <div class="field">
+          <label for="travel-title">Titre</label>
+          <input type="text" id="travel-title" class="text-input" maxlength="100" value="${existing ? escapeHtml(existing.title || '') : ''}">
+        </div>
+        <div class="field">
+          <label for="travel-category">Catégorie</label>
+          <select id="travel-category" class="select-input">${catOptions}</select>
+        </div>
+        <div style="display:flex;gap:8px">
+          <div class="field" style="flex:1">
+            <label for="travel-city">Ville</label>
+            <input type="text" id="travel-city" class="text-input" maxlength="60" value="${existing ? escapeHtml(existing.city || '') : ''}">
+          </div>
+          <div class="field" style="flex:1">
+            <label for="travel-country">Pays</label>
+            <input type="text" id="travel-country" class="text-input" maxlength="60" value="${existing ? escapeHtml(existing.country || '') : ''}">
+          </div>
+        </div>
+        <div class="field">
+          <label for="travel-description">Description</label>
+          <textarea id="travel-description" class="text-input" rows="3" style="resize:vertical" maxlength="500">${existing ? escapeHtml(existing.description || '') : ''}</textarea>
+        </div>
+        <div class="field">
+          <label for="travel-price">Indication de prix (facultatif)</label>
+          <input type="text" id="travel-price" class="text-input" placeholder="ex: à partir de 30$/nuit" maxlength="80" value="${existing ? escapeHtml(existing.priceIndication || '') : ''}">
+        </div>
+        <div class="field">
+          <label for="travel-whatsapp">WhatsApp de contact</label>
+          <input type="tel" id="travel-whatsapp" class="text-input" placeholder="+243..." value="${existing ? escapeHtml(existing.whatsapp || '') : ''}">
+        </div>
+        <div class="field">
+          <label for="travel-website">Site web (facultatif)</label>
+          <input type="url" id="travel-website" class="text-input" placeholder="https://..." value="${existing ? escapeHtml(existing.website || '') : ''}">
+        </div>
+        <label class="field-label" style="display:block">Photos — liens (facultatif, 5 max)</label>
+        <div id="travel-photo-rows"></div>
+        <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:6px 0 14px" onclick="addTravelPhotoRow()">+ Ajouter un lien photo</button>
+
+        <button class="btn btn-primary" id="travel-save-btn" style="width:100%;justify-content:center" onclick="saveTravelSpot()">${existing ? 'Enregistrer les modifications' : 'Publier'}</button>
+        <p class="muted small" id="travel-form-msg" style="margin-top:6px"></p>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+
+  const existingPhotos = existing && Array.isArray(existing.photos) && existing.photos.length > 0 ? existing.photos : [''];
+  existingPhotos.forEach(p => addTravelPhotoRow(p));
+}
+
+function addTravelPhotoRow(value) {
+  const rowsEl = document.getElementById('travel-photo-rows');
+  if (rowsEl.children.length >= 5) return;
+  const row = document.createElement('div');
+  row.className = 'invoice-item-row';
+  row.innerHTML = `
+    <input type="url" class="text-input travel-photo-link" placeholder="https://..." value="${escapeHtml(value || '')}" style="flex:1">
+    <button type="button" class="invoice-row-remove" onclick="this.parentElement.remove()" aria-label="Retirer">×</button>`;
+  rowsEl.appendChild(row);
+}
+
+async function saveTravelSpot() {
+  const btn = document.getElementById('travel-save-btn');
+  const msgEl = document.getElementById('travel-form-msg');
+  const title = document.getElementById('travel-title').value.trim();
+  const category = document.getElementById('travel-category').value;
+  const city = document.getElementById('travel-city').value.trim();
+  const country = document.getElementById('travel-country').value.trim();
+  const description = document.getElementById('travel-description').value.trim();
+  const priceIndication = document.getElementById('travel-price').value.trim();
+  const whatsapp = document.getElementById('travel-whatsapp').value.trim();
+  const website = document.getElementById('travel-website').value.trim();
+  const photos = Array.from(document.querySelectorAll('.travel-photo-link'))
+    .map(inp => inp.value.trim()).filter(v => v.startsWith('http')).slice(0, 5);
+
+  if (!title || !city || !whatsapp) {
+    msgEl.textContent = 'Merci de remplir au moins le titre, la ville et le WhatsApp.';
+    return;
+  }
+
+  if (btn.disabled) return;
+  btn.disabled = true;
+  btn.textContent = 'Enregistrement...';
+  try {
+    const payload = { title, category, city, country, description, priceIndication, whatsapp, website: website || null, photos };
+    if (editingTravelSpotId) {
+      await db.collection('travel_spots').doc(editingTravelSpotId).update(payload);
+      showToast('Lieu mis à jour', 'success');
+    } else {
+      await db.collection('travel_spots').add({
+        ...payload, ownerUid: currentUser.uid, ownerName: currentUser.name || 'Utilisateur',
+        status: 'active', createdAt: new Date().toISOString()
+      });
+      showToast('Lieu publié', 'success');
+    }
+    document.getElementById('travel-form-modal').remove();
+    travelCache = null;
+    if (travelCurrentTab === 'browse') loadTravelSpots();
+    if (travelCurrentTab === 'mine') loadMyTravelSpots();
+  } catch (e) {
+    msgEl.textContent = friendlyErrorMessage(e);
+    btn.disabled = false;
+    btn.textContent = editingTravelSpotId ? 'Enregistrer les modifications' : 'Publier';
+  }
+}
+
+async function toggleTravelSpotStatus(spotId, newStatus) {
+  try {
+    await db.collection('travel_spots').doc(spotId).update({ status: newStatus });
+    showToast(newStatus === 'active' ? 'Lieu réactivé' : 'Lieu masqué', 'success');
+    travelCache = null;
+    loadMyTravelSpots();
+  } catch (e) {
+    showToast(friendlyErrorMessage(e), 'error');
+  }
+}
+
+async function deleteTravelSpot(spotId) {
+  if (!confirm('Supprimer définitivement cette publication ?')) return;
+  try {
+    await db.collection('travel_spots').doc(spotId).delete();
+    showToast('Publication supprimée', 'info');
+    travelCache = null;
+    loadMyTravelSpots();
+  } catch (e) {
+    showToast(friendlyErrorMessage(e), 'error');
+  }
+}
+
 /* ================= SIGNALEMENT DE CONTENU ================= */
 let reportTargetId = null;
 let reportTargetOwnerUid = null;
