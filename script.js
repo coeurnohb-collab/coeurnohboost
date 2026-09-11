@@ -7414,6 +7414,414 @@ async function openCourseStudents(courseId) {
   }
 }
 
+/* ================= COEURNOH IMMO =================
+   Sur le meme modele que "CoeurNoh Travel" et "Evenements" : n'importe quel
+   utilisateur connecte peut publier une annonce ("properties"), pas
+   seulement l'admin. Favoris dans une collection dediee "property_favorites"
+   (meme principe que "travel_favorites", pour ne pas polluer le systeme
+   generique "Enregistrements" qui est specifique aux publications de la
+   Boutique).
+   TRANSPARENCE : aucune transaction immobiliere reelle ni paiement de depot
+   ne se fait ici -- comme pour Travel, c'est une mise en relation directe
+   (WhatsApp) entre l'acheteur/locataire et le proprietaire/l'agence. */
+let immoCache = null;
+let immoFavoritesCache = null;
+let immoMyCache = null;
+let immoCurrentTab = 'browse';
+let immoSelectedTransaction = '';
+let immoSelectedType = '';
+let immoSearchDebounce = null;
+let editingImmoId = null;
+
+const IMMO_TYPE_LABELS = {
+  maison: 'Maison', appartement: 'Appartement', terrain: 'Terrain', local_commercial: 'Local commercial'
+};
+const IMMO_TRANSACTION_LABELS = { vente: 'À vendre', location: 'À louer' };
+const IMMO_STATUS_LABELS = { disponible: 'Disponible', vendu: 'Vendu', loue: 'Loué' };
+
+function openImmoScreen() {
+  showMenuScreen('immo');
+  setImmoTab(immoCurrentTab || 'browse');
+}
+
+function setImmoTab(tab) {
+  immoCurrentTab = tab;
+  document.querySelectorAll('#immo-main-tabs button').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.tab === tab);
+  });
+  ['browse', 'favorites', 'mine'].forEach(t => {
+    document.getElementById('immo-tab-' + t).classList.toggle('hidden', t !== tab);
+  });
+
+  if (tab === 'browse') loadImmoProperties();
+  else if (tab === 'favorites') loadImmoFavorites();
+  else if (tab === 'mine') loadMyImmoProperties();
+}
+
+async function loadImmoProperties() {
+  const listEl = document.getElementById('immo-browse-list');
+  if (!immoCache) listEl.innerHTML = renderFeedSkeletons(2);
+  try {
+    const snap = await db.collection('properties').where('status', '==', 'disponible').limit(300).get();
+    immoCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    immoCache.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+    runImmoFilter();
+  } catch (e) {
+    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+  }
+}
+
+function setImmoTransaction(tx) {
+  immoSelectedTransaction = tx;
+  document.querySelectorAll('#immo-transaction-tabs button').forEach(btn => btn.classList.toggle('active', btn.dataset.tx === tx));
+  runImmoFilter();
+}
+function setImmoType(type) {
+  immoSelectedType = type;
+  document.querySelectorAll('#immo-type-tabs button').forEach(btn => btn.classList.toggle('active', btn.dataset.type === type));
+  runImmoFilter();
+}
+function scheduleImmoSearch() {
+  clearTimeout(immoSearchDebounce);
+  immoSearchDebounce = setTimeout(runImmoFilter, 250);
+}
+
+function runImmoFilter() {
+  if (!immoCache) return;
+  const query = document.getElementById('immo-search-input').value.trim().toLowerCase();
+  const matches = immoCache.filter(p => {
+    if (immoSelectedTransaction && p.transactionType !== immoSelectedTransaction) return false;
+    if (immoSelectedType && p.propertyType !== immoSelectedType) return false;
+    if (query && !`${p.title || ''} ${p.city || ''}`.toLowerCase().includes(query)) return false;
+    return true;
+  });
+  renderImmoCards(matches, 'immo-browse-list', "Aucune annonce pour l'instant. Sois le premier à publier.");
+}
+
+function renderImmoCards(list, targetId, emptyMessage) {
+  const listEl = document.getElementById(targetId);
+  const visible = list.filter(p => !blockedSet.has(p.ownerUid));
+
+  if (visible.length === 0) {
+    listEl.innerHTML = `<p class="muted small" style="text-align:center;padding:20px 0">${escapeHtml(emptyMessage)}</p>`;
+    return;
+  }
+
+  listEl.innerHTML = visible.map(p => {
+    const details = [];
+    if (p.bedrooms) details.push(`${p.bedrooms} ch.`);
+    if (p.bathrooms) details.push(`${p.bathrooms} sdb`);
+    if (p.surfaceArea) details.push(escapeHtml(p.surfaceArea));
+    return `
+    <div class="order-box" style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+        <strong style="font-size:1.02rem">${escapeHtml(p.title || 'Bien immobilier')}</strong>
+        <span class="shop-card-category" style="white-space:nowrap">${escapeHtml(IMMO_TRANSACTION_LABELS[p.transactionType] || '')}</span>
+      </div>
+      <div class="muted small" style="margin:4px 0">${escapeHtml(IMMO_TYPE_LABELS[p.propertyType] || p.propertyType || '—')} · ${escapeHtml(p.city || '—')}</div>
+      ${details.length ? `<div class="muted small" style="margin-bottom:6px">${details.join(' · ')}</div>` : ''}
+      <strong style="display:block;margin-bottom:8px">${(p.price || 0).toLocaleString('fr-FR')} ${escapeHtml(p.currency || 'USD')}${p.transactionType === 'location' ? ' / mois' : ''}</strong>
+      <button class="btn btn-outline btn-sm" onclick="openImmoDetail('${p.id}')">Voir les détails</button>
+    </div>`;
+  }).join('');
+}
+
+async function openImmoDetail(propertyId) {
+  let p = (immoCache || []).find(x => x.id === propertyId) || (immoMyCache || []).find(x => x.id === propertyId);
+  if (!p) {
+    try {
+      const doc = await db.collection('properties').doc(propertyId).get();
+      if (!doc.exists) { showToast('Cette annonce n\'existe plus', 'error'); return; }
+      p = { id: doc.id, ...doc.data() };
+    } catch (e) { showToast(friendlyErrorMessage(e), 'error'); return; }
+  }
+  if (document.getElementById('immo-detail-modal')) return;
+
+  let isFavorited = false;
+  if (currentUser) {
+    if (!immoFavoritesCache) {
+      try {
+        const favSnap = await db.collection('property_favorites').where('uid', '==', currentUser.uid).get();
+        immoFavoritesCache = new Set(favSnap.docs.map(d => d.data().propertyId));
+      } catch (e) { immoFavoritesCache = new Set(); }
+    }
+    isFavorited = immoFavoritesCache.has(propertyId);
+  }
+
+  const photos = Array.isArray(p.photos) ? p.photos.filter(Boolean) : [];
+  const waLink = p.whatsapp ? `https://wa.me/${p.whatsapp.replace(/\D/g, '')}` : null;
+  const details = [];
+  if (p.bedrooms) details.push(`${p.bedrooms} chambre${p.bedrooms > 1 ? 's' : ''}`);
+  if (p.bathrooms) details.push(`${p.bathrooms} salle${p.bathrooms > 1 ? 's' : ''} de bain`);
+  if (p.surfaceArea) details.push(escapeHtml(p.surfaceArea));
+
+  const html = `
+    <div class="modal-overlay" id="immo-detail-modal">
+      <div class="modal" style="max-width:480px">
+        <button class="modal-close" onclick="document.getElementById('immo-detail-modal').remove()" aria-label="Fermer">×</button>
+        <div class="muted small" style="margin-bottom:4px">${escapeHtml(IMMO_TRANSACTION_LABELS[p.transactionType] || '')} · ${escapeHtml(IMMO_TYPE_LABELS[p.propertyType] || '')}</div>
+        <h3 style="margin-bottom:4px">${escapeHtml(p.title || 'Bien immobilier')}</h3>
+        <p class="muted small" style="margin-bottom:10px">${escapeHtml(p.city || '')}</p>
+        <strong style="display:block;font-size:1.15rem;margin-bottom:10px">${(p.price || 0).toLocaleString('fr-FR')} ${escapeHtml(p.currency || 'USD')}${p.transactionType === 'location' ? ' / mois' : ''}</strong>
+        ${details.length ? `<p class="small" style="margin-bottom:10px">${details.join(' · ')}</p>` : ''}
+        ${p.description ? `<p class="small" style="margin-bottom:14px">${escapeHtml(p.description)}</p>` : ''}
+        ${photos.length > 0 ? `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">${photos.map((ph, i) => `<a href="${escapeHtml(ph)}" target="_blank" class="muted small" style="display:inline-flex;align-items:center;gap:4px">${ICON_LINK} Photo ${i + 1}</a>`).join('')}</div>` : ''}
+
+        ${waLink ? `<a class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:10px" href="${escapeHtml(waLink)}" target="_blank">${ICON_WHATSAPP} Contacter sur WhatsApp</a>` : ''}
+        <button class="btn ${isFavorited ? 'btn-outline' : 'btn-primary'}" id="immo-fav-btn" style="width:100%;justify-content:center" onclick="toggleImmoFavorite('${p.id}')">${isFavorited ? 'Retirer des favoris' : 'Ajouter aux favoris'}</button>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+async function toggleImmoFavorite(propertyId) {
+  if (!currentUser) { openAuth('login'); return; }
+  const favRef = db.collection('property_favorites').doc(`${propertyId}_${currentUser.uid}`);
+  const btn = document.getElementById('immo-fav-btn');
+  if (btn) btn.disabled = true;
+  try {
+    if (immoFavoritesCache && immoFavoritesCache.has(propertyId)) {
+      await favRef.delete();
+      immoFavoritesCache.delete(propertyId);
+      if (btn) { btn.textContent = 'Ajouter aux favoris'; btn.classList.remove('btn-outline'); btn.classList.add('btn-primary'); }
+      showToast('Retiré des favoris', 'info');
+    } else {
+      await favRef.set({ propertyId, uid: currentUser.uid, createdAt: new Date().toISOString() });
+      if (!immoFavoritesCache) immoFavoritesCache = new Set();
+      immoFavoritesCache.add(propertyId);
+      if (btn) { btn.textContent = 'Retirer des favoris'; btn.classList.add('btn-outline'); btn.classList.remove('btn-primary'); }
+      showToast('Ajouté aux favoris', 'success');
+    }
+    if (immoCurrentTab === 'favorites') loadImmoFavorites();
+  } catch (e) {
+    showToast(friendlyErrorMessage(e), 'error');
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+async function loadImmoFavorites() {
+  const listEl = document.getElementById('immo-favorites-list');
+  if (!currentUser) {
+    listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Connecte-toi pour voir tes favoris.</p>';
+    return;
+  }
+  listEl.innerHTML = renderFeedSkeletons(2);
+  try {
+    const favSnap = await db.collection('property_favorites').where('uid', '==', currentUser.uid).get();
+    const favDocs = favSnap.docs.slice().sort((a, b) => (b.data().createdAt || '').localeCompare(a.data().createdAt || ''));
+    immoFavoritesCache = new Set(favDocs.map(d => d.data().propertyId));
+
+    if (favDocs.length === 0) {
+      listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Aucun favori pour l\'instant.</p>';
+      return;
+    }
+    const propDocs = await Promise.all(favDocs.map(d => db.collection('properties').doc(d.data().propertyId).get()));
+    const properties = propDocs.filter(d => d.exists).map(d => ({ id: d.id, ...d.data() }));
+    renderImmoCards(properties, 'immo-favorites-list', "Aucun favori pour l'instant.");
+  } catch (e) {
+    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+  }
+}
+
+async function loadMyImmoProperties() {
+  const listEl = document.getElementById('immo-mine-list');
+  if (!currentUser) {
+    listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Connecte-toi pour publier une annonce.</p>';
+    return;
+  }
+  listEl.innerHTML = renderFeedSkeletons(2);
+  try {
+    const snap = await db.collection('properties').where('ownerUid', '==', currentUser.uid).get();
+    immoMyCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    immoMyCache.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+
+    if (immoMyCache.length === 0) {
+      listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Tu n\'as encore publié aucune annonce.</p>';
+      return;
+    }
+
+    listEl.innerHTML = immoMyCache.map(p => {
+      const nextStatus = p.status === 'disponible' ? (p.transactionType === 'location' ? 'loue' : 'vendu') : 'disponible';
+      const nextLabel = p.status === 'disponible' ? `Marquer comme ${IMMO_STATUS_LABELS[nextStatus].toLowerCase()}` : 'Remettre disponible';
+      return `
+      <div class="order-box" style="margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+          <strong style="font-size:1.02rem">${escapeHtml(p.title)}</strong>
+          <span class="shop-card-category">${escapeHtml(IMMO_STATUS_LABELS[p.status] || p.status)}</span>
+        </div>
+        <div class="muted small" style="margin:4px 0">${escapeHtml(IMMO_TYPE_LABELS[p.propertyType] || '')} · ${escapeHtml(p.city || '')}</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+          <button class="btn btn-outline btn-sm" onclick="openImmoForm('${p.id}')">Modifier</button>
+          <button class="btn btn-outline btn-sm" onclick="toggleImmoStatus('${p.id}', '${nextStatus}')">${nextLabel}</button>
+          <button class="btn btn-outline btn-sm" style="color:var(--red);border-color:var(--red)" onclick="deleteImmoProperty('${p.id}')">Supprimer</button>
+        </div>
+      </div>`;
+    }).join('');
+  } catch (e) {
+    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+  }
+}
+
+function openImmoForm(propertyId) {
+  if (!currentUser) { openAuth('login'); return; }
+  if (document.getElementById('immo-form-modal')) return;
+  editingImmoId = propertyId || null;
+  const existing = editingImmoId ? (immoMyCache || []).find(p => p.id === editingImmoId) : null;
+
+  const typeOptions = Object.entries(IMMO_TYPE_LABELS)
+    .map(([val, label]) => `<option value="${val}" ${existing && existing.propertyType === val ? 'selected' : ''}>${escapeHtml(label)}</option>`).join('');
+
+  const html = `
+    <div class="modal-overlay" id="immo-form-modal">
+      <div class="modal" style="max-width:460px">
+        <button class="modal-close" onclick="document.getElementById('immo-form-modal').remove()" aria-label="Fermer">×</button>
+        <h3 style="margin-bottom:14px">${existing ? "Modifier l'annonce" : 'Publier une annonce'}</h3>
+        <div class="field">
+          <label for="immo-title">Titre</label>
+          <input type="text" id="immo-title" class="text-input" maxlength="100" value="${existing ? escapeHtml(existing.title || '') : ''}">
+        </div>
+        <div style="display:flex;gap:8px">
+          <div class="field" style="flex:1">
+            <label for="immo-transaction">Transaction</label>
+            <select id="immo-transaction" class="select-input">
+              <option value="vente" ${existing && existing.transactionType === 'vente' ? 'selected' : ''}>À vendre</option>
+              <option value="location" ${existing && existing.transactionType === 'location' ? 'selected' : ''}>À louer</option>
+            </select>
+          </div>
+          <div class="field" style="flex:1">
+            <label for="immo-type">Type de bien</label>
+            <select id="immo-type" class="select-input">${typeOptions}</select>
+          </div>
+        </div>
+        <div class="field">
+          <label for="immo-city">Ville / quartier</label>
+          <input type="text" id="immo-city" class="text-input" maxlength="80" value="${existing ? escapeHtml(existing.city || '') : ''}">
+        </div>
+        <div class="field">
+          <label for="immo-price">Prix en $ ${existing && existing.transactionType === 'location' ? '(par mois)' : ''}</label>
+          <input type="number" id="immo-price" class="text-input" min="0" step="1" value="${existing ? (existing.price || '') : ''}">
+        </div>
+        <div style="display:flex;gap:8px">
+          <div class="field" style="flex:1">
+            <label for="immo-bedrooms">Chambres (facultatif)</label>
+            <input type="number" id="immo-bedrooms" class="text-input" min="0" value="${existing && existing.bedrooms ? existing.bedrooms : ''}">
+          </div>
+          <div class="field" style="flex:1">
+            <label for="immo-bathrooms">Salles de bain (facultatif)</label>
+            <input type="number" id="immo-bathrooms" class="text-input" min="0" value="${existing && existing.bathrooms ? existing.bathrooms : ''}">
+          </div>
+        </div>
+        <div class="field">
+          <label for="immo-surface">Superficie (facultatif)</label>
+          <input type="text" id="immo-surface" class="text-input" placeholder="ex: 120 m²" value="${existing ? escapeHtml(existing.surfaceArea || '') : ''}">
+        </div>
+        <div class="field">
+          <label for="immo-description">Description</label>
+          <textarea id="immo-description" class="text-input" rows="3" style="resize:vertical" maxlength="500">${existing ? escapeHtml(existing.description || '') : ''}</textarea>
+        </div>
+        <div class="field">
+          <label for="immo-whatsapp">WhatsApp de contact</label>
+          <input type="tel" id="immo-whatsapp" class="text-input" placeholder="+243..." value="${existing ? escapeHtml(existing.whatsapp || '') : ''}">
+        </div>
+        <label class="field-label" style="display:block">Photos — liens (facultatif, 5 max)</label>
+        <div id="immo-photo-rows"></div>
+        <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:6px 0 14px" onclick="addImmoPhotoRow()">+ Ajouter un lien photo</button>
+
+        <button class="btn btn-primary" id="immo-save-btn" style="width:100%;justify-content:center" onclick="saveImmoProperty()">${existing ? 'Enregistrer les modifications' : 'Publier'}</button>
+        <p class="muted small" id="immo-form-msg" style="margin-top:6px"></p>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+
+  const existingPhotos = existing && Array.isArray(existing.photos) && existing.photos.length > 0 ? existing.photos : [''];
+  existingPhotos.forEach(ph => addImmoPhotoRow(ph));
+}
+
+function addImmoPhotoRow(value) {
+  const rowsEl = document.getElementById('immo-photo-rows');
+  if (rowsEl.children.length >= 5) return;
+  const row = document.createElement('div');
+  row.className = 'invoice-item-row';
+  row.innerHTML = `
+    <input type="url" class="text-input immo-photo-link" placeholder="https://..." value="${escapeHtml(value || '')}" style="flex:1">
+    <button type="button" class="invoice-row-remove" onclick="this.parentElement.remove()" aria-label="Retirer">×</button>`;
+  rowsEl.appendChild(row);
+}
+
+async function saveImmoProperty() {
+  const btn = document.getElementById('immo-save-btn');
+  const msgEl = document.getElementById('immo-form-msg');
+  const title = document.getElementById('immo-title').value.trim();
+  const transactionType = document.getElementById('immo-transaction').value;
+  const propertyType = document.getElementById('immo-type').value;
+  const city = document.getElementById('immo-city').value.trim();
+  const price = parseFloat(document.getElementById('immo-price').value) || 0;
+  const bedrooms = parseInt(document.getElementById('immo-bedrooms').value, 10) || null;
+  const bathrooms = parseInt(document.getElementById('immo-bathrooms').value, 10) || null;
+  const surfaceArea = document.getElementById('immo-surface').value.trim();
+  const description = document.getElementById('immo-description').value.trim();
+  const whatsapp = document.getElementById('immo-whatsapp').value.trim();
+  const photos = Array.from(document.querySelectorAll('.immo-photo-link'))
+    .map(inp => inp.value.trim()).filter(v => v.startsWith('http')).slice(0, 5);
+
+  if (!title || !city || !price || !whatsapp) {
+    msgEl.textContent = 'Merci de remplir au moins le titre, la ville, le prix et le WhatsApp.';
+    return;
+  }
+
+  if (btn.disabled) return;
+  btn.disabled = true;
+  btn.textContent = 'Enregistrement...';
+  try {
+    const payload = {
+      title, transactionType, propertyType, city, price, currency: 'USD',
+      bedrooms, bathrooms, surfaceArea, description, whatsapp, photos
+    };
+    if (editingImmoId) {
+      await db.collection('properties').doc(editingImmoId).update(payload);
+      showToast('Annonce mise à jour', 'success');
+    } else {
+      await db.collection('properties').add({
+        ...payload, ownerUid: currentUser.uid, ownerName: currentUser.name || 'Utilisateur',
+        status: 'disponible', createdAt: new Date().toISOString()
+      });
+      showToast('Annonce publiée', 'success');
+    }
+    document.getElementById('immo-form-modal').remove();
+    immoCache = null;
+    if (immoCurrentTab === 'browse') loadImmoProperties();
+    if (immoCurrentTab === 'mine') loadMyImmoProperties();
+  } catch (e) {
+    msgEl.textContent = friendlyErrorMessage(e);
+    btn.disabled = false;
+    btn.textContent = editingImmoId ? 'Enregistrer les modifications' : 'Publier';
+  }
+}
+
+async function toggleImmoStatus(propertyId, newStatus) {
+  try {
+    await db.collection('properties').doc(propertyId).update({ status: newStatus });
+    showToast('Statut mis à jour', 'success');
+    immoCache = null;
+    loadMyImmoProperties();
+  } catch (e) {
+    showToast(friendlyErrorMessage(e), 'error');
+  }
+}
+
+async function deleteImmoProperty(propertyId) {
+  if (!confirm('Supprimer définitivement cette annonce ?')) return;
+  try {
+    await db.collection('properties').doc(propertyId).delete();
+    showToast('Annonce supprimée', 'info');
+    immoCache = null;
+    loadMyImmoProperties();
+  } catch (e) {
+    showToast(friendlyErrorMessage(e), 'error');
+  }
+}
+
 /* ================= SIGNALEMENT DE CONTENU ================= */
 let reportTargetId = null;
 let reportTargetOwnerUid = null;
