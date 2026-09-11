@@ -7822,6 +7822,465 @@ async function deleteImmoProperty(propertyId) {
   }
 }
 
+/* ================= TROUVER UN PROFESSIONNEL =================
+   Ce n'est PAS un doublon de l'Annuaire / "Pres de chez vous" -- c'est un
+   vrai systeme de demande de service avec devis :
+   1) le client publie une demande ("service_requests") ;
+   2) les professionnels interesses envoient un devis ("service_quotes",
+      un seul par professionnel et par demande grace a l'id deterministe
+      "{requestId}_{proUid}") ;
+   3) le client accepte UN devis -> la demande passe "en cours", les autres
+      devis sont automatiquement refuses et le professionnel choisi est
+      notifie ;
+   4) une fois le service rendu, le client marque la demande "terminee" et
+      peut laisser un avis ("professional_reviews").
+   Categories reutilisees telles quelles depuis "Pres de chez vous"
+   (NEARBY_CATEGORY_LABELS) -- aucune nouvelle taxonomie inventee. */
+let srequestCurrentTab = 'mine';
+let srequestMineCache = null;
+let srequestAvailableCache = null;
+let srequestMyQuotesCache = null;
+let srequestSelectedCategory = '';
+let srequestSearchDebounce = null;
+let srequestMyQuotedIds = null; // Set des requestId pour lesquels j'ai deja envoye un devis
+
+function openServiceRequestScreen() {
+  showMenuScreen('srequests');
+  populateSRequestCategoryTabs();
+  setSRequestTab(srequestCurrentTab || 'mine');
+}
+
+function populateSRequestCategoryTabs() {
+  const tabsEl = document.getElementById('srequest-category-tabs');
+  if (tabsEl.dataset.populated) return;
+  tabsEl.dataset.populated = '1';
+  Object.entries(NEARBY_CATEGORY_LABELS).forEach(([val, label]) => {
+    const btn = document.createElement('button');
+    btn.dataset.cat = val;
+    btn.textContent = label;
+    btn.onclick = () => setSRequestCategory(val);
+    tabsEl.appendChild(btn);
+  });
+}
+
+function setSRequestTab(tab) {
+  srequestCurrentTab = tab;
+  document.querySelectorAll('#srequest-main-tabs button').forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tab));
+  ['mine', 'available', 'myquotes'].forEach(t => document.getElementById('srequest-tab-' + t).classList.toggle('hidden', t !== tab));
+
+  if (tab === 'mine') loadMySRequests();
+  else if (tab === 'available') loadAvailableSRequests();
+  else if (tab === 'myquotes') loadMyQuotes();
+}
+
+/* ---- Onglet "Mes demandes" (cote client) ---- */
+
+function openSRequestForm() {
+  if (!currentUser) { openAuth('login'); return; }
+  if (document.getElementById('srequest-form-modal')) return;
+
+  const catOptions = Object.entries(NEARBY_CATEGORY_LABELS)
+    .map(([val, label]) => `<option value="${val}">${escapeHtml(label)}</option>`).join('');
+
+  const html = `
+    <div class="modal-overlay" id="srequest-form-modal">
+      <div class="modal">
+        <button class="modal-close" onclick="document.getElementById('srequest-form-modal').remove()" aria-label="Fermer">×</button>
+        <h3 style="margin-bottom:14px">Nouvelle demande</h3>
+        <div class="field">
+          <label for="srequest-title">Ce dont tu as besoin</label>
+          <input type="text" id="srequest-title" class="text-input" placeholder="ex: Réparer une fuite d'eau" maxlength="100">
+        </div>
+        <div class="field">
+          <label for="srequest-category">Catégorie</label>
+          <select id="srequest-category" class="select-input">${catOptions}</select>
+        </div>
+        <div class="field">
+          <label for="srequest-city">Ville</label>
+          <input type="text" id="srequest-city" class="text-input" maxlength="60">
+        </div>
+        <div class="field">
+          <label for="srequest-description">Détails</label>
+          <textarea id="srequest-description" class="text-input" rows="3" style="resize:vertical" maxlength="500"></textarea>
+        </div>
+        <div class="field">
+          <label for="srequest-budget">Budget indicatif (facultatif)</label>
+          <input type="text" id="srequest-budget" class="text-input" placeholder="ex: 20-30$">
+        </div>
+        <button class="btn btn-primary" id="srequest-save-btn" style="width:100%;justify-content:center" onclick="saveSRequest()">Publier la demande</button>
+        <p class="muted small" id="srequest-form-msg" style="margin-top:6px"></p>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+async function saveSRequest() {
+  const btn = document.getElementById('srequest-save-btn');
+  const msgEl = document.getElementById('srequest-form-msg');
+  const title = document.getElementById('srequest-title').value.trim();
+  const category = document.getElementById('srequest-category').value;
+  const city = document.getElementById('srequest-city').value.trim();
+  const description = document.getElementById('srequest-description').value.trim();
+  const budget = document.getElementById('srequest-budget').value.trim();
+
+  if (!title || !city || !description) { msgEl.textContent = 'Merci de remplir au moins le titre, la ville et les détails.'; return; }
+
+  if (btn.disabled) return;
+  btn.disabled = true;
+  btn.textContent = 'Publication...';
+  try {
+    await db.collection('service_requests').add({
+      clientUid: currentUser.uid, clientName: currentUser.name || 'Client',
+      title, category, city, description, budget,
+      status: 'open', acceptedProUid: null, acceptedProName: null,
+      createdAt: new Date().toISOString()
+    });
+    document.getElementById('srequest-form-modal').remove();
+    showToast('Demande publiée', 'success');
+    loadMySRequests();
+  } catch (e) {
+    msgEl.textContent = friendlyErrorMessage(e);
+    btn.disabled = false;
+    btn.textContent = 'Publier la demande';
+  }
+}
+
+const SREQUEST_STATUS_LABELS = { open: 'Ouverte', in_progress: 'En cours', completed: 'Terminée', cancelled: 'Annulée' };
+
+async function loadMySRequests() {
+  const listEl = document.getElementById('srequest-mine-list');
+  if (!currentUser) { listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Connecte-toi pour publier une demande.</p>'; return; }
+  listEl.innerHTML = renderFeedSkeletons(2);
+  try {
+    const snap = await db.collection('service_requests').where('clientUid', '==', currentUser.uid).get();
+    srequestMineCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    srequestMineCache.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+
+    if (srequestMineCache.length === 0) {
+      listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Aucune demande pour l\'instant.</p>';
+      return;
+    }
+
+    listEl.innerHTML = srequestMineCache.map(r => `
+      <div class="order-box" style="margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+          <strong style="font-size:1.02rem">${escapeHtml(r.title)}</strong>
+          <span class="shop-card-category">${escapeHtml(SREQUEST_STATUS_LABELS[r.status] || r.status)}</span>
+        </div>
+        <div class="muted small" style="margin:4px 0">${escapeHtml(NEARBY_CATEGORY_LABELS[r.category] || '')} · ${escapeHtml(r.city || '')}</div>
+        ${r.status === 'in_progress' ? `<div class="muted small" style="margin-bottom:8px">Attribuée à ${escapeHtml(r.acceptedProName || '')}</div>` : ''}
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+          ${r.status === 'open' ? `<button class="btn btn-outline btn-sm" onclick="viewSRequestQuotes('${r.id}')">Voir les devis</button>` : ''}
+          ${r.status === 'in_progress' ? `<button class="btn btn-outline btn-sm" onclick="completeSRequest('${r.id}')">Marquer terminée</button>` : ''}
+          ${r.status === 'open' ? `<button class="btn btn-outline btn-sm" style="color:var(--red);border-color:var(--red)" onclick="cancelSRequest('${r.id}')">Annuler</button>` : ''}
+        </div>
+      </div>`).join('');
+  } catch (e) {
+    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+  }
+}
+
+async function viewSRequestQuotes(requestId) {
+  if (document.getElementById('srequest-quotes-modal')) return;
+  const req = (srequestMineCache || []).find(r => r.id === requestId);
+  if (!req) return;
+
+  const html = `
+    <div class="modal-overlay" id="srequest-quotes-modal">
+      <div class="modal" style="max-width:460px">
+        <button class="modal-close" onclick="document.getElementById('srequest-quotes-modal').remove()" aria-label="Fermer">×</button>
+        <h3 style="margin-bottom:4px">Devis reçus</h3>
+        <p class="muted small" style="margin-bottom:14px">${escapeHtml(req.title)}</p>
+        <div id="srequest-quotes-list"><p class="muted small">Chargement...</p></div>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+
+  const listEl = document.getElementById('srequest-quotes-list');
+  try {
+    const snap = await db.collection('service_quotes').where('requestId', '==', requestId).get();
+    const quotes = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (a.price || 0) - (b.price || 0));
+
+    if (quotes.length === 0) {
+      listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:14px 0">Aucun devis reçu pour l\'instant.</p>';
+      return;
+    }
+
+    listEl.innerHTML = quotes.map(q => `
+      <div class="order-box" style="margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+          <strong>${escapeHtml(q.proName)}</strong>
+          <strong>${(q.price || 0).toFixed(2)}$</strong>
+        </div>
+        ${q.message ? `<p class="muted small" style="margin:4px 0">${escapeHtml(q.message)}</p>` : ''}
+        <button class="btn btn-primary btn-sm" style="margin-top:6px" onclick="acceptQuote('${requestId}', '${q.proUid}', '${escapeHtml(q.proName)}')">Accepter ce devis</button>
+      </div>`).join('');
+  } catch (e) {
+    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+  }
+}
+
+async function acceptQuote(requestId, proUid, proName) {
+  if (!confirm(`Confirmer ${proName} pour cette demande ?`)) return;
+  try {
+    const quotesSnap = await db.collection('service_quotes').where('requestId', '==', requestId).get();
+    const batch = db.batch();
+    quotesSnap.docs.forEach(d => {
+      batch.update(d.ref, { status: d.data().proUid === proUid ? 'accepted' : 'declined' });
+    });
+    batch.update(db.collection('service_requests').doc(requestId), {
+      status: 'in_progress', acceptedProUid: proUid, acceptedProName: proName
+    });
+    await batch.commit();
+
+    await db.collection('notifications').add({
+      uid: proUid, title: 'Devis accepté ✅', body: `Ton devis a été accepté pour une demande de service.`,
+      type: 'quote_accepted', read: false, createdAt: new Date().toISOString()
+    });
+    notifyUserPush(proUid, 'Devis accepté ✅', 'Ton devis a été accepté pour une demande de service.');
+
+    document.getElementById('srequest-quotes-modal').remove();
+    showToast('Devis accepté', 'success');
+    loadMySRequests();
+  } catch (e) {
+    showToast(friendlyErrorMessage(e), 'error');
+  }
+}
+
+async function completeSRequest(requestId) {
+  const req = (srequestMineCache || []).find(r => r.id === requestId);
+  if (!req) return;
+  if (!confirm('Marquer cette demande comme terminée ?')) return;
+  try {
+    await db.collection('service_requests').doc(requestId).update({ status: 'completed' });
+    showToast('Demande terminée', 'success');
+    loadMySRequests();
+    if (req.acceptedProUid) openReviewForm(requestId, req.acceptedProUid, req.acceptedProName);
+  } catch (e) {
+    showToast(friendlyErrorMessage(e), 'error');
+  }
+}
+
+async function cancelSRequest(requestId) {
+  if (!confirm('Annuler définitivement cette demande ?')) return;
+  try {
+    await db.collection('service_requests').doc(requestId).update({ status: 'cancelled' });
+    showToast('Demande annulée', 'info');
+    loadMySRequests();
+  } catch (e) {
+    showToast(friendlyErrorMessage(e), 'error');
+  }
+}
+
+function openReviewForm(requestId, proUid, proName) {
+  if (document.getElementById('review-form-modal')) return;
+  const html = `
+    <div class="modal-overlay" id="review-form-modal">
+      <div class="modal">
+        <button class="modal-close" onclick="document.getElementById('review-form-modal').remove()" aria-label="Fermer">×</button>
+        <h3 style="margin-bottom:4px">Évaluer ${escapeHtml(proName)}</h3>
+        <p class="muted small" style="margin-bottom:14px">Ton avis aide les autres utilisateurs.</p>
+        <div class="field">
+          <label for="review-rating">Note</label>
+          <select id="review-rating" class="select-input">
+            <option value="5">5 — Excellent</option>
+            <option value="4">4 — Très bien</option>
+            <option value="3">3 — Correct</option>
+            <option value="2">2 — Décevant</option>
+            <option value="1">1 — Mauvais</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="review-comment">Commentaire (facultatif)</label>
+          <textarea id="review-comment" class="text-input" rows="3" style="resize:vertical" maxlength="300"></textarea>
+        </div>
+        <button class="btn btn-primary" id="review-save-btn" style="width:100%;justify-content:center" onclick="saveReview('${requestId}', '${proUid}')">Envoyer l'avis</button>
+        <p class="muted small" id="review-form-msg" style="margin-top:6px"></p>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+async function saveReview(requestId, proUid) {
+  const btn = document.getElementById('review-save-btn');
+  const rating = parseInt(document.getElementById('review-rating').value, 10);
+  const comment = document.getElementById('review-comment').value.trim();
+  if (btn.disabled) return;
+  btn.disabled = true;
+  btn.textContent = 'Envoi...';
+  try {
+    await db.collection('professional_reviews').add({
+      proUid, clientUid: currentUser.uid, clientName: currentUser.name || 'Client',
+      requestId, rating, comment, createdAt: new Date().toISOString()
+    });
+    document.getElementById('review-form-modal').remove();
+    showToast('Avis envoyé, merci !', 'success');
+  } catch (e) {
+    document.getElementById('review-form-msg').textContent = friendlyErrorMessage(e);
+    btn.disabled = false;
+    btn.textContent = "Envoyer l'avis";
+  }
+}
+
+/* ---- Onglet "Demandes à pourvoir" (cote professionnel) ---- */
+
+async function loadAvailableSRequests() {
+  const listEl = document.getElementById('srequest-available-list');
+  listEl.innerHTML = renderFeedSkeletons(2);
+  try {
+    const [reqSnap, myQuotesSnap] = await Promise.all([
+      db.collection('service_requests').where('status', '==', 'open').limit(300).get(),
+      currentUser ? db.collection('service_quotes').where('proUid', '==', currentUser.uid).get() : Promise.resolve(null)
+    ]);
+    srequestAvailableCache = reqSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+    srequestAvailableCache.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+    srequestMyQuotedIds = new Set(myQuotesSnap ? myQuotesSnap.docs.map(d => d.data().requestId) : []);
+    runSRequestFilter();
+  } catch (e) {
+    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+  }
+}
+
+function setSRequestCategory(cat) {
+  srequestSelectedCategory = cat;
+  document.querySelectorAll('#srequest-category-tabs button').forEach(btn => btn.classList.toggle('active', btn.dataset.cat === cat));
+  runSRequestFilter();
+}
+function scheduleSRequestSearch() {
+  clearTimeout(srequestSearchDebounce);
+  srequestSearchDebounce = setTimeout(runSRequestFilter, 250);
+}
+
+function runSRequestFilter() {
+  if (!srequestAvailableCache) return;
+  const query = document.getElementById('srequest-search-input').value.trim().toLowerCase();
+  const matches = srequestAvailableCache.filter(r => {
+    if (srequestSelectedCategory && r.category !== srequestSelectedCategory) return false;
+    if (query && !`${r.title || ''} ${r.city || ''}`.toLowerCase().includes(query)) return false;
+    return true;
+  });
+  renderAvailableSRequests(matches);
+}
+
+function renderAvailableSRequests(list) {
+  const listEl = document.getElementById('srequest-available-list');
+  const visible = list.filter(r => !blockedSet.has(r.clientUid) && (!currentUser || r.clientUid !== currentUser.uid));
+
+  if (visible.length === 0) {
+    listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Aucune demande disponible pour l\'instant dans cette catégorie.</p>';
+    return;
+  }
+
+  listEl.innerHTML = visible.map(r => {
+    const alreadyQuoted = srequestMyQuotedIds && srequestMyQuotedIds.has(r.id);
+    return `
+    <div class="order-box" style="margin-bottom:12px">
+      <strong style="font-size:1.02rem">${escapeHtml(r.title)}</strong>
+      <div class="muted small" style="margin:4px 0">${escapeHtml(NEARBY_CATEGORY_LABELS[r.category] || '')} · ${escapeHtml(r.city || '')}</div>
+      ${r.budget ? `<div class="muted small" style="margin-bottom:6px">Budget indicatif : ${escapeHtml(r.budget)}</div>` : ''}
+      <p class="muted small" style="margin-bottom:10px">${escapeHtml(r.description || '')}</p>
+      ${alreadyQuoted
+        ? `<span class="shop-card-category">Devis envoyé</span>`
+        : `<button class="btn btn-primary btn-sm" onclick="openQuoteForm('${r.id}')">Envoyer un devis</button>`}
+    </div>`;
+  }).join('');
+}
+
+function openQuoteForm(requestId) {
+  if (!currentUser) { openAuth('login'); return; }
+  if (document.getElementById('quote-form-modal')) return;
+  const req = (srequestAvailableCache || []).find(r => r.id === requestId);
+  if (!req) return;
+
+  const html = `
+    <div class="modal-overlay" id="quote-form-modal">
+      <div class="modal">
+        <button class="modal-close" onclick="document.getElementById('quote-form-modal').remove()" aria-label="Fermer">×</button>
+        <h3 style="margin-bottom:4px">Envoyer un devis</h3>
+        <p class="muted small" style="margin-bottom:14px">${escapeHtml(req.title)}</p>
+        <div class="field">
+          <label for="quote-price">Ton prix en $</label>
+          <input type="number" id="quote-price" class="text-input" min="0" step="0.01">
+        </div>
+        <div class="field">
+          <label for="quote-message">Message (facultatif)</label>
+          <textarea id="quote-message" class="text-input" rows="3" style="resize:vertical" maxlength="300"></textarea>
+        </div>
+        <button class="btn btn-primary" id="quote-save-btn" style="width:100%;justify-content:center" onclick="saveQuote('${requestId}')">Envoyer le devis</button>
+        <p class="muted small" id="quote-form-msg" style="margin-top:6px"></p>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+async function saveQuote(requestId) {
+  const btn = document.getElementById('quote-save-btn');
+  const msgEl = document.getElementById('quote-form-msg');
+  const price = parseFloat(document.getElementById('quote-price').value);
+  const message = document.getElementById('quote-message').value.trim();
+  const req = (srequestAvailableCache || []).find(r => r.id === requestId);
+
+  if (!price || price <= 0) { msgEl.textContent = 'Indique un prix valide.'; return; }
+  if (!req) return;
+
+  if (btn.disabled) return;
+  btn.disabled = true;
+  btn.textContent = 'Envoi...';
+  try {
+    await db.collection('service_quotes').doc(`${requestId}_${currentUser.uid}`).set({
+      requestId, proUid: currentUser.uid, proName: currentUser.name || 'Professionnel',
+      price, message, status: 'pending', createdAt: new Date().toISOString()
+    });
+
+    await db.collection('notifications').add({
+      uid: req.clientUid, title: 'Nouveau devis reçu 💬',
+      body: `${currentUser.name || 'Un professionnel'} a envoyé un devis pour "${req.title}".`,
+      type: 'new_quote', read: false, createdAt: new Date().toISOString()
+    });
+    notifyUserPush(req.clientUid, 'Nouveau devis reçu 💬', `Nouveau devis pour "${req.title}".`);
+
+    document.getElementById('quote-form-modal').remove();
+    if (!srequestMyQuotedIds) srequestMyQuotedIds = new Set();
+    srequestMyQuotedIds.add(requestId);
+    showToast('Devis envoyé', 'success');
+    runSRequestFilter();
+  } catch (e) {
+    msgEl.textContent = friendlyErrorMessage(e);
+    btn.disabled = false;
+    btn.textContent = 'Envoyer le devis';
+  }
+}
+
+/* ---- Onglet "Mes devis envoyés" ---- */
+
+async function loadMyQuotes() {
+  const listEl = document.getElementById('srequest-myquotes-list');
+  if (!currentUser) { listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Connecte-toi pour voir tes devis.</p>'; return; }
+  listEl.innerHTML = renderFeedSkeletons(2);
+  try {
+    const snap = await db.collection('service_quotes').where('proUid', '==', currentUser.uid).get();
+    srequestMyQuotesCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    srequestMyQuotesCache.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+
+    if (srequestMyQuotesCache.length === 0) {
+      listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Tu n\'as encore envoyé aucun devis.</p>';
+      return;
+    }
+
+    const QUOTE_STATUS_LABELS = { pending: 'En attente', accepted: 'Accepté', declined: 'Refusé' };
+    listEl.innerHTML = srequestMyQuotesCache.map(q => `
+      <div class="order-box" style="margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+          <strong>${(q.price || 0).toFixed(2)}$</strong>
+          <span class="shop-card-category">${escapeHtml(QUOTE_STATUS_LABELS[q.status] || q.status)}</span>
+        </div>
+        ${q.message ? `<p class="muted small" style="margin-top:4px">${escapeHtml(q.message)}</p>` : ''}
+      </div>`).join('');
+  } catch (e) {
+    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+  }
+}
+
 /* ================= SIGNALEMENT DE CONTENU ================= */
 let reportTargetId = null;
 let reportTargetOwnerUid = null;
