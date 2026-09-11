@@ -1159,40 +1159,82 @@
         <h2>Emploi &amp; Freelance</h2>
       </div>
 
-      <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:14px" onclick="openJobForm()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Publier une offre
-      </button>
-
-      <div class="shop-filter-tabs" id="jobs-main-tabs" style="margin-bottom:14px">
-        <button class="active" data-tab="browse" onclick="setJobsTab('browse')">Offres</button>
-        <button data-tab="myapps" onclick="setJobsTab('myapps')">Mes candidatures</button>
-        <button data-tab="myoffers" onclick="setJobsTab('myoffers')">Mes offres</button>
+      <!-- Choix du monde : recruteurs (offres) ou chercheurs d'emploi (demandes) -->
+      <div class="shop-filter-tabs" id="jobs-world-tabs" style="margin-bottom:14px">
+        <button class="active" data-world="offers" onclick="setJobsWorld('offers')">Offres d'emploi</button>
+        <button data-world="seekers" onclick="setJobsWorld('seekers')">Profils disponibles</button>
       </div>
 
-      <!-- Sous-onglet : parcourir les offres -->
-      <div id="jobs-tab-browse">
-        <input type="text" id="jobs-search-input" class="text-input" style="margin-bottom:12px" placeholder="Titre, ville ou mot-clé (ex: vendeur, Douala)" oninput="scheduleJobsSearch()">
+      <!-- ===== MONDE 1 : OFFRES (recruteur publie, candidat postule) ===== -->
+      <div id="jobs-world-offers">
+        <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:14px" onclick="openJobForm()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Publier une offre
+        </button>
 
-        <div class="shop-filter-tabs" id="jobs-type-tabs" style="margin-bottom:14px">
-          <button class="active" data-type="" onclick="setJobsTypeFilter('')">Tous</button>
-          <button data-type="emploi" onclick="setJobsTypeFilter('emploi')">Emploi</button>
-          <button data-type="stage" onclick="setJobsTypeFilter('stage')">Stage</button>
-          <button data-type="freelance" onclick="setJobsTypeFilter('freelance')">Freelance</button>
-          <button data-type="petit-boulot" onclick="setJobsTypeFilter('petit-boulot')">Petit boulot</button>
+        <div class="shop-filter-tabs" id="jobs-main-tabs" style="margin-bottom:14px">
+          <button class="active" data-tab="browse" onclick="setJobsTab('browse')">Offres</button>
+          <button data-tab="myapps" onclick="setJobsTab('myapps')">Mes candidatures</button>
+          <button data-tab="myoffers" onclick="setJobsTab('myoffers')">Mes offres</button>
         </div>
 
-        <div id="jobs-browse-list"><p class="muted small">Chargement...</p></div>
+        <!-- Sous-onglet : parcourir les offres -->
+        <div id="jobs-tab-browse">
+          <input type="text" id="jobs-search-input" class="text-input" style="margin-bottom:12px" placeholder="Titre, ville ou mot-clé (ex: vendeur, Douala)" oninput="scheduleJobsSearch()">
+
+          <div class="shop-filter-tabs" id="jobs-type-tabs" style="margin-bottom:14px">
+            <button class="active" data-type="" onclick="setJobsTypeFilter('')">Tous</button>
+            <button data-type="emploi" onclick="setJobsTypeFilter('emploi')">Emploi</button>
+            <button data-type="stage" onclick="setJobsTypeFilter('stage')">Stage</button>
+            <button data-type="freelance" onclick="setJobsTypeFilter('freelance')">Freelance</button>
+            <button data-type="petit-boulot" onclick="setJobsTypeFilter('petit-boulot')">Petit boulot</button>
+          </div>
+
+          <div id="jobs-browse-list"><p class="muted small">Chargement...</p></div>
+        </div>
+
+        <!-- Sous-onglet : mes candidatures -->
+        <div id="jobs-tab-myapps" class="hidden">
+          <div id="jobs-myapps-list"><p class="muted small">Chargement...</p></div>
+        </div>
+
+        <!-- Sous-onglet : mes offres publiées -->
+        <div id="jobs-tab-myoffers" class="hidden">
+          <div id="jobs-myoffers-list"><p class="muted small">Chargement...</p></div>
+        </div>
       </div>
 
-      <!-- Sous-onglet : mes candidatures -->
-      <div id="jobs-tab-myapps" class="hidden">
-        <div id="jobs-myapps-list"><p class="muted small">Chargement...</p></div>
-      </div>
+      <!-- ===== MONDE 2 : DEMANDES (chercheur d'emploi publie son profil, recruteur contacte) ===== -->
+      <div id="jobs-world-seekers" class="hidden">
+        <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:14px" onclick="openJobSeekerForm()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Publier ma demande d'emploi
+        </button>
 
-      <!-- Sous-onglet : mes offres publiées -->
-      <div id="jobs-tab-myoffers" class="hidden">
-        <div id="jobs-myoffers-list"><p class="muted small">Chargement...</p></div>
+        <div class="shop-filter-tabs" id="jobseekers-main-tabs" style="margin-bottom:14px">
+          <button class="active" data-tab="browse" onclick="setJobSeekersTab('browse')">Profils</button>
+          <button data-tab="mine" onclick="setJobSeekersTab('mine')">Mon profil</button>
+        </div>
+
+        <!-- Sous-onglet : parcourir les profils (cote recruteur) -->
+        <div id="jobseekers-tab-browse">
+          <input type="text" id="jobseekers-search-input" class="text-input" style="margin-bottom:12px" placeholder="Poste, ville ou mot-clé (ex: comptable, Kinshasa)" oninput="scheduleJobSeekersSearch()">
+
+          <div class="shop-filter-tabs" id="jobseekers-type-tabs" style="margin-bottom:14px">
+            <button class="active" data-type="" onclick="setJobSeekersTypeFilter('')">Tous</button>
+            <button data-type="emploi" onclick="setJobSeekersTypeFilter('emploi')">Emploi</button>
+            <button data-type="stage" onclick="setJobSeekersTypeFilter('stage')">Stage</button>
+            <button data-type="freelance" onclick="setJobSeekersTypeFilter('freelance')">Freelance</button>
+            <button data-type="petit-boulot" onclick="setJobSeekersTypeFilter('petit-boulot')">Petit boulot</button>
+          </div>
+
+          <div id="jobseekers-browse-list"><p class="muted small">Chargement...</p></div>
+        </div>
+
+        <!-- Sous-onglet : mon propre profil -->
+        <div id="jobseekers-tab-mine" class="hidden">
+          <div id="jobseekers-mine-status"><p class="muted small">Chargement...</p></div>
+        </div>
       </div>
     </div>
 
@@ -1592,6 +1634,75 @@
       <input type="url" id="job-apply-cv" class="text-input" placeholder="https://...">
     </div>
     <button class="btn btn-primary" id="job-apply-submit-btn" style="width:100%;justify-content:center" onclick="submitJobApplication()">Envoyer ma candidature</button>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="jobseeker-detail-modal">
+  <div class="modal post-detail-modal-inner">
+    <button class="modal-close" onclick="closeJobSeekerDetail()" aria-label="Fermer">×</button>
+    <div id="jobseeker-detail-body"></div>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="jobseeker-form-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeJobSeekerForm()" aria-label="Fermer">×</button>
+    <h2 id="jobseeker-form-title">Publier ma demande d'emploi</h2>
+    <div class="modal-error hidden" id="jobseeker-form-error"></div>
+
+    <div class="field">
+      <label for="jobseeker-title-input">Poste recherché</label>
+      <input type="text" id="jobseeker-title-input" class="text-input" placeholder="Ex: Vendeuse boutique, Développeur freelance...">
+    </div>
+    <div class="field">
+      <label for="jobseeker-type-select">Type</label>
+      <select id="jobseeker-type-select" class="text-input">
+        <option value="emploi">Emploi</option>
+        <option value="stage">Stage</option>
+        <option value="freelance">Mission freelance</option>
+        <option value="petit-boulot">Petit boulot</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="jobseeker-category-input">Catégorie / domaine</label>
+      <input type="text" id="jobseeker-category-input" class="text-input" placeholder="Ex: Vente, Informatique, Transport...">
+    </div>
+    <div class="field">
+      <label for="jobseeker-location-input">Ville / localisation</label>
+      <input type="text" id="jobseeker-location-input" class="text-input" placeholder="Ex: Kinshasa, Douala, Abidjan...">
+    </div>
+    <div class="field">
+      <label for="jobseeker-experience-input">Expérience (facultatif)</label>
+      <input type="text" id="jobseeker-experience-input" class="text-input" placeholder="Ex: 2 ans d'expérience en vente">
+    </div>
+    <div class="field">
+      <label for="jobseeker-description-input">Présentation / compétences</label>
+      <textarea id="jobseeker-description-input" class="text-input" rows="4" placeholder="Présente-toi, tes compétences, tes disponibilités..."></textarea>
+    </div>
+    <div class="field">
+      <label for="jobseeker-salary-min-input">Prétention salariale (facultatif, en $)</label>
+      <div style="display:flex;gap:8px">
+        <input type="number" id="jobseeker-salary-min-input" class="text-input" placeholder="Min" min="0" step="0.01">
+        <input type="number" id="jobseeker-salary-max-input" class="text-input" placeholder="Max" min="0" step="0.01">
+      </div>
+    </div>
+    <label class="report-reason-option" style="margin-bottom:14px">
+      <input type="checkbox" id="jobseeker-salary-hidden-input"> Ne pas afficher la prétention salariale publiquement
+    </label>
+    <div class="field">
+      <label for="jobseeker-cv-input">Lien vers ton CV / portfolio (facultatif)</label>
+      <input type="url" id="jobseeker-cv-input" class="text-input" placeholder="https://...">
+    </div>
+    <div class="field">
+      <label for="jobseeker-whatsapp-input">WhatsApp de contact</label>
+      <input type="tel" id="jobseeker-whatsapp-input" class="text-input" placeholder="+243...">
+    </div>
+    <div class="field">
+      <label for="jobseeker-phone-input">Numéro de téléphone (facultatif)</label>
+      <input type="tel" id="jobseeker-phone-input" class="text-input" placeholder="+243...">
+    </div>
+
+    <button class="btn btn-primary" id="jobseeker-form-submit-btn" style="width:100%;justify-content:center" onclick="saveJobSeekerProfile()">Publier</button>
   </div>
 </div>
 

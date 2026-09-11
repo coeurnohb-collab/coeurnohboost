@@ -5171,9 +5171,20 @@ let editingJobOfferId = null; // non-null = formulaire en mode modification
 let currentJobApplyOfferId = null;
 let currentJobDetailId = null;
 
+let jobsCurrentWorld = 'offers';
+
 function openJobsScreen() {
   showMenuScreen('jobs');
-  setJobsTab(jobsCurrentTab || 'browse');
+  setJobsWorld(jobsCurrentWorld || 'offers');
+}
+
+function setJobsWorld(world) {
+  jobsCurrentWorld = world;
+  document.querySelectorAll('#jobs-world-tabs button').forEach(btn => btn.classList.toggle('active', btn.dataset.world === world));
+  document.getElementById('jobs-world-offers').classList.toggle('hidden', world !== 'offers');
+  document.getElementById('jobs-world-seekers').classList.toggle('hidden', world !== 'seekers');
+  if (world === 'offers') setJobsTab(jobsCurrentTab || 'browse');
+  else setJobSeekersTab(jobSeekersCurrentTab || 'browse');
 }
 
 function setJobsTab(tab) {
@@ -5635,6 +5646,287 @@ async function setJobApplicationStatus(appId, status, offerId) {
     openJobCandidates(offerId);
   } catch (e) {
     showToast(friendlyErrorMessage(e), 'error');
+  }
+}
+
+/* ================= EMPLOI & FREELANCE — DEMANDES (chercheurs d'emploi) =================
+   "job_seekers" : un profil de demande d'emploi = un document, id
+   deterministe = uid du chercheur (un seul profil actif par personne a la
+   fois, meme principe que "mini_sites" pour Crée ton site). Contrairement
+   aux offres, il n'y a PAS de cycle de candidature ici : le recruteur qui
+   parcourt les profils contacte directement le chercheur via WhatsApp
+   (meme logique que "Trouver un professionnel" et "Crée ton site").
+   Le champ "featured" (mise en avant, payant) suit exactement le meme
+   mecanisme que "job_offers" : modifiable uniquement par l'admin via les
+   regles Firestore, pas depuis cette interface. */
+let jobSeekersCache = null; // profils des AUTRES utilisateurs (parcourir)
+let jobSeekersCurrentTab = 'browse';
+let jobSeekersTypeFilter = '';
+let jobSeekersSearchDebounce = null;
+let myJobSeekerProfile = null;
+let currentJobSeekerDetailId = null;
+
+function setJobSeekersTab(tab) {
+  jobSeekersCurrentTab = tab;
+  document.querySelectorAll('#jobseekers-main-tabs button').forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tab));
+  ['browse', 'mine'].forEach(t => document.getElementById('jobseekers-tab-' + t).classList.toggle('hidden', t !== tab));
+  if (tab === 'browse') loadJobSeekers();
+  else loadMyJobSeekerProfile();
+}
+
+function setJobSeekersTypeFilter(type) {
+  jobSeekersTypeFilter = type;
+  document.querySelectorAll('#jobseekers-type-tabs button').forEach(btn => btn.classList.toggle('active', btn.dataset.type === type));
+  runJobSeekersFilter();
+}
+
+function scheduleJobSeekersSearch() {
+  clearTimeout(jobSeekersSearchDebounce);
+  jobSeekersSearchDebounce = setTimeout(runJobSeekersFilter, 250);
+}
+
+async function loadJobSeekers() {
+  const listEl = document.getElementById('jobseekers-browse-list');
+  if (!jobSeekersCache) listEl.innerHTML = renderFeedSkeletons(2);
+  try {
+    const snap = await db.collection('job_seekers').where('status', '==', 'active').limit(300).get();
+    jobSeekersCache = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(p => !currentUser || p.ownerUid !== currentUser.uid);
+    runJobSeekersFilter();
+  } catch (e) {
+    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+  }
+}
+
+function runJobSeekersFilter() {
+  if (!jobSeekersCache) return;
+  const query = document.getElementById('jobseekers-search-input').value.trim().toLowerCase();
+  const matches = jobSeekersCache.filter(p => {
+    if (jobSeekersTypeFilter && p.type !== jobSeekersTypeFilter) return false;
+    if (query) {
+      const haystack = `${p.title || ''} ${p.category || ''} ${p.location || ''}`.toLowerCase();
+      if (!haystack.includes(query)) return false;
+    }
+    return true;
+  });
+  matches.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
+  renderJobSeekersBrowseList(matches);
+}
+
+function jobSeekerSalaryLabel(p) {
+  if (p.salaryHidden || (!p.salaryMin && !p.salaryMax)) return 'Prétention salariale non communiquée';
+  if (p.salaryMin && p.salaryMax) return `${p.salaryMin}$ - ${p.salaryMax}$`;
+  return `${(p.salaryMin || p.salaryMax)}$`;
+}
+
+function renderJobSeekersBrowseList(list) {
+  const listEl = document.getElementById('jobseekers-browse-list');
+  if (list.length === 0) {
+    listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Aucun profil pour l\'instant. Élargis ta recherche, ou sois le premier à publier le tien.</p>';
+    return;
+  }
+  listEl.innerHTML = list.map(p => `
+    <div class="order-box" style="margin-bottom:12px${p.featured ? ';border-color:#f5a623' : ''}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+        <strong style="font-size:1.02rem">${escapeHtml(p.title || 'Profil')}</strong>
+        <span class="shop-card-category">${JOB_TYPE_LABELS[p.type] || p.type}</span>
+      </div>
+      ${p.featured ? '<span class="shop-card-category" style="background:#fff4e0;color:#b5720b;margin-top:4px;display:inline-block">Mise en avant</span>' : ''}
+      <div class="muted small" style="margin:4px 0">${escapeHtml(p.location || '—')}${p.category ? ' · ' + escapeHtml(p.category) : ''}</div>
+      <button class="btn btn-outline btn-sm" onclick="openJobSeekerDetail('${p.id}')">Voir le profil</button>
+    </div>`).join('');
+}
+
+async function openJobSeekerDetail(profileId) {
+  currentJobSeekerDetailId = profileId;
+  const bodyEl = document.getElementById('jobseeker-detail-body');
+  bodyEl.innerHTML = '<p class="muted small">Chargement...</p>';
+  document.getElementById('jobseeker-detail-modal').classList.remove('hidden');
+
+  try {
+    const cached = (jobSeekersCache || []).find(p => p.id === profileId);
+    const snap = cached ? null : await db.collection('job_seekers').doc(profileId).get();
+    const p = cached || (snap && snap.exists ? { id: snap.id, ...snap.data() } : null);
+    if (!p) {
+      bodyEl.innerHTML = '<p class="muted small">Ce profil n\'existe plus.</p>';
+      return;
+    }
+    const isOwner = currentUser && currentUser.uid === p.ownerUid;
+    const waLink = p.whatsapp ? `https://wa.me/${p.whatsapp.replace(/\D/g, '')}` : null;
+
+    bodyEl.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px">
+        <h3 style="margin:0">${escapeHtml(p.title || 'Profil')}</h3>
+        <span class="shop-card-category">${JOB_TYPE_LABELS[p.type] || p.type}</span>
+      </div>
+      <div class="muted small" style="margin-bottom:10px">${escapeHtml(p.location || '—')}${p.category ? ' · ' + escapeHtml(p.category) : ''}${p.experience ? ' · ' + escapeHtml(p.experience) : ''}</div>
+      <p style="white-space:pre-wrap;margin-bottom:10px">${escapeHtml(p.description || '')}</p>
+      <p class="muted small" style="margin-bottom:16px"><strong>${escapeHtml(jobSeekerSalaryLabel(p))}</strong></p>
+      ${p.cvUrl ? `<a class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" href="${escapeHtml(p.cvUrl)}" target="_blank">Voir le CV / portfolio</a>` : ''}
+      ${!isOwner ? `
+        <div id="jobseeker-detail-actions">
+          ${waLink ? `<a class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:8px" href="${escapeHtml(waLink)}" target="_blank">Contacter sur WhatsApp</a>` : ''}
+          ${p.phone ? `<p class="muted small" style="text-align:center;margin-bottom:8px">Téléphone : ${escapeHtml(p.phone)}</p>` : ''}
+        </div>
+        ${currentUser ? `<button class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin-top:4px" onclick="openReportModal('${p.id}', '${p.ownerUid}', 'job_seeker')">Signaler ce profil</button>` : ''}
+      ` : `<p class="muted small" style="text-align:center">Ceci est ton profil. Modifie-le depuis l'onglet "Mon profil".</p>`}
+    `;
+  } catch (e) {
+    bodyEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+  }
+}
+
+function closeJobSeekerDetail() {
+  document.getElementById('jobseeker-detail-modal').classList.add('hidden');
+  currentJobSeekerDetailId = null;
+}
+
+/* ---- Onglet "Mon profil" ---- */
+async function loadMyJobSeekerProfile() {
+  const statusEl = document.getElementById('jobseekers-mine-status');
+  if (!currentUser) {
+    statusEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Connecte-toi pour publier ta demande d\'emploi.</p>';
+    return;
+  }
+  statusEl.innerHTML = '<p class="muted small">Chargement...</p>';
+  try {
+    const snap = await db.collection('job_seekers').doc(currentUser.uid).get();
+    myJobSeekerProfile = snap.exists ? { id: snap.id, ...snap.data() } : null;
+    renderMyJobSeekerProfile();
+  } catch (e) {
+    statusEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+  }
+}
+
+function renderMyJobSeekerProfile() {
+  const statusEl = document.getElementById('jobseekers-mine-status');
+  if (!myJobSeekerProfile) {
+    statusEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Tu n\'as pas encore publié de demande d\'emploi.</p>';
+    return;
+  }
+  const p = myJobSeekerProfile;
+  statusEl.innerHTML = `
+    <div class="order-box" style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+        <strong style="font-size:1.05rem">${escapeHtml(p.title || 'Mon profil')}</strong>
+        <span class="shop-card-category">${p.status === 'active' ? 'Actif' : 'En pause'}</span>
+      </div>
+      <div class="muted small" style="margin:4px 0">${escapeHtml(p.location || '—')}${p.category ? ' · ' + escapeHtml(p.category) : ''}</div>
+    </div>
+    <button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="openJobSeekerForm()">Modifier mon profil</button>
+    ${p.status === 'active'
+      ? `<button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="toggleJobSeekerStatus('paused')">Mettre en pause</button>`
+      : `<button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:8px" onclick="toggleJobSeekerStatus('active')">Réactiver</button>`}
+    <button class="btn btn-outline" style="width:100%;justify-content:center;color:var(--red)" onclick="deleteJobSeekerProfile()">Supprimer mon profil</button>`;
+}
+
+async function toggleJobSeekerStatus(newStatus) {
+  try {
+    await db.collection('job_seekers').doc(currentUser.uid).update({ status: newStatus });
+    myJobSeekerProfile.status = newStatus;
+    showToast(newStatus === 'active' ? 'Profil réactivé' : 'Profil mis en pause', 'success');
+    renderMyJobSeekerProfile();
+  } catch (e) {
+    showToast(friendlyErrorMessage(e), 'error');
+  }
+}
+
+async function deleteJobSeekerProfile() {
+  if (!confirm('Supprimer définitivement ta demande d\'emploi ?')) return;
+  try {
+    await db.collection('job_seekers').doc(currentUser.uid).delete();
+    myJobSeekerProfile = null;
+    showToast('Profil supprimé', 'info');
+    renderMyJobSeekerProfile();
+  } catch (e) {
+    showToast(friendlyErrorMessage(e), 'error');
+  }
+}
+
+/* ---- Formulaire de creation/modification du profil ---- */
+function openJobSeekerForm() {
+  if (!currentUser) { openAuth('register'); return; }
+  document.getElementById('jobseeker-form-error').classList.add('hidden');
+  document.getElementById('jobseeker-form-title').textContent = myJobSeekerProfile ? 'Modifier mon profil' : "Publier ma demande d'emploi";
+  document.getElementById('jobseeker-form-submit-btn').textContent = myJobSeekerProfile ? 'Enregistrer' : 'Publier';
+
+  const p = myJobSeekerProfile || {};
+  document.getElementById('jobseeker-title-input').value = p.title || '';
+  document.getElementById('jobseeker-type-select').value = p.type || 'emploi';
+  document.getElementById('jobseeker-category-input').value = p.category || '';
+  document.getElementById('jobseeker-location-input').value = p.location || '';
+  document.getElementById('jobseeker-experience-input').value = p.experience || '';
+  document.getElementById('jobseeker-description-input').value = p.description || '';
+  document.getElementById('jobseeker-salary-min-input').value = p.salaryMin || '';
+  document.getElementById('jobseeker-salary-max-input').value = p.salaryMax || '';
+  document.getElementById('jobseeker-salary-hidden-input').checked = !!p.salaryHidden;
+  document.getElementById('jobseeker-cv-input').value = p.cvUrl || '';
+  document.getElementById('jobseeker-whatsapp-input').value = p.whatsapp || '';
+  document.getElementById('jobseeker-phone-input').value = p.phone || '';
+
+  document.getElementById('jobseeker-form-modal').classList.remove('hidden');
+}
+
+function closeJobSeekerForm() {
+  document.getElementById('jobseeker-form-modal').classList.add('hidden');
+}
+
+async function saveJobSeekerProfile() {
+  const errEl = document.getElementById('jobseeker-form-error');
+  errEl.classList.add('hidden');
+
+  const title = document.getElementById('jobseeker-title-input').value.trim();
+  const type = document.getElementById('jobseeker-type-select').value;
+  const category = document.getElementById('jobseeker-category-input').value.trim();
+  const location = document.getElementById('jobseeker-location-input').value.trim();
+  const experience = document.getElementById('jobseeker-experience-input').value.trim();
+  const description = document.getElementById('jobseeker-description-input').value.trim();
+  const salaryMin = parseFloat(document.getElementById('jobseeker-salary-min-input').value) || null;
+  const salaryMax = parseFloat(document.getElementById('jobseeker-salary-max-input').value) || null;
+  const salaryHidden = document.getElementById('jobseeker-salary-hidden-input').checked;
+  const cvUrl = document.getElementById('jobseeker-cv-input').value.trim();
+  const whatsapp = document.getElementById('jobseeker-whatsapp-input').value.trim();
+  const phone = document.getElementById('jobseeker-phone-input').value.trim();
+
+  if (!title || !location || !description || !whatsapp) {
+    errEl.textContent = 'Merci de remplir au moins le poste recherché, la ville, la présentation et le WhatsApp.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+
+  const btn = document.getElementById('jobseeker-form-submit-btn');
+  if (btn.disabled) return;
+  btn.disabled = true;
+  const originalLabel = btn.textContent;
+  btn.textContent = 'Envoi...';
+
+  try {
+    const payload = {
+      title, type, category, location, experience, description,
+      salaryMin, salaryMax, salaryHidden, cvUrl: cvUrl || null, whatsapp, phone: phone || null
+    };
+    if (myJobSeekerProfile) {
+      await db.collection('job_seekers').doc(currentUser.uid).update({ ...payload, updatedAt: new Date().toISOString() });
+      showToast('Profil mis à jour', 'success');
+    } else {
+      await db.collection('job_seekers').doc(currentUser.uid).set({
+        ...payload,
+        ownerUid: currentUser.uid,
+        ownerName: currentUser.name || 'Utilisateur',
+        status: 'active',
+        featured: false,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
+      showToast('Demande d\'emploi publiée', 'success');
+    }
+    closeJobSeekerForm();
+    loadMyJobSeekerProfile();
+  } catch (e) {
+    errEl.textContent = friendlyErrorMessage(e);
+    errEl.classList.remove('hidden');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = originalLabel;
   }
 }
 
