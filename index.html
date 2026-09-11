@@ -884,31 +884,31 @@
     <!-- NIVEAU 1 : les 4 categories principales -->
     <div id="menu-screen-categories">
       <div class="menu-page-header">
-        <h2>Menu</h2>
+        <h2 data-i18n="menu_title">Menu</h2>
         <button class="modal-close" style="position:static" onclick="closeMainMenu()" aria-label="Fermer">×</button>
       </div>
       <button class="menu-category-row" onclick="showMenuScreen('items-espace')">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        <span>Mon espace</span>
+        <span data-i18n="menu_myspace">Mon espace</span>
         <svg class="menu-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
       </button>
       <button class="menu-category-row" onclick="showMenuScreen('items-parametres')">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-        <span>Paramètres</span>
+        <span data-i18n="menu_settings">Paramètres</span>
         <svg class="menu-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
       </button>
       <button class="menu-category-row" onclick="showMenuScreen('items-services')">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-3V5a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v2H4a1 1 0 0 0-1 1v3a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8a1 1 0 0 0-1-1Z"/><path d="M4 13v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6"/><path d="M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2H9Z"/></svg>
-        <span>Services CoeurNoh</span>
+        <span data-i18n="menu_services">Services</span>
         <svg class="menu-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
       </button>
       <button class="menu-category-row" onclick="showMenuScreen('items-aide')">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 2-3 4"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        <span>Aide &amp; informations</span>
+        <span data-i18n="menu_help">Aide &amp; informations</span>
         <svg class="menu-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
       </button>
 
-      <button class="btn btn-outline" style="width:100%;margin-top:20px;color:var(--red);border-color:var(--red)" onclick="closeMainMenu(); logout();">Se déconnecter</button>
+      <button class="btn btn-outline" style="width:100%;margin-top:20px;color:var(--red);border-color:var(--red)" onclick="closeMainMenu(); logout();" data-i18n="menu_logout">Se déconnecter</button>
     </div>
 
     <!-- NIVEAU 2a : liste "Mon espace" -->
@@ -917,31 +917,31 @@
         <button class="menu-back-btn" onclick="showMenuScreen('categories')" aria-label="Retour">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
-        <h2>Mon espace</h2>
+        <h2 data-i18n="menu_myspace">Mon espace</h2>
       </div>
       <button class="menu-item" onclick="goToAccountSection('section-profile')">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        Mon profil
+        <span data-i18n="menu_myprofile">Mon profil</span>
       </button>
       <button class="menu-item" onclick="goToAccountSection('section-saved')">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21 12 16l-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-        Enregistrés
+        <span data-i18n="menu_saved">Enregistrés</span>
       </button>
       <button class="menu-item" onclick="goToAccountSection('section-followers')">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        Mes abonnés
+        <span data-i18n="menu_followers">Mes abonnés</span>
       </button>
       <button class="menu-item" onclick="goToAccountSection('section-following')">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        Mes abonnements
+        <span data-i18n="menu_following">Mes abonnements</span>
       </button>
       <button class="menu-item" onclick="goToAccountSection('section-referral')">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.42 4.58a5.4 5.4 0 0 0-7.65 0L12 5.34l-.77-.76a5.4 5.4 0 0 0-7.65 7.65l.77.77L12 21l7.65-7.65.77-.77a5.4 5.4 0 0 0 0-7.65Z"/></svg>
-        Parrainage
+        <span data-i18n="menu_referral">Parrainage</span>
       </button>
       <button class="menu-item" onclick="closeMainMenu(); showDashTab('orders');">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M1 1h4l2.6 13.4a2 2 0 0 0 2 1.6h9.8a2 2 0 0 0 2-1.6L23 6H6"/></svg>
-        Mes activités (commandes)
+        <span data-i18n="menu_orders">Mes activités (commandes)</span>
       </button>
     </div>
 
@@ -951,31 +951,31 @@
         <button class="menu-back-btn" onclick="showMenuScreen('categories')" aria-label="Retour">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
-        <h2>Paramètres</h2>
+        <h2 data-i18n="menu_settings">Paramètres</h2>
       </div>
       <button class="menu-item" onclick="goToAccountSection('section-editaccount')">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        Compte
+        <span data-i18n="menu_account">Compte</span>
       </button>
       <button class="menu-item" onclick="goToAccountSection('section-security')">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg>
-        Sécurité
+        <span data-i18n="menu_security">Sécurité</span>
       </button>
       <button class="menu-item" onclick="goToAccountSection('section-blocked')">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
-        Confidentialité
+        <span data-i18n="menu_privacy">Confidentialité</span>
       </button>
       <button class="menu-item" onclick="goToAccountSection('section-notifprefs')">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-        Notifications
+        <span data-i18n="menu_notifications">Notifications</span>
       </button>
       <button class="menu-item" onclick="goToAccountSection('section-appearance')">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2a10 10 0 1 0 10 10c0-1-1-2-2-2h-2.5a2.5 2.5 0 0 1 0-5H19a2 2 0 0 0 2-2c0-2-4-3-9-3Z"/></svg>
-        Apparence
+        <span data-i18n="menu_appearance">Apparence</span>
       </button>
       <button class="menu-item" onclick="goToAccountSection('section-language')">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10Z"/></svg>
-        Langue
+        <span data-i18n="menu_language">Langue</span>
       </button>
     </div>
 
@@ -985,61 +985,61 @@
         <button class="menu-back-btn" onclick="showMenuScreen('categories')" aria-label="Retour">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
-        <h2>Services CoeurNoh</h2>
+        <h2 data-i18n="menu_services">Services</h2>
       </div>
-      <p class="muted small" style="padding:0 10px 12px">De nouveaux services arrivent progressivement. Touche-en un pour en savoir plus.</p>
+      <p class="muted small" style="padding:0 10px 12px" data-i18n="menu_services_sub">De nouveaux services arrivent progressivement. Touche-en un pour en savoir plus.</p>
 
       <button class="menu-item" onclick="openJobsScreen()">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
-        Emploi &amp; Freelance
+        <span data-i18n="svc_jobs">Emploi &amp; Freelance</span>
       </button>
       <button class="menu-item" onclick="openServiceRequestScreen()">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L2 19l3 3 7.3-7.3a4 4 0 0 0 5.4-5.4l-2.8 2.8-2-2Z"/></svg>
-        Trouver un professionnel
+        <span data-i18n="svc_pro">Trouver un professionnel</span>
       </button>
       <button class="menu-item" onclick="openSiteBuilderScreen()">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10Z"/></svg>
-        Crée ton site
+        <span data-i18n="svc_site">Crée ton site</span>
       </button>
       <button class="menu-item" onclick="openImmoScreen()">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10"/></svg>
-        CoeurNoh Immo
+        <span data-i18n="svc_immo">Immobilier</span>
       </button>
       <button class="menu-item" onclick="openEventsScreen()">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v3a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-3a3 3 0 0 1 0-6V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><line x1="13" y1="5" x2="13" y2="19" stroke-dasharray="2 2"/></svg>
-        Événements &amp; Billetterie
+        <span data-i18n="svc_events">Événements &amp; Billetterie</span>
       </button>
       <button class="menu-item" onclick="openAcademyScreen()">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5Z"/><path d="M6 12v5c0 1.5 3 3 6 3s6-1.5 6-3v-5"/></svg>
-        CoeurNoh Academy
+        <span data-i18n="svc_academy">Académie</span>
       </button>
       <button class="menu-item" onclick="openInvoiceScreen()">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
-        Factures &amp; Reçus
+        <span data-i18n="svc_invoices">Factures &amp; Reçus</span>
       </button>
       <button class="menu-item" onclick="openAlertsScreen()">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-        CoeurNoh Alertes
+        <span data-i18n="svc_alerts">Alertes</span>
       </button>
       <button class="menu-item" onclick="openTravelScreen()">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5Z"/></svg>
-        CoeurNoh Travel
+        <span data-i18n="svc_travel">Voyages</span>
       </button>
       <button class="menu-item" onclick="openBusinessScreen()">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="1"/><line x1="9" y1="7" x2="9" y2="7.01"/><line x1="15" y1="7" x2="15" y2="7.01"/><line x1="9" y1="11" x2="9" y2="11.01"/><line x1="15" y1="11" x2="15" y2="11.01"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
-        CoeurNoh Business
+        <span data-i18n="svc_business">Entreprises</span>
       </button>
       <button class="menu-item" onclick="openBookingScreen()">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        Réservation en ligne
+        <span data-i18n="svc_booking">Réservation en ligne</span>
       </button>
       <button class="menu-item" onclick="openNearbyScreen()">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-        Près de chez vous
+        <span data-i18n="svc_nearby">Près de chez vous</span>
       </button>
       <button class="menu-item" onclick="openContestsScreen()">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M17 5h2a2 2 0 0 1 2 2 4 4 0 0 1-4 4"/><path d="M7 5H5a2 2 0 0 0-2 2 4 4 0 0 0 4 4"/></svg>
-        Concours &amp; Récompenses
+        <span data-i18n="svc_contests">Concours &amp; Récompenses</span>
       </button>
     </div>
 
@@ -1066,7 +1066,7 @@
         <button class="menu-back-btn" onclick="showMenuScreen('items-services')" aria-label="Retour">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
-        <h2>Factures &amp; Reçus</h2>
+        <h2 data-i18n="svc_invoices">Factures &amp; Reçus</h2>
       </div>
 
       <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:14px" onclick="openInvoiceForm()">
@@ -1083,7 +1083,7 @@
         <button class="menu-back-btn" onclick="showMenuScreen('items-services')" aria-label="Retour">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
-        <h2>CoeurNoh Alertes</h2>
+        <h2 data-i18n="svc_alerts">Alertes</h2>
       </div>
       <p class="muted small" style="padding:0 10px 12px">Enregistre une recherche et reçois une notification dès qu'un produit correspond.</p>
 
@@ -1278,7 +1278,7 @@
         <button class="menu-back-btn" onclick="showMenuScreen('items-services')" aria-label="Retour">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
-        <h2>CoeurNoh Travel</h2>
+        <h2 data-i18n="svc_travel">Voyages</h2>
       </div>
 
       <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:14px" onclick="openTravelForm()">
@@ -1350,7 +1350,7 @@
         <button class="menu-back-btn" onclick="showMenuScreen('items-services')" aria-label="Retour">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
-        <h2>CoeurNoh Immo</h2>
+        <h2 data-i18n="svc_immo">Immobilier</h2>
       </div>
 
       <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:14px" onclick="openImmoForm()">
@@ -1435,7 +1435,7 @@
         <button class="menu-back-btn" onclick="showMenuScreen('items-services')" aria-label="Retour">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
-        <h2>CoeurNoh Academy</h2>
+        <h2 data-i18n="svc_academy">Académie</h2>
       </div>
 
       <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:14px" onclick="openCourseForm()">
@@ -1480,7 +1480,7 @@
         <button class="menu-back-btn" onclick="showMenuScreen('items-services')" aria-label="Retour">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
-        <h2>CoeurNoh Business</h2>
+        <h2 data-i18n="svc_business">Entreprises</h2>
       </div>
 
       <div class="shop-filter-tabs" id="business-main-tabs" style="margin-bottom:14px">
@@ -1507,23 +1507,23 @@
         <button class="menu-back-btn" onclick="showMenuScreen('categories')" aria-label="Retour">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
-        <h2>Aide &amp; informations</h2>
+        <h2 data-i18n="menu_help">Aide &amp; informations</h2>
       </div>
       <button class="menu-item" onclick="goToAccountSection('section-faq')">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 2-3 4"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        Questions fréquentes
+        <span data-i18n="menu_faq">Questions fréquentes</span>
       </button>
       <button class="menu-item" onclick="goToAccountSection('section-contact')">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z"/></svg>
-        Assistance
+        <span data-i18n="menu_support">Assistance</span>
       </button>
       <button class="menu-item" onclick="goToAccountSection('section-about')">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-        À propos
+        <span data-i18n="menu_about">À propos</span>
       </button>
       <button class="menu-item" onclick="goToAccountSection('section-share')">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.6" x2="15.4" y2="6.4"/><line x1="8.6" y1="13.4" x2="15.4" y2="17.6"/></svg>
-        Partager CoeurnohBoost
+        <span data-i18n="menu_share">Partager l'app</span>
       </button>
     </div>
 

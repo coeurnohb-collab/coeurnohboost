@@ -456,7 +456,7 @@ a{text-decoration:none;color:inherit}
   display:flex;align-items:center;gap:12px;margin-bottom:18px;
   position:sticky;top:0;background:var(--white);padding-top:2px;z-index:2;
 }
-.menu-page-header h2{margin:0;font-size:1.2rem}
+.menu-page-header h2{margin:0;font-size:1.3rem;font-weight:800}
 .menu-page-header .modal-close{margin-left:auto}
 .menu-back-btn{
   background:none;border:none;padding:6px;cursor:pointer;color:var(--ink);
@@ -466,25 +466,34 @@ a{text-decoration:none;color:inherit}
 .menu-category-row{
   display:flex;align-items:center;gap:14px;width:100%;text-align:left;
   background:none;border:none;border-bottom:1px solid var(--line);
-  padding:18px 8px;font-size:1.02rem;font-weight:600;color:var(--ink);cursor:pointer;
+  padding:16px 8px;font-size:1.05rem;font-weight:600;color:var(--ink);cursor:pointer;
+  transition:background .15s ease;
 }
-.menu-category-row svg:first-child{color:var(--green);flex:0 0 auto}
-.menu-category-row span{flex:1}
+.menu-category-row svg:first-child{
+  color:var(--green);flex:0 0 auto;background:var(--green-light);
+  border-radius:10px;padding:7px;width:36px;height:36px;box-sizing:border-box;
+}
+.menu-category-row span{flex:1;letter-spacing:-0.01em}
 .menu-chevron{color:var(--muted);flex:0 0 auto}
 .menu-category-row:hover{background:var(--green-light)}
+.menu-category-row:active{background:var(--green-light)}
 
 .menu-category{margin-bottom:20px}
 .menu-category h4{
-  font-size:0.75rem;text-transform:uppercase;letter-spacing:0.04em;
-  color:var(--muted);margin:0 0 6px;padding:0 6px;
+  font-size:0.75rem;text-transform:uppercase;letter-spacing:0.06em;
+  color:var(--muted);margin:0 0 6px;padding:0 6px;font-weight:700;
 }
 .menu-item{
-  display:flex;align-items:center;gap:12px;width:100%;text-align:left;
-  background:none;border:none;padding:12px 10px;font-size:0.95rem;
-  color:var(--ink);cursor:pointer;border-radius:10px;
+  display:flex;align-items:center;gap:13px;width:100%;text-align:left;
+  background:none;border:none;padding:13px 10px;font-size:1rem;font-weight:500;
+  color:var(--ink);cursor:pointer;border-radius:10px;transition:background .15s ease;
 }
 .menu-item:hover{background:var(--green-light)}
-.menu-item svg{flex:0 0 auto;color:var(--green)}
+.menu-item:active{background:var(--green-light)}
+.menu-item svg{
+  flex:0 0 auto;color:var(--green);background:var(--green-light);
+  border-radius:9px;padding:6px;width:32px;height:32px;box-sizing:border-box;
+}
 
 .lang-choice.active{background:var(--green);border-color:var(--green);color:#fff}
 
