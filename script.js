@@ -8665,6 +8665,366 @@ function renderPublicSiteHtml(site, overlay) {
 
 document.addEventListener('DOMContentLoaded', checkForPublicSiteView);
 
+/* ================= COEURNOH BUSINESS =================
+   Different de "Pres de chez vous" (fiche statique orientee recherche
+   locale/reservation) et de "Cree ton site" (page publique partageable
+   hors de l'application) : ici c'est une PAGE D'ENTREPRISE a l'interieur
+   de l'app, avec un fil d'actualites ("business_posts") que les gens
+   peuvent suivre -- comme une page Facebook professionnelle. Reutilise
+   directement le systeme de suivi existant ("follows" + toggleFollow(),
+   deja utilise pour les vendeurs de la Boutique) : aucun nouveau systeme
+   de suivi invente. Categories reutilisees depuis NEARBY_CATEGORY_LABELS
+   pour rester coherent avec le reste de l'app.
+   Un seul profil entreprise par utilisateur ("businesses/{uid}", meme
+   principe que directory_listings et mini_sites). */
+let businessCache = null;
+let businessMyProfile = null;
+let businessCurrentTab = 'browse';
+let businessSelectedCategory = '';
+let businessSearchDebounce = null;
+
+function openBusinessScreen() {
+  showMenuScreen('business');
+  populateBusinessCategoryTabs();
+  setBusinessTab(businessCurrentTab || 'browse');
+}
+
+function populateBusinessCategoryTabs() {
+  const tabsEl = document.getElementById('business-category-tabs');
+  if (tabsEl.dataset.populated) return;
+  tabsEl.dataset.populated = '1';
+  Object.entries(NEARBY_CATEGORY_LABELS).forEach(([val, label]) => {
+    const btn = document.createElement('button');
+    btn.dataset.cat = val;
+    btn.textContent = label;
+    btn.onclick = () => setBusinessCategory(val);
+    tabsEl.appendChild(btn);
+  });
+}
+
+function setBusinessTab(tab) {
+  businessCurrentTab = tab;
+  document.querySelectorAll('#business-main-tabs button').forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tab));
+  ['browse', 'mine'].forEach(t => document.getElementById('business-tab-' + t).classList.toggle('hidden', t !== tab));
+
+  if (tab === 'browse') loadBusinesses();
+  else if (tab === 'mine') loadMyBusiness();
+}
+
+async function loadBusinesses() {
+  const listEl = document.getElementById('business-browse-list');
+  if (!businessCache) listEl.innerHTML = renderFeedSkeletons(2);
+  try {
+    const snap = await db.collection('businesses').where('status', '==', 'active').limit(300).get();
+    businessCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    runBusinessFilter();
+  } catch (e) {
+    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+  }
+}
+
+function setBusinessCategory(cat) {
+  businessSelectedCategory = cat;
+  document.querySelectorAll('#business-category-tabs button').forEach(btn => btn.classList.toggle('active', btn.dataset.cat === cat));
+  runBusinessFilter();
+}
+function scheduleBusinessSearch() {
+  clearTimeout(businessSearchDebounce);
+  businessSearchDebounce = setTimeout(runBusinessFilter, 250);
+}
+
+function runBusinessFilter() {
+  if (!businessCache) return;
+  const query = document.getElementById('business-search-input').value.trim().toLowerCase();
+  const matches = businessCache.filter(b => {
+    if (businessSelectedCategory && b.category !== businessSelectedCategory) return false;
+    if (query && !`${b.businessName || ''} ${NEARBY_CATEGORY_LABELS[b.category] || ''}`.toLowerCase().includes(query)) return false;
+    return true;
+  });
+  renderBusinessCards(matches);
+}
+
+function renderBusinessCards(list) {
+  const listEl = document.getElementById('business-browse-list');
+  const visible = list.filter(b => !blockedSet.has(b.ownerUid));
+  if (visible.length === 0) {
+    listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Aucune entreprise pour l\'instant.</p>';
+    return;
+  }
+  listEl.innerHTML = visible.map(b => `
+    <div class="order-box" style="margin-bottom:12px">
+      <div style="display:flex;align-items:center;gap:10px">
+        ${b.logoUrl ? `<img src="${escapeHtml(b.logoUrl)}" style="width:44px;height:44px;border-radius:50%;object-fit:cover">` : ''}
+        <div>
+          <strong>${escapeHtml(b.businessName || 'Entreprise')}</strong>
+          <div class="muted small">${escapeHtml(NEARBY_CATEGORY_LABELS[b.category] || '')}</div>
+        </div>
+      </div>
+      <button class="btn btn-outline btn-sm" style="margin-top:10px" onclick="openBusinessDetail('${b.ownerUid}')">Voir la page</button>
+    </div>`).join('');
+}
+
+async function openBusinessDetail(ownerUid) {
+  if (document.getElementById('business-detail-modal')) return;
+  let b = (businessCache || []).find(x => x.ownerUid === ownerUid);
+  if (!b) {
+    try {
+      const doc = await db.collection('businesses').doc(ownerUid).get();
+      if (!doc.exists) { showToast("Cette page n'existe plus", 'error'); return; }
+      b = { id: doc.id, ...doc.data() };
+    } catch (e) { showToast(friendlyErrorMessage(e), 'error'); return; }
+  }
+
+  const isOwn = currentUser && currentUser.uid === ownerUid;
+  const isFollowing = followingSet.has(ownerUid);
+  const waLink = b.whatsapp ? `https://wa.me/${b.whatsapp.replace(/\D/g, '')}` : null;
+  const followBtnHtml = !isOwn && currentUser ? `
+    <button class="follow-btn ${isFollowing ? 'following' : ''}" data-follow-btn="${ownerUid}"
+      onclick="toggleFollow('${ownerUid}','${escapeForJs(b.businessName || '')}')">
+      <span data-follow-label="${ownerUid}">${isFollowing ? 'Abonné' : '+ Suivre'}</span>
+    </button>` : '';
+
+  const html = `
+    <div class="modal-overlay" id="business-detail-modal">
+      <div class="modal post-detail-modal-inner">
+        <button class="modal-close" onclick="document.getElementById('business-detail-modal').remove()" aria-label="Fermer">×</button>
+        ${b.coverImageUrl ? `<img src="${escapeHtml(b.coverImageUrl)}" style="width:100%;max-height:140px;object-fit:cover;border-radius:8px;margin-bottom:10px">` : ''}
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+          ${b.logoUrl ? `<img src="${escapeHtml(b.logoUrl)}" style="width:56px;height:56px;border-radius:50%;object-fit:cover">` : ''}
+          <div>
+            <h3 style="margin:0">${escapeHtml(b.businessName || '')}</h3>
+            <div class="muted small">${escapeHtml(NEARBY_CATEGORY_LABELS[b.category] || '')}</div>
+          </div>
+        </div>
+        ${followBtnHtml}
+        ${b.description ? `<p style="white-space:pre-wrap;margin:12px 0">${escapeHtml(b.description)}</p>` : ''}
+        ${b.address ? `<p class="muted small">📍 ${escapeHtml(b.address)}</p>` : ''}
+        ${b.hours ? `<p class="muted small">🕒 ${escapeHtml(b.hours)}</p>` : ''}
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0">
+          ${waLink ? `<a class="btn btn-outline btn-sm" href="${escapeHtml(waLink)}" target="_blank">${ICON_WHATSAPP} WhatsApp</a>` : ''}
+          ${b.phone ? `<a class="btn btn-outline btn-sm" href="tel:${escapeHtml(b.phone)}">Appeler</a>` : ''}
+        </div>
+        ${!isOwn && currentUser ? `<button class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin-bottom:10px" onclick="openReportModal('${ownerUid}', '${ownerUid}', 'business')">Signaler cette page</button>` : ''}
+        <h4 style="margin:14px 0 8px">Actualités</h4>
+        <div id="business-detail-posts"><p class="muted small">Chargement...</p></div>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+  loadBusinessPostsFeed(ownerUid, 'business-detail-posts');
+}
+
+async function loadBusinessPostsFeed(ownerUid, targetId) {
+  const el = document.getElementById(targetId);
+  try {
+    const snap = await db.collection('business_posts').where('businessUid', '==', ownerUid).limit(30).get();
+    const posts = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+    if (posts.length === 0) {
+      el.innerHTML = '<p class="muted small">Aucune actualité publiée pour l\'instant.</p>';
+      return;
+    }
+    const isOwn = currentUser && currentUser.uid === ownerUid;
+    el.innerHTML = posts.map(p => `
+      <div class="order-box" style="margin-bottom:8px">
+        ${p.imageUrl ? `<img src="${escapeHtml(p.imageUrl)}" style="width:100%;border-radius:8px;margin-bottom:8px">` : ''}
+        <p style="white-space:pre-wrap;margin:0">${escapeHtml(p.text || '')}</p>
+        ${isOwn ? `<button class="btn btn-outline btn-sm" style="margin-top:8px;color:var(--red)" onclick="deleteBusinessPost('${p.id}', '${ownerUid}', '${targetId}')">Supprimer</button>` : ''}
+      </div>`).join('');
+  } catch (e) {
+    el.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+  }
+}
+
+/* ---- Onglet "Mon entreprise" ---- */
+async function loadMyBusiness() {
+  const statusEl = document.getElementById('business-mine-status');
+  if (!currentUser) { statusEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Connecte-toi pour créer ta page entreprise.</p>'; return; }
+  statusEl.innerHTML = '<p class="muted small">Chargement...</p>';
+  try {
+    const snap = await db.collection('businesses').doc(currentUser.uid).get();
+    businessMyProfile = snap.exists ? snap.data() : null;
+    renderMyBusinessStatus();
+  } catch (e) {
+    statusEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+  }
+}
+
+async function renderMyBusinessStatus() {
+  const statusEl = document.getElementById('business-mine-status');
+  if (!businessMyProfile) {
+    statusEl.innerHTML = `
+      <p class="muted small" style="margin-bottom:14px">Crée la page de ton entreprise : profil, services, et un fil d'actualités que tes clients peuvent suivre.</p>
+      <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="openBusinessForm()">Créer ma page entreprise</button>`;
+    return;
+  }
+  let followerCount = '…';
+  try {
+    const favSnap = await db.collection('follows').where('followedUid', '==', currentUser.uid).get();
+    followerCount = favSnap.size;
+  } catch (e) { followerCount = '—'; }
+
+  statusEl.innerHTML = `
+    <div class="order-box" style="margin-bottom:14px">
+      <strong>${escapeHtml(businessMyProfile.businessName || '')}</strong>
+      <div class="muted small" style="margin:4px 0">${followerCount} abonné(s)</div>
+      <button class="btn btn-outline btn-sm" onclick="openBusinessForm()">Modifier ma page</button>
+    </div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:14px" onclick="openBusinessPostForm()">Publier une actualité</button>
+    <h4 style="margin-bottom:8px">Mes actualités</h4>
+    <div id="business-mine-posts"><p class="muted small">Chargement...</p></div>`;
+  loadBusinessPostsFeed(currentUser.uid, 'business-mine-posts');
+}
+
+function openBusinessForm() {
+  if (!currentUser) { openAuth('login'); return; }
+  if (document.getElementById('business-form-modal')) return;
+  const b = businessMyProfile || {};
+  const catOptions = Object.entries(NEARBY_CATEGORY_LABELS)
+    .map(([val, label]) => `<option value="${val}" ${b.category === val ? 'selected' : ''}>${escapeHtml(label)}</option>`).join('');
+
+  const html = `
+    <div class="modal-overlay" id="business-form-modal">
+      <div class="modal" style="max-width:460px">
+        <button class="modal-close" onclick="document.getElementById('business-form-modal').remove()" aria-label="Fermer">×</button>
+        <h3 style="margin-bottom:14px">${businessMyProfile ? 'Modifier ma page' : 'Créer ma page entreprise'}</h3>
+        <div class="field">
+          <label for="business-name">Nom de l'entreprise</label>
+          <input type="text" id="business-name" class="text-input" maxlength="80" value="${escapeHtml(b.businessName || '')}">
+        </div>
+        <div class="field">
+          <label for="business-category">Catégorie</label>
+          <select id="business-category" class="select-input">${catOptions}</select>
+        </div>
+        <div class="field">
+          <label for="business-description">Présentation</label>
+          <textarea id="business-description" class="text-input" rows="3" style="resize:vertical" maxlength="500">${escapeHtml(b.description || '')}</textarea>
+        </div>
+        <div class="field">
+          <label for="business-logo">Logo (lien, facultatif)</label>
+          <input type="url" id="business-logo" class="text-input" placeholder="https://..." value="${escapeHtml(b.logoUrl || '')}">
+        </div>
+        <div class="field">
+          <label for="business-cover">Image de couverture (lien, facultatif)</label>
+          <input type="url" id="business-cover" class="text-input" placeholder="https://..." value="${escapeHtml(b.coverImageUrl || '')}">
+        </div>
+        <div class="field">
+          <label for="business-address">Adresse / ville</label>
+          <input type="text" id="business-address" class="text-input" value="${escapeHtml(b.address || '')}">
+        </div>
+        <div class="field">
+          <label for="business-hours">Horaires (facultatif)</label>
+          <input type="text" id="business-hours" class="text-input" placeholder="ex: Lun-Sam 8h-18h" value="${escapeHtml(b.hours || '')}">
+        </div>
+        <div class="field">
+          <label for="business-whatsapp">WhatsApp de contact</label>
+          <input type="tel" id="business-whatsapp" class="text-input" placeholder="+243..." value="${escapeHtml(b.whatsapp || '')}">
+        </div>
+        <div class="field">
+          <label for="business-phone">Téléphone (facultatif)</label>
+          <input type="tel" id="business-phone" class="text-input" value="${escapeHtml(b.phone || '')}">
+        </div>
+        <button class="btn btn-primary" id="business-save-btn" style="width:100%;justify-content:center" onclick="saveBusinessProfile()">Enregistrer</button>
+        <p class="muted small" id="business-form-msg" style="margin-top:6px"></p>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+async function saveBusinessProfile() {
+  const btn = document.getElementById('business-save-btn');
+  const msgEl = document.getElementById('business-form-msg');
+  const businessName = document.getElementById('business-name').value.trim();
+  const category = document.getElementById('business-category').value;
+  const description = document.getElementById('business-description').value.trim();
+  const logoUrl = document.getElementById('business-logo').value.trim();
+  const coverImageUrl = document.getElementById('business-cover').value.trim();
+  const address = document.getElementById('business-address').value.trim();
+  const hours = document.getElementById('business-hours').value.trim();
+  const whatsapp = document.getElementById('business-whatsapp').value.trim();
+  const phone = document.getElementById('business-phone').value.trim();
+
+  if (!businessName || !description || !whatsapp) {
+    msgEl.textContent = 'Merci de remplir au moins le nom, la présentation et le WhatsApp.';
+    return;
+  }
+  if (btn.disabled) return;
+  btn.disabled = true;
+  btn.textContent = 'Enregistrement...';
+  try {
+    await db.collection('businesses').doc(currentUser.uid).set({
+      ownerUid: currentUser.uid, businessName, category, description,
+      logoUrl: logoUrl || null, coverImageUrl: coverImageUrl || null,
+      address, hours, whatsapp, phone,
+      status: 'active',
+      createdAt: businessMyProfile ? businessMyProfile.createdAt : new Date().toISOString()
+    }, { merge: true });
+    document.getElementById('business-form-modal').remove();
+    showToast('Page enregistrée', 'success');
+    businessCache = null;
+    loadMyBusiness();
+  } catch (e) {
+    msgEl.textContent = friendlyErrorMessage(e);
+    btn.disabled = false;
+    btn.textContent = 'Enregistrer';
+  }
+}
+
+function openBusinessPostForm() {
+  if (document.getElementById('business-post-form-modal')) return;
+  const html = `
+    <div class="modal-overlay" id="business-post-form-modal">
+      <div class="modal">
+        <button class="modal-close" onclick="document.getElementById('business-post-form-modal').remove()" aria-label="Fermer">×</button>
+        <h3 style="margin-bottom:14px">Publier une actualité</h3>
+        <div class="field">
+          <label for="business-post-text">Texte</label>
+          <textarea id="business-post-text" class="text-input" rows="3" style="resize:vertical" maxlength="500"></textarea>
+        </div>
+        <div class="field">
+          <label for="business-post-image">Image (lien, facultatif)</label>
+          <input type="url" id="business-post-image" class="text-input" placeholder="https://...">
+        </div>
+        <button class="btn btn-primary" id="business-post-save-btn" style="width:100%;justify-content:center" onclick="saveBusinessPost()">Publier</button>
+        <p class="muted small" id="business-post-form-msg" style="margin-top:6px"></p>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+async function saveBusinessPost() {
+  const btn = document.getElementById('business-post-save-btn');
+  const msgEl = document.getElementById('business-post-form-msg');
+  const text = document.getElementById('business-post-text').value.trim();
+  const imageUrl = document.getElementById('business-post-image').value.trim();
+  if (!text) { msgEl.textContent = 'Écris un texte pour ton actualité.'; return; }
+  if (btn.disabled) return;
+  btn.disabled = true;
+  btn.textContent = 'Publication...';
+  try {
+    await db.collection('business_posts').add({
+      businessUid: currentUser.uid, businessName: (businessMyProfile && businessMyProfile.businessName) || '',
+      text, imageUrl: imageUrl || null, createdAt: new Date().toISOString()
+    });
+    document.getElementById('business-post-form-modal').remove();
+    showToast('Actualité publiée', 'success');
+    loadBusinessPostsFeed(currentUser.uid, 'business-mine-posts');
+  } catch (e) {
+    msgEl.textContent = friendlyErrorMessage(e);
+    btn.disabled = false;
+    btn.textContent = 'Publier';
+  }
+}
+
+async function deleteBusinessPost(postId, ownerUid, targetId) {
+  if (!confirm('Supprimer cette actualité ?')) return;
+  try {
+    await db.collection('business_posts').doc(postId).delete();
+    showToast('Actualité supprimée', 'info');
+    loadBusinessPostsFeed(ownerUid, targetId);
+  } catch (e) {
+    showToast(friendlyErrorMessage(e), 'error');
+  }
+}
+
 /* ================= SIGNALEMENT DE CONTENU ================= */
 let reportTargetId = null;
 let reportTargetOwnerUid = null;
