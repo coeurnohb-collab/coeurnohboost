@@ -3264,6 +3264,7 @@ const ICON_CART = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" s
 const ICON_WALLET = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5h-4a2 2 0 0 1 0-4h4Z"/></svg>`;
 const ICON_PACKAGE = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5Z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>`;
 const ICON_TAG = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 12.3 12.7 20.2a2 2 0 0 1-2.8 0l-7.1-7.1a2 2 0 0 1 0-2.8L10.7 2.3a2 2 0 0 1 1.4-.6H19a2 2 0 0 1 2 2v6.9a2 2 0 0 1-.4 1.7Z"/><circle cx="15.5" cy="7.5" r="1.5"/></svg>`;
+const ICON_LINK = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l2-2a5 5 0 0 0-7-7l-1.5 1.5"/><path d="M14 11a5 5 0 0 0-7.5-.5l-2 2a5 5 0 0 0 7 7l1.5-1.5"/></svg>`;
 
 async function shareShopItem(pubId, title) {
   const shareUrl = `https://coeurnohboost.vercel.app/?produit=${pubId}`;
@@ -4968,7 +4969,7 @@ async function payAndSubmitContestEntry(contestId) {
     if (!data.success) throw new Error(data.error || 'Le paiement a échoué.');
 
     currentUser.balance = data.newBalance;
-    const dashBalanceEl = document.getElementById('dash-balance');
+    const dashBalanceEl = document.getElementById('wallet-balance');
     if (dashBalanceEl) dashBalanceEl.textContent = data.newBalance.toFixed(2) + '$';
     document.getElementById('contest-entry-modal').remove();
     showToast('Participation payée et confirmée', 'success');
@@ -6056,7 +6057,7 @@ async function submitEventReservation() {
 
     if (typeof data.newBalance === 'number') {
       currentUser.balance = data.newBalance;
-      const dashBalanceEl = document.getElementById('dash-balance');
+      const dashBalanceEl = document.getElementById('wallet-balance');
       if (dashBalanceEl) dashBalanceEl.textContent = data.newBalance.toFixed(2) + '$';
     }
     const reservedEventId = currentEventReserve.eventId;
@@ -6119,7 +6120,7 @@ async function cancelEventTicket(ticketId) {
 
     if (typeof data.newBalance === 'number') {
       currentUser.balance = data.newBalance;
-      const dashBalanceEl = document.getElementById('dash-balance');
+      const dashBalanceEl = document.getElementById('wallet-balance');
       if (dashBalanceEl) dashBalanceEl.textContent = data.newBalance.toFixed(2) + '$';
     }
     showToast('Réservation annulée', 'success');
@@ -6340,6 +6341,7 @@ async function openTravelDetail(spotId) {
         </div>
 
         <button class="btn ${isFavorited ? 'btn-outline' : 'btn-primary'}" id="travel-fav-btn" style="width:100%;justify-content:center" onclick="toggleTravelFavorite('${spot.id}')">${isFavorited ? 'Retirer des favoris' : 'Ajouter aux favoris'}</button>
+        ${currentUser && currentUser.uid !== spot.ownerUid ? `<button class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin-top:8px" onclick="openReportModal('${spot.id}', '${spot.ownerUid}', 'travel_spot')">Signaler ce lieu</button>` : ''}
       </div>
     </div>`;
   document.body.insertAdjacentHTML('beforeend', html);
@@ -6881,6 +6883,534 @@ async function cancelBooking(bookingId) {
     else loadReceivedBookings();
   } catch (e) {
     showToast(friendlyErrorMessage(e), 'error');
+  }
+}
+
+/* ================= COEURNOH ACADEMY =================
+   "courses" (creee par n'importe quel utilisateur -- pas de "profil
+   formateur" a creer, meme logique legere que les autres services) avec un
+   tableau "chapters" integre au document (titre, type de contenu, lien ou
+   texte). "course_enrollments" = une inscription par personne et par cours
+   (id deterministe "{courseId}_{uid}").
+
+   SECURITE : une inscription GRATUITE peut s'ecrire directement depuis le
+   client (regles Firestore : amountPaid doit valoir 0). Une inscription
+   PAYANTE passe par le serveur (/api/payments-actions, action
+   "course_enroll") pour deduire le solde et payer le formateur en toute
+   securite -- exactement comme la reservation d'un evenement payant. La
+   progression (chapitres termines) est modifiable uniquement par
+   l'etudiant sur SA PROPRE inscription (regle Firestore : le champ
+   "completedChapters" uniquement). */
+const COURSE_LEVEL_LABELS = { debutant: 'Débutant', intermediaire: 'Intermédiaire', avance: 'Avancé' };
+
+let academyCache = null;
+let academyCurrentTab = 'browse';
+let academySearchDebounce = null;
+let myTaughtCoursesCache = null;
+let editingCourseId = null;
+let courseChapterRowCounter = 0;
+let currentCourseEnroll = null; // { courseId, courseTitle, price }
+
+function openAcademyScreen() {
+  showMenuScreen('academy');
+  setAcademyTab(academyCurrentTab || 'browse');
+}
+
+function setAcademyTab(tab) {
+  academyCurrentTab = tab;
+  document.querySelectorAll('#academy-main-tabs button').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.tab === tab);
+  });
+  ['browse', 'mycourses', 'myteaching'].forEach(t => {
+    document.getElementById('academy-tab-' + t).classList.toggle('hidden', t !== tab);
+  });
+
+  if (tab === 'browse') loadCourses();
+  else if (tab === 'mycourses') loadMyEnrolledCourses();
+  else if (tab === 'myteaching') loadMyTaughtCourses();
+}
+
+async function loadCourses() {
+  const listEl = document.getElementById('academy-browse-list');
+  if (!academyCache) listEl.innerHTML = renderFeedSkeletons(2);
+  try {
+    const snap = await db.collection('courses').where('status', '==', 'active').limit(300).get();
+    academyCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    runAcademyFilter();
+  } catch (e) {
+    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+  }
+}
+
+function scheduleAcademySearch() {
+  clearTimeout(academySearchDebounce);
+  academySearchDebounce = setTimeout(runAcademyFilter, 250);
+}
+
+function runAcademyFilter() {
+  if (!academyCache) return;
+  const query = document.getElementById('academy-search-input').value.trim().toLowerCase();
+  const matches = query
+    ? academyCache.filter(c => `${c.title || ''} ${c.category || ''}`.toLowerCase().includes(query))
+    : academyCache;
+  renderAcademyBrowseList(matches);
+}
+
+function coursePriceLabel(c) {
+  return (c.price || 0) === 0 ? 'Gratuit' : `${c.price}$`;
+}
+
+function renderAcademyBrowseList(list) {
+  const listEl = document.getElementById('academy-browse-list');
+  const visible = list.filter(c => !blockedSet.has(c.ownerUid));
+  if (visible.length === 0) {
+    listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Aucun cours pour l\'instant. Sois le premier à en publier un.</p>';
+    return;
+  }
+  listEl.innerHTML = visible.map(c => `
+    <div class="order-box" style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+        <strong style="font-size:1.02rem">${escapeHtml(c.title || 'Cours')}</strong>
+        <span class="shop-card-category">${escapeHtml(c.category || '—')}</span>
+      </div>
+      <div class="muted small" style="margin:4px 0">${COURSE_LEVEL_LABELS[c.level] || ''} · ${(c.chapters || []).length} chapitre(s) · ${c.studentsCount || 0} étudiant(s)</div>
+      <div class="muted small" style="margin-bottom:10px">${coursePriceLabel(c)}</div>
+      <button class="btn btn-outline btn-sm" onclick="openCourseDetail('${c.id}')">Voir le cours</button>
+    </div>`).join('');
+}
+
+async function openCourseDetail(courseId) {
+  const bodyEl = document.getElementById('course-detail-body');
+  bodyEl.innerHTML = '<p class="muted small">Chargement...</p>';
+  document.getElementById('course-detail-modal').classList.remove('hidden');
+
+  try {
+    const snap = await db.collection('courses').doc(courseId).get();
+    if (!snap.exists) {
+      bodyEl.innerHTML = '<p class="muted small">Ce cours n\'existe plus.</p>';
+      return;
+    }
+    const c = { id: snap.id, ...snap.data() };
+    const isOwner = currentUser && currentUser.uid === c.ownerUid;
+    const chapters = c.chapters || [];
+
+    let enrollment = null;
+    if (!isOwner && currentUser) {
+      const enrSnap = await db.collection('course_enrollments').doc(`${courseId}_${currentUser.uid}`).get();
+      if (enrSnap.exists) enrollment = enrSnap.data();
+    }
+
+    let ownerActionsHtml = '';
+    if (isOwner) {
+      ownerActionsHtml = `
+        <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:8px" onclick="openCourseStudents('${c.id}')">Voir les étudiants (${c.studentsCount || 0})</button>
+        <button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="openCourseForm('${c.id}')">Modifier le cours</button>
+        ${c.status === 'active'
+          ? `<button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="toggleCourseStatus('${c.id}', 'closed')">Clôturer le cours</button>`
+          : `<button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="toggleCourseStatus('${c.id}', 'active')">Réactiver le cours</button>`}
+        <button class="btn btn-outline" style="width:100%;justify-content:center;color:var(--red)" onclick="deleteCourse('${c.id}')">Supprimer le cours</button>`;
+    }
+
+    let chaptersHtml;
+    if (isOwner || enrollment) {
+      const completed = (enrollment && enrollment.completedChapters) || [];
+      chaptersHtml = chapters.map((ch, i) => {
+        const done = completed.includes(ch.id);
+        const contentHtml = ch.contentType === 'video' || ch.contentType === 'document'
+          ? `<a href="${escapeHtml(ch.content || '')}" target="_blank" class="btn btn-outline btn-sm" style="margin:6px 0">${ch.contentType === 'video' ? 'Voir la vidéo' : 'Voir le document'}</a>`
+          : `<p style="white-space:pre-wrap;margin:6px 0">${escapeHtml(ch.content || '')}</p>`;
+        return `<div class="order-box" style="margin-bottom:8px">
+          <strong>${i + 1}. ${escapeHtml(ch.title || 'Chapitre')}</strong>
+          ${contentHtml}
+          ${enrollment ? `<button class="btn btn-outline btn-sm" onclick="toggleChapterComplete('${c.id}', '${ch.id}', ${done})">${done ? '✓ Terminé' : 'Marquer comme terminé'}</button>` : ''}
+        </div>`;
+      }).join('') || '<p class="muted small">Aucun chapitre pour l\'instant.</p>';
+    } else {
+      chaptersHtml = chapters.map((ch, i) => `<div class="order-box" style="margin-bottom:8px"><strong>${i + 1}. ${escapeHtml(ch.title || 'Chapitre')}</strong></div>`).join('')
+        || '<p class="muted small">Aucun chapitre pour l\'instant.</p>';
+    }
+
+    let enrollActionHtml = '';
+    if (!isOwner) {
+      if (!currentUser) {
+        enrollActionHtml = `<button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:10px" onclick="openAuth('register')">Se connecter pour s'inscrire</button>`;
+      } else if (enrollment) {
+        const total = chapters.length || 1;
+        const pct = Math.round(((enrollment.completedChapters || []).length / total) * 100);
+        enrollActionHtml = `<p class="muted small" style="margin-top:10px">Inscrit(e) — progression : <strong>${pct}%</strong></p>`;
+      } else if (c.status !== 'active') {
+        enrollActionHtml = `<p class="muted small" style="margin-top:10px">Ce cours n'accepte plus d'inscriptions.</p>`;
+      } else {
+        enrollActionHtml = `<button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:10px" onclick="openCourseEnroll('${c.id}', '${escapeHtml(c.title || '')}', ${c.price || 0})">S'inscrire${(c.price || 0) > 0 ? ' — ' + c.price + '$' : ' gratuitement'}</button>`;
+      }
+    }
+
+    bodyEl.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px">
+        <h3 style="margin:0">${escapeHtml(c.title || 'Cours')}</h3>
+        <span class="shop-card-category">${escapeHtml(c.category || '—')}</span>
+      </div>
+      <div class="muted small" style="margin-bottom:10px">${COURSE_LEVEL_LABELS[c.level] || ''} · ${coursePriceLabel(c)}</div>
+      <p style="white-space:pre-wrap;margin-bottom:16px">${escapeHtml(c.description || '')}</p>
+      <h4 style="margin-bottom:8px">Chapitres</h4>
+      ${chaptersHtml}
+      ${enrollActionHtml}
+      <div style="margin-top:14px">${ownerActionsHtml}</div>
+      ${!isOwner && currentUser ? `<button class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin-top:8px" onclick="openReportModal('${c.id}', '${c.ownerUid}', 'course')">Signaler ce cours</button>` : ''}
+    `;
+  } catch (e) {
+    bodyEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+  }
+}
+
+function closeCourseDetail() {
+  document.getElementById('course-detail-modal').classList.add('hidden');
+}
+
+/* ---- Formulaire de creation / modification ---- */
+function openCourseForm(courseId = null) {
+  if (!currentUser) { openAuth('register'); return; }
+  editingCourseId = courseId;
+  document.getElementById('course-form-error').classList.add('hidden');
+  document.getElementById('course-form-title').textContent = courseId ? 'Modifier le cours' : 'Créer un cours';
+  document.getElementById('course-form-submit-btn').textContent = courseId ? 'Enregistrer' : 'Publier';
+  document.getElementById('course-chapters-list').innerHTML = '';
+
+  const fill = (c) => {
+    document.getElementById('course-title-input').value = c.title || '';
+    document.getElementById('course-category-input').value = c.category || '';
+    document.getElementById('course-level-select').value = c.level || 'debutant';
+    document.getElementById('course-description-input').value = c.description || '';
+    document.getElementById('course-cover-input').value = c.coverImage || '';
+    document.getElementById('course-price-input').value = c.price || 0;
+    (c.chapters || []).forEach(ch => addCourseChapterRow(ch));
+    if (!c.chapters || c.chapters.length === 0) addCourseChapterRow();
+  };
+
+  if (courseId) {
+    const cached = (academyCache || []).find(c => c.id === courseId) || (myTaughtCoursesCache || []).find(c => c.id === courseId);
+    if (cached) {
+      fill(cached);
+    } else {
+      db.collection('courses').doc(courseId).get().then(snap => { if (snap.exists) fill(snap.data()); });
+    }
+  } else {
+    document.getElementById('course-title-input').value = '';
+    document.getElementById('course-category-input').value = '';
+    document.getElementById('course-level-select').value = 'debutant';
+    document.getElementById('course-description-input').value = '';
+    document.getElementById('course-cover-input').value = '';
+    document.getElementById('course-price-input').value = 0;
+    addCourseChapterRow();
+  }
+
+  document.getElementById('course-form-modal').classList.remove('hidden');
+}
+
+function closeCourseForm() {
+  document.getElementById('course-form-modal').classList.add('hidden');
+  editingCourseId = null;
+}
+
+// Un chapitre existant garde son id (necessaire pour que la progression
+// deja enregistree par les etudiants reste valide apres modification).
+function addCourseChapterRow(existing = null) {
+  courseChapterRowCounter++;
+  const rowId = 'cch-' + courseChapterRowCounter;
+  const chapterId = existing && existing.id ? existing.id : 'ch-' + Date.now().toString(36) + courseChapterRowCounter;
+
+  const row = document.createElement('div');
+  row.id = rowId;
+  row.dataset.chapterId = chapterId;
+  row.className = 'order-box';
+  row.style.cssText = 'margin-bottom:8px';
+  row.innerHTML = `
+    <input type="text" class="text-input course-ch-title" placeholder="Titre du chapitre" style="margin-bottom:6px" value="${existing ? escapeHtml(existing.title || '') : ''}">
+    <select class="text-input course-ch-type" style="margin-bottom:6px">
+      <option value="texte" ${existing && existing.contentType === 'texte' ? 'selected' : ''}>Texte</option>
+      <option value="video" ${existing && existing.contentType === 'video' ? 'selected' : ''}>Lien vidéo</option>
+      <option value="document" ${existing && existing.contentType === 'document' ? 'selected' : ''}>Lien document</option>
+    </select>
+    <textarea class="text-input course-ch-content" rows="2" placeholder="Texte du chapitre, ou lien https://...">${existing ? escapeHtml(existing.content || '') : ''}</textarea>
+    <button type="button" class="btn btn-outline btn-sm" style="margin-top:6px" onclick="document.getElementById('${rowId}').remove()">Retirer ce chapitre</button>`;
+  document.getElementById('course-chapters-list').appendChild(row);
+}
+
+function collectCourseChaptersFromForm() {
+  return Array.from(document.querySelectorAll('#course-chapters-list > div')).map((row, i) => ({
+    id: row.dataset.chapterId,
+    title: row.querySelector('.course-ch-title').value.trim() || `Chapitre ${i + 1}`,
+    contentType: row.querySelector('.course-ch-type').value,
+    content: row.querySelector('.course-ch-content').value.trim(),
+    order: i
+  })).filter(ch => ch.content);
+}
+
+async function saveCourse() {
+  const errEl = document.getElementById('course-form-error');
+  errEl.classList.add('hidden');
+
+  const title = document.getElementById('course-title-input').value.trim();
+  const category = document.getElementById('course-category-input').value.trim();
+  const level = document.getElementById('course-level-select').value;
+  const description = document.getElementById('course-description-input').value.trim();
+  const coverImage = document.getElementById('course-cover-input').value.trim();
+  const price = parseFloat(document.getElementById('course-price-input').value) || 0;
+  const chapters = collectCourseChaptersFromForm();
+
+  if (!title || !description) {
+    errEl.textContent = 'Merci de remplir au moins le titre et la description.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  if (chapters.length === 0) {
+    errEl.textContent = 'Ajoute au moins un chapitre avec du contenu.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+
+  const btn = document.getElementById('course-form-submit-btn');
+  if (btn.disabled) return;
+  btn.disabled = true;
+  const originalLabel = btn.textContent;
+  btn.textContent = 'Envoi...';
+
+  try {
+    const payload = { title, category, level, description, coverImage: coverImage || null, price, chapters };
+    if (editingCourseId) {
+      await db.collection('courses').doc(editingCourseId).update(payload);
+      showToast('Cours mis à jour', 'success');
+    } else {
+      await db.collection('courses').add({
+        ...payload,
+        ownerUid: currentUser.uid,
+        ownerName: currentUser.name || 'Utilisateur',
+        status: 'active',
+        studentsCount: 0,
+        createdAt: new Date().toISOString()
+      });
+      showToast('Cours publié', 'success');
+    }
+    closeCourseForm();
+    academyCache = null;
+    if (academyCurrentTab === 'browse') loadCourses();
+    if (academyCurrentTab === 'myteaching') loadMyTaughtCourses();
+  } catch (e) {
+    errEl.textContent = friendlyErrorMessage(e);
+    errEl.classList.remove('hidden');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = originalLabel;
+  }
+}
+
+async function toggleCourseStatus(courseId, newStatus) {
+  try {
+    await db.collection('courses').doc(courseId).update({ status: newStatus });
+    showToast(newStatus === 'active' ? 'Cours réactivé' : 'Cours clôturé', 'success');
+    academyCache = null;
+    closeCourseDetail();
+    loadMyTaughtCourses();
+  } catch (e) {
+    showToast(friendlyErrorMessage(e), 'error');
+  }
+}
+
+async function deleteCourse(courseId) {
+  if (!confirm('Supprimer définitivement ce cours ? Les étudiants déjà inscrits ne pourront plus y accéder.')) return;
+  try {
+    await db.collection('courses').doc(courseId).delete();
+    showToast('Cours supprimé', 'success');
+    academyCache = null;
+    closeCourseDetail();
+    loadMyTaughtCourses();
+  } catch (e) {
+    showToast(friendlyErrorMessage(e), 'error');
+  }
+}
+
+/* ---- Inscription (gratuite = client, payante = serveur) ---- */
+function openCourseEnroll(courseId, courseTitle, price) {
+  if (!currentUser) { openAuth('register'); return; }
+  currentCourseEnroll = { courseId, courseTitle, price };
+  document.getElementById('course-enroll-summary').textContent = price > 0
+    ? `"${courseTitle}" — ${price}$ seront déduits de ton solde.`
+    : `"${courseTitle}" — inscription gratuite.`;
+  document.getElementById('course-enroll-error').classList.add('hidden');
+  document.getElementById('course-enroll-modal').classList.remove('hidden');
+}
+
+function closeCourseEnrollModal() {
+  document.getElementById('course-enroll-modal').classList.add('hidden');
+  currentCourseEnroll = null;
+}
+
+async function submitCourseEnrollment() {
+  const errEl = document.getElementById('course-enroll-error');
+  errEl.classList.add('hidden');
+  if (!currentUser || !currentCourseEnroll) { closeCourseEnrollModal(); return; }
+
+  const { courseId, price } = currentCourseEnroll;
+  const btn = document.getElementById('course-enroll-submit-btn');
+  if (btn.disabled) return;
+  btn.disabled = true;
+  btn.textContent = 'Inscription...';
+
+  try {
+    if (price > 0) {
+      // Paiement securise cote serveur, meme mecanisme que les billets d'evenements payants.
+      const idToken = await auth.currentUser.getIdToken();
+      const resp = await fetch('/api/payments-actions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken, action: 'course_enroll', courseId })
+      });
+      const data = await resp.json();
+      if (!data.success) throw new Error(data.error || "L'inscription a échoué.");
+      if (typeof data.newBalance === 'number') {
+        currentUser.balance = data.newBalance;
+        const walletBalanceEl = document.getElementById('wallet-balance');
+        if (walletBalanceEl) walletBalanceEl.textContent = data.newBalance.toFixed(2) + '$';
+      }
+    } else {
+      // Cours gratuit : ecriture directe, sans risque (pas de solde en jeu,
+      // et l'id deterministe empeche une double inscription).
+      const courseSnap = await db.collection('courses').doc(courseId).get();
+      if (!courseSnap.exists) throw new Error('OFFER_GONE');
+      const course = courseSnap.data();
+
+      await db.collection('course_enrollments').doc(`${courseId}_${currentUser.uid}`).set({
+        courseId, courseTitle: course.title || '', courseOwnerUid: course.ownerUid,
+        studentUid: currentUser.uid, studentName: currentUser.name || 'Utilisateur',
+        completedChapters: [], amountPaid: 0, createdAt: new Date().toISOString()
+      });
+      db.collection('courses').doc(courseId).update({
+        studentsCount: firebase.firestore.FieldValue.increment(1)
+      }).catch(() => {});
+
+      const title = 'Nouvel étudiant inscrit 📚';
+      const body = `${currentUser.name || "Quelqu'un"} s'est inscrit(e) à "${course.title || ''}".`;
+      db.collection('notifications').add({
+        uid: course.ownerUid, title, body, type: 'course_enrollment', read: false,
+        url: '/?open=' + courseId, createdAt: new Date().toISOString()
+      }).catch(() => {});
+      notifyUserPush(course.ownerUid, title, body, 'activity', '/?open=' + courseId);
+    }
+
+    closeCourseEnrollModal();
+    showToast('Inscription confirmée', 'success');
+    openCourseDetail(courseId);
+  } catch (e) {
+    if (e.message === 'OFFER_GONE') {
+      errEl.textContent = "Ce cours n'existe plus.";
+    } else if (e.code === 'permission-denied') {
+      errEl.textContent = 'Tu es déjà inscrit(e) à ce cours.';
+    } else {
+      errEl.textContent = e.message || friendlyErrorMessage(e);
+    }
+    errEl.classList.remove('hidden');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Confirmer l'inscription";
+  }
+}
+
+async function toggleChapterComplete(courseId, chapterId, currentlyDone) {
+  if (!currentUser) return;
+  const enrRef = db.collection('course_enrollments').doc(`${courseId}_${currentUser.uid}`);
+  try {
+    const snap = await enrRef.get();
+    if (!snap.exists) return;
+    const completed = snap.data().completedChapters || [];
+    const updated = currentlyDone ? completed.filter(id => id !== chapterId) : [...completed, chapterId];
+    await enrRef.update({ completedChapters: updated });
+    openCourseDetail(courseId);
+  } catch (e) {
+    showToast(friendlyErrorMessage(e), 'error');
+  }
+}
+
+async function loadMyEnrolledCourses() {
+  const listEl = document.getElementById('academy-mycourses-list');
+  if (!currentUser) { listEl.innerHTML = '<p class="muted small">Connecte-toi pour voir tes cours.</p>'; return; }
+  listEl.innerHTML = renderFeedSkeletons(2);
+  try {
+    const snap = await db.collection('course_enrollments').where('studentUid', '==', currentUser.uid).get();
+    const enrollments = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    enrollments.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+
+    if (enrollments.length === 0) {
+      listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Tu n\'es inscrit(e) à aucun cours pour l\'instant.</p>';
+      return;
+    }
+    listEl.innerHTML = enrollments.map(en => `
+      <div class="order-box" style="margin-bottom:12px">
+        <strong>${escapeHtml(en.courseTitle || 'Cours')}</strong>
+        <div class="muted small" style="margin:4px 0">${(en.completedChapters || []).length} chapitre(s) terminé(s)</div>
+        <button class="btn btn-outline btn-sm" onclick="openCourseDetail('${en.courseId}')">Continuer</button>
+      </div>`).join('');
+  } catch (e) {
+    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+  }
+}
+
+async function loadMyTaughtCourses() {
+  const listEl = document.getElementById('academy-myteaching-list');
+  if (!currentUser) { listEl.innerHTML = '<p class="muted small">Connecte-toi pour gérer tes cours.</p>'; return; }
+  listEl.innerHTML = renderFeedSkeletons(2);
+  try {
+    const snap = await db.collection('courses').where('ownerUid', '==', currentUser.uid).get();
+    myTaughtCoursesCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    myTaughtCoursesCache.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+
+    if (myTaughtCoursesCache.length === 0) {
+      listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Tu n\'as encore publié aucun cours.</p>';
+      return;
+    }
+    listEl.innerHTML = myTaughtCoursesCache.map(c => `
+      <div class="order-box" style="margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+          <strong>${escapeHtml(c.title || 'Cours')}</strong>
+          <span class="shop-card-category">${c.status === 'active' ? 'Actif' : 'Clôturé'}</span>
+        </div>
+        <div class="muted small" style="margin:4px 0">${c.studentsCount || 0} étudiant(s)</div>
+        <button class="btn btn-outline btn-sm" onclick="openCourseDetail('${c.id}')">Gérer</button>
+      </div>`).join('');
+  } catch (e) {
+    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+  }
+}
+
+async function openCourseStudents(courseId) {
+  const bodyEl = document.getElementById('course-detail-body');
+  bodyEl.innerHTML = `
+    <button class="menu-back-btn" onclick="openCourseDetail('${courseId}')" aria-label="Retour" style="margin-bottom:10px">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <h3 style="margin-bottom:12px">Étudiants</h3>
+    <div id="course-students-list"><p class="muted small">Chargement...</p></div>`;
+
+  try {
+    const courseSnap = await db.collection('courses').doc(courseId).get();
+    const totalChapters = courseSnap.exists ? (courseSnap.data().chapters || []).length || 1 : 1;
+    const snap = await db.collection('course_enrollments').where('courseId', '==', courseId).get();
+    const students = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    students.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+    const listEl = document.getElementById('course-students-list');
+
+    if (students.length === 0) {
+      listEl.innerHTML = '<p class="muted small">Aucun étudiant inscrit pour l\'instant.</p>';
+      return;
+    }
+    listEl.innerHTML = students.map(s => {
+      const pct = Math.round(((s.completedChapters || []).length / totalChapters) * 100);
+      return `<div class="order-box" style="margin-bottom:10px">
+        <strong>${escapeHtml(s.studentName || 'Étudiant')}</strong>
+        <div class="muted small">Progression : ${pct}%${(s.amountPaid || 0) > 0 ? ` · ${s.amountPaid.toFixed(2)}$ payés` : ' · gratuit'}</div>
+      </div>`;
+    }).join('');
+  } catch (e) {
+    document.getElementById('course-students-list').innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
   }
 }
 
