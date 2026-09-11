@@ -8281,6 +8281,390 @@ async function loadMyQuotes() {
   }
 }
 
+/* ================= CREE TON SITE =================
+   Un mini-site public par utilisateur : "mini_sites/{uid}" (un seul site,
+   comme une fiche -- meme logique que directory_listings). Le lien
+   partageable est "<origine>/?site=SLUG" : PAS besoin d'hebergement
+   externe ni de domaine, la meme application sert la page publique. Un
+   visiteur qui ouvre ce lien voit uniquement le mini-site (aucune
+   connexion requise), via checkForPublicSiteView() lancee au chargement.
+
+   L'unicite du "slug" (partie de l'URL) est garantie par une collection
+   de reservation "site_slugs/{slug}" -> { ownerUid }, mise a jour dans la
+   MEME transaction que le site : impossible que deux personnes se
+   retrouvent avec la meme URL.
+
+   PAS INCLUS (necessiterait un service payant externe, jamais active sans
+   validation) : nom de domaine personnalise, adresse e-mail
+   professionnelle. Le lien "/?site=slug" reste gratuit et illimite. */
+const SITE_TEMPLATES = {
+  classique: { label: 'Classique', accent: '#2563eb' },
+  sombre: { label: 'Sombre', accent: '#111827' },
+  chaleureux: { label: 'Chaleureux', accent: '#e11d48' }
+};
+
+let mySiteCache = null;
+let editingSiteExisting = null;
+
+function openSiteBuilderScreen() {
+  showMenuScreen('site');
+  loadMySite();
+}
+
+async function loadMySite() {
+  const statusEl = document.getElementById('site-builder-status');
+  if (!currentUser) {
+    statusEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Connecte-toi pour créer ton site.</p>';
+    return;
+  }
+  statusEl.innerHTML = '<p class="muted small">Chargement...</p>';
+  try {
+    const snap = await db.collection('mini_sites').doc(currentUser.uid).get();
+    mySiteCache = snap.exists ? snap.data() : null;
+    renderSiteStatusView();
+  } catch (e) {
+    statusEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+  }
+}
+
+function renderSiteStatusView() {
+  const statusEl = document.getElementById('site-builder-status');
+  if (!mySiteCache) {
+    statusEl.innerHTML = `
+      <p class="muted small" style="margin-bottom:14px">Crée gratuitement une page de présentation pour ton activité : présentation, services, photos, contact WhatsApp. Elle sera accessible via un lien que tu pourras partager partout.</p>
+      <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="openSiteForm()">Créer mon site</button>`;
+    return;
+  }
+  const site = mySiteCache;
+  const link = `${window.location.origin}/?site=${encodeURIComponent(site.slug)}`;
+  statusEl.innerHTML = `
+    <div class="order-box" style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+        <strong style="font-size:1.05rem">${escapeHtml(site.businessName || 'Mon site')}</strong>
+        <span class="shop-card-category">${site.status === 'published' ? 'Publié' : 'Brouillon'}</span>
+      </div>
+      <p class="muted small" id="site-link-text" style="margin:8px 0;word-break:break-all">${escapeHtml(link)}</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-outline btn-sm" onclick="copySiteLink()">Copier le lien</button>
+        <a class="btn btn-outline btn-sm" href="${escapeHtml(link)}" target="_blank">Aperçu</a>
+      </div>
+    </div>
+    <button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="openSiteForm()">Modifier mon site</button>
+    ${site.status === 'published'
+      ? `<button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="toggleSitePublish('draft')">Dépublier</button>`
+      : `<button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:8px" onclick="toggleSitePublish('published')">Publier mon site</button>`}
+    <button class="btn btn-outline" style="width:100%;justify-content:center;color:var(--red)" onclick="deleteMySite()">Supprimer mon site</button>`;
+}
+
+function copySiteLink() {
+  const text = document.getElementById('site-link-text').textContent;
+  if (navigator.clipboard) navigator.clipboard.writeText(text).then(() => showToast('Lien copié', 'success'));
+}
+
+async function toggleSitePublish(newStatus) {
+  try {
+    await db.collection('mini_sites').doc(currentUser.uid).update({ status: newStatus });
+    mySiteCache.status = newStatus;
+    showToast(newStatus === 'published' ? 'Site publié 🎉' : 'Site dépublié', 'success');
+    renderSiteStatusView();
+  } catch (e) {
+    showToast(friendlyErrorMessage(e), 'error');
+  }
+}
+
+async function deleteMySite() {
+  if (!confirm('Supprimer définitivement ton site ? Le lien cessera de fonctionner.')) return;
+  try {
+    const slug = mySiteCache.slug;
+    const batch = db.batch();
+    batch.delete(db.collection('mini_sites').doc(currentUser.uid));
+    if (slug) batch.delete(db.collection('site_slugs').doc(slug));
+    await batch.commit();
+    mySiteCache = null;
+    showToast('Site supprimé', 'info');
+    renderSiteStatusView();
+  } catch (e) {
+    showToast(friendlyErrorMessage(e), 'error');
+  }
+}
+
+/* ---- Formulaire (modal injecte dynamiquement, meme pattern que Travel) ---- */
+function openSiteForm() {
+  if (!currentUser) { openAuth('register'); return; }
+  if (document.getElementById('site-form-modal')) return;
+  editingSiteExisting = mySiteCache;
+  const s = editingSiteExisting || {};
+
+  const templateOptions = Object.entries(SITE_TEMPLATES)
+    .map(([val, t]) => `<option value="${val}" ${s.template === val ? 'selected' : ''}>${escapeHtml(t.label)}</option>`).join('');
+
+  const html = `
+    <div class="modal-overlay" id="site-form-modal">
+      <div class="modal" style="max-width:480px">
+        <button class="modal-close" onclick="document.getElementById('site-form-modal').remove()" aria-label="Fermer">×</button>
+        <h3 style="margin-bottom:14px">${editingSiteExisting ? 'Modifier mon site' : 'Créer mon site'}</h3>
+        <div class="modal-error hidden" id="site-form-error"></div>
+
+        <div class="field">
+          <label for="site-slug">Adresse de ton site</label>
+          <div class="muted small" style="margin-bottom:4px;word-break:break-all">${escapeHtml(window.location.origin)}/?site=<span id="site-slug-preview">${escapeHtml(s.slug || '')}</span></div>
+          <input type="text" id="site-slug" class="text-input" placeholder="ex: boutique-fatou" maxlength="30" value="${escapeHtml(s.slug || '')}" oninput="document.getElementById('site-slug-preview').textContent = this.value.trim().toLowerCase()">
+        </div>
+        <div class="field">
+          <label for="site-template">Thème</label>
+          <select id="site-template" class="select-input">${templateOptions}</select>
+        </div>
+        <div class="field">
+          <label for="site-business-name">Nom de l'activité</label>
+          <input type="text" id="site-business-name" class="text-input" maxlength="80" value="${escapeHtml(s.businessName || '')}">
+        </div>
+        <div class="field">
+          <label for="site-tagline">Phrase d'accroche</label>
+          <input type="text" id="site-tagline" class="text-input" maxlength="120" placeholder="ex: Coiffure et beauté à domicile" value="${escapeHtml(s.tagline || '')}">
+        </div>
+        <div class="field">
+          <label for="site-about">À propos</label>
+          <textarea id="site-about" class="text-input" rows="3" maxlength="800">${escapeHtml(s.aboutText || '')}</textarea>
+        </div>
+        <div class="field">
+          <label for="site-logo">Logo (lien, facultatif)</label>
+          <input type="url" id="site-logo" class="text-input" placeholder="https://..." value="${escapeHtml(s.logoUrl || '')}">
+        </div>
+        <div class="field">
+          <label for="site-cover">Image de couverture (lien, facultatif)</label>
+          <input type="url" id="site-cover" class="text-input" placeholder="https://..." value="${escapeHtml(s.coverImageUrl || '')}">
+        </div>
+
+        <label class="field-label" style="display:block">Services / produits (facultatif)</label>
+        <div id="site-service-rows"></div>
+        <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:6px 0 14px" onclick="addSiteServiceRow()">+ Ajouter</button>
+
+        <label class="field-label" style="display:block">Photos — liens (facultatif, 6 max)</label>
+        <div id="site-photo-rows"></div>
+        <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:6px 0 14px" onclick="addSitePhotoRow()">+ Ajouter un lien photo</button>
+
+        <div class="field">
+          <label for="site-whatsapp">WhatsApp de contact</label>
+          <input type="tel" id="site-whatsapp" class="text-input" placeholder="+243..." value="${escapeHtml(s.contactWhatsapp || '')}">
+        </div>
+        <div class="field">
+          <label for="site-phone">Téléphone (facultatif)</label>
+          <input type="tel" id="site-phone" class="text-input" value="${escapeHtml(s.contactPhone || '')}">
+        </div>
+        <div class="field">
+          <label for="site-email">E-mail (facultatif)</label>
+          <input type="email" id="site-email" class="text-input" value="${escapeHtml(s.contactEmail || '')}">
+        </div>
+        <div class="field">
+          <label for="site-address">Adresse / ville (facultatif)</label>
+          <input type="text" id="site-address" class="text-input" value="${escapeHtml(s.address || '')}">
+        </div>
+        <div style="display:flex;gap:8px">
+          <div class="field" style="flex:1">
+            <label for="site-facebook">Facebook (facultatif)</label>
+            <input type="url" id="site-facebook" class="text-input" placeholder="https://..." value="${escapeHtml((s.socialLinks && s.socialLinks.facebook) || '')}">
+          </div>
+          <div class="field" style="flex:1">
+            <label for="site-instagram">Instagram (facultatif)</label>
+            <input type="url" id="site-instagram" class="text-input" placeholder="https://..." value="${escapeHtml((s.socialLinks && s.socialLinks.instagram) || '')}">
+          </div>
+        </div>
+
+        <button class="btn btn-primary" id="site-form-submit-btn" style="width:100%;justify-content:center" onclick="saveMySite()">Enregistrer</button>
+        <p class="muted small" id="site-form-msg" style="margin-top:6px"></p>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+
+  const existingServices = Array.isArray(s.services) && s.services.length > 0 ? s.services : [];
+  existingServices.forEach(sv => addSiteServiceRow(sv));
+  const existingPhotos = Array.isArray(s.gallery) && s.gallery.length > 0 ? s.gallery : [''];
+  existingPhotos.forEach(p => addSitePhotoRow(p));
+}
+
+function addSiteServiceRow(service) {
+  const rowsEl = document.getElementById('site-service-rows');
+  const row = document.createElement('div');
+  row.className = 'invoice-item-row';
+  row.innerHTML = `
+    <input type="text" class="text-input site-service-name" placeholder="Nom du service/produit" value="${escapeHtml(service ? service.name || '' : '')}" style="flex:2">
+    <input type="text" class="text-input site-service-price" placeholder="Prix (ex: 10$)" value="${escapeHtml(service ? service.price || '' : '')}" style="flex:1">
+    <button type="button" class="invoice-row-remove" onclick="this.parentElement.remove()" aria-label="Retirer">×</button>`;
+  rowsEl.appendChild(row);
+}
+
+function addSitePhotoRow(value) {
+  const rowsEl = document.getElementById('site-photo-rows');
+  if (rowsEl.children.length >= 6) return;
+  const row = document.createElement('div');
+  row.className = 'invoice-item-row';
+  row.innerHTML = `
+    <input type="url" class="text-input site-photo-link" placeholder="https://..." value="${escapeHtml(value || '')}" style="flex:1">
+    <button type="button" class="invoice-row-remove" onclick="this.parentElement.remove()" aria-label="Retirer">×</button>`;
+  rowsEl.appendChild(row);
+}
+
+async function saveMySite() {
+  const btn = document.getElementById('site-form-submit-btn');
+  const errEl = document.getElementById('site-form-error');
+  const msgEl = document.getElementById('site-form-msg');
+  errEl.classList.add('hidden');
+  msgEl.textContent = '';
+
+  const slug = document.getElementById('site-slug').value.trim().toLowerCase();
+  const template = document.getElementById('site-template').value;
+  const businessName = document.getElementById('site-business-name').value.trim();
+  const tagline = document.getElementById('site-tagline').value.trim();
+  const aboutText = document.getElementById('site-about').value.trim();
+  const logoUrl = document.getElementById('site-logo').value.trim();
+  const coverImageUrl = document.getElementById('site-cover').value.trim();
+  const services = Array.from(document.querySelectorAll('#site-service-rows .invoice-item-row')).map(row => ({
+    name: row.querySelector('.site-service-name').value.trim(),
+    price: row.querySelector('.site-service-price').value.trim()
+  })).filter(sv => sv.name);
+  const gallery = Array.from(document.querySelectorAll('.site-photo-link')).map(i => i.value.trim()).filter(v => v.startsWith('http')).slice(0, 6);
+  const contactWhatsapp = document.getElementById('site-whatsapp').value.trim();
+  const contactPhone = document.getElementById('site-phone').value.trim();
+  const contactEmail = document.getElementById('site-email').value.trim();
+  const address = document.getElementById('site-address').value.trim();
+  const socialLinks = {
+    facebook: document.getElementById('site-facebook').value.trim() || null,
+    instagram: document.getElementById('site-instagram').value.trim() || null
+  };
+
+  if (!/^[a-z0-9-]{3,30}$/.test(slug)) {
+    errEl.textContent = "L'adresse du site doit faire 3 à 30 caractères : lettres minuscules, chiffres et tirets uniquement.";
+    errEl.classList.remove('hidden');
+    return;
+  }
+  if (!businessName || !aboutText || !contactWhatsapp) {
+    errEl.textContent = 'Merci de remplir au moins le nom, le "à propos" et le WhatsApp de contact.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+
+  if (btn.disabled) return;
+  btn.disabled = true;
+  btn.textContent = 'Enregistrement...';
+
+  const uid = currentUser.uid;
+  const oldSlug = editingSiteExisting ? editingSiteExisting.slug : null;
+  const newSiteRef = db.collection('mini_sites').doc(uid);
+  const newSlugRef = db.collection('site_slugs').doc(slug);
+  const oldSlugRef = (oldSlug && oldSlug !== slug) ? db.collection('site_slugs').doc(oldSlug) : null;
+
+  try {
+    await db.runTransaction(async (tx) => {
+      const [slugSnap, oldSlugSnap] = await Promise.all([
+        tx.get(newSlugRef),
+        oldSlugRef ? tx.get(oldSlugRef) : Promise.resolve(null)
+      ]);
+      if (slugSnap.exists && slugSnap.data().ownerUid !== uid) {
+        throw new Error('SLUG_TAKEN');
+      }
+      tx.set(newSiteRef, {
+        ownerUid: uid, slug, template, businessName, tagline, aboutText,
+        logoUrl: logoUrl || null, coverImageUrl: coverImageUrl || null,
+        services, gallery, contactWhatsapp, contactPhone, contactEmail, address, socialLinks,
+        status: editingSiteExisting ? editingSiteExisting.status : 'draft',
+        createdAt: editingSiteExisting ? editingSiteExisting.createdAt : new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
+      tx.set(newSlugRef, { ownerUid: uid });
+      if (oldSlugRef && oldSlugSnap && oldSlugSnap.exists) {
+        tx.delete(oldSlugRef);
+      }
+    });
+
+    document.getElementById('site-form-modal').remove();
+    showToast('Site enregistré', 'success');
+    editingSiteExisting = null;
+    loadMySite();
+  } catch (e) {
+    if (e.message === 'SLUG_TAKEN') {
+      errEl.textContent = 'Cette adresse est déjà utilisée par quelqu\'un d\'autre, choisis-en une autre.';
+    } else {
+      errEl.textContent = friendlyErrorMessage(e);
+    }
+    errEl.classList.remove('hidden');
+    btn.disabled = false;
+    btn.textContent = 'Enregistrer';
+  }
+}
+
+/* ---- Vue publique (lien partageable, aucune connexion requise) ---- */
+async function checkForPublicSiteView() {
+  const params = new URLSearchParams(window.location.search);
+  const slug = params.get('site');
+  if (!slug) return;
+
+  const overlay = document.getElementById('public-site-overlay');
+  overlay.innerHTML = '<p class="muted small" style="padding:40px;text-align:center">Chargement du site...</p>';
+  overlay.classList.remove('hidden');
+
+  try {
+    const snap = await db.collection('mini_sites').where('slug', '==', slug).limit(1).get();
+    if (snap.empty || snap.docs[0].data().status !== 'published') {
+      overlay.innerHTML = '<p class="muted small" style="padding:40px;text-align:center">Ce site n\'existe pas ou n\'est plus disponible.</p>';
+      return;
+    }
+    renderPublicSiteHtml(snap.docs[0].data(), overlay);
+  } catch (e) {
+    overlay.innerHTML = `<p class="muted small" style="padding:40px;text-align:center">Erreur de chargement : ${escapeHtml(e.message)}</p>`;
+  }
+}
+
+function renderPublicSiteHtml(site, overlay) {
+  document.title = (site.businessName || 'Site') + ' — CoeurNoh';
+  const accent = (SITE_TEMPLATES[site.template] || SITE_TEMPLATES.classique).accent;
+  const waLink = site.contactWhatsapp ? `https://wa.me/${site.contactWhatsapp.replace(/\D/g, '')}` : null;
+  const gallery = Array.isArray(site.gallery) ? site.gallery.filter(Boolean) : [];
+  const services = Array.isArray(site.services) ? site.services.filter(s => s.name) : [];
+
+  overlay.innerHTML = `
+    <div style="max-width:640px;margin:0 auto;font-family:inherit">
+      ${site.coverImageUrl ? `<img src="${escapeHtml(site.coverImageUrl)}" style="width:100%;max-height:260px;object-fit:cover;display:block">` : `<div style="height:100px;background:${accent}"></div>`}
+      <div style="padding:24px">
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">
+          ${site.logoUrl ? `<img src="${escapeHtml(site.logoUrl)}" style="width:64px;height:64px;border-radius:50%;object-fit:cover">` : ''}
+          <div>
+            <h1 style="margin:0;font-size:1.4rem">${escapeHtml(site.businessName || '')}</h1>
+            ${site.tagline ? `<p class="muted small" style="margin:2px 0 0">${escapeHtml(site.tagline)}</p>` : ''}
+          </div>
+        </div>
+
+        ${site.aboutText ? `<p style="white-space:pre-wrap;line-height:1.5;margin-bottom:20px">${escapeHtml(site.aboutText)}</p>` : ''}
+
+        ${services.length > 0 ? `
+          <h3 style="color:${accent};margin-bottom:10px">Services & produits</h3>
+          <div style="margin-bottom:20px">${services.map(sv => `
+            <div class="order-box" style="margin-bottom:8px">
+              <strong>${escapeHtml(sv.name)}</strong>${sv.price ? ` — ${escapeHtml(sv.price)}` : ''}
+            </div>`).join('')}</div>` : ''}
+
+        ${gallery.length > 0 ? `
+          <h3 style="color:${accent};margin-bottom:10px">Photos</h3>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px">
+            ${gallery.map(g => `<img src="${escapeHtml(g)}" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px">`).join('')}
+          </div>` : ''}
+
+        ${site.address ? `<p class="muted small" style="margin-bottom:8px">📍 ${escapeHtml(site.address)}</p>` : ''}
+
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin:20px 0">
+          ${waLink ? `<a class="btn btn-primary" href="${escapeHtml(waLink)}" target="_blank">${ICON_WHATSAPP} Contacter sur WhatsApp</a>` : ''}
+          ${site.contactPhone ? `<a class="btn btn-outline" href="tel:${escapeHtml(site.contactPhone)}">Appeler</a>` : ''}
+          ${site.contactEmail ? `<a class="btn btn-outline" href="mailto:${escapeHtml(site.contactEmail)}">E-mail</a>` : ''}
+          ${site.socialLinks && site.socialLinks.facebook ? `<a class="btn btn-outline" href="${escapeHtml(site.socialLinks.facebook)}" target="_blank">Facebook</a>` : ''}
+          ${site.socialLinks && site.socialLinks.instagram ? `<a class="btn btn-outline" href="${escapeHtml(site.socialLinks.instagram)}" target="_blank">Instagram</a>` : ''}
+        </div>
+
+        <p class="muted small" style="text-align:center;margin-top:30px">Site créé avec <a href="${escapeHtml(window.location.origin)}" style="color:${accent}">CoeurnohBoost</a></p>
+      </div>
+    </div>`;
+}
+
+document.addEventListener('DOMContentLoaded', checkForPublicSiteView);
+
 /* ================= SIGNALEMENT DE CONTENU ================= */
 let reportTargetId = null;
 let reportTargetOwnerUid = null;

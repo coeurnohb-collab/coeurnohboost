@@ -42,6 +42,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"></script>
 </head>
 <body>
+<div id="public-site-overlay" class="hidden" style="position:fixed;inset:0;z-index:99999;background:#fff;overflow-y:auto"></div>
 <div id="toast-container"></div>
 <div id="app-splash">
   <div id="app-splash-inner">
@@ -996,7 +997,7 @@
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L2 19l3 3 7.3-7.3a4 4 0 0 0 5.4-5.4l-2.8 2.8-2-2Z"/></svg>
         Trouver un professionnel
       </button>
-      <button class="menu-item" onclick="showComingSoon('Création de site & présence numérique', 'Mini-site, boutique en ligne, domaine et adresse e-mail professionnelle avec CoeurnohBoost.', 'globe')">
+      <button class="menu-item" onclick="openSiteBuilderScreen()">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10Z"/></svg>
         Crée ton site
       </button>
@@ -1418,6 +1419,17 @@
       <div id="academy-tab-myteaching" class="hidden">
         <div id="academy-myteaching-list"><p class="muted small">Chargement...</p></div>
       </div>
+    </div>
+
+    <!-- CREE TON SITE -->
+    <div id="menu-screen-site" class="hidden">
+      <div class="menu-page-header">
+        <button class="menu-back-btn" onclick="showMenuScreen('items-services')" aria-label="Retour">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <h2>Crée ton site</h2>
+      </div>
+      <div id="site-builder-status"><p class="muted small">Chargement...</p></div>
     </div>
 
     <!-- NIVEAU 2d : liste "Aide & informations" -->
