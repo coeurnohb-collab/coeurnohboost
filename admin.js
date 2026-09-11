@@ -202,6 +202,11 @@ async function loadOrdersAdmin() {
     el.innerHTML = snap.docs.map(doc => {
       const d = doc.data();
       const status = d.status || 'pending';
+      // "refunded" / "pending_review" viennent de la correction du systeme
+      // MoreThanPanel : remboursement automatique securise, et commandes en
+      // attente de verification manuelle apres une erreur reseau ambigue.
+      const statusLabels = { pending: 'en attente', processing: 'en cours', completed: 'terminée', refunded: 'remboursée', pending_review: 'à vérifier' };
+      const statusLabel = statusLabels[status] || status;
       return `
       <div class="admin-row">
         <div class="admin-row-top">
@@ -209,7 +214,7 @@ async function loadOrdersAdmin() {
             <div class="admin-row-title">${escapeHtml(d.platform || '')} — ${escapeHtml(d.service || '')}</div>
             <div class="admin-row-meta">${escapeHtml(d.email || '')}<br>${escapeHtml(d.link || '')}<br>${d.quantity ? d.quantity + ' unités · ' : ''}${(d.price || 0).toFixed(2)}$ · ${new Date(d.createdAt).toLocaleString('fr-FR')}${d.debugReason ? `<br><span style="color:var(--red)">⚠️ Automatisation : ${escapeHtml(d.debugReason)}</span>` : ''}</div>
           </div>
-          <span class="admin-badge ${status}">${status}</span>
+          <span class="admin-badge ${status}">${statusLabel}</span>
         </div>
         <div class="admin-row-actions">
           <button class="btn btn-outline btn-sm" onclick="updateOrderStatus('${doc.id}','processing')">En cours</button>

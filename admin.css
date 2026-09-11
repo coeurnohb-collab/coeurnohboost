@@ -178,6 +178,8 @@ body:has(#admin-panel){ background:var(--bg); }
 .admin-badge.rejected{background:#fdecea;color:#c0392b}
 .admin-badge.resolved{background:var(--green-light);color:var(--green-dark)}
 .admin-badge.dismissed{background:#fdecea;color:#c0392b}
+.admin-badge.refunded{background:#e6e6fa;color:#5b3fa0}
+.admin-badge.pending_review{background:#fdecea;color:#a3241f}
 
 .admin-empty{
   text-align:center;color:var(--muted);font-size:0.88rem;

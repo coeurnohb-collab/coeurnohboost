@@ -1,16 +1,22 @@
 // api/get-service-map-defaults.js
-// Fichier manquant jusqu'ici : admin.js (bouton "Importer les valeurs par
-// defaut" de l'onglet Service Map) appelait cet endpoint, qui n'existait
-// pas du tout -> le bouton renvoyait toujours une erreur.
+//
+// CORRECTION IMPORTANTE : ce fichier existait deja dans le projet, mais a
+// la racine (get-service-map-defaults.js) au lieu du dossier api/. Or
+// Vercel ne sert comme fonction serverless QUE les fichiers places dans
+// api/ -- resultat, l'appel fait par admin.js vers '/api/get-service-map-defaults'
+// (bouton "⬇️ Importer les valeurs actuelles" de l'onglet Service Map)
+// renvoyait toujours une erreur 404 en production. Ce fichier est la
+// version correctement placee, avec exactement la meme logique. Le
+// fichier a la racine peut etre supprime du depot (voir la liste des
+// emplacements fournie a part) -- il n'est jamais execute par Vercel.
 //
 // Renvoie simplement les correspondances par defaut deja definies dans
 // mtp-service-map.js (une seule source de verite, reutilisee ici plutot
 // que dupliquee), pour que l'admin puisse les importer en un clic dans
 // la collection Firestore "service_map".
 //
-// SECURISE des le depart (contrairement aux autres fichiers corriges
-// precedemment) : identite verifiee par un vrai jeton Firebase, jamais
-// par un simple "adminUid" envoye tel quel.
+// SECURISE des le depart : identite verifiee par un vrai jeton Firebase,
+// jamais par un simple "adminUid" envoye tel quel.
 
 const admin = require('firebase-admin');
 const SERVICE_MAP_DEFAULTS = require('./mtp-service-map.js');
