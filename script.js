@@ -4866,7 +4866,7 @@ async function saveContestEntry(contestId) {
 // Concours PAYANT : passe par le serveur (firebase-admin) qui verifie le
 // jeton, deduit le solde et cree la participation dans UNE SEULE
 // transaction securisee -- exactement le meme principe que le paiement de
-// la Boutique (api/shop-purchase.js). Voir api/contest-entry-payment.js.
+// la Boutique (api/shop-purchase.js). Voir api/payments-actions.js.
 async function payAndSubmitContestEntry(contestId) {
   const btn = document.getElementById('entry-save-btn');
   const msgEl = document.getElementById('entry-form-msg');
@@ -4885,10 +4885,10 @@ async function payAndSubmitContestEntry(contestId) {
 
   try {
     const idToken = await auth.currentUser.getIdToken();
-    const resp = await fetch('/api/contest-entry-payment', {
+    const resp = await fetch('/api/payments-actions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ idToken, contestId, name, submissionUrl, caption })
+      body: JSON.stringify({ idToken, action: 'contest_entry', contestId, name, submissionUrl, caption })
     });
     const data = await resp.json();
     if (!data.success) throw new Error(data.error || 'Le paiement a échoué.');
@@ -5572,13 +5572,13 @@ async function setJobApplicationStatus(appId, status, offerId) {
 
    IMPORTANT SECURITE : contrairement aux autres services, TOUTES les
    reservations et annulations passent par le serveur (voir
-   /api/event-ticket-action.js), meme les evenements GRATUITS. Pourquoi :
+   /api/payments-actions.js), meme les evenements GRATUITS. Pourquoi :
    incrementer "quantitySold" depuis le telephone d'un client, meme pour
    un evenement gratuit, permettrait a deux personnes de reserver la
    derniere place en meme temps (double reservation) ou a quelqu'un de
    trafiquer le nombre de places restantes. Le serveur utilise une
    transaction Firestore atomique pour verifier les places disponibles
-   ET gerer le paiement (meme principe que contest-entry-payment.js) en
+   ET gerer le paiement, en
    une seule fois, ce qui rend une survente impossible. Cote regles
    Firestore, "event_tickets" est donc en lecture seule pour le client
    (allow write: if false) : aucune ecriture directe n'est possible. */
@@ -5967,11 +5967,11 @@ async function submitEventReservation() {
 
   try {
     const idToken = await auth.currentUser.getIdToken();
-    const resp = await fetch('/api/event-ticket-action', {
+    const resp = await fetch('/api/payments-actions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        idToken, action: 'reserve',
+        idToken, action: 'event_reserve',
         eventId: currentEventReserve.eventId,
         ticketTypeId: currentEventReserve.ticketTypeId,
         quantity
@@ -6035,10 +6035,10 @@ async function cancelEventTicket(ticketId) {
   if (!confirm('Annuler cette réservation ? Si elle était payante, le montant sera remboursé sur ton solde.')) return;
   try {
     const idToken = await auth.currentUser.getIdToken();
-    const resp = await fetch('/api/event-ticket-action', {
+    const resp = await fetch('/api/payments-actions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ idToken, action: 'cancel', ticketId })
+      body: JSON.stringify({ idToken, action: 'event_cancel', ticketId })
     });
     const data = await resp.json();
     if (!data.success) throw new Error(data.error || "L'annulation a échoué.");
