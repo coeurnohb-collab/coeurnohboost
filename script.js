@@ -5563,6 +5563,558 @@ async function setJobApplicationStatus(appId, status, offerId) {
   }
 }
 
+/* ================= EVENEMENTS & BILLETTERIE =================
+   "events" (creee par n'importe quel organisateur, meme logique legere que
+   les offres d'emploi et les publications) avec un tableau "ticketTypes"
+   integre au document (nom, prix, places totales, places vendues) --
+   plusieurs types de billets par evenement sans avoir besoin d'une
+   sous-collection. "event_tickets" = une reservation par document.
+
+   IMPORTANT SECURITE : contrairement aux autres services, TOUTES les
+   reservations et annulations passent par le serveur (voir
+   /api/event-ticket-action.js), meme les evenements GRATUITS. Pourquoi :
+   incrementer "quantitySold" depuis le telephone d'un client, meme pour
+   un evenement gratuit, permettrait a deux personnes de reserver la
+   derniere place en meme temps (double reservation) ou a quelqu'un de
+   trafiquer le nombre de places restantes. Le serveur utilise une
+   transaction Firestore atomique pour verifier les places disponibles
+   ET gerer le paiement (meme principe que contest-entry-payment.js) en
+   une seule fois, ce qui rend une survente impossible. Cote regles
+   Firestore, "event_tickets" est donc en lecture seule pour le client
+   (allow write: if false) : aucune ecriture directe n'est possible. */
+let eventsCache = null;
+let eventsCurrentTab = 'browse';
+let eventsSearchDebounce = null;
+let myEventsCache = null;
+let editingEventId = null;
+let eventTicketRowCounter = 0;
+let currentEventReserve = null; // { eventId, ticketTypeId, ticketTypeName, unitPrice, availableLeft }
+
+function openEventsScreen() {
+  showMenuScreen('events');
+  setEventsTab(eventsCurrentTab || 'browse');
+}
+
+function setEventsTab(tab) {
+  eventsCurrentTab = tab;
+  document.querySelectorAll('#events-main-tabs button').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.tab === tab);
+  });
+  ['browse', 'mytickets', 'myevents'].forEach(t => {
+    document.getElementById('events-tab-' + t).classList.toggle('hidden', t !== tab);
+  });
+
+  if (tab === 'browse') loadEvents();
+  else if (tab === 'mytickets') loadMyEventTickets();
+  else if (tab === 'myevents') loadMyOrganizedEvents();
+}
+
+async function loadEvents() {
+  const listEl = document.getElementById('events-browse-list');
+  if (!eventsCache) listEl.innerHTML = renderFeedSkeletons(2);
+  try {
+    const snap = await db.collection('events').where('status', '==', 'active').limit(300).get();
+    const now = Date.now();
+    // On ne montre dans "Decouvrir" que les evenements pas encore termines.
+    eventsCache = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+      .filter(e => new Date(e.endDate || e.startDate).getTime() >= now - 24 * 3600 * 1000);
+    eventsCache.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+    runEventsFilter();
+  } catch (e) {
+    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+  }
+}
+
+function scheduleEventsSearch() {
+  clearTimeout(eventsSearchDebounce);
+  eventsSearchDebounce = setTimeout(runEventsFilter, 250);
+}
+
+function runEventsFilter() {
+  if (!eventsCache) return;
+  const query = document.getElementById('events-search-input').value.trim().toLowerCase();
+  const matches = query
+    ? eventsCache.filter(e => `${e.title || ''} ${e.category || ''} ${e.location || ''}`.toLowerCase().includes(query))
+    : eventsCache;
+  renderEventsBrowseList(matches);
+}
+
+function eventDateRangeLabel(e) {
+  const start = new Date(e.startDate).toLocaleDateString('fr-FR');
+  if (e.endDate && e.endDate !== e.startDate) {
+    return `${start} — ${new Date(e.endDate).toLocaleDateString('fr-FR')}`;
+  }
+  return start;
+}
+
+function eventPriceFromLabel(e) {
+  const types = e.ticketTypes || [];
+  if (types.length === 0) return 'Places non définies';
+  const prices = types.map(t => t.price || 0);
+  const min = Math.min(...prices);
+  if (min === 0 && prices.every(p => p === 0)) return 'Gratuit';
+  return min === 0 ? 'À partir de gratuit' : `À partir de ${min}$`;
+}
+
+function renderEventsBrowseList(list) {
+  const listEl = document.getElementById('events-browse-list');
+  if (list.length === 0) {
+    listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Aucun événement à venir pour l\'instant. Sois le premier à en publier un.</p>';
+    return;
+  }
+  listEl.innerHTML = list.map(e => `
+    <div class="order-box" style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+        <strong style="font-size:1.02rem">${escapeHtml(e.title || 'Événement')}</strong>
+        <span class="shop-card-category">${escapeHtml(e.category || '—')}</span>
+      </div>
+      <div class="muted small" style="margin:4px 0">${escapeHtml(eventDateRangeLabel(e))} · ${escapeHtml(e.location || '—')}</div>
+      <div class="muted small" style="margin-bottom:10px">${eventPriceFromLabel(e)}</div>
+      <button class="btn btn-outline btn-sm" onclick="openEventDetail('${e.id}')">Voir l'événement</button>
+    </div>`).join('');
+}
+
+async function openEventDetail(eventId) {
+  const bodyEl = document.getElementById('event-detail-body');
+  bodyEl.innerHTML = '<p class="muted small">Chargement...</p>';
+  document.getElementById('event-detail-modal').classList.remove('hidden');
+
+  try {
+    const snap = await db.collection('events').doc(eventId).get();
+    if (!snap.exists) {
+      bodyEl.innerHTML = '<p class="muted small">Cet événement n\'existe plus.</p>';
+      return;
+    }
+    const e = { id: snap.id, ...snap.data() };
+    const isOwner = currentUser && currentUser.uid === e.ownerUid;
+    const isPast = new Date(e.endDate || e.startDate).getTime() < Date.now();
+    const types = e.ticketTypes || [];
+
+    const ticketsHtml = types.map(t => {
+      const left = (t.quantityTotal || 0) - (t.quantitySold || 0);
+      const soldOut = left <= 0;
+      let btnHtml;
+      if (isOwner) {
+        btnHtml = `<span class="muted small">${left} place(s) restante(s)</span>`;
+      } else if (isPast || e.status !== 'active') {
+        btnHtml = `<span class="muted small">Événement terminé</span>`;
+      } else if (soldOut) {
+        btnHtml = `<span class="muted small">Complet</span>`;
+      } else if (!currentUser) {
+        btnHtml = `<button class="btn btn-outline btn-sm" onclick="openAuth('register')">Se connecter pour réserver</button>`;
+      } else {
+        btnHtml = `<button class="btn btn-primary btn-sm" onclick='openEventReserveForm(${JSON.stringify(eventId)}, ${JSON.stringify(t.id)}, ${JSON.stringify(t.name || "Billet")}, ${t.price || 0}, ${left})'>Réserver</button>`;
+      }
+      return `<div class="order-box" style="margin-bottom:8px">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+          <div><strong>${escapeHtml(t.name || 'Billet')}</strong><div class="muted small">${(t.price || 0) === 0 ? 'Gratuit' : (t.price || 0) + '$'} · ${left}/${t.quantityTotal || 0} places restantes</div></div>
+          ${btnHtml}
+        </div>
+      </div>`;
+    }).join('') || '<p class="muted small">Aucun type de billet défini.</p>';
+
+    let ownerActionsHtml = '';
+    if (isOwner) {
+      ownerActionsHtml = `
+        <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:8px" onclick="openEventAttendees('${e.id}')">Voir les réservations</button>
+        <button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="openEventForm('${e.id}')">Modifier l'événement</button>
+        ${e.status === 'active'
+          ? `<button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="toggleEventStatus('${e.id}', 'cancelled')">Annuler l'événement</button>`
+          : `<button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="toggleEventStatus('${e.id}', 'active')">Réactiver l'événement</button>`}
+        <button class="btn btn-outline" style="width:100%;justify-content:center;color:var(--red)" onclick="deleteEvent('${e.id}')">Supprimer l'événement</button>`;
+    }
+
+    bodyEl.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px">
+        <h3 style="margin:0">${escapeHtml(e.title || 'Événement')}</h3>
+        <span class="shop-card-category">${escapeHtml(e.category || '—')}</span>
+      </div>
+      <div class="muted small" style="margin-bottom:10px">${escapeHtml(eventDateRangeLabel(e))} · ${escapeHtml(e.location || '—')}</div>
+      ${e.status === 'cancelled' ? '<p class="muted small" style="color:var(--red);margin-bottom:10px">Cet événement a été annulé par l\'organisateur.</p>' : ''}
+      <p style="white-space:pre-wrap;margin-bottom:16px">${escapeHtml(e.description || '')}</p>
+      <h4 style="margin-bottom:8px">Billets</h4>
+      ${ticketsHtml}
+      <div style="margin-top:14px">${ownerActionsHtml}</div>
+      ${!isOwner && currentUser ? `<button class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin-top:8px" onclick="openReportModal('${e.id}', '${e.ownerUid}', 'event')">Signaler cet événement</button>` : ''}
+    `;
+  } catch (e) {
+    bodyEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+  }
+}
+
+function closeEventDetail() {
+  document.getElementById('event-detail-modal').classList.add('hidden');
+}
+
+/* ---- Formulaire de creation / modification ---- */
+function openEventForm(eventId = null) {
+  if (!currentUser) { openAuth('register'); return; }
+  editingEventId = eventId;
+  document.getElementById('event-form-error').classList.add('hidden');
+  document.getElementById('event-form-title').textContent = eventId ? "Modifier l'événement" : 'Créer un événement';
+  document.getElementById('event-form-submit-btn').textContent = eventId ? 'Enregistrer' : "Publier l'événement";
+  document.getElementById('event-ticket-types-list').innerHTML = '';
+
+  const fill = (e) => {
+    document.getElementById('event-title-input').value = e.title || '';
+    document.getElementById('event-category-input').value = e.category || '';
+    document.getElementById('event-location-input').value = e.location || '';
+    document.getElementById('event-start-input').value = e.startDate ? e.startDate.slice(0, 10) : '';
+    document.getElementById('event-end-input').value = e.endDate ? e.endDate.slice(0, 10) : '';
+    document.getElementById('event-description-input').value = e.description || '';
+    document.getElementById('event-cover-input').value = e.coverImage || '';
+    (e.ticketTypes || []).forEach(t => addEventTicketTypeRow(t));
+    if (!e.ticketTypes || e.ticketTypes.length === 0) addEventTicketTypeRow();
+  };
+
+  if (eventId) {
+    const cached = (eventsCache || []).find(e => e.id === eventId) || (myEventsCache || []).find(e => e.id === eventId);
+    if (cached) {
+      fill(cached);
+    } else {
+      db.collection('events').doc(eventId).get().then(snap => { if (snap.exists) fill(snap.data()); });
+    }
+  } else {
+    document.getElementById('event-title-input').value = '';
+    document.getElementById('event-category-input').value = '';
+    document.getElementById('event-location-input').value = '';
+    document.getElementById('event-start-input').value = '';
+    document.getElementById('event-end-input').value = '';
+    document.getElementById('event-description-input').value = '';
+    document.getElementById('event-cover-input').value = '';
+    addEventTicketTypeRow();
+  }
+
+  document.getElementById('event-form-modal').classList.remove('hidden');
+}
+
+function closeEventForm() {
+  document.getElementById('event-form-modal').classList.add('hidden');
+  editingEventId = null;
+}
+
+// Un type de billet existant garde son id (necessaire pour ne pas perdre
+// les places deja vendues en cas de modification) ; un nouveau type recoit
+// un id genere ici et definitif des la creation.
+function addEventTicketTypeRow(existing = null) {
+  eventTicketRowCounter++;
+  const rowId = 'ett-' + eventTicketRowCounter;
+  const ticketId = existing && existing.id ? existing.id : 'tt-' + Date.now().toString(36) + eventTicketRowCounter;
+  const soldSoFar = existing ? (existing.quantitySold || 0) : 0;
+
+  const row = document.createElement('div');
+  row.id = rowId;
+  row.dataset.ticketId = ticketId;
+  row.dataset.quantitySold = soldSoFar;
+  row.style.cssText = 'display:flex;gap:6px;margin-bottom:8px;align-items:center';
+  row.innerHTML = `
+    <input type="text" class="text-input event-tt-name" placeholder="Nom (ex: Standard)" style="flex:2" value="${existing ? escapeHtml(existing.name || '') : ''}">
+    <input type="number" class="text-input event-tt-price" placeholder="Prix $" min="0" step="0.01" style="flex:1" value="${existing ? (existing.price || 0) : 0}">
+    <input type="number" class="text-input event-tt-quantity" placeholder="Places" min="${soldSoFar}" step="1" style="flex:1" value="${existing ? (existing.quantityTotal || 0) : ''}">
+    <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('${rowId}').remove()" aria-label="Retirer">×</button>`;
+  document.getElementById('event-ticket-types-list').appendChild(row);
+}
+
+function collectEventTicketTypesFromForm() {
+  return Array.from(document.querySelectorAll('#event-ticket-types-list > div')).map(row => ({
+    id: row.dataset.ticketId,
+    name: row.querySelector('.event-tt-name').value.trim() || 'Billet',
+    price: parseFloat(row.querySelector('.event-tt-price').value) || 0,
+    quantityTotal: parseInt(row.querySelector('.event-tt-quantity').value, 10) || 0,
+    quantitySold: parseInt(row.dataset.quantitySold, 10) || 0
+  })).filter(t => t.quantityTotal > 0);
+}
+
+async function saveEvent() {
+  const errEl = document.getElementById('event-form-error');
+  errEl.classList.add('hidden');
+
+  const title = document.getElementById('event-title-input').value.trim();
+  const category = document.getElementById('event-category-input').value.trim();
+  const location = document.getElementById('event-location-input').value.trim();
+  const startDate = document.getElementById('event-start-input').value;
+  const endDate = document.getElementById('event-end-input').value;
+  const description = document.getElementById('event-description-input').value.trim();
+  const coverImage = document.getElementById('event-cover-input').value.trim();
+  const ticketTypes = collectEventTicketTypesFromForm();
+
+  if (!title || !location || !startDate) {
+    errEl.textContent = 'Merci de remplir au moins le titre, le lieu et la date de début.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  if (endDate && new Date(endDate) < new Date(startDate)) {
+    errEl.textContent = 'La date de fin doit être après la date de début.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  if (ticketTypes.length === 0) {
+    errEl.textContent = 'Ajoute au moins un type de billet avec un nombre de places.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+
+  const btn = document.getElementById('event-form-submit-btn');
+  if (btn.disabled) return;
+  btn.disabled = true;
+  const originalLabel = btn.textContent;
+  btn.textContent = 'Envoi...';
+
+  try {
+    const payload = {
+      title, category, location, description,
+      startDate: new Date(startDate).toISOString(),
+      endDate: endDate ? new Date(endDate).toISOString() : new Date(startDate).toISOString(),
+      coverImage: coverImage || null,
+      ticketTypes
+    };
+    if (editingEventId) {
+      await db.collection('events').doc(editingEventId).update(payload);
+      showToast('Événement mis à jour', 'success');
+    } else {
+      await db.collection('events').add({
+        ...payload,
+        ownerUid: currentUser.uid,
+        ownerName: currentUser.name || 'Utilisateur',
+        status: 'active',
+        createdAt: new Date().toISOString()
+      });
+      showToast('Événement publié', 'success');
+    }
+    closeEventForm();
+    eventsCache = null;
+    if (eventsCurrentTab === 'browse') loadEvents();
+    if (eventsCurrentTab === 'myevents') loadMyOrganizedEvents();
+  } catch (e) {
+    errEl.textContent = friendlyErrorMessage(e);
+    errEl.classList.remove('hidden');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = originalLabel;
+  }
+}
+
+async function toggleEventStatus(eventId, newStatus) {
+  try {
+    await db.collection('events').doc(eventId).update({ status: newStatus });
+    showToast(newStatus === 'active' ? 'Événement réactivé' : 'Événement annulé', 'success');
+    eventsCache = null;
+    closeEventDetail();
+    loadMyOrganizedEvents();
+  } catch (e) {
+    showToast(friendlyErrorMessage(e), 'error');
+  }
+}
+
+async function deleteEvent(eventId) {
+  if (!confirm('Supprimer définitivement cet événement ? Les billets déjà réservés resteront visibles par les acheteurs mais ne seront plus liés à un événement actif.')) return;
+  try {
+    await db.collection('events').doc(eventId).delete();
+    showToast('Événement supprimé', 'success');
+    eventsCache = null;
+    closeEventDetail();
+    loadMyOrganizedEvents();
+  } catch (e) {
+    showToast(friendlyErrorMessage(e), 'error');
+  }
+}
+
+/* ---- Reservation (toujours via le serveur, voir note de securite plus haut) ---- */
+function openEventReserveForm(eventId, ticketTypeId, ticketTypeName, unitPrice, availableLeft) {
+  if (!currentUser) { openAuth('register'); return; }
+  currentEventReserve = { eventId, ticketTypeId, ticketTypeName, unitPrice, availableLeft };
+  document.getElementById('event-reserve-ticket-label').textContent = `${ticketTypeName} — ${unitPrice === 0 ? 'Gratuit' : unitPrice + '$'} (${availableLeft} place(s) restante(s))`;
+  document.getElementById('event-reserve-quantity').value = 1;
+  document.getElementById('event-reserve-quantity').max = availableLeft;
+  document.getElementById('event-reserve-error').classList.add('hidden');
+  updateEventReserveTotal();
+  document.getElementById('event-reserve-modal').classList.remove('hidden');
+}
+
+function updateEventReserveTotal() {
+  if (!currentEventReserve) return;
+  const qty = parseInt(document.getElementById('event-reserve-quantity').value, 10) || 0;
+  const total = qty * currentEventReserve.unitPrice;
+  document.getElementById('event-reserve-total').textContent = total === 0 ? 'Gratuit' : total.toFixed(2) + '$';
+}
+
+function closeEventReserveForm() {
+  document.getElementById('event-reserve-modal').classList.add('hidden');
+  currentEventReserve = null;
+}
+
+async function submitEventReservation() {
+  const errEl = document.getElementById('event-reserve-error');
+  errEl.classList.add('hidden');
+  if (!currentUser || !currentEventReserve) { closeEventReserveForm(); return; }
+
+  const quantity = parseInt(document.getElementById('event-reserve-quantity').value, 10) || 0;
+  if (quantity < 1) {
+    errEl.textContent = 'Indique au moins 1 place.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  if (quantity > currentEventReserve.availableLeft) {
+    errEl.textContent = `Il ne reste que ${currentEventReserve.availableLeft} place(s).`;
+    errEl.classList.remove('hidden');
+    return;
+  }
+
+  const btn = document.getElementById('event-reserve-submit-btn');
+  if (btn.disabled) return;
+  btn.disabled = true;
+  btn.textContent = 'Réservation...';
+
+  try {
+    const idToken = await auth.currentUser.getIdToken();
+    const resp = await fetch('/api/event-ticket-action', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        idToken, action: 'reserve',
+        eventId: currentEventReserve.eventId,
+        ticketTypeId: currentEventReserve.ticketTypeId,
+        quantity
+      })
+    });
+    const data = await resp.json();
+    if (!data.success) throw new Error(data.error || 'La réservation a échoué.');
+
+    if (typeof data.newBalance === 'number') {
+      currentUser.balance = data.newBalance;
+      const dashBalanceEl = document.getElementById('dash-balance');
+      if (dashBalanceEl) dashBalanceEl.textContent = data.newBalance.toFixed(2) + '$';
+    }
+    const reservedEventId = currentEventReserve.eventId;
+    closeEventReserveForm();
+    showToast('Réservation confirmée', 'success');
+    eventsCache = null;
+    openEventDetail(reservedEventId);
+  } catch (e) {
+    errEl.textContent = e.message || 'Une erreur est survenue.';
+    errEl.classList.remove('hidden');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Confirmer la réservation';
+  }
+}
+
+async function loadMyEventTickets() {
+  const listEl = document.getElementById('events-mytickets-list');
+  if (!currentUser) { listEl.innerHTML = '<p class="muted small">Connecte-toi pour voir tes réservations.</p>'; return; }
+  listEl.innerHTML = renderFeedSkeletons(2);
+  try {
+    const snap = await db.collection('event_tickets').where('buyerUid', '==', currentUser.uid).get();
+    const tickets = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    tickets.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+
+    if (tickets.length === 0) {
+      listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Tu n\'as encore réservé aucun billet.</p>';
+      return;
+    }
+    listEl.innerHTML = tickets.map(t => {
+      const isPast = t.eventStartDate && new Date(t.eventStartDate).getTime() < Date.now();
+      const canCancel = t.status === 'confirmed' && !isPast;
+      return `
+      <div class="order-box" style="margin-bottom:12px">
+        <strong>${escapeHtml(t.eventTitle || 'Événement')}</strong>
+        <div class="muted small" style="margin:4px 0">${escapeHtml(t.ticketTypeName || '')} × ${t.quantity || 1} — ${(t.amountPaid || 0) === 0 ? 'Gratuit' : (t.amountPaid || 0).toFixed(2) + '$'}</div>
+        <div class="muted small" style="margin-bottom:8px">Statut : ${t.status === 'cancelled' ? 'Annulée' : 'Confirmée'}</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-outline btn-sm" onclick="openEventDetail('${t.eventId}')">Voir l'événement</button>
+          ${canCancel ? `<button class="btn btn-outline btn-sm" style="color:var(--red)" onclick="cancelEventTicket('${t.id}')">Annuler</button>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+  } catch (e) {
+    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+  }
+}
+
+async function cancelEventTicket(ticketId) {
+  if (!confirm('Annuler cette réservation ? Si elle était payante, le montant sera remboursé sur ton solde.')) return;
+  try {
+    const idToken = await auth.currentUser.getIdToken();
+    const resp = await fetch('/api/event-ticket-action', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken, action: 'cancel', ticketId })
+    });
+    const data = await resp.json();
+    if (!data.success) throw new Error(data.error || "L'annulation a échoué.");
+
+    if (typeof data.newBalance === 'number') {
+      currentUser.balance = data.newBalance;
+      const dashBalanceEl = document.getElementById('dash-balance');
+      if (dashBalanceEl) dashBalanceEl.textContent = data.newBalance.toFixed(2) + '$';
+    }
+    showToast('Réservation annulée', 'success');
+    loadMyEventTickets();
+  } catch (e) {
+    showToast(e.message || 'Une erreur est survenue.', 'error');
+  }
+}
+
+async function loadMyOrganizedEvents() {
+  const listEl = document.getElementById('events-myevents-list');
+  if (!currentUser) { listEl.innerHTML = '<p class="muted small">Connecte-toi pour gérer tes événements.</p>'; return; }
+  listEl.innerHTML = renderFeedSkeletons(2);
+  try {
+    const snap = await db.collection('events').where('ownerUid', '==', currentUser.uid).get();
+    myEventsCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    myEventsCache.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+
+    if (myEventsCache.length === 0) {
+      listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Tu n\'as encore publié aucun événement.</p>';
+      return;
+    }
+    listEl.innerHTML = myEventsCache.map(e => {
+      const sold = (e.ticketTypes || []).reduce((sum, t) => sum + (t.quantitySold || 0), 0);
+      return `
+      <div class="order-box" style="margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+          <strong>${escapeHtml(e.title || 'Événement')}</strong>
+          <span class="shop-card-category">${e.status === 'active' ? 'Actif' : 'Annulé'}</span>
+        </div>
+        <div class="muted small" style="margin:4px 0">${escapeHtml(eventDateRangeLabel(e))} · ${sold} billet(s) vendu(s)</div>
+        <button class="btn btn-outline btn-sm" onclick="openEventDetail('${e.id}')">Gérer</button>
+      </div>`;
+    }).join('');
+  } catch (e) {
+    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+  }
+}
+
+async function openEventAttendees(eventId) {
+  const bodyEl = document.getElementById('event-detail-body');
+  bodyEl.innerHTML = `
+    <button class="menu-back-btn" onclick="openEventDetail('${eventId}')" aria-label="Retour" style="margin-bottom:10px">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <h3 style="margin-bottom:12px">Réservations</h3>
+    <div id="event-attendees-list"><p class="muted small">Chargement...</p></div>`;
+
+  try {
+    const snap = await db.collection('event_tickets').where('eventId', '==', eventId).get();
+    const tickets = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    tickets.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+    const listEl = document.getElementById('event-attendees-list');
+
+    if (tickets.length === 0) {
+      listEl.innerHTML = '<p class="muted small">Aucune réservation pour l\'instant.</p>';
+      return;
+    }
+    listEl.innerHTML = tickets.map(t => `
+      <div class="order-box" style="margin-bottom:10px">
+        <strong>${escapeHtml(t.buyerName || 'Participant')}</strong>
+        <div class="muted small">${escapeHtml(t.ticketTypeName || '')} × ${t.quantity || 1} — ${(t.amountPaid || 0) === 0 ? 'Gratuit' : (t.amountPaid || 0).toFixed(2) + '$'}</div>
+        <div class="muted small">Statut : ${t.status === 'cancelled' ? 'Annulée' : 'Confirmée'}</div>
+      </div>`).join('');
+  } catch (e) {
+    document.getElementById('event-attendees-list').innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+  }
+}
+
 /* ================= SIGNALEMENT DE CONTENU ================= */
 let reportTargetId = null;
 let reportTargetOwnerUid = null;
