@@ -3755,13 +3755,69 @@ function openDirectoryEditForm() {
             <label for="directory-desc">Description (facultatif)</label>
             <textarea id="directory-desc" class="text-input" rows="3" style="resize:vertical" maxlength="400">${escapeHtml(f.description || '')}</textarea>
           </div>
-          <button class="btn btn-primary" id="directory-save-btn" style="width:100%;justify-content:center;margin-top:8px" onclick="saveDirectoryListing()">Enregistrer</button>
+
+          <div style="display:flex;justify-content:space-between;align-items:center;margin:18px 0 12px;padding-top:14px;border-top:1px solid var(--line)">
+            <label class="field-label" style="margin:0">Accepter les réservations en ligne</label>
+            <label class="switch"><input type="checkbox" id="directory-booking-enabled" ${f.bookingEnabled ? 'checked' : ''} onchange="toggleBookingConfigVisibility()"><span class="slider"></span></label>
+          </div>
+
+          <div id="directory-booking-config" class="${f.bookingEnabled ? '' : 'hidden'}">
+            <label class="field-label" style="display:block">Jours de disponibilité</label>
+            <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px">
+              ${['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map((d, i) => `
+                <label style="display:flex;align-items:center;gap:5px;font-size:0.85rem">
+                  <input type="checkbox" class="directory-booking-day" value="${i}" ${(f.bookingDays || []).includes(i) ? 'checked' : ''}> ${d}
+                </label>`).join('')}
+            </div>
+            <div style="display:flex;gap:8px">
+              <div class="field" style="flex:1">
+                <label for="directory-booking-start">Ouverture</label>
+                <input type="time" id="directory-booking-start" class="text-input" value="${escapeHtml(f.bookingStart || '08:00')}">
+              </div>
+              <div class="field" style="flex:1">
+                <label for="directory-booking-end">Fermeture</label>
+                <input type="time" id="directory-booking-end" class="text-input" value="${escapeHtml(f.bookingEnd || '17:00')}">
+              </div>
+            </div>
+            <div class="field">
+              <label for="directory-booking-duration">Durée de chaque créneau</label>
+              <select id="directory-booking-duration" class="select-input">
+                <option value="15" ${f.slotDuration === 15 ? 'selected' : ''}>15 minutes</option>
+                <option value="30" ${!f.slotDuration || f.slotDuration === 30 ? 'selected' : ''}>30 minutes</option>
+                <option value="45" ${f.slotDuration === 45 ? 'selected' : ''}>45 minutes</option>
+                <option value="60" ${f.slotDuration === 60 ? 'selected' : ''}>1 heure</option>
+              </select>
+            </div>
+            <label class="field-label" style="display:block">Services proposés (facultatif)</label>
+            <div id="directory-service-rows"></div>
+            <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:6px 0 4px" onclick="addDirectoryServiceRow()">+ Ajouter un service</button>
+          </div>
+
+          <button class="btn btn-primary" id="directory-save-btn" style="width:100%;justify-content:center;margin-top:14px" onclick="saveDirectoryListing()">Enregistrer</button>
           ${doc.exists ? `<button class="btn btn-outline" style="width:100%;justify-content:center;margin-top:10px;color:var(--red);border-color:var(--red)" onclick="deleteDirectoryListing()">Supprimer ma fiche</button>` : ''}
           <p class="muted small" id="directory-form-msg" style="margin-top:6px"></p>
         </div>
       </div>`;
     document.body.insertAdjacentHTML('beforeend', html);
+    const existingServices = Array.isArray(f.services) && f.services.length > 0 ? f.services : [];
+    existingServices.forEach(s => addDirectoryServiceRow(s));
   }).catch(e => showToast(friendlyErrorMessage(e), 'error'));
+}
+
+function toggleBookingConfigVisibility() {
+  const enabled = document.getElementById('directory-booking-enabled').checked;
+  document.getElementById('directory-booking-config').classList.toggle('hidden', !enabled);
+}
+
+function addDirectoryServiceRow(service) {
+  const rowsEl = document.getElementById('directory-service-rows');
+  const row = document.createElement('div');
+  row.className = 'invoice-item-row';
+  row.innerHTML = `
+    <input type="text" class="text-input directory-service-name" placeholder="Nom du service" value="${escapeHtml(service ? service.name || '' : '')}" style="flex:2">
+    <input type="text" class="text-input directory-service-price" placeholder="Prix (ex: 10$)" value="${escapeHtml(service ? service.price || '' : '')}" style="flex:1">
+    <button type="button" class="invoice-row-remove" onclick="this.parentElement.remove()" aria-label="Retirer">×</button>`;
+  rowsEl.appendChild(row);
 }
 
 async function saveDirectoryListing() {
@@ -3773,9 +3829,26 @@ async function saveDirectoryListing() {
   const category = document.getElementById('directory-category').value;
   const phone = document.getElementById('directory-phone').value.trim();
   const description = document.getElementById('directory-desc').value.trim();
+  const bookingEnabled = document.getElementById('directory-booking-enabled').checked;
+  const bookingDays = Array.from(document.querySelectorAll('.directory-booking-day:checked')).map(el => parseInt(el.value, 10));
+  const bookingStart = document.getElementById('directory-booking-start').value;
+  const bookingEnd = document.getElementById('directory-booking-end').value;
+  const slotDuration = parseInt(document.getElementById('directory-booking-duration').value, 10);
+  const services = Array.from(document.querySelectorAll('#directory-service-rows .invoice-item-row')).map(row => ({
+    name: row.querySelector('.directory-service-name').value.trim(),
+    price: row.querySelector('.directory-service-price').value.trim()
+  })).filter(s => s.name);
 
   if (!name || !profession || !city || !phone) {
     msgEl.textContent = 'Merci de remplir au moins le nom, le métier, la ville et le téléphone.';
+    return;
+  }
+  if (bookingEnabled && bookingDays.length === 0) {
+    msgEl.textContent = 'Coche au moins un jour de disponibilité pour activer les réservations.';
+    return;
+  }
+  if (bookingEnabled && bookingStart >= bookingEnd) {
+    msgEl.textContent = "L'heure de fermeture doit être après l'heure d'ouverture.";
     return;
   }
 
@@ -3786,6 +3859,7 @@ async function saveDirectoryListing() {
     const payload = {
       ownerUid: currentUser.uid,
       name, profession, city, category: category || null, phone, description,
+      bookingEnabled, bookingDays, bookingStart, bookingEnd, slotDuration, services,
       updatedAt: new Date().toISOString()
     };
     if (!directoryIsEditingExisting) payload.createdAt = new Date().toISOString();
@@ -6493,6 +6567,318 @@ async function deleteTravelSpot(spotId) {
     showToast('Publication supprimée', 'info');
     travelCache = null;
     loadMyTravelSpots();
+  } catch (e) {
+    showToast(friendlyErrorMessage(e), 'error');
+  }
+}
+
+/* ================= RESERVATION EN LIGNE =================
+   Reutilise entierement les fiches professionnelles de "Pres de chez vous"
+   (directory_listings) -- un professionnel qui active "bookingEnabled" sur
+   sa fiche (jours, horaires, duree de creneau, services) devient reservable
+   ici. Aucune nouvelle fiche, aucun doublon avec l'Annuaire/Pres de chez
+   vous : ce service ajoute juste la logique de calendrier par-dessus.
+   Un rendez-vous ("bookings") a un id deterministe
+   "{proUid}_{date}_{heureDebut}" : ca empeche mathematiquement deux
+   personnes de reserver le meme creneau (la transaction Firestore echoue
+   proprement sur le second essai au lieu de creer un conflit). */
+let bookingCurrentTab = 'find';
+let bookingSearchDebounce = null;
+let bookingProsCache = null;
+let bookingSelectedProUid = null;
+let bookingSelectedDate = null;
+let bookingSelectedSlot = null;
+
+function openBookingScreen() {
+  showMenuScreen('booking');
+  setBookingTab(bookingCurrentTab || 'find');
+}
+
+function setBookingTab(tab) {
+  bookingCurrentTab = tab;
+  document.querySelectorAll('#booking-main-tabs button').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.tab === tab);
+  });
+  ['find', 'mine', 'received'].forEach(t => {
+    document.getElementById('booking-tab-' + t).classList.toggle('hidden', t !== tab);
+  });
+
+  if (tab === 'find') loadBookableProfessionals();
+  else if (tab === 'mine') loadMyBookings();
+  else if (tab === 'received') loadReceivedBookings();
+}
+
+/* ---- Onglet "Trouver un pro" ---- */
+
+async function loadBookableProfessionals() {
+  const listEl = document.getElementById('booking-find-list');
+  listEl.innerHTML = renderFeedSkeletons(2);
+  try {
+    await fetchAllListings();
+    bookingProsCache = (directoryCache || []).filter(f => f.bookingEnabled);
+    runBookingSearch();
+  } catch (e) {
+    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+  }
+}
+
+function scheduleBookingSearch() {
+  clearTimeout(bookingSearchDebounce);
+  bookingSearchDebounce = setTimeout(runBookingSearch, 250);
+}
+
+function runBookingSearch() {
+  if (!bookingProsCache) return;
+  const query = document.getElementById('booking-search-input').value.trim().toLowerCase();
+  const matches = query
+    ? bookingProsCache.filter(f => `${f.profession || ''} ${f.name || ''} ${f.city || ''}`.toLowerCase().includes(query))
+    : bookingProsCache;
+  renderBookableProfessionals(matches);
+}
+
+function renderBookableProfessionals(list) {
+  const listEl = document.getElementById('booking-find-list');
+  const visible = list.filter(f => !blockedSet.has(f.ownerUid));
+
+  if (visible.length === 0) {
+    listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Aucun professionnel n\'accepte encore les réservations en ligne. Reviens bientôt, ou active-le sur ta propre fiche dans « Près de chez vous ».</p>';
+    return;
+  }
+
+  listEl.innerHTML = visible.map(f => `
+    <div class="order-box" style="margin-bottom:12px">
+      <strong style="font-size:1.02rem">${escapeHtml(f.name || 'Professionnel')}</strong>
+      <div class="muted small" style="margin:4px 0">${escapeHtml(f.profession || '—')}${f.city ? ' · ' + escapeHtml(f.city) : ''}</div>
+      <button class="btn btn-outline btn-sm" onclick="openBookingFlow('${f.ownerUid}')">Réserver</button>
+    </div>`).join('');
+}
+
+/* ---- Parcours de reservation : service -> date -> creneau -> confirmation ---- */
+
+function openBookingFlow(proUid) {
+  if (!currentUser) { openAuth('login'); return; }
+  const pro = (bookingProsCache || (directoryCache || [])).find(f => f.ownerUid === proUid);
+  if (!pro) { showToast('Professionnel introuvable', 'error'); return; }
+  if (document.getElementById('booking-flow-modal')) return;
+
+  bookingSelectedProUid = proUid;
+  bookingSelectedDate = null;
+  bookingSelectedSlot = null;
+
+  const services = Array.isArray(pro.services) && pro.services.length > 0 ? pro.services : [{ name: 'Rendez-vous général', price: '' }];
+  const todayStr = new Date().toISOString().slice(0, 10);
+
+  const html = `
+    <div class="modal-overlay" id="booking-flow-modal">
+      <div class="modal" style="max-width:460px">
+        <button class="modal-close" onclick="document.getElementById('booking-flow-modal').remove()" aria-label="Fermer">×</button>
+        <h3 style="margin-bottom:4px">Réserver chez ${escapeHtml(pro.name || 'ce professionnel')}</h3>
+        <p class="muted small" style="margin-bottom:14px">${escapeHtml(pro.profession || '')}</p>
+
+        <div class="field">
+          <label for="booking-service-select">Service</label>
+          <select id="booking-service-select" class="select-input">
+            ${services.map((s, i) => `<option value="${i}">${escapeHtml(s.name)}${s.price ? ' — ' + escapeHtml(s.price) : ''}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field">
+          <label for="booking-date-input">Date</label>
+          <input type="date" id="booking-date-input" class="text-input" min="${todayStr}" onchange="loadAvailableSlots('${proUid}')">
+        </div>
+
+        <div id="booking-slots-container"></div>
+
+        <button class="btn btn-primary" id="booking-confirm-btn" style="width:100%;justify-content:center;margin-top:10px" disabled onclick="confirmBooking()">Choisis un créneau</button>
+        <p class="muted small" id="booking-flow-msg" style="margin-top:6px"></p>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+function timeToMinutes(t) {
+  const [h, m] = t.split(':').map(Number);
+  return h * 60 + m;
+}
+function minutesToTime(min) {
+  const h = Math.floor(min / 60).toString().padStart(2, '0');
+  const m = (min % 60).toString().padStart(2, '0');
+  return `${h}:${m}`;
+}
+
+async function loadAvailableSlots(proUid) {
+  const date = document.getElementById('booking-date-input').value;
+  const containerEl = document.getElementById('booking-slots-container');
+  const confirmBtn = document.getElementById('booking-confirm-btn');
+  bookingSelectedSlot = null;
+  confirmBtn.disabled = true;
+  confirmBtn.textContent = 'Choisis un créneau';
+  if (!date) { containerEl.innerHTML = ''; return; }
+
+  const pro = (bookingProsCache || []).find(f => f.ownerUid === proUid);
+  if (!pro) return;
+
+  // Convertit getDay() (0=dimanche) vers notre indexation (0=lundi..6=dimanche)
+  const jsDay = new Date(date + 'T00:00:00').getDay();
+  const myDayIndex = (jsDay + 6) % 7;
+  if (!(pro.bookingDays || []).includes(myDayIndex)) {
+    containerEl.innerHTML = '<p class="muted small">Ce professionnel n\'est pas disponible ce jour-là.</p>';
+    return;
+  }
+
+  containerEl.innerHTML = '<p class="muted small">Chargement des créneaux...</p>';
+  try {
+    const duration = pro.slotDuration || 30;
+    const startMin = timeToMinutes(pro.bookingStart || '08:00');
+    const endMin = timeToMinutes(pro.bookingEnd || '17:00');
+    const allSlots = [];
+    for (let t = startMin; t + duration <= endMin; t += duration) allSlots.push(minutesToTime(t));
+
+    const snap = await db.collection('bookings')
+      .where('proUid', '==', proUid)
+      .where('date', '==', date)
+      .get();
+    const taken = new Set(snap.docs.map(d => d.data()).filter(b => b.status !== 'cancelled').map(b => b.startTime));
+
+    const now = new Date();
+    const isToday = date === now.toISOString().slice(0, 10);
+    const nowMin = now.getHours() * 60 + now.getMinutes();
+
+    const available = allSlots.filter(t => !taken.has(t) && !(isToday && timeToMinutes(t) <= nowMin));
+
+    if (available.length === 0) {
+      containerEl.innerHTML = '<p class="muted small">Aucun créneau disponible ce jour-là. Essaie une autre date.</p>';
+      return;
+    }
+
+    containerEl.innerHTML = `
+      <label class="field-label" style="display:block;margin-top:10px">Créneaux disponibles</label>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        ${available.map(t => `<button type="button" class="btn btn-outline btn-sm" data-slot="${t}" onclick="selectBookingSlot('${t}', ${duration})">${t}</button>`).join('')}
+      </div>`;
+  } catch (e) {
+    containerEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+  }
+}
+
+function selectBookingSlot(startTime, duration) {
+  bookingSelectedSlot = { startTime, endTime: minutesToTime(timeToMinutes(startTime) + duration) };
+  document.querySelectorAll('#booking-slots-container button').forEach(btn => {
+    btn.classList.toggle('btn-primary', btn.dataset.slot === startTime);
+    btn.classList.toggle('btn-outline', btn.dataset.slot !== startTime);
+  });
+  const confirmBtn = document.getElementById('booking-confirm-btn');
+  confirmBtn.disabled = false;
+  confirmBtn.textContent = `Confirmer pour ${startTime}`;
+}
+
+async function confirmBooking() {
+  const btn = document.getElementById('booking-confirm-btn');
+  const msgEl = document.getElementById('booking-flow-msg');
+  const date = document.getElementById('booking-date-input').value;
+  const serviceIdx = parseInt(document.getElementById('booking-service-select').value, 10);
+  const pro = (bookingProsCache || []).find(f => f.ownerUid === bookingSelectedProUid);
+  if (!pro || !date || !bookingSelectedSlot) return;
+  const services = Array.isArray(pro.services) && pro.services.length > 0 ? pro.services : [{ name: 'Rendez-vous général', price: '' }];
+  const service = services[serviceIdx] || services[0];
+
+  if (btn.disabled) return;
+  btn.disabled = true;
+  btn.textContent = 'Réservation...';
+  msgEl.textContent = '';
+
+  const bookingRef = db.collection('bookings').doc(`${bookingSelectedProUid}_${date}_${bookingSelectedSlot.startTime}`);
+  try {
+    await db.runTransaction(async tx => {
+      const existing = await tx.get(bookingRef);
+      if (existing.exists && existing.data().status !== 'cancelled') {
+        throw new Error('Ce créneau vient d\'être pris par quelqu\'un d\'autre, choisis-en un autre.');
+      }
+      tx.set(bookingRef, {
+        proUid: bookingSelectedProUid, proName: pro.name || 'Professionnel',
+        clientUid: currentUser.uid, clientName: currentUser.name || 'Client',
+        serviceName: service.name, servicePrice: service.price || '',
+        date, startTime: bookingSelectedSlot.startTime, endTime: bookingSelectedSlot.endTime,
+        status: 'confirmed', createdAt: new Date().toISOString()
+      });
+    });
+
+    await db.collection('notifications').add({
+      uid: bookingSelectedProUid, title: 'Nouvelle réservation 📅',
+      body: `${currentUser.name || 'Un client'} a réservé "${service.name}" le ${new Date(date).toLocaleDateString('fr-FR')} à ${bookingSelectedSlot.startTime}.`,
+      type: 'booking', read: false, createdAt: new Date().toISOString()
+    });
+    notifyUserPush(bookingSelectedProUid, 'Nouvelle réservation 📅', `${currentUser.name || 'Un client'} a réservé le ${new Date(date).toLocaleDateString('fr-FR')} à ${bookingSelectedSlot.startTime}.`);
+
+    document.getElementById('booking-flow-modal').remove();
+    showToast('Réservation confirmée', 'success');
+    if (bookingCurrentTab === 'mine') loadMyBookings();
+  } catch (e) {
+    msgEl.textContent = friendlyErrorMessage(e) || e.message;
+    btn.disabled = false;
+    btn.textContent = `Confirmer pour ${bookingSelectedSlot.startTime}`;
+  }
+}
+
+/* ---- "Mes réservations" (cote client) et "Rendez-vous reçus" (cote pro) ---- */
+
+function renderBookingsList(list, targetId, emptyMessage, isProSide) {
+  const listEl = document.getElementById(targetId);
+  if (list.length === 0) {
+    listEl.innerHTML = `<p class="muted small" style="text-align:center;padding:20px 0">${escapeHtml(emptyMessage)}</p>`;
+    return;
+  }
+  const now = new Date();
+  listEl.innerHTML = list.map(b => {
+    const isPast = new Date(`${b.date}T${b.endTime}`) < now;
+    const statusLabel = b.status === 'cancelled' ? 'Annulée' : (isPast ? 'Terminée' : 'Confirmée');
+    return `
+    <div class="order-box" style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+        <strong style="font-size:1.02rem">${escapeHtml(b.serviceName || 'Rendez-vous')}</strong>
+        <span class="shop-card-category">${statusLabel}</span>
+      </div>
+      <div class="muted small" style="margin:4px 0">${escapeHtml(isProSide ? b.clientName : b.proName)}</div>
+      <div class="muted small">${new Date(b.date).toLocaleDateString('fr-FR')} · ${escapeHtml(b.startTime)} — ${escapeHtml(b.endTime)}</div>
+      ${(!isPast && b.status !== 'cancelled') ? `<button class="btn btn-outline btn-sm" style="margin-top:8px;color:var(--red);border-color:var(--red)" onclick="cancelBooking('${b.id}')">Annuler</button>` : ''}
+    </div>`;
+  }).join('');
+}
+
+async function loadMyBookings() {
+  const listEl = document.getElementById('booking-mine-list');
+  if (!currentUser) { listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Connecte-toi pour voir tes réservations.</p>'; return; }
+  listEl.innerHTML = renderFeedSkeletons(2);
+  try {
+    const snap = await db.collection('bookings').where('clientUid', '==', currentUser.uid).get();
+    const bookings = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+      .sort((a, b) => `${b.date}${b.startTime}`.localeCompare(`${a.date}${a.startTime}`));
+    renderBookingsList(bookings, 'booking-mine-list', 'Aucune réservation pour l\'instant.', false);
+  } catch (e) {
+    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+  }
+}
+
+async function loadReceivedBookings() {
+  const listEl = document.getElementById('booking-received-list');
+  if (!currentUser) { listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Connecte-toi pour voir tes rendez-vous.</p>'; return; }
+  listEl.innerHTML = renderFeedSkeletons(2);
+  try {
+    const snap = await db.collection('bookings').where('proUid', '==', currentUser.uid).get();
+    const bookings = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+      .sort((a, b) => `${b.date}${b.startTime}`.localeCompare(`${a.date}${a.startTime}`));
+    renderBookingsList(bookings, 'booking-received-list', 'Aucun rendez-vous reçu pour l\'instant.', true);
+  } catch (e) {
+    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+  }
+}
+
+async function cancelBooking(bookingId) {
+  if (!confirm('Annuler ce rendez-vous ?')) return;
+  try {
+    await db.collection('bookings').doc(bookingId).update({ status: 'cancelled' });
+    showToast('Rendez-vous annulé', 'info');
+    if (bookingCurrentTab === 'mine') loadMyBookings();
+    else loadReceivedBookings();
   } catch (e) {
     showToast(friendlyErrorMessage(e), 'error');
   }
