@@ -908,7 +908,7 @@ async function publishShopItem() {
       imageUrl,
       fileUrl: type === 'book' ? fileUrl : null,
       sellerUid: "8BqWONj07hVZePHe2DrkHWYRjse2",
-      sellerName: "CoeurnohBoost",
+      sellerName: "Coeurnoh Universe",
       sellerVerified: true,
       sellerPhone: type === 'product' ? "243825001290" : null,
       discountPercent: discountPercent,

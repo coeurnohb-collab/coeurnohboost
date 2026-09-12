@@ -508,6 +508,27 @@ a{text-decoration:none;color:inherit}
   background:#000;border-radius:10px;
 }
 
+/* ===== Upload de fichier direct (photo/video/PDF depuis le telephone) ===== */
+.file-drop-input{
+  display:block;width:100%;box-sizing:border-box;padding:14px 12px;
+  border:2px dashed var(--line);border-radius:10px;background:var(--green-light);
+  font-size:0.85rem;color:var(--muted);cursor:pointer;
+}
+.file-drop-input:focus{outline:none;border-color:var(--green)}
+.upload-progress-wrap{
+  margin-top:10px;background:var(--line);border-radius:999px;height:20px;
+  position:relative;overflow:hidden;
+}
+.upload-progress-wrap.hidden{display:none}
+.upload-progress-fill{
+  height:100%;width:0%;background:var(--green);border-radius:999px;
+  transition:width 0.2s ease;
+}
+.upload-progress-label{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-size:0.72rem;font-weight:700;color:var(--ink);
+}
+
 .shop-card{
   background:var(--white);border-radius:var(--radius);overflow:hidden;margin-bottom:18px;
   border:1px solid var(--line);box-shadow:0 2px 8px rgba(0,0,0,0.04);

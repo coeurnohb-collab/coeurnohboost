@@ -79,9 +79,74 @@ function escapeHtml(str) {
     .replace(/'/g, '&#39;');
 }
 
+/* ================= UPLOAD DE FICHIER DIRECT (Firebase Storage) =================
+   Envoie un vrai fichier choisi sur le telephone (photo, video, PDF) vers
+   Firebase Storage, avec suivi de progression, et renvoie l'URL de
+   telechargement a stocker dans Firestore. Remplace le systeme "colle un
+   lien externe" (postimages.org / Google Drive) qui obligeait chaque
+   utilisateur a passer par un site tiers avant de pouvoir publier. */
+function uploadFileToStorage(file, folder, options = {}) {
+  const { onProgress, maxSizeMB = 100 } = options;
+  return new Promise((resolve, reject) => {
+    if (!storage) { reject(new Error("Le stockage de fichiers n'est pas disponible pour le moment.")); return; }
+    if (!file) { reject(new Error("Aucun fichier sélectionné.")); return; }
+    if (file.size > maxSizeMB * 1024 * 1024) {
+      reject(new Error(`Fichier trop volumineux (max ${maxSizeMB} Mo).`));
+      return;
+    }
+    const safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_').slice(-80);
+    const ownerId = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.uid : 'anonyme';
+    const path = `${folder}/${ownerId}/${Date.now()}_${safeName}`;
+    let task;
+    try {
+      task = storage.ref(path).put(file);
+    } catch (e) {
+      reject(e);
+      return;
+    }
+    task.on('state_changed',
+      (snapshot) => {
+        if (onProgress && snapshot.totalBytes) {
+          onProgress(Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100));
+        }
+      },
+      (err) => reject(err),
+      async () => {
+        try {
+          const url = await task.snapshot.ref.getDownloadURL();
+          resolve({ url, path });
+        } catch (e) {
+          reject(e);
+        }
+      }
+    );
+  });
+}
+
+// Petites aides pour afficher/mettre a jour une barre de progression
+// d'upload generique (utilisee pour les publications ET la boutique).
+function resetUploadProgress(prefix) {
+  const wrap = document.getElementById(`${prefix}-progress-wrap`);
+  const fill = document.getElementById(`${prefix}-progress-fill`);
+  const label = document.getElementById(`${prefix}-progress-label`);
+  if (wrap) wrap.classList.add('hidden');
+  if (fill) fill.style.width = '0%';
+  if (label) label.textContent = '0%';
+}
+
+function setUploadProgress(prefix, pct) {
+  const wrap = document.getElementById(`${prefix}-progress-wrap`);
+  const fill = document.getElementById(`${prefix}-progress-fill`);
+  const label = document.getElementById(`${prefix}-progress-label`);
+  if (wrap) wrap.classList.remove('hidden');
+  if (fill) fill.style.width = `${pct}%`;
+  if (label) label.textContent = `${pct}%`;
+}
+
 let fbReady = false;
 let auth = null;
 let db = null;
+let storage = null;
 
 /* ================= APPARENCE (theme + taille de police) =================
    Reglage local a l'appareil (localStorage), applique immediatement au
@@ -196,6 +261,7 @@ try {
     console.log('[auth] Persistance non definie :', e.message);
   });
   db = firebase.firestore();
+  storage = firebase.storage();
   fbReady = true;
   console.log("✅ Firebase initialisé");
 } catch (e) {
@@ -1223,9 +1289,9 @@ async function openSharedProfile(uid) {
 function shareMyProfile() {
   if (!currentUser) return;
   const url = `${window.location.origin}${window.location.pathname}?profile=${currentUser.uid}`;
-  const caption = `Suis-moi sur CoeurnohBoost !`;
+  const caption = `Suis-moi sur Coeurnoh Universe !`;
   if (navigator.share) {
-    navigator.share({ title: 'CoeurnohBoost', text: caption, url }).catch(() => {});
+    navigator.share({ title: 'Coeurnoh Universe', text: caption, url }).catch(() => {});
   } else {
     navigator.clipboard.writeText(url);
     showToast('Lien de ton profil copié !', 'success');
@@ -1426,10 +1492,10 @@ function logout() {
 /* ================= PARTAGER L'APPLICATION ================= */
 async function shareApp() {
   const url = 'https://coeurnohboost.vercel.app/';
-  const shareText = 'CoeurnohBoost — fais grandir tes réseaux sociaux (TikTok, Instagram, YouTube, Facebook) avec des paiements Mobile Money, crypto ou carte.';
+  const shareText = 'Coeurnoh Universe — fais grandir tes réseaux sociaux (TikTok, Instagram, YouTube, Facebook) avec des paiements Mobile Money, crypto ou carte.';
   if (navigator.share) {
     try {
-      await navigator.share({ title: 'CoeurnohBoost', text: shareText, url });
+      await navigator.share({ title: 'Coeurnoh Universe', text: shareText, url });
     } catch (e) { /* l'utilisateur a annule le partage, rien a faire */ }
   } else {
     try {
@@ -2077,7 +2143,7 @@ function openSellForm() {
       <div class="modal">
         <button class="modal-close" onclick="document.getElementById('sell-modal').remove()" aria-label="Fermer">×</button>
         <h2>➕ Vendre un article</h2>
-        <p class="sub">CoeurnohBoost prélève 10% de commission sur chaque vente. Tu reçois 90% directement sur ton solde.</p>
+        <p class="sub">Coeurnoh Universe prélève 10% de commission sur chaque vente. Tu reçois 90% directement sur ton solde.</p>
         <div class="modal-error hidden" id="sell-form-error"></div>
 
         <div class="field">
@@ -2128,23 +2194,36 @@ function openSellForm() {
           </div>
         </div>
         <div class="field">
-          <label>Lien de la photo</label>
-          <input type="url" id="sell-image" class="text-input" placeholder="https://i.postimg.cc/...">
-          <p class="muted small" style="margin-top:4px">Uploade ta photo sur <strong>postimages.org</strong>, copie le "Lien direct", colle-le ici.</p>
+          <label for="sell-image-file">Photo de l'article</label>
+          <input type="file" id="sell-image-file" class="file-drop-input" accept="image/*" onchange="handleSellImageFileChange(event)">
+          <p class="muted small" style="margin-top:4px">Choisis la photo directement depuis ton téléphone (max 10 Mo).</p>
+          <div class="upload-progress-wrap hidden" id="sell-image-progress-wrap">
+            <div class="upload-progress-fill" id="sell-image-progress-fill"></div>
+            <span class="upload-progress-label" id="sell-image-progress-label">0%</span>
+          </div>
+          <div id="sell-image-preview"></div>
         </div>
         <div class="field" id="sell-file-field">
-          <label>Lien du fichier PDF</label>
-          <input type="url" id="sell-file" class="text-input" placeholder="https://drive.google.com/...">
+          <label for="sell-file-input">Fichier du livre (PDF)</label>
+          <input type="file" id="sell-file-input" class="file-drop-input" accept="application/pdf" onchange="handleSellBookFileChange(event)">
+          <p class="muted small" style="margin-top:4px">Choisis le PDF directement depuis ton téléphone (max 50 Mo).</p>
+          <div class="upload-progress-wrap hidden" id="sell-file-progress-wrap">
+            <div class="upload-progress-fill" id="sell-file-progress-fill"></div>
+            <span class="upload-progress-label" id="sell-file-progress-label">0%</span>
+          </div>
+          <p class="muted small" id="sell-file-name" style="margin-top:4px"></p>
         </div>
         <div class="field" id="sell-phone-field" style="display:none">
           <label>Ton numéro WhatsApp (pour que l'acheteur te contacte)</label>
           <input type="tel" id="sell-phone" class="text-input" placeholder="+243...">
         </div>
 
-        <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:10px" onclick="submitSellForm()">Publier</button>
+        <button class="btn btn-primary" id="sell-submit-btn" style="width:100%;justify-content:center;margin-top:10px" onclick="submitSellForm()">Publier</button>
       </div>
     </div>`;
   document.body.insertAdjacentHTML('beforeend', modalHtml);
+  pendingSellImageFile = null;
+  pendingSellBookFile = null;
   toggleSellFields();
 }
 
@@ -2152,6 +2231,26 @@ function toggleSellFields() {
   const type = document.getElementById('sell-type').value;
   document.getElementById('sell-file-field').style.display = type === 'book' ? 'block' : 'none';
   document.getElementById('sell-phone-field').style.display = type === 'product' ? 'block' : 'none';
+}
+
+// Fichiers choisis sur le telephone pour l'article boutique : gardes en
+// memoire et uploades vers Firebase Storage seulement au clic sur "Publier".
+let pendingSellImageFile = null;
+let pendingSellBookFile = null;
+
+function handleSellImageFileChange(event) {
+  pendingSellImageFile = (event.target.files && event.target.files[0]) || null;
+  const previewEl = document.getElementById('sell-image-preview');
+  if (!previewEl) return;
+  previewEl.innerHTML = pendingSellImageFile
+    ? `<img src="${URL.createObjectURL(pendingSellImageFile)}" class="post-media-preview-media" alt="">`
+    : '';
+}
+
+function handleSellBookFileChange(event) {
+  pendingSellBookFile = (event.target.files && event.target.files[0]) || null;
+  const nameEl = document.getElementById('sell-file-name');
+  if (nameEl) nameEl.textContent = pendingSellBookFile ? `📄 ${pendingSellBookFile.name}` : '';
 }
 
 async function submitSellForm() {
@@ -2163,8 +2262,6 @@ async function submitSellForm() {
   const description = document.getElementById('sell-description').value.trim();
   const price = parseFloat(document.getElementById('sell-price').value);
   const category = document.getElementById('sell-category').value;
-  const imageUrl = document.getElementById('sell-image').value.trim();
-  const fileUrl = document.getElementById('sell-file').value.trim();
   const phone = document.getElementById('sell-phone').value.trim();
   const discountPercent = parseInt(document.getElementById('sell-discount').value, 10) || 0;
   const discountDurationHours = parseInt(document.getElementById('sell-discount-duration').value, 10) || 0;
@@ -2174,13 +2271,13 @@ async function submitSellForm() {
     errEl.classList.remove('hidden');
     return;
   }
-  if (!imageUrl || !imageUrl.startsWith('http')) {
-    errEl.textContent = "Merci de coller un lien de photo valide.";
+  if (!pendingSellImageFile) {
+    errEl.textContent = "Merci de choisir une photo depuis ton téléphone.";
     errEl.classList.remove('hidden');
     return;
   }
-  if (type === 'book' && (!fileUrl || !fileUrl.startsWith('http'))) {
-    errEl.textContent = "Merci de coller un lien valide vers le fichier PDF.";
+  if (type === 'book' && !pendingSellBookFile) {
+    errEl.textContent = "Merci de choisir le fichier PDF de ton livre depuis ton téléphone.";
     errEl.classList.remove('hidden');
     return;
   }
@@ -2190,12 +2287,29 @@ async function submitSellForm() {
     return;
   }
 
+  const submitBtn = document.getElementById('sell-submit-btn');
+  if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Publication en cours...'; }
+
   try {
+    const { url: imageUrl } = await uploadFileToStorage(pendingSellImageFile, 'boutique-images', {
+      maxSizeMB: 10,
+      onProgress: (pct) => setUploadProgress('sell-image', pct)
+    });
+
+    let fileUrl = null;
+    if (type === 'book') {
+      const uploaded = await uploadFileToStorage(pendingSellBookFile, 'boutique-livres', {
+        maxSizeMB: 50,
+        onProgress: (pct) => setUploadProgress('sell-file', pct)
+      });
+      fileUrl = uploaded.url;
+    }
+
     const newPubRef = await db.collection('publications').add({
       type, title, description, price, category, imageUrl,
       fileUrl: type === 'book' ? fileUrl : null,
       sellerUid: currentUser.uid,
-      sellerName: currentUser.name || 'Vendeur CoeurnohBoost',
+      sellerName: currentUser.name || 'Vendeur Coeurnoh Universe',
       sellerVerified: !!currentUser.verified,
       sellerPhone: type === 'product' ? phone : null,
       discountPercent: discountPercent,
@@ -2228,6 +2342,7 @@ async function submitSellForm() {
   } catch (e) {
     errEl.textContent = friendlyErrorMessage(e);
     errEl.classList.remove('hidden');
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Publier'; }
   }
 }
 
@@ -2384,7 +2499,7 @@ function renderPostCard(item, isLiked, isSaved, hideFollowBtn) {
     </button>` : '';
 
   const profileClick = item.sellerUid
-    ? `onclick="openProfileModal('${item.sellerUid}','${escapeForJs(item.sellerName || 'CoeurnohBoost')}',${item.sellerVerified ? 'true' : 'false'})" style="cursor:pointer"`
+    ? `onclick="openProfileModal('${item.sellerUid}','${escapeForJs(item.sellerName || 'Coeurnoh Universe')}',${item.sellerVerified ? 'true' : 'false'})" style="cursor:pointer"`
     : '';
 
   return `
@@ -2392,7 +2507,7 @@ function renderPostCard(item, isLiked, isSaved, hideFollowBtn) {
     <div class="post-card-header">
       <div class="post-avatar" ${profileClick}>${escapeHtml((item.sellerName || 'C')[0].toUpperCase())}</div>
       <div ${profileClick}>
-        <strong>${escapeHtml(item.sellerName || 'CoeurnohBoost')}${item.sellerVerified ? ' ✔️' : ''}</strong>
+        <strong>${escapeHtml(item.sellerName || 'Coeurnoh Universe')}${item.sellerVerified ? ' ✔️' : ''}</strong>
         <div class="post-time">${timeStr}</div>
       </div>
       ${followBtnHtml}
@@ -2422,7 +2537,7 @@ function renderPostCard(item, isLiked, isSaved, hideFollowBtn) {
 
 function sharePost(pubId, caption, url) {
   if (navigator.share) {
-    navigator.share({ title: 'CoeurnohBoost', text: caption || 'Regarde cette publication', url }).catch(() => {});
+    navigator.share({ title: 'Coeurnoh Universe', text: caption || 'Regarde cette publication', url }).catch(() => {});
   } else {
     navigator.clipboard.writeText(url);
     showToast('Lien copié !', 'success');
@@ -2610,11 +2725,19 @@ async function postOptionsDelete() {
   }
 }
 
-/* ================= CREER UNE PUBLICATION (Accueil) ================= */
+/* ================= CREER UNE PUBLICATION (Accueil) =================
+   Le fichier choisi sur le telephone est garde en memoire (pendingPostMediaFile)
+   et n'est envoye vers Firebase Storage qu'au moment de "Publier", pour
+   pouvoir encore changer d'avis / de fichier avant l'upload reel. */
+let pendingPostMediaFile = null;
+
 function openCreatePostForm() {
   if (!currentUser) { openAuth('register'); return; }
   document.getElementById('create-post-modal').classList.remove('hidden');
   document.getElementById('post-media-preview').innerHTML = '';
+  document.getElementById('post-media-file').value = '';
+  pendingPostMediaFile = null;
+  resetUploadProgress('post-media');
   togglePostMediaField();
 }
 
@@ -2625,35 +2748,31 @@ function closeCreatePostForm() {
 function togglePostMediaField() {
   const type = document.getElementById('post-media-type').value;
   document.getElementById('post-media-url-field').style.display = type === 'text' ? 'none' : 'block';
+  const fileInput = document.getElementById('post-media-file');
+  if (fileInput) fileInput.accept = type === 'video' ? 'video/*' : 'image/*';
   updatePostMediaPreview();
 }
 
-// Petit delai avant de generer l'apercu : evite de tenter de charger une
-// URL encore incomplete a chaque frappe de touche (l'utilisateur tape
-// encore). Un copier-coller declenche un seul evenement de toute facon.
-let postMediaPreviewDebounce = null;
-function schedulePostMediaPreview() {
-  clearTimeout(postMediaPreviewDebounce);
-  postMediaPreviewDebounce = setTimeout(updatePostMediaPreview, 400);
+function handlePostMediaFileChange(event) {
+  pendingPostMediaFile = (event.target.files && event.target.files[0]) || null;
+  updatePostMediaPreview();
 }
 
-// Permet de voir tout de suite si le lien colle est casse (ex: mauvais
-// format Google Drive) AVANT de publier, plutot que de le decouvrir apres
-// coup dans le fil d'accueil.
+// Apercu instantane a partir du fichier choisi sur le telephone (pas
+// besoin d'attendre l'upload pour voir a quoi ressemble la publication).
 function updatePostMediaPreview() {
   const previewEl = document.getElementById('post-media-preview');
   const type = document.getElementById('post-media-type').value;
-  const rawUrl = document.getElementById('post-media-url').value.trim();
 
-  if (type === 'text' || !rawUrl || !rawUrl.startsWith('http')) {
+  if (type === 'text' || !pendingPostMediaFile) {
     previewEl.innerHTML = '';
     return;
   }
 
-  const url = escapeHtml(normalizeMediaUrl(rawUrl));
+  const localUrl = URL.createObjectURL(pendingPostMediaFile);
   previewEl.innerHTML = type === 'video'
-    ? `<video src="${url}" class="post-media-preview-media" controls onerror="mediaLoadError(this)"></video>`
-    : `<img src="${url}" class="post-media-preview-media" alt="" onerror="mediaLoadError(this)">`;
+    ? `<video src="${localUrl}" class="post-media-preview-media" controls></video>`
+    : `<img src="${localUrl}" class="post-media-preview-media" alt="">`;
 }
 
 async function submitCreatePost() {
@@ -2661,11 +2780,10 @@ async function submitCreatePost() {
   errEl.classList.add('hidden');
 
   const mediaType = document.getElementById('post-media-type').value;
-  const mediaUrl = normalizeMediaUrl(document.getElementById('post-media-url').value.trim());
   const caption = document.getElementById('post-caption').value.trim();
 
-  if (mediaType !== 'text' && (!mediaUrl || !mediaUrl.startsWith('http'))) {
-    errEl.textContent = "Merci de coller un lien valide vers ta photo ou vidéo.";
+  if (mediaType !== 'text' && !pendingPostMediaFile) {
+    errEl.textContent = "Merci de choisir une photo ou une vidéo depuis ton téléphone.";
     errEl.classList.remove('hidden');
     return;
   }
@@ -2675,12 +2793,27 @@ async function submitCreatePost() {
     return;
   }
 
+  const submitBtn = document.getElementById('create-post-submit-btn');
+  if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Publication en cours...'; }
+
   try {
+    let imageUrl = null;
+    let videoUrl = null;
+
+    if (mediaType !== 'text' && pendingPostMediaFile) {
+      const maxSizeMB = mediaType === 'video' ? 100 : 10;
+      const { url } = await uploadFileToStorage(pendingPostMediaFile, 'posts', {
+        maxSizeMB,
+        onProgress: (pct) => setUploadProgress('post-media', pct)
+      });
+      if (mediaType === 'photo') imageUrl = url; else videoUrl = url;
+    }
+
     const newPubRef = await db.collection('publications').add({
       type: 'post',
       mediaType,
-      imageUrl: mediaType === 'photo' ? mediaUrl : null,
-      videoUrl: mediaType === 'video' ? mediaUrl : null,
+      imageUrl,
+      videoUrl,
       description: caption,
       sellerUid: currentUser.uid,
       sellerName: currentUser.name || 'Utilisateur',
@@ -2700,14 +2833,18 @@ async function submitCreatePost() {
     }).catch(() => {});
     broadcastPush(annTitle, annBody, 'content', '/?open=' + newPubRef.id);
 
-    document.getElementById('post-media-url').value = '';
+    document.getElementById('post-media-file').value = '';
+    pendingPostMediaFile = null;
     document.getElementById('post-caption').value = '';
     document.getElementById('post-media-preview').innerHTML = '';
+    resetUploadProgress('post-media');
     closeCreatePostForm();
     loadHomeFeed();
   } catch (e) {
     errEl.textContent = friendlyErrorMessage(e);
     errEl.classList.remove('hidden');
+  } finally {
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Publier'; }
   }
 }
 
@@ -2792,7 +2929,7 @@ function openWithdrawForm() {
         <button class="modal-close" onclick="document.getElementById('withdraw-modal').remove()" aria-label="Fermer">×</button>
         <h2>💸 Demander un retrait</h2>
         <p class="sub">Ton solde disponible : <strong>${balance.toFixed(2)}$</strong></p>
-        <p class="muted small" style="margin-bottom:14px">Ta demande sera traitée manuellement par CoeurnohBoost, généralement sous 24-48h.</p>
+        <p class="muted small" style="margin-bottom:14px">Ta demande sera traitée manuellement par Coeurnoh Universe, généralement sous 24-48h.</p>
         <div class="modal-error hidden" id="withdraw-form-error"></div>
 
         <div class="pay-method-tabs" id="withdraw-method-tabs"></div>
@@ -3409,7 +3546,7 @@ const ICON_LINK = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" s
 
 async function shareShopItem(pubId, title) {
   const shareUrl = `https://coeurnohboost.vercel.app/?produit=${pubId}`;
-  const shareText = `Regarde ça sur CoeurnohBoost : ${title}`;
+  const shareText = `Regarde ça sur Coeurnoh Universe : ${title}`;
 
   if (navigator.share) {
     // Ouvre le menu de partage natif du telephone : WhatsApp, Statut, Messenger,
@@ -3740,7 +3877,7 @@ async function openProfileModal(sellerUid, sellerName, sellerVerified) {
     body.innerHTML = `
       <div style="text-align:center;padding:10px 0 18px">
         <div class="post-avatar" style="width:64px;height:64px;font-size:1.6rem;margin:0 auto 10px">${escapeHtml((sellerName || 'C')[0].toUpperCase())}</div>
-        <h3 style="margin-bottom:4px">${escapeHtml(sellerName || 'CoeurnohBoost')}${sellerVerified ? ' ✔️' : ''}</h3>
+        <h3 style="margin-bottom:4px">${escapeHtml(sellerName || 'Coeurnoh Universe')}${sellerVerified ? ' ✔️' : ''}</h3>
         ${onlineStatusHtml}
         <p class="muted small">${posts.length} publication${posts.length > 1 ? 's' : ''} · ${followerCount} abonné${followerCount > 1 ? 's' : ''}</p>
         ${followBtnHtml}
@@ -5028,7 +5165,7 @@ function openContestEntryForm(contestId, isPaid, entryFee) {
       <div class="modal">
         <button class="modal-close" onclick="document.getElementById('contest-entry-modal').remove()" aria-label="Fermer">×</button>
         <h3 style="margin-bottom:14px">Participer au concours</h3>
-        ${isPaid ? `<p class="muted small" style="margin-bottom:14px">Frais de participation : <strong>${entryFee.toFixed(2)}$</strong>, débités de ton solde CoeurnohBoost à l'envoi.</p>` : ''}
+        ${isPaid ? `<p class="muted small" style="margin-bottom:14px">Frais de participation : <strong>${entryFee.toFixed(2)}$</strong>, débités de ton solde Coeurnoh Universe à l'envoi.</p>` : ''}
         <div class="field">
           <label for="entry-name">Ton nom / nom d'artiste</label>
           <input type="text" id="entry-name" class="text-input" maxlength="60" value="${escapeHtml(currentUser.name || '')}">
@@ -8732,7 +8869,7 @@ async function loadMyQuotes() {
    mecanisme que payContestEntry dans /api/payments-actions.js -- AUCUN
    deuxieme portefeuille cree) ----
    Avantages Premium : plus de photos (15 au lieu de 6), themes
-   supplementaires, retrait de la mention "Cree avec CoeurnohBoost",
+   supplementaires, retrait de la mention "Cree avec Coeurnoh Universe",
    statistiques de visites, et (des que le proprietaire de la plateforme
    aura connecte un vrai nom de domaine a Vercel) une adresse personnalisee
    en sous-domaine "slug.domaine.com" en plus du lien "/?site=slug" qui
@@ -8807,7 +8944,7 @@ function renderSiteStatusView() {
       <ul class="muted small" style="margin:8px 0 10px;padding-left:18px;line-height:1.6">
         <li>Jusqu'à ${SITE_PREMIUM_PHOTO_LIMIT} photos (au lieu de ${SITE_FREE_PHOTO_LIMIT})</li>
         <li>Thèmes supplémentaires</li>
-        <li>Aucune mention "Créé avec CoeurnohBoost"</li>
+        <li>Aucune mention "Créé avec Coeurnoh Universe"</li>
         <li>Statistiques de visites</li>
         <li>Adresse perso en sous-domaine (dès qu'un domaine sera connecté)</li>
       </ul>
@@ -8845,7 +8982,7 @@ const SITE_ROOT_DOMAIN = null;
 
 async function purchaseSitePremium() {
   if (!currentUser || !mySiteCache) return;
-  if (!confirm(`Activer/renouveler le Premium de ton site pour ${SITE_PREMIUM_PRICE}$ (30 jours), déduits de ton solde CoeurnohBoost ?`)) return;
+  if (!confirm(`Activer/renouveler le Premium de ton site pour ${SITE_PREMIUM_PRICE}$ (30 jours), déduits de ton solde Coeurnoh Universe ?`)) return;
   try {
     const idToken = await currentUser.getIdToken();
     const res = await fetch('/api/payments-actions', {
@@ -9201,7 +9338,7 @@ function renderPublicSiteHtml(site, overlay) {
           ${site.socialLinks && site.socialLinks.instagram ? `<a class="btn btn-outline" href="${escapeHtml(site.socialLinks.instagram)}" target="_blank">Instagram</a>` : ''}
         </div>
 
-        ${siteIsPremiumActive(site) ? '' : `<p class="muted small" style="text-align:center;margin-top:30px">Site créé avec <a href="${escapeHtml(window.location.origin)}" style="color:${accent}">CoeurnohBoost</a></p>`}
+        ${siteIsPremiumActive(site) ? '' : `<p class="muted small" style="text-align:center;margin-top:30px">Site créé avec <a href="${escapeHtml(window.location.origin)}" style="color:${accent}">Coeurnoh Universe</a></p>`}
       </div>
     </div>`;
 }
@@ -9678,7 +9815,7 @@ async function openPostDetail(pubId) {
       <div class="post-card-header">
         <div class="post-avatar">${escapeHtml((item.sellerName || 'C')[0].toUpperCase())}</div>
         <div>
-          <strong>${escapeHtml(item.sellerName || 'CoeurnohBoost')}${item.sellerVerified ? ' ✔️' : ''}</strong>
+          <strong>${escapeHtml(item.sellerName || 'Coeurnoh Universe')}${item.sellerVerified ? ' ✔️' : ''}</strong>
           <div class="post-time">${timeAgo(item.createdAt)}</div>
         </div>
         ${isOwnItem
@@ -10188,7 +10325,7 @@ async function registerPushNotifications() {
 
     // Reception d'une notification pendant que l'app est ouverte au premier plan
     messaging.onMessage((payload) => {
-      const title = (payload.notification && payload.notification.title) || 'CoeurnohBoost';
+      const title = (payload.notification && payload.notification.title) || 'Coeurnoh Universe';
       const body = (payload.notification && payload.notification.body) || '';
       if (Notification.permission === 'granted') {
         new Notification(title, { body, icon: '/icon-192.png' });
