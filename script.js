@@ -400,6 +400,8 @@ const WALLET_TX_LABELS = {
   commission_income: { label: 'Commission perçue', icon: '💰' },
   site_premium: { label: 'Site Premium', icon: '✨' },
   site_premium_income: { label: 'Revenu Site Premium', icon: '✨' },
+  business_pro: { label: 'CoeurNoh Business Pro', icon: '🏢' },
+  business_pro_income: { label: 'Revenu Business Pro', icon: '🏢' },
   withdrawal_request: { label: 'Demande de retrait', icon: '🏦' },
   withdrawal_rejected_refund: { label: 'Retrait refusé, remboursé', icon: '↩️' },
   referral_bonus: { label: 'Bonus de parrainage', icon: '🎁' }
@@ -9909,7 +9911,28 @@ document.addEventListener('DOMContentLoaded', checkForPublicSiteView);
    de suivi invente. Categories reutilisees depuis NEARBY_CATEGORY_LABELS
    pour rester coherent avec le reste de l'app.
    Un seul profil entreprise par utilisateur ("businesses/{uid}", meme
-   principe que directory_listings et mini_sites). */
+   principe que directory_listings et mini_sites).
+
+   ---- COEURNOH BUSINESS PRO (15$/mois, meme mecanisme que le Site
+   Premium -- paye depuis le portefeuille interne existant, AUCUN
+   deuxieme portefeuille) ----
+   Version gratuite : jusqu'a 6 articles au catalogue, 1 coupon actif,
+   20 clients dans le mini-CRM.
+   Version Pro : jusqu'a 30 articles au catalogue, 10 coupons actifs,
+   300 clients, badge "Pro" visible sur la page, priorite d'affichage
+   dans "Trouver une entreprise". */
+const BUSINESS_PRO_PRICE = 15; // en $, par mois
+const BUSINESS_FREE_CATALOG_LIMIT = 6;
+const BUSINESS_PRO_CATALOG_LIMIT = 30;
+const BUSINESS_FREE_COUPON_LIMIT = 1;
+const BUSINESS_PRO_COUPON_LIMIT = 10;
+const BUSINESS_FREE_CLIENT_LIMIT = 20;
+const BUSINESS_PRO_CLIENT_LIMIT = 300;
+
+function businessIsProActive(b) {
+  return !!(b && b.pro && b.proUntil && new Date(b.proUntil).getTime() > Date.now());
+}
+
 let businessCache = null;
 let businessMyProfile = null;
 let businessCurrentTab = 'browse';
@@ -9974,6 +9997,7 @@ function runBusinessFilter() {
     if (query && !`${b.businessName || ''} ${NEARBY_CATEGORY_LABELS[b.category] || ''}`.toLowerCase().includes(query)) return false;
     return true;
   });
+  matches.sort((a, b) => (businessIsProActive(b) ? 1 : 0) - (businessIsProActive(a) ? 1 : 0));
   renderBusinessCards(matches);
 }
 
@@ -9985,11 +10009,11 @@ function renderBusinessCards(list) {
     return;
   }
   listEl.innerHTML = visible.map(b => `
-    <div class="order-box" style="margin-bottom:12px">
+    <div class="order-box" style="margin-bottom:12px${businessIsProActive(b) ? ';border-color:#f5a623' : ''}">
       <div style="display:flex;align-items:center;gap:10px">
         ${b.logoUrl ? `<img src="${escapeHtml(b.logoUrl)}" style="width:44px;height:44px;border-radius:50%;object-fit:cover">` : ''}
         <div>
-          <strong>${escapeHtml(b.businessName || 'Entreprise')}</strong>
+          <strong>${escapeHtml(b.businessName || 'Entreprise')}</strong>${businessIsProActive(b) ? ' <span class="shop-card-category" style="background:#fff4e0;color:#b5720b">Pro</span>' : ''}
           <div class="muted small">${escapeHtml(NEARBY_CATEGORY_LABELS[b.category] || '')}</div>
         </div>
       </div>
@@ -10017,6 +10041,22 @@ async function openBusinessDetail(ownerUid) {
       <span data-follow-label="${ownerUid}">${isFollowing ? 'Abonné' : '+ Suivre'}</span>
     </button>` : '';
 
+  const activeCoupons = (b.coupons || []).filter(c => c.active && (!c.expiresAt || new Date(c.expiresAt).getTime() > Date.now()));
+  const catalogHtml = (b.catalog && b.catalog.length > 0) ? `
+    <h4 style="margin:14px 0 8px">Catalogue</h4>
+    <div style="margin-bottom:10px">
+      ${b.catalog.map(it => `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line)"><span>${escapeHtml(it.name || '')}</span><strong>${escapeHtml(it.price || '')}</strong></div>`).join('')}
+    </div>` : '';
+  const couponsHtml = activeCoupons.length > 0 ? `
+    <h4 style="margin:14px 0 8px">Promotions en cours</h4>
+    <div style="margin-bottom:10px">
+      ${activeCoupons.map(c => `
+        <div class="order-box" style="margin-bottom:8px;border-color:#f5a623">
+          <strong>${escapeHtml(c.discountLabel || 'Promo')}</strong> — <span class="muted small">code ${escapeHtml(c.code || '')}</span>
+          ${c.description ? `<p class="muted small" style="margin:4px 0 0">${escapeHtml(c.description)}</p>` : ''}
+        </div>`).join('')}
+    </div>` : '';
+
   const html = `
     <div class="modal-overlay" id="business-detail-modal">
       <div class="modal post-detail-modal-inner">
@@ -10025,7 +10065,7 @@ async function openBusinessDetail(ownerUid) {
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
           ${b.logoUrl ? `<img src="${escapeHtml(b.logoUrl)}" style="width:56px;height:56px;border-radius:50%;object-fit:cover">` : ''}
           <div>
-            <h3 style="margin:0">${escapeHtml(b.businessName || '')}</h3>
+            <h3 style="margin:0">${escapeHtml(b.businessName || '')}${businessIsProActive(b) ? ' <span class="shop-card-category" style="background:#fff4e0;color:#b5720b;font-size:0.7rem;vertical-align:middle">Pro</span>' : ''}</h3>
             <div class="muted small">${escapeHtml(NEARBY_CATEGORY_LABELS[b.category] || '')}</div>
           </div>
         </div>
@@ -10037,6 +10077,8 @@ async function openBusinessDetail(ownerUid) {
           ${waLink ? `<a class="btn btn-outline btn-sm" href="${escapeHtml(waLink)}" target="_blank">${ICON_WHATSAPP} WhatsApp</a>` : ''}
           ${b.phone ? `<a class="btn btn-outline btn-sm" href="tel:${escapeHtml(b.phone)}">Appeler</a>` : ''}
         </div>
+        ${couponsHtml}
+        ${catalogHtml}
         ${!isOwn && currentUser ? `<button class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin-bottom:10px" onclick="openReportModal('${ownerUid}', '${ownerUid}', 'business')">Signaler cette page</button>` : ''}
         <h4 style="margin:14px 0 8px">Actualités</h4>
         <div id="business-detail-posts"><p class="muted small">Chargement...</p></div>
@@ -10044,6 +10086,11 @@ async function openBusinessDetail(ownerUid) {
     </div>`;
   document.body.insertAdjacentHTML('beforeend', html);
   loadBusinessPostsFeed(ownerUid, 'business-detail-posts');
+
+  // Comptage des vues, best-effort, uniquement pour les visites d'autrui.
+  if (!isOwn) {
+    db.collection('businesses').doc(ownerUid).update({ viewsCount: firebase.firestore.FieldValue.increment(1) }).catch(() => {});
+  }
 }
 
 async function loadBusinessPostsFeed(ownerUid, targetId) {
@@ -10095,16 +10142,311 @@ async function renderMyBusinessStatus() {
     followerCount = favSnap.size;
   } catch (e) { followerCount = '—'; }
 
+  let postsCount = '…';
+  try {
+    const postsSnap = await db.collection('business_posts').where('businessUid', '==', currentUser.uid).get();
+    postsCount = postsSnap.size;
+  } catch (e) { postsCount = '—'; }
+
+  let clientsCount = '…';
+  try {
+    const clientsSnap = await db.collection('business_clients').where('ownerUid', '==', currentUser.uid).get();
+    clientsCount = clientsSnap.size;
+  } catch (e) { clientsCount = '—'; }
+
+  const b = businessMyProfile;
+  const isPro = businessIsProActive(b);
+  const catalogCount = (b.catalog || []).length;
+  const couponsCount = (b.coupons || []).filter(c => c.active).length;
+
+  const proBlockHtml = isPro ? `
+    <div class="order-box" style="margin-bottom:14px;border-color:#f5a623">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <strong>CoeurNoh Business Pro actif ✨</strong>
+        <span class="shop-card-category" style="background:#fff4e0;color:#b5720b">Jusqu'au ${escapeHtml(new Date(b.proUntil).toLocaleDateString())}</span>
+      </div>
+      <button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="purchaseBusinessPro()">Renouveler (+30 jours, ${BUSINESS_PRO_PRICE}$)</button>
+    </div>` : `
+    <div class="order-box" style="margin-bottom:14px">
+      <strong>Passe en CoeurNoh Business Pro — ${BUSINESS_PRO_PRICE}$/mois</strong>
+      <ul class="muted small" style="margin:8px 0 10px;padding-left:18px;line-height:1.6">
+        <li>Catalogue jusqu'à ${BUSINESS_PRO_CATALOG_LIMIT} articles (au lieu de ${BUSINESS_FREE_CATALOG_LIMIT})</li>
+        <li>Jusqu'à ${BUSINESS_PRO_COUPON_LIMIT} coupons actifs (au lieu de ${BUSINESS_FREE_COUPON_LIMIT})</li>
+        <li>Mini-CRM jusqu'à ${BUSINESS_PRO_CLIENT_LIMIT} clients (au lieu de ${BUSINESS_FREE_CLIENT_LIMIT})</li>
+        <li>Badge "Pro" et priorité d'affichage</li>
+      </ul>
+      <button class="btn btn-primary btn-sm" onclick="purchaseBusinessPro()">Activer le Pro</button>
+    </div>`;
+
   statusEl.innerHTML = `
     <div class="order-box" style="margin-bottom:14px">
-      <strong>${escapeHtml(businessMyProfile.businessName || '')}</strong>
-      <div class="muted small" style="margin:4px 0">${followerCount} abonné(s)</div>
-      <button class="btn btn-outline btn-sm" onclick="openBusinessForm()">Modifier ma page</button>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+        <strong>${escapeHtml(b.businessName || '')}</strong>${isPro ? ' <span class="shop-card-category" style="background:#fff4e0;color:#b5720b">Pro</span>' : ''}
+      </div>
+      <button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="openBusinessForm()">Modifier ma page</button>
     </div>
-    <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:14px" onclick="openBusinessPostForm()">Publier une actualité</button>
+
+    <h4 style="margin-bottom:8px">Tableau de bord</h4>
+    <div class="order-box" style="margin-bottom:14px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;text-align:center">
+        <div><strong style="font-size:1.2rem">${followerCount}</strong><div class="muted small">Abonnés</div></div>
+        <div><strong style="font-size:1.2rem">${b.viewsCount || 0}</strong><div class="muted small">Vues de la page</div></div>
+        <div><strong style="font-size:1.2rem">${postsCount}</strong><div class="muted small">Actualités</div></div>
+        <div><strong style="font-size:1.2rem">${clientsCount}</strong><div class="muted small">Clients enregistrés</div></div>
+      </div>
+    </div>
+
+    ${proBlockHtml}
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+      <button class="btn btn-outline btn-sm" onclick="openBusinessCatalogManager()">Catalogue (${catalogCount})</button>
+      <button class="btn btn-outline btn-sm" onclick="openBusinessCouponsManager()">Coupons (${couponsCount})</button>
+      <button class="btn btn-outline btn-sm" onclick="openBusinessClientsManager()">Mes clients</button>
+      <button class="btn btn-primary btn-sm" onclick="openBusinessPostForm()">Publier une actualité</button>
+    </div>
+
     <h4 style="margin-bottom:8px">Mes actualités</h4>
     <div id="business-mine-posts"><p class="muted small">Chargement...</p></div>`;
   loadBusinessPostsFeed(currentUser.uid, 'business-mine-posts');
+}
+
+async function purchaseBusinessPro() {
+  if (!currentUser || !businessMyProfile) return;
+  if (!confirm(`Activer/renouveler CoeurNoh Business Pro pour ${BUSINESS_PRO_PRICE}$ (30 jours), déduits de ton solde CoeurnohBoost ?`)) return;
+  try {
+    const idToken = await currentUser.getIdToken();
+    const res = await fetch('/api/payments-actions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken, action: 'business_pro_purchase' })
+    });
+    const data = await res.json();
+    if (!data.success) { showToast(data.error || 'Paiement impossible', 'error'); return; }
+    showToast('CoeurNoh Business Pro activé 🎉', 'success');
+    businessMyProfile.pro = true;
+    businessMyProfile.proUntil = data.proUntil;
+    renderMyBusinessStatus();
+  } catch (e) {
+    showToast(friendlyErrorMessage(e), 'error');
+  }
+}
+
+/* ---- Catalogue (produits/services) ---- */
+function openBusinessCatalogManager() {
+  if (document.getElementById('business-catalog-modal')) return;
+  const isPro = businessIsProActive(businessMyProfile);
+  const limit = isPro ? BUSINESS_PRO_CATALOG_LIMIT : BUSINESS_FREE_CATALOG_LIMIT;
+  const catalog = businessMyProfile.catalog || [];
+
+  const html = `
+    <div class="modal-overlay" id="business-catalog-modal">
+      <div class="modal">
+        <button class="modal-close" onclick="document.getElementById('business-catalog-modal').remove()" aria-label="Fermer">×</button>
+        <h3 style="margin-bottom:4px">Catalogue</h3>
+        <p class="muted small" style="margin-bottom:14px">${catalog.length}/${limit} articles${!isPro ? ' — passe en Pro pour aller jusqu\'à ' + BUSINESS_PRO_CATALOG_LIMIT : ''}</p>
+        <div id="business-catalog-rows"></div>
+        <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:6px 0 14px" onclick="addBusinessCatalogRow(null, null, ${limit})">+ Ajouter un article</button>
+        <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="saveBusinessCatalog()">Enregistrer</button>
+        <p class="muted small" id="business-catalog-msg" style="margin-top:6px"></p>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+  const rowsEl = document.getElementById('business-catalog-rows');
+  (catalog.length > 0 ? catalog : [{ name: '', price: '' }]).forEach(it => addBusinessCatalogRow(it.name, it.price, limit));
+}
+
+function addBusinessCatalogRow(name, price, limit) {
+  const rowsEl = document.getElementById('business-catalog-rows');
+  if (rowsEl.children.length >= (limit || BUSINESS_FREE_CATALOG_LIMIT)) return;
+  const row = document.createElement('div');
+  row.className = 'invoice-item-row';
+  row.innerHTML = `
+    <input type="text" class="text-input business-catalog-name" placeholder="Nom du produit/service" value="${escapeHtml(name || '')}" style="flex:2">
+    <input type="text" class="text-input business-catalog-price" placeholder="Prix (ex: 10$)" value="${escapeHtml(price || '')}" style="flex:1">
+    <button type="button" class="invoice-row-remove" onclick="this.parentElement.remove()" aria-label="Retirer">×</button>`;
+  rowsEl.appendChild(row);
+}
+
+async function saveBusinessCatalog() {
+  const names = Array.from(document.querySelectorAll('.business-catalog-name')).map(i => i.value.trim());
+  const prices = Array.from(document.querySelectorAll('.business-catalog-price')).map(i => i.value.trim());
+  const catalog = names.map((n, i) => ({ name: n, price: prices[i] })).filter(it => it.name);
+  try {
+    await db.collection('businesses').doc(currentUser.uid).update({ catalog });
+    businessMyProfile.catalog = catalog;
+    showToast('Catalogue enregistré', 'success');
+    document.getElementById('business-catalog-modal').remove();
+    renderMyBusinessStatus();
+  } catch (e) {
+    document.getElementById('business-catalog-msg').textContent = friendlyErrorMessage(e);
+  }
+}
+
+/* ---- Coupons / promotions ---- */
+function openBusinessCouponsManager() {
+  if (document.getElementById('business-coupons-modal')) return;
+  const isPro = businessIsProActive(businessMyProfile);
+  const limit = isPro ? BUSINESS_PRO_COUPON_LIMIT : BUSINESS_FREE_COUPON_LIMIT;
+  const coupons = businessMyProfile.coupons || [];
+
+  const html = `
+    <div class="modal-overlay" id="business-coupons-modal">
+      <div class="modal">
+        <button class="modal-close" onclick="document.getElementById('business-coupons-modal').remove()" aria-label="Fermer">×</button>
+        <h3 style="margin-bottom:4px">Coupons & promotions</h3>
+        <p class="muted small" style="margin-bottom:14px">${coupons.filter(c => c.active).length}/${limit} coupons actifs${!isPro ? ' — passe en Pro pour aller jusqu\'à ' + BUSINESS_PRO_COUPON_LIMIT : ''}</p>
+        <div id="business-coupons-rows"></div>
+        <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:6px 0 14px" onclick="addBusinessCouponRow(null, ${limit})">+ Ajouter un coupon</button>
+        <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="saveBusinessCoupons(${limit})">Enregistrer</button>
+        <p class="muted small" id="business-coupons-msg" style="margin-top:6px"></p>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+  const rowsEl = document.getElementById('business-coupons-rows');
+  (coupons.length > 0 ? coupons : []).forEach(c => addBusinessCouponRow(c, limit));
+}
+
+function addBusinessCouponRow(c, limit) {
+  const rowsEl = document.getElementById('business-coupons-rows');
+  const row = document.createElement('div');
+  row.className = 'order-box';
+  row.style.marginBottom = '10px';
+  row.innerHTML = `
+    <input type="text" class="text-input business-coupon-code" placeholder="Code (ex: PROMO10)" value="${escapeHtml(c && c.code || '')}" style="margin-bottom:6px">
+    <input type="text" class="text-input business-coupon-label" placeholder="Ex: -10% sur tout" value="${escapeHtml(c && c.discountLabel || '')}" style="margin-bottom:6px">
+    <textarea class="text-input business-coupon-desc" placeholder="Détails (facultatif)" rows="2" style="margin-bottom:6px">${escapeHtml(c && c.description || '')}</textarea>
+    <input type="date" class="text-input business-coupon-expires" value="${c && c.expiresAt ? c.expiresAt.slice(0, 10) : ''}" style="margin-bottom:6px">
+    <label class="report-reason-option" style="margin-bottom:6px">
+      <input type="checkbox" class="business-coupon-active" ${!c || c.active !== false ? 'checked' : ''}> Actif
+    </label>
+    <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;color:var(--red)" onclick="this.parentElement.remove()">Retirer ce coupon</button>`;
+  rowsEl.appendChild(row);
+}
+
+async function saveBusinessCoupons(limit) {
+  const rows = document.querySelectorAll('#business-coupons-rows > div');
+  const coupons = Array.from(rows).map(row => ({
+    code: row.querySelector('.business-coupon-code').value.trim(),
+    discountLabel: row.querySelector('.business-coupon-label').value.trim(),
+    description: row.querySelector('.business-coupon-desc').value.trim(),
+    expiresAt: row.querySelector('.business-coupon-expires').value || null,
+    active: row.querySelector('.business-coupon-active').checked
+  })).filter(c => c.code);
+
+  const activeCount = coupons.filter(c => c.active).length;
+  if (activeCount > limit) {
+    document.getElementById('business-coupons-msg').textContent = `Tu ne peux avoir que ${limit} coupon(s) actif(s) pour l'instant. Désactive-en ou passe en Pro.`;
+    return;
+  }
+  try {
+    await db.collection('businesses').doc(currentUser.uid).update({ coupons });
+    businessMyProfile.coupons = coupons;
+    showToast('Coupons enregistrés', 'success');
+    document.getElementById('business-coupons-modal').remove();
+    renderMyBusinessStatus();
+  } catch (e) {
+    document.getElementById('business-coupons-msg').textContent = friendlyErrorMessage(e);
+  }
+}
+
+/* ---- Mini-CRM (mes clients) ---- */
+async function openBusinessClientsManager() {
+  if (document.getElementById('business-clients-modal')) return;
+  const html = `
+    <div class="modal-overlay" id="business-clients-modal">
+      <div class="modal">
+        <button class="modal-close" onclick="document.getElementById('business-clients-modal').remove()" aria-label="Fermer">×</button>
+        <h3 style="margin-bottom:14px">Mes clients</h3>
+        <div class="field">
+          <label for="business-client-name">Nom</label>
+          <input type="text" id="business-client-name" class="text-input">
+        </div>
+        <div class="field">
+          <label for="business-client-phone">Téléphone / WhatsApp (facultatif)</label>
+          <input type="tel" id="business-client-phone" class="text-input">
+        </div>
+        <div class="field">
+          <label for="business-client-notes">Notes (facultatif)</label>
+          <textarea id="business-client-notes" class="text-input" rows="2"></textarea>
+        </div>
+        <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:14px" onclick="addBusinessClient()">Ajouter ce client</button>
+        <p class="muted small" id="business-clients-msg" style="margin-bottom:10px"></p>
+        <div id="business-clients-list"><p class="muted small">Chargement...</p></div>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+  loadBusinessClients();
+}
+
+async function loadBusinessClients() {
+  const listEl = document.getElementById('business-clients-list');
+  if (!listEl) return;
+  try {
+    const snap = await db.collection('business_clients').where('ownerUid', '==', currentUser.uid).get();
+    const clients = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    clients.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+
+    const isPro = businessIsProActive(businessMyProfile);
+    const limit = isPro ? BUSINESS_PRO_CLIENT_LIMIT : BUSINESS_FREE_CLIENT_LIMIT;
+    listEl.dataset.count = clients.length;
+
+    if (clients.length === 0) {
+      listEl.innerHTML = '<p class="muted small">Aucun client enregistré pour l\'instant.</p>';
+      return;
+    }
+    listEl.innerHTML = `<p class="muted small" style="margin-bottom:8px">${clients.length}/${limit} clients${!isPro ? ' — passe en Pro pour aller jusqu\'à ' + BUSINESS_PRO_CLIENT_LIMIT : ''}</p>` +
+      clients.map(c => `
+      <div class="order-box" style="margin-bottom:8px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+          <strong>${escapeHtml(c.name)}</strong>
+          <button class="btn btn-outline btn-sm" style="color:var(--red)" onclick="deleteBusinessClient('${c.id}')">Supprimer</button>
+        </div>
+        ${c.phone ? `<div class="muted small">${escapeHtml(c.phone)}</div>` : ''}
+        ${c.notes ? `<p class="muted small" style="margin-top:4px">${escapeHtml(c.notes)}</p>` : ''}
+      </div>`).join('');
+  } catch (e) {
+    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+  }
+}
+
+async function addBusinessClient() {
+  const msgEl = document.getElementById('business-clients-msg');
+  const name = document.getElementById('business-client-name').value.trim();
+  const phone = document.getElementById('business-client-phone').value.trim();
+  const notes = document.getElementById('business-client-notes').value.trim();
+  if (!name) { msgEl.textContent = 'Indique au moins un nom.'; return; }
+
+  const isPro = businessIsProActive(businessMyProfile);
+  const limit = isPro ? BUSINESS_PRO_CLIENT_LIMIT : BUSINESS_FREE_CLIENT_LIMIT;
+  const currentCount = parseInt(document.getElementById('business-clients-list').dataset.count || '0', 10);
+  if (currentCount >= limit) {
+    msgEl.textContent = `Limite de ${limit} clients atteinte. Passe en Pro pour aller jusqu'à ${BUSINESS_PRO_CLIENT_LIMIT}.`;
+    return;
+  }
+
+  try {
+    await db.collection('business_clients').add({
+      ownerUid: currentUser.uid, name, phone: phone || null, notes: notes || null,
+      createdAt: new Date().toISOString()
+    });
+    document.getElementById('business-client-name').value = '';
+    document.getElementById('business-client-phone').value = '';
+    document.getElementById('business-client-notes').value = '';
+    msgEl.textContent = '';
+    loadBusinessClients();
+  } catch (e) {
+    msgEl.textContent = friendlyErrorMessage(e);
+  }
+}
+
+async function deleteBusinessClient(clientId) {
+  if (!confirm('Supprimer ce client de ta liste ?')) return;
+  try {
+    await db.collection('business_clients').doc(clientId).delete();
+    loadBusinessClients();
+  } catch (e) {
+    showToast(friendlyErrorMessage(e), 'error');
+  }
 }
 
 function openBusinessForm() {
