@@ -1,4 +1,4 @@
-// sw.js — Service Worker minimal pour CoeurnohBoost.
+// sw.js — Service Worker minimal pour Coeurnoh Universe.
 // Rend le site installable (PWA / Google Play via TWA) et garde une copie
 // de secours des pages visitees en cas de coupure reseau.
 // Ne touche jamais aux requetes vers Firebase/Firestore (autre domaine).
@@ -23,7 +23,7 @@ const messaging = firebase.messaging();
 // PRIORITE HAUTE pour qu'elle descende en banniere en haut de l'ecran meme
 // si le telephone est sur une autre appli (comme WhatsApp).
 messaging.onBackgroundMessage((payload) => {
-  const title = (payload.notification && payload.notification.title) || 'CoeurnohBoost';
+  const title = (payload.notification && payload.notification.title) || 'Coeurnoh Universe';
   const options = {
     body: (payload.notification && payload.notification.body) || '',
     icon: '/icon-192.png',
@@ -70,7 +70,7 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
-const CACHE_NAME = 'coeurnohboost-v3';
+const CACHE_NAME = 'coeurnohboost-v4';
 const APP_SHELL = [
   '/',
   '/index.html',
