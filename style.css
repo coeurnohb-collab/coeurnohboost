@@ -509,12 +509,30 @@ a{text-decoration:none;color:inherit}
 }
 
 /* ===== Upload de fichier direct (photo/video/PDF depuis le telephone) ===== */
-.file-drop-input{
-  display:block;width:100%;box-sizing:border-box;padding:14px 12px;
-  border:2px dashed var(--line);border-radius:10px;background:var(--green-light);
-  font-size:0.85rem;color:var(--muted);cursor:pointer;
+/* ===== Upload de fichier direct (photo/video/PDF depuis le telephone) =====
+   Le <input type="file"> natif est cache visuellement (mais reste
+   accessible/cliquable) et remplace par un bouton stylise maison avec
+   icone, pour eviter le rendu brut "Choisir un fichier" du navigateur. */
+.file-input-hidden{
+  position:absolute;width:1px;height:1px;padding:0;margin:-1px;
+  overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;
 }
-.file-drop-input:focus{outline:none;border-color:var(--green)}
+.file-picker-btn{
+  display:flex;align-items:center;gap:12px;width:100%;box-sizing:border-box;
+  padding:16px;border:2px dashed var(--line);border-radius:12px;
+  background:var(--green-light);cursor:pointer;transition:border-color 0.15s,background 0.15s;
+}
+.file-picker-btn:active{border-color:var(--green)}
+.file-picker-btn.has-file{border-style:solid;border-color:var(--green);background:#fff}
+.file-picker-icon{
+  flex:0 0 auto;width:38px;height:38px;border-radius:10px;
+  background:var(--green);color:#fff;display:flex;align-items:center;
+  justify-content:center;font-size:1.15rem;
+}
+.file-picker-text{
+  font-size:0.88rem;font-weight:600;color:var(--ink);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;
+}
 .upload-progress-wrap{
   margin-top:10px;background:var(--line);border-radius:999px;height:20px;
   position:relative;overflow:hidden;
@@ -814,7 +832,7 @@ a{text-decoration:none;color:inherit}
 .post-card-header strong{display:block;font-size:0.9rem;color:var(--ink)}
 .post-time{font-size:0.75rem;color:var(--muted)}
 .post-caption{padding:0 14px 10px;font-size:0.92rem;color:var(--ink);line-height:1.5}
-.post-media{width:100%;aspect-ratio:1/1;max-height:520px;object-fit:cover;display:block;background:#000;cursor:pointer}
+.post-media{width:100%;height:420px;object-fit:contain;display:block;background:#000;cursor:pointer}
 .post-actions{display:flex;gap:10px;padding:10px 14px}
 
 /* Fiche detail plein ecran (post-detail-modal) : ces classes n'avaient

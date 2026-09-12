@@ -1889,8 +1889,12 @@
       </select>
     </div>
     <div class="field" id="post-media-url-field">
-      <label for="post-media-file">Photo ou vidéo</label>
-      <input type="file" id="post-media-file" class="file-drop-input" accept="image/*" onchange="handlePostMediaFileChange(event)">
+      <label>Photo ou vidéo</label>
+      <input type="file" id="post-media-file" class="file-input-hidden" accept="image/*" onchange="handlePostMediaFileChange(event)">
+      <label for="post-media-file" class="file-picker-btn" id="post-media-file-label">
+        <span class="file-picker-icon" id="post-media-file-icon">📷</span>
+        <span class="file-picker-text" id="post-media-file-text">Choisir une photo</span>
+      </label>
       <p class="muted small" style="margin-top:4px">Choisis directement le fichier sur ton téléphone — photo (max 10 Mo) ou vidéo (max 100 Mo).</p>
       <div class="upload-progress-wrap hidden" id="post-media-progress-wrap">
         <div class="upload-progress-fill" id="post-media-progress-fill"></div>

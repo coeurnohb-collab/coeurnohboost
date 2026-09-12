@@ -2214,8 +2214,12 @@ function openSellForm() {
           </div>
         </div>
         <div class="field">
-          <label for="sell-image-file">Photo de l'article</label>
-          <input type="file" id="sell-image-file" class="file-drop-input" accept="image/*" onchange="handleSellImageFileChange(event)">
+          <label>Photo de l'article</label>
+          <input type="file" id="sell-image-file" class="file-input-hidden" accept="image/*" onchange="handleSellImageFileChange(event)">
+          <label for="sell-image-file" class="file-picker-btn" id="sell-image-file-label">
+            <span class="file-picker-icon">🖼️</span>
+            <span class="file-picker-text" id="sell-image-file-text">Choisir une photo</span>
+          </label>
           <p class="muted small" style="margin-top:4px">Choisis la photo directement depuis ton téléphone (max 10 Mo).</p>
           <div class="upload-progress-wrap hidden" id="sell-image-progress-wrap">
             <div class="upload-progress-fill" id="sell-image-progress-fill"></div>
@@ -2224,14 +2228,17 @@ function openSellForm() {
           <div id="sell-image-preview"></div>
         </div>
         <div class="field" id="sell-file-field">
-          <label for="sell-file-input">Fichier du livre (PDF)</label>
-          <input type="file" id="sell-file-input" class="file-drop-input" accept="application/pdf" onchange="handleSellBookFileChange(event)">
+          <label>Fichier du livre (PDF)</label>
+          <input type="file" id="sell-file-input" class="file-input-hidden" accept="application/pdf" onchange="handleSellBookFileChange(event)">
+          <label for="sell-file-input" class="file-picker-btn" id="sell-file-input-label">
+            <span class="file-picker-icon">📄</span>
+            <span class="file-picker-text" id="sell-file-name">Choisir un PDF</span>
+          </label>
           <p class="muted small" style="margin-top:4px">Choisis le PDF directement depuis ton téléphone (max 50 Mo).</p>
           <div class="upload-progress-wrap hidden" id="sell-file-progress-wrap">
             <div class="upload-progress-fill" id="sell-file-progress-fill"></div>
             <span class="upload-progress-label" id="sell-file-progress-label">0%</span>
           </div>
-          <p class="muted small" id="sell-file-name" style="margin-top:4px"></p>
         </div>
         <div class="field" id="sell-phone-field" style="display:none">
           <label>Ton numéro WhatsApp (pour que l'acheteur te contacte)</label>
@@ -2260,6 +2267,10 @@ let pendingSellBookFile = null;
 
 function handleSellImageFileChange(event) {
   pendingSellImageFile = (event.target.files && event.target.files[0]) || null;
+  const textEl = document.getElementById('sell-image-file-text');
+  const labelEl = document.getElementById('sell-image-file-label');
+  if (textEl) textEl.textContent = pendingSellImageFile ? `✅ ${pendingSellImageFile.name}` : 'Choisir une photo';
+  if (labelEl) labelEl.classList.toggle('has-file', !!pendingSellImageFile);
   const previewEl = document.getElementById('sell-image-preview');
   if (!previewEl) return;
   previewEl.innerHTML = pendingSellImageFile
@@ -2270,7 +2281,9 @@ function handleSellImageFileChange(event) {
 function handleSellBookFileChange(event) {
   pendingSellBookFile = (event.target.files && event.target.files[0]) || null;
   const nameEl = document.getElementById('sell-file-name');
-  if (nameEl) nameEl.textContent = pendingSellBookFile ? `📄 ${pendingSellBookFile.name}` : '';
+  const labelEl = document.getElementById('sell-file-input-label');
+  if (nameEl) nameEl.textContent = pendingSellBookFile ? `✅ ${pendingSellBookFile.name}` : 'Choisir un PDF';
+  if (labelEl) labelEl.classList.toggle('has-file', !!pendingSellBookFile);
 }
 
 async function submitSellForm() {
@@ -2769,12 +2782,22 @@ function togglePostMediaField() {
   const type = document.getElementById('post-media-type').value;
   document.getElementById('post-media-url-field').style.display = type === 'text' ? 'none' : 'block';
   const fileInput = document.getElementById('post-media-file');
+  const icon = document.getElementById('post-media-file-icon');
+  const text = document.getElementById('post-media-file-text');
+  const label = document.getElementById('post-media-file-label');
   if (fileInput) fileInput.accept = type === 'video' ? 'video/*' : 'image/*';
+  if (icon) icon.textContent = type === 'video' ? '🎥' : '📷';
+  if (text) text.textContent = type === 'video' ? 'Choisir une vidéo' : 'Choisir une photo';
+  if (label) label.classList.remove('has-file');
   updatePostMediaPreview();
 }
 
 function handlePostMediaFileChange(event) {
   pendingPostMediaFile = (event.target.files && event.target.files[0]) || null;
+  const text = document.getElementById('post-media-file-text');
+  const label = document.getElementById('post-media-file-label');
+  if (text) text.textContent = pendingPostMediaFile ? `✅ ${pendingPostMediaFile.name}` : 'Choisir un fichier';
+  if (label) label.classList.toggle('has-file', !!pendingPostMediaFile);
   updatePostMediaPreview();
 }
 
