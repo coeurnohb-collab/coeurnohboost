@@ -10530,6 +10530,14 @@ async function saveBusinessProfile() {
       logoUrl: logoUrl || null, coverImageUrl: coverImageUrl || null,
       address, hours, whatsapp, phone,
       status: 'active',
+      // "pro"/"proUntil"/"viewsCount" ne sont jamais modifies ici (merge:true
+      // les preserve) : seul /api/payments-actions.js (Admin SDK) et
+      // l'incrementation des vues sont autorises a les toucher.
+      pro: businessMyProfile ? (businessMyProfile.pro || false) : false,
+      proUntil: businessMyProfile ? (businessMyProfile.proUntil || null) : null,
+      viewsCount: businessMyProfile ? (businessMyProfile.viewsCount || 0) : 0,
+      catalog: businessMyProfile ? (businessMyProfile.catalog || []) : [],
+      coupons: businessMyProfile ? (businessMyProfile.coupons || []) : [],
       createdAt: businessMyProfile ? businessMyProfile.createdAt : new Date().toISOString()
     }, { merge: true });
     document.getElementById('business-form-modal').remove();
