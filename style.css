@@ -851,6 +851,12 @@ a{text-decoration:none;color:inherit}
   display:flex;align-items:center;gap:3px;filter:drop-shadow(0 1px 2px rgba(0,0,0,0.6));
 }
 .profile-grid-stats svg{width:12px;height:12px}
+.profile-tabs{display:flex;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-top:14px}
+.profile-tab-btn{
+  flex:1;background:none;border:none;padding:11px 0;font-size:0.82rem;font-weight:700;color:var(--muted);
+  cursor:pointer;border-bottom:2px solid transparent;display:flex;align-items:center;justify-content:center;gap:6px;
+}
+.profile-tab-btn.active{color:var(--ink);border-bottom-color:var(--ink)}
 .post-card-header strong{display:block;font-size:0.9rem;color:var(--ink)}
 .post-time{font-size:0.75rem;color:var(--muted)}
 .post-caption{padding:0 14px 10px;font-size:0.92rem;color:var(--ink);line-height:1.5}
@@ -888,7 +894,6 @@ a{text-decoration:none;color:inherit}
   position:absolute;top:20px;right:20px;background:rgba(255,255,255,0.15);color:#fff;
   border:none;border-radius:50%;width:40px;height:40px;font-size:1.4rem;cursor:pointer;z-index:2;
 }
-.media-viewer-download{position:absolute;bottom:30px;left:50%;transform:translateX(-50%)}
 
 /* Nouvelle visionneuse (espace admin) : fleche de retour bleue et
    professionnelle en haut a gauche, comme sur Facebook -- vient s'ajouter

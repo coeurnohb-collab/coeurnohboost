@@ -886,14 +886,18 @@
 <!-- ================= VISIONNEUSE PLEIN ECRAN (photo/video) ================= -->
 <!-- ================= VISIONNEUSE PLEIN ECRAN (photo/video) =================
      Fleche de retour (bleue, professionnelle) en haut a gauche -- plus la
-     croix "×" d'avant. Bouton "..." en haut a droite, visible seulement
-     pour le proprietaire de la publication (memes options que la carte). -->
+     croix "×" d'avant. Bouton "..." en haut a droite, TOUJOURS visible
+     (Telecharger pour tout le monde ; + Modifier/Supprimer si on est
+     proprietaire de la publication) -- AVANT il y avait EN PLUS un gros
+     bouton "Télécharger" fixe en bas de l'ecran, en double avec l'option
+     "Télécharger" du menu "..." : retire, une seule facon de telecharger
+     desormais, comme sur Facebook/Instagram. -->
 <div class="media-viewer hidden" id="media-viewer">
   <button class="media-viewer-icon-btn media-viewer-back" onclick="closeMediaViewer()" aria-label="Retour"></button>
   <button class="media-viewer-icon-btn media-viewer-more hidden" id="media-viewer-more-btn" aria-label="Options" title="Options"></button>
   <div class="media-viewer-content" id="media-viewer-content"></div>
-  <button class="btn btn-primary media-viewer-download" id="media-viewer-download-btn">⬇️ Télécharger</button>
 </div>
+
 
 <!-- ================= MENU OPTIONS PUBLICATION (3 points, façon Facebook) =================
      Ouvert par openPostOptionsMenu() : remplace les anciens boutons crayon +

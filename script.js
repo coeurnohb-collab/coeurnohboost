@@ -2618,7 +2618,7 @@ async function loadHomeFeed(append = false) {
 
       // Requete isolee dans son propre try/catch : si "follows" a un souci
       // (regles pas encore publiees, etc.), le fil d'accueil continue quand
-      // meme a s'afficher normalement -- juste sans le tri par abonnements.
+      // meme a s'afficher normalement.
       try {
         const followSnap = await db.collection('follows').where('followerUid', '==', currentUser.uid).get();
         followingSet = new Set(followSnap.docs.map(d => d.data().followedUid));
@@ -2627,16 +2627,14 @@ async function loadHomeFeed(append = false) {
         followingSet = new Set();
       }
 
-      // Priorise les publications des comptes suivis, sans casser l'ordre
-      // chronologique a l'interieur de chaque groupe (tri stable JS).
-      // Pas de nouvelle requete, pas d'IA : juste un reclassement simple.
-      if (followingSet.size > 0) {
-        items.sort((a, b) => {
-          const aFollowed = followingSet.has(a.sellerUid) ? 0 : 1;
-          const bFollowed = followingSet.has(b.sellerUid) ? 0 : 1;
-          return aFollowed - bFollowed;
-        });
-      }
+      // AVANT : les publications des comptes suivis etaient remontees en
+      // tete du fil, ce qui repoussait mecaniquement ta PROPRE nouvelle
+      // publication en dessous de celles de tous les comptes que tu suis
+      // (tu ne te suis pas toi-meme) -- elle semblait "coincee en bas",
+      // invisible sans faire defiler. Retire pour un tri strictement
+      // chronologique (le plus recent toujours en tete), exactement comme
+      // Facebook/Instagram/TikTok/YouTube : la requete Firestore ci-dessus
+      // (orderBy createdAt desc) suffit, aucun reclassement supplementaire.
     }
 
     const html = items.map(item => renderPostCard(item, likedMap[item.id], savedMap[item.id])).join('');
@@ -2694,12 +2692,12 @@ function renderPostCard(item, isLiked, isSaved, hideFollowBtn) {
     <div class="post-card-header">
       ${renderAvatarHtml(item.sellerName, item.sellerPhotoURL, 38, profileClick)}
       <div ${profileClick}>
-        <strong>${escapeHtml(item.sellerName || 'Coeurnoh Universe')}${item.sellerVerified ? ' ✔️' : ''}</strong>
+        <strong>${escapeHtml(item.sellerName || 'Coeurnoh Universe')}${item.sellerVerified ? ICON_VERIFIED_BADGE : ''}</strong>
         <div class="post-time">${timeStr}</div>
       </div>
       ${followBtnHtml}
       ${isOwnPost ? `
-      <button class="post-more-btn" onclick="openPostOptionsMenu('${item.id}')" title="Options" aria-label="Options de la publication">${ICON_DOTS}</button>
+      <button class="post-more-btn" onclick="openPostOptionsMenu('${item.id}',true)" title="Options" aria-label="Options de la publication">${ICON_DOTS}</button>
       ` : ''}
     </div>
     ${item.description ? `<p class="post-caption">${escapeHtml(item.description)}</p>` : ''}
@@ -2756,19 +2754,21 @@ function openMediaViewer(url, type, pubId, isOwner) {
   contentEl.innerHTML = type === 'video'
     ? `<video src="${escapeHtml(url)}" controls autoplay class="media-viewer-media"></video>`
     : `<img src="${escapeHtml(url)}" alt="" class="media-viewer-media" loading="lazy">`;
-  document.getElementById('media-viewer-download-btn').onclick = () => downloadMedia(url, type);
 
   const backBtn = document.querySelector('.media-viewer-back');
   if (backBtn && !backBtn.innerHTML) backBtn.innerHTML = ICON_BACK;
 
-  // Le bouton "..." en haut (comme sur Facebook) n'est utile -- et visible --
-  // que pour le proprietaire de la publication (Modifier/Telecharger/Supprimer).
+  // AVANT : le bouton "..." n'etait visible que pour le proprietaire (seul
+  // moyen de telecharger pour les autres = le gros bouton fixe en bas,
+  // aujourd'hui retire). Le bouton "..." est maintenant TOUJOURS visible :
+  // openPostOptionsMenu() adapte lui-meme son contenu (Telecharger seul
+  // pour un visiteur ; Modifier/Telecharger/Supprimer pour le proprietaire).
   const moreBtn = document.getElementById('media-viewer-more-btn');
   if (moreBtn) {
     if (!moreBtn.innerHTML) moreBtn.innerHTML = ICON_DOTS;
-    if (pubId && isOwner) {
+    if (pubId) {
       moreBtn.classList.remove('hidden');
-      moreBtn.onclick = () => openPostOptionsMenu(pubId);
+      moreBtn.onclick = () => openPostOptionsMenu(pubId, !!isOwner);
     } else {
       moreBtn.classList.add('hidden');
       moreBtn.onclick = null;
@@ -2854,20 +2854,27 @@ function watchPostsCounts(pubIds) {
 /* ================= MENU OPTIONS PUBLICATION (3 points, façon Facebook) =================
    Remplace les anciens boutons crayon (modifier) + poubelle (supprimer)
    affiches en permanence sur chaque publication : un seul bouton "..."
-   ouvre desormais ce menu (Modifier / Telecharger / Supprimer), exactement
-   comme sur Facebook/Instagram. La publication est relue au moment du clic
-   pour proposer des actions toujours a jour (pas de donnees perimees). */
+   ouvre desormais ce menu, exactement comme sur Facebook/Instagram. La
+   publication est relue au moment du clic pour proposer des actions
+   toujours a jour (pas de donnees perimees). Contenu adapte selon qui
+   regarde : Modifier/Telecharger/Supprimer pour le proprietaire, mais
+   UNIQUEMENT Telecharger pour un simple visiteur (AVANT, un visiteur avait
+   un gros bouton "Télécharger" fixe en plus de ce menu -- desormais ce
+   menu est le SEUL endroit pour telecharger, plus de doublon). */
 let postOptionsPubId = null;
 
-function openPostOptionsMenu(pubId) {
+function openPostOptionsMenu(pubId, isOwner) {
   postOptionsPubId = pubId;
   const sheet = document.getElementById('post-options-sheet');
   const overlay = document.getElementById('post-options-overlay');
   if (!sheet || !overlay) return;
-  sheet.innerHTML = `
+  sheet.innerHTML = isOwner ? `
     <button class="action-sheet-btn" onclick="postOptionsEdit()">${ICON_EDIT} Modifier</button>
     <button class="action-sheet-btn" onclick="postOptionsDownload()">${ICON_DOWNLOAD} Télécharger</button>
     <button class="action-sheet-btn action-sheet-btn-danger" onclick="postOptionsDelete()">${ICON_TRASH} Supprimer</button>
+    <button class="action-sheet-btn action-sheet-cancel" onclick="closePostOptionsMenu()">Annuler</button>
+  ` : `
+    <button class="action-sheet-btn" onclick="postOptionsDownload()">${ICON_DOWNLOAD} Télécharger</button>
     <button class="action-sheet-btn action-sheet-cancel" onclick="closePostOptionsMenu()">Annuler</button>
   `;
   overlay.classList.remove('hidden');
@@ -3692,7 +3699,7 @@ function renderShopCard(item, isLiked, isPurchased) {
     : '';
 
   const sellerLine = item.sellerName
-    ? `<span class="shop-card-seller">Vendu par ${escapeHtml(item.sellerName)}${item.sellerVerified ? ' ✔️' : ''}</span>`
+    ? `<span class="shop-card-seller">Vendu par ${escapeHtml(item.sellerName)}${item.sellerVerified ? ICON_VERIFIED_BADGE : ''}</span>`
     : '';
 
   const categoryLabels = {
@@ -3764,6 +3771,23 @@ const ICON_WALLET = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none"
 const ICON_PACKAGE = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5Z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>`;
 const ICON_TAG = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 12.3 12.7 20.2a2 2 0 0 1-2.8 0l-7.1-7.1a2 2 0 0 1 0-2.8L10.7 2.3a2 2 0 0 1 1.4-.6H19a2 2 0 0 1 2 2v6.9a2 2 0 0 1-.4 1.7Z"/><circle cx="15.5" cy="7.5" r="1.5"/></svg>`;
 const ICON_LINK = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l2-2a5 5 0 0 0-7-7l-1.5 1.5"/><path d="M14 11a5 5 0 0 0-7.5-.5l-2 2a5 5 0 0 0 7 7l1.5-1.5"/></svg>`;
+// Badge de certification (rond bleu + coche blanche), remplace l'ancien
+// emoji "✔️" -- meme principe visuel que les badges verifies Facebook/
+// Instagram/TikTok/YouTube/Twitter.
+const ICON_VERIFIED_BADGE = `<svg width="15" height="15" viewBox="0 0 24 24" style="vertical-align:-2px;margin-left:3px;flex-shrink:0" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="11" fill="#1DA1F2"/><path d="M9.5 16.2 5.8 12.5l1.4-1.4 2.3 2.3 6.3-6.3 1.4 1.4z" fill="#fff"/></svg>`;
+// Icone grille (onglet "Mes publications" du profil, façon TikTok/Instagram).
+const ICON_GRID3 = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>`;
+
+// Affiche un nombre de façon compacte au-dela de 10 000 (ex: 39500 -> "39,5 K"),
+// et avec separateur de milliers en dessous (ex: 6617 -> "6 617") -- meme
+// convention d'affichage que TikTok/Instagram pour les compteurs de profil.
+function formatCompactCount(n) {
+  n = n || 0;
+  if (n < 10000) return n.toLocaleString('fr-FR');
+  const format = (val) => (Number.isInteger(val) ? String(val) : val.toFixed(1).replace('.', ','));
+  if (n < 1000000) return format(n / 1000) + ' K';
+  return format(n / 1000000) + ' M';
+}
 
 async function shareShopItem(pubId, title) {
   const shareUrl = `https://coeurnohboost.vercel.app/?produit=${pubId}`;
@@ -3806,9 +3830,17 @@ async function toggleShopLike(pubId) {
   // querySelectorAll : le meme bouton peut exister a la fois dans le fil ET
   // dans la fiche plein ecran ouverte -- on met les deux a jour ensemble.
   const iconEls = document.querySelectorAll(`[data-like-icon="${pubId}"]`);
-  const countEls = document.querySelectorAll(`[data-like-count="${pubId}"]`);
   const btnEls = document.querySelectorAll(`[data-like-btn="${pubId}"]`);
-
+  // AVANT : le chiffre affiche etait recalcule ICI a la main (+1/-1 sur le
+  // texte courant) EN PLUS d'etre deja mis a jour par le listener temps reel
+  // watchPostCounts() (onSnapshot sur la publication, qui se declenche des
+  // que l'ecriture locale est appliquee -- quasi instantane). Les deux
+  // mises a jour s'additionnaient, d'ou le compteur qui sautait de 1 a 0
+  // puis de 0 a 2 au lieu de suivre 1 -> 0 -> 1 -> ... Le chiffre n'est
+  // desormais mis a jour QUE par le listener temps reel (source unique de
+  // verite, comme Facebook/Instagram/TikTok/YouTube) ; on garde seulement
+  // ici le changement instantane de l'icone (coeur plein/vide), qui lui
+  // n'a pas ce probleme de double application.
   try {
     const likeDoc = await likeRef.get();
     if (likeDoc.exists) {
@@ -3816,7 +3848,6 @@ async function toggleShopLike(pubId) {
       await pubRef.update({ likesCount: firebase.firestore.FieldValue.increment(-1) });
       iconEls.forEach(el => el.innerHTML = ICON_HEART_OUTLINE);
       btnEls.forEach(el => el.classList.remove('liked'));
-      countEls.forEach(el => el.textContent = Math.max(0, parseInt(el.textContent, 10) - 1));
     } else {
       await likeRef.set({ pubId, uid: currentUser.uid, createdAt: new Date().toISOString() });
       await pubRef.update({ likesCount: firebase.firestore.FieldValue.increment(1) });
@@ -3827,7 +3858,6 @@ async function toggleShopLike(pubId) {
         el.classList.add('like-pop');
       });
       btnEls.forEach(el => el.classList.add('liked'));
-      countEls.forEach(el => el.textContent = parseInt(el.textContent, 10) + 1);
 
       // Notifie le proprietaire de la publication (sauf s'il s'est like lui-meme)
       try {
@@ -3844,7 +3874,7 @@ async function toggleShopLike(pubId) {
       } catch (e) { /* pas grave si la notification echoue */ }
     }
   } catch (e) {
-    console.log('[shop] Erreur like :', e.message);
+    showToast(friendlyErrorMessage(e), 'error');
   } finally {
     likeInFlight.delete(lockKey);
   }
@@ -3876,7 +3906,12 @@ async function toggleSavePost(pubId) {
       showToast('Enregistré', 'success');
     }
   } catch (e) {
-    console.log('[shop] Erreur enregistrement :', e.message);
+    // AVANT : l'echec restait invisible (juste une ligne dans la console
+    // du telephone, jamais vue) -- le bouton retombait a son etat de depart
+    // sans aucun message, ce qui donnait l'impression que "ça refuse" sans
+    // dire pourquoi. Un vrai message d'erreur s'affiche desormais, comme
+    // pour les autres actions (like, suivre, bloquer...).
+    showToast(friendlyErrorMessage(e), 'error');
   } finally {
     btnEls.forEach(el => el.style.opacity = '');
     likeInFlight.delete(lockKey);
@@ -4093,29 +4128,107 @@ async function openProfileModal(sellerUid, sellerName, sellerVerified) {
     const editProfileBtnHtml = isOwn ? `
       <button class="btn btn-outline btn-sm" style="margin-top:14px" onclick="goToEditProfileFromModal()">${ICON_EDIT} Modifier le profil</button>` : '';
 
+    // Total des "J'aime" recus sur toutes ses publications (somme cote
+    // telephone a partir de ce qu'on a deja recupere -- aucune requete
+    // supplementaire). Sur les comptes avec plus de 50 publications, seules
+    // les 50 plus recentes sont comptees (meme limite que la grille elle-meme).
+    const totalLikes = posts.reduce((sum, p) => sum + (p.likesCount || 0), 0);
+
+    // Onglet "Favoris" -- prive par nature (regles Firestore : "saved_items"
+    // n'est lisible que par son propre proprietaire), donc affiche UNIQUEMENT
+    // sur son propre profil. Sur le profil de quelqu'un d'autre, une requete
+    // sur ses favoris a lui serait de toute facon refusee (Missing or
+    // insufficient permissions) -- on ne la fait donc jamais.
+    const tabsHtml = isOwn ? `
+      <div class="profile-tabs">
+        <button class="profile-tab-btn active" data-profile-tab="posts" onclick="switchProfileTab('posts')">${ICON_GRID3} Mes publications</button>
+        <button class="profile-tab-btn" data-profile-tab="favoris" onclick="switchProfileTab('favoris')">${ICON_BOOKMARK} Favoris</button>
+      </div>` : '';
+
+    const postsGridHtml = posts.length === 0
+      ? '<p class="muted small" style="grid-column:1/-1;text-align:center;padding:20px 0">Aucune publication pour l\'instant.</p>'
+      : posts.map(p => renderProfileGridItem(p)).join('');
+
     body.innerHTML = `
       <div style="text-align:center;padding:10px 0 18px">
         ${renderAvatarHtml(sellerName, profilePhotoURL, 88)}
-        <h3 style="margin:12px 0 2px">${escapeHtml(sellerName || 'Coeurnoh Universe')}${sellerVerified ? ' ✔️' : ''}</h3>
+        <h3 style="margin:12px 0 2px">${escapeHtml(sellerName || 'Coeurnoh Universe')}${sellerVerified ? ICON_VERIFIED_BADGE : ''}</h3>
         ${onlineStatusHtml}
         <div class="profile-stats-row">
-          <div class="profile-stat"><strong>${posts.length}</strong><span>Publication${posts.length > 1 ? 's' : ''}</span></div>
-          <div class="profile-stat"><strong>${followerCount}</strong><span>Abonné${followerCount > 1 ? 's' : ''}</span></div>
-          <div class="profile-stat"><strong>${followingCount}</strong><span>Abonnement${followingCount > 1 ? 's' : ''}</span></div>
+          <div class="profile-stat"><strong>${formatCompactCount(followingCount)}</strong><span>Abonnement${followingCount > 1 ? 's' : ''}</span></div>
+          <div class="profile-stat"><strong>${formatCompactCount(followerCount)}</strong><span>Abonné${followerCount > 1 ? 's' : ''}</span></div>
+          <div class="profile-stat"><strong>${formatCompactCount(totalLikes)}</strong><span>J'aime</span></div>
         </div>
         ${followBtnHtml}
         ${editProfileBtnHtml}
         ${blockLinkHtml}
       </div>
-      <div class="profile-grid" id="profile-posts-list">
-        ${posts.length === 0
-          ? '<p class="muted small" style="grid-column:1/-1;text-align:center;padding:20px 0">Aucune publication pour l\'instant.</p>'
-          : posts.map(p => renderProfileGridItem(p)).join('')}
+      ${tabsHtml}
+      <div id="profile-tab-content">
+        <div class="profile-grid" id="profile-posts-list">${postsGridHtml}</div>
       </div>
     `;
+    // Memorise l'etat courant pour que switchProfileTab() puisse revenir sur
+    // "Mes publications" sans tout re-interroger, et savoir de qui charger
+    // les favoris le cas echeant.
+    currentProfileTabState = { uid: sellerUid, posts };
     watchPostsCounts(posts.map(p => p.id));
   } catch (e) {
     body.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+  }
+}
+
+// Etat du profil actuellement ouvert dans la modale (onglets Mes
+// publications / Favoris) -- reinitialise a chaque ouverture de profil.
+let currentProfileTabState = { uid: null, posts: [] };
+
+function switchProfileTab(tab) {
+  document.querySelectorAll('#profile-modal-body .profile-tab-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.profileTab === tab);
+  });
+  const container = document.getElementById('profile-tab-content');
+  if (!container) return;
+
+  if (tab === 'favoris') {
+    loadProfileFavoritesGrid(currentProfileTabState.uid, container);
+  } else {
+    const posts = currentProfileTabState.posts || [];
+    container.innerHTML = `<div class="profile-grid" id="profile-posts-list">${
+      posts.length === 0
+        ? '<p class="muted small" style="grid-column:1/-1;text-align:center;padding:20px 0">Aucune publication pour l\'instant.</p>'
+        : posts.map(p => renderProfileGridItem(p)).join('')
+    }</div>`;
+    watchPostsCounts(posts.map(p => p.id));
+  }
+}
+
+// Grille des contenus enregistres (favoris), meme presentation que la
+// grille "Mes publications" -- uniquement appelee pour son PROPRE profil
+// (voir tabsHtml plus haut), donc uid ici est toujours currentUser.uid.
+async function loadProfileFavoritesGrid(uid, container) {
+  container.innerHTML = renderFeedSkeletons(1);
+  try {
+    const savedSnap = await db.collection('saved_items').where('uid', '==', uid).limit(30).get();
+    if (savedSnap.empty) {
+      container.innerHTML = '<p class="muted small" style="grid-column:1/-1;text-align:center;padding:20px 0">Aucun favori pour l\'instant. Appuie sur le signet sous une publication pour la retrouver ici.</p>';
+      return;
+    }
+    // Pas d'orderBy (evite un index composite) : tri cote telephone, meme
+    // technique que partout ailleurs dans l'app pour cette collection.
+    const savedDocs = savedSnap.docs.slice().sort((a, b) =>
+      new Date(b.data().createdAt) - new Date(a.data().createdAt));
+    const pubDocs = await Promise.all(
+      savedDocs.map(d => db.collection('publications').doc(d.data().pubId).get())
+    );
+    const items = pubDocs.filter(d => d.exists).map(d => ({ id: d.id, ...d.data() }));
+    if (items.length === 0) {
+      container.innerHTML = '<p class="muted small" style="grid-column:1/-1;text-align:center;padding:20px 0">Aucun favori pour l\'instant.</p>';
+      return;
+    }
+    container.innerHTML = `<div class="profile-grid">${items.map(p => renderProfileGridItem(p)).join('')}</div>`;
+    watchPostsCounts(items.map(p => p.id));
+  } catch (e) {
+    container.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
   }
 }
 
@@ -4149,6 +4262,7 @@ function goToEditProfileFromModal() {
 
 function closeProfileModal() {
   document.getElementById('profile-modal').classList.add('hidden');
+  currentProfileTabState = { uid: null, posts: [] };
 }
 
 /* ================= RECHERCHE DE COMPTES ================= */
@@ -4204,7 +4318,7 @@ async function runAccountSearch(q) {
     : matches.map(s => `
       <div class="account-search-row" onmousedown="selectAccountSearchResult('${s.uid}','${escapeForJs(s.name)}',${s.verified})">
         <div class="post-avatar" style="width:34px;height:34px;font-size:0.9rem;flex:0 0 auto">${escapeHtml(s.name[0].toUpperCase())}</div>
-        <span>${escapeHtml(s.name)}${s.verified ? ' ✔️' : ''}</span>
+        <span>${escapeHtml(s.name)}${s.verified ? ICON_VERIFIED_BADGE : ''}</span>
       </div>
     `).join('');
 }
@@ -5675,6 +5789,10 @@ async function loadSavedFeed() {
         ? renderShopCard(item, false, false)
         : renderPostCard(item, false, true)
     ).join('');
+    // Necessaire depuis que le chiffre de like n'est plus recalcule a la main
+    // au clic (source unique de verite = ce listener temps reel) -- sans ca,
+    // le compteur ne bougerait plus jamais sur cet ecran.
+    watchPostsCounts(items.map(item => item.id));
   } catch (e) {
     feedEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
   }
@@ -10143,11 +10261,11 @@ async function openPostDetail(pubId) {
       <div class="post-card-header">
         ${renderAvatarHtml(item.sellerName, item.sellerPhotoURL, 38)}
         <div>
-          <strong>${escapeHtml(item.sellerName || 'Coeurnoh Universe')}${item.sellerVerified ? ' ✔️' : ''}</strong>
+          <strong>${escapeHtml(item.sellerName || 'Coeurnoh Universe')}${item.sellerVerified ? ICON_VERIFIED_BADGE : ''}</strong>
           <div class="post-time">${timeAgo(item.createdAt)}</div>
         </div>
         ${isOwnItem
-          ? `<button class="post-more-btn" onclick="openPostOptionsMenu('${item.id}')" title="Options" aria-label="Options de la publication">${ICON_DOTS}</button>`
+          ? `<button class="post-more-btn" onclick="openPostOptionsMenu('${item.id}',true)" title="Options" aria-label="Options de la publication">${ICON_DOTS}</button>`
           : ''}
       </div>
       ${item.title ? `<h3 class="post-detail-title">${escapeHtml(item.title)}</h3>` : ''}
