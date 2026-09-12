@@ -255,6 +255,23 @@
         <h3><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:6px"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Compte</h3>
 
         <div class="field">
+          <label>Photo de profil</label>
+          <input type="file" id="account-photo-file" class="file-input-hidden" accept="image/*" onchange="handleAccountPhotoFileChange(event)">
+          <div style="display:flex;align-items:center;gap:12px;margin-top:6px">
+            <span id="account-photo-preview-wrap"></span>
+            <label for="account-photo-file" class="file-picker-btn" id="account-photo-file-label" style="flex:1">
+              <span class="file-picker-icon">🖼️</span>
+              <span class="file-picker-text" id="account-photo-file-text">Choisir une photo</span>
+            </label>
+          </div>
+          <div class="upload-progress-wrap hidden" id="account-photo-progress-wrap">
+            <div class="upload-progress-fill" id="account-photo-progress-fill"></div>
+            <span class="upload-progress-label" id="account-photo-progress-label">0%</span>
+          </div>
+          <button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="saveAccountPhoto()">Enregistrer la photo</button>
+        </div>
+
+        <div class="field">
           <label for="account-name-input">Nom</label>
           <input type="text" id="account-name-input">
         </div>
@@ -867,8 +884,13 @@
 </div>
 
 <!-- ================= VISIONNEUSE PLEIN ECRAN (photo/video) ================= -->
+<!-- ================= VISIONNEUSE PLEIN ECRAN (photo/video) =================
+     Fleche de retour (bleue, professionnelle) en haut a gauche -- plus la
+     croix "×" d'avant. Bouton "..." en haut a droite, visible seulement
+     pour le proprietaire de la publication (memes options que la carte). -->
 <div class="media-viewer hidden" id="media-viewer">
-  <button class="media-viewer-close" onclick="closeMediaViewer()" aria-label="Fermer">×</button>
+  <button class="media-viewer-icon-btn media-viewer-back" onclick="closeMediaViewer()" aria-label="Retour"></button>
+  <button class="media-viewer-icon-btn media-viewer-more hidden" id="media-viewer-more-btn" aria-label="Options" title="Options"></button>
   <div class="media-viewer-content" id="media-viewer-content"></div>
   <button class="btn btn-primary media-viewer-download" id="media-viewer-download-btn">⬇️ Télécharger</button>
 </div>

@@ -69,6 +69,40 @@ function mediaLoadError(el) {
   el.insertAdjacentElement('afterend', msg);
 }
 
+/* ================= AVATAR (photo de profil) =================
+   AVANT : uniquement un rond de couleur avec l'initiale du nom. On affiche
+   maintenant la vraie photo de profil quand la personne en a mis une
+   (via "Mon compte" -> Photo de profil), avec repli automatique sur
+   l'initiale si aucune photo n'est definie ou si le lien est casse. */
+function renderAvatarHtml(name, photoUrl, size, extraAttrs) {
+  const px = size || 38;
+  const letter = escapeHtml((name || 'C')[0].toUpperCase());
+  const fontSize = Math.round(px * 0.42);
+  const attrs = extraAttrs || '';
+  if (photoUrl) {
+    const safeUrl = escapeHtml(normalizeMediaUrl(photoUrl));
+    return `<img src="${safeUrl}" alt="" class="post-avatar-img" data-letter="${letter}" data-font-size="${fontSize}px" style="width:${px}px;height:${px}px" onerror="avatarLoadError(this)" ${attrs}>`;
+  }
+  return `<div class="post-avatar" style="width:${px}px;height:${px}px;font-size:${fontSize}px" ${attrs}>${letter}</div>`;
+}
+
+function avatarLoadError(el) {
+  if (el.dataset.errorHandled) return;
+  el.dataset.errorHandled = '1';
+  const div = document.createElement('div');
+  div.className = 'post-avatar';
+  div.style.width = el.style.width || '38px';
+  div.style.height = el.style.height || el.style.width || '38px';
+  div.style.fontSize = el.dataset.fontSize || '1rem';
+  div.textContent = el.dataset.letter || 'C';
+  Array.from(el.attributes).forEach(attr => {
+    if (!['src', 'class', 'alt', 'onerror', 'data-letter', 'data-font-size', 'style'].includes(attr.name)) {
+      div.setAttribute(attr.name, attr.value);
+    }
+  });
+  el.replaceWith(div);
+}
+
 function escapeHtml(str) {
   if (str == null) return '';
   return String(str)
@@ -1598,6 +1632,8 @@ async function shareApp() {
 }
 
 /* ================= MODIFIER MON COMPTE (page Parametres > Compte) ================= */
+let pendingAccountPhotoFile = null;
+
 function fillAccountForm() {
   if (!currentUser) return;
   const nameEl = document.getElementById('account-name-input');
@@ -1608,6 +1644,55 @@ function fillAccountForm() {
   const passMsg = document.getElementById('account-pass-msg');
   if (emailMsg) emailMsg.textContent = '';
   if (passMsg) passMsg.textContent = '';
+  pendingAccountPhotoFile = null;
+  const photoInput = document.getElementById('account-photo-file');
+  if (photoInput) photoInput.value = '';
+  const photoText = document.getElementById('account-photo-file-text');
+  if (photoText) photoText.textContent = 'Choisir une photo';
+  renderAccountPhotoPreview();
+}
+
+// Apercu en direct (photo actuelle du compte, ou fichier tout juste choisi)
+// -- repli automatique sur l'initiale si aucune photo n'est definie.
+function renderAccountPhotoPreview() {
+  const wrap = document.getElementById('account-photo-preview-wrap');
+  if (!wrap || !currentUser) return;
+  const localUrl = pendingAccountPhotoFile ? URL.createObjectURL(pendingAccountPhotoFile) : (currentUser.photoURL || null);
+  wrap.innerHTML = renderAvatarHtml(currentUser.name, localUrl, 56);
+}
+
+function handleAccountPhotoFileChange(event) {
+  pendingAccountPhotoFile = (event.target.files && event.target.files[0]) || null;
+  const text = document.getElementById('account-photo-file-text');
+  const label = document.getElementById('account-photo-file-label');
+  if (text) text.textContent = pendingAccountPhotoFile ? `✅ ${pendingAccountPhotoFile.name}` : 'Choisir une photo';
+  if (label) label.classList.toggle('has-file', !!pendingAccountPhotoFile);
+  renderAccountPhotoPreview();
+}
+
+async function saveAccountPhoto() {
+  if (!currentUser) return;
+  if (!pendingAccountPhotoFile) {
+    showToast('Choisis d’abord une photo.', 'error');
+    return;
+  }
+  try {
+    const { url } = await uploadFileToStorage(pendingAccountPhotoFile, 'profils', {
+      maxSizeMB: 10,
+      onProgress: (pct) => setUploadProgress('account-photo', pct)
+    });
+    await db.collection('users').doc(currentUser.uid).update({ photoURL: url });
+    currentUser.photoURL = url;
+    pendingAccountPhotoFile = null;
+    document.getElementById('account-photo-file').value = '';
+    document.getElementById('account-photo-file-text').textContent = 'Choisir une photo';
+    document.getElementById('account-photo-file-label').classList.remove('has-file');
+    document.getElementById('account-photo-progress-wrap').classList.add('hidden');
+    renderAccountPhotoPreview();
+    showToast('Photo de profil mise à jour !', 'success');
+  } catch (e) {
+    showToast(friendlyErrorMessage(e), 'error');
+  }
 }
 
 // Traduit les erreurs Firebase (techniques) en messages comprehensibles.
@@ -2412,6 +2497,7 @@ async function submitSellForm() {
       sellerUid: currentUser.uid,
       sellerName: currentUser.name || 'Vendeur Coeurnoh Universe',
       sellerVerified: !!currentUser.verified,
+      sellerPhotoURL: currentUser.photoURL || null,
       sellerPhone: type === 'product' ? phone : null,
       discountPercent: discountPercent,
       promoExpiresAt: (discountPercent > 0 && discountDurationHours > 0)
@@ -2581,17 +2667,17 @@ async function loadHomeFeed(append = false) {
 
 function renderPostCard(item, isLiked, isSaved, hideFollowBtn) {
   const timeStr = timeAgo(item.createdAt);
+  const isOwnPost = currentUser && currentUser.uid === item.sellerUid;
   let mediaHtml = '';
   if (item.mediaType === 'photo' && item.imageUrl) {
     const rawUrl = normalizeMediaUrl(item.imageUrl);
-    mediaHtml = `<img src="${escapeHtml(rawUrl)}" alt="" class="post-media" loading="lazy" onclick="openMediaViewer('${escapeForJs(rawUrl)}','photo')" onerror="mediaLoadError(this)">`;
+    mediaHtml = `<img src="${escapeHtml(rawUrl)}" alt="" class="post-media" loading="lazy" onclick="openMediaViewer('${escapeForJs(rawUrl)}','photo','${item.id}',${isOwnPost ? 'true' : 'false'})" onerror="mediaLoadError(this)">`;
   } else if (item.mediaType === 'video' && item.videoUrl) {
     const rawUrl = normalizeMediaUrl(item.videoUrl);
-    mediaHtml = `<video src="${escapeHtml(rawUrl)}" class="post-media" controls onclick="openMediaViewer('${escapeForJs(rawUrl)}','video')" onerror="mediaLoadError(this)"></video>`;
+    mediaHtml = `<video src="${escapeHtml(rawUrl)}" class="post-media" controls onclick="openMediaViewer('${escapeForJs(rawUrl)}','video','${item.id}',${isOwnPost ? 'true' : 'false'})" onerror="mediaLoadError(this)"></video>`;
   }
 
   const shareUrl = `https://coeurnohboost.vercel.app/?produit=${item.id}`;
-  const isOwnPost = currentUser && currentUser.uid === item.sellerUid;
   const isFollowing = item.sellerUid && followingSet.has(item.sellerUid);
   const followBtnHtml = (item.sellerUid && !isOwnPost && !hideFollowBtn) ? `
     <button class="follow-btn ${isFollowing ? 'following' : ''}" data-follow-btn="${item.sellerUid}"
@@ -2606,7 +2692,7 @@ function renderPostCard(item, isLiked, isSaved, hideFollowBtn) {
   return `
   <div class="post-card" id="shop-card-${item.id}">
     <div class="post-card-header">
-      <div class="post-avatar" ${profileClick}>${escapeHtml((item.sellerName || 'C')[0].toUpperCase())}</div>
+      ${renderAvatarHtml(item.sellerName, item.sellerPhotoURL, 38, profileClick)}
       <div ${profileClick}>
         <strong>${escapeHtml(item.sellerName || 'Coeurnoh Universe')}${item.sellerVerified ? ' ✔️' : ''}</strong>
         <div class="post-time">${timeStr}</div>
@@ -2665,12 +2751,30 @@ async function notifyPublicationShared(pubId) {
 }
 
 /* ================= VISIONNEUSE PLEIN ECRAN ================= */
-function openMediaViewer(url, type) {
+function openMediaViewer(url, type, pubId, isOwner) {
   const contentEl = document.getElementById('media-viewer-content');
   contentEl.innerHTML = type === 'video'
     ? `<video src="${escapeHtml(url)}" controls autoplay class="media-viewer-media"></video>`
     : `<img src="${escapeHtml(url)}" alt="" class="media-viewer-media" loading="lazy">`;
   document.getElementById('media-viewer-download-btn').onclick = () => downloadMedia(url, type);
+
+  const backBtn = document.querySelector('.media-viewer-back');
+  if (backBtn && !backBtn.innerHTML) backBtn.innerHTML = ICON_BACK;
+
+  // Le bouton "..." en haut (comme sur Facebook) n'est utile -- et visible --
+  // que pour le proprietaire de la publication (Modifier/Telecharger/Supprimer).
+  const moreBtn = document.getElementById('media-viewer-more-btn');
+  if (moreBtn) {
+    if (!moreBtn.innerHTML) moreBtn.innerHTML = ICON_DOTS;
+    if (pubId && isOwner) {
+      moreBtn.classList.remove('hidden');
+      moreBtn.onclick = () => openPostOptionsMenu(pubId);
+    } else {
+      moreBtn.classList.add('hidden');
+      moreBtn.onclick = null;
+    }
+  }
+
   document.getElementById('media-viewer').classList.remove('hidden');
 }
 
@@ -2929,6 +3033,7 @@ async function submitCreatePost() {
       sellerUid: currentUser.uid,
       sellerName: currentUser.name || 'Utilisateur',
       sellerVerified: !!currentUser.verified,
+      sellerPhotoURL: currentUser.photoURL || null,
       status: 'published',
       likesCount: 0,
       commentsCount: 0,
@@ -3639,6 +3744,11 @@ const ICON_EDIT = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" s
 // en permanence sur chaque publication -- meme logique que Facebook/Instagram.
 const ICON_DOTS = `<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2.1"/><circle cx="12" cy="12" r="2.1"/><circle cx="12" cy="19" r="2.1"/></svg>`;
 const ICON_DOWNLOAD = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>`;
+// Fleche de retour (remplace l'ancienne croix "×" de la visionneuse) --
+// icone professionnelle vectorielle, pas un emoji, coloree en bleu via CSS.
+const ICON_BACK = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>`;
+// Icone "lecture" pour les miniatures video de la grille de profil.
+const ICON_PLAY = `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20"/></svg>`;
 const ICON_PALETTE = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2a10 10 0 1 0 10 10c0-1-1-2-2-2h-2.5a2.5 2.5 0 0 1 0-5H19a2 2 0 0 0 2-2c0-2-4-3-9-3Z"/></svg>`;
 const ICON_BELL = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>`;
 const ICON_SHIELD = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg>`;
@@ -3910,12 +4020,13 @@ async function openProfileModal(sellerUid, sellerName, sellerVerified) {
     // regles Firestore refusent toute la requete si elle pourrait
     // retourner un brouillon d'un autre utilisateur -- il faut donc
     // que le filtre soit deja dans la requete elle-meme.
-    const [pubsSnap, followersSnap] = await Promise.all([
+    const [pubsSnap, followersSnap, followingSnap] = await Promise.all([
       db.collection('publications')
         .where('sellerUid', '==', sellerUid)
         .where('status', '==', 'published')
         .limit(50).get(),
-      db.collection('follows').where('followedUid', '==', sellerUid).get()
+      db.collection('follows').where('followedUid', '==', sellerUid).get(),
+      db.collection('follows').where('followerUid', '==', sellerUid).get()
     ]);
 
     // Statut bloque -- isole dans son propre try/catch comme les autres
@@ -3936,6 +4047,15 @@ async function openProfileModal(sellerUid, sellerName, sellerVerified) {
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
     const followerCount = followersSnap.size;
+    const followingCount = followingSnap.size;
+
+    // La photo de profil n'est pas lisible directement depuis le document
+    // "users" d'un autre compte (regles Firestore : on ne peut lire que son
+    // propre profil), donc on la deduit de sa publication la plus recente
+    // (ou celle du compte connecte si on regarde son propre profil).
+    const profilePhotoURL = isOwn
+      ? (currentUser.photoURL || null)
+      : (posts[0] && posts[0].sellerPhotoURL) || null;
 
     // Statut en ligne -- isole dans son propre try/catch (comme les autres
     // requetes secondaires de ce fichier) : si ca echoue, le profil s'affiche
@@ -3956,21 +4076,6 @@ async function openProfileModal(sellerUid, sellerName, sellerVerified) {
       console.log('[presence] non bloquant :', e.message);
     }
 
-    // Vrai etat like/enregistre pour chaque publication (comme loadHomeFeed),
-    // pour que le coeur/signet refletent bien ce que l'utilisateur a deja fait.
-    let likedMap = {};
-    let savedMap = {};
-    if (currentUser && posts.length > 0) {
-      const [likeChecks, saveChecks] = await Promise.all([
-        Promise.all(posts.map(p => db.collection('publication_likes').doc(`${p.id}_${currentUser.uid}`).get())),
-        Promise.all(posts.map(p => db.collection('saved_items').doc(`${p.id}_${currentUser.uid}`).get()))
-      ]);
-      posts.forEach((p, i) => {
-        likedMap[p.id] = likeChecks[i].exists;
-        savedMap[p.id] = saveChecks[i].exists;
-      });
-    }
-
     const followBtnHtml = !isOwn ? `
       <button class="follow-btn ${isFollowing ? 'following' : ''}" data-follow-btn="${sellerUid}"
         onclick="toggleFollow('${sellerUid}','${escapeForJs(sellerName)}')" style="margin:14px 0 0 0">
@@ -3985,25 +4090,61 @@ async function openProfileModal(sellerUid, sellerName, sellerVerified) {
         </span>
       </p>` : '';
 
+    const editProfileBtnHtml = isOwn ? `
+      <button class="btn btn-outline btn-sm" style="margin-top:14px" onclick="goToEditProfileFromModal()">${ICON_EDIT} Modifier le profil</button>` : '';
+
     body.innerHTML = `
       <div style="text-align:center;padding:10px 0 18px">
-        <div class="post-avatar" style="width:64px;height:64px;font-size:1.6rem;margin:0 auto 10px">${escapeHtml((sellerName || 'C')[0].toUpperCase())}</div>
-        <h3 style="margin-bottom:4px">${escapeHtml(sellerName || 'Coeurnoh Universe')}${sellerVerified ? ' ✔️' : ''}</h3>
+        ${renderAvatarHtml(sellerName, profilePhotoURL, 88)}
+        <h3 style="margin:12px 0 2px">${escapeHtml(sellerName || 'Coeurnoh Universe')}${sellerVerified ? ' ✔️' : ''}</h3>
         ${onlineStatusHtml}
-        <p class="muted small">${posts.length} publication${posts.length > 1 ? 's' : ''} · ${followerCount} abonné${followerCount > 1 ? 's' : ''}</p>
+        <div class="profile-stats-row">
+          <div class="profile-stat"><strong>${posts.length}</strong><span>Publication${posts.length > 1 ? 's' : ''}</span></div>
+          <div class="profile-stat"><strong>${followerCount}</strong><span>Abonné${followerCount > 1 ? 's' : ''}</span></div>
+          <div class="profile-stat"><strong>${followingCount}</strong><span>Abonnement${followingCount > 1 ? 's' : ''}</span></div>
+        </div>
         ${followBtnHtml}
+        ${editProfileBtnHtml}
         ${blockLinkHtml}
       </div>
-      <div id="profile-posts-list">
+      <div class="profile-grid" id="profile-posts-list">
         ${posts.length === 0
-          ? '<p class="muted small" style="text-align:center">Aucune publication pour l\'instant.</p>'
-          : posts.map(p => renderPostCard(p, likedMap[p.id], savedMap[p.id], true)).join('')}
+          ? '<p class="muted small" style="grid-column:1/-1;text-align:center;padding:20px 0">Aucune publication pour l\'instant.</p>'
+          : posts.map(p => renderProfileGridItem(p)).join('')}
       </div>
     `;
     watchPostsCounts(posts.map(p => p.id));
   } catch (e) {
     body.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
   }
+}
+
+/* ================= GRILLE DE PROFIL (façon TikTok/Instagram/YouTube) =================
+   AVANT : la page de profil affichait les publications en cartes completes
+   (comme le fil d'accueil). On affiche maintenant une grille de miniatures
+   carrees avec le nombre de likes en overlay -- exactement comme sur
+   TikTok/Instagram -- pour un vrai "profil" professionnel. Clic sur une
+   miniature -> ouvre la fiche complete (commentaires, etc.) comme avant. */
+function renderProfileGridItem(p) {
+  const isVideo = p.mediaType === 'video';
+  const rawUrl = isVideo ? p.videoUrl : p.imageUrl;
+  const safeUrl = rawUrl ? escapeHtml(normalizeMediaUrl(rawUrl)) : '';
+  const mediaHtml = isVideo
+    ? (safeUrl ? `<video src="${safeUrl}" muted class="profile-grid-media" onerror="mediaLoadError(this)"></video><span class="profile-grid-play">${ICON_PLAY}</span>` : `<div class="profile-grid-text">${escapeHtml((p.description || 'Vidéo').slice(0, 60))}</div>`)
+    : (safeUrl ? `<img src="${safeUrl}" alt="" class="profile-grid-media" loading="lazy" onerror="mediaLoadError(this)">` : `<div class="profile-grid-text">${escapeHtml((p.description || '').slice(0, 60))}</div>`);
+  return `<div class="profile-grid-item" onclick="openPostDetail('${p.id}')">
+    ${mediaHtml}
+    <span class="profile-grid-stats">${ICON_HEART_FILLED}<span data-like-count="${p.id}">${p.likesCount || 0}</span></span>
+  </div>`;
+}
+
+// Ferme la fiche profil, ouvre le menu ☰ puis va directement sur "Compte"
+// (photo/nom/e-mail) -- raccourci "Modifier le profil" comme sur les
+// reseaux sociaux grand public.
+function goToEditProfileFromModal() {
+  closeProfileModal();
+  openMainMenu();
+  goToAccountSection('section-editaccount');
 }
 
 function closeProfileModal() {
@@ -9972,15 +10113,17 @@ async function openPostDetail(pubId) {
       isLiked = likeDoc.exists;
     }
 
+    const isOwnItem = currentUser && currentUser.uid === item.sellerUid;
+
     const mediaUrl = item.imageUrl || null;
     const videoUrl = item.videoUrl || null;
     let mediaHtml = '';
     if (videoUrl) {
       const rawUrl = normalizeMediaUrl(videoUrl);
-      mediaHtml = `<video src="${escapeHtml(rawUrl)}" class="post-detail-media" controls autoplay onclick="openMediaViewer('${escapeForJs(rawUrl)}','video')" onerror="mediaLoadError(this)"></video>`;
+      mediaHtml = `<video src="${escapeHtml(rawUrl)}" class="post-detail-media" controls autoplay onclick="openMediaViewer('${escapeForJs(rawUrl)}','video','${item.id}',${isOwnItem ? 'true' : 'false'})" onerror="mediaLoadError(this)"></video>`;
     } else if (mediaUrl) {
       const rawUrl = normalizeMediaUrl(mediaUrl);
-      mediaHtml = `<img src="${escapeHtml(rawUrl)}" class="post-detail-media" alt="" loading="lazy" onclick="openMediaViewer('${escapeForJs(rawUrl)}','photo')" onerror="mediaLoadError(this)">`;
+      mediaHtml = `<img src="${escapeHtml(rawUrl)}" class="post-detail-media" alt="" loading="lazy" onclick="openMediaViewer('${escapeForJs(rawUrl)}','photo','${item.id}',${isOwnItem ? 'true' : 'false'})" onerror="mediaLoadError(this)">`;
     }
 
     // Avis clients -- uniquement pour les articles boutique (livre/produit),
@@ -9996,11 +10139,9 @@ async function openPostDetail(pubId) {
       }
     }
 
-    const isOwnItem = currentUser && currentUser.uid === item.sellerUid;
-
     document.getElementById('post-detail-body').innerHTML = `
       <div class="post-card-header">
-        <div class="post-avatar">${escapeHtml((item.sellerName || 'C')[0].toUpperCase())}</div>
+        ${renderAvatarHtml(item.sellerName, item.sellerPhotoURL, 38)}
         <div>
           <strong>${escapeHtml(item.sellerName || 'Coeurnoh Universe')}${item.sellerVerified ? ' ✔️' : ''}</strong>
           <div class="post-time">${timeAgo(item.createdAt)}</div>
@@ -10281,10 +10422,26 @@ function openCommentOptionsMenu(pubId, commentId) {
     <button class="action-sheet-btn action-sheet-cancel" onclick="closeCommentOptionsMenu()">Annuler</button>
   `;
   overlay.classList.remove('hidden');
+
+  // Retour visuel demande : le commentaire presse est surligne et affiche
+  // un "..." bien visible tant que le menu Modifier/Supprimer reste ouvert
+  // -- comme ca, on voit clairement QUEL commentaire est vise.
+  const row = document.querySelector(`.shop-comment[data-comment-id="${commentId}"]`);
+  if (row && !row.querySelector('.comment-pressed-dots')) {
+    row.classList.add('comment-pressed');
+    const dots = document.createElement('span');
+    dots.className = 'comment-pressed-dots';
+    dots.innerHTML = ICON_DOTS;
+    row.appendChild(dots);
+  }
 }
 
 function closeCommentOptionsMenu() {
   document.getElementById('comment-options-overlay')?.classList.add('hidden');
+  document.querySelectorAll('.shop-comment.comment-pressed').forEach(row => {
+    row.classList.remove('comment-pressed');
+    row.querySelector('.comment-pressed-dots')?.remove();
+  });
 }
 
 function commentOptionsDelete(pubId, commentId) {

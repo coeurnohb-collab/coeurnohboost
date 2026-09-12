@@ -829,6 +829,28 @@ a{text-decoration:none;color:inherit}
   width:38px;height:38px;border-radius:50%;background:var(--green);color:#fff;
   display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1rem;flex:0 0 auto;
 }
+.post-avatar-img{
+  border-radius:50%;object-fit:cover;flex:0 0 auto;background:var(--cream);display:block;
+}
+
+/* ================= PAGE PROFIL (façon TikTok/Instagram/YouTube) ================= */
+.profile-stats-row{display:flex;justify-content:center;gap:28px;margin:14px 0}
+.profile-stat{display:flex;flex-direction:column;align-items:center}
+.profile-stat strong{font-size:1.05rem;color:var(--ink)}
+.profile-stat span{font-size:0.72rem;color:var(--muted)}
+.profile-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;padding:2px}
+.profile-grid-item{position:relative;aspect-ratio:1/1;background:#111;overflow:hidden;cursor:pointer}
+.profile-grid-media{width:100%;height:100%;object-fit:cover;display:block}
+.profile-grid-play{position:absolute;top:6px;right:6px;color:#fff;filter:drop-shadow(0 1px 2px rgba(0,0,0,0.6))}
+.profile-grid-text{
+  width:100%;height:100%;display:flex;align-items:center;justify-content:center;
+  padding:8px;font-size:0.72rem;color:var(--ink);background:var(--cream);text-align:center;overflow:hidden;
+}
+.profile-grid-stats{
+  position:absolute;bottom:5px;left:6px;color:#fff;font-size:0.72rem;font-weight:700;
+  display:flex;align-items:center;gap:3px;filter:drop-shadow(0 1px 2px rgba(0,0,0,0.6));
+}
+.profile-grid-stats svg{width:12px;height:12px}
 .post-card-header strong{display:block;font-size:0.9rem;color:var(--ink)}
 .post-time{font-size:0.75rem;color:var(--muted)}
 .post-caption{padding:0 14px 10px;font-size:0.92rem;color:var(--ink);line-height:1.5}
@@ -915,6 +937,8 @@ a{text-decoration:none;color:inherit}
    longue deja utilisee sur les notifications. */
 .shop-comment{position:relative;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 .shop-comment.own-comment{cursor:pointer}
+.shop-comment.comment-pressed{background:var(--cream);border-radius:10px}
+.comment-pressed-dots{margin-left:auto;flex:0 0 auto;color:var(--ink);display:flex;align-items:center;opacity:0.7}
 .shop-comment .shop-comment-edited{flex:0 0 auto;color:var(--muted);font-size:0.72rem;margin-left:4px}
 .comment-menu-overlay{
   position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:800;
