@@ -334,7 +334,74 @@ function showDashTab(tab) {
     if (shopFeedEl) shopFeedEl.innerHTML = '';
     loadHomeFeed();
   }
+  if (tab === 'wallet') loadWalletHistory();
   if (tab === 'account') { renderReferralBox(); applyNotifPrefsToUI(); fillAccountForm(); loadSavedFeed(); loadFollowingList(); loadBlockedList(); loadFollowersList(); }
+}
+
+/* ================= PORTEFEUILLE — RELEVE DE TRANSACTIONS =================
+   "wallet_transactions" : un document PAR mouvement de solde (credit ou
+   debit), cree DANS LA MEME transaction Firestore que la modification du
+   solde elle-meme (cote serveur, ou par l'admin dans les cas manuels) --
+   impossible que le relevé se desynchronise du vrai solde. Le solde
+   ("users/{uid}.balance") reste l'unique source de verite, ce relevé est
+   uniquement un historique lisible, pas un deuxieme portefeuille. */
+const WALLET_TX_LABELS = {
+  topup_crypto: { label: 'Recharge (crypto)', icon: '💳' },
+  topup_mobile_money: { label: 'Recharge (Mobile Money)', icon: '💳' },
+  topup_admin: { label: 'Recharge validée par l\'équipe', icon: '💳' },
+  order_purchase: { label: 'Commande de service', icon: '🚀' },
+  order_refund: { label: 'Remboursement de commande', icon: '↩️' },
+  shop_purchase: { label: 'Achat boutique', icon: '🛍️' },
+  shop_sale: { label: 'Vente boutique', icon: '🛍️' },
+  contest_entry: { label: 'Participation à un concours', icon: '🏆' },
+  contest_income: { label: 'Revenu concours', icon: '🏆' },
+  event_ticket: { label: 'Billet d\'événement', icon: '🎟️' },
+  event_income: { label: 'Revenu billetterie', icon: '🎟️' },
+  event_cancel_refund: { label: 'Remboursement billet annulé', icon: '↩️' },
+  event_income_reversed: { label: 'Reprise revenu (billet annulé)', icon: '↩️' },
+  course_enrollment: { label: 'Inscription à un cours', icon: '📚' },
+  course_income: { label: 'Revenu formation', icon: '📚' },
+  site_premium: { label: 'Site Premium', icon: '✨' },
+  site_premium_income: { label: 'Revenu Site Premium', icon: '✨' },
+  withdrawal_request: { label: 'Demande de retrait', icon: '🏦' },
+  withdrawal_rejected_refund: { label: 'Retrait refusé, remboursé', icon: '↩️' },
+  referral_bonus: { label: 'Bonus de parrainage', icon: '🎁' }
+};
+
+async function loadWalletHistory() {
+  const listEl = document.getElementById('wallet-history-list');
+  if (!currentUser) return;
+  listEl.innerHTML = '<p class="muted small">Chargement...</p>';
+  try {
+    const snap = await db.collection('wallet_transactions')
+      .where('uid', '==', currentUser.uid)
+      .orderBy('createdAt', 'desc')
+      .limit(50)
+      .get();
+    if (snap.empty) {
+      listEl.innerHTML = '<p class="muted small" data-i18n="wallet_history_empty">Aucune transaction pour l\'instant.</p>';
+      return;
+    }
+    listEl.innerHTML = snap.docs.map(doc => {
+      const t = doc.data();
+      const meta = WALLET_TX_LABELS[t.type] || { label: t.type || 'Transaction', icon: '💠' };
+      const isCredit = (t.amount || 0) >= 0;
+      const dateStr = t.createdAt ? new Date(t.createdAt).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+      return `
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)">
+          <div style="display:flex;gap:10px;align-items:center;min-width:0">
+            <span style="font-size:1.2rem">${meta.icon}</span>
+            <div style="min-width:0">
+              <div style="font-weight:600;font-size:0.92rem">${escapeHtml(meta.label)}</div>
+              <div class="muted small">${escapeHtml(dateStr)}</div>
+            </div>
+          </div>
+          <strong style="white-space:nowrap;color:${isCredit ? 'var(--green)' : 'var(--red)'}">${isCredit ? '+' : ''}${(t.amount || 0).toFixed(2)}$</strong>
+        </div>`;
+    }).join('');
+  } catch (e) {
+    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${escapeHtml(e.message)}</p>`;
+  }
 }
 function showServices() {
   hideAllViews();

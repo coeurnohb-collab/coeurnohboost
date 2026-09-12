@@ -435,8 +435,14 @@ async function approveDeposit(depositId, uid, amount) {
     const userRef = db.collection('users').doc(uid);
     const userDoc = await userRef.get();
     const currentBalance = userDoc.exists ? (userDoc.data().balance || 0) : 0;
-    await userRef.update({ balance: currentBalance + amount });
+    const newBalance = currentBalance + amount;
+    await userRef.update({ balance: newBalance });
     await db.collection('topup_requests').doc(depositId).update({ status: 'approved' });
+    await db.collection('wallet_transactions').add({
+      uid, type: 'topup_admin', amount, balanceAfter: Math.round(newBalance * 100) / 100,
+      description: 'Recharge validée par l\'équipe', relatedId: depositId,
+      createdAt: new Date().toISOString()
+    });
     loadDepositsAdmin();
   } catch (e) {
     alert("Erreur : " + e.message);
@@ -1422,10 +1428,16 @@ async function rejectWithdrawal(reqId, uid, amount) {
       const userSnap = await transaction.get(userRef);
       if (!userSnap.exists) throw new Error("Compte vendeur introuvable");
       const currentBalance = userSnap.data().balance || 0;
-      transaction.update(userRef, { balance: Math.round((currentBalance + amount) * 100) / 100 });
+      const newBalance = Math.round((currentBalance + amount) * 100) / 100;
+      transaction.update(userRef, { balance: newBalance });
       transaction.update(db.collection('withdrawal_requests').doc(reqId), {
         status: 'rejected',
         processedAt: new Date().toISOString()
+      });
+      transaction.set(db.collection('wallet_transactions').doc(), {
+        uid, type: 'withdrawal_rejected_refund', amount, balanceAfter: newBalance,
+        description: 'Retrait refusé, remboursé', relatedId: reqId,
+        createdAt: new Date().toISOString()
       });
     });
     loadWithdrawalsAdmin();
