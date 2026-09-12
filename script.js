@@ -2343,6 +2343,10 @@ async function loadHomeFeed(append = false) {
     } else {
       feedEl.innerHTML = html;
     }
+    // Ecoute en direct les likes/commentaires de ces publications, pour que
+    // les compteurs montent aussi chez les autres utilisateurs qui regardent
+    // le meme fil au meme moment (pas seulement chez celui qui like/commente).
+    watchPostsCounts(items.map(item => item.id));
 
     // Bouton "Charger plus" uniquement si la page est pleine : il y a
     // probablement encore des publications plus anciennes a recuperer.
@@ -2363,9 +2367,11 @@ function renderPostCard(item, isLiked, isSaved, hideFollowBtn) {
   const timeStr = timeAgo(item.createdAt);
   let mediaHtml = '';
   if (item.mediaType === 'photo' && item.imageUrl) {
-    mediaHtml = `<img src="${escapeHtml(normalizeMediaUrl(item.imageUrl))}" alt="" class="post-media" loading="lazy" onclick="openPostDetail('${item.id}')" onerror="mediaLoadError(this)">`;
+    const rawUrl = normalizeMediaUrl(item.imageUrl);
+    mediaHtml = `<img src="${escapeHtml(rawUrl)}" alt="" class="post-media" loading="lazy" onclick="openMediaViewer('${escapeForJs(rawUrl)}','photo')" onerror="mediaLoadError(this)">`;
   } else if (item.mediaType === 'video' && item.videoUrl) {
-    mediaHtml = `<video src="${escapeHtml(normalizeMediaUrl(item.videoUrl))}" class="post-media" controls onclick="openPostDetail('${item.id}')" onerror="mediaLoadError(this)"></video>`;
+    const rawUrl = normalizeMediaUrl(item.videoUrl);
+    mediaHtml = `<video src="${escapeHtml(rawUrl)}" class="post-media" controls onclick="openMediaViewer('${escapeForJs(rawUrl)}','video')" onerror="mediaLoadError(this)"></video>`;
   }
 
   const shareUrl = `https://coeurnohboost.vercel.app/?produit=${item.id}`;
@@ -2391,8 +2397,7 @@ function renderPostCard(item, isLiked, isSaved, hideFollowBtn) {
       </div>
       ${followBtnHtml}
       ${isOwnPost ? `
-      <button class="post-delete-btn" onclick="openEditPostForm('${item.id}','${escapeForJs(item.description || '')}')" title="Modifier" aria-label="Modifier cette publication">${ICON_EDIT}</button>
-      <button class="post-delete-btn" onclick="deleteMyPublication('${item.id}')" title="Supprimer" aria-label="Supprimer cette publication">${ICON_TRASH}</button>
+      <button class="post-more-btn" onclick="openPostOptionsMenu('${item.id}')" title="Options" aria-label="Options de la publication">${ICON_DOTS}</button>
       ` : ''}
     </div>
     ${item.description ? `<p class="post-caption">${escapeHtml(item.description)}</p>` : ''}
@@ -2472,6 +2477,136 @@ async function downloadMedia(url, type) {
     URL.revokeObjectURL(blobUrl);
   } catch (e) {
     showToast("Téléchargement auto impossible : appui long sur l'image/vidéo puis \"Enregistrer\".", 'info');
+  }
+}
+
+/* ================= COMPTEURS EN TEMPS REEL (likes / commentaires) =================
+   AVANT : le nombre de likes/commentaires n'etait mis a jour que sur l'ecran
+   de la personne qui likait/commentait elle-meme (patch DOM local). Un autre
+   utilisateur regardant la meme publication au meme moment ne voyait rien
+   bouger tant qu'il ne rechargeait pas la page. On ecoute maintenant chaque
+   publication affichee en direct (onSnapshot) : le compteur monte pour tout
+   le monde, en temps reel, des qu'un like ou un commentaire arrive. */
+const postRealtimeListeners = new Map();
+const POST_REALTIME_MAX = 60; // securite : evite d'accumuler des ecouteurs sans fin sur un long fil
+
+function watchPostCounts(pubId) {
+  if (!pubId || postRealtimeListeners.has(pubId)) return;
+
+  // Si trop d'ecouteurs sont deja ouverts (long defilement), on detache le
+  // plus ancien avant d'en ouvrir un nouveau -- simple garde-fou de securite.
+  if (postRealtimeListeners.size >= POST_REALTIME_MAX) {
+    const oldestKey = postRealtimeListeners.keys().next().value;
+    unwatchPostCounts(oldestKey);
+  }
+
+  try {
+    const unsubscribe = db.collection('publications').doc(pubId).onSnapshot((doc) => {
+      if (!doc.exists) return;
+      const d = doc.data();
+      document.querySelectorAll(`[data-like-count="${pubId}"]`).forEach(el => {
+        el.textContent = d.likesCount || 0;
+      });
+      document.querySelectorAll(`[data-comment-count="${pubId}"]`).forEach(el => {
+        el.textContent = d.commentsCount || 0;
+      });
+    }, (err) => {
+      console.log('[compteurs temps reel] non bloquant :', err.message);
+    });
+    postRealtimeListeners.set(pubId, unsubscribe);
+  } catch (e) {
+    console.log('[compteurs temps reel] non bloquant :', e.message);
+  }
+}
+
+function unwatchPostCounts(pubId) {
+  const unsubscribe = postRealtimeListeners.get(pubId);
+  if (unsubscribe) {
+    try { unsubscribe(); } catch (e) { /* pas grave */ }
+    postRealtimeListeners.delete(pubId);
+  }
+}
+
+function watchPostsCounts(pubIds) {
+  (pubIds || []).forEach(watchPostCounts);
+}
+
+/* ================= MENU OPTIONS PUBLICATION (3 points, façon Facebook) =================
+   Remplace les anciens boutons crayon (modifier) + poubelle (supprimer)
+   affiches en permanence sur chaque publication : un seul bouton "..."
+   ouvre desormais ce menu (Modifier / Telecharger / Supprimer), exactement
+   comme sur Facebook/Instagram. La publication est relue au moment du clic
+   pour proposer des actions toujours a jour (pas de donnees perimees). */
+let postOptionsPubId = null;
+
+function openPostOptionsMenu(pubId) {
+  postOptionsPubId = pubId;
+  const sheet = document.getElementById('post-options-sheet');
+  const overlay = document.getElementById('post-options-overlay');
+  if (!sheet || !overlay) return;
+  sheet.innerHTML = `
+    <button class="action-sheet-btn" onclick="postOptionsEdit()">${ICON_EDIT} Modifier</button>
+    <button class="action-sheet-btn" onclick="postOptionsDownload()">${ICON_DOWNLOAD} Télécharger</button>
+    <button class="action-sheet-btn action-sheet-btn-danger" onclick="postOptionsDelete()">${ICON_TRASH} Supprimer</button>
+    <button class="action-sheet-btn action-sheet-cancel" onclick="closePostOptionsMenu()">Annuler</button>
+  `;
+  overlay.classList.remove('hidden');
+}
+
+function closePostOptionsMenu() {
+  const overlay = document.getElementById('post-options-overlay');
+  if (overlay) overlay.classList.add('hidden');
+  postOptionsPubId = null;
+}
+
+async function postOptionsEdit() {
+  const pubId = postOptionsPubId;
+  closePostOptionsMenu();
+  if (!pubId) return;
+  try {
+    const snap = await db.collection('publications').doc(pubId).get();
+    if (!snap.exists) { showToast('Publication introuvable (peut-être déjà supprimée).', 'error'); return; }
+    const d = snap.data();
+    if (d.type && d.type !== 'post') {
+      openEditPubForm(pubId, d.type, d.title || '', d.description || '', d.price || 0);
+    } else {
+      openEditPostForm(pubId, d.description || '');
+    }
+  } catch (e) {
+    showToast(friendlyErrorMessage(e), 'error');
+  }
+}
+
+async function postOptionsDownload() {
+  const pubId = postOptionsPubId;
+  closePostOptionsMenu();
+  if (!pubId) return;
+  try {
+    const snap = await db.collection('publications').doc(pubId).get();
+    if (!snap.exists) return;
+    const d = snap.data();
+    const rawUrl = d.mediaType === 'video' ? d.videoUrl : (d.imageUrl || d.fileUrl);
+    const url = normalizeMediaUrl(rawUrl);
+    if (!url) { showToast('Aucun fichier à télécharger pour cette publication.', 'error'); return; }
+    downloadMedia(url, d.mediaType === 'video' ? 'video' : 'photo');
+  } catch (e) {
+    showToast(friendlyErrorMessage(e), 'error');
+  }
+}
+
+async function postOptionsDelete() {
+  const pubId = postOptionsPubId;
+  closePostOptionsMenu();
+  if (!pubId) return;
+  if (!confirm('Supprimer définitivement cette publication ?')) return;
+  try {
+    await db.collection('publications').doc(pubId).delete();
+    unwatchPostCounts(pubId);
+    document.getElementById(`shop-card-${pubId}`)?.remove();
+    closePostDetail();
+    showToast('Publication supprimée', 'success');
+  } catch (e) {
+    showToast(friendlyErrorMessage(e), 'error');
   }
 }
 
@@ -2620,6 +2755,7 @@ function renderLibraryFeed() {
   feedEl.innerHTML = filtered.map(item =>
     renderShopCard(item, shopLikedMap[item.id], shopPurchasedSet.has(item.id))
   ).join('');
+  watchPostsCounts(filtered.map(item => item.id));
 }
 
 /* ================= ESPACE VENDEUR ================= */
@@ -3155,6 +3291,7 @@ function renderShopFeed() {
   feedEl.innerHTML = filtered.map(item =>
     renderShopCard(item, shopLikedMap[item.id], shopPurchasedSet.has(item.id))
   ).join('');
+  watchPostsCounts(filtered.map(item => item.id));
 }
 
 function getEffectivePrice(item) {
@@ -3250,6 +3387,10 @@ const ICON_TRASH = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" 
 const ICON_CLOSE = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
 const ICON_CHECK = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
 const ICON_EDIT = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>`;
+// Icone "..." (options), remplace les anciens boutons crayon+poubelle affiches
+// en permanence sur chaque publication -- meme logique que Facebook/Instagram.
+const ICON_DOTS = `<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2.1"/><circle cx="12" cy="12" r="2.1"/><circle cx="12" cy="19" r="2.1"/></svg>`;
+const ICON_DOWNLOAD = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>`;
 const ICON_PALETTE = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2a10 10 0 1 0 10 10c0-1-1-2-2-2h-2.5a2.5 2.5 0 0 1 0-5H19a2 2 0 0 0 2-2c0-2-4-3-9-3Z"/></svg>`;
 const ICON_BELL = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>`;
 const ICON_SHIELD = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg>`;
@@ -3611,6 +3752,7 @@ async function openProfileModal(sellerUid, sellerName, sellerVerified) {
           : posts.map(p => renderPostCard(p, likedMap[p.id], savedMap[p.id], true)).join('')}
       </div>
     `;
+    watchPostsCounts(posts.map(p => p.id));
   } catch (e) {
     body.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
   }
@@ -9401,9 +9543,11 @@ async function openPostDetail(pubId) {
     const videoUrl = item.videoUrl || null;
     let mediaHtml = '';
     if (videoUrl) {
-      mediaHtml = `<video src="${escapeHtml(normalizeMediaUrl(videoUrl))}" class="post-detail-media" controls autoplay onerror="mediaLoadError(this)"></video>`;
+      const rawUrl = normalizeMediaUrl(videoUrl);
+      mediaHtml = `<video src="${escapeHtml(rawUrl)}" class="post-detail-media" controls autoplay onclick="openMediaViewer('${escapeForJs(rawUrl)}','video')" onerror="mediaLoadError(this)"></video>`;
     } else if (mediaUrl) {
-      mediaHtml = `<img src="${escapeHtml(normalizeMediaUrl(mediaUrl))}" class="post-detail-media" alt="" loading="lazy" onerror="mediaLoadError(this)">`;
+      const rawUrl = normalizeMediaUrl(mediaUrl);
+      mediaHtml = `<img src="${escapeHtml(rawUrl)}" class="post-detail-media" alt="" loading="lazy" onclick="openMediaViewer('${escapeForJs(rawUrl)}','photo')" onerror="mediaLoadError(this)">`;
     }
 
     // Avis clients -- uniquement pour les articles boutique (livre/produit),
@@ -9419,6 +9563,8 @@ async function openPostDetail(pubId) {
       }
     }
 
+    const isOwnItem = currentUser && currentUser.uid === item.sellerUid;
+
     document.getElementById('post-detail-body').innerHTML = `
       <div class="post-card-header">
         <div class="post-avatar">${escapeHtml((item.sellerName || 'C')[0].toUpperCase())}</div>
@@ -9426,6 +9572,9 @@ async function openPostDetail(pubId) {
           <strong>${escapeHtml(item.sellerName || 'CoeurnohBoost')}${item.sellerVerified ? ' ✔️' : ''}</strong>
           <div class="post-time">${timeAgo(item.createdAt)}</div>
         </div>
+        ${isOwnItem
+          ? `<button class="post-more-btn" onclick="openPostOptionsMenu('${item.id}')" title="Options" aria-label="Options de la publication">${ICON_DOTS}</button>`
+          : ''}
       </div>
       ${item.title ? `<h3 class="post-detail-title">${escapeHtml(item.title)}</h3>` : ''}
       ${item.description ? `<p class="post-caption">${escapeHtml(item.description)}</p>` : ''}
@@ -9445,14 +9594,14 @@ async function openPostDetail(pubId) {
         </div>
       </div>
       ${reviewsHtml}
-      ${currentUser && currentUser.uid === item.sellerUid ? `
-      <button class="btn btn-outline" style="margin-top:14px;color:var(--red);border-color:var(--red);display:inline-flex;align-items:center;gap:6px" onclick="deletePublicationFromDetail('${item.id}')">${ICON_TRASH} Supprimer cette publication</button>
-      ` : `
+      ${!isOwnItem ? `
       <button class="btn btn-outline btn-sm" style="margin-top:14px;color:var(--muted);border-color:var(--line);display:inline-flex;align-items:center;gap:6px" onclick="openReportModal('${item.id}', '${item.sellerUid || ''}')">${ICON_FLAG} Signaler ce contenu</button>
-      `}
+      ` : ''}
     `;
     document.getElementById('post-detail-modal').classList.remove('hidden');
     await loadShopComments(pubId);
+    // Compteurs de like/commentaire a jour en temps reel tant que la fiche est ouverte.
+    watchPostCounts(pubId);
   } catch (e) {
     showToast(friendlyErrorMessage(e), 'error');
   }
@@ -9583,11 +9732,14 @@ async function loadShopComments(pubId) {
     listEl.innerHTML = snap.docs.map(doc => {
       const c = doc.data();
       const isOwn = currentUser && currentUser.uid === c.uid;
-      return `<div class="shop-comment">
-        <strong>${escapeHtml(c.name || 'Client')}</strong><span>${escapeHtml(c.text)}</span>
-        ${isOwn ? `<button class="comment-delete-btn" onclick="deleteShopComment('${pubId}','${doc.id}')" aria-label="Supprimer ce commentaire">${ICON_TRASH}</button>` : ''}
+      return `<div class="shop-comment ${isOwn ? 'own-comment' : ''}" data-comment-id="${doc.id}" data-pub-id="${pubId}">
+        <strong>${escapeHtml(c.name || 'Client')}</strong>
+        <span class="shop-comment-text" id="comment-text-${doc.id}">${escapeHtml(c.text)}</span>${c.edited ? '<span class="shop-comment-edited">(modifié)</span>' : ''}
       </div>`;
     }).join('');
+    // Active l'appui long (Modifier/Supprimer) sur ses propres commentaires --
+    // une seule fois pour toute l'application (delegation d'evenements).
+    bindCommentLongPress();
   } catch (e) {
     listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
   }
@@ -9608,6 +9760,150 @@ async function deleteShopComment(pubId, commentId) {
     showToast('Commentaire supprimé', 'info');
   } catch (e) {
     showToast(friendlyErrorMessage(e), 'error');
+  }
+}
+
+/* ================= COMMENTAIRES : appui long -> Modifier/Supprimer =================
+   AVANT : une icone poubelle etait affichee en permanence a cote de chaque
+   commentaire (jugee peu professionnelle). Maintenant : rester appuye
+   ~500ms sur SON PROPRE commentaire ouvre un petit menu (Modifier /
+   Supprimer), exactement comme sur Instagram/WhatsApp -- meme principe que
+   la selection longue deja utilisee sur les notifications de cette appli. */
+let commentLongPressTimer = null;
+let commentLongPressFired = false;
+let commentPressStartX = 0;
+let commentPressStartY = 0;
+const COMMENT_MOVE_THRESHOLD = 12; // px : en dessous, on considere que c'est un appui immobile
+let commentListenersBound = false;
+
+function bindCommentLongPress() {
+  if (commentListenersBound) return;
+  commentListenersBound = true;
+
+  // Delegation sur "document" (et non un conteneur precis) car l'id de la
+  // liste change selon la publication ouverte -- ainsi ca fonctionne pour
+  // n'importe quelle fiche commentaires, sans devoir re-attacher a chaque
+  // rechargement de loadShopComments().
+  document.addEventListener('pointerdown', (e) => {
+    const row = e.target.closest('.shop-comment.own-comment');
+    if (!row || row.classList.contains('editing-comment')) return;
+    commentPressStartX = e.clientX;
+    commentPressStartY = e.clientY;
+    startCommentLongPress(row);
+  });
+  document.addEventListener('pointermove', (e) => {
+    const dx = Math.abs(e.clientX - commentPressStartX);
+    const dy = Math.abs(e.clientY - commentPressStartY);
+    if (dx > COMMENT_MOVE_THRESHOLD || dy > COMMENT_MOVE_THRESHOLD) cancelCommentLongPress();
+  });
+  ['pointerup', 'pointerleave', 'pointercancel'].forEach((evt) => {
+    document.addEventListener(evt, () => cancelCommentLongPress());
+  });
+
+  // Repli tactile natif (memes raisons que pour les notifications : plus
+  // fiable que Pointer Events sur certaines versions Android/WebView). Un
+  // petit deplacement du doigt reste tolere pour ne pas annuler l'appui
+  // long au moindre tremblement.
+  document.addEventListener('touchstart', (e) => {
+    const row = e.target.closest('.shop-comment.own-comment');
+    if (!row || row.classList.contains('editing-comment')) return;
+    const t = e.touches[0];
+    commentPressStartX = t.clientX;
+    commentPressStartY = t.clientY;
+    startCommentLongPress(row);
+  }, { passive: true });
+  document.addEventListener('touchmove', (e) => {
+    const t = e.touches[0];
+    if (!t) return;
+    const dx = Math.abs(t.clientX - commentPressStartX);
+    const dy = Math.abs(t.clientY - commentPressStartY);
+    if (dx > COMMENT_MOVE_THRESHOLD || dy > COMMENT_MOVE_THRESHOLD) cancelCommentLongPress();
+  }, { passive: true });
+  ['touchend', 'touchcancel'].forEach((evt) => {
+    document.addEventListener(evt, () => cancelCommentLongPress(), { passive: true });
+  });
+}
+
+function startCommentLongPress(row) {
+  commentLongPressFired = false;
+  clearTimeout(commentLongPressTimer);
+  commentLongPressTimer = setTimeout(() => {
+    commentLongPressFired = true;
+    if (navigator.vibrate) { try { navigator.vibrate(25); } catch (e) { /* pas grave */ } }
+    openCommentOptionsMenu(row.dataset.pubId, row.dataset.commentId);
+  }, 500);
+}
+
+function cancelCommentLongPress() {
+  clearTimeout(commentLongPressTimer);
+}
+
+function openCommentOptionsMenu(pubId, commentId) {
+  const overlay = document.getElementById('comment-options-overlay');
+  const menu = document.getElementById('comment-options-menu');
+  if (!overlay || !menu) return;
+  menu.innerHTML = `
+    <button class="action-sheet-btn" onclick="commentOptionsEdit('${pubId}','${commentId}')">${ICON_EDIT} Modifier</button>
+    <button class="action-sheet-btn action-sheet-btn-danger" onclick="commentOptionsDelete('${pubId}','${commentId}')">${ICON_TRASH} Supprimer</button>
+    <button class="action-sheet-btn action-sheet-cancel" onclick="closeCommentOptionsMenu()">Annuler</button>
+  `;
+  overlay.classList.remove('hidden');
+}
+
+function closeCommentOptionsMenu() {
+  document.getElementById('comment-options-overlay')?.classList.add('hidden');
+}
+
+function commentOptionsDelete(pubId, commentId) {
+  closeCommentOptionsMenu();
+  deleteShopComment(pubId, commentId);
+}
+
+function commentOptionsEdit(pubId, commentId) {
+  closeCommentOptionsMenu();
+  startEditShopComment(pubId, commentId);
+}
+
+// Remplace la ligne du commentaire par un champ modifiable, directement en
+// place (pas de popup separee) -- plus rapide et plus clair pour la personne.
+function startEditShopComment(pubId, commentId) {
+  const rowEl = document.querySelector(`.shop-comment[data-comment-id="${commentId}"]`);
+  const textEl = document.getElementById(`comment-text-${commentId}`);
+  if (!rowEl || !textEl) return;
+  const currentText = textEl.textContent || '';
+  rowEl.classList.add('editing-comment');
+  rowEl.innerHTML = `
+    <div class="comment-edit-row">
+      <input type="text" class="text-input" id="comment-edit-input-${commentId}" value="${escapeHtml(currentText)}" maxlength="500">
+      <button class="btn btn-primary btn-sm" aria-label="Enregistrer" onclick="saveEditShopComment('${pubId}','${commentId}')">${ICON_CHECK}</button>
+      <button class="btn btn-outline btn-sm" aria-label="Annuler" onclick="loadShopComments('${pubId}')">${ICON_CLOSE}</button>
+    </div>
+  `;
+  const input = document.getElementById(`comment-edit-input-${commentId}`);
+  if (input) {
+    input.focus();
+    input.setSelectionRange(input.value.length, input.value.length);
+  }
+}
+
+async function saveEditShopComment(pubId, commentId) {
+  const input = document.getElementById(`comment-edit-input-${commentId}`);
+  if (!input) return;
+  const newText = input.value.trim();
+  if (!newText) { showToast('Le commentaire ne peut pas être vide.', 'error'); return; }
+  if (newText.length > 500) { showToast('Commentaire trop long (500 caractères maximum).', 'error'); return; }
+  input.disabled = true;
+  try {
+    await db.collection('publication_comments').doc(commentId).update({
+      text: newText,
+      edited: true,
+      editedAt: new Date().toISOString()
+    });
+    showToast('Commentaire modifié', 'success');
+    loadShopComments(pubId);
+  } catch (e) {
+    showToast(friendlyErrorMessage(e), 'error');
+    input.disabled = false;
   }
 }
 

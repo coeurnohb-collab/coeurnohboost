@@ -784,6 +784,8 @@ a{text-decoration:none;color:inherit}
 .post-card-header{display:flex;align-items:center;gap:10px;padding:12px 14px}
 .post-delete-btn{margin-left:auto;background:none;border:none;font-size:1rem;opacity:0.45;cursor:pointer;padding:6px;min-width:40px;min-height:40px}
 .post-delete-btn:hover{opacity:1}
+.post-more-btn{margin-left:auto;background:none;border:none;opacity:0.55;cursor:pointer;padding:6px;min-width:40px;min-height:40px;display:flex;align-items:center;justify-content:center;color:var(--ink);border-radius:50%}
+.post-more-btn:hover{opacity:1;background:var(--cream)}
 .post-avatar{
   width:38px;height:38px;border-radius:50%;background:var(--green);color:#fff;
   display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1rem;flex:0 0 auto;
@@ -826,3 +828,54 @@ a{text-decoration:none;color:inherit}
   border:none;border-radius:50%;width:40px;height:40px;font-size:1.4rem;cursor:pointer;z-index:2;
 }
 .media-viewer-download{position:absolute;bottom:30px;left:50%;transform:translateX(-50%)}
+
+/* ================= MENU OPTIONS PUBLICATION (3 points, façon Facebook) =================
+   Feuille qui remonte du bas de l'ecran (comme sur Facebook/Instagram/iOS),
+   avec Modifier / Telecharger / Supprimer -- remplace les anciens boutons
+   crayon + poubelle affiches en permanence sur chaque publication. */
+.action-sheet-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:700;
+  display:flex;align-items:flex-end;justify-content:center;padding:0;
+}
+.action-sheet{
+  background:var(--white);width:100%;max-width:480px;border-radius:18px 18px 0 0;
+  padding:8px 0 calc(8px + env(safe-area-inset-bottom, 0px));
+  animation: actionSheetUp 0.18s ease;
+  box-shadow:0 -4px 24px rgba(0,0,0,0.18);
+}
+@keyframes actionSheetUp{
+  from{ transform:translateY(100%); }
+  to{ transform:translateY(0); }
+}
+.action-sheet-btn{
+  width:100%;display:flex;align-items:center;gap:12px;background:none;border:none;
+  padding:15px 20px;font-size:0.95rem;font-weight:600;color:var(--ink);cursor:pointer;text-align:left;
+}
+.action-sheet-btn:not(:last-child){border-bottom:1px solid var(--line)}
+.action-sheet-btn:active{background:var(--cream)}
+.action-sheet-btn-danger{color:var(--red)}
+.action-sheet-cancel{justify-content:center;font-weight:700;color:var(--muted);margin-top:6px}
+
+/* ================= COMMENTAIRES : appui long pour Modifier/Supprimer =================
+   AVANT : une icone poubelle toujours visible a cote de chaque commentaire
+   (peu professionnel). Maintenant : un appui d'environ 500ms sur SON PROPRE
+   commentaire fait apparaitre un petit menu (Modifier / Supprimer), comme
+   sur Instagram/WhatsApp -- exactement le meme principe que la selection
+   longue deja utilisee sur les notifications. */
+.shop-comment{position:relative;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+.shop-comment.own-comment{cursor:pointer}
+.shop-comment .shop-comment-edited{flex:0 0 auto;color:var(--muted);font-size:0.72rem;margin-left:4px}
+.comment-menu-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:800;
+  display:flex;align-items:flex-end;justify-content:center;
+}
+.comment-menu{
+  background:var(--white);width:100%;max-width:480px;border-radius:18px 18px 0 0;
+  padding:8px 0 calc(8px + env(safe-area-inset-bottom, 0px));
+  animation: actionSheetUp 0.18s ease;
+  box-shadow:0 -4px 24px rgba(0,0,0,0.18);
+}
+.comment-edit-row{display:flex;gap:8px;align-items:center;padding:4px 0;flex:1;width:100%}
+.comment-edit-row .text-input{flex:1}
+.comment-edit-row button{flex:0 0 auto}
+

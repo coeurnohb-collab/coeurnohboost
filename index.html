@@ -874,6 +874,22 @@
   <button class="btn btn-primary media-viewer-download" id="media-viewer-download-btn">⬇️ Télécharger</button>
 </div>
 
+<!-- ================= MENU OPTIONS PUBLICATION (3 points, façon Facebook) =================
+     Ouvert par openPostOptionsMenu() : remplace les anciens boutons crayon +
+     poubelle affichés en permanence. Contenu (Modifier/Télécharger/Supprimer)
+     généré dynamiquement dans script.js. -->
+<div class="action-sheet-overlay hidden" id="post-options-overlay" onclick="if(event.target===this) closePostOptionsMenu()">
+  <div class="action-sheet" id="post-options-sheet"></div>
+</div>
+
+<!-- ================= MENU OPTIONS COMMENTAIRE (appui long) =================
+     Ouvert par un appui long (~500ms) sur son propre commentaire : propose
+     Modifier / Supprimer, à la place de l'icône poubelle affichée en
+     permanence auparavant (jugée peu professionnelle). -->
+<div class="comment-menu-overlay hidden" id="comment-options-overlay" onclick="if(event.target===this) closeCommentOptionsMenu()">
+  <div class="comment-menu" id="comment-options-menu"></div>
+</div>
+
 <!-- ================= FICHE PUBLICATION PLEIN ECRAN (style Facebook) =================
      Ouverte par openPostDetail() : c'est ici, et seulement ici, que les
      commentaires sont visibles (tap sur une photo/video ou sur le nombre
