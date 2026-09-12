@@ -775,10 +775,15 @@ async function diagnoseUserNotifs(uid) {
 
 // Bascule le badge "vendeur verifie" (coche bleue) d'un compte. Ce badge
 // s'affiche desormais a cote de son nom partout ou ses publications
-// apparaissent (fil, boutique, fiche detaillee).
+// apparaissent (fil, boutique, fiche detaillee). Mis a jour aussi dans
+// "public_profiles" (petit profil public lu par l'app cote client pour
+// garder nom/photo/certification a jour partout, meme sur les anciennes
+// publications) -- sinon le badge resterait incoherent avec ce nouveau
+// systeme tant que le vendeur ne retouche pas lui-meme son compte.
 async function toggleUserVerified(uid, verified) {
   try {
     await db.collection('users').doc(uid).update({ verified });
+    await db.collection('public_profiles').doc(uid).set({ verified }, { merge: true });
     loadUsersAdmin();
   } catch (e) {
     alert('Erreur : ' + e.message);

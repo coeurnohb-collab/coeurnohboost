@@ -26,8 +26,8 @@ messaging.onBackgroundMessage((payload) => {
   const title = (payload.notification && payload.notification.title) || 'Coeurnoh Universe';
   const options = {
     body: (payload.notification && payload.notification.body) || '',
-    icon: '/icon-192.png',
-    badge: '/icon-192.png',
+    icon: '/icon-192-v2.png',
+    badge: '/icon-192-v2.png',
     vibrate: [200, 100, 200],
     tag: (payload.data && payload.data.tag) || undefined,
     renotify: true,
@@ -70,7 +70,7 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
-const CACHE_NAME = 'coeurnohboost-v4';
+const CACHE_NAME = 'coeurnohboost-v5';
 const APP_SHELL = [
   '/',
   '/index.html',
@@ -78,8 +78,8 @@ const APP_SHELL = [
   '/script.js',
   '/catalog-data.js',
   '/translations.js',
-  '/icon-192.png',
-  '/icon-512.png'
+  '/icon-192-v2.png',
+  '/icon-512-v2.png'
 ];
 
 self.addEventListener('install', (event) => {

@@ -1558,13 +1558,15 @@ async function submitAuth() {
   try {
     if (authMode === 'register') {
       const cred = await auth.createUserWithEmailAndPassword(email, password);
+      const finalName = name || email.split('@')[0];
       await db.collection('users').doc(cred.user.uid).set({
-        name: name || email.split('@')[0],
+        name: finalName,
         email,
         balance: 0,
         referredBy: getPendingReferrerUid(),
         createdAt: new Date().toISOString()
       });
+      syncPublicProfile(cred.user.uid, { name: finalName, photoURL: null, verified: false });
     } else {
       await auth.signInWithEmailAndPassword(email, password);
     }
@@ -1591,13 +1593,16 @@ async function signInWithGoogle() {
     const ref = db.collection('users').doc(user.uid);
     const doc = await ref.get();
     if (!doc.exists) {
+      const finalName = user.displayName || user.email.split('@')[0];
       await ref.set({
-        name: user.displayName || user.email.split('@')[0],
+        name: finalName,
         email: user.email,
+        photoURL: user.photoURL || null,
         balance: 0,
         referredBy: getPendingReferrerUid(),
         createdAt: new Date().toISOString()
       });
+      syncPublicProfile(user.uid, { name: finalName, photoURL: user.photoURL || null, verified: false });
     }
     closeAuth();
   } catch (e) {
@@ -1683,6 +1688,12 @@ async function saveAccountPhoto() {
     });
     await db.collection('users').doc(currentUser.uid).update({ photoURL: url });
     currentUser.photoURL = url;
+    // Fiabilise l'affichage partout (fil, profil vu par les autres...) --
+    // voir le commentaire au-dessus de syncPublicProfile() plus haut dans
+    // ce fichier pour le pourquoi (AVANT, seules les NOUVELLES publications
+    // recevaient la photo a jour, les anciennes gardaient l'ancienne pour
+    // toujours).
+    syncPublicProfile(currentUser.uid, { photoURL: url });
     pendingAccountPhotoFile = null;
     document.getElementById('account-photo-file').value = '';
     document.getElementById('account-photo-file-text').textContent = 'Choisir une photo';
@@ -1729,6 +1740,7 @@ async function saveAccountName() {
   try {
     await db.collection('users').doc(currentUser.uid).update({ name });
     currentUser.name = name;
+    syncPublicProfile(currentUser.uid, { name });
     document.getElementById('dash-name').textContent = name;
     document.getElementById('profile-name').textContent = name;
     showToast('Nom mis à jour !', 'success');
@@ -2637,6 +2649,15 @@ async function loadHomeFeed(append = false) {
       // (orderBy createdAt desc) suffit, aucun reclassement supplementaire.
     }
 
+    // Corrige nom/photo/certification avec la version la plus recente
+    // connue de chaque vendeur (voir le commentaire pres de
+    // enrichItemsWithPublicProfiles plus haut dans ce fichier).
+    try {
+      await enrichItemsWithPublicProfiles(items);
+    } catch (e) {
+      console.log('[public_profiles] non bloquant :', e.message);
+    }
+
     const html = items.map(item => renderPostCard(item, likedMap[item.id], savedMap[item.id])).join('');
     if (append) {
       feedEl.insertAdjacentHTML('beforeend', html);
@@ -2705,7 +2726,7 @@ function renderPostCard(item, isLiked, isSaved, hideFollowBtn) {
     <div class="post-actions">
       <button class="shop-action-btn ${isLiked ? 'liked' : ''}" data-like-btn="${item.id}" onclick="toggleShopLike('${item.id}')">
         <span data-like-icon="${item.id}">${isLiked ? ICON_HEART_FILLED : ICON_HEART_OUTLINE}</span>
-        <span data-like-count="${item.id}">${item.likesCount || 0}</span>
+        <span data-like-count="${item.id}">${safeCount(item.likesCount)}</span>
       </button>
       <button class="shop-action-btn" onclick="openPostDetail('${item.id}')">
         ${ICON_COMMENT} <span data-comment-count="${item.id}">${item.commentsCount || 0}</span>
@@ -2825,7 +2846,7 @@ function watchPostCounts(pubId) {
       if (!doc.exists) return;
       const d = doc.data();
       document.querySelectorAll(`[data-like-count="${pubId}"]`).forEach(el => {
-        el.textContent = d.likesCount || 0;
+        el.textContent = safeCount(d.likesCount);
       });
       document.querySelectorAll(`[data-comment-count="${pubId}"]`).forEach(el => {
         el.textContent = d.commentsCount || 0;
@@ -3429,7 +3450,7 @@ async function loadMyPublications() {
         <img src="${escapeHtml(d.imageUrl)}" alt="" class="seller-pub-img" loading="lazy">
         <div class="seller-pub-info">
           <strong>${typeLabel} ${escapeHtml(d.title)}</strong>
-          <div class="muted small">${(d.price || 0).toFixed(2)}$ · ${ICON_HEART_FILLED} ${d.likesCount || 0}</div>
+          <div class="muted small">${(d.price || 0).toFixed(2)}$ · ${ICON_HEART_FILLED} ${safeCount(d.likesCount)}</div>
         </div>
         <button class="shop-action-btn" onclick="openEditPubForm('${doc.id}','${d.type}','${escapeForJs(d.title || '')}','${escapeForJs(d.description || '')}',${d.price || 0})" aria-label="Modifier cette publication">${ICON_EDIT}</button>
         <button class="shop-action-btn" onclick="deleteMyPublication('${doc.id}')" aria-label="Supprimer cette publication">${ICON_TRASH}</button>
@@ -3607,6 +3628,12 @@ async function loadShopFeed() {
       }
     }
 
+    try {
+      await enrichItemsWithPublicProfiles(shopFeedItems);
+    } catch (e) {
+      console.log('[public_profiles] non bloquant :', e.message);
+    }
+
     renderShopFeed();
   } catch (e) {
     feedEl.innerHTML = `<p class="muted"><span data-i18n="shop_load_error_prefix">Erreur de chargement :</span> ${e.message}</p>`;
@@ -3724,7 +3751,7 @@ function renderShopCard(item, isLiked, isPurchased) {
       <div class="shop-card-actions">
         <button class="shop-action-btn ${isLiked ? 'liked' : ''}" data-like-btn="${item.id}" onclick="toggleShopLike('${item.id}')">
           <span data-like-icon="${item.id}">${isLiked ? ICON_HEART_FILLED : ICON_HEART_OUTLINE}</span>
-          <span data-like-count="${item.id}">${item.likesCount || 0}</span>
+          <span data-like-count="${item.id}">${safeCount(item.likesCount)}</span>
         </button>
         <button class="shop-action-btn" onclick="openPostDetail('${item.id}')">
           ${ICON_COMMENT} <span data-comment-count="${item.id}">${item.commentsCount || 0}</span>
@@ -3781,6 +3808,70 @@ const ICON_GRID3 = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" 
 // Affiche un nombre de façon compacte au-dela de 10 000 (ex: 39500 -> "39,5 K"),
 // et avec separateur de milliers en dessous (ex: 6617 -> "6 617") -- meme
 // convention d'affichage que TikTok/Instagram pour les compteurs de profil.
+// Empeche tout compteur (likes...) de s'afficher negatif -- une donnee deja
+// corrompue en base (ex: un ancien -1 laisse par un bug d'avant cette
+// session) reste visible telle quelle sinon, puisque `-1 || 0` vaut -1 en
+// JS (un nombre negatif est "truthy"). Purement un filet d'affichage : ne
+// corrige pas la valeur stockee, juste ce qui est montre a l'ecran.
+function safeCount(n) {
+  return Math.max(0, n || 0);
+}
+
+/* ================= PROFIL PUBLIC PARTAGE (fiabilise nom/photo/certif) =================
+   AVANT : le nom/la photo/le badge certifie affiches pour un vendeur etaient
+   figes au moment ou CHAQUE publication avait ete creee (champs sellerName/
+   sellerPhotoURL/sellerVerified copies une fois pour toutes dans le document
+   "publications") -- si la personne changeait sa photo apres coup, toutes
+   ses anciennes publications (et son propre profil vu par les autres)
+   continuaient a montrer l'ancienne photo pour toujours. "users" restant
+   prive (regles Firestore), on cree "public_profiles" : un tout petit
+   document PUBLIC en lecture (juste nom/photo/certification), mis a jour a
+   chaque modification reelle du compte. Les vieilles publications gardent
+   leurs champs sellerXxx en repli (retro-compatible, rien ne casse pour les
+   comptes qui n'ont pas encore retouche leur profil depuis cette mise a jour).
+*/
+const publicProfileCache = new Map(); // uid -> {name,photoURL,verified} | null
+
+async function syncPublicProfile(uid, fields) {
+  try {
+    await db.collection('public_profiles').doc(uid).set(fields, { merge: true });
+    const cached = publicProfileCache.get(uid) || {};
+    publicProfileCache.set(uid, { ...cached, ...fields });
+  } catch (e) {
+    console.log('[public_profiles] non bloquant :', e.message);
+  }
+}
+
+async function fetchPublicProfile(uid) {
+  if (!uid) return null;
+  if (publicProfileCache.has(uid)) return publicProfileCache.get(uid);
+  try {
+    const doc = await db.collection('public_profiles').doc(uid).get();
+    const data = doc.exists ? doc.data() : null;
+    publicProfileCache.set(uid, data);
+    return data;
+  } catch (e) {
+    return null;
+  }
+}
+
+// A appeler juste apres avoir recupere une liste d'items (publications) et
+// AVANT de les afficher : corrige sellerName/sellerPhotoURL/sellerVerified
+// avec la version la plus recente connue de chaque vendeur, quand elle
+// existe. Une seule lecture par vendeur unique (mise en cache ensuite).
+async function enrichItemsWithPublicProfiles(items) {
+  const uids = [...new Set(items.map(i => i.sellerUid).filter(Boolean))];
+  await Promise.all(uids.map(fetchPublicProfile));
+  items.forEach(item => {
+    const p = publicProfileCache.get(item.sellerUid);
+    if (p) {
+      if (p.photoURL) item.sellerPhotoURL = p.photoURL;
+      if (p.name) item.sellerName = p.name;
+      if (typeof p.verified === 'boolean') item.sellerVerified = p.verified;
+    }
+  });
+}
+
 function formatCompactCount(n) {
   n = n || 0;
   if (n < 10000) return n.toLocaleString('fr-FR');
@@ -4084,13 +4175,23 @@ async function openProfileModal(sellerUid, sellerName, sellerVerified) {
     const followerCount = followersSnap.size;
     const followingCount = followingSnap.size;
 
-    // La photo de profil n'est pas lisible directement depuis le document
-    // "users" d'un autre compte (regles Firestore : on ne peut lire que son
-    // propre profil), donc on la deduit de sa publication la plus recente
-    // (ou celle du compte connecte si on regarde son propre profil).
-    const profilePhotoURL = isOwn
-      ? (currentUser.photoURL || null)
-      : (posts[0] && posts[0].sellerPhotoURL) || null;
+    // Le document "users" d'un autre compte n'est pas lisible directement
+    // (regles Firestore : on ne peut lire que son propre profil) -- on
+    // utilise donc "public_profiles" (petit profil PUBLIC, tenu a jour a
+    // chaque changement reel de nom/photo/certification -- voir le
+    // commentaire pres de sa definition plus haut dans ce fichier), avec un
+    // repli sur l'ancienne methode (photo de la publication la plus recente)
+    // pour les comptes qui n'ont pas encore ce profil public (pas encore
+    // retouche leur compte depuis cette mise a jour).
+    let profilePhotoURL, displayName = sellerName, displayVerified = sellerVerified;
+    if (isOwn) {
+      profilePhotoURL = currentUser.photoURL || null;
+    } else {
+      const publicProfile = await fetchPublicProfile(sellerUid);
+      profilePhotoURL = (publicProfile && publicProfile.photoURL) || (posts[0] && posts[0].sellerPhotoURL) || null;
+      if (publicProfile && publicProfile.name) displayName = publicProfile.name;
+      if (publicProfile && typeof publicProfile.verified === 'boolean') displayVerified = publicProfile.verified;
+    }
 
     // Statut en ligne -- isole dans son propre try/catch (comme les autres
     // requetes secondaires de ce fichier) : si ca echoue, le profil s'affiche
@@ -4113,14 +4214,14 @@ async function openProfileModal(sellerUid, sellerName, sellerVerified) {
 
     const followBtnHtml = !isOwn ? `
       <button class="follow-btn ${isFollowing ? 'following' : ''}" data-follow-btn="${sellerUid}"
-        onclick="toggleFollow('${sellerUid}','${escapeForJs(sellerName)}')" style="margin:14px 0 0 0">
+        onclick="toggleFollow('${sellerUid}','${escapeForJs(displayName)}')" style="margin:14px 0 0 0">
         <span data-follow-label="${sellerUid}">${isFollowing ? 'Abonné' : '+ Suivre'}</span>
       </button>` : '';
 
     const blockLinkHtml = !isOwn ? `
       <p style="margin-top:8px">
         <span style="color:var(--muted);font-size:0.82rem;text-decoration:underline;cursor:pointer" data-block-label="${sellerUid}"
-          onclick="toggleBlockAccount('${sellerUid}','${escapeForJs(sellerName)}')">
+          onclick="toggleBlockAccount('${sellerUid}','${escapeForJs(displayName)}')">
           ${isBlocked ? 'Débloquer ce compte' : 'Bloquer ce compte'}
         </span>
       </p>` : '';
@@ -4132,7 +4233,7 @@ async function openProfileModal(sellerUid, sellerName, sellerVerified) {
     // telephone a partir de ce qu'on a deja recupere -- aucune requete
     // supplementaire). Sur les comptes avec plus de 50 publications, seules
     // les 50 plus recentes sont comptees (meme limite que la grille elle-meme).
-    const totalLikes = posts.reduce((sum, p) => sum + (p.likesCount || 0), 0);
+    const totalLikes = posts.reduce((sum, p) => sum + safeCount(p.likesCount), 0);
 
     // Onglet "Favoris" -- prive par nature (regles Firestore : "saved_items"
     // n'est lisible que par son propre proprietaire), donc affiche UNIQUEMENT
@@ -4151,8 +4252,8 @@ async function openProfileModal(sellerUid, sellerName, sellerVerified) {
 
     body.innerHTML = `
       <div style="text-align:center;padding:10px 0 18px">
-        ${renderAvatarHtml(sellerName, profilePhotoURL, 88)}
-        <h3 style="margin:12px 0 2px">${escapeHtml(sellerName || 'Coeurnoh Universe')}${sellerVerified ? ICON_VERIFIED_BADGE : ''}</h3>
+        ${renderAvatarHtml(displayName, profilePhotoURL, 88)}
+        <h3 style="margin:12px 0 2px">${escapeHtml(displayName || 'Coeurnoh Universe')}${displayVerified ? ICON_VERIFIED_BADGE : ''}</h3>
         ${onlineStatusHtml}
         <div class="profile-stats-row">
           <div class="profile-stat"><strong>${formatCompactCount(followingCount)}</strong><span>Abonnement${followingCount > 1 ? 's' : ''}</span></div>
@@ -4247,7 +4348,7 @@ function renderProfileGridItem(p) {
     : (safeUrl ? `<img src="${safeUrl}" alt="" class="profile-grid-media" loading="lazy" onerror="mediaLoadError(this)">` : `<div class="profile-grid-text">${escapeHtml((p.description || '').slice(0, 60))}</div>`);
   return `<div class="profile-grid-item" onclick="openPostDetail('${p.id}')">
     ${mediaHtml}
-    <span class="profile-grid-stats">${ICON_HEART_FILLED}<span data-like-count="${p.id}">${p.likesCount || 0}</span></span>
+    <span class="profile-grid-stats">${ICON_HEART_FILLED}<span data-like-count="${p.id}">${safeCount(p.likesCount)}</span></span>
   </div>`;
 }
 
@@ -5782,6 +5883,12 @@ async function loadSavedFeed() {
     if (items.length === 0) {
       feedEl.innerHTML = '<p class="muted small">Aucun contenu enregistré pour l\'instant.</p>';
       return;
+    }
+
+    try {
+      await enrichItemsWithPublicProfiles(items);
+    } catch (e) {
+      console.log('[public_profiles] non bloquant :', e.message);
     }
 
     feedEl.innerHTML = items.map(item =>
@@ -10225,6 +10332,14 @@ async function openPostDetail(pubId) {
     if (!pubSnap.exists) return;
     const item = { id: pubId, ...pubSnap.data() };
 
+    // Corrige nom/photo/certification avec la version la plus recente
+    // connue du vendeur (voir enrichItemsWithPublicProfiles plus haut).
+    try {
+      await enrichItemsWithPublicProfiles([item]);
+    } catch (e) {
+      console.log('[public_profiles] non bloquant :', e.message);
+    }
+
     let isLiked = false;
     if (currentUser) {
       const likeDoc = await db.collection('publication_likes').doc(`${pubId}_${currentUser.uid}`).get();
@@ -10274,7 +10389,7 @@ async function openPostDetail(pubId) {
       <div class="post-actions">
         <button class="shop-action-btn ${isLiked ? 'liked' : ''}" data-like-btn="${item.id}" onclick="toggleShopLike('${item.id}')">
           <span data-like-icon="${item.id}">${isLiked ? ICON_HEART_FILLED : ICON_HEART_OUTLINE}</span>
-          <span data-like-count="${item.id}">${item.likesCount || 0}</span>
+          <span data-like-count="${item.id}">${safeCount(item.likesCount)}</span>
         </button>
         <span class="shop-action-btn">${ICON_COMMENT} <span data-comment-count="${item.id}">${item.commentsCount || 0}</span></span>
       </div>

@@ -871,6 +871,28 @@ a{text-decoration:none;color:inherit}
    leur propre padding interne, donc rien a ajouter pour elles. */
 .post-detail-modal-inner{max-width:480px;padding:20px 0}
 .post-detail-modal-inner .modal-close{right:14px;top:14px}
+
+/* ================= PROFIL = VRAIE PAGE PLEIN ECRAN =================
+   AVANT : le profil s'ouvrait dans une petite fenetre au milieu de l'ecran
+   (fond assombri visible tout autour, croix "×" pour fermer). Demande :
+   que ça se comporte comme une vraie page de profil (TikTok/Instagram),
+   pas une demi-fenetre. #profile-modal reutilise les memes classes que les
+   autres fenetres modales (.modal-overlay/.post-detail-modal-inner) --
+   donc tout est cible UNIQUEMENT via #profile-modal pour ne rien changer
+   ailleurs (connexion, fiche publication, etc. restent des fenetres). */
+#profile-modal{
+  background:var(--white);padding:0;align-items:stretch;justify-content:stretch;
+}
+#profile-modal .post-detail-modal-inner{
+  max-width:600px;width:100%;height:100%;max-height:none;margin:0 auto;padding:54px 0 30px;
+  border-radius:0;position:relative;overflow-y:auto;-webkit-overflow-scrolling:touch;
+}
+.profile-page-back{
+  position:absolute;top:10px;left:10px;background:none;border:none;color:var(--ink);
+  cursor:pointer;width:40px;height:40px;display:flex;align-items:center;justify-content:center;
+  border-radius:50%;z-index:2;
+}
+.profile-page-back:active{background:var(--cream)}
 .post-detail-modal-inner #post-detail-body > .post-detail-title,
 .post-detail-modal-inner #post-detail-body > .shop-comments,
 .post-detail-modal-inner #post-detail-body > .btn,

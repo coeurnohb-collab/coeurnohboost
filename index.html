@@ -25,12 +25,12 @@
 <meta name="twitter:title" content="Coeurnoh Universe — Réseaux sociaux, boutique & services multiples">
 <meta name="twitter:description" content="Croissance réseaux sociaux, boutique, publications et services multiples — Paiement Mobile Money, crypto et carte, partout en Afrique francophone.">
 
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🚀%3C/text%3E%3C/svg%3E">
+<link rel="icon" type="image/png" href="/icon-192-v2.png">
 
 <!-- PWA / Installation en application (Android, Google Play via TWA) -->
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#0e0a0c">
-<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/icon-192-v2.png">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1592,7 +1592,12 @@
 
 <div class="modal-overlay hidden" id="profile-modal">
   <div class="modal post-detail-modal-inner">
-    <button class="modal-close" onclick="closeProfileModal()" aria-label="Fermer">×</button>
+    <!-- Le profil est une vraie page plein ecran (comme TikTok/Instagram),
+         pas une petite fenetre : fleche de retour en haut a gauche au lieu
+         de la croix "×", meme dessin que la fleche de la visionneuse. -->
+    <button class="profile-page-back" onclick="closeProfileModal()" aria-label="Retour">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+    </button>
     <div id="profile-modal-body"></div>
   </div>
 </div>
