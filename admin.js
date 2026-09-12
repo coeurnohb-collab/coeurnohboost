@@ -25,6 +25,131 @@ function escapeHtml(str) {
     .replace(/'/g, '&#39;');
 }
 
+// Convertit un lien Google Drive "partage" en lien d'affichage direct --
+// utile pour les anciennes publications qui utilisaient encore le systeme
+// "colle un lien" avant le passage a l'upload direct (Cloudinary).
+function normalizeMediaUrl(url) {
+  if (!url) return url;
+  const m = url.match(/drive\.google\.com\/file\/d\/([^/]+)/);
+  if (m) return `https://drive.google.com/uc?export=view&id=${m[1]}`;
+  return url;
+}
+
+function mediaLoadError(el) {
+  if (el.dataset.errorHandled) return;
+  el.dataset.errorHandled = '1';
+  el.style.display = 'none';
+}
+
+/* ================= UPLOAD DE FICHIER DIRECT (Cloudinary) =================
+   Meme systeme que sur le site public (script.js) : envoie un vrai fichier
+   choisi sur l'ordinateur/telephone de l'admin (photo, video, PDF) vers
+   Cloudinary, avec suivi de progression, et renvoie l'URL a stocker dans
+   Firestore. Remplace le systeme "colle un lien externe" (imgur/Google
+   Drive) qui obligeait a passer par un site tiers avant de publier. */
+const CLOUDINARY_CLOUD_NAME = "aqe4fxh4";
+const CLOUDINARY_UPLOAD_PRESET = "coeurnoh_universe";
+
+function uploadFileToStorage(file, folder, options = {}) {
+  const { onProgress, maxSizeMB = 100 } = options;
+  return new Promise((resolve, reject) => {
+    if (!file) { reject(new Error("Aucun fichier sélectionné.")); return; }
+    if (file.size > maxSizeMB * 1024 * 1024) {
+      reject(new Error(`Fichier trop volumineux (max ${maxSizeMB} Mo).`));
+      return;
+    }
+    if (!CLOUDINARY_CLOUD_NAME || CLOUDINARY_CLOUD_NAME.startsWith('COLLE_') ||
+        !CLOUDINARY_UPLOAD_PRESET || CLOUDINARY_UPLOAD_PRESET.startsWith('COLLE_')) {
+      reject(new Error("L'envoi de fichiers n'est pas encore configuré (Cloudinary manquant)."));
+      return;
+    }
+
+    let resourceType = 'raw';
+    if (file.type.startsWith('image/')) resourceType = 'image';
+    else if (file.type.startsWith('video/')) resourceType = 'video';
+
+    const endpoint = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${resourceType}/upload`;
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+    formData.append('folder', folder);
+
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', endpoint, true);
+    xhr.upload.onprogress = (e) => {
+      if (onProgress && e.lengthComputable) {
+        onProgress(Math.round((e.loaded / e.total) * 100));
+      }
+    };
+    xhr.onload = () => {
+      let data;
+      try { data = JSON.parse(xhr.responseText); } catch (e) { data = null; }
+      if (xhr.status >= 200 && xhr.status < 300 && data && data.secure_url) {
+        resolve({ url: data.secure_url, path: data.public_id });
+      } else {
+        const msg = (data && data.error && data.error.message) || "Échec de l'envoi du fichier.";
+        reject(new Error(msg));
+      }
+    };
+    xhr.onerror = () => reject(new Error("Erreur réseau pendant l'envoi du fichier."));
+    xhr.send(formData);
+  });
+}
+
+function setUploadProgress(prefix, pct) {
+  const wrap = document.getElementById(`${prefix}-progress-wrap`);
+  const fill = document.getElementById(`${prefix}-progress-fill`);
+  const label = document.getElementById(`${prefix}-progress-label`);
+  if (wrap) wrap.classList.remove('hidden');
+  if (fill) fill.style.width = `${pct}%`;
+  if (label) label.textContent = `${pct}%`;
+}
+
+/* ================= VISIONNEUSE PLEIN ECRAN (façon Facebook) =================
+   Meme presentation que sur le site public : flèche de retour bleue en
+   haut a gauche (pas d'emoji), fond noir, bouton telecharger. Utilisee
+   pour ouvrir en grand les photos/videos publiees, directement depuis
+   l'espace admin. */
+const ICON_BACK = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>`;
+const ICON_PLAY = `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20"/></svg>`;
+
+function openMediaViewer(url, type) {
+  const contentEl = document.getElementById('media-viewer-content');
+  if (!contentEl) return;
+  contentEl.innerHTML = type === 'video'
+    ? `<video src="${escapeHtml(url)}" controls autoplay class="media-viewer-media"></video>`
+    : `<img src="${escapeHtml(url)}" alt="" class="media-viewer-media" loading="lazy">`;
+  const backBtn = document.querySelector('.media-viewer-back');
+  if (backBtn && !backBtn.innerHTML) backBtn.innerHTML = ICON_BACK;
+  const downloadBtn = document.getElementById('media-viewer-download-btn');
+  if (downloadBtn) downloadBtn.onclick = () => downloadMedia(url, type);
+  document.getElementById('media-viewer').classList.remove('hidden');
+}
+
+function closeMediaViewer() {
+  const el = document.getElementById('media-viewer');
+  if (el) el.classList.add('hidden');
+  const contentEl = document.getElementById('media-viewer-content');
+  if (contentEl) contentEl.innerHTML = '';
+}
+
+async function downloadMedia(url, type) {
+  try {
+    const res = await fetch(url);
+    const blob = await res.blob();
+    const blobUrl = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = blobUrl;
+    a.download = `coeurnohboost-media.${type === 'video' ? 'mp4' : 'jpg'}`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(blobUrl);
+  } catch (e) {
+    window.open(url, '_blank');
+  }
+}
+
 let auth, db;
 try {
   firebase.initializeApp(firebaseConfig);
@@ -860,9 +985,34 @@ async function deleteServiceMapPlatform() {
 /* =========================================================
    BOUTIQUE — livres et produits (publications publiques)
    ========================================================= */
+let pendingShopImageFile = null;
+let pendingShopBookFile = null;
+
 function toggleShopFileField() {
   const type = document.getElementById('shop-type').value;
   document.getElementById('shop-file-field').classList.toggle('hidden', type !== 'book');
+}
+
+function handleShopImageFileChange(event) {
+  pendingShopImageFile = (event.target.files && event.target.files[0]) || null;
+  const text = document.getElementById('shop-image-file-text');
+  const label = document.getElementById('shop-image-file-label');
+  if (text) text.textContent = pendingShopImageFile ? `✅ ${pendingShopImageFile.name}` : 'Choisir une photo';
+  if (label) label.classList.toggle('has-file', !!pendingShopImageFile);
+  const previewEl = document.getElementById('shop-image-preview');
+  if (previewEl) {
+    previewEl.innerHTML = pendingShopImageFile
+      ? `<img src="${URL.createObjectURL(pendingShopImageFile)}" class="post-media-preview-media" alt="">`
+      : '';
+  }
+}
+
+function handleShopBookFileChange(event) {
+  pendingShopBookFile = (event.target.files && event.target.files[0]) || null;
+  const text = document.getElementById('shop-file-name');
+  const label = document.getElementById('shop-file-input-label');
+  if (text) text.textContent = pendingShopBookFile ? `✅ ${pendingShopBookFile.name}` : 'Choisir un PDF';
+  if (label) label.classList.toggle('has-file', !!pendingShopBookFile);
 }
 
 function showShopFormError(msg) {
@@ -880,8 +1030,6 @@ async function publishShopItem() {
   const description = document.getElementById('shop-description').value.trim();
   const price = parseFloat(document.getElementById('shop-price').value);
   const category = document.getElementById('shop-category').value;
-  const imageUrl = document.getElementById('shop-image').value.trim();
-  const fileUrl = document.getElementById('shop-file').value.trim();
   const discountPercent = parseInt(document.getElementById('shop-discount').value, 10) || 0;
   const discountDurationHours = parseInt(document.getElementById('shop-discount-duration').value, 10) || 0;
 
@@ -889,16 +1037,33 @@ async function publishShopItem() {
     showShopFormError("Merci de remplir le titre, la description et un prix valide.");
     return;
   }
-  if (!imageUrl || !imageUrl.startsWith('http')) {
-    showShopFormError("Merci de coller un lien de photo valide (commence par https://).");
+  if (!pendingShopImageFile) {
+    showShopFormError("Merci de choisir une photo pour cet article.");
     return;
   }
-  if (type === 'book' && (!fileUrl || !fileUrl.startsWith('http'))) {
-    showShopFormError("Merci de coller un lien valide vers le fichier PDF du livre.");
+  if (type === 'book' && !pendingShopBookFile) {
+    showShopFormError("Merci de choisir le fichier PDF du livre.");
     return;
   }
 
+  const submitBtn = document.getElementById('shop-submit-btn');
+  if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Publication en cours...'; }
+
   try {
+    const { url: imageUrl } = await uploadFileToStorage(pendingShopImageFile, 'boutique-images', {
+      maxSizeMB: 10,
+      onProgress: (pct) => setUploadProgress('shop-image', pct)
+    });
+
+    let fileUrl = null;
+    if (type === 'book') {
+      const uploaded = await uploadFileToStorage(pendingShopBookFile, 'boutique-livres', {
+        maxSizeMB: 50,
+        onProgress: (pct) => setUploadProgress('shop-file', pct)
+      });
+      fileUrl = uploaded.url;
+    }
+
     const newPubRef = await db.collection('publications').add({
       type,
       title,
@@ -907,7 +1072,7 @@ async function publishShopItem() {
       category,
       imageUrl,
       fileUrl: type === 'book' ? fileUrl : null,
-      sellerUid: "8BqWONj07hVZePHe2DrkHWYRjse2",
+      sellerUid: ADMIN_UID,
       sellerName: "Coeurnoh Universe",
       sellerVerified: true,
       sellerPhone: type === 'product' ? "243825001290" : null,
@@ -948,12 +1113,135 @@ async function publishShopItem() {
     document.getElementById('shop-title').value = '';
     document.getElementById('shop-description').value = '';
     document.getElementById('shop-price').value = '';
-    document.getElementById('shop-image').value = '';
-    document.getElementById('shop-file').value = '';
+    document.getElementById('shop-image-file').value = '';
+    document.getElementById('shop-file-input').value = '';
+    document.getElementById('shop-image-preview').innerHTML = '';
+    document.getElementById('shop-image-file-text').textContent = 'Choisir une photo';
+    document.getElementById('shop-image-file-label').classList.remove('has-file');
+    document.getElementById('shop-file-name').textContent = 'Choisir un PDF';
+    document.getElementById('shop-file-input-label').classList.remove('has-file');
+    document.getElementById('shop-image-progress-wrap').classList.add('hidden');
+    document.getElementById('shop-file-progress-wrap').classList.add('hidden');
+    pendingShopImageFile = null;
+    pendingShopBookFile = null;
 
     loadShopAdmin();
   } catch (e) {
     showShopFormError("Erreur lors de la publication : " + e.message);
+  } finally {
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Publier'; }
+  }
+}
+
+/* =========================================================
+   PUBLICATION PHOTO/VIDÉO (fil d'accueil, façon post social)
+   ========================================================= */
+let pendingAdminPostFile = null;
+
+function toggleAdminPostFileField() {
+  const type = document.getElementById('post-media-type').value;
+  const input = document.getElementById('post-media-file');
+  const labelText = document.getElementById('post-media-file-label-text');
+  const iconEl = document.querySelector('#post-media-file-label .file-picker-icon');
+  input.accept = type === 'video' ? 'video/*' : 'image/*';
+  if (labelText) labelText.textContent = type === 'video' ? 'Vidéo' : 'Photo';
+  if (iconEl) iconEl.textContent = type === 'video' ? '🎬' : '🖼️';
+  // Le fichier choisi ne correspond plus forcement au type selectionne :
+  // on le vide pour eviter d'envoyer une video comme photo (ou l'inverse).
+  pendingAdminPostFile = null;
+  input.value = '';
+  document.getElementById('post-media-file-text').textContent = 'Choisir un fichier';
+  document.getElementById('post-media-file-label').classList.remove('has-file');
+  document.getElementById('post-media-preview').innerHTML = '';
+}
+
+function handleAdminPostFileChange(event) {
+  pendingAdminPostFile = (event.target.files && event.target.files[0]) || null;
+  const text = document.getElementById('post-media-file-text');
+  const label = document.getElementById('post-media-file-label');
+  if (text) text.textContent = pendingAdminPostFile ? `✅ ${pendingAdminPostFile.name}` : 'Choisir un fichier';
+  if (label) label.classList.toggle('has-file', !!pendingAdminPostFile);
+
+  const previewEl = document.getElementById('post-media-preview');
+  const type = document.getElementById('post-media-type').value;
+  if (!pendingAdminPostFile) { previewEl.innerHTML = ''; return; }
+  const localUrl = URL.createObjectURL(pendingAdminPostFile);
+  previewEl.innerHTML = type === 'video'
+    ? `<video src="${localUrl}" class="post-media-preview-media" controls></video>`
+    : `<img src="${localUrl}" class="post-media-preview-media" alt="">`;
+}
+
+function showPostFormError(msg) {
+  const el = document.getElementById('post-form-error');
+  el.textContent = msg;
+  el.classList.remove('hidden');
+}
+
+async function submitAdminPost() {
+  const errEl = document.getElementById('post-form-error');
+  errEl.classList.add('hidden');
+
+  const mediaType = document.getElementById('post-media-type').value;
+  const caption = document.getElementById('post-caption').value.trim();
+
+  if (!pendingAdminPostFile) {
+    showPostFormError("Merci de choisir une photo ou une vidéo.");
+    return;
+  }
+
+  const submitBtn = document.getElementById('post-submit-btn');
+  if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Publication en cours...'; }
+
+  try {
+    const maxSizeMB = mediaType === 'video' ? 100 : 10;
+    const { url } = await uploadFileToStorage(pendingAdminPostFile, 'posts', {
+      maxSizeMB,
+      onProgress: (pct) => setUploadProgress('post-media', pct)
+    });
+
+    const newPubRef = await db.collection('publications').add({
+      type: 'post',
+      mediaType,
+      imageUrl: mediaType === 'photo' ? url : null,
+      videoUrl: mediaType === 'video' ? url : null,
+      description: caption,
+      sellerUid: ADMIN_UID,
+      sellerName: "Coeurnoh Universe",
+      sellerVerified: true,
+      status: 'published',
+      likesCount: 0,
+      commentsCount: 0,
+      createdAt: new Date().toISOString()
+    });
+
+    // Annonce publique + vraie alerte push a tous les utilisateurs
+    const annTitle = 'Nouvelle publication 📸';
+    const annBody = caption ? caption.slice(0, 80) : (mediaType === 'video' ? 'Nouvelle vidéo' : 'Nouvelle photo');
+    await db.collection('announcements').add({
+      title: annTitle, body: annBody, type: 'announcement', url: '/?open=' + newPubRef.id, createdAt: new Date().toISOString()
+    });
+    const broadcastIdToken2 = await auth.currentUser.getIdToken();
+    fetch('/api/broadcast-notification', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken: broadcastIdToken2, title: annTitle, body: annBody, category: 'content', url: '/?open=' + newPubRef.id })
+    }).catch(() => {});
+
+    // Reinitialise le formulaire
+    document.getElementById('post-caption').value = '';
+    document.getElementById('post-media-file').value = '';
+    document.getElementById('post-media-file-text').textContent = 'Choisir un fichier';
+    document.getElementById('post-media-file-label').classList.remove('has-file');
+    document.getElementById('post-media-preview').innerHTML = '';
+    document.getElementById('post-media-progress-wrap').classList.add('hidden');
+    pendingAdminPostFile = null;
+
+    loadShopAdmin();
+    alert('Publication envoyée !');
+  } catch (e) {
+    showPostFormError("Erreur lors de la publication : " + e.message);
+  } finally {
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Publier'; }
   }
 }
 
@@ -965,16 +1253,33 @@ async function loadShopAdmin() {
     if (snap.empty) { el.innerHTML = `<p class="admin-empty">Aucune publication pour l'instant.</p>`; return; }
     el.innerHTML = snap.docs.map(doc => {
       const d = doc.data();
-      const typeLabel = d.type === 'book' ? '📖 Livre' : '🛍️ Produit';
+      const isPost = d.type === 'post';
+      const typeLabel = d.type === 'book' ? '📖 Livre' : d.type === 'product' ? '🛍️ Produit' : (d.mediaType === 'video' ? '🎬 Vidéo' : '📸 Photo');
       const statusLabel = d.status === 'published' ? 'published' : 'draft';
+      const titleText = isPost ? (d.description || '(sans légende)').slice(0, 60) : (d.title || '');
+      const metaText = isPost
+        ? `❤️ ${d.likesCount || 0} · 💬 ${d.commentsCount || 0}`
+        : `${(d.price || 0).toFixed(2)}$ · ❤️ ${d.likesCount || 0} · 💬 ${d.commentsCount || 0}`;
+
+      // Vignette cliquable -- ouvre la visionneuse plein ecran (fleche
+      // bleue de retour) exactement comme sur le site public, que ce soit
+      // une photo ou une video (avec icone de lecture superposee).
+      const mediaUrl = normalizeMediaUrl(d.mediaType === 'video' ? d.videoUrl : d.imageUrl);
+      const isVideo = d.mediaType === 'video' && d.videoUrl;
+      const thumbHtml = mediaUrl
+        ? (isVideo
+            ? `<div class="admin-thumb-wrap" onclick="openMediaViewer('${escapeHtml(mediaUrl)}','video')"><video src="${escapeHtml(mediaUrl)}" muted class="admin-thumb"></video><span class="admin-thumb-play">${ICON_PLAY}</span></div>`
+            : `<img src="${escapeHtml(mediaUrl)}" alt="" class="admin-thumb" onclick="openMediaViewer('${escapeHtml(mediaUrl)}','photo')">`)
+        : `<div class="admin-thumb" style="display:flex;align-items:center;justify-content:center;background:var(--cream);font-size:1.4rem">📄</div>`;
+
       return `
       <div class="admin-row">
         <div class="admin-row-top">
           <div style="display:flex;gap:12px;align-items:flex-start">
-            <img src="${escapeHtml(d.imageUrl)}" alt="" style="width:56px;height:56px;border-radius:10px;object-fit:cover;flex:0 0 auto">
+            ${thumbHtml}
             <div>
-              <div class="admin-row-title">${typeLabel} — ${escapeHtml(d.title)}</div>
-              <div class="admin-row-meta">${(d.price || 0).toFixed(2)}$ · ❤️ ${d.likesCount || 0} · 💬 ${d.commentsCount || 0}</div>
+              <div class="admin-row-title">${typeLabel} — ${escapeHtml(titleText)}</div>
+              <div class="admin-row-meta">${metaText}</div>
             </div>
           </div>
           <span class="admin-badge ${statusLabel}">${statusLabel}</span>

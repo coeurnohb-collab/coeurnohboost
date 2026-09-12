@@ -868,6 +868,18 @@ a{text-decoration:none;color:inherit}
 }
 .media-viewer-download{position:absolute;bottom:30px;left:50%;transform:translateX(-50%)}
 
+/* Nouvelle visionneuse (espace admin) : fleche de retour bleue et
+   professionnelle en haut a gauche, comme sur Facebook -- vient s'ajouter
+   a .media-viewer-close ci-dessus sans le remplacer. */
+.media-viewer-icon-btn{
+  position:absolute;top:20px;background:rgba(255,255,255,0.94);
+  border:none;border-radius:50%;width:42px;height:42px;cursor:pointer;z-index:3;
+  display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.3);
+}
+.media-viewer-icon-btn:active{transform:scale(0.93)}
+.media-viewer-back{left:16px;color:#1877F2}
+.media-viewer-more{right:16px;color:var(--ink)}
+
 /* ================= MENU OPTIONS PUBLICATION (3 points, façon Facebook) =================
    Feuille qui remonte du bas de l'ecran (comme sur Facebook/Instagram/iOS),
    avec Modifier / Telecharger / Supprimer -- remplace les anciens boutons

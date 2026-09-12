@@ -189,17 +189,68 @@
           </div>
         </div>
         <div class="field">
-          <label>Lien de la photo</label>
-          <input type="url" id="shop-image" class="text-input" placeholder="https://i.imgur.com/xxxxx.jpg">
-          <p class="muted small" style="margin-top:4px">Va sur <strong>imgur.com</strong>, uploade ta photo (pas besoin de compte), copie le lien direct de l'image et colle-le ici.</p>
+          <label>Photo de l'article</label>
+          <input type="file" id="shop-image-file" class="file-input-hidden" accept="image/*" onchange="handleShopImageFileChange(event)">
+          <label for="shop-image-file" class="file-picker-btn" id="shop-image-file-label">
+            <span class="file-picker-icon">🖼️</span>
+            <span class="file-picker-text" id="shop-image-file-text">Choisir une photo</span>
+          </label>
+          <p class="muted small" style="margin-top:4px">Choisis la photo directement depuis ton appareil (max 10 Mo).</p>
+          <div class="upload-progress-wrap hidden" id="shop-image-progress-wrap">
+            <div class="upload-progress-fill" id="shop-image-progress-fill"></div>
+            <span class="upload-progress-label" id="shop-image-progress-label">0%</span>
+          </div>
+          <div id="shop-image-preview"></div>
         </div>
         <div class="field" id="shop-file-field">
-          <label>Lien du fichier PDF (livre)</label>
-          <input type="url" id="shop-file" class="text-input" placeholder="https://drive.google.com/...">
-          <p class="muted small" style="margin-top:4px">Uploade le PDF sur <strong>Google Drive</strong>, partage-le en "Accessible à tous ceux qui ont le lien", puis colle le lien ici.</p>
+          <label>Fichier du livre (PDF)</label>
+          <input type="file" id="shop-file-input" class="file-input-hidden" accept="application/pdf" onchange="handleShopBookFileChange(event)">
+          <label for="shop-file-input" class="file-picker-btn" id="shop-file-input-label">
+            <span class="file-picker-icon">📄</span>
+            <span class="file-picker-text" id="shop-file-name">Choisir un PDF</span>
+          </label>
+          <p class="muted small" style="margin-top:4px">Choisis le PDF directement depuis ton appareil (max 50 Mo).</p>
+          <div class="upload-progress-wrap hidden" id="shop-file-progress-wrap">
+            <div class="upload-progress-fill" id="shop-file-progress-fill"></div>
+            <span class="upload-progress-label" id="shop-file-progress-label">0%</span>
+          </div>
         </div>
 
-        <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:10px" onclick="publishShopItem()">Publier</button>
+        <button class="btn btn-primary" id="shop-submit-btn" style="width:100%;justify-content:center;margin-top:10px" onclick="publishShopItem()">Publier</button>
+      </div>
+
+      <div class="order-box" style="margin-bottom:20px">
+        <h3>📸 Nouvelle publication (photo/vidéo)</h3>
+        <p class="muted small" style="margin-bottom:10px">Publie une photo ou une vidéo dans le fil d'accueil, comme un post normal (compte "Coeurnoh Universe" certifié) — ouverture en plein écran façon Facebook pour les visiteurs.</p>
+        <div class="modal-error hidden" id="post-form-error"></div>
+
+        <div class="field">
+          <label>Type de média</label>
+          <select id="post-media-type" class="text-input" onchange="toggleAdminPostFileField()">
+            <option value="photo">🖼️ Photo</option>
+            <option value="video">🎬 Vidéo</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Légende</label>
+          <textarea id="post-caption" class="text-input" rows="3" placeholder="Écris une légende..."></textarea>
+        </div>
+        <div class="field">
+          <label id="post-media-file-label-text">Photo</label>
+          <input type="file" id="post-media-file" class="file-input-hidden" accept="image/*" onchange="handleAdminPostFileChange(event)">
+          <label for="post-media-file" class="file-picker-btn" id="post-media-file-label">
+            <span class="file-picker-icon">🖼️</span>
+            <span class="file-picker-text" id="post-media-file-text">Choisir un fichier</span>
+          </label>
+          <p class="muted small" style="margin-top:4px">Choisis le fichier directement depuis ton appareil (photo max 10 Mo, vidéo max 100 Mo).</p>
+          <div class="upload-progress-wrap hidden" id="post-media-progress-wrap">
+            <div class="upload-progress-fill" id="post-media-progress-fill"></div>
+            <span class="upload-progress-label" id="post-media-progress-label">0%</span>
+          </div>
+          <div id="post-media-preview"></div>
+        </div>
+
+        <button class="btn btn-primary" id="post-submit-btn" style="width:100%;justify-content:center;margin-top:10px" onclick="submitAdminPost()">Publier</button>
       </div>
 
       <h3 style="margin-bottom:10px">Publications existantes</h3>
@@ -242,6 +293,15 @@
     </div>
 
   </div>
+</div>
+
+<!-- ================= VISIONNEUSE PLEIN ECRAN (photo/video, façon Facebook) =================
+     Fleche de retour bleue en haut a gauche (pas d'emoji) -- ouverte au
+     clic sur une miniature de publication depuis l'espace admin. -->
+<div class="media-viewer hidden" id="media-viewer">
+  <button class="media-viewer-icon-btn media-viewer-back" onclick="closeMediaViewer()" aria-label="Retour"></button>
+  <div class="media-viewer-content" id="media-viewer-content"></div>
+  <button class="btn btn-primary media-viewer-download" id="media-viewer-download-btn">⬇️ Télécharger</button>
 </div>
 
 <script src="catalog-data.js"></script>

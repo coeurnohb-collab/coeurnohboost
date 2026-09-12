@@ -255,15 +255,15 @@ body:has(#admin-panel){ background:var(--bg); }
 /* =========================================================
    8. RESPONSIVE — confort mobile (contexte principal de Coeurnoh)
    ========================================================= */
-@media(max-width:600px){
-  .admin-wrap{padding:18px 14px 90px}
-  .stats-cards{grid-template-columns:repeat(2,1fr)}
-  .stat-value{font-size:1.35rem}
-  .pricing-tier-row{grid-template-columns:1fr}
-  .admin-row-actions{flex-direction:column}
-  .admin-row-actions .btn{width:100%;justify-content:center}
-  .admin-login-box{padding:28px 20px 22px}
-  .admin-nav-inner{padding:12px 14px}
-  .admin-nav-inner .logo{font-size:1rem}
-  .admin-nav-inner .btn-outline{padding:8px 12px;font-size:0.76rem}
+/* =========================================================
+   9. VIGNETTES CLIQUABLES (publications) — plein écran façon Facebook
+   ========================================================= */
+.admin-thumb, .admin-thumb-wrap{
+  width:56px;height:56px;border-radius:10px;flex:0 0 auto;overflow:hidden;position:relative;cursor:pointer;
+}
+.admin-thumb{object-fit:cover;display:block}
+.admin-thumb-wrap video{width:100%;height:100%;object-fit:cover;display:block}
+.admin-thumb-play{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  color:#fff;filter:drop-shadow(0 1px 3px rgba(0,0,0,0.7));
 }
