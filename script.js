@@ -8589,6 +8589,11 @@ function openSRequestForm() {
           <label for="srequest-budget">Budget indicatif (facultatif)</label>
           <input type="text" id="srequest-budget" class="text-input" placeholder="ex: 20-30$">
         </div>
+        <div class="field">
+          <label for="srequest-phone">WhatsApp / téléphone (facultatif)</label>
+          <input type="tel" id="srequest-phone" class="text-input" placeholder="+243...">
+          <p class="muted small" style="margin-top:4px">Visible par les professionnels qui consultent ta demande — facultatif, tu peux aussi rester joignable uniquement via l'app.</p>
+        </div>
         <button class="btn btn-primary" id="srequest-save-btn" style="width:100%;justify-content:center" onclick="saveSRequest()">Publier la demande</button>
         <p class="muted small" id="srequest-form-msg" style="margin-top:6px"></p>
       </div>
@@ -8604,6 +8609,7 @@ async function saveSRequest() {
   const city = document.getElementById('srequest-city').value.trim();
   const description = document.getElementById('srequest-description').value.trim();
   const budget = document.getElementById('srequest-budget').value.trim();
+  const phone = document.getElementById('srequest-phone').value.trim();
 
   if (!title || !city || !description) { msgEl.textContent = 'Merci de remplir au moins le titre, la ville et les détails.'; return; }
 
@@ -8613,8 +8619,8 @@ async function saveSRequest() {
   try {
     await db.collection('service_requests').add({
       clientUid: currentUser.uid, clientName: currentUser.name || 'Client',
-      title, category, city, description, budget,
-      status: 'open', acceptedProUid: null, acceptedProName: null,
+      title, category, city, description, budget, phone: phone || null,
+      status: 'open', acceptedProUid: null, acceptedProName: null, featured: false,
       createdAt: new Date().toISOString()
     });
     document.getElementById('srequest-form-modal').remove();
@@ -8643,22 +8649,46 @@ async function loadMySRequests() {
       return;
     }
 
+    // Nombre de devis reçus par demande (petit plus utile pour le client).
+    const quoteCounts = {};
+    try {
+      const openIds = srequestMineCache.filter(r => r.status === 'open').map(r => r.id);
+      if (openIds.length > 0) {
+        const quotesSnaps = await Promise.all(openIds.map(id => db.collection('service_quotes').where('requestId', '==', id).get()));
+        openIds.forEach((id, i) => { quoteCounts[id] = quotesSnaps[i].size; });
+      }
+    } catch (e) { /* best-effort, pas bloquant */ }
+
     listEl.innerHTML = srequestMineCache.map(r => `
-      <div class="order-box" style="margin-bottom:12px">
+      <div class="order-box" style="margin-bottom:12px${r.featured ? ';border-color:#f5a623' : ''}">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
           <strong style="font-size:1.02rem">${escapeHtml(r.title)}</strong>
           <span class="shop-card-category">${escapeHtml(SREQUEST_STATUS_LABELS[r.status] || r.status)}</span>
         </div>
+        ${r.featured ? '<span class="shop-card-category" style="background:#fff4e0;color:#b5720b;margin-top:4px;display:inline-block">Mise en avant</span>' : ''}
         <div class="muted small" style="margin:4px 0">${escapeHtml(NEARBY_CATEGORY_LABELS[r.category] || '')} · ${escapeHtml(r.city || '')}</div>
-        ${r.status === 'in_progress' ? `<div class="muted small" style="margin-bottom:8px">Attribuée à ${escapeHtml(r.acceptedProName || '')}</div>` : ''}
+        ${r.status === 'open' && quoteCounts[r.id] ? `<div class="muted small" style="margin-bottom:6px">${quoteCounts[r.id]} devis reçu(s)</div>` : ''}
+        ${r.status === 'in_progress' ? `<div class="muted small" style="margin-bottom:8px">Attribuée à ${escapeHtml(r.acceptedProName || '')}${r.acceptedProPhone ? ` — <a href="https://wa.me/${r.acceptedProPhone.replace(/\D/g, '')}" target="_blank">Contacter</a>` : ''}</div>` : ''}
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
           ${r.status === 'open' ? `<button class="btn btn-outline btn-sm" onclick="viewSRequestQuotes('${r.id}')">Voir les devis</button>` : ''}
           ${r.status === 'in_progress' ? `<button class="btn btn-outline btn-sm" onclick="completeSRequest('${r.id}')">Marquer terminée</button>` : ''}
           ${r.status === 'open' ? `<button class="btn btn-outline btn-sm" style="color:var(--red);border-color:var(--red)" onclick="cancelSRequest('${r.id}')">Annuler</button>` : ''}
+          <button class="btn btn-outline btn-sm" style="color:var(--red);border-color:var(--red)" onclick="deleteSRequest('${r.id}')">Supprimer</button>
         </div>
       </div>`).join('');
   } catch (e) {
     listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+  }
+}
+
+async function deleteSRequest(requestId) {
+  if (!confirm('Supprimer définitivement cette demande ? Cette action est irréversible.')) return;
+  try {
+    await db.collection('service_requests').doc(requestId).delete();
+    showToast('Demande supprimée', 'info');
+    loadMySRequests();
+  } catch (e) {
+    showToast(friendlyErrorMessage(e), 'error');
   }
 }
 
@@ -8681,22 +8711,47 @@ async function viewSRequestQuotes(requestId) {
   const listEl = document.getElementById('srequest-quotes-list');
   try {
     const snap = await db.collection('service_quotes').where('requestId', '==', requestId).get();
-    const quotes = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (a.price || 0) - (b.price || 0));
+    const quotes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    quotes.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0) || (a.price || 0) - (b.price || 0));
 
     if (quotes.length === 0) {
       listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:14px 0">Aucun devis reçu pour l\'instant.</p>';
       return;
     }
 
-    listEl.innerHTML = quotes.map(q => `
-      <div class="order-box" style="margin-bottom:10px">
+    // Note moyenne de chaque pro (best-effort, ne bloque jamais l'affichage).
+    const ratings = {};
+    try {
+      const uniqueProUids = [...new Set(quotes.map(q => q.proUid))];
+      const reviewSnaps = await Promise.all(uniqueProUids.map(pUid => db.collection('professional_reviews').where('proUid', '==', pUid).get()));
+      uniqueProUids.forEach((pUid, i) => {
+        const revs = reviewSnaps[i].docs.map(d => d.data());
+        if (revs.length > 0) {
+          ratings[pUid] = { avg: revs.reduce((s, r) => s + (r.rating || 0), 0) / revs.length, count: revs.length };
+        }
+      });
+    } catch (e) { /* best-effort */ }
+
+    listEl.innerHTML = quotes.map(q => {
+      const waLink = q.proPhone ? `https://wa.me/${q.proPhone.replace(/\D/g, '')}` : null;
+      const rating = ratings[q.proUid];
+      return `
+      <div class="order-box" style="margin-bottom:10px${q.featured ? ';border-color:#f5a623' : ''}">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
           <strong>${escapeHtml(q.proName)}</strong>
           <strong>${(q.price || 0).toFixed(2)}$</strong>
         </div>
+        <div class="muted small" style="margin:2px 0">
+          ${q.featured ? '<span class="shop-card-category" style="background:#fff4e0;color:#b5720b;margin-right:6px">Mise en avant</span>' : ''}
+          ${rating ? `★ ${rating.avg.toFixed(1)} (${rating.count} avis)` : 'Pas encore d\'avis'}
+        </div>
         ${q.message ? `<p class="muted small" style="margin:4px 0">${escapeHtml(q.message)}</p>` : ''}
-        <button class="btn btn-primary btn-sm" style="margin-top:6px" onclick="acceptQuote('${requestId}', '${q.proUid}', '${escapeHtml(q.proName)}')">Accepter ce devis</button>
-      </div>`).join('');
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">
+          <button class="btn btn-primary btn-sm" onclick="acceptQuote('${requestId}', '${q.proUid}', '${escapeHtml(q.proName)}')">Accepter ce devis</button>
+          ${waLink ? `<a class="btn btn-outline btn-sm" href="${escapeHtml(waLink)}" target="_blank">Contacter</a>` : ''}
+        </div>
+      </div>`;
+    }).join('');
   } catch (e) {
     listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
   }
@@ -8706,12 +8761,15 @@ async function acceptQuote(requestId, proUid, proName) {
   if (!confirm(`Confirmer ${proName} pour cette demande ?`)) return;
   try {
     const quotesSnap = await db.collection('service_quotes').where('requestId', '==', requestId).get();
+    let acceptedProPhone = null;
     const batch = db.batch();
     quotesSnap.docs.forEach(d => {
-      batch.update(d.ref, { status: d.data().proUid === proUid ? 'accepted' : 'declined' });
+      const isAccepted = d.data().proUid === proUid;
+      if (isAccepted) acceptedProPhone = d.data().proPhone || null;
+      batch.update(d.ref, { status: isAccepted ? 'accepted' : 'declined' });
     });
     batch.update(db.collection('service_requests').doc(requestId), {
-      status: 'in_progress', acceptedProUid: proUid, acceptedProName: proName
+      status: 'in_progress', acceptedProUid: proUid, acceptedProName: proName, acceptedProPhone
     });
     await batch.commit();
 
@@ -8841,6 +8899,7 @@ function runSRequestFilter() {
     if (query && !`${r.title || ''} ${r.city || ''}`.toLowerCase().includes(query)) return false;
     return true;
   });
+  matches.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0) || (b.createdAt || '').localeCompare(a.createdAt || ''));
   renderAvailableSRequests(matches);
 }
 
@@ -8855,15 +8914,20 @@ function renderAvailableSRequests(list) {
 
   listEl.innerHTML = visible.map(r => {
     const alreadyQuoted = srequestMyQuotedIds && srequestMyQuotedIds.has(r.id);
+    const waLink = r.phone ? `https://wa.me/${r.phone.replace(/\D/g, '')}` : null;
     return `
-    <div class="order-box" style="margin-bottom:12px">
+    <div class="order-box" style="margin-bottom:12px${r.featured ? ';border-color:#f5a623' : ''}">
+      ${r.featured ? '<span class="shop-card-category" style="background:#fff4e0;color:#b5720b;margin-bottom:4px;display:inline-block">Mise en avant</span>' : ''}
       <strong style="font-size:1.02rem">${escapeHtml(r.title)}</strong>
       <div class="muted small" style="margin:4px 0">${escapeHtml(NEARBY_CATEGORY_LABELS[r.category] || '')} · ${escapeHtml(r.city || '')}</div>
       ${r.budget ? `<div class="muted small" style="margin-bottom:6px">Budget indicatif : ${escapeHtml(r.budget)}</div>` : ''}
       <p class="muted small" style="margin-bottom:10px">${escapeHtml(r.description || '')}</p>
-      ${alreadyQuoted
-        ? `<span class="shop-card-category">Devis envoyé</span>`
-        : `<button class="btn btn-primary btn-sm" onclick="openQuoteForm('${r.id}')">Envoyer un devis</button>`}
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        ${alreadyQuoted
+          ? `<span class="shop-card-category">Devis envoyé</span>`
+          : `<button class="btn btn-primary btn-sm" onclick="openQuoteForm('${r.id}')">Envoyer un devis</button>`}
+        ${waLink ? `<a class="btn btn-outline btn-sm" href="${escapeHtml(waLink)}" target="_blank">Contacter le client</a>` : ''}
+      </div>
     </div>`;
   }).join('');
 }
@@ -8888,11 +8952,22 @@ function openQuoteForm(requestId) {
           <label for="quote-message">Message (facultatif)</label>
           <textarea id="quote-message" class="text-input" rows="3" style="resize:vertical" maxlength="300"></textarea>
         </div>
+        <div class="field">
+          <label for="quote-phone">Ton WhatsApp (facultatif, pour que le client puisse te contacter)</label>
+          <input type="tel" id="quote-phone" class="text-input" placeholder="+243...">
+        </div>
         <button class="btn btn-primary" id="quote-save-btn" style="width:100%;justify-content:center" onclick="saveQuote('${requestId}')">Envoyer le devis</button>
         <p class="muted small" id="quote-form-msg" style="margin-top:6px"></p>
       </div>
     </div>`;
   document.body.insertAdjacentHTML('beforeend', html);
+
+  // Pre-remplissage best-effort depuis la fiche "Trouver un professionnel"
+  // du pro, s'il en a deja une -- lui evite une saisie en double.
+  db.collection('directory_listings').doc(currentUser.uid).get().then(doc => {
+    const phoneInput = document.getElementById('quote-phone');
+    if (doc.exists && phoneInput && !phoneInput.value) phoneInput.value = doc.data().phone || '';
+  }).catch(() => {});
 }
 
 async function saveQuote(requestId) {
@@ -8900,6 +8975,7 @@ async function saveQuote(requestId) {
   const msgEl = document.getElementById('quote-form-msg');
   const price = parseFloat(document.getElementById('quote-price').value);
   const message = document.getElementById('quote-message').value.trim();
+  const phone = document.getElementById('quote-phone').value.trim();
   const req = (srequestAvailableCache || []).find(r => r.id === requestId);
 
   if (!price || price <= 0) { msgEl.textContent = 'Indique un prix valide.'; return; }
@@ -8911,7 +8987,7 @@ async function saveQuote(requestId) {
   try {
     await db.collection('service_quotes').doc(`${requestId}_${currentUser.uid}`).set({
       requestId, proUid: currentUser.uid, proName: currentUser.name || 'Professionnel',
-      price, message, status: 'pending', createdAt: new Date().toISOString()
+      price, message, proPhone: phone || null, status: 'pending', featured: false, createdAt: new Date().toISOString()
     });
 
     await db.collection('notifications').add({
