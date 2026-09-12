@@ -8728,17 +8728,34 @@ async function loadMyQuotes() {
    MEME transaction que le site : impossible que deux personnes se
    retrouvent avec la meme URL.
 
-   PAS INCLUS (necessiterait un service payant externe, jamais active sans
-   validation) : nom de domaine personnalise, adresse e-mail
-   professionnelle. Le lien "/?site=slug" reste gratuit et illimite. */
+   ---- SITE PREMIUM (5$/mois, payé depuis le portefeuille interne, meme
+   mecanisme que payContestEntry dans /api/payments-actions.js -- AUCUN
+   deuxieme portefeuille cree) ----
+   Avantages Premium : plus de photos (15 au lieu de 6), themes
+   supplementaires, retrait de la mention "Cree avec CoeurnohBoost",
+   statistiques de visites, et (des que le proprietaire de la plateforme
+   aura connecte un vrai nom de domaine a Vercel) une adresse personnalisee
+   en sous-domaine "slug.domaine.com" en plus du lien "/?site=slug" qui
+   reste gratuit et fonctionne pour tout le monde. Tant qu'aucun domaine
+   n'est connecte, le code de detection de sous-domaine ci-dessous reste
+   inactif (aucune casse) et pourra s'activer sans rien reecrire. */
 const SITE_TEMPLATES = {
   classique: { label: 'Classique', accent: '#2563eb' },
   sombre: { label: 'Sombre', accent: '#111827' },
-  chaleureux: { label: 'Chaleureux', accent: '#e11d48' }
+  chaleureux: { label: 'Chaleureux', accent: '#e11d48' },
+  doux: { label: 'Doux (Premium)', accent: '#db2777', premium: true },
+  nature: { label: 'Nature (Premium)', accent: '#15803d', premium: true }
 };
+const SITE_PREMIUM_PRICE = 5; // en $, par mois
+const SITE_FREE_PHOTO_LIMIT = 6;
+const SITE_PREMIUM_PHOTO_LIMIT = 15;
 
 let mySiteCache = null;
 let editingSiteExisting = null;
+
+function siteIsPremiumActive(site) {
+  return !!(site && site.premium && site.premiumUntil && new Date(site.premiumUntil).getTime() > Date.now());
+}
 
 function openSiteBuilderScreen() {
   showMenuScreen('site');
@@ -8771,6 +8788,32 @@ function renderSiteStatusView() {
   }
   const site = mySiteCache;
   const link = `${window.location.origin}/?site=${encodeURIComponent(site.slug)}`;
+  const isPremium = siteIsPremiumActive(site);
+  const subdomainReady = SITE_ROOT_DOMAIN !== null; // devient vrai des qu'un domaine sera connecte a Vercel
+  const subdomainLink = subdomainReady ? `https://${encodeURIComponent(site.slug)}.${SITE_ROOT_DOMAIN}` : null;
+
+  const premiumBlockHtml = isPremium ? `
+    <div class="order-box" style="margin-bottom:14px;border-color:#f5a623">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <strong>Premium actif ✨</strong>
+        <span class="shop-card-category" style="background:#fff4e0;color:#b5720b">Jusqu'au ${escapeHtml(new Date(site.premiumUntil).toLocaleDateString())}</span>
+      </div>
+      <div class="muted small" style="margin:8px 0">${site.viewsCount || 0} visite(s) depuis la création du site</div>
+      ${subdomainLink ? `<p class="muted small" style="word-break:break-all;margin-bottom:8px">Adresse perso : ${escapeHtml(subdomainLink)}</p>` : `<p class="muted small" style="margin-bottom:8px">Adresse perso en sous-domaine : bientôt disponible, dès qu'un nom de domaine sera connecté.</p>`}
+      <button class="btn btn-outline btn-sm" onclick="purchaseSitePremium()">Renouveler (+30 jours, ${SITE_PREMIUM_PRICE}$)</button>
+    </div>` : `
+    <div class="order-box" style="margin-bottom:14px">
+      <strong>Passe en Premium — ${SITE_PREMIUM_PRICE}$/mois</strong>
+      <ul class="muted small" style="margin:8px 0 10px;padding-left:18px;line-height:1.6">
+        <li>Jusqu'à ${SITE_PREMIUM_PHOTO_LIMIT} photos (au lieu de ${SITE_FREE_PHOTO_LIMIT})</li>
+        <li>Thèmes supplémentaires</li>
+        <li>Aucune mention "Créé avec CoeurnohBoost"</li>
+        <li>Statistiques de visites</li>
+        <li>Adresse perso en sous-domaine (dès qu'un domaine sera connecté)</li>
+      </ul>
+      <button class="btn btn-primary btn-sm" onclick="purchaseSitePremium()">Activer le Premium</button>
+    </div>`;
+
   statusEl.innerHTML = `
     <div class="order-box" style="margin-bottom:14px">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
@@ -8783,11 +8826,45 @@ function renderSiteStatusView() {
         <a class="btn btn-outline btn-sm" href="${escapeHtml(link)}" target="_blank">Aperçu</a>
       </div>
     </div>
+    ${premiumBlockHtml}
     <button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="openSiteForm()">Modifier mon site</button>
     ${site.status === 'published'
       ? `<button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="toggleSitePublish('draft')">Dépublier</button>`
       : `<button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:8px" onclick="toggleSitePublish('published')">Publier mon site</button>`}
     <button class="btn btn-outline" style="width:100%;justify-content:center;color:var(--red)" onclick="deleteMySite()">Supprimer mon site</button>`;
+}
+
+/* SITE_ROOT_DOMAIN reste "null" tant qu'aucun nom de domaine n'est connecte
+   au projet Vercel. Le jour ou un domaine (ex: "coeurnohboost.com") est
+   ajoute et qu'un sous-domaine generique "*.coeurnohboost.com" est
+   configure dans Vercel (+ le record DNS correspondant chez le
+   registrar), il suffit de remplacer "null" par la chaine du domaine
+   ci-dessous pour activer les adresses personnalisees -- aucun autre
+   changement de code necessaire. */
+const SITE_ROOT_DOMAIN = null;
+
+async function purchaseSitePremium() {
+  if (!currentUser || !mySiteCache) return;
+  if (!confirm(`Activer/renouveler le Premium de ton site pour ${SITE_PREMIUM_PRICE}$ (30 jours), déduits de ton solde CoeurnohBoost ?`)) return;
+  try {
+    const idToken = await currentUser.getIdToken();
+    const res = await fetch('/api/payments-actions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken, action: 'site_premium_purchase' })
+    });
+    const data = await res.json();
+    if (!data.success) {
+      showToast(data.error || 'Paiement impossible', 'error');
+      return;
+    }
+    showToast('Site Premium activé 🎉', 'success');
+    mySiteCache.premium = true;
+    mySiteCache.premiumUntil = data.premiumUntil;
+    renderSiteStatusView();
+  } catch (e) {
+    showToast(friendlyErrorMessage(e), 'error');
+  }
 }
 
 function copySiteLink() {
@@ -8828,9 +8905,11 @@ function openSiteForm() {
   if (document.getElementById('site-form-modal')) return;
   editingSiteExisting = mySiteCache;
   const s = editingSiteExisting || {};
+  const isPremium = siteIsPremiumActive(s);
+  const photoLimit = isPremium ? SITE_PREMIUM_PHOTO_LIMIT : SITE_FREE_PHOTO_LIMIT;
 
   const templateOptions = Object.entries(SITE_TEMPLATES)
-    .map(([val, t]) => `<option value="${val}" ${s.template === val ? 'selected' : ''}>${escapeHtml(t.label)}</option>`).join('');
+    .map(([val, t]) => `<option value="${val}" ${s.template === val ? 'selected' : ''} ${t.premium && !isPremium ? 'disabled' : ''}>${escapeHtml(t.label)}${t.premium && !isPremium ? ' — nécessite Premium' : ''}</option>`).join('');
 
   const html = `
     <div class="modal-overlay" id="site-form-modal">
@@ -8873,9 +8952,9 @@ function openSiteForm() {
         <div id="site-service-rows"></div>
         <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:6px 0 14px" onclick="addSiteServiceRow()">+ Ajouter</button>
 
-        <label class="field-label" style="display:block">Photos — liens (facultatif, 6 max)</label>
+        <label class="field-label" style="display:block">Photos — liens (facultatif, ${photoLimit} max${isPremium ? '' : ', Premium : jusqu\'à ' + SITE_PREMIUM_PHOTO_LIMIT})</label>
         <div id="site-photo-rows"></div>
-        <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:6px 0 14px" onclick="addSitePhotoRow()">+ Ajouter un lien photo</button>
+        <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:6px 0 14px" onclick="addSitePhotoRow(null, ${photoLimit})">+ Ajouter un lien photo</button>
 
         <div class="field">
           <label for="site-whatsapp">WhatsApp de contact</label>
@@ -8913,7 +8992,7 @@ function openSiteForm() {
   const existingServices = Array.isArray(s.services) && s.services.length > 0 ? s.services : [];
   existingServices.forEach(sv => addSiteServiceRow(sv));
   const existingPhotos = Array.isArray(s.gallery) && s.gallery.length > 0 ? s.gallery : [''];
-  existingPhotos.forEach(p => addSitePhotoRow(p));
+  existingPhotos.forEach(p => addSitePhotoRow(p, photoLimit));
 }
 
 function addSiteServiceRow(service) {
@@ -8927,9 +9006,9 @@ function addSiteServiceRow(service) {
   rowsEl.appendChild(row);
 }
 
-function addSitePhotoRow(value) {
+function addSitePhotoRow(value, max) {
   const rowsEl = document.getElementById('site-photo-rows');
-  if (rowsEl.children.length >= 6) return;
+  if (rowsEl.children.length >= (max || SITE_FREE_PHOTO_LIMIT)) return;
   const row = document.createElement('div');
   row.className = 'invoice-item-row';
   row.innerHTML = `
@@ -8956,7 +9035,8 @@ async function saveMySite() {
     name: row.querySelector('.site-service-name').value.trim(),
     price: row.querySelector('.site-service-price').value.trim()
   })).filter(sv => sv.name);
-  const gallery = Array.from(document.querySelectorAll('.site-photo-link')).map(i => i.value.trim()).filter(v => v.startsWith('http')).slice(0, 6);
+  const isPremiumNow = siteIsPremiumActive(editingSiteExisting);
+  const gallery = Array.from(document.querySelectorAll('.site-photo-link')).map(i => i.value.trim()).filter(v => v.startsWith('http')).slice(0, isPremiumNow ? SITE_PREMIUM_PHOTO_LIMIT : SITE_FREE_PHOTO_LIMIT);
   const contactWhatsapp = document.getElementById('site-whatsapp').value.trim();
   const contactPhone = document.getElementById('site-phone').value.trim();
   const contactEmail = document.getElementById('site-email').value.trim();
@@ -8973,6 +9053,11 @@ async function saveMySite() {
   }
   if (!businessName || !aboutText || !contactWhatsapp) {
     errEl.textContent = 'Merci de remplir au moins le nom, le "à propos" et le WhatsApp de contact.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  if (SITE_TEMPLATES[template] && SITE_TEMPLATES[template].premium && !isPremiumNow) {
+    errEl.textContent = 'Ce thème est réservé aux sites Premium. Active le Premium ou choisis un autre thème.';
     errEl.classList.remove('hidden');
     return;
   }
@@ -9001,9 +9086,16 @@ async function saveMySite() {
         logoUrl: logoUrl || null, coverImageUrl: coverImageUrl || null,
         services, gallery, contactWhatsapp, contactPhone, contactEmail, address, socialLinks,
         status: editingSiteExisting ? editingSiteExisting.status : 'draft',
+        // "premium", "premiumUntil" et "viewsCount" ne sont jamais ecrits
+        // ici (merge:true les preserve) : seul /api/payments-actions.js
+        // (via l'admin SDK) et l'incrementation des vues sont autorises a
+        // les toucher, jamais un enregistrement classique du formulaire.
+        premium: editingSiteExisting ? (editingSiteExisting.premium || false) : false,
+        premiumUntil: editingSiteExisting ? (editingSiteExisting.premiumUntil || null) : null,
+        viewsCount: editingSiteExisting ? (editingSiteExisting.viewsCount || 0) : 0,
         createdAt: editingSiteExisting ? editingSiteExisting.createdAt : new Date().toISOString(),
         updatedAt: new Date().toISOString()
-      });
+      }, { merge: true });
       tx.set(newSlugRef, { ownerUid: uid });
       if (oldSlugRef && oldSlugSnap && oldSlugSnap.exists) {
         tx.delete(oldSlugRef);
@@ -9027,9 +9119,22 @@ async function saveMySite() {
 }
 
 /* ---- Vue publique (lien partageable, aucune connexion requise) ---- */
+function slugFromSubdomain() {
+  // Reste "null" tant que SITE_ROOT_DOMAIN est "null" (aucun domaine
+  // connecte a Vercel pour l'instant) -- voir la note pres de
+  // SITE_ROOT_DOMAIN plus haut.
+  if (!SITE_ROOT_DOMAIN) return null;
+  const host = window.location.hostname;
+  const suffix = '.' + SITE_ROOT_DOMAIN;
+  if (!host.endsWith(suffix)) return null;
+  const sub = host.slice(0, -suffix.length);
+  if (!sub || sub === 'www') return null;
+  return sub;
+}
+
 async function checkForPublicSiteView() {
   const params = new URLSearchParams(window.location.search);
-  const slug = params.get('site');
+  const slug = params.get('site') || slugFromSubdomain();
   if (!slug) return;
 
   const overlay = document.getElementById('public-site-overlay');
@@ -9042,7 +9147,11 @@ async function checkForPublicSiteView() {
       overlay.innerHTML = '<p class="muted small" style="padding:40px;text-align:center">Ce site n\'existe pas ou n\'est plus disponible.</p>';
       return;
     }
-    renderPublicSiteHtml(snap.docs[0].data(), overlay);
+    const siteDoc = snap.docs[0];
+    renderPublicSiteHtml(siteDoc.data(), overlay);
+    // Comptage des visites, best-effort : ne doit jamais bloquer ni
+    // ralentir l'affichage du site pour le visiteur.
+    siteDoc.ref.update({ viewsCount: firebase.firestore.FieldValue.increment(1) }).catch(() => {});
   } catch (e) {
     overlay.innerHTML = `<p class="muted small" style="padding:40px;text-align:center">Erreur de chargement : ${escapeHtml(e.message)}</p>`;
   }
@@ -9092,7 +9201,7 @@ function renderPublicSiteHtml(site, overlay) {
           ${site.socialLinks && site.socialLinks.instagram ? `<a class="btn btn-outline" href="${escapeHtml(site.socialLinks.instagram)}" target="_blank">Instagram</a>` : ''}
         </div>
 
-        <p class="muted small" style="text-align:center;margin-top:30px">Site créé avec <a href="${escapeHtml(window.location.origin)}" style="color:${accent}">CoeurnohBoost</a></p>
+        ${siteIsPremiumActive(site) ? '' : `<p class="muted small" style="text-align:center;margin-top:30px">Site créé avec <a href="${escapeHtml(window.location.origin)}" style="color:${accent}">CoeurnohBoost</a></p>`}
       </div>
     </div>`;
 }

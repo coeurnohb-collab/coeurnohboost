@@ -15,6 +15,9 @@
 //   { idToken, action: 'contest_entry', contestId, name, submissionUrl, caption }
 //   { idToken, action: 'event_reserve', eventId, ticketTypeId, quantity }
 //   { idToken, action: 'event_cancel', ticketId }
+//   { idToken, action: 'course_enroll', courseId }
+//   { idToken, action: 'site_premium_purchase' } -- active/renouvelle le Premium
+//     de "Crée ton site" (mini_sites/{uid}) pour l'utilisateur connecte
 
 const admin = require('firebase-admin');
 
@@ -44,6 +47,8 @@ const ADMIN_UID = "8BqWONj07hVZePHe2DrkHWYRjse2";
 const CONTEST_COMMISSION_PERCENT = 15; // CoeurnohBoost garde 15% quand un concours est organise par une entreprise
 const EVENT_COMMISSION_PERCENT = 15;   // meme commission plateforme pour les billets payants
 const COURSE_COMMISSION_PERCENT = 15;  // meme commission plateforme pour les cours payants
+const SITE_PREMIUM_PRICE = 5;          // en $, par mois -- doit rester identique a SITE_PREMIUM_PRICE dans script.js
+const SITE_PREMIUM_DURATION_DAYS = 30;
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -75,6 +80,9 @@ module.exports = async function handler(req, res) {
     }
     if (action === 'course_enroll') {
       return res.status(200).json(await enrollPaidCourse(uid, req.body));
+    }
+    if (action === 'site_premium_purchase') {
+      return res.status(200).json(await purchaseSitePremium(uid, req.body));
     }
     return res.status(400).json({ success: false, error: 'Action inconnue.' });
   } catch (error) {
@@ -442,4 +450,64 @@ async function enrollPaidCourse(uid, body) {
   }
 
   return { success: true, newBalance: result.newBalance };
+}
+
+/* ================= CREE TON SITE — PREMIUM =================
+   Debite le solde du proprietaire du site (comme payContestEntry) et
+   credite la plateforme (ADMIN_UID), pas d'"organisateur" ici puisque
+   c'est un achat pour soi-meme. Prolonge "premiumUntil" a partir
+   d'AUJOURD'HUI ou de la date d'expiration actuelle si elle est encore
+   dans le futur (renouvellement anticipe = jours ajoutes, pas perdus). */
+
+async function purchaseSitePremium(uid, body) {
+  const siteRef = db.collection('mini_sites').doc(uid);
+  const buyerRef = db.collection('users').doc(uid);
+
+  const result = await db.runTransaction(async (transaction) => {
+    const [siteSnap, buyerSnap] = await Promise.all([
+      transaction.get(siteRef),
+      transaction.get(buyerRef)
+    ]);
+
+    if (!siteSnap.exists) throw new Error("Crée d'abord ton site avant d'activer le Premium.");
+    if (!buyerSnap.exists) throw new Error('Compte introuvable.');
+
+    const buyerBalance = buyerSnap.data().balance || 0;
+    if (buyerBalance < SITE_PREMIUM_PRICE) {
+      throw new Error('Solde insuffisant. Recharge ton portefeuille pour activer le Premium.');
+    }
+
+    const site = siteSnap.data();
+    const now = Date.now();
+    const base = (site.premium && site.premiumUntil && new Date(site.premiumUntil).getTime() > now)
+      ? new Date(site.premiumUntil).getTime()
+      : now;
+    const newPremiumUntil = new Date(base + SITE_PREMIUM_DURATION_DAYS * 24 * 60 * 60 * 1000).toISOString();
+
+    const newBuyerBalance = Math.round((buyerBalance - SITE_PREMIUM_PRICE) * 100) / 100;
+    transaction.update(buyerRef, { balance: newBuyerBalance });
+    transaction.update(siteRef, { premium: true, premiumUntil: newPremiumUntil });
+
+    if (uid !== ADMIN_UID) {
+      const adminRef = db.collection('users').doc(ADMIN_UID);
+      const adminSnap = await transaction.get(adminRef);
+      if (adminSnap.exists) {
+        const adminBalance = adminSnap.data().balance || 0;
+        transaction.update(adminRef, { balance: Math.round((adminBalance + SITE_PREMIUM_PRICE) * 100) / 100 });
+      }
+    }
+
+    transaction.set(db.collection('notifications').doc(), {
+      uid,
+      title: 'Site Premium activé ✨',
+      body: `Ton site est en Premium jusqu'au ${new Date(newPremiumUntil).toLocaleDateString('fr-FR')}.`,
+      type: 'site_premium', read: false, createdAt: new Date().toISOString()
+    });
+
+    return { newBalance: newBuyerBalance, premiumUntil: newPremiumUntil };
+  });
+
+  await sendPushNotification(uid, 'Site Premium activé ✨', `Valable jusqu'au ${new Date(result.premiumUntil).toLocaleDateString('fr-FR')}.`);
+
+  return { success: true, newBalance: result.newBalance, premiumUntil: result.premiumUntil };
 }
