@@ -79,47 +79,69 @@ function escapeHtml(str) {
     .replace(/'/g, '&#39;');
 }
 
-/* ================= UPLOAD DE FICHIER DIRECT (Firebase Storage) =================
+/* ================= UPLOAD DE FICHIER DIRECT (Cloudinary) =================
    Envoie un vrai fichier choisi sur le telephone (photo, video, PDF) vers
-   Firebase Storage, avec suivi de progression, et renvoie l'URL de
-   telechargement a stocker dans Firestore. Remplace le systeme "colle un
-   lien externe" (postimages.org / Google Drive) qui obligeait chaque
-   utilisateur a passer par un site tiers avant de pouvoir publier. */
+   Cloudinary (pas besoin de carte bancaire, contrairement a Firebase
+   Storage), avec suivi de progression, et renvoie l'URL a stocker dans
+   Firestore. Remplace le systeme "colle un lien externe" (postimages.org /
+   Google Drive) qui obligeait chaque utilisateur a passer par un site tiers
+   avant de pouvoir publier.
+
+   CONFIGURATION REQUISE (une seule fois) :
+   1. Cree un compte gratuit sur https://cloudinary.com (aucune carte requise).
+   2. Sur le tableau de bord, copie ton "Cloud name" -> colle-le ci-dessous.
+   3. Va dans Settings (icone engrenage) > Upload > tout en bas "Upload presets"
+      > "Add upload preset" > mets "Signing Mode" sur "Unsigned" > Save.
+      Copie le nom du preset -> colle-le ci-dessous. */
+const CLOUDINARY_CLOUD_NAME = "COLLE_TON_CLOUD_NAME_ICI";
+const CLOUDINARY_UPLOAD_PRESET = "COLLE_TON_UPLOAD_PRESET_ICI";
+
 function uploadFileToStorage(file, folder, options = {}) {
   const { onProgress, maxSizeMB = 100 } = options;
   return new Promise((resolve, reject) => {
-    if (!storage) { reject(new Error("Le stockage de fichiers n'est pas disponible pour le moment.")); return; }
     if (!file) { reject(new Error("Aucun fichier sélectionné.")); return; }
     if (file.size > maxSizeMB * 1024 * 1024) {
       reject(new Error(`Fichier trop volumineux (max ${maxSizeMB} Mo).`));
       return;
     }
-    const safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_').slice(-80);
-    const ownerId = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.uid : 'anonyme';
-    const path = `${folder}/${ownerId}/${Date.now()}_${safeName}`;
-    let task;
-    try {
-      task = storage.ref(path).put(file);
-    } catch (e) {
-      reject(e);
+    if (!CLOUDINARY_CLOUD_NAME || CLOUDINARY_CLOUD_NAME.startsWith('COLLE_') ||
+        !CLOUDINARY_UPLOAD_PRESET || CLOUDINARY_UPLOAD_PRESET.startsWith('COLLE_')) {
+      reject(new Error("L'envoi de fichiers n'est pas encore configuré (Cloudinary manquant)."));
       return;
     }
-    task.on('state_changed',
-      (snapshot) => {
-        if (onProgress && snapshot.totalBytes) {
-          onProgress(Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100));
-        }
-      },
-      (err) => reject(err),
-      async () => {
-        try {
-          const url = await task.snapshot.ref.getDownloadURL();
-          resolve({ url, path });
-        } catch (e) {
-          reject(e);
-        }
+
+    // Le type de ressource Cloudinary determine l'URL a utiliser : les
+    // images et videos passent par leurs endpoints dedies, tout le reste
+    // (PDF, etc.) passe par "raw" pour garder le fichier tel quel.
+    let resourceType = 'raw';
+    if (file.type.startsWith('image/')) resourceType = 'image';
+    else if (file.type.startsWith('video/')) resourceType = 'video';
+
+    const endpoint = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${resourceType}/upload`;
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+    formData.append('folder', folder);
+
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', endpoint, true);
+    xhr.upload.onprogress = (e) => {
+      if (onProgress && e.lengthComputable) {
+        onProgress(Math.round((e.loaded / e.total) * 100));
       }
-    );
+    };
+    xhr.onload = () => {
+      let data;
+      try { data = JSON.parse(xhr.responseText); } catch (e) { data = null; }
+      if (xhr.status >= 200 && xhr.status < 300 && data && data.secure_url) {
+        resolve({ url: data.secure_url, path: data.public_id });
+      } else {
+        const msg = (data && data.error && data.error.message) || "Échec de l'envoi du fichier.";
+        reject(new Error(msg));
+      }
+    };
+    xhr.onerror = () => reject(new Error("Erreur réseau pendant l'envoi du fichier."));
+    xhr.send(formData);
   });
 }
 
@@ -146,7 +168,6 @@ function setUploadProgress(prefix, pct) {
 let fbReady = false;
 let auth = null;
 let db = null;
-let storage = null;
 
 /* ================= APPARENCE (theme + taille de police) =================
    Reglage local a l'appareil (localStorage), applique immediatement au
@@ -261,7 +282,6 @@ try {
     console.log('[auth] Persistance non definie :', e.message);
   });
   db = firebase.firestore();
-  storage = firebase.storage();
   fbReady = true;
   console.log("✅ Firebase initialisé");
 } catch (e) {
