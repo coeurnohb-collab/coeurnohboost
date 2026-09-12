@@ -1700,7 +1700,6 @@ async function logoutAllDevices() {
 function renderLoggedOutNav() {
   document.getElementById('nav-login-btn').classList.remove('hidden');
   document.getElementById('nav-register-btn').classList.remove('hidden');
-  document.getElementById('nav-dashboard-btn').classList.add('hidden');
   document.getElementById('admin-shortcut-btn').classList.add('hidden');
   stopNotifWatch();
   stopPresenceUpdates();
@@ -1709,7 +1708,6 @@ function renderLoggedOutNav() {
 function renderLoggedInNav(uid) {
   document.getElementById('nav-login-btn').classList.add('hidden');
   document.getElementById('nav-register-btn').classList.add('hidden');
-  document.getElementById('nav-dashboard-btn').classList.remove('hidden');
   document.getElementById('admin-shortcut-btn').classList.toggle('hidden', uid !== ADMIN_UID);
   startNotifWatch();
   startPresenceUpdates();
