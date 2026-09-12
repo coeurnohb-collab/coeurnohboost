@@ -93,8 +93,8 @@ function escapeHtml(str) {
    3. Va dans Settings (icone engrenage) > Upload > tout en bas "Upload presets"
       > "Add upload preset" > mets "Signing Mode" sur "Unsigned" > Save.
       Copie le nom du preset -> colle-le ci-dessous. */
-const CLOUDINARY_CLOUD_NAME = "COLLE_TON_CLOUD_NAME_ICI";
-const CLOUDINARY_UPLOAD_PRESET = "COLLE_TON_UPLOAD_PRESET_ICI";
+const CLOUDINARY_CLOUD_NAME = "aqe4fxh4";
+const CLOUDINARY_UPLOAD_PRESET = "coeurnoh_universe";
 
 function uploadFileToStorage(file, folder, options = {}) {
   const { onProgress, maxSizeMB = 100 } = options;
