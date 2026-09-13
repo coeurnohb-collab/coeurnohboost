@@ -10082,7 +10082,7 @@ function renderSiteStatusView() {
   const premiumBlockHtml = isPremium ? `
     <div class="order-box" style="margin-bottom:14px;border-color:#f5a623">
       <div style="display:flex;justify-content:space-between;align-items:center">
-        <strong>Premium actif ✨</strong>
+        <strong>Premium actif ${ICON_SPARKLE}</strong>
         <span class="shop-card-category" style="background:#fff4e0;color:#b5720b">Jusqu'au ${escapeHtml(new Date(site.premiumUntil).toLocaleDateString())}</span>
       </div>
       <div class="muted small" style="margin:8px 0">${site.viewsCount || 0} visite(s) depuis la création du site</div>
@@ -10850,7 +10850,7 @@ async function renderMyBusinessStatus() {
   const proBlockHtml = isPro ? `
     <div class="order-box" style="margin-bottom:14px;border-color:#f5a623">
       <div style="display:flex;justify-content:space-between;align-items:center">
-        <strong>CoeurNoh Business Pro actif ✨</strong>
+        <strong>CoeurNoh Business Pro actif ${ICON_SPARKLE}</strong>
         <span class="shop-card-category" style="background:#fff4e0;color:#b5720b">Jusqu'au ${escapeHtml(new Date(b.proUntil).toLocaleDateString())}</span>
       </div>
       <button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="purchaseBusinessPro()">Renouveler (+30 jours, ${BUSINESS_PRO_PRICE}$)</button>
