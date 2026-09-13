@@ -4267,13 +4267,18 @@ async function openProfileModal(sellerUid, sellerName, sellerVerified) {
     // pour les comptes qui n'ont pas encore ce profil public (pas encore
     // retouche leur compte depuis cette mise a jour).
     let profilePhotoURL, displayName = sellerName, displayVerified = sellerVerified;
+    let displayUsername = null, displayBio = '';
     if (isOwn) {
       profilePhotoURL = currentUser.photoURL || null;
+      displayUsername = currentUser.username || null;
+      displayBio = currentUser.bio || '';
     } else {
       const publicProfile = await fetchPublicProfile(sellerUid);
       profilePhotoURL = (publicProfile && publicProfile.photoURL) || (posts[0] && posts[0].sellerPhotoURL) || null;
       if (publicProfile && publicProfile.name) displayName = publicProfile.name;
       if (publicProfile && typeof publicProfile.verified === 'boolean') displayVerified = publicProfile.verified;
+      displayUsername = (publicProfile && publicProfile.username) || null;
+      displayBio = (publicProfile && publicProfile.bio) || '';
     }
 
     // Statut en ligne -- isole dans son propre try/catch (comme les autres
@@ -4309,8 +4314,11 @@ async function openProfileModal(sellerUid, sellerName, sellerVerified) {
         </span>
       </p>` : '';
 
-    const editProfileBtnHtml = isOwn ? `
-      <button class="btn btn-outline btn-sm" style="margin-top:14px" onclick="goToEditProfileFromModal()">${ICON_EDIT} Modifier le profil</button>` : '';
+    // Petit stylo a cote du nom (comme TikTok) qui ouvre l'ecran dedie
+    // "Modifier le profil" -- remplace l'ancien bouton "Modifier le profil"
+    // en pleine largeur sous les stats.
+    const editPencilHtml = isOwn ? `
+      <button class="profile-edit-pencil-btn" onclick="openEditProfileScreen()" aria-label="Modifier le profil">${ICON_EDIT}</button>` : '';
 
     // Total des "J'aime" recus sur toutes ses publications (somme cote
     // telephone a partir de ce qu'on a deja recupere -- aucune requete
@@ -4336,15 +4344,16 @@ async function openProfileModal(sellerUid, sellerName, sellerVerified) {
     body.innerHTML = `
       <div style="text-align:center;padding:10px 0 18px">
         <div class="profile-avatar-center-wrap">${renderAvatarHtml(displayName, profilePhotoURL, 88)}</div>
-        <h3 style="margin:12px 0 2px">${escapeHtml(displayName || 'Coeurnoh Universe')}${displayVerified ? ICON_VERIFIED_BADGE : ''}</h3>
+        <h3 style="margin:12px 0 2px;display:inline-flex;align-items:center;gap:8px">${escapeHtml(displayName || 'Coeurnoh Universe')}${displayVerified ? ICON_VERIFIED_BADGE : ''}${editPencilHtml}</h3>
+        ${displayUsername ? `<p class="profile-username-row">@${escapeHtml(displayUsername)}</p>` : ''}
         ${onlineStatusHtml}
         <div class="profile-stats-row">
           <div class="profile-stat"><strong>${formatCompactCount(followingCount)}</strong><span>Abonnement${followingCount > 1 ? 's' : ''}</span></div>
           <div class="profile-stat"><strong>${formatCompactCount(followerCount)}</strong><span>Abonné${followerCount > 1 ? 's' : ''}</span></div>
           <div class="profile-stat"><strong id="profile-total-likes">${formatCompactCount(totalLikes)}</strong><span>J'aime</span></div>
         </div>
+        ${displayBio ? `<p class="profile-bio-row">${escapeHtml(displayBio)}</p>` : ''}
         ${followBtnHtml}
-        ${editProfileBtnHtml}
         ${blockLinkHtml}
       </div>
       ${tabsHtml}
@@ -4495,6 +4504,97 @@ function closeProfileModal() {
   document.getElementById('profile-modal').classList.add('hidden');
   currentProfileTabState = { uid: null, posts: [] };
   stopWatchingProfileTotalLikes();
+}
+
+/* ================= ECRAN "MODIFIER LE PROFIL" (façon TikTok) =================
+   Ouvert via le petit stylo a cote du nom, sur son propre profil uniquement.
+   Vraie page plein ecran empilee AU-DESSUS de la fiche profil (qui reste
+   ouverte en dessous, jamais fermee) : la fleche de retour ne ferme donc
+   que cet ecran et revient directement sur le profil, pas sur toute
+   l'appli -- meme logique que le reste du site (retour = ecran precedent). */
+function openEditProfileScreen() {
+  if (!currentUser || document.getElementById('edit-profile-modal')) return;
+  const bio = currentUser.bio || '';
+  const html = `
+    <div class="modal-overlay" id="edit-profile-modal">
+      <div class="modal post-detail-modal-inner">
+        <button class="profile-page-back" onclick="closeEditProfileScreen()" aria-label="Retour">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        </button>
+        <div class="edit-profile-screen">
+          <h2>Modifier le profil</h2>
+          <div class="edit-profile-avatar-row">${renderAvatarHtml(currentUser.name, currentUser.photoURL, 76)}</div>
+          <button class="edit-profile-link-btn" onclick="copyProfileLinkFromEdit()">🔗 Copier le lien de mon profil</button>
+          <div class="field">
+            <label for="edit-username-input">Nom d'utilisateur</label>
+            <input type="text" id="edit-username-input" class="text-input" placeholder="ex: coeurnoh" maxlength="24" value="${escapeHtml(currentUser.username || '')}">
+          </div>
+          <div class="field">
+            <label for="edit-bio-input">Bio</label>
+            <textarea id="edit-bio-input" class="text-input" rows="3" style="resize:vertical" maxlength="150" oninput="document.getElementById('edit-bio-count').textContent = 150 - this.value.length">${escapeHtml(bio)}</textarea>
+          </div>
+          <div class="edit-profile-bio-count"><span id="edit-bio-count">${150 - bio.length}</span> caractères restants</div>
+          <button class="btn btn-primary" id="edit-profile-save-btn" style="width:100%;justify-content:center" onclick="saveProfileEdits()">Enregistrer</button>
+          <p class="muted small" id="edit-profile-msg" style="margin-top:10px;text-align:center"></p>
+        </div>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+function closeEditProfileScreen() {
+  const el = document.getElementById('edit-profile-modal');
+  if (el) el.remove();
+}
+
+function copyProfileLinkFromEdit() {
+  if (!currentUser) return;
+  const url = `${window.location.origin}${window.location.pathname}?profile=${currentUser.uid}`;
+  navigator.clipboard.writeText(url).then(() => {
+    showToast('Lien du profil copié !', 'success');
+  }).catch(() => {
+    showToast('Impossible de copier le lien.', 'error');
+  });
+}
+
+async function saveProfileEdits() {
+  const btn = document.getElementById('edit-profile-save-btn');
+  const msgEl = document.getElementById('edit-profile-msg');
+  // Nettoyage simple du nom d'utilisateur (facon reseaux sociaux) : minuscules,
+  // lettres/chiffres/points/underscores uniquement -- jamais bloquant, on
+  // corrige silencieusement plutot que de rejeter la saisie.
+  let username = document.getElementById('edit-username-input').value.trim().toLowerCase().replace(/[^a-z0-9._]/g, '');
+  const bio = document.getElementById('edit-bio-input').value.trim().slice(0, 150);
+  if (username && (username.length < 3 || username.length > 24)) {
+    msgEl.textContent = "Le nom d'utilisateur doit faire entre 3 et 24 caractères.";
+    msgEl.style.color = 'var(--red)';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Enregistrement...';
+  msgEl.textContent = '';
+  try {
+    await db.collection('users').doc(currentUser.uid).update({ username, bio });
+    await syncPublicProfile(currentUser.uid, { username, bio });
+    currentUser.username = username;
+    currentUser.bio = bio;
+    closeEditProfileScreen();
+    // Rafraichit l'affichage du profil (nom d'utilisateur/bio) sans tout
+    // recharger le reste de l'appli -- reouvre simplement la fiche profil
+    // courante, deja tres rapide (publications recuperees a nouveau, comme
+    // n'importe quelle ouverture de profil).
+    if (currentProfileTabState.uid === currentUser.uid) {
+      openProfileModal(currentUser.uid, currentUser.name, !!currentUser.verified);
+    }
+    showToast('Profil mis à jour !', 'success');
+  } catch (e) {
+    msgEl.textContent = friendlyErrorMessage(e);
+    msgEl.style.color = 'var(--red)';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Enregistrer';
+  }
 }
 
 /* ================= RECHERCHE DE COMPTES ================= */
@@ -10571,45 +10671,57 @@ async function openBusinessDetail(ownerUid) {
 
   const activeCoupons = (b.coupons || []).filter(c => c.active && (!c.expiresAt || new Date(c.expiresAt).getTime() > Date.now()));
   const catalogHtml = (b.catalog && b.catalog.length > 0) ? `
-    <h4 style="margin:14px 0 8px">Catalogue</h4>
-    <div style="margin-bottom:10px">
-      ${b.catalog.map(it => `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line)"><span>${escapeHtml(it.name || '')}</span><strong>${escapeHtml(it.price || '')}</strong></div>`).join('')}
+    <div class="biz-section" style="padding-top:4px">
+      <h4>${ICON_GRID3} Catalogue</h4>
+      <div class="biz-desc-card" style="margin:0">
+        ${b.catalog.map(it => `<div style="display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--line)"><span>${escapeHtml(it.name || '')}</span><strong style="color:var(--green-dark);white-space:nowrap">${escapeHtml(it.price || '')}</strong></div>`).join('')}
+      </div>
     </div>` : '';
   const couponsHtml = activeCoupons.length > 0 ? `
-    <h4 style="margin:14px 0 8px">Promotions en cours</h4>
-    <div style="margin-bottom:10px">
+    <div class="biz-section" style="padding-top:4px">
+      <h4>🏷️ Promotions en cours</h4>
       ${activeCoupons.map(c => `
-        <div class="order-box" style="margin-bottom:8px;border-color:#f5a623">
-          <strong>${escapeHtml(c.discountLabel || 'Promo')}</strong> — <span class="muted small">code ${escapeHtml(c.code || '')}</span>
+        <div class="biz-desc-card" style="margin:0 0 10px;border-color:#f5a623;background:#fff8ec">
+          <strong style="color:#b5720b">${escapeHtml(c.discountLabel || 'Promo')}</strong> — <span class="muted small">code ${escapeHtml(c.code || '')}</span>
           ${c.description ? `<p class="muted small" style="margin:4px 0 0">${escapeHtml(c.description)}</p>` : ''}
         </div>`).join('')}
     </div>` : '';
 
+  // Fiche entreprise = vraie page plein ecran (meme technique que le profil :
+  // .profile-page-back au lieu de la croix "×"). Bannière + avatar qui la
+  // chevauche, boutons d'action en pleine largeur, sections en cartes --
+  // habillage professionnel façon page Facebook/Instagram Business.
+  const initial = (b.businessName || '?').trim().charAt(0).toUpperCase();
   const html = `
     <div class="modal-overlay" id="business-detail-modal">
       <div class="modal post-detail-modal-inner">
-        <button class="modal-close" onclick="document.getElementById('business-detail-modal').remove()" aria-label="Fermer">×</button>
-        ${b.coverImageUrl ? `<img src="${escapeHtml(b.coverImageUrl)}" style="width:100%;max-height:140px;object-fit:cover;border-radius:8px;margin-bottom:10px">` : ''}
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-          ${b.logoUrl ? `<img src="${escapeHtml(b.logoUrl)}" style="width:56px;height:56px;border-radius:50%;object-fit:cover">` : ''}
-          <div>
-            <h3 style="margin:0">${escapeHtml(b.businessName || '')}${businessIsProActive(b) ? ' <span class="shop-card-category" style="background:#fff4e0;color:#b5720b;font-size:0.7rem;vertical-align:middle">Pro</span>' : ''}</h3>
-            <div class="muted small">${escapeHtml(NEARBY_CATEGORY_LABELS[b.category] || '')}</div>
+        <button class="profile-page-back" onclick="document.getElementById('business-detail-modal').remove()" aria-label="Retour">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        </button>
+        ${b.coverImageUrl ? `<img src="${escapeHtml(b.coverImageUrl)}" class="biz-cover" alt="" onerror="mediaLoadError(this)">` : `<div class="biz-cover-placeholder"></div>`}
+        <div class="biz-header">
+          ${b.logoUrl ? `<img src="${escapeHtml(b.logoUrl)}" class="biz-avatar" alt="">` : `<div class="biz-avatar-placeholder">${escapeHtml(initial)}</div>`}
+          <div class="biz-name-row">
+            <h2>${escapeHtml(b.businessName || 'Entreprise')}</h2>
+            ${businessIsProActive(b) ? `<span class="biz-pro-badge">✨ Pro</span>` : ''}
           </div>
+          <div class="biz-category-row">${escapeHtml(NEARBY_CATEGORY_LABELS[b.category] || '')}</div>
+          ${b.address ? `<div class="biz-meta-row">📍 ${escapeHtml(b.address)}</div>` : ''}
+          ${b.hours ? `<div class="biz-meta-row">🕒 ${escapeHtml(b.hours)}</div>` : ''}
+          ${followBtnHtml ? `<div style="margin-top:14px">${followBtnHtml}</div>` : ''}
         </div>
-        ${followBtnHtml}
-        ${b.description ? `<p style="white-space:pre-wrap;margin:12px 0">${escapeHtml(b.description)}</p>` : ''}
-        ${b.address ? `<p class="muted small">📍 ${escapeHtml(b.address)}</p>` : ''}
-        ${b.hours ? `<p class="muted small">🕒 ${escapeHtml(b.hours)}</p>` : ''}
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0">
-          ${waLink ? `<a class="btn btn-outline btn-sm" href="${escapeHtml(waLink)}" target="_blank">${ICON_WHATSAPP} WhatsApp</a>` : ''}
-          ${b.phone ? `<a class="btn btn-outline btn-sm" href="tel:${escapeHtml(b.phone)}">Appeler</a>` : ''}
+        <div class="biz-actions-row">
+          ${waLink ? `<a class="btn btn-primary" href="${escapeHtml(waLink)}" target="_blank">${ICON_WHATSAPP} WhatsApp</a>` : ''}
+          ${b.phone ? `<a class="btn btn-outline" href="tel:${escapeHtml(b.phone)}">📞 Appeler</a>` : ''}
         </div>
+        ${b.description ? `<div class="biz-desc-card">${escapeHtml(b.description)}</div>` : ''}
         ${couponsHtml}
         ${catalogHtml}
-        ${!isOwn && currentUser ? `<button class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin-bottom:10px" onclick="openReportModal('${ownerUid}', '${ownerUid}', 'business')">Signaler cette page</button>` : ''}
-        <h4 style="margin:14px 0 8px">Actualités</h4>
-        <div id="business-detail-posts"><p class="muted small">Chargement...</p></div>
+        ${!isOwn && currentUser ? `<div class="biz-section" style="padding-top:0"><button class="btn btn-outline btn-sm" style="width:100%;justify-content:center" onclick="openReportModal('${ownerUid}', '${ownerUid}', 'business')">🚩 Signaler cette page</button></div>` : ''}
+        <div class="biz-section">
+          <h4>Actualités</h4>
+          <div id="business-detail-posts"><p class="muted small">Chargement...</p></div>
+        </div>
       </div>
     </div>`;
   document.body.insertAdjacentHTML('beforeend', html);
@@ -10632,10 +10744,12 @@ async function loadBusinessPostsFeed(ownerUid, targetId) {
     }
     const isOwn = currentUser && currentUser.uid === ownerUid;
     el.innerHTML = posts.map(p => `
-      <div class="order-box" style="margin-bottom:8px">
-        ${p.imageUrl ? `<img src="${escapeHtml(p.imageUrl)}" style="width:100%;border-radius:8px;margin-bottom:8px">` : ''}
-        <p style="white-space:pre-wrap;margin:0">${escapeHtml(p.text || '')}</p>
-        ${isOwn ? `<button class="btn btn-outline btn-sm" style="margin-top:8px;color:var(--red)" onclick="deleteBusinessPost('${p.id}', '${ownerUid}', '${targetId}')">Supprimer</button>` : ''}
+      <div class="biz-post-card">
+        ${p.imageUrl ? `<img src="${escapeHtml(p.imageUrl)}" alt="" onerror="mediaLoadError(this)">` : ''}
+        <div class="biz-post-card-body">
+          <p style="white-space:pre-wrap;margin:0">${escapeHtml(p.text || '')}</p>
+          ${isOwn ? `<button class="btn btn-outline btn-sm" style="margin-top:10px;color:var(--red)" onclick="deleteBusinessPost('${p.id}', '${ownerUid}', '${targetId}')">Supprimer</button>` : ''}
+        </div>
       </div>`).join('');
   } catch (e) {
     el.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
