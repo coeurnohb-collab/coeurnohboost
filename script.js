@@ -2695,7 +2695,16 @@ function renderPostCard(item, isLiked, isSaved, hideFollowBtn) {
     mediaHtml = `<img src="${escapeHtml(rawUrl)}" alt="" class="post-media" loading="lazy" onclick="openMediaViewer('${escapeForJs(rawUrl)}','photo','${item.id}',${isOwnPost ? 'true' : 'false'})" onerror="mediaLoadError(this)">`;
   } else if (item.mediaType === 'video' && item.videoUrl) {
     const rawUrl = normalizeMediaUrl(item.videoUrl);
-    mediaHtml = `<video src="${escapeHtml(rawUrl)}" class="post-media" controls onclick="openMediaViewer('${escapeForJs(rawUrl)}','video','${item.id}',${isOwnPost ? 'true' : 'false'})" onerror="mediaLoadError(this)"></video>`;
+    // Plus de lecteur natif ("controls") directement dans le fil : il
+    // entrait en conflit avec le clic d'ouverture (on pouvait toucher le
+    // bouton play natif ET declencher openMediaViewer en meme temps).
+    // Desormais, comme sur Facebook : simple apercu muet avec une icone
+    // play, un appui n'importe ou dessus ouvre la video en plein ecran
+    // avec le son et les vrais controles.
+    mediaHtml = `<div class="post-media-video-wrap" onclick="openMediaViewer('${escapeForJs(rawUrl)}','video','${item.id}',${isOwnPost ? 'true' : 'false'})">
+      <video src="${escapeHtml(rawUrl)}" class="post-media" muted playsinline preload="metadata" onerror="mediaLoadError(this)"></video>
+      <span class="post-media-play-overlay">${ICON_PLAY}</span>
+    </div>`;
   }
 
   const shareUrl = `https://coeurnohboost.vercel.app/?produit=${item.id}`;
@@ -4254,13 +4263,13 @@ async function openProfileModal(sellerUid, sellerName, sellerVerified) {
 
     body.innerHTML = `
       <div style="text-align:center;padding:10px 0 18px">
-        ${renderAvatarHtml(displayName, profilePhotoURL, 88)}
+        <div class="profile-avatar-center-wrap">${renderAvatarHtml(displayName, profilePhotoURL, 88)}</div>
         <h3 style="margin:12px 0 2px">${escapeHtml(displayName || 'Coeurnoh Universe')}${displayVerified ? ICON_VERIFIED_BADGE : ''}</h3>
         ${onlineStatusHtml}
         <div class="profile-stats-row">
           <div class="profile-stat"><strong>${formatCompactCount(followingCount)}</strong><span>Abonnement${followingCount > 1 ? 's' : ''}</span></div>
           <div class="profile-stat"><strong>${formatCompactCount(followerCount)}</strong><span>Abonné${followerCount > 1 ? 's' : ''}</span></div>
-          <div class="profile-stat"><strong>${formatCompactCount(totalLikes)}</strong><span>J'aime</span></div>
+          <div class="profile-stat"><strong id="profile-total-likes">${formatCompactCount(totalLikes)}</strong><span>J'aime</span></div>
         </div>
         ${followBtnHtml}
         ${editProfileBtnHtml}
@@ -4276,8 +4285,53 @@ async function openProfileModal(sellerUid, sellerName, sellerVerified) {
     // les favoris le cas echeant.
     currentProfileTabState = { uid: sellerUid, posts };
     watchPostsCounts(posts.map(p => p.id));
+    watchProfileTotalLikes();
   } catch (e) {
     body.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+  }
+}
+
+/* ================= TOTAL "J'AIME" DU PROFIL, EN DIRECT =================
+   AVANT : le total affiche en haut du profil ("6 J'aime") etait calcule
+   UNE SEULE FOIS au moment d'ouvrir la fiche (somme des likesCount deja
+   recuperes), puis ne bougeait plus jamais -- meme si quelqu'un d'autre
+   likait une publication PENDANT que le profil etait ouvert (chaque
+   vignette de la grille, elle, montait bien en direct grace a
+   watchPostCounts() plus haut, d'ou l'impression d'"instabilite" : les
+   compteurs individuels montent, mais jamais le total). On observe
+   desormais directement les changements de texte dans la grille
+   (MutationObserver) et on additionne les compteurs actuellement
+   affiches a chaque changement -- aucune requete Firestore
+   supplementaire, ca reutilise simplement les listeners deja actifs. */
+let profileTotalLikesObserver = null;
+
+function refreshProfileTotalLikesFromGrid() {
+  const listEl = document.getElementById('profile-posts-list');
+  const totalEl = document.getElementById('profile-total-likes');
+  if (!listEl || !totalEl) return;
+  let sum = 0;
+  listEl.querySelectorAll('[data-like-count]').forEach(el => {
+    sum += parseInt(el.textContent, 10) || 0;
+  });
+  totalEl.textContent = formatCompactCount(sum);
+}
+
+function watchProfileTotalLikes() {
+  if (profileTotalLikesObserver) {
+    profileTotalLikesObserver.disconnect();
+    profileTotalLikesObserver = null;
+  }
+  const listEl = document.getElementById('profile-posts-list');
+  if (!listEl) return;
+  refreshProfileTotalLikesFromGrid();
+  profileTotalLikesObserver = new MutationObserver(refreshProfileTotalLikesFromGrid);
+  profileTotalLikesObserver.observe(listEl, { subtree: true, characterData: true, childList: true });
+}
+
+function stopWatchingProfileTotalLikes() {
+  if (profileTotalLikesObserver) {
+    profileTotalLikesObserver.disconnect();
+    profileTotalLikesObserver = null;
   }
 }
 
@@ -4293,6 +4347,7 @@ function switchProfileTab(tab) {
   if (!container) return;
 
   if (tab === 'favoris') {
+    stopWatchingProfileTotalLikes();
     loadProfileFavoritesGrid(currentProfileTabState.uid, container);
   } else {
     const posts = currentProfileTabState.posts || [];
@@ -4302,6 +4357,7 @@ function switchProfileTab(tab) {
         : posts.map(p => renderProfileGridItem(p)).join('')
     }</div>`;
     watchPostsCounts(posts.map(p => p.id));
+    watchProfileTotalLikes();
   }
 }
 
@@ -4366,6 +4422,7 @@ function goToEditProfileFromModal() {
 function closeProfileModal() {
   document.getElementById('profile-modal').classList.add('hidden');
   currentProfileTabState = { uid: null, posts: [] };
+  stopWatchingProfileTotalLikes();
 }
 
 /* ================= RECHERCHE DE COMPTES ================= */
@@ -6226,14 +6283,29 @@ function openJobApplyForm(offerId, offerTitle) {
   currentJobApplyOfferId = offerId;
   document.getElementById('job-apply-offer-title').textContent = offerTitle ? `Offre : ${offerTitle}` : '';
   document.getElementById('job-apply-message').value = '';
-  document.getElementById('job-apply-cv').value = '';
+  pendingJobApplyCvFile = null;
+  document.getElementById('job-apply-cv-file').value = '';
+  document.getElementById('job-apply-cv-file-text').textContent = 'Choisir un fichier';
+  document.getElementById('job-apply-cv-file-label').classList.remove('has-file');
+  resetUploadProgress('job-apply-cv');
   document.getElementById('job-apply-error').classList.add('hidden');
   document.getElementById('job-apply-modal').classList.remove('hidden');
+}
+
+let pendingJobApplyCvFile = null;
+
+function handleJobApplyCvFileChange(event) {
+  pendingJobApplyCvFile = (event.target.files && event.target.files[0]) || null;
+  const text = document.getElementById('job-apply-cv-file-text');
+  const label = document.getElementById('job-apply-cv-file-label');
+  if (text) text.textContent = pendingJobApplyCvFile ? `✅ ${pendingJobApplyCvFile.name}` : 'Choisir un fichier';
+  if (label) label.classList.toggle('has-file', !!pendingJobApplyCvFile);
 }
 
 function closeJobApplyForm() {
   document.getElementById('job-apply-modal').classList.add('hidden');
   currentJobApplyOfferId = null;
+  pendingJobApplyCvFile = null;
 }
 
 async function submitJobApplication() {
@@ -6242,7 +6314,6 @@ async function submitJobApplication() {
   if (!currentUser || !currentJobApplyOfferId) { closeJobApplyForm(); return; }
 
   const message = document.getElementById('job-apply-message').value.trim();
-  const cvUrl = document.getElementById('job-apply-cv').value.trim();
   if (!message) {
     errEl.textContent = 'Merci d\'écrire un message de motivation.';
     errEl.classList.remove('hidden');
@@ -6256,6 +6327,18 @@ async function submitJobApplication() {
 
   const offerId = currentJobApplyOfferId;
   try {
+    // Envoi direct du fichier choisi sur le telephone (plus de lien a
+    // coller a la main) -- meme mecanisme que la photo de profil et les
+    // publications.
+    let cvUrl = null;
+    if (pendingJobApplyCvFile) {
+      const uploaded = await uploadFileToStorage(pendingJobApplyCvFile, 'candidatures', {
+        maxSizeMB: 10,
+        onProgress: (pct) => setUploadProgress('job-apply-cv', pct)
+      });
+      cvUrl = uploaded.url;
+    }
+
     const offerSnap = await db.collection('job_offers').doc(offerId).get();
     if (!offerSnap.exists) throw new Error('OFFER_GONE');
     const offer = offerSnap.data();
@@ -6617,11 +6700,27 @@ function openJobSeekerForm() {
   document.getElementById('jobseeker-salary-min-input').value = p.salaryMin || '';
   document.getElementById('jobseeker-salary-max-input').value = p.salaryMax || '';
   document.getElementById('jobseeker-salary-hidden-input').checked = !!p.salaryHidden;
-  document.getElementById('jobseeker-cv-input').value = p.cvUrl || '';
+  currentJobSeekerCvUrl = p.cvUrl || null;
+  pendingJobSeekerCvFile = null;
+  document.getElementById('jobseeker-cv-file').value = '';
+  document.getElementById('jobseeker-cv-file-text').textContent = currentJobSeekerCvUrl ? '✅ CV déjà envoyé (choisir pour remplacer)' : 'Choisir un fichier';
+  document.getElementById('jobseeker-cv-file-label').classList.toggle('has-file', !!currentJobSeekerCvUrl);
+  resetUploadProgress('jobseeker-cv');
   document.getElementById('jobseeker-whatsapp-input').value = p.whatsapp || '';
   document.getElementById('jobseeker-phone-input').value = p.phone || '';
 
   document.getElementById('jobseeker-form-modal').classList.remove('hidden');
+}
+
+let pendingJobSeekerCvFile = null;
+let currentJobSeekerCvUrl = null;
+
+function handleJobSeekerCvFileChange(event) {
+  pendingJobSeekerCvFile = (event.target.files && event.target.files[0]) || null;
+  const text = document.getElementById('jobseeker-cv-file-text');
+  const label = document.getElementById('jobseeker-cv-file-label');
+  if (text) text.textContent = pendingJobSeekerCvFile ? `✅ ${pendingJobSeekerCvFile.name}` : (currentJobSeekerCvUrl ? '✅ CV déjà envoyé (choisir pour remplacer)' : 'Choisir un fichier');
+  if (label) label.classList.toggle('has-file', !!(pendingJobSeekerCvFile || currentJobSeekerCvUrl));
 }
 
 function closeJobSeekerForm() {
@@ -6641,7 +6740,6 @@ async function saveJobSeekerProfile() {
   const salaryMin = parseFloat(document.getElementById('jobseeker-salary-min-input').value) || null;
   const salaryMax = parseFloat(document.getElementById('jobseeker-salary-max-input').value) || null;
   const salaryHidden = document.getElementById('jobseeker-salary-hidden-input').checked;
-  const cvUrl = document.getElementById('jobseeker-cv-input').value.trim();
   const whatsapp = document.getElementById('jobseeker-whatsapp-input').value.trim();
   const phone = document.getElementById('jobseeker-phone-input').value.trim();
 
@@ -6658,6 +6756,18 @@ async function saveJobSeekerProfile() {
   btn.textContent = 'Envoi...';
 
   try {
+    // Envoi direct du fichier choisi sur le telephone ; si aucun nouveau
+    // fichier n'est choisi en modification, on garde l'ancien CV deja
+    // envoye (currentJobSeekerCvUrl).
+    let cvUrl = currentJobSeekerCvUrl;
+    if (pendingJobSeekerCvFile) {
+      const uploaded = await uploadFileToStorage(pendingJobSeekerCvFile, 'cv', {
+        maxSizeMB: 10,
+        onProgress: (pct) => setUploadProgress('jobseeker-cv', pct)
+      });
+      cvUrl = uploaded.url;
+    }
+
     const payload = {
       title, type, category, location, experience, description,
       salaryMin, salaryMax, salaryHidden, cvUrl: cvUrl || null, whatsapp, phone: phone || null
@@ -6887,7 +6997,13 @@ function openEventForm(eventId = null) {
     document.getElementById('event-start-input').value = e.startDate ? e.startDate.slice(0, 10) : '';
     document.getElementById('event-end-input').value = e.endDate ? e.endDate.slice(0, 10) : '';
     document.getElementById('event-description-input').value = e.description || '';
-    document.getElementById('event-cover-input').value = e.coverImage || '';
+    currentEventCoverUrl = e.coverImage || null;
+    pendingEventCoverFile = null;
+    document.getElementById('event-cover-file').value = '';
+    document.getElementById('event-cover-file-text').textContent = 'Choisir une image';
+    document.getElementById('event-cover-file-label').classList.remove('has-file');
+    resetUploadProgress('event-cover');
+    renderEventCoverPreview();
     (e.ticketTypes || []).forEach(t => addEventTicketTypeRow(t));
     if (!e.ticketTypes || e.ticketTypes.length === 0) addEventTicketTypeRow();
   };
@@ -6906,11 +7022,39 @@ function openEventForm(eventId = null) {
     document.getElementById('event-start-input').value = '';
     document.getElementById('event-end-input').value = '';
     document.getElementById('event-description-input').value = '';
-    document.getElementById('event-cover-input').value = '';
+    currentEventCoverUrl = null;
+    pendingEventCoverFile = null;
+    document.getElementById('event-cover-file').value = '';
+    document.getElementById('event-cover-file-text').textContent = 'Choisir une image';
+    document.getElementById('event-cover-file-label').classList.remove('has-file');
+    resetUploadProgress('event-cover');
+    renderEventCoverPreview();
     addEventTicketTypeRow();
   }
 
   document.getElementById('event-form-modal').classList.remove('hidden');
+}
+
+let pendingEventCoverFile = null;
+let currentEventCoverUrl = null;
+
+function handleEventCoverFileChange(event) {
+  pendingEventCoverFile = (event.target.files && event.target.files[0]) || null;
+  const text = document.getElementById('event-cover-file-text');
+  const label = document.getElementById('event-cover-file-label');
+  if (text) text.textContent = pendingEventCoverFile ? `✅ ${pendingEventCoverFile.name}` : 'Choisir une image';
+  if (label) label.classList.toggle('has-file', !!pendingEventCoverFile);
+  renderEventCoverPreview();
+}
+
+// Apercu instantane a partir du fichier tout juste choisi, ou de l'image
+// deja enregistree en modification -- meme principe que
+// updatePostMediaPreview() plus haut dans ce fichier.
+function renderEventCoverPreview() {
+  const el = document.getElementById('event-cover-preview');
+  if (!el) return;
+  const url = pendingEventCoverFile ? URL.createObjectURL(pendingEventCoverFile) : currentEventCoverUrl;
+  el.innerHTML = url ? `<img src="${escapeHtml(url)}" class="post-media-preview-media" alt="">` : '';
 }
 
 function closeEventForm() {
@@ -6960,7 +7104,6 @@ async function saveEvent() {
   const startDate = document.getElementById('event-start-input').value;
   const endDate = document.getElementById('event-end-input').value;
   const description = document.getElementById('event-description-input').value.trim();
-  const coverImage = document.getElementById('event-cover-input').value.trim();
   const ticketTypes = collectEventTicketTypesFromForm();
 
   if (!title || !location || !startDate) {
@@ -6986,6 +7129,17 @@ async function saveEvent() {
   btn.textContent = 'Envoi...';
 
   try {
+    // Garde l'image deja enregistree si aucune nouvelle n'est choisie
+    // (modification), sinon envoie directement le fichier du telephone.
+    let coverImage = currentEventCoverUrl;
+    if (pendingEventCoverFile) {
+      const uploaded = await uploadFileToStorage(pendingEventCoverFile, 'evenements', {
+        maxSizeMB: 10,
+        onProgress: (pct) => setUploadProgress('event-cover', pct)
+      });
+      coverImage = uploaded.url;
+    }
+
     const payload = {
       title, category, location, description,
       startDate: new Date(startDate).toISOString(),
@@ -8131,7 +8285,13 @@ function openCourseForm(courseId = null) {
     document.getElementById('course-category-input').value = c.category || '';
     document.getElementById('course-level-select').value = c.level || 'debutant';
     document.getElementById('course-description-input').value = c.description || '';
-    document.getElementById('course-cover-input').value = c.coverImage || '';
+    currentCourseCoverUrl = c.coverImage || null;
+    pendingCourseCoverFile = null;
+    document.getElementById('course-cover-file').value = '';
+    document.getElementById('course-cover-file-text').textContent = 'Choisir une image';
+    document.getElementById('course-cover-file-label').classList.remove('has-file');
+    resetUploadProgress('course-cover');
+    renderCourseCoverPreview();
     document.getElementById('course-price-input').value = c.price || 0;
     (c.chapters || []).forEach(ch => addCourseChapterRow(ch));
     if (!c.chapters || c.chapters.length === 0) addCourseChapterRow();
@@ -8149,12 +8309,37 @@ function openCourseForm(courseId = null) {
     document.getElementById('course-category-input').value = '';
     document.getElementById('course-level-select').value = 'debutant';
     document.getElementById('course-description-input').value = '';
-    document.getElementById('course-cover-input').value = '';
+    currentCourseCoverUrl = null;
+    pendingCourseCoverFile = null;
+    document.getElementById('course-cover-file').value = '';
+    document.getElementById('course-cover-file-text').textContent = 'Choisir une image';
+    document.getElementById('course-cover-file-label').classList.remove('has-file');
+    resetUploadProgress('course-cover');
+    renderCourseCoverPreview();
     document.getElementById('course-price-input').value = 0;
     addCourseChapterRow();
   }
 
   document.getElementById('course-form-modal').classList.remove('hidden');
+}
+
+let pendingCourseCoverFile = null;
+let currentCourseCoverUrl = null;
+
+function handleCourseCoverFileChange(event) {
+  pendingCourseCoverFile = (event.target.files && event.target.files[0]) || null;
+  const text = document.getElementById('course-cover-file-text');
+  const label = document.getElementById('course-cover-file-label');
+  if (text) text.textContent = pendingCourseCoverFile ? `✅ ${pendingCourseCoverFile.name}` : 'Choisir une image';
+  if (label) label.classList.toggle('has-file', !!pendingCourseCoverFile);
+  renderCourseCoverPreview();
+}
+
+function renderCourseCoverPreview() {
+  const el = document.getElementById('course-cover-preview');
+  if (!el) return;
+  const url = pendingCourseCoverFile ? URL.createObjectURL(pendingCourseCoverFile) : currentCourseCoverUrl;
+  el.innerHTML = url ? `<img src="${escapeHtml(url)}" class="post-media-preview-media" alt="">` : '';
 }
 
 function closeCourseForm() {
@@ -8204,7 +8389,6 @@ async function saveCourse() {
   const category = document.getElementById('course-category-input').value.trim();
   const level = document.getElementById('course-level-select').value;
   const description = document.getElementById('course-description-input').value.trim();
-  const coverImage = document.getElementById('course-cover-input').value.trim();
   const price = parseFloat(document.getElementById('course-price-input').value) || 0;
   const chapters = collectCourseChaptersFromForm();
 
@@ -8226,6 +8410,17 @@ async function saveCourse() {
   btn.textContent = 'Envoi...';
 
   try {
+    // Garde l'image deja enregistree si aucune nouvelle n'est choisie
+    // (modification), sinon envoie directement le fichier du telephone.
+    let coverImage = currentCourseCoverUrl;
+    if (pendingCourseCoverFile) {
+      const uploaded = await uploadFileToStorage(pendingCourseCoverFile, 'cours', {
+        maxSizeMB: 10,
+        onProgress: (pct) => setUploadProgress('course-cover', pct)
+      });
+      coverImage = uploaded.url;
+    }
+
     const payload = { title, category, level, description, coverImage: coverImage || null, price, chapters };
     if (editingCourseId) {
       await db.collection('courses').doc(editingCourseId).update(payload);
@@ -9600,6 +9795,14 @@ function openSiteForm() {
   const isPremium = siteIsPremiumActive(s);
   const photoLimit = isPremium ? SITE_PREMIUM_PHOTO_LIMIT : SITE_FREE_PHOTO_LIMIT;
 
+  // Reinitialise l'etat des fichiers logo/couverture a chaque ouverture --
+  // repart de l'image deja enregistree (le formulaire est entierement
+  // reconstruit a chaque fois, voir plus bas).
+  pendingSiteLogoFile = null;
+  currentSiteLogoUrl = s.logoUrl || null;
+  pendingSiteCoverFile = null;
+  currentSiteCoverUrl = s.coverImageUrl || null;
+
   const templateOptions = Object.entries(SITE_TEMPLATES)
     .map(([val, t]) => `<option value="${val}" ${s.template === val ? 'selected' : ''} ${t.premium && !isPremium ? 'disabled' : ''}>${escapeHtml(t.label)}${t.premium && !isPremium ? ' — nécessite Premium' : ''}</option>`).join('');
 
@@ -9632,12 +9835,30 @@ function openSiteForm() {
           <textarea id="site-about" class="text-input" rows="3" maxlength="800">${escapeHtml(s.aboutText || '')}</textarea>
         </div>
         <div class="field">
-          <label for="site-logo">Logo (lien, facultatif)</label>
-          <input type="url" id="site-logo" class="text-input" placeholder="https://..." value="${escapeHtml(s.logoUrl || '')}">
+          <label for="site-logo-file">Logo (facultatif)</label>
+          <input type="file" id="site-logo-file" class="file-input-hidden" accept="image/*" onchange="handleSiteLogoFileChange(event)">
+          <label for="site-logo-file" class="file-picker-btn" id="site-logo-file-label">
+            <span class="file-picker-icon" id="site-logo-file-icon">🖼️</span>
+            <span class="file-picker-text" id="site-logo-file-text">${s.logoUrl ? '✅ Logo déjà enregistré (choisir pour remplacer)' : 'Choisir une image'}</span>
+          </label>
+          <div class="upload-progress-wrap hidden" id="site-logo-progress-wrap">
+            <div class="upload-progress-fill" id="site-logo-progress-fill"></div>
+            <span class="upload-progress-label" id="site-logo-progress-label">0%</span>
+          </div>
+          <div id="site-logo-preview">${s.logoUrl ? `<img src="${escapeHtml(s.logoUrl)}" class="post-media-preview-media" alt="">` : ''}</div>
         </div>
         <div class="field">
-          <label for="site-cover">Image de couverture (lien, facultatif)</label>
-          <input type="url" id="site-cover" class="text-input" placeholder="https://..." value="${escapeHtml(s.coverImageUrl || '')}">
+          <label for="site-cover-file">Image de couverture (facultatif)</label>
+          <input type="file" id="site-cover-file" class="file-input-hidden" accept="image/*" onchange="handleSiteCoverFileChange(event)">
+          <label for="site-cover-file" class="file-picker-btn" id="site-cover-file-label">
+            <span class="file-picker-icon" id="site-cover-file-icon">🖼️</span>
+            <span class="file-picker-text" id="site-cover-file-text">${s.coverImageUrl ? '✅ Image déjà enregistrée (choisir pour remplacer)' : 'Choisir une image'}</span>
+          </label>
+          <div class="upload-progress-wrap hidden" id="site-cover-progress-wrap">
+            <div class="upload-progress-fill" id="site-cover-progress-fill"></div>
+            <span class="upload-progress-label" id="site-cover-progress-label">0%</span>
+          </div>
+          <div id="site-cover-preview">${s.coverImageUrl ? `<img src="${escapeHtml(s.coverImageUrl)}" class="post-media-preview-media" alt="">` : ''}</div>
         </div>
 
         <label class="field-label" style="display:block">Services / produits (facultatif)</label>
@@ -9709,6 +9930,37 @@ function addSitePhotoRow(value, max) {
   rowsEl.appendChild(row);
 }
 
+let pendingSiteLogoFile = null;
+let currentSiteLogoUrl = null;
+let pendingSiteCoverFile = null;
+let currentSiteCoverUrl = null;
+
+function handleSiteLogoFileChange(event) {
+  pendingSiteLogoFile = (event.target.files && event.target.files[0]) || null;
+  const text = document.getElementById('site-logo-file-text');
+  const label = document.getElementById('site-logo-file-label');
+  if (text) text.textContent = pendingSiteLogoFile ? `✅ ${pendingSiteLogoFile.name}` : (currentSiteLogoUrl ? '✅ Logo déjà enregistré (choisir pour remplacer)' : 'Choisir une image');
+  if (label) label.classList.toggle('has-file', !!(pendingSiteLogoFile || currentSiteLogoUrl));
+  const previewEl = document.getElementById('site-logo-preview');
+  if (previewEl) {
+    const url = pendingSiteLogoFile ? URL.createObjectURL(pendingSiteLogoFile) : currentSiteLogoUrl;
+    previewEl.innerHTML = url ? `<img src="${escapeHtml(url)}" class="post-media-preview-media" alt="">` : '';
+  }
+}
+
+function handleSiteCoverFileChange(event) {
+  pendingSiteCoverFile = (event.target.files && event.target.files[0]) || null;
+  const text = document.getElementById('site-cover-file-text');
+  const label = document.getElementById('site-cover-file-label');
+  if (text) text.textContent = pendingSiteCoverFile ? `✅ ${pendingSiteCoverFile.name}` : (currentSiteCoverUrl ? '✅ Image déjà enregistrée (choisir pour remplacer)' : 'Choisir une image');
+  if (label) label.classList.toggle('has-file', !!(pendingSiteCoverFile || currentSiteCoverUrl));
+  const previewEl = document.getElementById('site-cover-preview');
+  if (previewEl) {
+    const url = pendingSiteCoverFile ? URL.createObjectURL(pendingSiteCoverFile) : currentSiteCoverUrl;
+    previewEl.innerHTML = url ? `<img src="${escapeHtml(url)}" class="post-media-preview-media" alt="">` : '';
+  }
+}
+
 async function saveMySite() {
   const btn = document.getElementById('site-form-submit-btn');
   const errEl = document.getElementById('site-form-error');
@@ -9721,8 +9973,8 @@ async function saveMySite() {
   const businessName = document.getElementById('site-business-name').value.trim();
   const tagline = document.getElementById('site-tagline').value.trim();
   const aboutText = document.getElementById('site-about').value.trim();
-  const logoUrl = document.getElementById('site-logo').value.trim();
-  const coverImageUrl = document.getElementById('site-cover').value.trim();
+  let logoUrl = currentSiteLogoUrl;
+  let coverImageUrl = currentSiteCoverUrl;
   const services = Array.from(document.querySelectorAll('#site-service-rows .invoice-item-row')).map(row => ({
     name: row.querySelector('.site-service-name').value.trim(),
     price: row.querySelector('.site-service-price').value.trim()
@@ -9765,6 +10017,24 @@ async function saveMySite() {
   const oldSlugRef = (oldSlug && oldSlug !== slug) ? db.collection('site_slugs').doc(oldSlug) : null;
 
   try {
+    // Envoie les fichiers logo/couverture tout juste choisis AVANT la
+    // transaction (jamais d'appel reseau externe dans une transaction
+    // Firestore, qui peut se relancer plusieurs fois automatiquement).
+    if (pendingSiteLogoFile) {
+      const uploaded = await uploadFileToStorage(pendingSiteLogoFile, 'sites/logos', {
+        maxSizeMB: 10,
+        onProgress: (pct) => setUploadProgress('site-logo', pct)
+      });
+      logoUrl = uploaded.url;
+    }
+    if (pendingSiteCoverFile) {
+      const uploaded = await uploadFileToStorage(pendingSiteCoverFile, 'sites/couvertures', {
+        maxSizeMB: 10,
+        onProgress: (pct) => setUploadProgress('site-cover', pct)
+      });
+      coverImageUrl = uploaded.url;
+    }
+
     await db.runTransaction(async (tx) => {
       const [slugSnap, oldSlugSnap] = await Promise.all([
         tx.get(newSlugRef),
@@ -10456,6 +10726,11 @@ function openBusinessForm() {
   const catOptions = Object.entries(NEARBY_CATEGORY_LABELS)
     .map(([val, label]) => `<option value="${val}" ${b.category === val ? 'selected' : ''}>${escapeHtml(label)}</option>`).join('');
 
+  pendingBusinessLogoFile = null;
+  currentBusinessLogoUrl = b.logoUrl || null;
+  pendingBusinessCoverFile = null;
+  currentBusinessCoverUrl = b.coverImageUrl || null;
+
   const html = `
     <div class="modal-overlay" id="business-form-modal">
       <div class="modal" style="max-width:460px">
@@ -10474,12 +10749,30 @@ function openBusinessForm() {
           <textarea id="business-description" class="text-input" rows="3" style="resize:vertical" maxlength="500">${escapeHtml(b.description || '')}</textarea>
         </div>
         <div class="field">
-          <label for="business-logo">Logo (lien, facultatif)</label>
-          <input type="url" id="business-logo" class="text-input" placeholder="https://..." value="${escapeHtml(b.logoUrl || '')}">
+          <label for="business-logo-file">Logo (facultatif)</label>
+          <input type="file" id="business-logo-file" class="file-input-hidden" accept="image/*" onchange="handleBusinessLogoFileChange(event)">
+          <label for="business-logo-file" class="file-picker-btn" id="business-logo-file-label">
+            <span class="file-picker-icon" id="business-logo-file-icon">🖼️</span>
+            <span class="file-picker-text" id="business-logo-file-text">${b.logoUrl ? '✅ Logo déjà enregistré (choisir pour remplacer)' : 'Choisir une image'}</span>
+          </label>
+          <div class="upload-progress-wrap hidden" id="business-logo-progress-wrap">
+            <div class="upload-progress-fill" id="business-logo-progress-fill"></div>
+            <span class="upload-progress-label" id="business-logo-progress-label">0%</span>
+          </div>
+          <div id="business-logo-preview">${b.logoUrl ? `<img src="${escapeHtml(b.logoUrl)}" class="post-media-preview-media" alt="">` : ''}</div>
         </div>
         <div class="field">
-          <label for="business-cover">Image de couverture (lien, facultatif)</label>
-          <input type="url" id="business-cover" class="text-input" placeholder="https://..." value="${escapeHtml(b.coverImageUrl || '')}">
+          <label for="business-cover-file">Image de couverture (facultatif)</label>
+          <input type="file" id="business-cover-file" class="file-input-hidden" accept="image/*" onchange="handleBusinessCoverFileChange(event)">
+          <label for="business-cover-file" class="file-picker-btn" id="business-cover-file-label">
+            <span class="file-picker-icon" id="business-cover-file-icon">🖼️</span>
+            <span class="file-picker-text" id="business-cover-file-text">${b.coverImageUrl ? '✅ Image déjà enregistrée (choisir pour remplacer)' : 'Choisir une image'}</span>
+          </label>
+          <div class="upload-progress-wrap hidden" id="business-cover-progress-wrap">
+            <div class="upload-progress-fill" id="business-cover-progress-fill"></div>
+            <span class="upload-progress-label" id="business-cover-progress-label">0%</span>
+          </div>
+          <div id="business-cover-preview">${b.coverImageUrl ? `<img src="${escapeHtml(b.coverImageUrl)}" class="post-media-preview-media" alt="">` : ''}</div>
         </div>
         <div class="field">
           <label for="business-address">Adresse / ville</label>
@@ -10504,14 +10797,45 @@ function openBusinessForm() {
   document.body.insertAdjacentHTML('beforeend', html);
 }
 
+let pendingBusinessLogoFile = null;
+let currentBusinessLogoUrl = null;
+let pendingBusinessCoverFile = null;
+let currentBusinessCoverUrl = null;
+
+function handleBusinessLogoFileChange(event) {
+  pendingBusinessLogoFile = (event.target.files && event.target.files[0]) || null;
+  const text = document.getElementById('business-logo-file-text');
+  const label = document.getElementById('business-logo-file-label');
+  if (text) text.textContent = pendingBusinessLogoFile ? `✅ ${pendingBusinessLogoFile.name}` : (currentBusinessLogoUrl ? '✅ Logo déjà enregistré (choisir pour remplacer)' : 'Choisir une image');
+  if (label) label.classList.toggle('has-file', !!(pendingBusinessLogoFile || currentBusinessLogoUrl));
+  const previewEl = document.getElementById('business-logo-preview');
+  if (previewEl) {
+    const url = pendingBusinessLogoFile ? URL.createObjectURL(pendingBusinessLogoFile) : currentBusinessLogoUrl;
+    previewEl.innerHTML = url ? `<img src="${escapeHtml(url)}" class="post-media-preview-media" alt="">` : '';
+  }
+}
+
+function handleBusinessCoverFileChange(event) {
+  pendingBusinessCoverFile = (event.target.files && event.target.files[0]) || null;
+  const text = document.getElementById('business-cover-file-text');
+  const label = document.getElementById('business-cover-file-label');
+  if (text) text.textContent = pendingBusinessCoverFile ? `✅ ${pendingBusinessCoverFile.name}` : (currentBusinessCoverUrl ? '✅ Image déjà enregistrée (choisir pour remplacer)' : 'Choisir une image');
+  if (label) label.classList.toggle('has-file', !!(pendingBusinessCoverFile || currentBusinessCoverUrl));
+  const previewEl = document.getElementById('business-cover-preview');
+  if (previewEl) {
+    const url = pendingBusinessCoverFile ? URL.createObjectURL(pendingBusinessCoverFile) : currentBusinessCoverUrl;
+    previewEl.innerHTML = url ? `<img src="${escapeHtml(url)}" class="post-media-preview-media" alt="">` : '';
+  }
+}
+
 async function saveBusinessProfile() {
   const btn = document.getElementById('business-save-btn');
   const msgEl = document.getElementById('business-form-msg');
   const businessName = document.getElementById('business-name').value.trim();
   const category = document.getElementById('business-category').value;
   const description = document.getElementById('business-description').value.trim();
-  const logoUrl = document.getElementById('business-logo').value.trim();
-  const coverImageUrl = document.getElementById('business-cover').value.trim();
+  let logoUrl = currentBusinessLogoUrl;
+  let coverImageUrl = currentBusinessCoverUrl;
   const address = document.getElementById('business-address').value.trim();
   const hours = document.getElementById('business-hours').value.trim();
   const whatsapp = document.getElementById('business-whatsapp').value.trim();
@@ -10525,6 +10849,20 @@ async function saveBusinessProfile() {
   btn.disabled = true;
   btn.textContent = 'Enregistrement...';
   try {
+    if (pendingBusinessLogoFile) {
+      const uploaded = await uploadFileToStorage(pendingBusinessLogoFile, 'entreprises/logos', {
+        maxSizeMB: 10,
+        onProgress: (pct) => setUploadProgress('business-logo', pct)
+      });
+      logoUrl = uploaded.url;
+    }
+    if (pendingBusinessCoverFile) {
+      const uploaded = await uploadFileToStorage(pendingBusinessCoverFile, 'entreprises/couvertures', {
+        maxSizeMB: 10,
+        onProgress: (pct) => setUploadProgress('business-cover', pct)
+      });
+      coverImageUrl = uploaded.url;
+    }
     await db.collection('businesses').doc(currentUser.uid).set({
       ownerUid: currentUser.uid, businessName, category, description,
       logoUrl: logoUrl || null, coverImageUrl: coverImageUrl || null,

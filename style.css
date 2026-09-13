@@ -834,6 +834,15 @@ a{text-decoration:none;color:inherit}
 }
 
 /* ================= PAGE PROFIL (façon TikTok/Instagram/YouTube) ================= */
+/* AVANT : la photo de profil (post-avatar / post-avatar-img, toutes deux
+   des elements "display:flex"/"display:block") s'affichait collee en haut
+   a gauche meme si son conteneur avait "text-align:center" -- text-align
+   ne centre QUE du contenu en ligne, jamais une boite en display:flex ou
+   display:block, donc le centrage etait silencieusement ignore. On enrobe
+   desormais l'avatar dans ce conteneur flex dedie, qui le centre pour de
+   vrai, exactement comme sur TikTok (grosse photo ronde au-dessus du nom,
+   plus au coin). */
+.profile-avatar-center-wrap{display:flex;justify-content:center}
 .profile-stats-row{display:flex;justify-content:center;gap:28px;margin:14px 0}
 .profile-stat{display:flex;flex-direction:column;align-items:center}
 .profile-stat strong{font-size:1.05rem;color:var(--ink)}
@@ -862,6 +871,20 @@ a{text-decoration:none;color:inherit}
 .post-caption{padding:0 14px 10px;font-size:0.92rem;color:var(--ink);line-height:1.5}
 .post-media{width:100%;height:420px;object-fit:contain;display:block;background:#000;cursor:pointer}
 .post-actions{display:flex;gap:10px;padding:10px 14px}
+
+/* Apercu video du fil (façon Facebook) : la video ne joue jamais "en
+   place" (pas de barre de controles native, muette) -- un simple appui
+   n'importe ou dessus ouvre la visionneuse plein ecran (openMediaViewer),
+   ou la video se joue alors avec le son et les vrais controles. Evite le
+   conflit precedent ou le bouton play natif et le clic d'ouverture se
+   marchaient dessus. */
+.post-media-video-wrap{position:relative;cursor:pointer;background:#000}
+.post-media-video-wrap .post-media{pointer-events:none}
+.post-media-play-overlay{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:58px;height:58px;border-radius:50%;background:rgba(0,0,0,0.5);
+  display:flex;align-items:center;justify-content:center;color:#fff;
+}
 
 /* Fiche detail plein ecran (post-detail-modal) : ces classes n'avaient
    AUCUNE regle avant, donc l'image s'affichait a sa taille reelle et

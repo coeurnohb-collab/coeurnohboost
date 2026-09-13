@@ -1676,8 +1676,16 @@
       <textarea id="job-apply-message" class="text-input" rows="4" placeholder="Présente-toi et explique pourquoi tu es intéressé(e)..."></textarea>
     </div>
     <div class="field">
-      <label for="job-apply-cv">Lien vers ton CV / portfolio (facultatif)</label>
-      <input type="url" id="job-apply-cv" class="text-input" placeholder="https://...">
+      <label for="job-apply-cv-file">CV / portfolio (facultatif)</label>
+      <input type="file" id="job-apply-cv-file" class="file-input-hidden" accept=".pdf,.doc,.docx,image/*" onchange="handleJobApplyCvFileChange(event)">
+      <label for="job-apply-cv-file" class="file-picker-btn" id="job-apply-cv-file-label">
+        <span class="file-picker-icon" id="job-apply-cv-file-icon">📄</span>
+        <span class="file-picker-text" id="job-apply-cv-file-text">Choisir un fichier</span>
+      </label>
+      <div class="upload-progress-wrap hidden" id="job-apply-cv-progress-wrap">
+        <div class="upload-progress-fill" id="job-apply-cv-progress-fill"></div>
+        <span class="upload-progress-label" id="job-apply-cv-progress-label">0%</span>
+      </div>
     </div>
     <button class="btn btn-primary" id="job-apply-submit-btn" style="width:100%;justify-content:center" onclick="submitJobApplication()">Envoyer ma candidature</button>
   </div>
@@ -1736,8 +1744,16 @@
       <input type="checkbox" id="jobseeker-salary-hidden-input"> Ne pas afficher la prétention salariale publiquement
     </label>
     <div class="field">
-      <label for="jobseeker-cv-input">Lien vers ton CV / portfolio (facultatif)</label>
-      <input type="url" id="jobseeker-cv-input" class="text-input" placeholder="https://...">
+      <label for="jobseeker-cv-file">CV / portfolio (facultatif)</label>
+      <input type="file" id="jobseeker-cv-file" class="file-input-hidden" accept=".pdf,.doc,.docx,image/*" onchange="handleJobSeekerCvFileChange(event)">
+      <label for="jobseeker-cv-file" class="file-picker-btn" id="jobseeker-cv-file-label">
+        <span class="file-picker-icon" id="jobseeker-cv-file-icon">📄</span>
+        <span class="file-picker-text" id="jobseeker-cv-file-text">Choisir un fichier</span>
+      </label>
+      <div class="upload-progress-wrap hidden" id="jobseeker-cv-progress-wrap">
+        <div class="upload-progress-fill" id="jobseeker-cv-progress-fill"></div>
+        <span class="upload-progress-label" id="jobseeker-cv-progress-label">0%</span>
+      </div>
     </div>
     <div class="field">
       <label for="jobseeker-whatsapp-input">WhatsApp de contact</label>
@@ -1789,8 +1805,17 @@
       <textarea id="event-description-input" class="text-input" rows="4" placeholder="Programme, informations pratiques..."></textarea>
     </div>
     <div class="field">
-      <label for="event-cover-input">Image de couverture — lien (facultatif)</label>
-      <input type="url" id="event-cover-input" class="text-input" placeholder="https://...">
+      <label for="event-cover-file">Image de couverture (facultatif)</label>
+      <input type="file" id="event-cover-file" class="file-input-hidden" accept="image/*" onchange="handleEventCoverFileChange(event)">
+      <label for="event-cover-file" class="file-picker-btn" id="event-cover-file-label">
+        <span class="file-picker-icon" id="event-cover-file-icon">🖼️</span>
+        <span class="file-picker-text" id="event-cover-file-text">Choisir une image</span>
+      </label>
+      <div class="upload-progress-wrap hidden" id="event-cover-progress-wrap">
+        <div class="upload-progress-fill" id="event-cover-progress-fill"></div>
+        <span class="upload-progress-label" id="event-cover-progress-label">0%</span>
+      </div>
+      <div id="event-cover-preview"></div>
     </div>
 
     <div class="field">
@@ -1852,8 +1877,17 @@
       <textarea id="course-description-input" class="text-input" rows="4" placeholder="Ce que les étudiants vont apprendre..."></textarea>
     </div>
     <div class="field">
-      <label for="course-cover-input">Image de couverture (lien, facultatif)</label>
-      <input type="url" id="course-cover-input" class="text-input" placeholder="https://...">
+      <label for="course-cover-file">Image de couverture (facultatif)</label>
+      <input type="file" id="course-cover-file" class="file-input-hidden" accept="image/*" onchange="handleCourseCoverFileChange(event)">
+      <label for="course-cover-file" class="file-picker-btn" id="course-cover-file-label">
+        <span class="file-picker-icon" id="course-cover-file-icon">🖼️</span>
+        <span class="file-picker-text" id="course-cover-file-text">Choisir une image</span>
+      </label>
+      <div class="upload-progress-wrap hidden" id="course-cover-progress-wrap">
+        <div class="upload-progress-fill" id="course-cover-progress-fill"></div>
+        <span class="upload-progress-label" id="course-cover-progress-label">0%</span>
+      </div>
+      <div id="course-cover-preview"></div>
     </div>
     <div class="field">
       <label for="course-price-input">Prix (0 = gratuit, en $)</label>
