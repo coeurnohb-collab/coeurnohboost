@@ -1199,42 +1199,15 @@ async function submitRecharge() {
         errEl.classList.remove('hidden');
         return;
       }
-      // data.supported === false : pays non couvert par MboтePay, on tente CinetPay ci-dessous
-
-      // ⚠️ CinetPay n'est pas encore reconstruit (retire temporairement).
-      // Quand il sera de retour, la demande de recharge devra etre creee
-      // DANS api/cinetpay-payment.js (cote serveur), avec le meme montant
-      // que celui de la vraie facture -- surtout PAS ici cote client, pour
-      // les memes raisons de securite que Cryptomus et MboтePay ci-dessus.
-      const cinetpayResponse = await fetch('/api/cinetpay-payment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          uid: currentUser.uid,
-          amountUSD: amount,
-          countryCode: payCountryCode,
-          clientEmail: currentUser.email,
-          clientPhone: phone
-        })
-      });
-      const cinetpayData = await cinetpayResponse.json();
-
-      if (cinetpayData.supported && cinetpayData.success) {
-        // Quand CinetPay sera reconstruit, la demande de recharge devra
-        // etre creee cote serveur dans api/cinetpay-payment.js (voir le
-        // commentaire ci-dessus) -- pas ici.
-        window.location.href = cinetpayData.paymentUrl;
-        return;
-      }
-      if (cinetpayData.supported && !cinetpayData.success) {
-        errEl.textContent = cinetpayData.error || t('pay_err_generic');
-        errEl.classList.remove('hidden');
-        return;
-      }
-      // cinetpayData.supported === false : pays non couvert non plus, on continue vers le flux manuel ci-dessous
+      // data.supported === false : pays non couvert par MboтePay -- on
+      // passe directement au flux manuel juste en dessous (CinetPay n'est
+      // pas encore reconstruit : l'ancien code appelait ici un endpoint
+      // /api/cinetpay-payment qui n'existe plus dans /api, ce qui faisait
+      // planter la recharge Mobile Money avec une erreur generique pour
+      // tous les pays non couverts par MboтePay -- corrige).
     }
 
-    // Autres methodes (et Mobile Money non couvert par MboтePay ni CinetPay) : demande manuelle comme avant
+    // Autres methodes (et Mobile Money non couvert par MboтePay) : demande manuelle comme avant
     await db.collection('topup_requests').add({
       uid: currentUser.uid,
       email: currentUser.email,
@@ -1944,6 +1917,7 @@ function renderLoggedOutNav() {
   document.getElementById('admin-shortcut-btn').classList.add('hidden');
   stopNotifWatch();
   stopPresenceUpdates();
+  stopWalletWatch();
   blockedSet = new Set();
 }
 function renderLoggedInNav(uid) {
@@ -1952,6 +1926,7 @@ function renderLoggedInNav(uid) {
   document.getElementById('admin-shortcut-btn').classList.toggle('hidden', uid !== ADMIN_UID);
   startNotifWatch();
   startPresenceUpdates();
+  startWalletWatch(uid);
   loadBlockedSet();
   loadFollowingSet();
 }
@@ -10443,21 +10418,36 @@ async function saveMySite() {
       if (slugSnap.exists && slugSnap.data().ownerUid !== uid) {
         throw new Error('SLUG_TAKEN');
       }
-      tx.set(newSiteRef, {
+      const sitePayload = {
         ownerUid: uid, slug, template, businessName, tagline, aboutText,
         logoUrl: logoUrl || null, coverImageUrl: coverImageUrl || null,
         services, gallery, contactWhatsapp, contactPhone, contactEmail, address, socialLinks,
         status: editingSiteExisting ? editingSiteExisting.status : 'draft',
-        // "premium", "premiumUntil" et "viewsCount" ne sont jamais ecrits
-        // ici (merge:true les preserve) : seul /api/payments-actions.js
-        // (via l'admin SDK) et l'incrementation des vues sont autorises a
-        // les toucher, jamais un enregistrement classique du formulaire.
-        premium: editingSiteExisting ? (editingSiteExisting.premium || false) : false,
-        premiumUntil: editingSiteExisting ? (editingSiteExisting.premiumUntil || null) : null,
-        viewsCount: editingSiteExisting ? (editingSiteExisting.viewsCount || 0) : 0,
         createdAt: editingSiteExisting ? editingSiteExisting.createdAt : new Date().toISOString(),
         updatedAt: new Date().toISOString()
-      }, { merge: true });
+      };
+      // "premium", "premiumUntil" et "viewsCount" : sur une MISE A JOUR
+      // d'un site existant, on ne les inclut JAMAIS -- merge:true les
+      // preserve alors automatiquement tels qu'ils sont reellement en
+      // base au moment de l'enregistrement. Seul /api/payments-actions.js
+      // (via l'admin SDK) et l'incrementation des vues sont autorises a
+      // les toucher.
+      // (avant : ces 3 champs etaient renvoyes depuis la copie chargee a
+      // l'ouverture du formulaire -- si un visiteur avait vu le site
+      // entre-temps (viewsCount) ou si le Premium avait ete active
+      // pendant que le formulaire etait ouvert, la valeur perimee envoyee
+      // ne correspondait plus a celle des regles Firestore : l'enregistrement
+      // du site echouait avec une erreur generique, ou pire, ecrasait un
+      // viewsCount plus recent par l'ancien.)
+      // Sur une CREATION (aucun site existant), Firestore n'a alors aucune
+      // valeur a preserver via merge -- les regles exigent explicitement
+      // premium == false, donc on doit les fournir cette fois-la.
+      if (!editingSiteExisting) {
+        sitePayload.premium = false;
+        sitePayload.premiumUntil = null;
+        sitePayload.viewsCount = 0;
+      }
+      tx.set(newSiteRef, sitePayload, { merge: true });
       tx.set(newSlugRef, { ownerUid: uid });
       if (oldSlugRef && oldSlugSnap && oldSlugSnap.exists) {
         tx.delete(oldSlugRef);
@@ -12154,6 +12144,36 @@ async function saveNotifPrefs() {
   try {
     await db.collection('users').doc(currentUser.uid).update({ notifPrefs: prefs });
   } catch (e) { console.log('[notifPrefs] Erreur sauvegarde :', e.message); }
+}
+
+/* ================= SOLDE DU PORTEFEUILLE (temps reel) =================
+   Avant : currentUser.balance n'etait lu qu'UNE SEULE FOIS a la connexion
+   (onAuthStateChanged), puis mis a jour uniquement en local juste apres un
+   achat fait DEPUIS l'app (boost, boutique, concours...). Mais une
+   recharge (Mobile Money ou crypto) est creditee par un WEBHOOK cote
+   serveur, de facon asynchrone, pendant que le client est parti payer sur
+   son telephone ou sur la page de paiement -- a son retour dans l'app, le
+   solde affiche restait donc l'ANCIEN, jusqu'a un rechargement complet de
+   la page. Ca donnait l'impression que la recharge "marchait parfois,
+   parfois pas" alors que l'argent etait bien credite en base. Ce listener
+   suit le solde en direct, comme startNotifWatch() le fait deja pour les
+   notifications. */
+let walletUnsubscribe = null;
+
+function startWalletWatch(uid) {
+  if (walletUnsubscribe) return; // deja actif
+  walletUnsubscribe = db.collection('users').doc(uid).onSnapshot((doc) => {
+    if (!doc.exists || !currentUser) return;
+    const newBalance = doc.data().balance || 0;
+    if (currentUser.balance === newBalance) return;
+    currentUser.balance = newBalance;
+    const walletBalanceEl = document.getElementById('wallet-balance');
+    if (walletBalanceEl) walletBalanceEl.textContent = newBalance.toFixed(2) + '$';
+  }, (err) => console.log('[wallet] Erreur suivi solde :', err.message));
+}
+
+function stopWalletWatch() {
+  if (walletUnsubscribe) { walletUnsubscribe(); walletUnsubscribe = null; }
 }
 
 /* ================= NOTIFICATIONS ================= */
