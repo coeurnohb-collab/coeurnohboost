@@ -3682,23 +3682,44 @@ async function loadShopFeed() {
   const feedEl = document.getElementById('shop-feed');
   feedEl.innerHTML = renderFeedSkeletons(4);
   try {
-    // Limite de securite : la recherche/filtre boutique se fait cote
-    // telephone sur cette liste, donc une vraie pagination "Charger plus"
-    // casserait la recherche (des resultats pourraient manquer). En
-    // attendant une vraie recherche cote serveur, on plafonne a 200 pour
-    // eviter que le chargement devienne trop lourd avec le temps.
-    const snap = await db.collection('publications')
-      .where('status', '==', 'published')
-      .orderBy('createdAt', 'desc')
-      .limit(200)
-      .get();
+    // AVANT : cette requete ne filtrait QUE sur status=='published', sans
+    // filtrer par type -- elle recuperait donc les 200 publications les
+    // PLUS RECENTES tous types confondus (photos/videos/textes du fil
+    // d'accueil INCLUS), puis ne gardait que les articles apres coup en
+    // JavaScript. Comme le fil d'accueil publie generalement bien plus
+    // souvent que la Boutique, les 200 publications les plus recentes
+    // etaient tres majoritairement des posts sans rapport -- un article
+    // en Boutique un peu ancien pouvait donc disparaitre completement de
+    // la liste des 200, alors qu'il etait toujours actif en base. Ca
+    // donnait l'impression qu'un article "disparaissait au hasard" selon
+    // l'activite du fil d'accueil ce jour-la. Le filtre par type se fait
+    // desormais directement dans la requete Firestore (meme index deja
+    // utilise par le fil d'accueil pour status+type+date), donc les 200
+    // resultats sont bien 200 VRAIS articles de Boutique/Bibliotheque.
+    let snap;
+    try {
+      snap = await db.collection('publications')
+        .where('status', '==', 'published')
+        .where('type', 'in', ['book', 'product'])
+        .orderBy('createdAt', 'desc')
+        .limit(200)
+        .get();
+    } catch (indexErr) {
+      // Filet de securite : si l'index compose necessaire pour cette
+      // requete n'est pas (encore) deploye cote Firebase, on retombe sur
+      // l'ancienne requete (sans filtre de type) + le filtrage cote
+      // telephone, pour que la Boutique continue de fonctionner quoi
+      // qu'il arrive, le temps que l'index se cree.
+      console.log('[boutique] repli sans index compose :', indexErr.message);
+      snap = await db.collection('publications')
+        .where('status', '==', 'published')
+        .orderBy('createdAt', 'desc')
+        .limit(200)
+        .get();
+    }
 
     shopFeedItems = snap.docs
       .map(doc => ({ id: doc.id, ...doc.data() }))
-      // IMPORTANT : cette collection contient aussi les publications du fil
-      // d'accueil (photo/vidéo/texte, sans prix) — on ne garde ici que les
-      // vrais articles de Boutique/Bibliothèque (livres et produits), sinon
-      // le calcul du prix plante sur les publications sans prix.
       .filter(item => item.type === 'book' || item.type === 'product');
     shopLikedMap = {};
     shopPurchasedSet = new Set();
