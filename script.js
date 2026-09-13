@@ -13,6 +13,16 @@ const firebaseConfig = {
 const ADMIN_UID = "8BqWONj07hVZePHe2DrkHWYRjse2";
 const FCM_VAPID_KEY = "BCwBF4M8jxL1uYPBERZvSFz0lYZk34m7vNLUtBby1lUwfoYVLFgY4c23OX6r7QCSCtEOu4GWG8_enFL_Ff5muck";
 
+// AVANT : l'ecran de demarrage (logo + spinner) disparaissait DES que
+// Firebase confirmait l'etat de connexion -- souvent quasi instantane (deja
+// connecte, connexion mise en cache), donc personne n'avait le temps de
+// voir ni le logo ni son animation d'entree. On retient l'heure exacte du
+// tout premier chargement ici pour imposer une duree minimum d'affichage
+// (voir hideAppSplash()) : l'entree reste toujours visible un minimum de
+// temps, peu importe la vitesse de la connexion.
+const APP_SPLASH_START = Date.now();
+const APP_SPLASH_MIN_MS = 1100;
+
 /* ================= NOTIFICATIONS "TOAST" (bannieres discretes) =================
    Remplace les alert() bloquants pour les messages courts (succes, erreur,
    confirmation) — sauf pour les instructions longues et le fallback de
@@ -418,6 +428,31 @@ function showDashboard() {
   document.getElementById('view-dashboard').classList.remove('hidden');
   showDashTab('home');
   updateNotifBadge();
+  initHomeMultiservicesBanner();
+}
+
+/* ================= BANNIÈRE MULTI-SERVICES (tableau de bord) =================
+   Complete la section "multi-services" de la page publique (view-home),
+   invisible pour un compte deja connecte : ce petit rappel dans l'onglet
+   Accueil du tableau de bord la rend quand meme decouvrable. Se souvient,
+   sur cet appareil, si la personne l'a deja refermee. */
+function initHomeMultiservicesBanner() {
+  const el = document.getElementById('home-multiservices-banner');
+  if (!el) return;
+  if (localStorage.getItem('coeurnoh_hide_multiservices_banner') === '1') {
+    el.classList.add('hidden');
+  }
+}
+
+function dismissHomeMultiservicesBanner() {
+  const el = document.getElementById('home-multiservices-banner');
+  if (el) el.classList.add('hidden');
+  try { localStorage.setItem('coeurnoh_hide_multiservices_banner', '1'); } catch (e) {}
+}
+
+function openServicesFromDashboard() {
+  openMainMenu();
+  showMenuScreen('items-services');
 }
 function showDashTab(tab) {
   document.querySelectorAll('.dash-tab').forEach(el => el.classList.add('hidden'));
@@ -2143,9 +2178,21 @@ if (fbReady) {
 // est deja connectee ou non — evite qu'un compte deja connecte revoie
 // brievement la page d'accueil publique (Se connecter / Creer un compte)
 // avant de basculer sur son tableau de bord.
+// AVANT : disparaissait d'un coup (display:none immediat) ET pouvait
+// s'afficher a peine 50-100ms si la connexion Firebase etait deja en
+// cache -- personne n'avait le temps de voir le logo, encore moins une
+// animation. Corrige ici en deux points : (1) duree minimum garantie
+// (APP_SPLASH_MIN_MS) avant de commencer a la cacher, (2) fondu de sortie
+// en douceur (classe "splash-hide") au lieu d'un display:none brutal.
 function hideAppSplash() {
   const splash = document.getElementById('app-splash');
-  if (splash) splash.classList.add('hidden');
+  if (!splash) return;
+  const elapsed = Date.now() - APP_SPLASH_START;
+  const remaining = Math.max(0, APP_SPLASH_MIN_MS - elapsed);
+  setTimeout(() => {
+    splash.classList.add('splash-hide');
+    setTimeout(() => splash.classList.add('hidden'), 380);
+  }, remaining);
 }
 
 // Empeche le bouton "retour" (telephone/navigateur) de ramener un compte

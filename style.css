@@ -131,6 +131,19 @@ a{text-decoration:none;color:inherit}
 @media(min-width:600px){.multi-service-grid{grid-template-columns:repeat(4,1fr)}}
 @media(min-width:900px){.multi-service-grid{grid-template-columns:repeat(6,1fr)}}
 
+/* Version compacte de la bannière multi-services, dans l'onglet Accueil du
+   tableau de bord (voir home-multiservices-banner dans index.html). */
+.home-multiservices-banner{
+  position:relative;background:linear-gradient(135deg, var(--green-light), var(--cream));
+  border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;margin-bottom:16px;
+}
+.home-multiservices-banner strong{display:block;font-size:0.98rem;margin-bottom:4px;color:var(--ink)}
+.home-multiservices-banner p{font-size:0.85rem;color:var(--muted);margin-bottom:12px;line-height:1.4;padding-right:20px}
+.home-multiservices-close{
+  position:absolute;top:8px;right:8px;background:none;border:none;color:var(--muted);
+  font-size:0.9rem;cursor:pointer;padding:6px;line-height:1;
+}
+
 /* STATS BAR */
 .stats-bar{background:var(--ink);padding:28px 0}
 .stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;text-align:center}
@@ -194,12 +207,34 @@ a{text-decoration:none;color:inherit}
 #app-splash{
   position:fixed;inset:0;z-index:10000;background:var(--bg);
   display:flex;align-items:center;justify-content:center;
+  opacity:1;transition:opacity .38s ease;
 }
+#app-splash.splash-hide{opacity:0}
 #app-splash.hidden{display:none}
-#app-splash-inner{display:flex;flex-direction:column;align-items:center;gap:18px}
-#app-splash-logo{font-family:var(--font);font-size:1.6rem;font-weight:800;animation:splashLogoIn .55s cubic-bezier(.2,.8,.2,1) forwards}
-@keyframes splashLogoIn{from{opacity:0;transform:scale(0.85)}to{opacity:1;transform:scale(1)}}
-@media (prefers-reduced-motion: reduce){#app-splash-logo{animation:none}}
+#app-splash-inner{display:flex;flex-direction:column;align-items:center;gap:22px}
+/* AVANT : simple texte "Coeurnoh Universe" en 2 couleurs, avec un fondu
+   quasi imperceptible de 0.55s -- souvent jamais vu (voir hideAppSplash()
+   dans script.js pour la correction de duree). Remplace par le vrai logo
+   de l'app (meme image que l'icone installee sur le telephone), avec une
+   entree nette "zoom + rebond" et un halo qui respire doucement tant que
+   le chargement continue -- une vraie sequence d'ouverture, pas un simple
+   fondu discret. */
+#app-splash-logo-img{
+  width:128px;height:128px;border-radius:30px;
+  box-shadow:0 12px 32px rgba(0,0,0,0.16);
+  animation:splashLogoIn .7s cubic-bezier(.34,1.56,.64,1) forwards, splashLogoGlow 2.2s ease-in-out .7s infinite;
+}
+@keyframes splashLogoIn{
+  0%{opacity:0;transform:scale(.55) rotate(-8deg)}
+  100%{opacity:1;transform:scale(1) rotate(0deg)}
+}
+@keyframes splashLogoGlow{
+  0%,100%{box-shadow:0 12px 32px rgba(0,0,0,0.16)}
+  50%{box-shadow:0 12px 40px rgba(14,107,69,0.30)}
+}
+@media (prefers-reduced-motion: reduce){
+  #app-splash-logo-img{animation:none;opacity:1}
+}
 #app-splash-spinner{
   width:28px;height:28px;border-radius:50%;
   border:3px solid var(--line);border-top-color:var(--green);

@@ -46,7 +46,7 @@
 <div id="toast-container"></div>
 <div id="app-splash">
   <div id="app-splash-inner">
-    <span id="app-splash-logo"><span style="color:var(--red)">Coeurnoh</span> <span style="color:var(--green)">Universe</span></span>
+    <img id="app-splash-logo-img" src="icon-512-v2.png" alt="Coeurnoh Universe" width="128" height="128">
     <div id="app-splash-spinner"></div>
   </div>
 </div>
@@ -208,6 +208,19 @@
     <div class="dash-tab" id="dash-tab-home">
       <div class="dash-header">
         <h2><span data-i18n="dash_hello">Bonjour</span>, <span id="dash-name">—</span> 👋</h2>
+      </div>
+
+      <!-- ================= BANNIÈRE MULTI-SERVICES (tableau de bord) =================
+           La grande section "multi-services" n'existe que sur la page publique
+           (avant connexion) -- un compte deja connecte ne la voit jamais.
+           Ce rappel compact, ici dans l'onglet Accueil, rend les autres
+           services visibles aussi pour les comptes deja connectes. Peut
+           etre refermee (bouton ×) ; ne revient plus ensuite sur cet appareil. -->
+      <div class="home-multiservices-banner" id="home-multiservices-banner">
+        <button class="home-multiservices-close" onclick="dismissHomeMultiservicesBanner()" aria-label="Fermer">✕</button>
+        <strong data-i18n="home_multi_title">Un seul compte, des services multiples</strong>
+        <p data-i18n="home_multi_sub">Boutique, factures, emploi, académie, immobilier, voyages, événements et plus encore — tout Coeurnoh Universe dans une seule application.</p>
+        <button class="btn btn-primary" style="width:auto" data-i18n="home_multi_cta" onclick="openServicesFromDashboard()">Découvrir tous les services</button>
       </div>
 
       <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:14px" onclick="openCreatePostForm()">➕ Publier une photo, vidéo ou un texte</button>
