@@ -4599,6 +4599,8 @@ function openDirectoryEditForm() {
   db.collection('directory_listings').doc(currentUser.uid).get().then(doc => {
     const f = doc.exists ? doc.data() : {};
     directoryIsEditingExisting = doc.exists;
+    pendingDirectoryPhotoFile = null;
+    currentDirectoryPhotoUrl = f.photoURL || null;
     const html = `
       <div class="modal-overlay" id="directory-edit-modal">
         <div class="modal">
@@ -4607,6 +4609,19 @@ function openDirectoryEditForm() {
           <div class="field">
             <label for="directory-name">Nom ou nom de l'entreprise</label>
             <input type="text" id="directory-name" class="text-input" value="${escapeHtml(f.name || '')}" maxlength="80">
+          </div>
+          <div class="field">
+            <label for="directory-photo-file">Photo (facultatif)</label>
+            <input type="file" id="directory-photo-file" class="file-input-hidden" accept="image/*" onchange="handleDirectoryPhotoFileChange(event)">
+            <label for="directory-photo-file" class="file-picker-btn" id="directory-photo-file-label">
+              <span class="file-picker-icon" id="directory-photo-file-icon">🖼️</span>
+              <span class="file-picker-text" id="directory-photo-file-text">${f.photoURL ? '✅ Photo déjà enregistrée (toucher pour remplacer)' : 'Choisir une photo'}</span>
+            </label>
+            <div class="upload-progress-wrap hidden" id="directory-photo-progress-wrap">
+              <div class="upload-progress-fill" id="directory-photo-progress-fill"></div>
+              <span class="upload-progress-label" id="directory-photo-progress-label">0%</span>
+            </div>
+            <div id="directory-photo-preview">${f.photoURL ? `<img src="${escapeHtml(f.photoURL)}" class="post-media-preview-media" alt="">` : ''}</div>
           </div>
           <div class="field">
             <label for="directory-profession">Métier</label>
@@ -4698,6 +4713,22 @@ function addDirectoryServiceRow(service) {
   rowsEl.appendChild(row);
 }
 
+let pendingDirectoryPhotoFile = null;
+let currentDirectoryPhotoUrl = null;
+
+function handleDirectoryPhotoFileChange(event) {
+  pendingDirectoryPhotoFile = (event.target.files && event.target.files[0]) || null;
+  const text = document.getElementById('directory-photo-file-text');
+  const label = document.getElementById('directory-photo-file-label');
+  if (text) text.textContent = pendingDirectoryPhotoFile ? `✅ ${pendingDirectoryPhotoFile.name}` : (currentDirectoryPhotoUrl ? '✅ Photo déjà enregistrée (toucher pour remplacer)' : 'Choisir une photo');
+  if (label) label.classList.toggle('has-file', !!(pendingDirectoryPhotoFile || currentDirectoryPhotoUrl));
+  const previewEl = document.getElementById('directory-photo-preview');
+  if (previewEl) {
+    const url = pendingDirectoryPhotoFile ? URL.createObjectURL(pendingDirectoryPhotoFile) : currentDirectoryPhotoUrl;
+    previewEl.innerHTML = url ? `<img src="${escapeHtml(url)}" class="post-media-preview-media" alt="">` : '';
+  }
+}
+
 async function saveDirectoryListing() {
   const btn = document.getElementById('directory-save-btn');
   const msgEl = document.getElementById('directory-form-msg');
@@ -4734,9 +4765,18 @@ async function saveDirectoryListing() {
   btn.disabled = true;
   btn.textContent = 'Enregistrement...';
   try {
+    let photoURL = currentDirectoryPhotoUrl;
+    if (pendingDirectoryPhotoFile) {
+      const uploaded = await uploadFileToStorage(pendingDirectoryPhotoFile, 'fiches-pro', {
+        maxSizeMB: 10,
+        onProgress: (pct) => setUploadProgress('directory-photo', pct)
+      });
+      photoURL = uploaded.url;
+    }
     const payload = {
       ownerUid: currentUser.uid,
       name, profession, city, category: category || null, phone, description,
+      photoURL: photoURL || null,
       bookingEnabled, bookingDays, bookingStart, bookingEnd, slotDuration, services,
       updatedAt: new Date().toISOString()
     };
@@ -5204,9 +5244,12 @@ function renderAlertsList(list) {
     return `
     <div class="order-box" style="margin-bottom:12px">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
-        <div style="min-width:0">
-          <strong style="font-size:1.02rem;word-break:break-word">${escapeHtml(a.keyword)}</strong>
-          <div class="muted small" style="margin-top:4px">${escapeHtml(sub)}</div>
+        <div style="display:flex;align-items:center;gap:10px;min-width:0">
+          ${a.referenceImageUrl ? `<img src="${escapeHtml(a.referenceImageUrl)}" class="gallery-photo-thumb" alt="">` : ''}
+          <div style="min-width:0">
+            <strong style="font-size:1.02rem;word-break:break-word">${escapeHtml(a.keyword)}</strong>
+            <div class="muted small" style="margin-top:4px">${escapeHtml(sub)}</div>
+          </div>
         </div>
         <label class="switch" style="margin-top:2px">
           <input type="checkbox" ${a.active !== false ? 'checked' : ''} onchange="toggleAlertActive('${a.id}', this.checked)">
@@ -5221,6 +5264,7 @@ function renderAlertsList(list) {
 function openAlertForm() {
   if (!currentUser) { openAuth('login'); return; }
   if (document.getElementById('alert-form-modal')) return;
+  pendingAlertPhotoFile = null;
 
   const html = `
     <div class="modal-overlay" id="alert-form-modal">
@@ -5248,12 +5292,41 @@ function openAlertForm() {
             <option value="autres">📦 Autres</option>
           </select>
         </div>
+        <div class="field">
+          <label for="alert-photo-file">Photo de référence (facultatif)</label>
+          <p class="muted small" style="margin:-2px 0 8px">Une photo du produit ou de la marque recherchée, juste pour t'aider à t'y retrouver dans tes alertes — elle ne sert pas à la recherche automatique, qui reste basée sur le mot-clé.</p>
+          <input type="file" id="alert-photo-file" class="file-input-hidden" accept="image/*" onchange="handleAlertPhotoFileChange(event)">
+          <label for="alert-photo-file" class="file-picker-btn" id="alert-photo-file-label">
+            <span class="file-picker-icon" id="alert-photo-file-icon">🖼️</span>
+            <span class="file-picker-text" id="alert-photo-file-text">Choisir une photo</span>
+          </label>
+          <div class="upload-progress-wrap hidden" id="alert-photo-progress-wrap">
+            <div class="upload-progress-fill" id="alert-photo-progress-fill"></div>
+            <span class="upload-progress-label" id="alert-photo-progress-label">0%</span>
+          </div>
+          <div id="alert-photo-preview"></div>
+        </div>
 
         <button class="btn btn-primary" id="alert-save-btn" style="width:100%;justify-content:center;margin-top:4px" onclick="saveAlert()">Créer l'alerte</button>
         <p class="muted small" id="alert-form-msg" style="margin-top:6px"></p>
       </div>
     </div>`;
   document.body.insertAdjacentHTML('beforeend', html);
+}
+
+let pendingAlertPhotoFile = null;
+
+function handleAlertPhotoFileChange(event) {
+  pendingAlertPhotoFile = (event.target.files && event.target.files[0]) || null;
+  const text = document.getElementById('alert-photo-file-text');
+  const label = document.getElementById('alert-photo-file-label');
+  if (text) text.textContent = pendingAlertPhotoFile ? `✅ ${pendingAlertPhotoFile.name}` : 'Choisir une photo';
+  if (label) label.classList.toggle('has-file', !!pendingAlertPhotoFile);
+  const previewEl = document.getElementById('alert-photo-preview');
+  if (previewEl) {
+    const url = pendingAlertPhotoFile ? URL.createObjectURL(pendingAlertPhotoFile) : null;
+    previewEl.innerHTML = url ? `<img src="${url}" class="post-media-preview-media" alt="">` : '';
+  }
 }
 
 async function saveAlert() {
@@ -5270,12 +5343,21 @@ async function saveAlert() {
   btn.disabled = true;
   btn.textContent = 'Création...';
   try {
+    let referenceImageUrl = null;
+    if (pendingAlertPhotoFile) {
+      const uploaded = await uploadFileToStorage(pendingAlertPhotoFile, 'alertes', {
+        maxSizeMB: 10,
+        onProgress: (pct) => setUploadProgress('alert-photo', pct)
+      });
+      referenceImageUrl = uploaded.url;
+    }
     await db.collection('alerts').add({
       ownerUid: currentUser.uid,
       keyword,
       keywordLower: keyword.toLowerCase(),
       maxPrice: (maxPrice && maxPrice > 0) ? maxPrice : null,
       category: category === 'all' ? null : category,
+      referenceImageUrl,
       active: true,
       createdAt: new Date().toISOString()
     });
@@ -5422,7 +5504,10 @@ function renderNearbyResults(list) {
     return `
     <div class="order-box" style="margin-bottom:12px">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
-        <strong style="font-size:1.02rem">${escapeHtml(f.name || 'Professionnel')}</strong>
+        <div style="display:flex;align-items:center;gap:10px;min-width:0">
+          ${renderAvatarHtml(f.name, f.photoURL, 40)}
+          <strong style="font-size:1.02rem">${escapeHtml(f.name || 'Professionnel')}</strong>
+        </div>
         ${catLabel ? `<span class="shop-card-category" style="white-space:nowrap">${catLabel}</span>` : ''}
       </div>
       <div class="muted small" style="margin:4px 0">${escapeHtml(f.profession || '—')}</div>
@@ -8015,16 +8100,32 @@ function renderBookableProfessionals(list) {
   const visible = list.filter(f => !blockedSet.has(f.ownerUid));
 
   if (visible.length === 0) {
-    listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Aucun professionnel n\'accepte encore les réservations en ligne. Reviens bientôt, ou active-le sur ta propre fiche dans « Près de chez vous ».</p>';
+    listEl.innerHTML = `
+      <div class="order-box" style="text-align:center;padding:24px 16px">
+        <p class="muted small" style="margin-bottom:14px">Aucun professionnel n'accepte encore les réservations en ligne. Reviens bientôt, ou sois le premier en l'activant sur ta propre fiche.</p>
+        <button class="btn btn-primary btn-sm" onclick="openDirectoryEditForm()">Activer les réservations sur ma fiche</button>
+      </div>`;
     return;
   }
 
-  listEl.innerHTML = visible.map(f => `
+  listEl.innerHTML = visible.map(f => {
+    const services = Array.isArray(f.services) ? f.services.filter(s => s && s.name) : [];
+    const serviceSummary = services.length > 0
+      ? services.slice(0, 3).map(s => s.price ? `${escapeHtml(s.name)} (${escapeHtml(s.price)})` : escapeHtml(s.name)).join(' · ')
+      : '';
+    return `
     <div class="order-box" style="margin-bottom:12px">
-      <strong style="font-size:1.02rem">${escapeHtml(f.name || 'Professionnel')}</strong>
-      <div class="muted small" style="margin:4px 0">${escapeHtml(f.profession || '—')}${f.city ? ' · ' + escapeHtml(f.city) : ''}</div>
-      <button class="btn btn-outline btn-sm" onclick="openBookingFlow('${f.ownerUid}')">Réserver</button>
-    </div>`).join('');
+      <div style="display:flex;align-items:center;gap:10px">
+        ${renderAvatarHtml(f.name, f.photoURL, 44)}
+        <div style="min-width:0">
+          <strong style="font-size:1.02rem">${escapeHtml(f.name || 'Professionnel')}</strong>
+          <div class="muted small" style="margin-top:2px">${escapeHtml(f.profession || '—')}${f.city ? ' · ' + escapeHtml(f.city) : ''}</div>
+        </div>
+      </div>
+      ${serviceSummary ? `<div class="muted small" style="margin-top:8px">${serviceSummary}</div>` : ''}
+      <button class="btn btn-outline btn-sm" style="margin-top:10px" onclick="openBookingFlow('${f.ownerUid}')">Réserver</button>
+    </div>`;
+  }).join('');
 }
 
 /* ---- Parcours de reservation : service -> date -> creneau -> confirmation ---- */
