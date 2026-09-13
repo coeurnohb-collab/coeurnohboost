@@ -5333,7 +5333,7 @@ function printInvoice(invoiceId) {
     <div style="max-width:700px;margin:0 auto;font-family:Arial,sans-serif;color:#161a1f">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px">
         <div>
-          <h1 style="font-size:1.4rem;margin:0 0 4px;color:#0e6b45">CoeurNoh Business</h1>
+          <h1 style="font-size:1.4rem;margin:0 0 4px;color:#0f3d73">CoeurNoh Business</h1>
           <p style="margin:0;font-size:0.85rem;color:#5b6472">Facture ${escapeHtml(inv.number || '')}</p>
         </div>
         <div style="text-align:right;font-size:0.85rem;color:#5b6472">${escapeHtml(dateLabel)}</div>
