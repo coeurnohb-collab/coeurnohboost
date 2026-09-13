@@ -1739,6 +1739,42 @@ function fillAccountForm() {
   const photoText = document.getElementById('account-photo-file-text');
   if (photoText) photoText.textContent = 'Choisir une photo';
   renderAccountPhotoPreview();
+
+  // AVANT : ces 3 actions (changer l'e-mail, changer le mot de passe,
+  // supprimer le compte) exigeaient TOUJOURS un mot de passe pour se
+  // reauthentifier -- ce qui echouait systematiquement pour un compte
+  // connecte via "Continuer avec Google" (aucun mot de passe n'existe sur
+  // ce type de compte). Resultat : ces personnes ne pouvaient jamais
+  // changer leur e-mail/mot de passe, et NE POUVAIENT MEME PAS SUPPRIMER
+  // LEUR PROPRE COMPTE (le champ mot de passe etait obligatoire avant de
+  // pouvoir cliquer). Ca ne touchait qu'une partie des comptes (ceux crees
+  // via Google) -- d'ou une impression d'instabilite aleatoire selon la
+  // personne qui teste. Corrige : le mot de passe n'est plus demande pour
+  // un compte Google (reauthentification via une fenetre Google a la
+  // place), et le champ "mot de passe" se cache avec une explication
+  // claire pour ces comptes.
+  const passwordless = !hasPasswordProvider();
+  const emailPassField = document.getElementById('account-email-currentpass');
+  if (emailPassField) emailPassField.closest('.field').classList.toggle('hidden', passwordless);
+  const secSection = document.getElementById('section-security');
+  const passCurrentField = document.getElementById('account-pass-current');
+  const passNewField = document.getElementById('account-pass-new');
+  if (passCurrentField) passCurrentField.closest('.field').classList.toggle('hidden', passwordless);
+  if (passNewField) passNewField.closest('.field').classList.toggle('hidden', passwordless);
+  const passBtn = secSection && secSection.querySelector('button[onclick="saveAccountPassword()"]');
+  if (passBtn) passBtn.classList.toggle('hidden', passwordless);
+  const deletePassField = document.getElementById('delete-account-pass');
+  if (deletePassField) deletePassField.closest('.field').classList.toggle('hidden', passwordless);
+  if (passwordless) {
+    if (passMsg) { passMsg.style.color = 'var(--muted)'; passMsg.textContent = "Compte connecté avec Google : pas de mot de passe à gérer ici."; }
+    if (emailMsg) { emailMsg.style.color = 'var(--muted)'; emailMsg.textContent = 'Une fenêtre Google te sera demandée pour confirmer.'; }
+  }
+}
+
+// Un compte cree via "Continuer avec Google" n'a aucun mot de passe
+// Firebase -- seuls les comptes crees avec e-mail+mot de passe en ont un.
+function hasPasswordProvider() {
+  return !!(auth.currentUser && auth.currentUser.providerData.some(p => p.providerId === 'password'));
 }
 
 // Apercu en direct (photo actuelle du compte, ou fichier tout juste choisi)
@@ -1841,8 +1877,14 @@ async function saveAccountName() {
 // a detourner un compte.
 async function reauthenticateCurrentUser(currentPassword) {
   const user = auth.currentUser;
-  const cred = firebase.auth.EmailAuthProvider.credential(user.email, currentPassword);
-  await user.reauthenticateWithCredential(cred);
+  if (hasPasswordProvider()) {
+    const cred = firebase.auth.EmailAuthProvider.credential(user.email, currentPassword);
+    await user.reauthenticateWithCredential(cred);
+  } else {
+    // Compte "Continuer avec Google" : aucun mot de passe n'existe, on
+    // redemande une confirmation Google fraiche a la place.
+    await user.reauthenticateWithPopup(new firebase.auth.GoogleAuthProvider());
+  }
 }
 
 async function saveAccountEmail() {
@@ -1851,8 +1893,11 @@ async function saveAccountEmail() {
   msgEl.style.color = 'var(--red)';
   const newEmail = document.getElementById('account-email-input').value.trim();
   const currentPassword = document.getElementById('account-email-currentpass').value;
-  if (!newEmail || !currentPassword) {
-    msgEl.textContent = "Merci de remplir le nouvel e-mail et ton mot de passe actuel.";
+  const needsPassword = hasPasswordProvider();
+  if (!newEmail || (needsPassword && !currentPassword)) {
+    msgEl.textContent = needsPassword
+      ? "Merci de remplir le nouvel e-mail et ton mot de passe actuel."
+      : "Merci de remplir le nouvel e-mail.";
     return;
   }
   try {
@@ -1872,6 +1917,11 @@ async function saveAccountEmail() {
 async function saveAccountPassword() {
   if (!currentUser) return;
   const msgEl = document.getElementById('account-pass-msg');
+  if (!hasPasswordProvider()) {
+    msgEl.style.color = 'var(--muted)';
+    msgEl.textContent = "Compte connecté avec Google : pas de mot de passe à gérer ici.";
+    return;
+  }
   msgEl.style.color = 'var(--red)';
   const currentPassword = document.getElementById('account-pass-current').value;
   const newPassword = document.getElementById('account-pass-new').value;
@@ -1903,8 +1953,9 @@ async function deleteMyAccount() {
   if (!currentUser || !auth.currentUser) return;
   const msgEl = document.getElementById('delete-account-msg');
   msgEl.style.color = 'var(--red)';
+  const needsPassword = hasPasswordProvider();
   const password = document.getElementById('delete-account-pass').value;
-  if (!password) {
+  if (needsPassword && !password) {
     msgEl.textContent = 'Merci de saisir ton mot de passe pour confirmer.';
     return;
   }
