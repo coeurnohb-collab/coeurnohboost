@@ -1969,7 +1969,31 @@ let menuCurrentCategoryScreen = 'categories';
 
 function openMainMenu() {
   showMenuScreen('categories');
+  renderMenuProfileCard();
   document.getElementById('main-menu-modal').classList.remove('hidden');
+}
+
+// Petite carte "profil" en haut du menu (façon Facebook/Instagram) : avatar,
+// nom et badge certifié, remplie dynamiquement car index.html est statique.
+// Masquée si personne n'est connecté (le menu n'est de toute façon
+// accessible que connecté, mais on reste prudent).
+function renderMenuProfileCard() {
+  const card = document.getElementById('menu-profile-card');
+  if (!card) return;
+  if (!currentUser) { card.classList.add('hidden'); return; }
+  card.classList.remove('hidden');
+  card.innerHTML = `
+    ${renderAvatarHtml(currentUser.name, currentUser.photoURL, 52)}
+    <div class="menu-profile-info">
+      <div class="menu-profile-name">${escapeHtml(currentUser.name || 'Utilisateur')}${currentUser.verified ? ICON_VERIFIED_BADGE : ''}</div>
+      <div class="menu-profile-sub">Voir mon profil</div>
+    </div>
+    <svg class="menu-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>`;
+}
+
+function openOwnProfile() {
+  if (!currentUser) return;
+  openProfileModal(currentUser.uid, currentUser.name || 'Utilisateur', !!currentUser.verified);
 }
 
 function closeMainMenu() {

@@ -494,7 +494,7 @@ a{text-decoration:none;color:inherit}
 .menu-category-row{
   display:flex;align-items:center;gap:14px;width:100%;text-align:left;
   background:none;border:none;border-bottom:1px solid var(--line);
-  padding:16px 8px;font-size:1.05rem;font-weight:600;color:var(--ink);cursor:pointer;
+  padding:16px 14px;font-size:1.05rem;font-weight:600;color:var(--ink);cursor:pointer;
   transition:background .15s ease;
 }
 .menu-category-row svg:first-child{
@@ -505,6 +505,31 @@ a{text-decoration:none;color:inherit}
 .menu-chevron{color:var(--muted);flex:0 0 auto}
 .menu-category-row:hover{background:var(--green-light)}
 .menu-category-row:active{background:var(--green-light)}
+
+/* Carte blanche qui regroupe les lignes de niveau 1 (Mon espace,
+   Paramètres, Services, Aide) -- avant : liste plate au ras de l'ecran,
+   moins premium. La derniere ligne perd sa bordure basse (fin de carte). */
+.menu-card{
+  background:var(--white);border:1px solid var(--line);border-radius:16px;
+  overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04);
+}
+.menu-card .menu-category-row:last-child{border-bottom:none}
+
+/* Carte "profil" tout en haut du menu, façon Facebook/Instagram : avatar +
+   nom + raccourci "Voir mon profil". Remplie par renderMenuProfileCard(). */
+.menu-profile-card{
+  display:flex;align-items:center;gap:14px;width:100%;text-align:left;
+  background:linear-gradient(135deg,var(--green-light),var(--white));
+  border:1px solid var(--line);border-radius:16px;padding:14px;
+  margin-bottom:16px;cursor:pointer;transition:box-shadow .15s ease;
+}
+.menu-profile-card:hover{box-shadow:0 2px 10px rgba(0,0,0,.07)}
+.menu-profile-info{flex:1;min-width:0}
+.menu-profile-name{
+  font-weight:800;font-size:1.05rem;display:flex;align-items:center;gap:4px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.menu-profile-sub{color:var(--muted);font-size:.85rem;margin-top:2px}
 
 .menu-category{margin-bottom:20px}
 .menu-category h4{
