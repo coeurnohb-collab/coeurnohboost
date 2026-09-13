@@ -731,6 +731,8 @@ function openOrderForm(platformId, presetTypeIndex, presetQty, presetTier) {
   renderQualityGrid();
   document.getElementById('order-link').value = '';
   document.getElementById('order-error').classList.add('hidden');
+  const submitBtn = document.getElementById('order-submit-btn');
+  if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = t('order_submit') || 'Passer la commande'; }
   onOrderInputChange();
 
   hideAllViews();
@@ -877,6 +879,16 @@ async function submitOrder() {
     return;
   }
 
+  // Empeche un double-tap (frequent sur mobile en cas de connexion lente)
+  // de declencher deux commandes/deux debits pour un seul clic percu par
+  // le client -- meme protection que les autres formulaires de paiement
+  // de l'app (concours, billets, cours...).
+  const btn = document.getElementById('order-submit-btn');
+  if (btn.disabled) return;
+  btn.disabled = true;
+  const originalLabel = btn.textContent;
+  btn.textContent = 'Envoi...';
+
   try {
     const idToken = await auth.currentUser.getIdToken();
     const resp = await fetch('/api/place-smm-order', {
@@ -904,6 +916,9 @@ async function submitOrder() {
     console.error("Erreur commande :", e.message);
     errEl.textContent = "Erreur lors de l'enregistrement. Réessaie.";
     errEl.classList.remove('hidden');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = originalLabel;
   }
 }
 
