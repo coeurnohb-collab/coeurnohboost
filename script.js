@@ -428,32 +428,8 @@ function showDashboard() {
   document.getElementById('view-dashboard').classList.remove('hidden');
   showDashTab('home');
   updateNotifBadge();
-  initHomeMultiservicesBanner();
 }
 
-/* ================= BANNIÈRE MULTI-SERVICES (tableau de bord) =================
-   Complete la section "multi-services" de la page publique (view-home),
-   invisible pour un compte deja connecte : ce petit rappel dans l'onglet
-   Accueil du tableau de bord la rend quand meme decouvrable. Se souvient,
-   sur cet appareil, si la personne l'a deja refermee. */
-function initHomeMultiservicesBanner() {
-  const el = document.getElementById('home-multiservices-banner');
-  if (!el) return;
-  if (localStorage.getItem('coeurnoh_hide_multiservices_banner') === '1') {
-    el.classList.add('hidden');
-  }
-}
-
-function dismissHomeMultiservicesBanner() {
-  const el = document.getElementById('home-multiservices-banner');
-  if (el) el.classList.add('hidden');
-  try { localStorage.setItem('coeurnoh_hide_multiservices_banner', '1'); } catch (e) {}
-}
-
-function openServicesFromDashboard() {
-  openMainMenu();
-  showMenuScreen('items-services');
-}
 function showDashTab(tab) {
   document.querySelectorAll('.dash-tab').forEach(el => el.classList.add('hidden'));
   document.getElementById('dash-tab-' + tab).classList.remove('hidden');

@@ -131,18 +131,7 @@ a{text-decoration:none;color:inherit}
 @media(min-width:600px){.multi-service-grid{grid-template-columns:repeat(4,1fr)}}
 @media(min-width:900px){.multi-service-grid{grid-template-columns:repeat(6,1fr)}}
 
-/* Version compacte de la bannière multi-services, dans l'onglet Accueil du
-   tableau de bord (voir home-multiservices-banner dans index.html). */
-.home-multiservices-banner{
-  position:relative;background:linear-gradient(135deg, var(--green-light), var(--cream));
-  border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;margin-bottom:16px;
-}
-.home-multiservices-banner strong{display:block;font-size:0.98rem;margin-bottom:4px;color:var(--ink)}
-.home-multiservices-banner p{font-size:0.85rem;color:var(--muted);margin-bottom:12px;line-height:1.4;padding-right:20px}
-.home-multiservices-close{
-  position:absolute;top:8px;right:8px;background:none;border:none;color:var(--muted);
-  font-size:0.9rem;cursor:pointer;padding:6px;line-height:1;
-}
+
 
 /* STATS BAR */
 .stats-bar{background:var(--ink);padding:28px 0}
@@ -235,10 +224,37 @@ a{text-decoration:none;color:inherit}
 @media (prefers-reduced-motion: reduce){
   #app-splash-logo-img{animation:none;opacity:1}
 }
+/* Nom + accroche animés sous le logo -- entrent juste après le logo
+   (delais decales) pour une vraie sequence d'ouverture, pas tout d'un coup. */
+#app-splash-brand{
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  opacity:0;transform:translateY(10px);
+  animation:splashBrandIn .55s ease .45s forwards;
+}
+#app-splash-name{font-size:1.5rem;font-weight:800;letter-spacing:-0.01em}
+.app-splash-name-red{color:var(--red)}
+.app-splash-name-green{color:var(--green)}
+#app-splash-tagline{
+  font-size:0.72rem;font-weight:700;color:var(--red);
+  text-transform:uppercase;letter-spacing:0.22em;
+  opacity:0;animation:splashTaglineIn .5s ease .75s forwards;
+}
+@keyframes splashBrandIn{
+  0%{opacity:0;transform:translateY(10px)}
+  100%{opacity:1;transform:translateY(0)}
+}
+@keyframes splashTaglineIn{
+  0%{opacity:0;letter-spacing:0.4em}
+  100%{opacity:1;letter-spacing:0.22em}
+}
+@media (prefers-reduced-motion: reduce){
+  #app-splash-brand,#app-splash-tagline{animation:none;opacity:1;transform:none;letter-spacing:0.22em}
+}
 #app-splash-spinner{
   width:28px;height:28px;border-radius:50%;
   border:3px solid var(--line);border-top-color:var(--green);
   animation:app-splash-spin .8s linear infinite;
+  margin-top:4px;
 }
 @keyframes app-splash-spin{to{transform:rotate(360deg)}}
 .toast{
@@ -616,22 +632,36 @@ a{text-decoration:none;color:inherit}
 }
 .menu-profile-sub{color:var(--muted);font-size:.85rem;margin-top:2px}
 
-.menu-category{margin-bottom:20px}
+.menu-category{margin-bottom:22px}
 .menu-category h4{
-  font-size:0.75rem;text-transform:uppercase;letter-spacing:0.06em;
-  color:var(--muted);margin:0 0 6px;padding:0 6px;font-weight:700;
+  display:flex;align-items:center;gap:8px;
+  font-size:0.72rem;text-transform:uppercase;letter-spacing:0.09em;
+  color:var(--muted);margin:0 0 8px;padding:0 6px;font-weight:800;
+}
+.menu-category h4::before{
+  content:"";width:12px;height:2px;border-radius:2px;
+  background:var(--green);flex:0 0 auto;
 }
 .menu-item{
-  display:flex;align-items:center;gap:13px;width:100%;text-align:left;
-  background:none;border:none;padding:13px 10px;font-size:1rem;font-weight:500;
-  color:var(--ink);cursor:pointer;border-radius:10px;transition:background .15s ease;
+  display:flex;align-items:center;gap:14px;width:100%;text-align:left;
+  background:none;border:none;padding:12px 10px;font-size:0.98rem;font-weight:600;
+  letter-spacing:-0.01em;color:var(--ink);cursor:pointer;border-radius:12px;
+  transition:background .15s ease,transform .12s ease;
 }
 .menu-item:hover{background:var(--green-light)}
-.menu-item:active{background:var(--green-light)}
+.menu-item:active{background:var(--green-light);transform:scale(.99)}
+/* Icônes "badge" premium : fond en dégradé + relief léger au lieu d'un
+   simple carré plat -- même esprit que les icônes d'app professionnelles
+   (fintech/réseaux sociaux) plutôt qu'un pictogramme brut sur fond uni. */
 .menu-item svg{
-  flex:0 0 auto;color:var(--green);background:var(--green-light);
-  border-radius:9px;padding:6px;width:32px;height:32px;box-sizing:border-box;
+  flex:0 0 auto;color:#fff;
+  background:linear-gradient(145deg, var(--green) 0%, var(--green-dark) 100%);
+  border-radius:12px;padding:8px;width:38px;height:38px;box-sizing:border-box;
+  box-shadow:0 3px 8px rgba(14,107,69,0.28), inset 0 1px 0 rgba(255,255,255,0.15);
+  transition:transform .15s ease,box-shadow .15s ease;
 }
+.menu-item:hover svg{transform:translateY(-1px);box-shadow:0 5px 12px rgba(14,107,69,0.34), inset 0 1px 0 rgba(255,255,255,0.15)}
+.menu-item:active svg{transform:translateY(0) scale(.94)}
 
 .lang-choice.active{background:var(--green);border-color:var(--green);color:#fff}
 
