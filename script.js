@@ -3912,6 +3912,19 @@ const ICON_VERIFIED_BADGE = `<svg width="15" height="15" viewBox="0 0 24 24" sty
 // Icone grille (onglet "Mes publications" du profil, façon TikTok/Instagram).
 const ICON_GRID3 = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>`;
 
+/* Icones de contact professionnelles (remplacent les emoji telephone/📞,
+   enveloppe/✉️, Facebook/📘, TikTok/🎵, pin/📍, horloge/🕒, drapeau/🚩 --
+   trop "amateur" a cote du reste de l'interface, qui utilise uniquement
+   des traits vectoriels façon Feather/Lucide). */
+const ICON_PHONE = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>`;
+const ICON_MAIL = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg>`;
+const ICON_FACEBOOK = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3Z"/></svg>`;
+const ICON_TIKTOK = `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M16.6 5.82c-.7-.68-1.15-1.6-1.24-2.63h-2.9v13.2a2.59 2.59 0 1 1-1.83-2.48V10.9a5.5 5.5 0 1 0 4.73 5.44V9.68a7.4 7.4 0 0 0 4.24 1.34V8.1a4.85 4.85 0 0 1-3-2.28z"/></svg>`;
+const ICON_INSTAGRAM = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>`;
+const ICON_LOCATION = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg>`;
+const ICON_CLOCK = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
+const ICON_SPARKLE = `<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8Z"/></svg>`;
+
 // Affiche un nombre de façon compacte au-dela de 10 000 (ex: 39500 -> "39,5 K"),
 // et avec separateur de milliers en dessous (ex: 6617 -> "6 617") -- meme
 // convention d'affichage que TikTok/Instagram pour les compteurs de profil.
@@ -10540,15 +10553,15 @@ function renderPublicSiteHtml(site, overlay) {
             ${gallery.map(g => `<img src="${escapeHtml(g)}" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px">`).join('')}
           </div>` : ''}
 
-        ${site.address ? `<p class="muted small" style="margin-bottom:8px">📍 ${escapeHtml(site.address)}</p>` : ''}
+        ${site.address ? `<p class="muted small" style="margin-bottom:8px">${ICON_LOCATION} ${escapeHtml(site.address)}</p>` : ''}
 
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin:20px 0">
           ${waLink ? `<a class="btn btn-primary" href="${escapeHtml(waLink)}" target="_blank">${ICON_WHATSAPP} Contacter sur WhatsApp</a>` : ''}
-          ${site.contactPhone ? `<a class="btn btn-outline" href="tel:${escapeHtml(site.contactPhone)}">Appeler</a>` : ''}
-          ${site.contactEmail ? `<a class="btn btn-outline" href="mailto:${escapeHtml(site.contactEmail)}">E-mail</a>` : ''}
-          ${site.socialLinks && site.socialLinks.facebook ? `<a class="btn btn-outline" href="${escapeHtml(site.socialLinks.facebook)}" target="_blank">Facebook</a>` : ''}
-          ${site.socialLinks && site.socialLinks.instagram ? `<a class="btn btn-outline" href="${escapeHtml(site.socialLinks.instagram)}" target="_blank">Instagram</a>` : ''}
-          ${site.socialLinks && site.socialLinks.tiktok ? `<a class="btn btn-outline" href="${escapeHtml(site.socialLinks.tiktok)}" target="_blank">TikTok</a>` : ''}
+          ${site.contactPhone ? `<a class="btn btn-outline" href="tel:${escapeHtml(site.contactPhone)}">${ICON_PHONE} Appeler</a>` : ''}
+          ${site.contactEmail ? `<a class="btn btn-outline" href="mailto:${escapeHtml(site.contactEmail)}">${ICON_MAIL} E-mail</a>` : ''}
+          ${site.socialLinks && site.socialLinks.facebook ? `<a class="btn btn-outline" href="${escapeHtml(site.socialLinks.facebook)}" target="_blank">${ICON_FACEBOOK} Facebook</a>` : ''}
+          ${site.socialLinks && site.socialLinks.instagram ? `<a class="btn btn-outline" href="${escapeHtml(site.socialLinks.instagram)}" target="_blank">${ICON_INSTAGRAM} Instagram</a>` : ''}
+          ${site.socialLinks && site.socialLinks.tiktok ? `<a class="btn btn-outline" href="${escapeHtml(site.socialLinks.tiktok)}" target="_blank">${ICON_TIKTOK} TikTok</a>` : ''}
         </div>
 
         ${siteIsPremiumActive(site) ? '' : `<p class="muted small" style="text-align:center;margin-top:30px">Site créé avec <a href="${escapeHtml(window.location.origin)}" style="color:${accent}">Coeurnoh Universe</a></p>`}
@@ -10709,7 +10722,7 @@ async function openBusinessDetail(ownerUid) {
     </div>` : '';
   const couponsHtml = activeCoupons.length > 0 ? `
     <div class="biz-section" style="padding-top:4px">
-      <h4>🏷️ Promotions en cours</h4>
+      <h4>${ICON_TAG} Promotions en cours</h4>
       ${activeCoupons.map(c => `
         <div class="biz-desc-card" style="margin:0 0 10px;border-color:#f5a623;background:#fff8ec">
           <strong style="color:#b5720b">${escapeHtml(c.discountLabel || 'Promo')}</strong> — <span class="muted small">code ${escapeHtml(c.code || '')}</span>
@@ -10733,24 +10746,24 @@ async function openBusinessDetail(ownerUid) {
           ${b.logoUrl ? `<img src="${escapeHtml(b.logoUrl)}" class="biz-avatar" alt="">` : `<div class="biz-avatar-placeholder">${escapeHtml(initial)}</div>`}
           <div class="biz-name-row">
             <h2>${escapeHtml(b.businessName || 'Entreprise')}</h2>
-            ${businessIsProActive(b) ? `<span class="biz-pro-badge">✨ Pro</span>` : ''}
+            ${businessIsProActive(b) ? `<span class="biz-pro-badge">${ICON_SPARKLE} Pro</span>` : ''}
           </div>
           <div class="biz-category-row">${escapeHtml(NEARBY_CATEGORY_LABELS[b.category] || '')}</div>
-          ${b.address ? `<div class="biz-meta-row">📍 ${escapeHtml(b.address)}</div>` : ''}
-          ${b.hours ? `<div class="biz-meta-row">🕒 ${escapeHtml(b.hours)}</div>` : ''}
+          ${b.address ? `<div class="biz-meta-row">${ICON_LOCATION} ${escapeHtml(b.address)}</div>` : ''}
+          ${b.hours ? `<div class="biz-meta-row">${ICON_CLOCK} ${escapeHtml(b.hours)}</div>` : ''}
           ${followBtnHtml ? `<div style="margin-top:14px">${followBtnHtml}</div>` : ''}
         </div>
         <div class="biz-actions-row">
           ${waLink ? `<a class="btn btn-primary" href="${escapeHtml(waLink)}" target="_blank">${ICON_WHATSAPP} WhatsApp</a>` : ''}
-          ${b.phone ? `<a class="btn btn-outline" href="tel:${escapeHtml(b.phone)}">📞 Appeler</a>` : ''}
-          ${b.email ? `<a class="btn btn-outline" href="mailto:${escapeHtml(b.email)}">✉️ E-mail</a>` : ''}
-          ${b.facebookUrl ? `<a class="btn btn-outline" href="${escapeHtml(b.facebookUrl)}" target="_blank">📘 Facebook</a>` : ''}
-          ${b.tiktokUrl ? `<a class="btn btn-outline" href="${escapeHtml(b.tiktokUrl)}" target="_blank">🎵 TikTok</a>` : ''}
+          ${b.phone ? `<a class="btn btn-outline" href="tel:${escapeHtml(b.phone)}">${ICON_PHONE} Appeler</a>` : ''}
+          ${b.email ? `<a class="btn btn-outline" href="mailto:${escapeHtml(b.email)}">${ICON_MAIL} E-mail</a>` : ''}
+          ${b.facebookUrl ? `<a class="btn btn-outline" href="${escapeHtml(b.facebookUrl)}" target="_blank">${ICON_FACEBOOK} Facebook</a>` : ''}
+          ${b.tiktokUrl ? `<a class="btn btn-outline" href="${escapeHtml(b.tiktokUrl)}" target="_blank">${ICON_TIKTOK} TikTok</a>` : ''}
         </div>
         ${b.description ? `<div class="biz-desc-card">${escapeHtml(b.description)}</div>` : ''}
         ${couponsHtml}
         ${catalogHtml}
-        ${!isOwn && currentUser ? `<div class="biz-section" style="padding-top:0"><button class="btn btn-outline btn-sm" style="width:100%;justify-content:center" onclick="openReportModal('${ownerUid}', '${ownerUid}', 'business')">🚩 Signaler cette page</button></div>` : ''}
+        ${!isOwn && currentUser ? `<div class="biz-section" style="padding-top:0"><button class="btn btn-outline btn-sm" style="width:100%;justify-content:center" onclick="openReportModal('${ownerUid}', '${ownerUid}', 'business')">${ICON_FLAG} Signaler cette page</button></div>` : ''}
         <div class="biz-section">
           <h4>Actualités</h4>
           <div id="business-detail-posts"><p class="muted small">Chargement...</p></div>
