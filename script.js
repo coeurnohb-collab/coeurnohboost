@@ -10257,6 +10257,10 @@ function openSiteForm() {
             <label for="site-instagram">Instagram (facultatif)</label>
             <input type="url" id="site-instagram" class="text-input" placeholder="https://..." value="${escapeHtml((s.socialLinks && s.socialLinks.instagram) || '')}">
           </div>
+          <div class="field" style="flex:1">
+            <label for="site-tiktok">TikTok (facultatif)</label>
+            <input type="url" id="site-tiktok" class="text-input" placeholder="https://tiktok.com/@..." value="${escapeHtml((s.socialLinks && s.socialLinks.tiktok) || '')}">
+          </div>
         </div>
 
         <button class="btn btn-primary" id="site-form-submit-btn" style="width:100%;justify-content:center" onclick="saveMySite()">Enregistrer</button>
@@ -10344,7 +10348,8 @@ async function saveMySite() {
   const address = document.getElementById('site-address').value.trim();
   const socialLinks = {
     facebook: document.getElementById('site-facebook').value.trim() || null,
-    instagram: document.getElementById('site-instagram').value.trim() || null
+    instagram: document.getElementById('site-instagram').value.trim() || null,
+    tiktok: document.getElementById('site-tiktok').value.trim() || null
   };
 
   if (!/^[a-z0-9-]{3,30}$/.test(slug)) {
@@ -10519,6 +10524,7 @@ function renderPublicSiteHtml(site, overlay) {
           ${site.contactEmail ? `<a class="btn btn-outline" href="mailto:${escapeHtml(site.contactEmail)}">E-mail</a>` : ''}
           ${site.socialLinks && site.socialLinks.facebook ? `<a class="btn btn-outline" href="${escapeHtml(site.socialLinks.facebook)}" target="_blank">Facebook</a>` : ''}
           ${site.socialLinks && site.socialLinks.instagram ? `<a class="btn btn-outline" href="${escapeHtml(site.socialLinks.instagram)}" target="_blank">Instagram</a>` : ''}
+          ${site.socialLinks && site.socialLinks.tiktok ? `<a class="btn btn-outline" href="${escapeHtml(site.socialLinks.tiktok)}" target="_blank">TikTok</a>` : ''}
         </div>
 
         ${siteIsPremiumActive(site) ? '' : `<p class="muted small" style="text-align:center;margin-top:30px">Site créé avec <a href="${escapeHtml(window.location.origin)}" style="color:${accent}">Coeurnoh Universe</a></p>`}
@@ -10713,6 +10719,9 @@ async function openBusinessDetail(ownerUid) {
         <div class="biz-actions-row">
           ${waLink ? `<a class="btn btn-primary" href="${escapeHtml(waLink)}" target="_blank">${ICON_WHATSAPP} WhatsApp</a>` : ''}
           ${b.phone ? `<a class="btn btn-outline" href="tel:${escapeHtml(b.phone)}">📞 Appeler</a>` : ''}
+          ${b.email ? `<a class="btn btn-outline" href="mailto:${escapeHtml(b.email)}">✉️ E-mail</a>` : ''}
+          ${b.facebookUrl ? `<a class="btn btn-outline" href="${escapeHtml(b.facebookUrl)}" target="_blank">📘 Facebook</a>` : ''}
+          ${b.tiktokUrl ? `<a class="btn btn-outline" href="${escapeHtml(b.tiktokUrl)}" target="_blank">🎵 TikTok</a>` : ''}
         </div>
         ${b.description ? `<div class="biz-desc-card">${escapeHtml(b.description)}</div>` : ''}
         ${couponsHtml}
@@ -11162,6 +11171,18 @@ function openBusinessForm() {
           <label for="business-phone">Téléphone (facultatif)</label>
           <input type="tel" id="business-phone" class="text-input" value="${escapeHtml(b.phone || '')}">
         </div>
+        <div class="field">
+          <label for="business-email">E-mail de contact (facultatif)</label>
+          <input type="email" id="business-email" class="text-input" placeholder="contact@entreprise.com" value="${escapeHtml(b.email || '')}">
+        </div>
+        <div class="field">
+          <label for="business-facebook">Page Facebook (facultatif)</label>
+          <input type="url" id="business-facebook" class="text-input" placeholder="https://facebook.com/..." value="${escapeHtml(b.facebookUrl || '')}">
+        </div>
+        <div class="field">
+          <label for="business-tiktok">TikTok (facultatif)</label>
+          <input type="url" id="business-tiktok" class="text-input" placeholder="https://tiktok.com/@..." value="${escapeHtml(b.tiktokUrl || '')}">
+        </div>
         <button class="btn btn-primary" id="business-save-btn" style="width:100%;justify-content:center" onclick="saveBusinessProfile()">Enregistrer</button>
         <p class="muted small" id="business-form-msg" style="margin-top:6px"></p>
       </div>
@@ -11212,9 +11233,16 @@ async function saveBusinessProfile() {
   const hours = document.getElementById('business-hours').value.trim();
   const whatsapp = document.getElementById('business-whatsapp').value.trim();
   const phone = document.getElementById('business-phone').value.trim();
+  const email = document.getElementById('business-email').value.trim();
+  const facebookUrl = document.getElementById('business-facebook').value.trim();
+  const tiktokUrl = document.getElementById('business-tiktok').value.trim();
 
   if (!businessName || !description || !whatsapp) {
     msgEl.textContent = 'Merci de remplir au moins le nom, la présentation et le WhatsApp.';
+    return;
+  }
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    msgEl.textContent = "L'adresse e-mail n'est pas valide.";
     return;
   }
   if (btn.disabled) return;
@@ -11239,6 +11267,7 @@ async function saveBusinessProfile() {
       ownerUid: currentUser.uid, businessName, category, description,
       logoUrl: logoUrl || null, coverImageUrl: coverImageUrl || null,
       address, hours, whatsapp, phone,
+      email: email || null, facebookUrl: facebookUrl || null, tiktokUrl: tiktokUrl || null,
       status: 'active',
       // "pro"/"proUntil"/"viewsCount" ne sont jamais modifies ici (merge:true
       // les preserve) : seul /api/payments-actions.js (Admin SDK) et
@@ -11433,12 +11462,16 @@ async function openPostDetail(pubId) {
     }
 
     let isLiked = false;
+    let isSaved = false;
     if (currentUser) {
       const likeDoc = await db.collection('publication_likes').doc(`${pubId}_${currentUser.uid}`).get();
       isLiked = likeDoc.exists;
+      const saveDoc = await db.collection('saved_items').doc(`${pubId}_${currentUser.uid}`).get();
+      isSaved = saveDoc.exists;
     }
 
     const isOwnItem = currentUser && currentUser.uid === item.sellerUid;
+    const detailShareUrl = `${window.location.origin}${window.location.pathname}?pub=${item.id}`;
 
     const mediaUrl = item.imageUrl || null;
     const videoUrl = item.videoUrl || null;
@@ -11484,6 +11517,12 @@ async function openPostDetail(pubId) {
           <span data-like-count="${item.id}">${safeCount(item.likesCount)}</span>
         </button>
         <span class="shop-action-btn">${ICON_COMMENT} <span data-comment-count="${item.id}">${item.commentsCount || 0}</span></span>
+        <button class="shop-action-btn" onclick="sharePost('${item.id}','${escapeForJs(item.description || '')}','${escapeForJs(detailShareUrl)}')">
+          ${ICON_SHARE} Partager
+        </button>
+        <button class="shop-action-btn ${isSaved ? 'liked' : ''}" data-save-btn="${item.id}" onclick="toggleSavePost('${item.id}')" title="Enregistrer" aria-label="Enregistrer cette publication" style="margin-left:auto">
+          <span data-save-icon="${item.id}">${isSaved ? ICON_BOOKMARK_FILLED : ICON_BOOKMARK}</span>
+        </button>
       </div>
       <div class="shop-comments" id="shop-comments-${item.id}">
         <div class="shop-comments-list" id="shop-comments-list-${item.id}"><p class="muted small">Chargement des commentaires...</p></div>
