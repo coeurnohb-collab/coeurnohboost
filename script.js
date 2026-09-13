@@ -1957,6 +1957,7 @@ function renderLoggedOutNav() {
   stopNotifWatch();
   stopPresenceUpdates();
   stopWalletWatch();
+  pushNotificationsRegistered = false;
   blockedSet = new Set();
 }
 function renderLoggedInNav(uid) {
@@ -2149,7 +2150,25 @@ if (fbReady) {
       showDashboard();
       openSharedProductIfAny();
       openNotifTargetIfAny();
-      registerPushNotifications();
+      // AVANT : registerPushNotifications() (et donc la demande de
+      // permission au navigateur) etait appelee automatiquement ici, des
+      // la connexion -- sans aucun geste (tap/clic) de la personne. Or de
+      // nombreux navigateurs (Safari/iOS en tete, et certains Android)
+      // ignorent ou refusent silencieusement une demande de permission de
+      // notification qui n'est pas declenchee par une VRAIE interaction
+      // utilisateur : sur ces appareils, la permission n'etait donc
+      // jamais vraiment accordee, sans aucune erreur visible -- d'ou des
+      // notifications qui "n'arrivent jamais quand l'app est fermee" sur
+      // certains telephones/navigateurs, et pas d'autres, en apparence
+      // aleatoire. Si la permission est deja acquise (compte deja
+      // autorise par le passe), aucun geste n'est necessaire : on
+      // continue comme avant. Sinon, on affiche une bannière et on
+      // attend un vrai tap avant de demander la permission.
+      if (window.Notification && Notification.permission === 'granted') {
+        registerPushNotifications();
+      } else if (window.Notification && Notification.permission === 'default') {
+        maybeShowNotifPermissionBanner();
+      }
       installBackTrap();
       hideAppSplash();
     } else {
@@ -7685,7 +7704,28 @@ async function saveEvent() {
       ticketTypes
     };
     if (editingEventId) {
-      await db.collection('events').doc(editingEventId).update(payload);
+      // AVANT : cette mise a jour ecrasait le tableau "ticketTypes" en
+      // entier, y compris "quantitySold" de chaque type de billet -- avec
+      // la valeur mise en cache au moment de l'OUVERTURE du formulaire
+      // "Modifier". Si des billets etaient reserves par des clients
+      // PENDANT que l'organisateur avait ce formulaire ouvert (tres
+      // probable pour un evenement populaire), cette sauvegarde effacait
+      // ces ventes du compteur -- risque reel de SURVENTE (le nombre de
+      // places restantes redevenait artificiellement plus eleve qu'en
+      // realite). Corrige : une transaction relit d'abord le nombre de
+      // billets REELLEMENT vendus au moment exact de l'enregistrement, et
+      // l'utilise a la place de la valeur perimee du formulaire.
+      const eventRef = db.collection('events').doc(editingEventId);
+      await db.runTransaction(async (tx) => {
+        const liveSnap = await tx.get(eventRef);
+        if (!liveSnap.exists) throw new Error('EVENT_GONE');
+        const liveTicketTypes = liveSnap.data().ticketTypes || [];
+        const mergedTicketTypes = payload.ticketTypes.map(tt => {
+          const live = liveTicketTypes.find(l => l.id === tt.id);
+          return { ...tt, quantitySold: live ? (live.quantitySold || 0) : 0 };
+        });
+        tx.update(eventRef, { ...payload, ticketTypes: mergedTicketTypes });
+      });
       showToast('Événement mis à jour', 'success');
     } else {
       await db.collection('events').add({
@@ -7702,7 +7742,7 @@ async function saveEvent() {
     if (eventsCurrentTab === 'browse') loadEvents();
     if (eventsCurrentTab === 'myevents') loadMyOrganizedEvents();
   } catch (e) {
-    errEl.textContent = friendlyErrorMessage(e);
+    errEl.textContent = e.message === 'EVENT_GONE' ? "Cet événement n'existe plus." : friendlyErrorMessage(e);
     errEl.classList.remove('hidden');
   } finally {
     btn.disabled = false;
@@ -12210,8 +12250,49 @@ async function confirmShopPurchase(pubId, title, price, itemType) {
 }
 
 /* ================= NOTIFICATIONS PUSH (alertes reelles, meme app fermee) ================= */
+// Affiche une fois par session une petite bannière invitant à activer les
+// notifications, avec un vrai bouton à taper -- pour que la demande de
+// permission parte toujours d'un geste utilisateur (voir le commentaire
+// dans onAuthStateChanged ci-dessus). Ne s'affiche jamais deux fois dans
+// la meme session, et jamais si la personne a deja tranche (accepte ou
+// refuse) ou a deja ferme la banniere une fois.
+let notifBannerShown = false;
+function maybeShowNotifPermissionBanner() {
+  if (notifBannerShown) return;
+  if (localStorage.getItem('notifBannerDismissed') === '1') return;
+  if (document.getElementById('notif-permission-banner')) return;
+  notifBannerShown = true;
+
+  const html = `
+    <div id="notif-permission-banner" style="position:fixed;left:12px;right:12px;bottom:calc(70px + env(safe-area-inset-bottom));z-index:9000;
+      background:#111827;color:#fff;border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px;
+      box-shadow:0 6px 18px rgba(0,0,0,.25)">
+      <span style="flex:1;font-size:0.92rem">Active les notifications pour ne rien manquer (messages, commandes, réponses...).</span>
+      <button class="btn btn-primary btn-sm" onclick="acceptNotifPermissionBanner()">Activer</button>
+      <button class="btn btn-outline btn-sm" style="border-color:#fff;color:#fff" onclick="dismissNotifPermissionBanner()" aria-label="Fermer">×</button>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+function acceptNotifPermissionBanner() {
+  dismissNotifPermissionBanner();
+  registerPushNotifications(); // appelee DEPUIS ce clic : vrai geste utilisateur
+}
+function dismissNotifPermissionBanner() {
+  const el = document.getElementById('notif-permission-banner');
+  if (el) el.remove();
+  localStorage.setItem('notifBannerDismissed', '1');
+}
+
+let pushNotificationsRegistered = false;
 async function registerPushNotifications() {
   if (!currentUser) return;
+  // Garde contre un double enregistrement : si onAuthStateChanged se
+  // redeclenche pendant la meme session (rechargement partiel, reprise
+  // de session), messaging.onMessage() plus bas ajouterait un DEUXIEME
+  // ecouteur sans jamais retirer le premier -- chaque notification recue
+  // pendant que l'app est ouverte se serait alors affichee/jouee EN
+  // DOUBLE. Ca correspond bien a un ressenti d' "instabilite".
+  if (pushNotificationsRegistered) return;
   try {
     if (!('Notification' in window) || !firebase.messaging) {
       console.log('[push] Notifications non supportees sur ce navigateur');
@@ -12244,6 +12325,7 @@ async function registerPushNotifications() {
     }
 
     // Reception d'une notification pendant que l'app est ouverte au premier plan
+    pushNotificationsRegistered = true;
     messaging.onMessage((payload) => {
       const title = (payload.notification && payload.notification.title) || 'Coeurnoh Universe';
       const body = (payload.notification && payload.notification.body) || '';
@@ -12329,6 +12411,15 @@ async function saveNotifPrefs() {
   try {
     await db.collection('users').doc(currentUser.uid).update({ notifPrefs: prefs });
   } catch (e) { console.log('[notifPrefs] Erreur sauvegarde :', e.message); }
+
+  // Si la personne active elle-meme ce reglage (vrai geste utilisateur,
+  // que la petite banniere de bienvenue ait ete fermee ou non), c'est
+  // l'occasion ideale de (re)declencher la vraie demande de permission du
+  // navigateur -- sans ca, activer ce reglage ne suffirait pas si la
+  // permission navigateur n'a jamais ete accordee.
+  if (prefs.push && window.Notification && Notification.permission === 'default') {
+    registerPushNotifications();
+  }
 }
 
 /* ================= SOLDE DU PORTEFEUILLE (temps reel) =================
