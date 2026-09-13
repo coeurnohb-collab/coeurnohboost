@@ -529,6 +529,22 @@ a{text-decoration:none;color:inherit}
   background:var(--green);color:#fff;display:flex;align-items:center;
   justify-content:center;font-size:1.15rem;
 }
+
+/* ===== Lignes de galerie photo (voyage / immobilier / mini-site) =====
+   AVANT : simples champs "coller un lien" en serie. Chaque ligne a
+   desormais son propre selecteur de fichier + une miniature d'apercu +
+   le bouton de suppression, tout en gardant la meme logique de lignes
+   ajoutables/supprimables qu'avant. */
+.gallery-photo-row{
+  display:flex;align-items:center;gap:10px;margin-bottom:10px;
+  padding:8px;border:1px solid var(--line);border-radius:12px;
+}
+.gallery-photo-row .file-picker-btn{flex:1;min-width:0;padding:10px 12px}
+.gallery-photo-row .file-picker-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gallery-photo-thumb{
+  flex:0 0 auto;width:44px;height:44px;object-fit:cover;
+  border-radius:8px;background:#000;
+}
 .file-picker-text{
   font-size:0.88rem;font-weight:600;color:var(--ink);
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;

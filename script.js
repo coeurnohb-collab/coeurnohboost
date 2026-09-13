@@ -199,6 +199,78 @@ function setUploadProgress(prefix, pct) {
   if (label) label.textContent = `${pct}%`;
 }
 
+/* ================= GALERIES PHOTO A LIGNES MULTIPLES =================
+   Utilise par "Crée ton site", "Coeurnoh Travel" et "Coeurnoh Immo" :
+   plusieurs photos, une ligne ajoutable/supprimable par photo. AVANT,
+   chaque ligne etait un simple champ "coller un lien" -- desormais
+   chaque ligne a son propre bouton d'envoi de fichier depuis le
+   telephone, avec miniature d'apercu, tout en gardant le meme systeme de
+   lignes ajoutables/supprimables qu'avant. */
+let galleryRowSeq = 0;
+
+function renderGalleryPhotoRow(rowClass, value) {
+  const uid = `gallery-photo-${++galleryRowSeq}`;
+  const safeValue = value || '';
+  return `
+    <div class="gallery-photo-row ${rowClass}" data-existing-url="${escapeHtml(safeValue)}">
+      <input type="file" id="${uid}" class="file-input-hidden gallery-photo-file" accept="image/*" onchange="handleGalleryPhotoFileChange(this)">
+      <label for="${uid}" class="file-picker-btn">
+        <span class="file-picker-icon">🖼️</span>
+        <span class="file-picker-text">${safeValue ? '✅ Photo enregistrée (toucher pour remplacer)' : 'Choisir une photo'}</span>
+      </label>
+      ${safeValue ? `<img src="${escapeHtml(safeValue)}" class="gallery-photo-thumb" alt="">` : ''}
+      <button type="button" class="invoice-row-remove" onclick="this.closest('.gallery-photo-row').remove()" aria-label="Retirer">×</button>
+    </div>`;
+}
+
+function handleGalleryPhotoFileChange(inputEl) {
+  const row = inputEl.closest('.gallery-photo-row');
+  if (!row) return;
+  const file = (inputEl.files && inputEl.files[0]) || null;
+  // On memorise le fichier directement sur l'element <input> lui-meme
+  // (proprement, en JS) : pas besoin d'un tableau global a synchroniser
+  // avec des lignes qu'on peut ajouter/supprimer dans n'importe quel ordre.
+  inputEl._pendingFile = file;
+  const hasExisting = !!row.dataset.existingUrl;
+  const textEl = row.querySelector('.file-picker-text');
+  const btnEl = row.querySelector('.file-picker-btn');
+  if (textEl) textEl.textContent = file ? `✅ ${file.name}` : (hasExisting ? '✅ Photo enregistrée (toucher pour remplacer)' : 'Choisir une photo');
+  if (btnEl) btnEl.classList.toggle('has-file', !!(file || hasExisting));
+  let thumb = row.querySelector('.gallery-photo-thumb');
+  const url = file ? URL.createObjectURL(file) : row.dataset.existingUrl;
+  if (url) {
+    if (!thumb) {
+      thumb = document.createElement('img');
+      thumb.className = 'gallery-photo-thumb';
+      row.insertBefore(thumb, row.querySelector('.invoice-row-remove'));
+    }
+    thumb.src = url;
+  } else if (thumb) {
+    thumb.remove();
+  }
+}
+
+// Parcourt toutes les lignes d'une galerie (dans l'ordre d'affichage),
+// envoie uniquement les fichiers fraichement choisis (les photos deja
+// enregistrees ne sont jamais re-uploadees), et renvoie le tableau final
+// des URLs, limite a "limit" elements.
+async function collectGalleryPhotoUrls(rowSelector, folder, limit) {
+  const rows = Array.from(document.querySelectorAll(rowSelector));
+  const urls = [];
+  for (const row of rows) {
+    if (urls.length >= limit) break;
+    const input = row.querySelector('.gallery-photo-file');
+    const pendingFile = input && input._pendingFile;
+    if (pendingFile) {
+      const uploaded = await uploadFileToStorage(pendingFile, folder, { maxSizeMB: 10 });
+      urls.push(uploaded.url);
+    } else if (row.dataset.existingUrl) {
+      urls.push(row.dataset.existingUrl);
+    }
+  }
+  return urls;
+}
+
 let fbReady = false;
 let auth = null;
 let db = null;
@@ -5476,6 +5548,7 @@ function renderContestsList() {
 function openContestForm() {
   if (!currentUser || currentUser.uid !== ADMIN_UID) return;
   if (document.getElementById('contest-form-modal')) return;
+  pendingContestCoverFile = null;
 
   const catOptions = Object.entries(CONTEST_CATEGORY_META)
     .map(([val, meta]) => `<option value="${val}">${escapeHtml(meta.label)}</option>`).join('');
@@ -5520,8 +5593,17 @@ function openContestForm() {
           </div>
         </div>
         <div class="field">
-          <label for="contest-cover">Image de couverture — lien (facultatif)</label>
-          <input type="url" id="contest-cover" class="text-input" placeholder="https://...">
+          <label for="contest-cover-file">Image de couverture (facultatif)</label>
+          <input type="file" id="contest-cover-file" class="file-input-hidden" accept="image/*" onchange="handleContestCoverFileChange(event)">
+          <label for="contest-cover-file" class="file-picker-btn" id="contest-cover-file-label">
+            <span class="file-picker-icon" id="contest-cover-file-icon">🖼️</span>
+            <span class="file-picker-text" id="contest-cover-file-text">Choisir une image</span>
+          </label>
+          <div class="upload-progress-wrap hidden" id="contest-cover-progress-wrap">
+            <div class="upload-progress-fill" id="contest-cover-progress-fill"></div>
+            <span class="upload-progress-label" id="contest-cover-progress-label">0%</span>
+          </div>
+          <div id="contest-cover-preview"></div>
         </div>
 
         <button class="btn btn-primary" id="contest-save-btn" style="width:100%;justify-content:center;margin-top:4px" onclick="saveContestForm()">Publier le concours</button>
@@ -5529,6 +5611,21 @@ function openContestForm() {
       </div>
     </div>`;
   document.body.insertAdjacentHTML('beforeend', html);
+}
+
+let pendingContestCoverFile = null;
+
+function handleContestCoverFileChange(event) {
+  pendingContestCoverFile = (event.target.files && event.target.files[0]) || null;
+  const text = document.getElementById('contest-cover-file-text');
+  const label = document.getElementById('contest-cover-file-label');
+  if (text) text.textContent = pendingContestCoverFile ? `✅ ${pendingContestCoverFile.name}` : 'Choisir une image';
+  if (label) label.classList.toggle('has-file', !!pendingContestCoverFile);
+  const previewEl = document.getElementById('contest-cover-preview');
+  if (previewEl) {
+    const url = pendingContestCoverFile ? URL.createObjectURL(pendingContestCoverFile) : null;
+    previewEl.innerHTML = url ? `<img src="${url}" class="post-media-preview-media" alt="">` : '';
+  }
 }
 
 async function saveContestForm() {
@@ -5542,7 +5639,6 @@ async function saveContestForm() {
   const endDate = document.getElementById('contest-end').value;
   const type = document.getElementById('contest-type').value;
   const entryFee = parseFloat(document.getElementById('contest-fee').value) || 0;
-  const coverImage = document.getElementById('contest-cover').value.trim();
 
   if (!title || !startDate || !endDate) {
     msgEl.textContent = 'Merci de remplir au moins le titre et les deux dates.';
@@ -5561,6 +5657,14 @@ async function saveContestForm() {
   btn.disabled = true;
   btn.textContent = 'Publication...';
   try {
+    let coverImage = null;
+    if (pendingContestCoverFile) {
+      const uploaded = await uploadFileToStorage(pendingContestCoverFile, 'concours', {
+        maxSizeMB: 10,
+        onProgress: (pct) => setUploadProgress('contest-cover', pct)
+      });
+      coverImage = uploaded.url;
+    }
     await db.collection('contests').add({
       title, category, description, prize,
       startDate: new Date(startDate).toISOString(),
@@ -5676,15 +5780,37 @@ function renderContestEntries(contestId, entries, status) {
         <span class="muted small" style="white-space:nowrap">${e.votesCount || 0} vote${(e.votesCount || 0) > 1 ? 's' : ''}</span>
       </div>
       ${e.caption ? `<p class="muted small" style="margin-top:6px">${escapeHtml(e.caption)}</p>` : ''}
-      ${e.submissionUrl ? `<a href="${escapeHtml(e.submissionUrl)}" target="_blank" class="btn btn-outline btn-sm" style="margin-top:8px">Voir la participation</a>` : ''}
+      ${renderContestEntryMedia(e)}
       ${canVote ? `<button class="btn ${alreadyVoted ? 'btn-outline' : 'btn-primary'} btn-sm" style="margin-top:8px;margin-left:8px" ${alreadyVoted ? 'disabled' : ''} onclick="voteForEntry('${contestId}', '${e.id}')">${contestIconSvg(CONTEST_VOTE_ICON, 14)} ${alreadyVoted ? 'Voté' : 'Voter'}</button>` : ''}
     </div>`;
   }).join('');
 }
 
+// Les participations envoyees depuis la mise a jour "upload direct" ont un
+// submissionType ('image'/'video') connu -> on les affiche directement
+// (photo, ou vignette video qui ouvre le plein ecran). Les anciennes
+// participations (lien colle avant cette mise a jour) n'ont pas ce champ :
+// on garde alors le simple bouton "Voir la participation" vers le lien
+// externe, pour ne rien casser sur les entrees deja envoyees.
+function renderContestEntryMedia(e) {
+  if (!e.submissionUrl) return '';
+  const url = escapeHtml(e.submissionUrl);
+  if (e.submissionType === 'image') {
+    return `<img src="${url}" class="post-media-preview-media" style="margin-top:8px;cursor:pointer" onclick="openMediaViewer('${escapeForJs(e.submissionUrl)}','image')" onerror="mediaLoadError(this)" alt="">`;
+  }
+  if (e.submissionType === 'video') {
+    return `<div class="post-media-video-wrap" style="margin-top:8px;border-radius:10px;overflow:hidden" onclick="openMediaViewer('${escapeForJs(e.submissionUrl)}','video')">
+      <video src="${url}" class="post-media-preview-media" muted playsinline preload="metadata" onerror="mediaLoadError(this)"></video>
+      <span class="post-media-play-overlay">${ICON_PLAY}</span>
+    </div>`;
+  }
+  return `<a href="${url}" target="_blank" class="btn btn-outline btn-sm" style="margin-top:8px">Voir la participation</a>`;
+}
+
 function openContestEntryForm(contestId, isPaid, entryFee) {
   if (!currentUser) { openAuth('login'); return; }
   if (document.getElementById('contest-entry-modal')) return;
+  pendingContestEntryFile = null;
 
   const html = `
     <div class="modal-overlay" id="contest-entry-modal">
@@ -5697,8 +5823,17 @@ function openContestEntryForm(contestId, isPaid, entryFee) {
           <input type="text" id="entry-name" class="text-input" maxlength="60" value="${escapeHtml(currentUser.name || '')}">
         </div>
         <div class="field">
-          <label for="entry-url">Lien vers ta photo / vidéo / preuve</label>
-          <input type="url" id="entry-url" class="text-input" placeholder="https://...">
+          <label for="entry-file">Ta photo / vidéo / preuve</label>
+          <input type="file" id="entry-file" class="file-input-hidden" accept="image/*,video/*" onchange="handleContestEntryFileChange(event)">
+          <label for="entry-file" class="file-picker-btn" id="entry-file-label">
+            <span class="file-picker-icon" id="entry-file-icon">📎</span>
+            <span class="file-picker-text" id="entry-file-text">Choisir un fichier</span>
+          </label>
+          <div class="upload-progress-wrap hidden" id="entry-file-progress-wrap">
+            <div class="upload-progress-fill" id="entry-file-progress-fill"></div>
+            <span class="upload-progress-label" id="entry-file-progress-label">0%</span>
+          </div>
+          <div id="entry-file-preview"></div>
         </div>
         <div class="field">
           <label for="entry-caption">Message (facultatif)</label>
@@ -5711,25 +5846,60 @@ function openContestEntryForm(contestId, isPaid, entryFee) {
   document.body.insertAdjacentHTML('beforeend', html);
 }
 
+let pendingContestEntryFile = null;
+
+function handleContestEntryFileChange(event) {
+  pendingContestEntryFile = (event.target.files && event.target.files[0]) || null;
+  const text = document.getElementById('entry-file-text');
+  const label = document.getElementById('entry-file-label');
+  const icon = document.getElementById('entry-file-icon');
+  const isVideo = pendingContestEntryFile && pendingContestEntryFile.type.startsWith('video/');
+  if (icon) icon.textContent = isVideo ? '🎥' : '📷';
+  if (text) text.textContent = pendingContestEntryFile ? `✅ ${pendingContestEntryFile.name}` : 'Choisir un fichier';
+  if (label) label.classList.toggle('has-file', !!pendingContestEntryFile);
+  const previewEl = document.getElementById('entry-file-preview');
+  if (previewEl) {
+    if (!pendingContestEntryFile) { previewEl.innerHTML = ''; return; }
+    const url = URL.createObjectURL(pendingContestEntryFile);
+    previewEl.innerHTML = isVideo
+      ? `<video src="${url}" class="post-media-preview-media" controls></video>`
+      : `<img src="${url}" class="post-media-preview-media" alt="">`;
+  }
+}
+
+// Envoie le fichier choisi sur le telephone (photo ou video) et renvoie
+// son URL -- utilise par les deux chemins (concours gratuit et payant),
+// remplace l'ancien "coller un lien".
+async function uploadContestEntryFile() {
+  if (!pendingContestEntryFile) return null;
+  const isVideo = pendingContestEntryFile.type.startsWith('video/');
+  const uploaded = await uploadFileToStorage(pendingContestEntryFile, 'concours/participations', {
+    maxSizeMB: isVideo ? 100 : 10,
+    onProgress: (pct) => setUploadProgress('entry-file', pct)
+  });
+  return uploaded.url;
+}
+
 async function saveContestEntry(contestId) {
   const btn = document.getElementById('entry-save-btn');
   const msgEl = document.getElementById('entry-form-msg');
   const name = document.getElementById('entry-name').value.trim();
-  const submissionUrl = document.getElementById('entry-url').value.trim();
   const caption = document.getElementById('entry-caption').value.trim();
 
   if (!name) { msgEl.textContent = 'Merci d\'indiquer ton nom.'; return; }
-  if (!submissionUrl || !submissionUrl.startsWith('http')) { msgEl.textContent = 'Merci de coller un lien valide vers ta participation.'; return; }
+  if (!pendingContestEntryFile) { msgEl.textContent = 'Merci de choisir une photo ou une vidéo depuis ton téléphone.'; return; }
 
   if (btn.disabled) return;
   btn.disabled = true;
   btn.textContent = 'Envoi...';
   try {
+    const submissionType = pendingContestEntryFile.type.startsWith('video/') ? 'video' : 'image';
+    const submissionUrl = await uploadContestEntryFile();
     // Id deterministe "{contestId}_{uid}" : une seule participation par
     // personne et par concours (un nouvel envoi remplace la precedente
     // tant que le concours n'est pas termine).
     await db.collection('contest_entries').doc(`${contestId}_${currentUser.uid}`).set({
-      contestId, uid: currentUser.uid, name, submissionUrl, caption,
+      contestId, uid: currentUser.uid, name, submissionUrl, submissionType, caption,
       votesCount: 0, paid: false, createdAt: new Date().toISOString()
     }, { merge: true });
     document.getElementById('contest-entry-modal').remove();
@@ -5751,24 +5921,26 @@ async function payAndSubmitContestEntry(contestId) {
   const btn = document.getElementById('entry-save-btn');
   const msgEl = document.getElementById('entry-form-msg');
   const name = document.getElementById('entry-name').value.trim();
-  const submissionUrl = document.getElementById('entry-url').value.trim();
   const caption = document.getElementById('entry-caption').value.trim();
 
   if (!name) { msgEl.textContent = 'Merci d\'indiquer ton nom.'; return; }
-  if (!submissionUrl || !submissionUrl.startsWith('http')) { msgEl.textContent = 'Merci de coller un lien valide vers ta participation.'; return; }
+  if (!pendingContestEntryFile) { msgEl.textContent = 'Merci de choisir une photo ou une vidéo depuis ton téléphone.'; return; }
 
   if (btn.disabled) return;
   btn.disabled = true;
   const originalLabel = btn.textContent;
-  btn.textContent = 'Paiement en cours...';
+  btn.textContent = 'Envoi du fichier...';
   msgEl.textContent = '';
 
   try {
+    const submissionType = pendingContestEntryFile.type.startsWith('video/') ? 'video' : 'image';
+    const submissionUrl = await uploadContestEntryFile();
+    btn.textContent = 'Paiement en cours...';
     const idToken = await auth.currentUser.getIdToken();
     const resp = await fetch('/api/payments-actions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ idToken, action: 'contest_entry', contestId, name, submissionUrl, caption })
+      body: JSON.stringify({ idToken, action: 'contest_entry', contestId, name, submissionUrl, submissionType, caption })
     });
     const data = await resp.json();
     if (!data.success) throw new Error(data.error || 'Le paiement a échoué.');
@@ -7685,9 +7857,9 @@ function openTravelForm(spotId) {
           <label for="travel-website">Site web (facultatif)</label>
           <input type="url" id="travel-website" class="text-input" placeholder="https://..." value="${existing ? escapeHtml(existing.website || '') : ''}">
         </div>
-        <label class="field-label" style="display:block">Photos — liens (facultatif, 5 max)</label>
+        <label class="field-label" style="display:block">Photos (facultatif, 5 max)</label>
         <div id="travel-photo-rows"></div>
-        <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:6px 0 14px" onclick="addTravelPhotoRow()">+ Ajouter un lien photo</button>
+        <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:6px 0 14px" onclick="addTravelPhotoRow()">+ Ajouter une photo</button>
 
         <button class="btn btn-primary" id="travel-save-btn" style="width:100%;justify-content:center" onclick="saveTravelSpot()">${existing ? 'Enregistrer les modifications' : 'Publier'}</button>
         <p class="muted small" id="travel-form-msg" style="margin-top:6px"></p>
@@ -7702,12 +7874,7 @@ function openTravelForm(spotId) {
 function addTravelPhotoRow(value) {
   const rowsEl = document.getElementById('travel-photo-rows');
   if (rowsEl.children.length >= 5) return;
-  const row = document.createElement('div');
-  row.className = 'invoice-item-row';
-  row.innerHTML = `
-    <input type="url" class="text-input travel-photo-link" placeholder="https://..." value="${escapeHtml(value || '')}" style="flex:1">
-    <button type="button" class="invoice-row-remove" onclick="this.parentElement.remove()" aria-label="Retirer">×</button>`;
-  rowsEl.appendChild(row);
+  rowsEl.insertAdjacentHTML('beforeend', renderGalleryPhotoRow('travel-photo-row', value));
 }
 
 async function saveTravelSpot() {
@@ -7721,8 +7888,6 @@ async function saveTravelSpot() {
   const priceIndication = document.getElementById('travel-price').value.trim();
   const whatsapp = document.getElementById('travel-whatsapp').value.trim();
   const website = document.getElementById('travel-website').value.trim();
-  const photos = Array.from(document.querySelectorAll('.travel-photo-link'))
-    .map(inp => inp.value.trim()).filter(v => v.startsWith('http')).slice(0, 5);
 
   if (!title || !city || !whatsapp) {
     msgEl.textContent = 'Merci de remplir au moins le titre, la ville et le WhatsApp.';
@@ -7733,6 +7898,9 @@ async function saveTravelSpot() {
   btn.disabled = true;
   btn.textContent = 'Enregistrement...';
   try {
+    // Envoie uniquement les photos fraichement choisies sur le telephone ;
+    // celles deja enregistrees (en modification) sont gardees telles quelles.
+    const photos = await collectGalleryPhotoUrls('#travel-photo-rows .gallery-photo-row', 'voyage', 5);
     const payload = { title, category, city, country, description, priceIndication, whatsapp, website: website || null, photos };
     if (editingTravelSpotId) {
       await db.collection('travel_spots').doc(editingTravelSpotId).update(payload);
@@ -8969,9 +9137,9 @@ function openImmoForm(propertyId) {
           <label for="immo-whatsapp">WhatsApp de contact</label>
           <input type="tel" id="immo-whatsapp" class="text-input" placeholder="+243..." value="${existing ? escapeHtml(existing.whatsapp || '') : ''}">
         </div>
-        <label class="field-label" style="display:block">Photos — liens (facultatif, 5 max)</label>
+        <label class="field-label" style="display:block">Photos (facultatif, 5 max)</label>
         <div id="immo-photo-rows"></div>
-        <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:6px 0 14px" onclick="addImmoPhotoRow()">+ Ajouter un lien photo</button>
+        <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:6px 0 14px" onclick="addImmoPhotoRow()">+ Ajouter une photo</button>
 
         <button class="btn btn-primary" id="immo-save-btn" style="width:100%;justify-content:center" onclick="saveImmoProperty()">${existing ? 'Enregistrer les modifications' : 'Publier'}</button>
         <p class="muted small" id="immo-form-msg" style="margin-top:6px"></p>
@@ -8986,12 +9154,7 @@ function openImmoForm(propertyId) {
 function addImmoPhotoRow(value) {
   const rowsEl = document.getElementById('immo-photo-rows');
   if (rowsEl.children.length >= 5) return;
-  const row = document.createElement('div');
-  row.className = 'invoice-item-row';
-  row.innerHTML = `
-    <input type="url" class="text-input immo-photo-link" placeholder="https://..." value="${escapeHtml(value || '')}" style="flex:1">
-    <button type="button" class="invoice-row-remove" onclick="this.parentElement.remove()" aria-label="Retirer">×</button>`;
-  rowsEl.appendChild(row);
+  rowsEl.insertAdjacentHTML('beforeend', renderGalleryPhotoRow('immo-photo-row', value));
 }
 
 async function saveImmoProperty() {
@@ -9007,8 +9170,6 @@ async function saveImmoProperty() {
   const surfaceArea = document.getElementById('immo-surface').value.trim();
   const description = document.getElementById('immo-description').value.trim();
   const whatsapp = document.getElementById('immo-whatsapp').value.trim();
-  const photos = Array.from(document.querySelectorAll('.immo-photo-link'))
-    .map(inp => inp.value.trim()).filter(v => v.startsWith('http')).slice(0, 5);
 
   if (!title || !city || !price || !whatsapp) {
     msgEl.textContent = 'Merci de remplir au moins le titre, la ville, le prix et le WhatsApp.';
@@ -9019,6 +9180,7 @@ async function saveImmoProperty() {
   btn.disabled = true;
   btn.textContent = 'Enregistrement...';
   try {
+    const photos = await collectGalleryPhotoUrls('#immo-photo-rows .gallery-photo-row', 'immobilier', 5);
     const payload = {
       title, transactionType, propertyType, city, price, currency: 'USD',
       bedrooms, bathrooms, surfaceArea, description, whatsapp, photos
@@ -9865,9 +10027,9 @@ function openSiteForm() {
         <div id="site-service-rows"></div>
         <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:6px 0 14px" onclick="addSiteServiceRow()">+ Ajouter</button>
 
-        <label class="field-label" style="display:block">Photos — liens (facultatif, ${photoLimit} max${isPremium ? '' : ', Premium : jusqu\'à ' + SITE_PREMIUM_PHOTO_LIMIT})</label>
+        <label class="field-label" style="display:block">Photos (facultatif, ${photoLimit} max${isPremium ? '' : ', Premium : jusqu\'à ' + SITE_PREMIUM_PHOTO_LIMIT})</label>
         <div id="site-photo-rows"></div>
-        <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:6px 0 14px" onclick="addSitePhotoRow(null, ${photoLimit})">+ Ajouter un lien photo</button>
+        <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:6px 0 14px" onclick="addSitePhotoRow(null, ${photoLimit})">+ Ajouter une photo</button>
 
         <div class="field">
           <label for="site-whatsapp">WhatsApp de contact</label>
@@ -9922,12 +10084,7 @@ function addSiteServiceRow(service) {
 function addSitePhotoRow(value, max) {
   const rowsEl = document.getElementById('site-photo-rows');
   if (rowsEl.children.length >= (max || SITE_FREE_PHOTO_LIMIT)) return;
-  const row = document.createElement('div');
-  row.className = 'invoice-item-row';
-  row.innerHTML = `
-    <input type="url" class="text-input site-photo-link" placeholder="https://..." value="${escapeHtml(value || '')}" style="flex:1">
-    <button type="button" class="invoice-row-remove" onclick="this.parentElement.remove()" aria-label="Retirer">×</button>`;
-  rowsEl.appendChild(row);
+  rowsEl.insertAdjacentHTML('beforeend', renderGalleryPhotoRow('site-photo-row', value));
 }
 
 let pendingSiteLogoFile = null;
@@ -9980,7 +10137,6 @@ async function saveMySite() {
     price: row.querySelector('.site-service-price').value.trim()
   })).filter(sv => sv.name);
   const isPremiumNow = siteIsPremiumActive(editingSiteExisting);
-  const gallery = Array.from(document.querySelectorAll('.site-photo-link')).map(i => i.value.trim()).filter(v => v.startsWith('http')).slice(0, isPremiumNow ? SITE_PREMIUM_PHOTO_LIMIT : SITE_FREE_PHOTO_LIMIT);
   const contactWhatsapp = document.getElementById('site-whatsapp').value.trim();
   const contactPhone = document.getElementById('site-phone').value.trim();
   const contactEmail = document.getElementById('site-email').value.trim();
@@ -10034,6 +10190,7 @@ async function saveMySite() {
       });
       coverImageUrl = uploaded.url;
     }
+    const gallery = await collectGalleryPhotoUrls('#site-photo-rows .gallery-photo-row', 'sites/galerie', isPremiumNow ? SITE_PREMIUM_PHOTO_LIMIT : SITE_FREE_PHOTO_LIMIT);
 
     await db.runTransaction(async (tx) => {
       const [slugSnap, oldSlugSnap] = await Promise.all([
@@ -10891,6 +11048,7 @@ async function saveBusinessProfile() {
 
 function openBusinessPostForm() {
   if (document.getElementById('business-post-form-modal')) return;
+  pendingBusinessPostImageFile = null;
   const html = `
     <div class="modal-overlay" id="business-post-form-modal">
       <div class="modal">
@@ -10901,8 +11059,17 @@ function openBusinessPostForm() {
           <textarea id="business-post-text" class="text-input" rows="3" style="resize:vertical" maxlength="500"></textarea>
         </div>
         <div class="field">
-          <label for="business-post-image">Image (lien, facultatif)</label>
-          <input type="url" id="business-post-image" class="text-input" placeholder="https://...">
+          <label for="business-post-image-file">Image (facultatif)</label>
+          <input type="file" id="business-post-image-file" class="file-input-hidden" accept="image/*" onchange="handleBusinessPostImageFileChange(event)">
+          <label for="business-post-image-file" class="file-picker-btn" id="business-post-image-file-label">
+            <span class="file-picker-icon" id="business-post-image-file-icon">🖼️</span>
+            <span class="file-picker-text" id="business-post-image-file-text">Choisir une image</span>
+          </label>
+          <div class="upload-progress-wrap hidden" id="business-post-image-progress-wrap">
+            <div class="upload-progress-fill" id="business-post-image-progress-fill"></div>
+            <span class="upload-progress-label" id="business-post-image-progress-label">0%</span>
+          </div>
+          <div id="business-post-image-preview"></div>
         </div>
         <button class="btn btn-primary" id="business-post-save-btn" style="width:100%;justify-content:center" onclick="saveBusinessPost()">Publier</button>
         <p class="muted small" id="business-post-form-msg" style="margin-top:6px"></p>
@@ -10911,16 +11078,38 @@ function openBusinessPostForm() {
   document.body.insertAdjacentHTML('beforeend', html);
 }
 
+let pendingBusinessPostImageFile = null;
+
+function handleBusinessPostImageFileChange(event) {
+  pendingBusinessPostImageFile = (event.target.files && event.target.files[0]) || null;
+  const text = document.getElementById('business-post-image-file-text');
+  const label = document.getElementById('business-post-image-file-label');
+  if (text) text.textContent = pendingBusinessPostImageFile ? `✅ ${pendingBusinessPostImageFile.name}` : 'Choisir une image';
+  if (label) label.classList.toggle('has-file', !!pendingBusinessPostImageFile);
+  const previewEl = document.getElementById('business-post-image-preview');
+  if (previewEl) {
+    const url = pendingBusinessPostImageFile ? URL.createObjectURL(pendingBusinessPostImageFile) : null;
+    previewEl.innerHTML = url ? `<img src="${url}" class="post-media-preview-media" alt="">` : '';
+  }
+}
+
 async function saveBusinessPost() {
   const btn = document.getElementById('business-post-save-btn');
   const msgEl = document.getElementById('business-post-form-msg');
   const text = document.getElementById('business-post-text').value.trim();
-  const imageUrl = document.getElementById('business-post-image').value.trim();
   if (!text) { msgEl.textContent = 'Écris un texte pour ton actualité.'; return; }
   if (btn.disabled) return;
   btn.disabled = true;
   btn.textContent = 'Publication...';
   try {
+    let imageUrl = null;
+    if (pendingBusinessPostImageFile) {
+      const uploaded = await uploadFileToStorage(pendingBusinessPostImageFile, 'entreprises/actualites', {
+        maxSizeMB: 10,
+        onProgress: (pct) => setUploadProgress('business-post-image', pct)
+      });
+      imageUrl = uploaded.url;
+    }
     await db.collection('business_posts').add({
       businessUid: currentUser.uid, businessName: (businessMyProfile && businessMyProfile.businessName) || '',
       text, imageUrl: imageUrl || null, createdAt: new Date().toISOString()
