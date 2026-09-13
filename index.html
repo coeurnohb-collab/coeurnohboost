@@ -69,24 +69,16 @@
       </select>
       <button class="btn btn-outline" id="nav-login-btn" data-i18n="nav_login" onclick="openAuth('login')">Se connecter</button>
       <button class="btn btn-primary" id="nav-register-btn" data-i18n="nav_register" onclick="openAuth('register')">Créer un compte</button>
-      <a href="admin.html" class="btn admin-shortcut hidden" id="admin-shortcut-btn" aria-label="Administration"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></a>
-      <button class="btn help-shortcut" id="help-shortcut-btn" onclick="openTutorial()" aria-label="Aide / Tutoriel" title="Comment ça marche ?"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 2-3 4"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></button>
+      <div class="nav-icon-group">
+        <a href="admin.html" class="btn admin-shortcut hidden" id="admin-shortcut-btn" aria-label="Administration"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></a>
+        <button class="btn help-shortcut" id="help-shortcut-btn" onclick="openTutorial()" aria-label="Aide / Tutoriel" title="Comment ça marche ?"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 2-3 4"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></button>
+      </div>
       <button class="btn btn-primary hidden" id="install-app-btn" onclick="installApp()">📲 <span data-i18n="install_app_btn">Installer l'app</span></button>
     </div>
   </div>
+  <div class="nav-accent-line"></div>
 </nav>
 
-<!-- ================= BANDEAU PROMO DÉFILANT ================= -->
-<div class="promo-marquee">
-  <div class="promo-marquee-track">
-    <span data-i18n="promo_1">🔥 Livraison rapide sur tous les services TikTok, Instagram, YouTube et Facebook</span>
-    <span data-i18n="promo_2">💳 Paiement Mobile Money automatique dans 12 pays d'Afrique</span>
-    <span data-i18n="promo_3">🎁 Parraine un ami et gagne 5% sur chacune de ses recharges</span>
-    <span data-i18n="promo_1">🔥 Livraison rapide sur tous les services TikTok, Instagram, YouTube et Facebook</span>
-    <span data-i18n="promo_2">💳 Paiement Mobile Money automatique dans 12 pays d'Afrique</span>
-    <span data-i18n="promo_3">🎁 Parraine un ami et gagne 5% sur chacune de ses recharges</span>
-  </div>
-</div>
 
 <!-- ================= PUBLIC HOME ================= -->
 <div id="view-home" class="hidden">
@@ -210,16 +202,24 @@
 
     <!-- ---- Onglet Accueil ---- -->
     <div class="dash-tab" id="dash-tab-home">
-      <div class="dash-header">
-        <h2><span data-i18n="dash_hello">Bonjour</span>, <span id="dash-name">—</span> 👋</h2>
-      </div>
+      <!-- La salutation "Bonjour, ... 👋" a été retirée (jugée superflue) ;
+           le span#dash-name reste présent (caché) car du code JS existant
+           lui écrit encore le nom à la connexion -- le retirer casserait
+           cette logique pour rien. -->
+      <span id="dash-name" class="hidden"></span>
 
       <!-- La bannière "Un seul compte, des services multiples" a été retirée
            de l'onglet Accueil (elle restait affichée en local, redondante
            avec le menu ☰ → Services CoeurNoh qui sert déjà à ça). Elle reste
            présente sur la page publique (view-home) pour les visiteurs non
            connectés. -->
-      <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:14px" onclick="openCreatePostForm()">➕ Publier une photo, vidéo ou un texte</button>
+      <!-- Composeur façon reseau social : avatar + invite à publier, en une
+           seule carte cliquable (remplace l'ancien bouton plein plat). -->
+      <button type="button" class="dash-composer" onclick="openCreatePostForm()">
+        <span id="dash-composer-avatar" class="dash-composer-avatar"></span>
+        <span class="dash-composer-input" data-i18n="composer_placeholder">Exprime-toi, publie une photo, vidéo ou un texte...</span>
+        <span class="dash-composer-icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2Z"/><circle cx="12" cy="13" r="4"/></svg></span>
+      </button>
 
       <div style="position:relative;margin-bottom:14px">
         <input type="text" id="account-search-input" class="text-input" placeholder="🔍 Rechercher un compte..." oninput="searchAccounts(this.value)" onfocus="if(this.value) searchAccounts(this.value)" onblur="closeAccountSearchOnBlur()">

@@ -19,7 +19,7 @@ body:has(#admin-panel){ background:var(--bg); }
   display:flex;align-items:center;justify-content:center;
   padding:24px;
   background:
-    radial-gradient(circle at 15% 10%, rgba(15,61,115,0.12), transparent 55%),
+    radial-gradient(circle at 15% 10%, rgba(24,119,242,0.12), transparent 55%),
     radial-gradient(circle at 90% 90%, rgba(179,18,42,0.10), transparent 50%),
     var(--ink);
 }
@@ -42,7 +42,7 @@ body:has(#admin-panel){ background:var(--bg); }
   font-size:1.5rem;
   background:var(--green-light);
   color:var(--green);
-  box-shadow:0 6px 16px rgba(15,61,115,0.18);
+  box-shadow:0 6px 16px rgba(24,119,242,0.18);
 }
 .admin-login-box h1{
   text-align:center;font-size:1.3rem;font-weight:800;color:var(--ink);margin-bottom:4px;
@@ -105,12 +105,12 @@ body:has(#admin-panel){ background:var(--bg); }
   white-space:nowrap;
   transition:0.18s ease;
 }
-.admin-tabs button:hover{border-color:#c7d7ef;color:var(--ink)}
+.admin-tabs button:hover{border-color:#cfe1fd;color:var(--ink)}
 .admin-tabs button.active{
   background:var(--green);
   border-color:var(--green);
   color:#fff;
-  box-shadow:0 6px 16px rgba(15,61,115,0.28);
+  box-shadow:0 6px 16px rgba(24,119,242,0.28);
 }
 
 .page-title{margin-bottom:4px}

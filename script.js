@@ -96,6 +96,17 @@ function renderAvatarHtml(name, photoUrl, size, extraAttrs) {
   return `<div class="post-avatar" style="width:${px}px;height:${px}px;font-size:${fontSize}px" ${attrs}>${letter}</div>`;
 }
 
+/* ================= AVATAR DU COMPOSEUR (accueil) =================
+   Remplit le rond du composeur "Exprime-toi..." avec la vraie photo de
+   profil (ou l'initiale à défaut), via renderAvatarHtml() déjà utilisée
+   ailleurs. Appelée à la connexion et à chaque fois que le nom/la photo
+   change, pour rester à jour sans recharger la page. */
+function refreshDashComposerAvatar() {
+  const el = document.getElementById('dash-composer-avatar');
+  if (!el || !currentUser) return;
+  el.innerHTML = renderAvatarHtml(currentUser.name, currentUser.photoURL, 38);
+}
+
 function avatarLoadError(el) {
   if (el.dataset.errorHandled) return;
   el.dataset.errorHandled = '1';
@@ -1767,6 +1778,7 @@ async function saveAccountPhoto() {
     // recevaient la photo a jour, les anciennes gardaient l'ancienne pour
     // toujours).
     syncPublicProfile(currentUser.uid, { photoURL: url });
+    refreshDashComposerAvatar();
     pendingAccountPhotoFile = null;
     document.getElementById('account-photo-file').value = '';
     document.getElementById('account-photo-file-text').textContent = 'Choisir une photo';
@@ -1816,6 +1828,7 @@ async function saveAccountName() {
     syncPublicProfile(currentUser.uid, { name });
     document.getElementById('dash-name').textContent = name;
     document.getElementById('profile-name').textContent = name;
+    refreshDashComposerAvatar();
     showToast('Nom mis à jour !', 'success');
   } catch (e) {
     showToast(friendlyErrorMessage(e), 'error');
@@ -2124,6 +2137,7 @@ if (fbReady) {
 
       renderLoggedInNav(user.uid);
       document.getElementById('dash-name').textContent = currentUser.name;
+      refreshDashComposerAvatar();
       document.getElementById('wallet-balance').textContent = (currentUser.balance || 0).toFixed(2) + '$';
       document.getElementById('profile-name').textContent = currentUser.name;
       document.getElementById('profile-email').textContent = currentUser.email;
@@ -5333,7 +5347,7 @@ function printInvoice(invoiceId) {
     <div style="max-width:700px;margin:0 auto;font-family:Arial,sans-serif;color:#161a1f">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px">
         <div>
-          <h1 style="font-size:1.4rem;margin:0 0 4px;color:#0f3d73">CoeurNoh Business</h1>
+          <h1 style="font-size:1.4rem;margin:0 0 4px;color:#1877f2">CoeurNoh Business</h1>
           <p style="margin:0;font-size:0.85rem;color:#5b6472">Facture ${escapeHtml(inv.number || '')}</p>
         </div>
         <div style="text-align:right;font-size:0.85rem;color:#5b6472">${escapeHtml(dateLabel)}</div>
