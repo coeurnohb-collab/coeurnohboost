@@ -2798,7 +2798,7 @@ function renderPostCard(item, isLiked, isSaved, hideFollowBtn) {
   const followBtnHtml = (item.sellerUid && !isOwnPost && !hideFollowBtn) ? `
     <button class="follow-btn ${isFollowing ? 'following' : ''}" data-follow-btn="${item.sellerUid}"
       onclick="toggleFollow('${item.sellerUid}','${escapeForJs(item.sellerName || 'ce compte')}')">
-      <span data-follow-label="${item.sellerUid}">${isFollowing ? 'Abonné' : '+ Suivre'}</span>
+      <span data-follow-label="${item.sellerUid}" data-i18n="${isFollowing ? 'btn_following' : 'btn_follow'}">${isFollowing ? t('btn_following') : t('btn_follow')}</span>
     </button>` : '';
 
   const profileClick = item.sellerUid
@@ -2823,10 +2823,10 @@ function renderPostCard(item, isLiked, isSaved, hideFollowBtn) {
     <div class="post-actions">
       <button class="shop-action-btn ${isLiked ? 'liked' : ''}" data-like-btn="${item.id}" onclick="toggleShopLike('${item.id}')">
         <span data-like-icon="${item.id}">${isLiked ? ICON_HEART_FILLED : ICON_HEART_OUTLINE}</span>
-        <span data-like-count="${item.id}">${safeCount(item.likesCount)}</span>
+        <span data-like-count="${item.id}" data-raw="${safeCount(item.likesCount)}">${formatCompactCount(safeCount(item.likesCount))}</span>
       </button>
       <button class="shop-action-btn" onclick="openPostDetail('${item.id}')">
-        ${ICON_COMMENT} <span data-comment-count="${item.id}">${item.commentsCount || 0}</span>
+        ${ICON_COMMENT} <span data-comment-count="${item.id}" data-raw="${item.commentsCount || 0}">${formatCompactCount(item.commentsCount || 0)}</span>
       </button>
       <button class="shop-action-btn" onclick="sharePost('${item.id}','${escapeForJs(item.description || '')}','${shareUrl}')">
         ${ICON_SHARE} Partager
@@ -2942,11 +2942,18 @@ function watchPostCounts(pubId) {
     const unsubscribe = db.collection('publications').doc(pubId).onSnapshot((doc) => {
       if (!doc.exists) return;
       const d = doc.data();
+      // "data-raw" garde toujours le vrai nombre (jamais affiche tel quel) --
+      // c'est ce que refreshProfileTotalLikesFromGrid() additionne pour le
+      // total "J'aime" du profil : lire le texte affiche aurait casse la
+      // somme des qu'une publication atteint "1k"/"1M" (impossible a
+      // re-parser en nombre exact).
       document.querySelectorAll(`[data-like-count="${pubId}"]`).forEach(el => {
-        el.textContent = safeCount(d.likesCount);
+        el.dataset.raw = String(safeCount(d.likesCount));
+        el.textContent = formatCompactCount(safeCount(d.likesCount));
       });
       document.querySelectorAll(`[data-comment-count="${pubId}"]`).forEach(el => {
-        el.textContent = d.commentsCount || 0;
+        el.dataset.raw = String(d.commentsCount || 0);
+        el.textContent = formatCompactCount(d.commentsCount || 0);
       });
     }, (err) => {
       console.log('[compteurs temps reel] non bloquant :', err.message);
@@ -3547,7 +3554,7 @@ async function loadMyPublications() {
         <img src="${escapeHtml(d.imageUrl)}" alt="" class="seller-pub-img" loading="lazy">
         <div class="seller-pub-info">
           <strong>${typeLabel} ${escapeHtml(d.title)}</strong>
-          <div class="muted small">${(d.price || 0).toFixed(2)}$ · ${ICON_HEART_FILLED} ${safeCount(d.likesCount)}</div>
+          <div class="muted small">${(d.price || 0).toFixed(2)}$ · ${ICON_HEART_FILLED} ${formatCompactCount(safeCount(d.likesCount))}</div>
         </div>
         <button class="shop-action-btn" onclick="openEditPubForm('${doc.id}','${d.type}','${escapeForJs(d.title || '')}','${escapeForJs(d.description || '')}',${d.price || 0})" aria-label="Modifier cette publication">${ICON_EDIT}</button>
         <button class="shop-action-btn" onclick="deleteMyPublication('${doc.id}')" aria-label="Supprimer cette publication">${ICON_TRASH}</button>
@@ -3869,10 +3876,10 @@ function renderShopCard(item, isLiked, isPurchased) {
       <div class="shop-card-actions">
         <button class="shop-action-btn ${isLiked ? 'liked' : ''}" data-like-btn="${item.id}" onclick="toggleShopLike('${item.id}')">
           <span data-like-icon="${item.id}">${isLiked ? ICON_HEART_FILLED : ICON_HEART_OUTLINE}</span>
-          <span data-like-count="${item.id}">${safeCount(item.likesCount)}</span>
+          <span data-like-count="${item.id}" data-raw="${safeCount(item.likesCount)}">${formatCompactCount(safeCount(item.likesCount))}</span>
         </button>
         <button class="shop-action-btn" onclick="openPostDetail('${item.id}')">
-          ${ICON_COMMENT} <span data-comment-count="${item.id}">${item.commentsCount || 0}</span>
+          ${ICON_COMMENT} <span data-comment-count="${item.id}" data-raw="${item.commentsCount || 0}">${formatCompactCount(item.commentsCount || 0)}</span>
         </button>
         ${whatsappHtml}
         ${shareHtml}
@@ -4003,12 +4010,20 @@ async function enrichItemsWithPublicProfiles(items) {
   });
 }
 
+// Format "façon réseaux sociaux" (Instagram/TikTok/Facebook) : le nombre
+// exact tant qu'il tient sous 1000 (1, 2, 3... 999), puis "1k", "1,2k"...
+// a partir de 1000, puis "1M", "1,2M"... a partir d'un million. AVANT le
+// seuil de passage en "K"/"M" etait fixe a 10 000 (donc "2 500" restait
+// affiche en entier) et le format ("2,5 K" avec espace + virgule) ne
+// correspondait a aucune appli connue -- corrige ici pour coller exactement
+// au comportement attendu ("1k"/"1M", sans espace, un seul chiffre apres
+// la virgule uniquement si necessaire).
 function formatCompactCount(n) {
-  n = n || 0;
-  if (n < 10000) return n.toLocaleString('fr-FR');
+  n = Math.max(0, Math.floor(n || 0));
+  if (n < 1000) return String(n);
   const format = (val) => (Number.isInteger(val) ? String(val) : val.toFixed(1).replace('.', ','));
-  if (n < 1000000) return format(n / 1000) + ' K';
-  return format(n / 1000000) + ' M';
+  if (n < 1000000) return format(Math.floor(n / 100) / 10) + 'k';
+  return format(Math.floor(n / 100000) / 10) + 'M';
 }
 
 async function shareShopItem(pubId, title) {
@@ -4160,7 +4175,7 @@ async function toggleFollow(sellerUid, sellerName) {
       await followRef.delete();
       followingSet.delete(sellerUid);
       btnEls.forEach(el => el.classList.remove('following'));
-      labelEls.forEach(el => el.textContent = '+ Suivre');
+      labelEls.forEach(el => { el.textContent = t('btn_follow'); el.setAttribute('data-i18n', 'btn_follow'); });
     } else {
       await followRef.set({
         followerUid: currentUser.uid,
@@ -4171,7 +4186,7 @@ async function toggleFollow(sellerUid, sellerName) {
       });
       followingSet.add(sellerUid);
       btnEls.forEach(el => el.classList.add('following'));
-      labelEls.forEach(el => el.textContent = 'Abonné');
+      labelEls.forEach(el => { el.textContent = t('btn_following'); el.setAttribute('data-i18n', 'btn_following'); });
       showToast(`Tu suis maintenant ${sellerName || 'ce compte'}`, 'success');
     }
   } catch (e) {
@@ -4264,6 +4279,11 @@ async function loadFollowingSet() {
 async function openProfileModal(sellerUid, sellerName, sellerVerified) {
   const modal = document.getElementById('profile-modal');
   const body = document.getElementById('profile-modal-body');
+  // Toujours au-dessus de n'importe quelle autre fenetre deja ouverte (meme
+  // logique que openPostDetail() ci-dessus) : utile par exemple quand on
+  // ouvre le profil de quelqu'un depuis la liste "Abonnés/Abonnements" d'un
+  // autre profil deja affiche.
+  document.body.appendChild(modal);
   modal.classList.remove('hidden');
   body.innerHTML = renderFeedSkeletons(2);
 
@@ -4351,7 +4371,7 @@ async function openProfileModal(sellerUid, sellerName, sellerVerified) {
     const followBtnHtml = !isOwn ? `
       <button class="follow-btn ${isFollowing ? 'following' : ''}" data-follow-btn="${sellerUid}"
         onclick="toggleFollow('${sellerUid}','${escapeForJs(displayName)}')" style="margin:14px 0 0 0">
-        <span data-follow-label="${sellerUid}">${isFollowing ? 'Abonné' : '+ Suivre'}</span>
+        <span data-follow-label="${sellerUid}" data-i18n="${isFollowing ? 'btn_following' : 'btn_follow'}">${isFollowing ? t('btn_following') : t('btn_follow')}</span>
       </button>` : '';
 
     const blockLinkHtml = !isOwn ? `
@@ -4396,9 +4416,9 @@ async function openProfileModal(sellerUid, sellerName, sellerVerified) {
         ${displayUsername ? `<p class="profile-username-row">@${escapeHtml(displayUsername)}</p>` : ''}
         ${onlineStatusHtml}
         <div class="profile-stats-row">
-          <div class="profile-stat"><strong>${formatCompactCount(followingCount)}</strong><span>Abonnement${followingCount > 1 ? 's' : ''}</span></div>
-          <div class="profile-stat"><strong>${formatCompactCount(followerCount)}</strong><span>Abonné${followerCount > 1 ? 's' : ''}</span></div>
-          <div class="profile-stat"><strong id="profile-total-likes">${formatCompactCount(totalLikes)}</strong><span>J'aime</span></div>
+          <div class="profile-stat profile-stat-clickable" onclick="openFollowListModal('${sellerUid}','following','${escapeForJs(displayName)}')"><strong>${formatCompactCount(followingCount)}</strong><span data-i18n="stat_following">${t('stat_following')}</span></div>
+          <div class="profile-stat profile-stat-clickable" onclick="openFollowListModal('${sellerUid}','followers','${escapeForJs(displayName)}')"><strong>${formatCompactCount(followerCount)}</strong><span data-i18n="stat_followers">${t('stat_followers')}</span></div>
+          <div class="profile-stat"><strong id="profile-total-likes">${formatCompactCount(totalLikes)}</strong><span data-i18n="stat_likes">${t('stat_likes')}</span></div>
         </div>
         ${displayBio ? `<p class="profile-bio-row">${escapeHtml(displayBio)}</p>` : ''}
         ${followBtnHtml}
@@ -4440,7 +4460,9 @@ function refreshProfileTotalLikesFromGrid() {
   if (!listEl || !totalEl) return;
   let sum = 0;
   listEl.querySelectorAll('[data-like-count]').forEach(el => {
-    sum += parseInt(el.textContent, 10) || 0;
+    // "data-raw" (vrai nombre) plutot que le texte affiche, qui peut
+    // maintenant etre "1k"/"1,2M" et n'est plus un nombre exploitable.
+    sum += parseInt(el.dataset.raw, 10) || 0;
   });
   totalEl.textContent = formatCompactCount(sum);
 }
@@ -4535,7 +4557,7 @@ function renderProfileGridItem(p) {
     : (safeUrl ? `<img src="${safeUrl}" alt="" class="profile-grid-media" loading="lazy" onerror="mediaLoadError(this)">` : `<div class="profile-grid-text">${escapeHtml((p.description || '').slice(0, 60))}</div>`);
   return `<div class="profile-grid-item" onclick="openPostDetail('${p.id}')">
     ${mediaHtml}
-    <span class="profile-grid-stats">${ICON_HEART_FILLED}<span data-like-count="${p.id}">${safeCount(p.likesCount)}</span></span>
+    <span class="profile-grid-stats">${ICON_HEART_FILLED}<span data-like-count="${p.id}" data-raw="${safeCount(p.likesCount)}">${formatCompactCount(safeCount(p.likesCount))}</span></span>
   </div>`;
 }
 
@@ -6254,6 +6276,79 @@ async function unfollowFromList(sellerUid) {
   loadFollowingList();
 }
 
+/* ================= LISTE ABONNÉS / ABONNEMENTS (façon TikTok) =================
+   Contrairement a loadFollowersList()/loadFollowingList() ci-dessus (qui
+   n'affichent QUE les listes de son propre compte, dans le menu ☰),
+   openFollowListModal() marche pour N'IMPORTE QUEL profil (le sien ou celui
+   de quelqu'un d'autre) : ouverte par un tap sur les chiffres
+   "Abonnements"/"Abonnés" en haut de la fiche profil. La collection
+   "follows" est publiquement lisible (regles Firestore), donc consulter la
+   liste d'un autre compte est toujours autorise, exactement comme sur
+   TikTok/Instagram. */
+async function openFollowListModal(uid, type, displayName) {
+  const modal = document.getElementById('follow-list-modal');
+  const titleEl = document.getElementById('follow-list-modal-title');
+  const body = document.getElementById('follow-list-modal-body');
+  if (!modal || !body) return;
+  // Toujours au-dessus de la fiche profil (deja ouverte) qui a declenche cet appel.
+  document.body.appendChild(modal);
+  titleEl.textContent = type === 'followers' ? t('stat_followers') : t('stat_following');
+  body.innerHTML = renderFeedSkeletons(3);
+  modal.classList.remove('hidden');
+
+  try {
+    const field = type === 'followers' ? 'followedUid' : 'followerUid';
+    const snap = await db.collection('follows').where(field, '==', uid).get();
+    if (snap.empty) {
+      body.innerHTML = `<p class="muted small" style="padding:20px 0;text-align:center">${
+        type === 'followers' ? 'Personne ne suit ce compte pour l\'instant.' : 'Ce compte ne suit personne pour l\'instant.'
+      }</p>`;
+      return;
+    }
+
+    const rows = snap.docs.map(d => d.data());
+    // uid + nom "instantane" (enregistre au moment du suivi) tout de suite,
+    // puis la photo/le nom/le badge certifie a jour arrivent juste apres
+    // (public_profiles) sans bloquer le premier affichage.
+    const otherUids = rows.map(r => type === 'followers' ? r.followerUid : r.followedUid);
+    const fallbackNames = rows.map(r => (type === 'followers' ? r.followerName : r.followedName) || 'Compte');
+
+    body.innerHTML = otherUids.map((otherUid, i) => renderFollowListRow(otherUid, fallbackNames[i], null, false)).join('');
+
+    const profiles = await Promise.all(otherUids.map(u => fetchPublicProfile(u).catch(() => null)));
+    body.innerHTML = otherUids.map((otherUid, i) => {
+      const p = profiles[i];
+      const name = (p && p.name) || fallbackNames[i];
+      const photo = p && p.photoURL;
+      const verified = !!(p && p.verified);
+      return renderFollowListRow(otherUid, name, photo, verified);
+    }).join('');
+  } catch (e) {
+    body.innerHTML = `<p class="muted small" style="padding:20px 0;text-align:center">${friendlyErrorMessage(e)}</p>`;
+  }
+}
+
+function renderFollowListRow(uid, name, photoUrl, verified) {
+  const isOwn = currentUser && currentUser.uid === uid;
+  const isFollowing = followingSet.has(uid);
+  const followBtnHtml = isOwn ? '' : `
+    <button class="follow-btn ${isFollowing ? 'following' : ''}" data-follow-btn="${uid}"
+      onclick="toggleFollow('${uid}','${escapeForJs(name)}')">
+      <span data-follow-label="${uid}" data-i18n="${isFollowing ? 'btn_following' : 'btn_follow'}">${t(isFollowing ? 'btn_following' : 'btn_follow')}</span>
+    </button>`;
+  return `
+    <div class="follow-list-row">
+      <span onclick="openProfileModal('${uid}','${escapeForJs(name)}',${verified ? 'true' : 'false'})">${renderAvatarHtml(name, photoUrl, 42)}</span>
+      <span class="follow-list-name" onclick="openProfileModal('${uid}','${escapeForJs(name)}',${verified ? 'true' : 'false'})">${escapeHtml(name)}${verified ? ICON_VERIFIED_BADGE : ''}</span>
+      ${followBtnHtml}
+    </div>`;
+}
+
+function closeFollowListModal() {
+  document.getElementById('follow-list-modal').classList.add('hidden');
+  document.getElementById('follow-list-modal-body').innerHTML = '';
+}
+
 async function loadFollowersList() {
   const el = document.getElementById('followers-list');
   if (!el || !currentUser) return;
@@ -6272,7 +6367,7 @@ async function loadFollowersList() {
         <span style="cursor:pointer;font-weight:600" onclick="openProfileModal('${f.followerUid}','${escapeForJs(f.followerName || 'ce compte')}',false)">${escapeHtml(f.followerName || 'Compte')}</span>
         <button class="follow-btn ${isFollowingBack ? 'following' : ''}" data-follow-btn="${f.followerUid}"
           onclick="toggleFollow('${f.followerUid}','${escapeForJs(f.followerName || 'ce compte')}')">
-          <span data-follow-label="${f.followerUid}">${isFollowingBack ? 'Abonné' : '+ Suivre'}</span>
+          <span data-follow-label="${f.followerUid}" data-i18n="${isFollowingBack ? 'btn_following' : 'btn_follow'}">${isFollowingBack ? t('btn_following') : t('btn_follow')}</span>
         </button>
       </div>`;
     }).join('');
@@ -10735,7 +10830,7 @@ async function openBusinessDetail(ownerUid) {
   const followBtnHtml = !isOwn && currentUser ? `
     <button class="follow-btn ${isFollowing ? 'following' : ''}" data-follow-btn="${ownerUid}"
       onclick="toggleFollow('${ownerUid}','${escapeForJs(b.businessName || '')}')">
-      <span data-follow-label="${ownerUid}">${isFollowing ? 'Abonné' : '+ Suivre'}</span>
+      <span data-follow-label="${ownerUid}" data-i18n="${isFollowing ? 'btn_following' : 'btn_follow'}">${isFollowing ? t('btn_following') : t('btn_follow')}</span>
     </button>` : '';
 
   const activeCoupons = (b.coupons || []).filter(c => c.active && (!c.expiresAt || new Date(c.expiresAt).getTime() > Date.now()));
@@ -11577,9 +11672,9 @@ async function openPostDetail(pubId) {
       <div class="post-actions">
         <button class="shop-action-btn ${isLiked ? 'liked' : ''}" data-like-btn="${item.id}" onclick="toggleShopLike('${item.id}')">
           <span data-like-icon="${item.id}">${isLiked ? ICON_HEART_FILLED : ICON_HEART_OUTLINE}</span>
-          <span data-like-count="${item.id}">${safeCount(item.likesCount)}</span>
+          <span data-like-count="${item.id}" data-raw="${safeCount(item.likesCount)}">${formatCompactCount(safeCount(item.likesCount))}</span>
         </button>
-        <span class="shop-action-btn">${ICON_COMMENT} <span data-comment-count="${item.id}">${item.commentsCount || 0}</span></span>
+        <span class="shop-action-btn">${ICON_COMMENT} <span data-comment-count="${item.id}" data-raw="${item.commentsCount || 0}">${formatCompactCount(item.commentsCount || 0)}</span></span>
         <button class="shop-action-btn" onclick="sharePost('${item.id}','${escapeForJs(item.description || '')}','${escapeForJs(detailShareUrl)}')">
           ${ICON_SHARE} Partager
         </button>
@@ -11599,7 +11694,20 @@ async function openPostDetail(pubId) {
       <button class="btn btn-outline btn-sm" style="margin-top:14px;color:var(--muted);border-color:var(--line);display:inline-flex;align-items:center;gap:6px" onclick="openReportModal('${item.id}', '${item.sellerUid || ''}')">${ICON_FLAG} Signaler ce contenu</button>
       ` : ''}
     `;
-    document.getElementById('post-detail-modal').classList.remove('hidden');
+    // AVANT : cette fiche s'ouvrait parfois "cachee" derriere une autre
+    // fenetre deja ouverte (typiquement la fiche profil, quand on clique
+    // sur une publication depuis la grille "Mes publications") -- les deux
+    // sont des .modal-overlay avec le meme z-index, et celle qui apparait
+    // APRES dans le HTML gagne l'affichage. Comme la fiche profil est
+    // placee apres celle-ci dans index.html, elle passait TOUJOURS devant,
+    // meme ouverte en second : il fallait fermer le profil (fleche retour)
+    // pour enfin "decouvrir" la fiche, deja ouverte en dessous. La solution
+    // : deplacer cette fenetre tout a la fin de <body> a CHAQUE ouverture,
+    // ce qui la place systematiquement au-dessus de tout le reste, quel
+    // que soit ce qui etait deja ouvert.
+    const postDetailModalEl = document.getElementById('post-detail-modal');
+    document.body.appendChild(postDetailModalEl);
+    postDetailModalEl.classList.remove('hidden');
     await loadShopComments(pubId);
     // Compteurs de like/commentaire a jour en temps reel tant que la fiche est ouverte.
     watchPostCounts(pubId);
@@ -11755,7 +11863,9 @@ async function deleteShopComment(pubId, commentId) {
       commentsCount: firebase.firestore.FieldValue.increment(-1)
     });
     document.querySelectorAll(`[data-comment-count="${pubId}"]`).forEach(el => {
-      el.textContent = Math.max(0, (parseInt(el.textContent) || 1) - 1);
+      const raw = Math.max(0, (parseInt(el.dataset.raw, 10) || 1) - 1);
+      el.dataset.raw = String(raw);
+      el.textContent = formatCompactCount(raw);
     });
     loadShopComments(pubId);
     showToast('Commentaire supprimé', 'info');
@@ -11963,7 +12073,9 @@ async function addShopComment(pubId) {
     input.value = '';
     await loadShopComments(pubId);
     document.querySelectorAll(`[data-comment-count="${pubId}"]`).forEach(el => {
-      el.textContent = parseInt(el.textContent, 10) + 1;
+      const raw = (parseInt(el.dataset.raw, 10) || 0) + 1;
+      el.dataset.raw = String(raw);
+      el.textContent = formatCompactCount(raw);
     });
 
     // Notifie le proprietaire de la publication (sauf s'il a commente lui-meme)
@@ -12412,25 +12524,68 @@ function renderNotifPanel() {
     recharge: ICON_WALLET, purchase: ICON_CART, sale: ICON_TAG, like: ICON_HEART_FILLED, comment: ICON_COMMENT,
     share: ICON_SHARE, order: ICON_PACKAGE, announcement: ICON_BELL, admin_message: ICON_SHIELD
   };
+  // Petit badge colore en bas a droite de l'icone selon le type -- meme
+  // principe visuel qu'un fil de notifications Facebook (bulle "like" rouge,
+  // "commentaire" bleue, etc). Un type sans badge dedie ci-dessous retombe
+  // simplement sur la cloche grise (badge-announcement).
+  const typeBadgeIcons = {
+    like: ICON_HEART_FILLED, comment: ICON_COMMENT, share: ICON_SHARE,
+    sale: ICON_TAG, order: ICON_PACKAGE, purchase: ICON_CART, recharge: ICON_WALLET,
+    announcement: ICON_BELL, admin_message: ICON_SHIELD
+  };
 
   const lastSeen = getLastSeenAnnouncementAt();
   listEl.innerHTML = merged.map(n => {
     const isSelected = selectedNotifIds.has(n.id);
+    const badgeClass = 'badge-' + (n.type || 'announcement');
     return `
     <div class="notif-row ${(!n.isAnnouncement && !n.read) || (n.isAnnouncement && n.createdAt > lastSeen) ? 'unread' : ''} ${isSelected ? 'notif-row-selected' : ''}"
       data-id="${n.id}" data-announcement="${n.isAnnouncement ? '1' : '0'}">
       ${notifSelectMode && !n.isAnnouncement ? `<span class="notif-select-dot ${isSelected ? 'checked' : ''}">${ICON_CHECK}</span>` : ''}
-      <span class="notif-icon">${typeIcons[n.type] || ICON_BELL}</span>
+      <span class="notif-icon-wrap">
+        <span class="notif-icon">${ICON_BELL}</span>
+        <span class="notif-type-badge ${badgeClass}">${typeBadgeIcons[n.type] || ICON_BELL}</span>
+      </span>
       <div class="notif-content">
         <strong>${escapeHtml(n.title)}</strong>
         <p>${escapeHtml(n.body)}</p>
         <span class="notif-time">${timeAgo(n.createdAt)}</span>
       </div>
-      ${(!notifSelectMode && !n.isAnnouncement) ? `<button class="notif-delete-btn" data-notif-delete="${n.id}" aria-label="Supprimer cette notification">${ICON_TRASH}</button>` : ''}
+      ${(!notifSelectMode && !n.isAnnouncement) ? `<button class="notif-more-btn" data-notif-more="${n.id}" aria-label="Options de cette notification" title="Options">${ICON_DOTS}</button>` : ''}
     </div>
   `;
   }).join('');
   bindNotifListEvents();
+}
+
+/* ================= MENU OPTIONS NOTIFICATION (3 points, façon Facebook) =================
+   Remplace l'ancienne icone poubelle affichee en permanence sur chaque
+   ligne : un seul bouton "..." ouvre ce petit menu, meme principe que
+   openPostOptionsMenu() pour les publications. */
+let notifOptionsId = null;
+
+function openNotifOptionsMenu(notifId) {
+  notifOptionsId = notifId;
+  const sheet = document.getElementById('notif-options-sheet');
+  const overlay = document.getElementById('notif-options-overlay');
+  if (!sheet || !overlay) return;
+  sheet.innerHTML = `
+    <button class="action-sheet-btn action-sheet-btn-danger" onclick="notifOptionsDelete()">${ICON_TRASH} Supprimer</button>
+    <button class="action-sheet-btn action-sheet-cancel" onclick="closeNotifOptionsMenu()">Annuler</button>
+  `;
+  overlay.classList.remove('hidden');
+}
+
+function closeNotifOptionsMenu() {
+  const overlay = document.getElementById('notif-options-overlay');
+  if (overlay) overlay.classList.add('hidden');
+  notifOptionsId = null;
+}
+
+function notifOptionsDelete() {
+  const id = notifOptionsId;
+  closeNotifOptionsMenu();
+  if (id) deleteNotifRow(id);
 }
 
 // Delegation d'evenements unique sur le conteneur (au lieu d'attributs en
@@ -12492,10 +12647,10 @@ function bindNotifListEvents() {
   });
 
   listEl.addEventListener('click', (e) => {
-    const deleteBtn = e.target.closest('.notif-delete-btn');
-    if (deleteBtn) {
+    const moreBtn = e.target.closest('.notif-more-btn');
+    if (moreBtn) {
       e.stopPropagation();
-      deleteNotifRow(deleteBtn.dataset.notifDelete);
+      openNotifOptionsMenu(moreBtn.dataset.notifMore);
       return;
     }
     const row = e.target.closest('.notif-row');

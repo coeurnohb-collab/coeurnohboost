@@ -73,8 +73,32 @@ a{text-decoration:none;color:inherit}
 .bnav-icon .icon-svg{width:22px;height:22px}
 .notif-icon .icon-svg{width:20px;height:20px}
 
-/* HERO */
-.hero{padding:60px 0 40px;text-align:center;background:var(--cream)}
+/* HERO -- "ambiance" : degrade discret aux couleurs de la marque (vert +
+   rouge) en arriere-plan, au lieu d'un simple aplat uni, pour donner tout
+   de suite une impression plus travaillee/professionnelle a l'arrivee sur
+   l'app. Chaque element entre en fondu + leger glissement vers le haut,
+   les uns apres les autres (voir animation-delay), comme une vraie page
+   d'atterrissage soignee plutot qu'un affichage brut. */
+.hero{
+  padding:60px 0 40px;text-align:center;position:relative;overflow:hidden;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(14,107,69,0.10) 0%, transparent 45%),
+    radial-gradient(circle at 85% 15%, rgba(195,24,63,0.08) 0%, transparent 40%),
+    var(--cream);
+}
+.hero > .wrap{position:relative;z-index:1}
+.hero .eyebrow, .hero h1, .hero .lead, .hero-actions, .hero .pay-icons{
+  opacity:0;animation:heroFadeUp .6s ease forwards;
+}
+.hero .eyebrow{animation-delay:.05s}
+.hero h1{animation-delay:.15s}
+.hero .lead{animation-delay:.25s}
+.hero-actions{animation-delay:.35s}
+.hero .pay-icons{animation-delay:.45s}
+@keyframes heroFadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@media (prefers-reduced-motion: reduce){
+  .hero .eyebrow, .hero h1, .hero .lead, .hero-actions, .hero .pay-icons{animation:none;opacity:1}
+}
 .eyebrow{display:inline-block;color:var(--green);font-weight:700;font-size:0.85rem;margin-bottom:14px;text-transform:uppercase;letter-spacing:0.04em}
 .hero h1{font-size:2rem;font-weight:800;line-height:1.25;margin-bottom:16px}
 .hero h1 em{color:var(--green);font-style:normal}
@@ -82,6 +106,30 @@ a{text-decoration:none;color:inherit}
 .hero-actions{margin-bottom:24px}
 .pay-icons{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;font-size:0.82rem;color:var(--muted)}
 .pay-icons span{background:#fff;border:1px solid var(--line);border-radius:999px;padding:6px 12px}
+
+/* MULTI-SERVICES (page d'accueil publique) -- met en avant que l'app va
+   bien au-dela du panel SMM (boutique, factures, emploi, academie,
+   immobilier, voyages, evenements, etc.), pour rassurer sur le serieux et
+   la richesse de la plateforme des la premiere visite. */
+.multi-services{padding:50px 0;background:var(--cream)}
+.multi-services .eyebrow{display:block;text-align:center}
+.multi-services h2{text-align:center;font-size:1.5rem;margin:0 0 8px}
+.multi-services .lead{max-width:640px;margin:0 auto 28px;text-align:center;color:var(--muted);font-size:0.95rem}
+.multi-service-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:28px}
+.multi-service-card{
+  display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;
+  background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:16px 10px;
+  transition:transform .18s ease, box-shadow .18s ease;
+}
+.multi-service-card:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(0,0,0,0.06)}
+.multi-service-icon{
+  width:40px;height:40px;border-radius:50%;background:var(--green-light);color:var(--green-dark);
+  display:flex;align-items:center;justify-content:center;flex:0 0 auto;
+}
+.multi-service-card span{font-size:0.82rem;font-weight:600;color:var(--ink);line-height:1.3}
+.multi-services-cta{text-align:center}
+@media(min-width:600px){.multi-service-grid{grid-template-columns:repeat(4,1fr)}}
+@media(min-width:900px){.multi-service-grid{grid-template-columns:repeat(6,1fr)}}
 
 /* STATS BAR */
 .stats-bar{background:var(--ink);padding:28px 0}
@@ -149,7 +197,9 @@ a{text-decoration:none;color:inherit}
 }
 #app-splash.hidden{display:none}
 #app-splash-inner{display:flex;flex-direction:column;align-items:center;gap:18px}
-#app-splash-logo{font-family:var(--font);font-size:1.6rem;font-weight:800}
+#app-splash-logo{font-family:var(--font);font-size:1.6rem;font-weight:800;animation:splashLogoIn .55s cubic-bezier(.2,.8,.2,1) forwards}
+@keyframes splashLogoIn{from{opacity:0;transform:scale(0.85)}to{opacity:1;transform:scale(1)}}
+@media (prefers-reduced-motion: reduce){#app-splash-logo{animation:none}}
 #app-splash-spinner{
   width:28px;height:28px;border-radius:50%;
   border:3px solid var(--line);border-top-color:var(--green);
@@ -864,11 +914,34 @@ a{text-decoration:none;color:inherit}
   color:#fff;margin-top:2px;transition:0.15s;
 }
 .notif-select-dot.checked{background:var(--green);border-color:var(--green)}
-.notif-delete-btn{background:none;border:none;font-size:1rem;opacity:0.5;cursor:pointer;padding:4px;flex-shrink:0;min-width:40px;min-height:40px}
-.notif-delete-btn:hover{opacity:1}
+/* AVANT : une icone poubelle toujours visible sur chaque ligne (donnait
+   l'impression d'une gestion de notifications "locale au telephone"
+   plutot qu'un vrai fil social). Remplacee par un bouton "..." qui ouvre un
+   petit menu (Supprimer / Annuler), exactement comme sur Facebook -- meme
+   principe deja utilise pour les publications et les commentaires. */
+.notif-more-btn{background:none;border:none;font-size:1.1rem;color:var(--muted);cursor:pointer;padding:4px;flex-shrink:0;min-width:36px;min-height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.notif-more-btn:active{background:var(--cream)}
 .notif-row:last-child{border-bottom:none}
 .notif-row.unread{background:var(--green-light);border-radius:10px;padding:12px 10px;margin-bottom:2px}
-.notif-icon{color:var(--green);flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;background:var(--green-light);border-radius:50%}
+/* Icone principale agrandie (façon avatar) + petit badge colore superpose
+   en bas a droite selon le type (like = rouge, commentaire = bleu,
+   abonnement/vente = vert, achat/commande = orange, annonce = gris) --
+   exactement le principe visuel des notifications Facebook. */
+.notif-icon-wrap{position:relative;flex:0 0 auto}
+.notif-icon{color:var(--green);display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;background:var(--green-light);border-radius:50%}
+.notif-icon .icon-svg{width:22px;height:22px}
+.notif-type-badge{
+  position:absolute;bottom:-3px;right:-3px;width:20px;height:20px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;color:#fff;
+  border:2.5px solid var(--white);background:var(--muted);
+}
+.notif-type-badge .icon-svg, .notif-type-badge svg{width:12px;height:12px}
+.notif-type-badge.badge-like{background:var(--red)}
+.notif-type-badge.badge-comment{background:#1877F2}
+.notif-type-badge.badge-share{background:#1877F2}
+.notif-type-badge.badge-sale, .notif-type-badge.badge-order{background:var(--green)}
+.notif-type-badge.badge-purchase, .notif-type-badge.badge-recharge{background:#F5A623}
+.notif-type-badge.badge-announcement, .notif-type-badge.badge-admin_message{background:var(--ink)}
 .notif-content{flex:1;min-width:0}
 .notif-content strong{display:block;font-size:0.9rem;margin-bottom:2px;color:var(--ink)}
 .notif-content p{font-size:0.85rem;color:var(--muted);margin-bottom:3px;line-height:1.4}
@@ -916,6 +989,15 @@ a{text-decoration:none;color:inherit}
 .profile-stat{display:flex;flex-direction:column;align-items:center}
 .profile-stat strong{font-size:1.05rem;color:var(--ink)}
 .profile-stat span{font-size:0.72rem;color:var(--muted)}
+/* Chiffres "Abonnements"/"Abonnés" cliquables (comme TikTok/Instagram) --
+   ouvrent la liste des comptes via openFollowListModal(). */
+.profile-stat-clickable{cursor:pointer;border-radius:10px;padding:4px 6px;transition:background .15s}
+.profile-stat-clickable:active{background:var(--cream)}
+
+/* ================= LISTE ABONNÉS / ABONNEMENTS ================= */
+.follow-list-row{display:flex;align-items:center;gap:12px;padding:12px 4px;border-bottom:1px solid var(--line)}
+.follow-list-row:last-child{border-bottom:none}
+.follow-list-name{flex:1;font-weight:600;cursor:pointer;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .profile-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;padding:2px}
 .profile-grid-item{position:relative;aspect-ratio:1/1;background:#111;overflow:hidden;cursor:pointer}
 .profile-grid-media{width:100%;height:100%;object-fit:cover;display:block}
@@ -1109,7 +1191,11 @@ a{text-decoration:none;color:inherit}
 
 /* Visionneuse plein ecran */
 .media-viewer{
-  position:fixed;inset:0;background:rgba(0,0,0,0.94);z-index:600;
+  /* AVANT : z-index 600, INFERIEUR a .modal-overlay (1000) -- quand la
+     visionneuse s'ouvrait depuis une fiche deja ouverte (fiche publication,
+     profil...), elle se retrouvait invisible EN DESSOUS de cette fiche.
+     Toujours au-dessus de n'importe quelle fenetre maintenant. */
+  position:fixed;inset:0;background:rgba(0,0,0,0.94);z-index:1200;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
 }
 .media-viewer-content{max-width:100%;max-height:80vh;display:flex;align-items:center;justify-content:center}
@@ -1136,7 +1222,10 @@ a{text-decoration:none;color:inherit}
    avec Modifier / Telecharger / Supprimer -- remplace les anciens boutons
    crayon + poubelle affiches en permanence sur chaque publication. */
 .action-sheet-overlay{
-  position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:700;
+  /* AVANT : z-index 700, sous .modal-overlay (1000) -- le menu "..." d'une
+     publication ouvert depuis la fiche plein ecran ou le profil pouvait
+     s'ouvrir invisible, cache derriere. Toujours au-dessus desormais. */
+  position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:1210;
   display:flex;align-items:flex-end;justify-content:center;padding:0;
 }
 .action-sheet{
@@ -1170,7 +1259,8 @@ a{text-decoration:none;color:inherit}
 .comment-pressed-dots{margin-left:auto;flex:0 0 auto;color:var(--ink);display:flex;align-items:center;opacity:0.7}
 .shop-comment .shop-comment-edited{flex:0 0 auto;color:var(--muted);font-size:0.72rem;margin-left:4px}
 .comment-menu-overlay{
-  position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:800;
+  /* Meme correction que .action-sheet-overlay ci-dessus : toujours au-dessus. */
+  position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:1210;
   display:flex;align-items:flex-end;justify-content:center;
 }
 .comment-menu{
