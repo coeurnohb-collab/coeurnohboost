@@ -1252,7 +1252,7 @@ async function submitRecharge() {
 
       if (!response.ok || !data.success) {
         console.error("Erreur creation paiement carte :", data.error);
-        errEl.textContent = t('pay_err_generic');
+        errEl.textContent = data.error ? `Erreur CinetPay : ${data.error}` : t('pay_err_generic');
         errEl.classList.remove('hidden');
         return;
       }
