@@ -4128,6 +4128,11 @@ const ICON_SPARKLE = `<svg width="13" height="13" viewBox="0 0 24 24" fill="curr
 // session) reste visible telle quelle sinon, puisque `-1 || 0` vaut -1 en
 // JS (un nombre negatif est "truthy"). Purement un filet d'affichage : ne
 // corrige pas la valeur stockee, juste ce qui est montre a l'ecran.
+function copyToClipboard(text) {
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(() => showToast('Copié !', 'success'));
+  }
+}
 function safeCount(n) {
   return Math.max(0, n || 0);
 }
@@ -11082,9 +11087,22 @@ async function openBusinessDetail(ownerUid) {
       <h4>${ICON_TAG} Promotions en cours</h4>
       ${activeCoupons.map(c => `
         <div class="biz-desc-card" style="margin:0 0 10px;border-color:#f5a623;background:#fff8ec">
-          <strong style="color:#b5720b">${escapeHtml(c.discountLabel || 'Promo')}</strong> — <span class="muted small">code ${escapeHtml(c.code || '')}</span>
-          ${c.description ? `<p class="muted small" style="margin:4px 0 0">${escapeHtml(c.description)}</p>` : ''}
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+            <div>
+              <strong style="color:#b5720b">${escapeHtml(c.discountLabel || 'Promo')}</strong> — <span class="muted small">code ${escapeHtml(c.code || '')}</span>
+              ${c.description ? `<p class="muted small" style="margin:4px 0 0">${escapeHtml(c.description)}</p>` : ''}
+            </div>
+            ${(!isOwn && currentUser && b.loyaltyEnabled) ? `<button class="btn btn-outline btn-sm" style="white-space:nowrap" onclick="useLoyaltyCoupon('${ownerUid}','${escapeForJs(c.code || '')}')">Utiliser (+${LOYALTY_COUPON_BONUS_POINTS_HINT}pts)</button>` : ''}
+          </div>
         </div>`).join('')}
+    </div>` : '';
+
+  const loyaltyHtml = (b.loyaltyEnabled && !isOwn && currentUser) ? `
+    <div class="biz-section" style="padding-top:4px">
+      <h4>🎁 Programme de fidélité</h4>
+      <div class="biz-desc-card" id="business-loyalty-card" style="margin:0">
+        <p class="muted small">Chargement...</p>
+      </div>
     </div>` : '';
 
   // Fiche entreprise = vraie page plein ecran (meme technique que le profil :
@@ -11119,6 +11137,7 @@ async function openBusinessDetail(ownerUid) {
         </div>
         ${b.description ? `<div class="biz-desc-card">${escapeHtml(b.description)}</div>` : ''}
         ${couponsHtml}
+        ${loyaltyHtml}
         ${catalogHtml}
         ${!isOwn && currentUser ? `<div class="biz-section" style="padding-top:0"><button class="btn btn-outline btn-sm" style="width:100%;justify-content:center" onclick="openReportModal('${ownerUid}', '${ownerUid}', 'business')">${ICON_FLAG} Signaler cette page</button></div>` : ''}
         <div class="biz-section">
@@ -11129,10 +11148,76 @@ async function openBusinessDetail(ownerUid) {
     </div>`;
   document.body.insertAdjacentHTML('beforeend', html);
   loadBusinessPostsFeed(ownerUid, 'business-detail-posts');
+  if (b.loyaltyEnabled && !isOwn && currentUser) loadLoyaltyCard(ownerUid, b);
 
   // Comptage des vues, best-effort, uniquement pour les visites d'autrui.
   if (!isOwn) {
     db.collection('businesses').doc(ownerUid).update({ viewsCount: firebase.firestore.FieldValue.increment(1) }).catch(() => {});
+  }
+}
+
+// Carte de fidelite du client CONNECTE pour CETTE entreprise (jamais
+// publique, voir regles Firestore business_loyalty). N'existe peut-etre pas
+// encore (aucun point gagne pour l'instant), ce n'est pas une erreur.
+async function loadLoyaltyCard(ownerUid, b) {
+  const el = document.getElementById('business-loyalty-card');
+  if (!el) return;
+  try {
+    const doc = await db.collection('business_loyalty').doc(`${ownerUid}_${currentUser.uid}`).get();
+    const points = doc.exists ? (doc.data().points || 0) : 0;
+    const threshold = b.loyaltyThreshold || 0;
+    const canClaim = threshold > 0 && points >= threshold;
+    el.innerHTML = `
+      <p style="margin:0 0 6px">Tu as <strong>${points} point${points > 1 ? 's' : ''}</strong>${threshold ? ` sur ${threshold} pour : ${escapeHtml(b.loyaltyReward || 'une récompense')}` : ''}.</p>
+      ${canClaim ? `<button class="btn btn-primary btn-sm" style="width:100%;justify-content:center;margin-bottom:10px" onclick="claimLoyaltyReward('${ownerUid}')">🎁 Réclamer ma récompense</button>` : ''}
+      <p class="muted small" style="margin:0 0 4px">Ton code fidélité (à montrer ou envoyer au commerçant) :</p>
+      <div style="display:flex;gap:6px;align-items:center">
+        <code style="flex:1;background:#f5f5f5;padding:6px 8px;border-radius:6px;font-size:0.8rem;word-break:break-all">${currentUser.uid}</code>
+        <button class="btn btn-outline btn-sm" onclick="copyToClipboard('${currentUser.uid}')">Copier</button>
+      </div>`;
+  } catch (e) {
+    el.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+  }
+}
+
+async function useLoyaltyCoupon(businessUid, couponCode) {
+  if (!currentUser) { openAuth('register'); return; }
+  try {
+    const idToken = await auth.currentUser.getIdToken();
+    const resp = await fetch('/api/payments-actions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken, action: 'loyalty_use_coupon', businessUid, couponCode })
+    });
+    const data = await resp.json();
+    if (!data.success) { showToast(data.error || 'Erreur', 'error'); return; }
+    showToast(`+${data.bonus} points fidélité ! Total : ${data.newPoints}`, 'success');
+    const bizDoc = await db.collection('businesses').doc(businessUid).get();
+    if (bizDoc.exists) loadLoyaltyCard(businessUid, bizDoc.data());
+  } catch (e) {
+    showToast(friendlyErrorMessage(e), 'error');
+  }
+}
+
+async function claimLoyaltyReward(businessUid) {
+  if (window.__loyaltyClaimPending) return;
+  window.__loyaltyClaimPending = true;
+  try {
+    const idToken = await auth.currentUser.getIdToken();
+    const resp = await fetch('/api/payments-actions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken, action: 'loyalty_claim_reward', businessUid })
+    });
+    const data = await resp.json();
+    if (!data.success) { showToast(data.error || 'Erreur', 'error'); return; }
+    alert(`Récompense débloquée : ${data.reward}\n\nMontre ce code au commerçant : ${data.code}`);
+    const bizDoc = await db.collection('businesses').doc(businessUid).get();
+    if (bizDoc.exists) loadLoyaltyCard(businessUid, bizDoc.data());
+  } catch (e) {
+    showToast(friendlyErrorMessage(e), 'error');
+  } finally {
+    window.__loyaltyClaimPending = false;
   }
 }
 
@@ -11555,11 +11640,54 @@ async function openBusinessClientsManager() {
         </div>
         <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:14px" onclick="addBusinessClient()">Ajouter ce client</button>
         <p class="muted small" id="business-clients-msg" style="margin-bottom:10px"></p>
+
+        ${businessMyProfile && businessMyProfile.loyaltyEnabled ? `
+        <div class="order-box" style="margin-bottom:14px">
+          <strong>🎁 Ajouter des points fidélité</strong>
+          <p class="muted small" style="margin:4px 0 10px">Demande au client son code fidélité (visible sur ta page, dans la section Programme de fidélité).</p>
+          <div class="field">
+            <label for="business-loyalty-code">Code du client</label>
+            <input type="text" id="business-loyalty-code" class="text-input">
+          </div>
+          <div class="field">
+            <label for="business-loyalty-points">Points à ajouter</label>
+            <input type="number" id="business-loyalty-points" class="text-input" min="1" value="10">
+          </div>
+          <button class="btn btn-outline btn-sm" style="width:100%;justify-content:center" onclick="addLoyaltyPointsToClient()">Ajouter les points</button>
+          <p class="muted small" id="business-loyalty-add-msg" style="margin-top:6px"></p>
+        </div>` : ''}
+
         <div id="business-clients-list"><p class="muted small">Chargement...</p></div>
       </div>
     </div>`;
   document.body.insertAdjacentHTML('beforeend', html);
   loadBusinessClients();
+}
+
+async function addLoyaltyPointsToClient() {
+  const msgEl = document.getElementById('business-loyalty-add-msg');
+  const clientCode = document.getElementById('business-loyalty-code').value.trim();
+  const points = parseInt(document.getElementById('business-loyalty-points').value, 10);
+  msgEl.style.color = 'var(--red)';
+  if (!clientCode || !points || points < 1) {
+    msgEl.textContent = 'Renseigne le code du client et un nombre de points valide.';
+    return;
+  }
+  try {
+    const idToken = await auth.currentUser.getIdToken();
+    const resp = await fetch('/api/payments-actions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken, action: 'loyalty_add_points', clientCode, points })
+    });
+    const data = await resp.json();
+    if (!data.success) { msgEl.textContent = data.error || 'Erreur.'; return; }
+    msgEl.style.color = 'var(--green)';
+    msgEl.textContent = `Fait ! Ce client a maintenant ${data.newPoints} points.`;
+    document.getElementById('business-loyalty-code').value = '';
+  } catch (e) {
+    msgEl.textContent = friendlyErrorMessage(e);
+  }
 }
 
 async function loadBusinessClients() {
@@ -11754,6 +11882,22 @@ function openBusinessForm() {
           <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:6px 0 4px" onclick="addBusinessServiceRow()">+ Ajouter un service</button>
         </div>
 
+        <div style="display:flex;justify-content:space-between;align-items:center;margin:18px 0 12px;padding-top:14px;border-top:1px solid var(--line)">
+          <label class="field-label" style="margin:0">Programme de fidélité</label>
+          <label class="switch"><input type="checkbox" id="business-loyalty-enabled" ${b.loyaltyEnabled ? 'checked' : ''} onchange="toggleBusinessLoyaltyConfigVisibility()"><span class="slider"></span></label>
+        </div>
+        <div id="business-loyalty-config" class="${b.loyaltyEnabled ? '' : 'hidden'}">
+          <div class="field">
+            <label for="business-loyalty-threshold">Points nécessaires pour la récompense</label>
+            <input type="number" id="business-loyalty-threshold" class="text-input" min="1" value="${b.loyaltyThreshold || 100}">
+          </div>
+          <div class="field">
+            <label for="business-loyalty-reward">Récompense (ex: "5$ de réduction")</label>
+            <input type="text" id="business-loyalty-reward" class="text-input" maxlength="80" value="${escapeHtml(b.loyaltyReward || '')}">
+          </div>
+          <p class="muted small">Tes clients gagnent aussi ${LOYALTY_COUPON_BONUS_POINTS_HINT} points automatiquement à chaque coupon utilisé sur ta page.</p>
+        </div>
+
         <button class="btn btn-primary" id="business-save-btn" style="width:100%;justify-content:center;margin-top:14px" onclick="saveBusinessProfile()">Enregistrer</button>
         <p class="muted small" id="business-form-msg" style="margin-top:6px"></p>
       </div>
@@ -11771,6 +11915,11 @@ function toggleBusinessBookingConfigVisibility() {
   const enabled = document.getElementById('business-booking-enabled').checked;
   document.getElementById('business-booking-config').classList.toggle('hidden', !enabled);
 }
+function toggleBusinessLoyaltyConfigVisibility() {
+  const enabled = document.getElementById('business-loyalty-enabled').checked;
+  document.getElementById('business-loyalty-config').classList.toggle('hidden', !enabled);
+}
+const LOYALTY_COUPON_BONUS_POINTS_HINT = 10; // doit rester identique a LOYALTY_COUPON_BONUS_POINTS dans api/payments-actions.js
 function addBusinessServiceRow(service) {
   const rowsEl = document.getElementById('business-service-rows');
   const row = document.createElement('div');
@@ -11837,6 +11986,9 @@ async function saveBusinessProfile() {
     name: row.querySelector('.business-service-name').value.trim(),
     price: row.querySelector('.business-service-price').value.trim()
   })).filter(s => s.name);
+  const loyaltyEnabled = document.getElementById('business-loyalty-enabled').checked;
+  const loyaltyThreshold = parseInt(document.getElementById('business-loyalty-threshold').value, 10);
+  const loyaltyReward = document.getElementById('business-loyalty-reward').value.trim();
 
   if (!businessName || !description || !whatsapp) {
     msgEl.textContent = 'Merci de remplir au moins le nom, la présentation et le WhatsApp.';
@@ -11848,6 +12000,10 @@ async function saveBusinessProfile() {
   }
   if (bookingEnabled && bookingStart >= bookingEnd) {
     msgEl.textContent = "L'heure de fermeture doit être après l'heure d'ouverture.";
+    return;
+  }
+  if (loyaltyEnabled && (!loyaltyThreshold || loyaltyThreshold < 1 || !loyaltyReward)) {
+    msgEl.textContent = 'Indique un seuil de points valide et la récompense pour activer la fidélité.';
     return;
   }
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -11879,6 +12035,7 @@ async function saveBusinessProfile() {
       email: email || null, facebookUrl: facebookUrl || null, tiktokUrl: tiktokUrl || null,
       status: 'active',
       bookingEnabled, bookingDays, bookingStart, bookingEnd, slotDuration, services,
+      loyaltyEnabled, loyaltyThreshold: loyaltyEnabled ? loyaltyThreshold : null, loyaltyReward: loyaltyEnabled ? loyaltyReward : null,
       createdAt: businessMyProfile ? businessMyProfile.createdAt : new Date().toISOString()
     };
     // "pro", "proUntil", "viewsCount", "catalog" et "coupons" : sur une
