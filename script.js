@@ -8444,8 +8444,30 @@ async function loadBookableProfessionals() {
   const listEl = document.getElementById('booking-find-list');
   listEl.innerHTML = renderFeedSkeletons(2);
   try {
-    await fetchAllListings();
-    bookingProsCache = (directoryCache || []).filter(f => f.bookingEnabled);
+    // Fusionne deux sources possibles pour une fiche pro reservable :
+    // l'Annuaire "Pres de chez vous" (directory_listings, historique) et
+    // les pages CoeurNoh Business (businesses, plus recentes). Une
+    // personne n'a besoin de configurer les reservations qu'A UN SEUL
+    // endroit -- si elle a les deux, la page Business (plus complete)
+    // est prioritaire pour eviter d'afficher deux fiches pour la meme
+    // personne.
+    const [dirList] = await Promise.all([fetchAllListings()]);
+    const businessSnap = await db.collection('businesses').where('bookingEnabled', '==', true).limit(300).get();
+    const businessAsPros = businessSnap.docs.map(d => {
+      const biz = d.data();
+      return {
+        ownerUid: biz.ownerUid, name: biz.businessName, photoURL: biz.logoUrl || null,
+        profession: NEARBY_CATEGORY_LABELS[biz.category] || biz.category || '',
+        city: biz.address || '',
+        bookingEnabled: biz.bookingEnabled, bookingDays: biz.bookingDays || [],
+        bookingStart: biz.bookingStart, bookingEnd: biz.bookingEnd,
+        slotDuration: biz.slotDuration, services: biz.services || []
+      };
+    });
+    const merged = new Map();
+    dirList.filter(f => f.bookingEnabled).forEach(f => merged.set(f.ownerUid, f));
+    businessAsPros.forEach(f => merged.set(f.ownerUid, f)); // ecrase l'annuaire si les deux existent
+    bookingProsCache = Array.from(merged.values());
     runBookingSearch();
   } catch (e) {
     listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
@@ -8473,8 +8495,11 @@ function renderBookableProfessionals(list) {
   if (visible.length === 0) {
     listEl.innerHTML = `
       <div class="order-box" style="text-align:center;padding:24px 16px">
-        <p class="muted small" style="margin-bottom:14px">Aucun professionnel n'accepte encore les réservations en ligne. Reviens bientôt, ou sois le premier en l'activant sur ta propre fiche.</p>
-        <button class="btn btn-primary btn-sm" onclick="openDirectoryEditForm()">Activer les réservations sur ma fiche</button>
+        <p class="muted small" style="margin-bottom:14px">Aucun professionnel n'accepte encore les réservations en ligne. Reviens bientôt, ou sois le premier en l'activant sur ta fiche pro ou ta page CoeurNoh Business.</p>
+        <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+          <button class="btn btn-outline btn-sm" onclick="openDirectoryEditForm()">Ma fiche pro (annuaire)</button>
+          <button class="btn btn-primary btn-sm" onclick="openBusinessForm()">Ma page Business</button>
+        </div>
       </div>`;
     return;
   }
@@ -11469,11 +11494,70 @@ function openBusinessForm() {
           <label for="business-tiktok">TikTok (facultatif)</label>
           <input type="url" id="business-tiktok" class="text-input" placeholder="https://tiktok.com/@..." value="${escapeHtml(b.tiktokUrl || '')}">
         </div>
-        <button class="btn btn-primary" id="business-save-btn" style="width:100%;justify-content:center" onclick="saveBusinessProfile()">Enregistrer</button>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;margin:18px 0 12px;padding-top:14px;border-top:1px solid var(--line)">
+          <label class="field-label" style="margin:0">Accepter les réservations en ligne</label>
+          <label class="switch"><input type="checkbox" id="business-booking-enabled" ${b.bookingEnabled ? 'checked' : ''} onchange="toggleBusinessBookingConfigVisibility()"><span class="slider"></span></label>
+        </div>
+
+        <div id="business-booking-config" class="${b.bookingEnabled ? '' : 'hidden'}">
+          <label class="field-label" style="display:block">Jours de disponibilité</label>
+          <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px">
+            ${['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map((d, i) => `
+              <label style="display:flex;align-items:center;gap:5px;font-size:0.85rem">
+                <input type="checkbox" class="business-booking-day" value="${i}" ${(b.bookingDays || []).includes(i) ? 'checked' : ''}> ${d}
+              </label>`).join('')}
+          </div>
+          <div style="display:flex;gap:8px">
+            <div class="field" style="flex:1">
+              <label for="business-booking-start">Ouverture</label>
+              <input type="time" id="business-booking-start" class="text-input" value="${escapeHtml(b.bookingStart || '08:00')}">
+            </div>
+            <div class="field" style="flex:1">
+              <label for="business-booking-end">Fermeture</label>
+              <input type="time" id="business-booking-end" class="text-input" value="${escapeHtml(b.bookingEnd || '17:00')}">
+            </div>
+          </div>
+          <div class="field">
+            <label for="business-booking-duration">Durée de chaque créneau</label>
+            <select id="business-booking-duration" class="select-input">
+              <option value="15" ${b.slotDuration === 15 ? 'selected' : ''}>15 minutes</option>
+              <option value="30" ${!b.slotDuration || b.slotDuration === 30 ? 'selected' : ''}>30 minutes</option>
+              <option value="45" ${b.slotDuration === 45 ? 'selected' : ''}>45 minutes</option>
+              <option value="60" ${b.slotDuration === 60 ? 'selected' : ''}>1 heure</option>
+            </select>
+          </div>
+          <label class="field-label" style="display:block">Services réservables (facultatif)</label>
+          <div id="business-service-rows"></div>
+          <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:6px 0 4px" onclick="addBusinessServiceRow()">+ Ajouter un service</button>
+        </div>
+
+        <button class="btn btn-primary" id="business-save-btn" style="width:100%;justify-content:center;margin-top:14px" onclick="saveBusinessProfile()">Enregistrer</button>
         <p class="muted small" id="business-form-msg" style="margin-top:6px"></p>
       </div>
     </div>`;
   document.body.insertAdjacentHTML('beforeend', html);
+  const existingBusinessServices = Array.isArray(b.services) && b.services.length > 0 ? b.services : [];
+  existingBusinessServices.forEach(s => addBusinessServiceRow(s));
+}
+
+// Meme moteur de reservation que "Pres de chez vous" (une seule fiche pour
+// le client, pas besoin de creer une fiche annuaire en plus d'une page
+// Business) -- voir loadBookableProfessionals() plus bas, qui fusionne
+// desormais les deux sources.
+function toggleBusinessBookingConfigVisibility() {
+  const enabled = document.getElementById('business-booking-enabled').checked;
+  document.getElementById('business-booking-config').classList.toggle('hidden', !enabled);
+}
+function addBusinessServiceRow(service) {
+  const rowsEl = document.getElementById('business-service-rows');
+  const row = document.createElement('div');
+  row.className = 'invoice-item-row';
+  row.innerHTML = `
+    <input type="text" class="text-input business-service-name" placeholder="Nom du service" value="${escapeHtml(service ? service.name || '' : '')}" style="flex:2">
+    <input type="text" class="text-input business-service-price" placeholder="Prix (ex: 10$)" value="${escapeHtml(service ? service.price || '' : '')}" style="flex:1">
+    <button type="button" class="invoice-row-remove" onclick="this.parentElement.remove()" aria-label="Retirer">×</button>`;
+  rowsEl.appendChild(row);
 }
 
 let pendingBusinessLogoFile = null;
@@ -11522,9 +11606,26 @@ async function saveBusinessProfile() {
   const email = document.getElementById('business-email').value.trim();
   const facebookUrl = document.getElementById('business-facebook').value.trim();
   const tiktokUrl = document.getElementById('business-tiktok').value.trim();
+  const bookingEnabled = document.getElementById('business-booking-enabled').checked;
+  const bookingDays = Array.from(document.querySelectorAll('.business-booking-day:checked')).map(el => parseInt(el.value, 10));
+  const bookingStart = document.getElementById('business-booking-start').value;
+  const bookingEnd = document.getElementById('business-booking-end').value;
+  const slotDuration = parseInt(document.getElementById('business-booking-duration').value, 10);
+  const services = Array.from(document.querySelectorAll('#business-service-rows .invoice-item-row')).map(row => ({
+    name: row.querySelector('.business-service-name').value.trim(),
+    price: row.querySelector('.business-service-price').value.trim()
+  })).filter(s => s.name);
 
   if (!businessName || !description || !whatsapp) {
     msgEl.textContent = 'Merci de remplir au moins le nom, la présentation et le WhatsApp.';
+    return;
+  }
+  if (bookingEnabled && bookingDays.length === 0) {
+    msgEl.textContent = 'Coche au moins un jour de disponibilité pour activer les réservations.';
+    return;
+  }
+  if (bookingEnabled && bookingStart >= bookingEnd) {
+    msgEl.textContent = "L'heure de fermeture doit être après l'heure d'ouverture.";
     return;
   }
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -11549,22 +11650,40 @@ async function saveBusinessProfile() {
       });
       coverImageUrl = uploaded.url;
     }
-    await db.collection('businesses').doc(currentUser.uid).set({
+    const businessPayload = {
       ownerUid: currentUser.uid, businessName, category, description,
       logoUrl: logoUrl || null, coverImageUrl: coverImageUrl || null,
       address, hours, whatsapp, phone,
       email: email || null, facebookUrl: facebookUrl || null, tiktokUrl: tiktokUrl || null,
       status: 'active',
-      // "pro"/"proUntil"/"viewsCount" ne sont jamais modifies ici (merge:true
-      // les preserve) : seul /api/payments-actions.js (Admin SDK) et
-      // l'incrementation des vues sont autorises a les toucher.
-      pro: businessMyProfile ? (businessMyProfile.pro || false) : false,
-      proUntil: businessMyProfile ? (businessMyProfile.proUntil || null) : null,
-      viewsCount: businessMyProfile ? (businessMyProfile.viewsCount || 0) : 0,
-      catalog: businessMyProfile ? (businessMyProfile.catalog || []) : [],
-      coupons: businessMyProfile ? (businessMyProfile.coupons || []) : [],
+      bookingEnabled, bookingDays, bookingStart, bookingEnd, slotDuration, services,
       createdAt: businessMyProfile ? businessMyProfile.createdAt : new Date().toISOString()
-    }, { merge: true });
+    };
+    // "pro", "proUntil", "viewsCount", "catalog" et "coupons" : sur une
+    // MISE A JOUR d'une page existante, on ne les inclut JAMAIS -- merge:true
+    // les preserve alors automatiquement tels qu'ils sont reellement en
+    // base au moment de l'enregistrement. Seul /api/payments-actions.js
+    // (Admin SDK), l'incrementation des vues, et les gestionnaires dedies
+    // (catalogue/coupons) sont autorises a les toucher.
+    // (AVANT : ces 5 champs etaient renvoyes depuis la copie chargee a
+    // l'ouverture du formulaire "Modifier ma page" -- si un visiteur avait
+    // vu la page entre-temps (viewsCount), si le Pro avait ete active
+    // pendant que le formulaire etait ouvert, ou si le catalogue/les
+    // coupons avaient ete modifies via leurs propres gestionnaires
+    // pendant ce temps, cette sauvegarde effacait ces changements avec
+    // l'ancienne copie perimee -- vues perdues, Pro non reconnu, ou pire,
+    // articles/coupons ajoutes qui disparaissaient sans explication.)
+    // Sur une CREATION (aucune page existante), il n'y a alors rien a
+    // preserver via merge -- les regles Firestore exigent explicitement
+    // pro == false, donc on doit le fournir cette fois-la.
+    if (!businessMyProfile) {
+      businessPayload.pro = false;
+      businessPayload.proUntil = null;
+      businessPayload.viewsCount = 0;
+      businessPayload.catalog = [];
+      businessPayload.coupons = [];
+    }
+    await db.collection('businesses').doc(currentUser.uid).set(businessPayload, { merge: true });
     document.getElementById('business-form-modal').remove();
     showToast('Page enregistrée', 'success');
     businessCache = null;
