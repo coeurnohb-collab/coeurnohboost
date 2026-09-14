@@ -1000,9 +1000,9 @@ function showRecharge() {
 }
 function renderPayMethodTabs() {
   const methods = [
-    { id: "mobile", label: t('pay_mobile'), icon: "📱" },
-    { id: "crypto", label: t('pay_crypto'), icon: "₿" },
-    { id: "card",   label: t('pay_card'),   icon: "💳" }
+    { id: "mobile", label: t('pay_mobile'), icon: ICON_MOBILE_MONEY },
+    { id: "crypto", label: t('pay_crypto'), icon: ICON_CRYPTO },
+    { id: "card",   label: t('pay_card'),   icon: ICON_CARD }
   ];
   document.getElementById('pay-method-tabs').innerHTML = methods.map(m => `
     <button class="${m.id === payMethod ? 'active' : ''}" onclick="selectPayMethod('${m.id}')">${m.icon} ${m.label}</button>
@@ -1102,8 +1102,6 @@ function renderPayPanel() {
   document.getElementById('pay-panel-mobile').classList.toggle('hidden', payMethod !== 'mobile');
   document.getElementById('pay-panel-crypto').classList.toggle('hidden', payMethod !== 'crypto');
   document.getElementById('pay-panel-card').classList.toggle('hidden', payMethod !== 'card');
-  document.getElementById('recharge-amount-block').classList.toggle('hidden', payMethod === 'card');
-  document.getElementById('recharge-submit-btn').classList.toggle('hidden', payMethod === 'card');
   if (payMethod === 'crypto') renderPayCryptoOptions();
   renderPayCurrencyToggle();
 }
@@ -1133,10 +1131,6 @@ async function submitRecharge() {
   okEl.classList.add('hidden');
 
   if (!currentUser) { openAuth('register'); return; }
-
-  if (payMethod === 'card') {
-    return; // Carte virtuelle : bientôt disponible (le bouton est masqué pour cet onglet)
-  }
 
   const rawAmount = parseFloat(document.getElementById('recharge-amount').value || 0);
   if (!rawAmount || rawAmount <= 0) {
@@ -3317,7 +3311,7 @@ function openWithdrawForm() {
         <p class="muted small" style="margin-bottom:14px">Ta demande sera traitée manuellement par Coeurnoh Universe, généralement sous 24-48h.</p>
         <div class="modal-error hidden" id="withdraw-form-error"></div>
 
-        <div class="pay-method-tabs" id="withdraw-method-tabs"></div>
+        <div class="segmented" id="withdraw-method-tabs"></div>
 
         <div id="withdraw-panel-mobile">
           <div class="field">
@@ -3362,7 +3356,7 @@ function openWithdrawForm() {
 }
 
 function renderWithdrawMethodTabs() {
-  const methods = [{ id: 'mobile', label: 'Mobile Money', icon: '📱' }, { id: 'crypto', label: 'Crypto', icon: '₿' }];
+  const methods = [{ id: 'mobile', label: 'Mobile Money', icon: ICON_MOBILE_MONEY }, { id: 'crypto', label: 'Crypto', icon: ICON_CRYPTO }];
   document.getElementById('withdraw-method-tabs').innerHTML = methods.map(m => `
     <button class="${m.id === withdrawMethod ? 'active' : ''}" onclick="selectWithdrawMethod('${m.id}')">${m.icon} ${m.label}</button>
   `).join('');
@@ -4038,6 +4032,14 @@ const ICON_MAIL = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" s
 const ICON_FACEBOOK = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3Z"/></svg>`;
 const ICON_TIKTOK = `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M16.6 5.82c-.7-.68-1.15-1.6-1.24-2.63h-2.9v13.2a2.59 2.59 0 1 1-1.83-2.48V10.9a5.5 5.5 0 1 0 4.73 5.44V9.68a7.4 7.4 0 0 0 4.24 1.34V8.1a4.85 4.85 0 0 1-3-2.28z"/></svg>`;
 const ICON_INSTAGRAM = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>`;
+
+/* Icones des moyens de paiement (remplacent les emoji 📱/₿/💳 sur l'ecran
+   "Recharger mon solde" et la demande de retrait -- meme raison que les
+   icones de contact ci-dessus : traits vectoriels coherents avec le reste
+   de l'appli plutot que des emoji "amateur". */
+const ICON_MOBILE_MONEY = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2"/><line x1="11" y1="18" x2="13" y2="18"/></svg>`;
+const ICON_CRYPTO = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F0A020" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.3 8.3h4a1.85 1.85 0 0 1 0 3.7H9.3m0-3.7v7.4m0-7.4H8m1.3 3.7h4.4a1.85 1.85 0 0 1 0 3.7H9.3m0 0H8m3-9.2v1.9m0 9.6v1.9"/></svg>`;
+const ICON_CARD = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/><line x1="6" y1="15" x2="10" y2="15"/></svg>`;
 const ICON_LOCATION = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg>`;
 const ICON_CLOCK = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
 const ICON_SPARKLE = `<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8Z"/></svg>`;
