@@ -1188,11 +1188,12 @@ async function submitRecharge() {
     if (payMethod === 'crypto') {
       // Paiement crypto : on cree une vraie facture Cryptomus via notre API serveur
       const idToken = await auth.currentUser.getIdToken();
-      const response = await fetch('/api/cryptomus-payment', {
+      const response = await fetch('/api/payment-initiate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           idToken,
+          provider: 'crypto',
           amount: amount,
           currency: 'USD'
         })
@@ -1207,7 +1208,7 @@ async function submitRecharge() {
       }
 
       // La demande de recharge est desormais enregistree cote serveur
-      // (api/cryptomus-payment.js), avec un montant fiable et non
+      // (api/payment-initiate.js), avec un montant fiable et non
       // falsifiable -- on redirige simplement vers la page de paiement.
       window.location.href = data.paymentUrl;
       return;
@@ -1216,11 +1217,12 @@ async function submitRecharge() {
     // Mobile Money : on tente MboтePay (pays couverts), sinon flux manuel comme avant
     if (payMethod === 'mobile') {
       const idToken = await auth.currentUser.getIdToken();
-      const response = await fetch('/api/mbotepay-payment', {
+      const response = await fetch('/api/payment-initiate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           idToken,
+          provider: 'mobile',
           amountUSD: amount,
           countryCode: payCountryCode,
           operatorName: payOperator,
@@ -1232,7 +1234,7 @@ async function submitRecharge() {
 
       if (data.supported && data.success) {
         // La demande de recharge est desormais enregistree cote serveur
-        // (api/mbotepay-payment.js), avec un montant fiable et non
+        // (api/payment-initiate.js), avec un montant fiable et non
         // falsifiable -- avant, le navigateur l'ecrivait lui-meme, ce qui
         // permettait de payer une petite somme reelle tout en enregistrant
         // un montant bien plus eleve.
@@ -1246,11 +1248,30 @@ async function submitRecharge() {
         return;
       }
       // data.supported === false : pays non couvert par MboтePay -- on
-      // passe directement au flux manuel juste en dessous (CinetPay n'est
-      // pas encore reconstruit : l'ancien code appelait ici un endpoint
-      // /api/cinetpay-payment qui n'existe plus dans /api, ce qui faisait
-      // planter la recharge Mobile Money avec une erreur generique pour
-      // tous les pays non couverts par MboтePay -- corrige).
+      // passe directement au flux manuel juste en dessous. CinetPay est
+      // desormais actif (onglet "carte") mais uniquement pour la RDC pour
+      // le moment (compte CinetPay lie a ce seul pays) : il ne sert pas
+      // encore de relais Mobile Money pour les autres pays non couverts.
+    }
+
+    if (payMethod === 'card') {
+      const idToken = await auth.currentUser.getIdToken();
+      const response = await fetch('/api/payment-initiate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken, provider: 'card', amountUSD: amount })
+      });
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        console.error("Erreur creation paiement carte :", data.error);
+        errEl.textContent = data.error ? `Erreur CinetPay : ${data.error}` : t('pay_err_generic');
+        errEl.classList.remove('hidden');
+        return;
+      }
+
+      window.location.href = data.paymentUrl;
+      return;
     }
 
     // Autres methodes (et Mobile Money non couvert par MboтePay) : demande manuelle comme avant
