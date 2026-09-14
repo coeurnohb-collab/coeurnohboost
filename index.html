@@ -90,9 +90,7 @@
       <div class="hero-actions">
         <button class="btn btn-primary btn-lg" data-i18n="hero_cta" onclick="openAuth('register')">Créer mon compte gratuit →</button>
       </div>
-      <div class="pay-icons">
-        <span>📱 M-Pesa</span><span>📱 Airtel Money</span><span>📱 Orange Money</span><span>📱 MTN MoMo</span><span>₿ Bitcoin</span><span>₮ USDT</span>
-      </div>
+      <div class="pay-icons" id="hero-pay-icons"></div>
     </div>
   </section>
 
@@ -554,7 +552,14 @@
 
       <!-- Carte virtuelle -->
       <div id="pay-panel-card" class="hidden">
-        <p class="muted" data-i18n="pay_card_note">Paiement par carte virtuelle : bientôt disponible, en cours de mise en place.</p>
+        <div class="card-preview">
+          <div class="card-preview-chip"></div>
+          <div class="card-preview-number">•••• •••• •••• ••••</div>
+          <div class="card-preview-row">
+            <span class="card-preview-brands"><span class="brand-pill">Visa</span><span class="brand-pill">Mastercard</span></span>
+          </div>
+        </div>
+        <p class="muted small" style="margin-top:10px" data-i18n="pay_card_note">Paiement par carte virtuelle : bientôt disponible, en cours de mise en place.</p>
       </div>
 
       <div id="recharge-amount-block">

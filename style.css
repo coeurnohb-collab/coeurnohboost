@@ -116,8 +116,17 @@ a{text-decoration:none;color:inherit}
 .hero h1 em{color:var(--green);font-style:normal}
 .hero .lead{max-width:600px;margin:0 auto 24px;color:var(--muted);font-size:1rem}
 .hero-actions{margin-bottom:24px}
-.pay-icons{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;font-size:0.82rem;color:var(--muted)}
-.pay-icons span{background:#fff;border:1px solid var(--line);border-radius:999px;padding:6px 12px}
+.pay-icons{display:flex;flex-wrap:wrap;justify-content:center;gap:10px}
+.pay-icons .chip{
+  display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);
+  border-radius:999px;padding:6px 14px 6px 6px;font-size:0.82rem;font-weight:700;color:var(--ink);
+  box-shadow:0 2px 8px rgba(16,20,30,0.06);
+}
+.pay-icons .chip-dot{
+  width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;box-shadow:0 2px 6px rgba(0,0,0,0.2);font-size:0.72rem;font-weight:800;line-height:1;
+}
+.pay-icons .chip-dot svg{width:13px;height:13px;display:block}
 
 /* MULTI-SERVICES (page d'accueil publique) -- met en avant que l'app va
    bien au-dela du panel SMM (boutique, factures, emploi, academie,
@@ -386,10 +395,43 @@ a{text-decoration:none;color:inherit}
 .op-card:hover{border-color:#cfe1fd}
 .op-card.active{border-color:var(--green);background:var(--green-light);box-shadow:0 3px 10px rgba(24,119,242,0.12)}
 .op-icon{
-  width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;
-  font-weight:800;font-size:0.85rem;box-shadow:0 3px 8px rgba(0,0,0,0.15);
+  width:44px;height:44px;border-radius:13px;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 10px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.25);
+  position:relative;overflow:hidden;
 }
+.op-icon::after{
+  content:"";position:absolute;inset:0;border-radius:inherit;
+  background:linear-gradient(160deg, rgba(255,255,255,0.22), rgba(255,255,255,0) 55%);
+  pointer-events:none;
+}
+.op-icon svg{position:relative;z-index:1;width:21px;height:21px}
+.op-icon-letter{position:relative;z-index:1;font-weight:800;font-size:0.95rem;letter-spacing:0.02em}
 .op-name{font-size:0.72rem;font-weight:700;line-height:1.2}
+.crypto-icon{font-weight:800;font-size:1.15rem}
+
+/* Aperçu visuel "carte virtuelle" — design pro générique, aucun logo de réseau reproduit */
+.card-preview{
+  border-radius:16px;padding:20px;color:#fff;position:relative;overflow:hidden;
+  background:linear-gradient(135deg,#1c2333 0%,#2c3652 55%,#1877f2 130%);
+  box-shadow:0 8px 20px rgba(24,35,60,0.25);
+}
+.card-preview::after{
+  content:"";position:absolute;inset:0;
+  background:radial-gradient(circle at 85% 0%, rgba(255,255,255,0.16), transparent 55%);
+  pointer-events:none;
+}
+.card-preview-chip{
+  width:34px;height:24px;border-radius:6px;margin-bottom:22px;
+  background:linear-gradient(135deg,#e8c97a,#c9a24a);
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,0.15);
+}
+.card-preview-number{font-size:1.05rem;letter-spacing:0.12em;font-weight:700;margin-bottom:16px}
+.card-preview-row{display:flex;justify-content:flex-end}
+.card-preview-brands{display:flex;gap:8px}
+.brand-pill{
+  background:rgba(255,255,255,0.16);border:1px solid rgba(255,255,255,0.28);
+  border-radius:999px;padding:4px 12px;font-size:0.72rem;font-weight:700;letter-spacing:0.02em;
+}
 
 /* ONGLETS (méthode de paiement, catégories, etc.) */
 .platform-tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;margin-bottom:16px;scrollbar-width:none}

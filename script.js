@@ -586,41 +586,56 @@ const COUNTRIES = [
 ];
 
 const CRYPTOS = [
-  { id:"usdt-trc20", name:"USDT (TRC20 - Tron)", icon:"₮", bg:"#26A17B" },
-  { id:"usdt-bep20", name:"USDT (BEP20 - BSC)",  icon:"₮", bg:"#26A17B" },
-  { id:"btc",        name:"Bitcoin (BTC)",        icon:"₿", bg:"#F7931A" },
-  { id:"trx",        name:"TRON (TRX)",           icon:"T", bg:"#EB0029" }
+  { id:"usdt-trc20", name:"USDT (TRC20 - Tron)", icon:"₮", bg:"#26A17B", bg2:"#1B7A5C" },
+  { id:"usdt-bep20", name:"USDT (BEP20 - BSC)",  icon:"₮", bg:"#26A17B", bg2:"#1B7A5C" },
+  { id:"btc",        name:"Bitcoin (BTC)",        icon:"₿", bg:"#F7931A", bg2:"#C9750C" },
+  { id:"trx",        name:"TRON (TRX)",           icon: icoTriangle('#fff'), bg:"#EB0029", bg2:"#B0001F" }
 ];
+function icoTriangle(c){return `<svg viewBox="0 0 24 24" width="18" height="18" fill="${c}"><path d="M4 4l16 3-8 13L4 4z"/></svg>`;}
 
-/* Badge coloré par opérateur mobile money (reconnaissance visuelle par marque) */
+/* Icônes SVG génériques pour les badges opérateur — design professionnel,
+   dégradé de couleur de marque + pictogramme (aucun logo tiers n'est reproduit,
+   seules les couleurs de marque et une icône générique évocatrice sont utilisées). */
+function icoPhone(c){return `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="${c}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2.2"/><line x1="10.5" y1="18" x2="13.5" y2="18"/></svg>`;}
+function icoWave(c){return `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="${c}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 15c2-4 4 4 6 0s4-4 6 0 4-4 6 0"/></svg>`;}
+function icoExchange(c){return `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="${c}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3l4 4-4 4"/><path d="M21 7H7a4 4 0 0 0-4 4"/><path d="M7 21l-4-4 4-4"/><path d="M3 17h14a4 4 0 0 0 4-4"/></svg>`;}
+function icoBolt(c){return `<svg viewBox="0 0 24 24" width="20" height="20" fill="${c}"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>`;}
+function icoLeaf(c){return `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="${c}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 4C10 4 4 10 4 18c0 0 0 2 2 2 8 0 14-6 14-16z"/><path d="M6 18C10 14 14 10 19 5"/></svg>`;}
+function icoWallet(c){return `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="${c}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h13a1 1 0 0 1 1 1v3"/><path d="M3 7v10a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-6a1 1 0 0 0-1-1h-5a2 2 0 1 0 0 4"/></svg>`;}
+function icoTower(c){return `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="${c}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V10"/><path d="M8 20h8"/><path d="M9 10l3-7 3 7"/><path d="M6 14a9 9 0 0 1 12 0"/></svg>`;}
+function icoCoin(c){return `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="${c}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9 12h6M12 9v6"/></svg>`;}
+
+/* Badge coloré par opérateur mobile money (dégradé de marque + pictogramme,
+   reconnaissance visuelle professionnelle). Repli sur une pastille lettre
+   stylisée pour les opérateurs plus rares non couverts ci-dessous. */
 function getOperatorBadge(name) {
   const n = name.toLowerCase();
-  if (n.includes('m-pesa') && n.includes('vodacom')) return { bg:'#E60000', label:'M' };
-  if (n.includes('m-pesa')) return { bg:'#4CAF50', label:'M' };
-  if (n.includes('vodacom')) return { bg:'#E60000', label:'V' };
-  if (n.includes('airteltigo')) return { bg:'#0033A0', label:'AT' };
-  if (n.includes('airtel')) return { bg:'#ED1C24', label:'A' };
-  if (n.includes('orange')) return { bg:'#FF6600', label:'O' };
-  if (n.includes('mtn')) return { bg:'#FFCC00', label:'M', dark:true };
-  if (n.includes('moov')) return { bg:'#0066CC', label:'M' };
-  if (n.includes('wave')) return { bg:'#00A3E0', label:'W' };
-  if (n.includes('free')) return { bg:'#CC0000', label:'F' };
-  if (n.includes('telecel')) return { bg:'#6A1B9A', label:'T' };
-  if (n.includes('t-money') || n.includes('togocom')) return { bg:'#00A19A', label:'T' };
-  if (n.includes('zain')) return { bg:'#6A1B9A', label:'Z' };
-  if (n.includes('lumitel')) return { bg:'#F7941D', label:'L' };
-  if (n.includes('ecocash')) return { bg:'#1E8449', label:'E' };
-  if (n.includes('unitel')) return { bg:'#0057A8', label:'U' };
-  if (n.includes('multicaixa')) return { bg:'#D32F2F', label:'MC' };
-  if (n.includes('djezzy')) return { bg:'#6A1B9A', label:'D' };
-  if (n.includes('mobilis')) return { bg:'#2E7D32', label:'M' };
-  if (n.includes('mobicash')) return { bg:'#0057A8', label:'MC' };
-  if (n.includes('inwi')) return { bg:'#FF6600', label:'I' };
-  if (n.includes('d17')) return { bg:'#0057A8', label:'D17' };
-  if (n.includes('telebirr')) return { bg:'#2E9E4F', label:'T' };
-  if (n.includes('africell')) return { bg:'#6A1B9A', label:'A' };
-  if (n.includes('opay')) return { bg:'#00A650', label:'O' };
-  return { bg:'#555555', label: name[0] };
+  if (n.includes('m-pesa') && n.includes('vodacom')) return { bg:'#E60000', bg2:'#A30000', icon: icoPhone('#fff') };
+  if (n.includes('m-pesa')) return { bg:'#4CAF50', bg2:'#2E7D32', icon: icoPhone('#fff') };
+  if (n.includes('vodacom')) return { bg:'#E60000', bg2:'#A30000', icon: icoLeaf('#fff') };
+  if (n.includes('airteltigo')) return { bg:'#0033A0', bg2:'#001F66', icon: icoExchange('#fff') };
+  if (n.includes('airtel')) return { bg:'#ED1C24', bg2:'#B71119', icon: icoLeaf('#fff') };
+  if (n.includes('orange')) return { bg:'#FF6600', bg2:'#CC5200', icon: icoExchange('#fff') };
+  if (n.includes('mtn')) return { bg:'#FFCC00', bg2:'#E6B800', icon: icoTower('#151515'), dark:true };
+  if (n.includes('moov')) return { bg:'#0066CC', bg2:'#004999', icon: icoWallet('#fff') };
+  if (n.includes('wave')) return { bg:'#00A3E0', bg2:'#0077A8', icon: icoWave('#fff') };
+  if (n.includes('free')) return { bg:'#CC0000', bg2:'#990000', icon: icoBolt('#fff') };
+  if (n.includes('telecel')) return { bg:'#6A1B9A', bg2:'#4A1170', icon: icoTower('#fff') };
+  if (n.includes('t-money') || n.includes('togocom')) return { bg:'#00A19A', bg2:'#007871', icon: icoWallet('#fff') };
+  if (n.includes('zain')) return { bg:'#6A1B9A', bg2:'#4A1170', icon: icoCoin('#fff') };
+  if (n.includes('lumitel')) return { bg:'#F7941D', bg2:'#C97300', icon: icoBolt('#fff') };
+  if (n.includes('ecocash')) return { bg:'#1E8449', bg2:'#145A32', icon: icoWallet('#fff') };
+  if (n.includes('unitel')) return { bg:'#0057A8', bg2:'#003D77', icon: icoTower('#fff') };
+  if (n.includes('multicaixa')) return { bg:'#D32F2F', bg2:'#9A2020', icon: icoWallet('#fff') };
+  if (n.includes('djezzy')) return { bg:'#6A1B9A', bg2:'#4A1170', icon: icoTower('#fff') };
+  if (n.includes('mobilis')) return { bg:'#2E7D32', bg2:'#1B5E20', icon: icoTower('#fff') };
+  if (n.includes('mobicash')) return { bg:'#0057A8', bg2:'#003D77', icon: icoWallet('#fff') };
+  if (n.includes('inwi')) return { bg:'#FF6600', bg2:'#CC5200', icon: icoTower('#fff') };
+  if (n.includes('d17')) return { bg:'#0057A8', bg2:'#003D77', icon: icoWallet('#fff') };
+  if (n.includes('telebirr')) return { bg:'#2E9E4F', bg2:'#1E6E37', icon: icoWallet('#fff') };
+  if (n.includes('africell')) return { bg:'#6A1B9A', bg2:'#4A1170', icon: icoTower('#fff') };
+  if (n.includes('opay')) return { bg:'#00A650', bg2:'#007A3C', icon: icoWallet('#fff') };
+  return { bg:'#5B6472', bg2:'#3B4149', icon: null, label: name[0].toUpperCase() };
 }
 
 let payMethod = "mobile";
@@ -1076,7 +1091,7 @@ function renderPayOperators() {
     const badge = getOperatorBadge(op);
     return `
     <div class="op-card${op === payOperator ? ' active' : ''}" onclick="selectOperator('${op.replace(/'/g,"\\'")}')">
-      <div class="op-icon" style="background:${badge.bg};${badge.dark ? 'color:#111' : 'color:#fff'}">${badge.label}</div>
+      <div class="op-icon" style="background:linear-gradient(135deg,${badge.bg},${badge.bg2 || badge.bg})">${badge.icon ? badge.icon : `<span class="op-icon-letter" style="${badge.dark ? 'color:#151515' : 'color:#fff'}">${badge.label}</span>`}</div>
       <span class="op-name">${op}</span>
     </div>`;
   }).join('');
@@ -1089,7 +1104,7 @@ function renderPayCryptoOptions() {
   const el = document.getElementById('pay-crypto-list');
   el.innerHTML = CRYPTOS.map(c => `
     <div class="op-card${c.id === payCryptoId ? ' active' : ''}" onclick="selectCrypto('${c.id}')">
-      <div class="op-icon" style="background:${c.bg};color:#fff">${c.icon}</div>
+      <div class="op-icon crypto-icon" style="background:linear-gradient(135deg,${c.bg},${c.bg2 || c.bg});color:#fff">${c.icon}</div>
       <span class="op-name">${c.name}</span>
     </div>
   `).join('');
@@ -2202,7 +2217,28 @@ document.addEventListener('DOMContentLoaded', () => {
   initHomeCatalog();
   initTutorialAutoShow();
   updateCartBadge();
+  renderHeroPayIcons();
 });
+
+/* Bandeau "moyens de paiement" de la page d'accueil publique — pastilles
+   colorées + icône (même design pro que les badges opérateur du wallet). */
+function renderHeroPayIcons() {
+  const el = document.getElementById('hero-pay-icons');
+  if (!el) return;
+  const items = [
+    { label: 'M-Pesa', badge: getOperatorBadge('M-Pesa') },
+    { label: 'Airtel Money', badge: getOperatorBadge('Airtel Money') },
+    { label: 'Orange Money', badge: getOperatorBadge('Orange Money') },
+    { label: 'MTN MoMo', badge: getOperatorBadge('MTN MoMo') },
+    { label: 'Bitcoin', badge: { bg:'#F7931A', bg2:'#C9750C', icon:'₿' } },
+    { label: 'USDT', badge: { bg:'#26A17B', bg2:'#1B7A5C', icon:'₮' } }
+  ];
+  el.innerHTML = items.map(it => `
+    <span class="chip">
+      <span class="chip-dot" style="background:linear-gradient(135deg,${it.badge.bg},${it.badge.bg2 || it.badge.bg});${it.badge.dark ? 'color:#151515' : 'color:#fff'}">${it.badge.icon || ''}</span>
+      ${it.label}
+    </span>`).join('');
+}
 
 /* ================= TUTORIEL / GUIDE D'UTILISATION ================= */
 let tutorialCurrentStep = 0;
@@ -3389,7 +3425,7 @@ function renderWithdrawOperators() {
     const badge = getOperatorBadge(op);
     return `
     <div class="op-card${op === withdrawOperator ? ' active' : ''}" onclick="selectWithdrawOperator('${op.replace(/'/g, "\\'")}')">
-      <div class="op-icon" style="background:${badge.bg};${badge.dark ? 'color:#111' : 'color:#fff'}">${badge.label}</div>
+      <div class="op-icon" style="background:linear-gradient(135deg,${badge.bg},${badge.bg2 || badge.bg})">${badge.icon ? badge.icon : `<span class="op-icon-letter" style="${badge.dark ? 'color:#151515' : 'color:#fff'}">${badge.label}</span>`}</div>
       <span class="op-name">${op}</span>
     </div>`;
   }).join('');
