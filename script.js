@@ -1255,6 +1255,18 @@ async function submitRecharge() {
     }
 
     if (payMethod === 'card') {
+      // Interrupteur temporaire : CinetPay est bloque cote compte (ticket
+      // support CIN3-001147, erreur IP en attente de resolution). Plutot
+      // que de laisser la personne tomber sur une erreur technique en
+      // essayant de payer, on l'informe tout de suite. Repasser a `true`
+      // des que CinetPay confirme le deblocage -- rien d'autre a changer.
+      const CARD_PAYMENT_ENABLED = false;
+      if (!CARD_PAYMENT_ENABLED) {
+        errEl.textContent = "Le paiement par carte est momentanément indisponible, réessaie un peu plus tard.";
+        errEl.classList.remove('hidden');
+        return;
+      }
+
       const idToken = await auth.currentUser.getIdToken();
       const response = await fetch('/api/payment-initiate', {
         method: 'POST',
