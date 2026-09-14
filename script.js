@@ -1102,8 +1102,8 @@ function renderPayPanel() {
   document.getElementById('pay-panel-mobile').classList.toggle('hidden', payMethod !== 'mobile');
   document.getElementById('pay-panel-crypto').classList.toggle('hidden', payMethod !== 'crypto');
   document.getElementById('pay-panel-card').classList.toggle('hidden', payMethod !== 'card');
-  document.getElementById('recharge-amount-block').classList.toggle('hidden', payMethod === 'card');
-  document.getElementById('recharge-submit-btn').classList.toggle('hidden', payMethod === 'card');
+  document.getElementById('recharge-amount-block').classList.remove('hidden');
+  document.getElementById('recharge-submit-btn').classList.remove('hidden');
   if (payMethod === 'crypto') renderPayCryptoOptions();
   renderPayCurrencyToggle();
 }
@@ -1133,10 +1133,6 @@ async function submitRecharge() {
   okEl.classList.add('hidden');
 
   if (!currentUser) { openAuth('register'); return; }
-
-  if (payMethod === 'card') {
-    return; // Carte virtuelle : bientôt disponible (le bouton est masqué pour cet onglet)
-  }
 
   const rawAmount = parseFloat(document.getElementById('recharge-amount').value || 0);
   if (!rawAmount || rawAmount <= 0) {
@@ -1179,11 +1175,12 @@ async function submitRecharge() {
     if (payMethod === 'crypto') {
       // Paiement crypto : on cree une vraie facture Cryptomus via notre API serveur
       const idToken = await auth.currentUser.getIdToken();
-      const response = await fetch('/api/cryptomus-payment', {
+      const response = await fetch('/api/payment-initiate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           idToken,
+          provider: 'crypto',
           amount: amount,
           currency: 'USD'
         })
@@ -1207,11 +1204,12 @@ async function submitRecharge() {
     // Mobile Money : on tente MboтePay (pays couverts), sinon flux manuel comme avant
     if (payMethod === 'mobile') {
       const idToken = await auth.currentUser.getIdToken();
-      const response = await fetch('/api/mbotepay-payment', {
+      const response = await fetch('/api/payment-initiate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           idToken,
+          provider: 'mobile',
           amountUSD: amount,
           countryCode: payCountryCode,
           operatorName: payOperator,
@@ -1237,11 +1235,30 @@ async function submitRecharge() {
         return;
       }
       // data.supported === false : pays non couvert par MboтePay -- on
-      // passe directement au flux manuel juste en dessous (CinetPay n'est
-      // pas encore reconstruit : l'ancien code appelait ici un endpoint
-      // /api/cinetpay-payment qui n'existe plus dans /api, ce qui faisait
-      // planter la recharge Mobile Money avec une erreur generique pour
-      // tous les pays non couverts par MboтePay -- corrige).
+      // passe directement au flux manuel juste en dessous. CinetPay est
+      // desormais actif (onglet "carte") mais uniquement pour la RDC pour
+      // le moment (compte CinetPay lie a ce seul pays) : il ne sert pas
+      // encore de relais Mobile Money pour les autres pays non couverts.
+    }
+
+    if (payMethod === 'card') {
+      const idToken = await auth.currentUser.getIdToken();
+      const response = await fetch('/api/payment-initiate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken, provider: 'card', amountUSD: amount })
+      });
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        console.error("Erreur creation paiement carte :", data.error);
+        errEl.textContent = t('pay_err_generic');
+        errEl.classList.remove('hidden');
+        return;
+      }
+
+      window.location.href = data.paymentUrl;
+      return;
     }
 
     // Autres methodes (et Mobile Money non couvert par MboтePay) : demande manuelle comme avant
