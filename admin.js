@@ -239,7 +239,7 @@ function showAdminTab(tab) {
   if (tab === 'monetization') loadMonetizationAdmin();
   if (tab === 'shop') loadShopAdmin();
   if (tab === 'withdrawals') loadWithdrawalsAdmin();
-  if (tab === 'reports') loadReportsAdmin();
+  if (tab === 'reports') { loadReportsAdmin(); loadActiveBannersAdmin(); }
   if (tab === 'announcements') loadAnnouncementsAdmin();
   if (tab === 'users') loadUsersAdmin();
   if (tab === 'automation') { loadAutomationStatus(); loadServiceMapAdmin(); }
@@ -1407,6 +1407,48 @@ async function resolveReport(reportId, newStatus) {
   try {
     await db.collection('reports').doc(reportId).update({ status: newStatus });
     loadReportsAdmin();
+  } catch (e) {
+    alert('Erreur : ' + e.message);
+  }
+}
+
+// Bannieres publicitaires CoeurNoh Business (voir purchaseBusinessCampaign
+// cote serveur) -- lecture directe cote admin (isAdmin() les autorise dans
+// les regles Firestore), pas besoin d'un appel API dedie pour ca.
+async function loadActiveBannersAdmin() {
+  const el = document.getElementById('admin-banners-list');
+  el.innerHTML = `<p class="admin-empty">Chargement...</p>`;
+  try {
+    const nowIso = new Date().toISOString();
+    const snap = await db.collection('business_campaigns').where('type', '==', 'banner').limit(100).get();
+    const active = snap.docs
+      .map(d => ({ id: d.id, ...d.data() }))
+      .filter(c => c.status === 'active' && c.expiresAt && c.expiresAt > nowIso)
+      .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+    if (active.length === 0) { el.innerHTML = `<p class="admin-empty">Aucune bannière active pour l'instant.</p>`; return; }
+    el.innerHTML = active.map(c => `
+      <div class="admin-row">
+        <div class="admin-row-top">
+          <div>
+            <div class="admin-row-title">${escapeHtml(c.businessName || 'Entreprise')}</div>
+            <div class="admin-row-meta">« ${escapeHtml(c.bannerText || '')} »</div>
+            <div class="admin-row-meta">Jusqu'au ${new Date(c.expiresAt).toLocaleDateString('fr-FR')} · ${c.price}$</div>
+          </div>
+        </div>
+        <div class="admin-row-actions">
+          <button class="btn btn-outline btn-sm" onclick="disableBannerCampaign('${c.id}')">🚫 Désactiver cette bannière</button>
+        </div>
+      </div>`).join('');
+  } catch (e) {
+    el.innerHTML = `<p class="admin-empty">Erreur : ${e.message}</p>`;
+  }
+}
+
+async function disableBannerCampaign(campaignId) {
+  if (!confirm("Désactiver cette bannière ? Elle ne sera plus visible dans l'app. Le professionnel n'est pas remboursé automatiquement.")) return;
+  try {
+    await db.collection('business_campaigns').doc(campaignId).update({ status: 'disabled' });
+    loadActiveBannersAdmin();
   } catch (e) {
     alert('Erreur : ' + e.message);
   }

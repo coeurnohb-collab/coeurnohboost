@@ -461,6 +461,7 @@ function showDashTab(tab) {
     const shopFeedEl = document.getElementById('shop-feed');
     if (shopFeedEl) shopFeedEl.innerHTML = '';
     loadHomeFeed();
+    loadHomeBanners();
   }
   if (tab === 'wallet') loadWalletHistory();
   if (tab === 'account') { renderReferralBox(); applyNotifPrefsToUI(); fillAccountForm(); loadSavedFeed(); loadFollowingList(); loadBlockedList(); loadFollowersList(); }
@@ -2894,6 +2895,58 @@ async function loadHomeFeed(append = false) {
       showToast(friendlyErrorMessage(e), 'error');
     }
   }
+}
+
+// Bannieres publicitaires CoeurNoh Business, visibles par TOUT LE MONDE en
+// haut du fil d'accueil (voir purchaseBusinessCampaign() type "banner").
+// Conteneur separe de #home-feed pour ne jamais etre efface par un
+// rechargement du fil (ni casser loadHomeFeed en cas d'erreur ici).
+async function loadHomeBanners() {
+  const el = document.getElementById('home-banners');
+  if (!el) return;
+  try {
+    const nowIso = new Date().toISOString();
+    const snap = await db.collection('business_campaigns')
+      .where('type', '==', 'banner')
+      .where('status', '==', 'active')
+      .limit(20)
+      .get();
+    const active = snap.docs
+      .map(d => ({ id: d.id, ...d.data() }))
+      .filter(c => c.expiresAt && c.expiresAt > nowIso);
+    if (active.length === 0) { el.innerHTML = ''; return; }
+    // Une seule bannière affichée a la fois (la plus recente), avec un
+    // simple bouton pour passer a la suivante s'il y en a plusieurs --
+    // reste discret, pas une avalanche de publicites.
+    active.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+    window.__homeBanners = active;
+    window.__homeBannerIndex = 0;
+    renderHomeBanner();
+  } catch (e) {
+    console.log('[bannieres] non bloquant :', e.message);
+    el.innerHTML = '';
+  }
+}
+function renderHomeBanner() {
+  const el = document.getElementById('home-banners');
+  const banners = window.__homeBanners || [];
+  if (!el || banners.length === 0) return;
+  const c = banners[window.__homeBannerIndex % banners.length];
+  el.innerHTML = `
+    <div class="order-box" style="margin-bottom:14px;background:#111827;color:#fff;border:none" onclick="openBusinessDetail('${c.ownerUid}')">
+      <div style="display:flex;align-items:center;gap:10px;cursor:pointer">
+        ${c.logoUrl ? `<img src="${escapeHtml(c.logoUrl)}" style="width:36px;height:36px;border-radius:50%;object-fit:cover">` : ''}
+        <div style="flex:1;min-width:0">
+          <div class="muted small" style="color:#cbd5e1">${escapeHtml(c.businessName || '')} · Publicité</div>
+          <strong>${escapeHtml(c.bannerText || '')}</strong>
+        </div>
+        ${banners.length > 1 ? `<button class="btn btn-outline btn-sm" style="border-color:#fff;color:#fff" onclick="event.stopPropagation();nextHomeBanner()">›</button>` : ''}
+      </div>
+    </div>`;
+}
+function nextHomeBanner() {
+  window.__homeBannerIndex = (window.__homeBannerIndex || 0) + 1;
+  renderHomeBanner();
 }
 
 function renderPostCard(item, isLiked, isSaved, hideFollowBtn) {
@@ -10894,6 +10947,11 @@ const BUSINESS_PRO_CLIENT_LIMIT = 300;
 function businessIsProActive(b) {
   return !!(b && b.pro && b.proUntil && new Date(b.proUntil).getTime() > Date.now());
 }
+function businessBoostActive(b) {
+  return !!(b && b.boostedUntil && new Date(b.boostedUntil).getTime() > Date.now());
+}
+const BUSINESS_CAMPAIGN_PRICES = { boost_3: 3, boost_7: 7, banner_3: 10, banner_7: 20, promo: 2 };
+const CAMPAIGN_MAX_RECIPIENTS_HINT = 300; // doit rester identique a CAMPAIGN_MAX_RECIPIENTS dans api/payments-actions.js
 
 let businessCache = null;
 let businessMyProfile = null;
@@ -10959,7 +11017,15 @@ function runBusinessFilter() {
     if (query && !`${b.businessName || ''} ${NEARBY_CATEGORY_LABELS[b.category] || ''}`.toLowerCase().includes(query)) return false;
     return true;
   });
-  matches.sort((a, b) => (businessIsProActive(b) ? 1 : 0) - (businessIsProActive(a) ? 1 : 0));
+  // Ordre de priorite d'affichage : mise en avant payante (campagne
+  // "boost") d'abord, puis Pro, puis le reste -- une mise en avant coute
+  // plus cher et cible specifiquement ce classement, elle passe donc
+  // avant le simple badge Pro.
+  matches.sort((a, b) => {
+    const boostDiff = (businessBoostActive(b) ? 1 : 0) - (businessBoostActive(a) ? 1 : 0);
+    if (boostDiff !== 0) return boostDiff;
+    return (businessIsProActive(b) ? 1 : 0) - (businessIsProActive(a) ? 1 : 0);
+  });
   renderBusinessCards(matches);
 }
 
@@ -10971,11 +11037,11 @@ function renderBusinessCards(list) {
     return;
   }
   listEl.innerHTML = visible.map(b => `
-    <div class="order-box" style="margin-bottom:12px${businessIsProActive(b) ? ';border-color:#f5a623' : ''}">
+    <div class="order-box" style="margin-bottom:12px${businessBoostActive(b) ? ';border-color:#2563eb' : (businessIsProActive(b) ? ';border-color:#f5a623' : '')}">
       <div style="display:flex;align-items:center;gap:10px">
         ${b.logoUrl ? `<img src="${escapeHtml(b.logoUrl)}" style="width:44px;height:44px;border-radius:50%;object-fit:cover">` : ''}
         <div>
-          <strong>${escapeHtml(b.businessName || 'Entreprise')}</strong>${businessIsProActive(b) ? ' <span class="shop-card-category" style="background:#fff4e0;color:#b5720b">Pro</span>' : ''}
+          <strong>${escapeHtml(b.businessName || 'Entreprise')}</strong>${businessBoostActive(b) ? ' <span class="shop-card-category" style="background:#e8f0fe;color:#2563eb">🚀 En avant</span>' : (businessIsProActive(b) ? ' <span class="shop-card-category" style="background:#fff4e0;color:#b5720b">Pro</span>' : '')}
           <div class="muted small">${escapeHtml(NEARBY_CATEGORY_LABELS[b.category] || '')}</div>
         </div>
       </div>
@@ -11177,12 +11243,19 @@ async function renderMyBusinessStatus() {
 
     ${proBlockHtml}
 
+    ${businessBoostActive(b) ? `
+    <div class="order-box" style="margin-bottom:14px;border-color:#2563eb">
+      <strong>🚀 Mise en avant active</strong>
+      <div class="muted small" style="margin-top:2px">Jusqu'au ${escapeHtml(new Date(b.boostedUntil).toLocaleDateString())}</div>
+    </div>` : ''}
+
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
       <button class="btn btn-outline btn-sm" onclick="openBusinessCatalogManager()">Catalogue (${catalogCount})</button>
       <button class="btn btn-outline btn-sm" onclick="openBusinessCouponsManager()">Coupons (${couponsCount})</button>
       <button class="btn btn-outline btn-sm" onclick="openBusinessClientsManager()">Mes clients</button>
-      <button class="btn btn-primary btn-sm" onclick="openBusinessPostForm()">Publier une actualité</button>
+      <button class="btn btn-outline btn-sm" onclick="openBusinessCampaignsManager()">📣 Campagnes pub</button>
     </div>
+    <button class="btn btn-primary btn-sm" style="width:100%;justify-content:center;margin-bottom:14px" onclick="openBusinessPostForm()">Publier une actualité</button>
 
     <h4 style="margin-bottom:8px">Mes actualités</h4>
     <div id="business-mine-posts"><p class="muted small">Chargement...</p></div>`;
@@ -11329,6 +11402,138 @@ async function saveBusinessCoupons(limit) {
 }
 
 /* ---- Mini-CRM (mes clients) ---- */
+/* ---- CAMPAGNES PUBLICITAIRES ----
+   3 types payes depuis le portefeuille (voir purchaseBusinessCampaign()
+   cote serveur pour le detail) : mise en avant, banniere app entiere,
+   promo envoyee aux abonnes. Les "clients" du mini-CRM ne sont que des
+   fiches contact (nom/telephone) sans compte utilisateur : ils ne
+   peuvent pas recevoir de notification automatique, seulement les
+   abonnes (qui ont un vrai compte). */
+async function openBusinessCampaignsManager() {
+  if (document.getElementById('business-campaigns-modal')) return;
+  const html = `
+    <div class="modal-overlay" id="business-campaigns-modal">
+      <div class="modal">
+        <button class="modal-close" onclick="document.getElementById('business-campaigns-modal').remove()" aria-label="Fermer">×</button>
+        <h3 style="margin-bottom:4px">Campagnes publicitaires</h3>
+        <p class="muted small" style="margin-bottom:14px">Payées depuis ton portefeuille, comme le boost SMM.</p>
+
+        <div class="order-box" style="margin-bottom:12px">
+          <strong>🚀 Mise en avant</strong>
+          <p class="muted small" style="margin:4px 0 10px">Ta page apparaît en tête de "Trouver une entreprise" pendant la durée choisie.</p>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-outline btn-sm" style="flex:1" onclick="purchaseBusinessCampaign('boost', 3)">3 jours — ${BUSINESS_CAMPAIGN_PRICES.boost_3}$</button>
+            <button class="btn btn-outline btn-sm" style="flex:1" onclick="purchaseBusinessCampaign('boost', 7)">7 jours — ${BUSINESS_CAMPAIGN_PRICES.boost_7}$</button>
+          </div>
+        </div>
+
+        <div class="order-box" style="margin-bottom:12px">
+          <strong>📣 Promo à mes abonnés</strong>
+          <p class="muted small" style="margin:4px 0 10px">Envoie une notification à tous tes abonnés d'un coup (${CAMPAIGN_MAX_RECIPIENTS_HINT} maximum). Ne touche pas tes clients du mini-CRM : ce sont des fiches contact sans compte, contacte-les toi-même par WhatsApp.</p>
+          <div class="field">
+            <label for="business-promo-message">Message (200 caractères max)</label>
+            <textarea id="business-promo-message" class="text-input" rows="2" maxlength="200" placeholder="ex: -20% ce week-end sur tout le catalogue !"></textarea>
+          </div>
+          <button class="btn btn-outline btn-sm" style="width:100%;justify-content:center" onclick="purchaseBusinessCampaign('promo', null)">Envoyer — ${BUSINESS_CAMPAIGN_PRICES.promo}$</button>
+        </div>
+
+        <div class="order-box" style="margin-bottom:12px">
+          <strong>🖼️ Bannière visible par tous les utilisateurs</strong>
+          <p class="muted small" style="margin:4px 0 10px">Affichée en haut du fil d'accueil de TOUT le monde sur CoeurnohBoost, pendant la durée choisie.</p>
+          <div class="field">
+            <label for="business-banner-text">Texte de la bannière (140 caractères max)</label>
+            <input type="text" id="business-banner-text" class="text-input" maxlength="140" placeholder="ex: Nouvelle collection disponible !">
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-outline btn-sm" style="flex:1" onclick="purchaseBusinessCampaign('banner', 3)">3 jours — ${BUSINESS_CAMPAIGN_PRICES.banner_3}$</button>
+            <button class="btn btn-outline btn-sm" style="flex:1" onclick="purchaseBusinessCampaign('banner', 7)">7 jours — ${BUSINESS_CAMPAIGN_PRICES.banner_7}$</button>
+          </div>
+        </div>
+
+        <p class="muted small" id="business-campaigns-msg" style="margin-top:6px"></p>
+        <h4 style="margin:16px 0 8px">Historique</h4>
+        <div id="business-campaigns-history"><p class="muted small">Chargement...</p></div>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+  loadBusinessCampaignsHistory();
+}
+
+async function loadBusinessCampaignsHistory() {
+  const el = document.getElementById('business-campaigns-history');
+  if (!el || !currentUser) return;
+  try {
+    const snap = await db.collection('business_campaigns').where('ownerUid', '==', currentUser.uid).limit(30).get();
+    const list = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+    if (list.length === 0) { el.innerHTML = '<p class="muted small">Aucune campagne lancée pour l\'instant.</p>'; return; }
+    const typeLabels = { boost: 'Mise en avant', banner: 'Bannière', promo: 'Promo abonnés' };
+    el.innerHTML = list.map(c => {
+      const active = c.status === 'active' && (!c.expiresAt || new Date(c.expiresAt).getTime() > Date.now());
+      return `
+      <div class="order-box" style="margin-bottom:8px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <strong>${typeLabels[c.type] || c.type}</strong>
+          <span class="shop-card-category" style="background:${active ? '#e6f6ea' : '#f1f1f1'};color:${active ? '#1a7a3c' : '#777'}">${active ? 'Active' : (c.status === 'disabled' ? 'Désactivée' : 'Terminée')}</span>
+        </div>
+        <div class="muted small" style="margin-top:4px">${c.price}$ · ${new Date(c.createdAt).toLocaleDateString('fr-FR')}${c.expiresAt ? ' → ' + new Date(c.expiresAt).toLocaleDateString('fr-FR') : ''}</div>
+        ${c.bannerText ? `<div class="muted small" style="margin-top:4px">« ${escapeHtml(c.bannerText)} »</div>` : ''}
+        ${c.promoMessage ? `<div class="muted small" style="margin-top:4px">« ${escapeHtml(c.promoMessage)} »</div>` : ''}
+      </div>`;
+    }).join('');
+  } catch (e) {
+    el.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+  }
+}
+
+async function purchaseBusinessCampaign(type, durationDays) {
+  const msgEl = document.getElementById('business-campaigns-msg');
+  msgEl.style.color = 'var(--red)';
+  msgEl.textContent = '';
+
+  let bannerText = null, promoMessage = null;
+  if (type === 'banner') {
+    bannerText = document.getElementById('business-banner-text').value.trim();
+    if (!bannerText) { msgEl.textContent = 'Écris le texte de la bannière.'; return; }
+  }
+  if (type === 'promo') {
+    promoMessage = document.getElementById('business-promo-message').value.trim();
+    if (!promoMessage) { msgEl.textContent = 'Écris le message à envoyer.'; return; }
+  }
+
+  const priceKey = durationDays ? `${type}_${durationDays}` : type;
+  const price = BUSINESS_CAMPAIGN_PRICES[priceKey];
+  if (!confirm(`Lancer cette campagne pour ${price}$, débités de ton portefeuille ?`)) return;
+
+  if (window.__businessCampaignPending) return;
+  window.__businessCampaignPending = true;
+  msgEl.style.color = 'var(--muted)';
+  msgEl.textContent = 'Envoi en cours...';
+  try {
+    const idToken = await auth.currentUser.getIdToken();
+    const resp = await fetch('/api/payments-actions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken, action: 'business_campaign_purchase', type, durationDays, bannerText, promoMessage })
+    });
+    const data = await resp.json();
+    if (!data.success) {
+      msgEl.style.color = 'var(--red)';
+      msgEl.textContent = data.error || "Erreur lors de l'envoi. Réessaie.";
+      return;
+    }
+    currentUser.balance = data.newBalance;
+    showToast(type === 'promo' ? `Promo envoyée à ${data.promoSentCount || 0} abonné(s)` : 'Campagne lancée', 'success');
+    businessCache = null;
+    loadMyBusiness();
+    document.getElementById('business-campaigns-modal').remove();
+  } catch (e) {
+    msgEl.style.color = 'var(--red)';
+    msgEl.textContent = friendlyErrorMessage(e);
+  } finally {
+    window.__businessCampaignPending = false;
+  }
+}
+
 async function openBusinessClientsManager() {
   if (document.getElementById('business-clients-modal')) return;
   const html = `
