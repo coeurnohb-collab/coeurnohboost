@@ -461,7 +461,6 @@ function showDashTab(tab) {
     const shopFeedEl = document.getElementById('shop-feed');
     if (shopFeedEl) shopFeedEl.innerHTML = '';
     loadHomeFeed();
-    loadHomeBanners();
   }
   if (tab === 'wallet') loadWalletHistory();
   if (tab === 'account') { renderReferralBox(); applyNotifPrefsToUI(); fillAccountForm(); loadSavedFeed(); loadFollowingList(); loadBlockedList(); loadFollowersList(); }
@@ -1103,8 +1102,8 @@ function renderPayPanel() {
   document.getElementById('pay-panel-mobile').classList.toggle('hidden', payMethod !== 'mobile');
   document.getElementById('pay-panel-crypto').classList.toggle('hidden', payMethod !== 'crypto');
   document.getElementById('pay-panel-card').classList.toggle('hidden', payMethod !== 'card');
-  document.getElementById('recharge-amount-block').classList.remove('hidden');
-  document.getElementById('recharge-submit-btn').classList.remove('hidden');
+  document.getElementById('recharge-amount-block').classList.toggle('hidden', payMethod === 'card');
+  document.getElementById('recharge-submit-btn').classList.toggle('hidden', payMethod === 'card');
   if (payMethod === 'crypto') renderPayCryptoOptions();
   renderPayCurrencyToggle();
 }
@@ -1134,6 +1133,10 @@ async function submitRecharge() {
   okEl.classList.add('hidden');
 
   if (!currentUser) { openAuth('register'); return; }
+
+  if (payMethod === 'card') {
+    return; // Carte virtuelle : bientôt disponible (le bouton est masqué pour cet onglet)
+  }
 
   const rawAmount = parseFloat(document.getElementById('recharge-amount').value || 0);
   if (!rawAmount || rawAmount <= 0) {
@@ -1176,12 +1179,11 @@ async function submitRecharge() {
     if (payMethod === 'crypto') {
       // Paiement crypto : on cree une vraie facture Cryptomus via notre API serveur
       const idToken = await auth.currentUser.getIdToken();
-      const response = await fetch('/api/payment-initiate', {
+      const response = await fetch('/api/cryptomus-payment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           idToken,
-          provider: 'crypto',
           amount: amount,
           currency: 'USD'
         })
@@ -1205,12 +1207,11 @@ async function submitRecharge() {
     // Mobile Money : on tente MboтePay (pays couverts), sinon flux manuel comme avant
     if (payMethod === 'mobile') {
       const idToken = await auth.currentUser.getIdToken();
-      const response = await fetch('/api/payment-initiate', {
+      const response = await fetch('/api/mbotepay-payment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           idToken,
-          provider: 'mobile',
           amountUSD: amount,
           countryCode: payCountryCode,
           operatorName: payOperator,
@@ -1236,30 +1237,11 @@ async function submitRecharge() {
         return;
       }
       // data.supported === false : pays non couvert par MboтePay -- on
-      // passe directement au flux manuel juste en dessous. CinetPay est
-      // desormais actif (onglet "carte") mais uniquement pour la RDC pour
-      // le moment (compte CinetPay lie a ce seul pays) : il ne sert pas
-      // encore de relais Mobile Money pour les autres pays non couverts.
-    }
-
-    if (payMethod === 'card') {
-      const idToken = await auth.currentUser.getIdToken();
-      const response = await fetch('/api/payment-initiate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ idToken, provider: 'card', amountUSD: amount })
-      });
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        console.error("Erreur creation paiement carte :", data.error);
-        errEl.textContent = data.error ? `Erreur CinetPay : ${data.error}` : t('pay_err_generic');
-        errEl.classList.remove('hidden');
-        return;
-      }
-
-      window.location.href = data.paymentUrl;
-      return;
+      // passe directement au flux manuel juste en dessous (CinetPay n'est
+      // pas encore reconstruit : l'ancien code appelait ici un endpoint
+      // /api/cinetpay-payment qui n'existe plus dans /api, ce qui faisait
+      // planter la recharge Mobile Money avec une erreur generique pour
+      // tous les pays non couverts par MboтePay -- corrige).
     }
 
     // Autres methodes (et Mobile Money non couvert par MboтePay) : demande manuelle comme avant
@@ -1757,42 +1739,6 @@ function fillAccountForm() {
   const photoText = document.getElementById('account-photo-file-text');
   if (photoText) photoText.textContent = 'Choisir une photo';
   renderAccountPhotoPreview();
-
-  // AVANT : ces 3 actions (changer l'e-mail, changer le mot de passe,
-  // supprimer le compte) exigeaient TOUJOURS un mot de passe pour se
-  // reauthentifier -- ce qui echouait systematiquement pour un compte
-  // connecte via "Continuer avec Google" (aucun mot de passe n'existe sur
-  // ce type de compte). Resultat : ces personnes ne pouvaient jamais
-  // changer leur e-mail/mot de passe, et NE POUVAIENT MEME PAS SUPPRIMER
-  // LEUR PROPRE COMPTE (le champ mot de passe etait obligatoire avant de
-  // pouvoir cliquer). Ca ne touchait qu'une partie des comptes (ceux crees
-  // via Google) -- d'ou une impression d'instabilite aleatoire selon la
-  // personne qui teste. Corrige : le mot de passe n'est plus demande pour
-  // un compte Google (reauthentification via une fenetre Google a la
-  // place), et le champ "mot de passe" se cache avec une explication
-  // claire pour ces comptes.
-  const passwordless = !hasPasswordProvider();
-  const emailPassField = document.getElementById('account-email-currentpass');
-  if (emailPassField) emailPassField.closest('.field').classList.toggle('hidden', passwordless);
-  const secSection = document.getElementById('section-security');
-  const passCurrentField = document.getElementById('account-pass-current');
-  const passNewField = document.getElementById('account-pass-new');
-  if (passCurrentField) passCurrentField.closest('.field').classList.toggle('hidden', passwordless);
-  if (passNewField) passNewField.closest('.field').classList.toggle('hidden', passwordless);
-  const passBtn = secSection && secSection.querySelector('button[onclick="saveAccountPassword()"]');
-  if (passBtn) passBtn.classList.toggle('hidden', passwordless);
-  const deletePassField = document.getElementById('delete-account-pass');
-  if (deletePassField) deletePassField.closest('.field').classList.toggle('hidden', passwordless);
-  if (passwordless) {
-    if (passMsg) { passMsg.style.color = 'var(--muted)'; passMsg.textContent = "Compte connecté avec Google : pas de mot de passe à gérer ici."; }
-    if (emailMsg) { emailMsg.style.color = 'var(--muted)'; emailMsg.textContent = 'Une fenêtre Google te sera demandée pour confirmer.'; }
-  }
-}
-
-// Un compte cree via "Continuer avec Google" n'a aucun mot de passe
-// Firebase -- seuls les comptes crees avec e-mail+mot de passe en ont un.
-function hasPasswordProvider() {
-  return !!(auth.currentUser && auth.currentUser.providerData.some(p => p.providerId === 'password'));
 }
 
 // Apercu en direct (photo actuelle du compte, ou fichier tout juste choisi)
@@ -1895,14 +1841,8 @@ async function saveAccountName() {
 // a detourner un compte.
 async function reauthenticateCurrentUser(currentPassword) {
   const user = auth.currentUser;
-  if (hasPasswordProvider()) {
-    const cred = firebase.auth.EmailAuthProvider.credential(user.email, currentPassword);
-    await user.reauthenticateWithCredential(cred);
-  } else {
-    // Compte "Continuer avec Google" : aucun mot de passe n'existe, on
-    // redemande une confirmation Google fraiche a la place.
-    await user.reauthenticateWithPopup(new firebase.auth.GoogleAuthProvider());
-  }
+  const cred = firebase.auth.EmailAuthProvider.credential(user.email, currentPassword);
+  await user.reauthenticateWithCredential(cred);
 }
 
 async function saveAccountEmail() {
@@ -1911,11 +1851,8 @@ async function saveAccountEmail() {
   msgEl.style.color = 'var(--red)';
   const newEmail = document.getElementById('account-email-input').value.trim();
   const currentPassword = document.getElementById('account-email-currentpass').value;
-  const needsPassword = hasPasswordProvider();
-  if (!newEmail || (needsPassword && !currentPassword)) {
-    msgEl.textContent = needsPassword
-      ? "Merci de remplir le nouvel e-mail et ton mot de passe actuel."
-      : "Merci de remplir le nouvel e-mail.";
+  if (!newEmail || !currentPassword) {
+    msgEl.textContent = "Merci de remplir le nouvel e-mail et ton mot de passe actuel.";
     return;
   }
   try {
@@ -1935,11 +1872,6 @@ async function saveAccountEmail() {
 async function saveAccountPassword() {
   if (!currentUser) return;
   const msgEl = document.getElementById('account-pass-msg');
-  if (!hasPasswordProvider()) {
-    msgEl.style.color = 'var(--muted)';
-    msgEl.textContent = "Compte connecté avec Google : pas de mot de passe à gérer ici.";
-    return;
-  }
   msgEl.style.color = 'var(--red)';
   const currentPassword = document.getElementById('account-pass-current').value;
   const newPassword = document.getElementById('account-pass-new').value;
@@ -1971,9 +1903,8 @@ async function deleteMyAccount() {
   if (!currentUser || !auth.currentUser) return;
   const msgEl = document.getElementById('delete-account-msg');
   msgEl.style.color = 'var(--red)';
-  const needsPassword = hasPasswordProvider();
   const password = document.getElementById('delete-account-pass').value;
-  if (needsPassword && !password) {
+  if (!password) {
     msgEl.textContent = 'Merci de saisir ton mot de passe pour confirmer.';
     return;
   }
@@ -2026,7 +1957,6 @@ function renderLoggedOutNav() {
   stopNotifWatch();
   stopPresenceUpdates();
   stopWalletWatch();
-  pushNotificationsRegistered = false;
   blockedSet = new Set();
 }
 function renderLoggedInNav(uid) {
@@ -2219,25 +2149,7 @@ if (fbReady) {
       showDashboard();
       openSharedProductIfAny();
       openNotifTargetIfAny();
-      // AVANT : registerPushNotifications() (et donc la demande de
-      // permission au navigateur) etait appelee automatiquement ici, des
-      // la connexion -- sans aucun geste (tap/clic) de la personne. Or de
-      // nombreux navigateurs (Safari/iOS en tete, et certains Android)
-      // ignorent ou refusent silencieusement une demande de permission de
-      // notification qui n'est pas declenchee par une VRAIE interaction
-      // utilisateur : sur ces appareils, la permission n'etait donc
-      // jamais vraiment accordee, sans aucune erreur visible -- d'ou des
-      // notifications qui "n'arrivent jamais quand l'app est fermee" sur
-      // certains telephones/navigateurs, et pas d'autres, en apparence
-      // aleatoire. Si la permission est deja acquise (compte deja
-      // autorise par le passe), aucun geste n'est necessaire : on
-      // continue comme avant. Sinon, on affiche une bannière et on
-      // attend un vrai tap avant de demander la permission.
-      if (window.Notification && Notification.permission === 'granted') {
-        registerPushNotifications();
-      } else if (window.Notification && Notification.permission === 'default') {
-        maybeShowNotifPermissionBanner();
-      }
+      registerPushNotifications();
       installBackTrap();
       hideAppSplash();
     } else {
@@ -2895,58 +2807,6 @@ async function loadHomeFeed(append = false) {
       showToast(friendlyErrorMessage(e), 'error');
     }
   }
-}
-
-// Bannieres publicitaires CoeurNoh Business, visibles par TOUT LE MONDE en
-// haut du fil d'accueil (voir purchaseBusinessCampaign() type "banner").
-// Conteneur separe de #home-feed pour ne jamais etre efface par un
-// rechargement du fil (ni casser loadHomeFeed en cas d'erreur ici).
-async function loadHomeBanners() {
-  const el = document.getElementById('home-banners');
-  if (!el) return;
-  try {
-    const nowIso = new Date().toISOString();
-    const snap = await db.collection('business_campaigns')
-      .where('type', '==', 'banner')
-      .where('status', '==', 'active')
-      .limit(20)
-      .get();
-    const active = snap.docs
-      .map(d => ({ id: d.id, ...d.data() }))
-      .filter(c => c.expiresAt && c.expiresAt > nowIso);
-    if (active.length === 0) { el.innerHTML = ''; return; }
-    // Une seule bannière affichée a la fois (la plus recente), avec un
-    // simple bouton pour passer a la suivante s'il y en a plusieurs --
-    // reste discret, pas une avalanche de publicites.
-    active.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
-    window.__homeBanners = active;
-    window.__homeBannerIndex = 0;
-    renderHomeBanner();
-  } catch (e) {
-    console.log('[bannieres] non bloquant :', e.message);
-    el.innerHTML = '';
-  }
-}
-function renderHomeBanner() {
-  const el = document.getElementById('home-banners');
-  const banners = window.__homeBanners || [];
-  if (!el || banners.length === 0) return;
-  const c = banners[window.__homeBannerIndex % banners.length];
-  el.innerHTML = `
-    <div class="order-box" style="margin-bottom:14px;background:#111827;color:#fff;border:none" onclick="openBusinessDetail('${c.ownerUid}')">
-      <div style="display:flex;align-items:center;gap:10px;cursor:pointer">
-        ${c.logoUrl ? `<img src="${escapeHtml(c.logoUrl)}" style="width:36px;height:36px;border-radius:50%;object-fit:cover">` : ''}
-        <div style="flex:1;min-width:0">
-          <div class="muted small" style="color:#cbd5e1">${escapeHtml(c.businessName || '')} · Publicité</div>
-          <strong>${escapeHtml(c.bannerText || '')}</strong>
-        </div>
-        ${banners.length > 1 ? `<button class="btn btn-outline btn-sm" style="border-color:#fff;color:#fff" onclick="event.stopPropagation();nextHomeBanner()">›</button>` : ''}
-      </div>
-    </div>`;
-}
-function nextHomeBanner() {
-  window.__homeBannerIndex = (window.__homeBannerIndex || 0) + 1;
-  renderHomeBanner();
 }
 
 function renderPostCard(item, isLiked, isSaved, hideFollowBtn) {
@@ -4068,6 +3928,68 @@ function renderShopCard(item, isLiked, isPurchased) {
 }
 
 const ICON_WHATSAPP = `<svg width="16" height="16" viewBox="0 0 24 24" fill="#25D366"><path d="M17.6 6.32A7.85 7.85 0 0 0 12.05 4a7.94 7.94 0 0 0-6.9 11.9L4 20l4.2-1.1a7.9 7.9 0 0 0 3.85 1h.01a7.94 7.94 0 0 0 5.54-13.58zM12.06 18.4a6.6 6.6 0 0 1-3.36-.92l-.24-.14-2.5.65.67-2.43-.16-.25a6.58 6.58 0 0 1 10.24-8.13 6.55 6.55 0 0 1 1.94 4.66 6.6 6.6 0 0 1-6.59 6.56zm3.6-4.93c-.2-.1-1.17-.58-1.35-.64s-.32-.1-.45.1-.5.64-.62.77-.23.15-.43.05a5.4 5.4 0 0 1-1.6-.98 6 6 0 0 1-1.1-1.37c-.12-.2 0-.3.09-.4s.2-.23.3-.35.13-.2.2-.33a.36.36 0 0 0 0-.35c-.05-.1-.45-1.08-.61-1.48s-.32-.33-.45-.33h-.38a.74.74 0 0 0-.53.25 2.24 2.24 0 0 0-.7 1.67 3.9 3.9 0 0 0 .81 2.05 8.9 8.9 0 0 0 3.4 3c.48.2.85.33 1.14.42a2.74 2.74 0 0 0 1.26.08 2.07 2.07 0 0 0 1.35-.95 1.68 1.68 0 0 0 .12-.95c-.05-.08-.18-.13-.38-.23z"/></svg>`;
+const ICON_EMAIL = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg>`;
+/* ICON_FACEBOOK et ICON_TIKTOK existent déjà plus bas dans ce fichier
+   (utilisées pour les plateformes du panel SMM) -- réutilisées telles
+   quelles ici pour les liens de contact, pas de doublon créé. */
+
+/* ================= LIENS DE CONTACT (WhatsApp / Email / Facebook / TikTok) =================
+   Fonction reutilisable pour toutes les fiches de service (Annuaire/Pres de
+   chez vous, Emploi, Immo, Travel, Business, Trouver un pro, Crée ton site)
+   -- n'affiche que les moyens de contact realisés renseignés par la personne,
+   jamais un bouton vide. "layout" = 'row' pour des petites icones cote a
+   cote (cartes compactes) ou 'block' pour des boutons pleine largeur
+   empiles (fiches detail plein ecran). */
+function normalizeSocialContactUrl(value, platform) {
+  let v = String(value || '').trim();
+  if (!v) return null;
+  if (/^https?:\/\//i.test(v)) return v;
+  v = v.replace(/^@/, '');
+  if (platform === 'facebook') return `https://facebook.com/${v}`;
+  if (platform === 'tiktok') return `https://tiktok.com/@${v}`;
+  return v;
+}
+function renderContactLinksHtml(contact, layout) {
+  if (!contact) return '';
+  const items = [];
+  if (contact.whatsapp) items.push({ href: `https://wa.me/${String(contact.whatsapp).replace(/\D/g, '')}`, icon: ICON_WHATSAPP, label: 'WhatsApp' });
+  if (contact.email) items.push({ href: `mailto:${String(contact.email).trim()}`, icon: ICON_EMAIL, label: 'Email' });
+  const fb = normalizeSocialContactUrl(contact.facebook, 'facebook');
+  if (fb) items.push({ href: fb, icon: ICON_FACEBOOK, label: 'Facebook' });
+  const tt = normalizeSocialContactUrl(contact.tiktok, 'tiktok');
+  if (tt) items.push({ href: tt, icon: ICON_TIKTOK, label: 'TikTok' });
+  if (!items.length) return '';
+  if (layout === 'row') {
+    return `<div class="contact-links-row">${items.map(it => `<a class="shop-action-btn" href="${escapeHtml(it.href)}" target="_blank" title="${it.label}">${it.icon}</a>`).join('')}</div>`;
+  }
+  return `<div class="contact-links-block">${items.map(it => `<a class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" href="${escapeHtml(it.href)}" target="_blank">${it.icon} ${it.label}</a>`).join('')}</div>`;
+}
+/* Bloc de champs de formulaire reutilisable (email/Facebook/TikTok facultatifs)
+   -- le WhatsApp reste son propre champ deja existant dans chaque formulaire
+   (souvent obligatoire), ce bloc ne gere que les 3 nouveaux moyens de contact. */
+function renderContactFieldsHtml(prefix, existing) {
+  const e = existing || {};
+  return `
+    <div class="field">
+      <label for="${prefix}-email">Email de contact (facultatif)</label>
+      <input type="email" id="${prefix}-email" class="text-input" placeholder="contact@exemple.com" value="${escapeHtml(e.email || '')}">
+    </div>
+    <div class="field">
+      <label for="${prefix}-facebook">Page Facebook (facultatif)</label>
+      <input type="text" id="${prefix}-facebook" class="text-input" placeholder="nom de la page ou lien" value="${escapeHtml(e.facebook || '')}">
+    </div>
+    <div class="field">
+      <label for="${prefix}-tiktok">Compte TikTok (facultatif)</label>
+      <input type="text" id="${prefix}-tiktok" class="text-input" placeholder="@pseudo ou lien" value="${escapeHtml(e.tiktok || '')}">
+    </div>`;
+}
+function readContactFieldsValues(prefix) {
+  return {
+    email: document.getElementById(`${prefix}-email`).value.trim(),
+    facebook: document.getElementById(`${prefix}-facebook`).value.trim(),
+    tiktok: document.getElementById(`${prefix}-tiktok`).value.trim()
+  };
+}
 const ICON_SHARE = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.6" x2="15.4" y2="6.4"/><line x1="8.6" y1="13.4" x2="15.4" y2="17.6"/></svg>`;
 
 // Jeu d'icones professionnelles (lignes fines, style Instagram/Facebook),
@@ -4128,11 +4050,6 @@ const ICON_SPARKLE = `<svg width="13" height="13" viewBox="0 0 24 24" fill="curr
 // session) reste visible telle quelle sinon, puisque `-1 || 0` vaut -1 en
 // JS (un nombre negatif est "truthy"). Purement un filet d'affichage : ne
 // corrige pas la valeur stockee, juste ce qui est montre a l'ecran.
-function copyToClipboard(text) {
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(text).then(() => showToast('Copié !', 'success'));
-  }
-}
 function safeCount(n) {
   return Math.max(0, n || 0);
 }
@@ -4996,6 +4913,7 @@ function openDirectoryEditForm() {
             <label for="directory-phone">Téléphone WhatsApp</label>
             <input type="tel" id="directory-phone" class="text-input" placeholder="+243..." value="${escapeHtml(f.phone || '')}">
           </div>
+          ${renderContactFieldsHtml('directory', f)}
           <div class="field">
             <label for="directory-desc">Description (facultatif)</label>
             <textarea id="directory-desc" class="text-input" rows="3" style="resize:vertical" maxlength="400">${escapeHtml(f.description || '')}</textarea>
@@ -5128,6 +5046,7 @@ async function saveDirectoryListing() {
     const payload = {
       ownerUid: currentUser.uid,
       name, profession, city, category: category || null, phone, description,
+      ...readContactFieldsValues('directory'),
       photoURL: photoURL || null,
       bookingEnabled, bookingDays, bookingStart, bookingEnd, slotDuration, services,
       updatedAt: new Date().toISOString()
@@ -5851,7 +5770,6 @@ function renderNearbyResults(list) {
   }
 
   resultsEl.innerHTML = visible.map(f => {
-    const waLink = f.phone ? `https://wa.me/${f.phone.replace(/\D/g, '')}` : null;
     const catLabel = f.category ? NEARBY_CATEGORY_LABELS[f.category] : null;
     return `
     <div class="order-box" style="margin-bottom:12px">
@@ -5865,7 +5783,7 @@ function renderNearbyResults(list) {
       <div class="muted small" style="margin:4px 0">${escapeHtml(f.profession || '—')}</div>
       ${f.city ? `<div class="muted small" style="margin-bottom:8px">${escapeHtml(f.city)}</div>` : ''}
       ${f.description ? `<p class="muted small" style="margin-bottom:10px">${escapeHtml(f.description)}</p>` : ''}
-      ${waLink ? `<a class="btn btn-outline btn-sm" href="${escapeHtml(waLink)}" target="_blank">${ICON_WHATSAPP} Contacter</a>` : ''}
+      ${renderContactLinksHtml({ ...f, whatsapp: f.phone }, 'row')}
     </div>`;
   }).join('');
 }
@@ -7274,7 +7192,6 @@ async function openJobSeekerDetail(profileId) {
       return;
     }
     const isOwner = currentUser && currentUser.uid === p.ownerUid;
-    const waLink = p.whatsapp ? `https://wa.me/${p.whatsapp.replace(/\D/g, '')}` : null;
 
     bodyEl.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px">
@@ -7287,7 +7204,7 @@ async function openJobSeekerDetail(profileId) {
       ${p.cvUrl ? `<a class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" href="${escapeHtml(p.cvUrl)}" target="_blank">Voir le CV / portfolio</a>` : ''}
       ${!isOwner ? `
         <div id="jobseeker-detail-actions">
-          ${waLink ? `<a class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:8px" href="${escapeHtml(waLink)}" target="_blank">Contacter sur WhatsApp</a>` : ''}
+          ${renderContactLinksHtml(p, 'block')}
           ${p.phone ? `<p class="muted small" style="text-align:center;margin-bottom:8px">Téléphone : ${escapeHtml(p.phone)}</p>` : ''}
         </div>
         ${currentUser ? `<button class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin-top:4px" onclick="openReportModal('${p.id}', '${p.ownerUid}', 'job_seeker')">Signaler ce profil</button>` : ''}
@@ -7390,6 +7307,9 @@ function openJobSeekerForm() {
   resetUploadProgress('jobseeker-cv');
   document.getElementById('jobseeker-whatsapp-input').value = p.whatsapp || '';
   document.getElementById('jobseeker-phone-input').value = p.phone || '';
+  document.getElementById('jobseeker-email-input').value = p.email || '';
+  document.getElementById('jobseeker-facebook-input').value = p.facebook || '';
+  document.getElementById('jobseeker-tiktok-input').value = p.tiktok || '';
 
   document.getElementById('jobseeker-form-modal').classList.remove('hidden');
 }
@@ -7424,6 +7344,9 @@ async function saveJobSeekerProfile() {
   const salaryHidden = document.getElementById('jobseeker-salary-hidden-input').checked;
   const whatsapp = document.getElementById('jobseeker-whatsapp-input').value.trim();
   const phone = document.getElementById('jobseeker-phone-input').value.trim();
+  const email = document.getElementById('jobseeker-email-input').value.trim();
+  const facebook = document.getElementById('jobseeker-facebook-input').value.trim();
+  const tiktok = document.getElementById('jobseeker-tiktok-input').value.trim();
 
   if (!title || !location || !description || !whatsapp) {
     errEl.textContent = 'Merci de remplir au moins le poste recherché, la ville, la présentation et le WhatsApp.';
@@ -7452,7 +7375,8 @@ async function saveJobSeekerProfile() {
 
     const payload = {
       title, type, category, location, experience, description,
-      salaryMin, salaryMax, salaryHidden, cvUrl: cvUrl || null, whatsapp, phone: phone || null
+      salaryMin, salaryMax, salaryHidden, cvUrl: cvUrl || null, whatsapp, phone: phone || null,
+      email: email || null, facebook: facebook || null, tiktok: tiktok || null
     };
     if (myJobSeekerProfile) {
       await db.collection('job_seekers').doc(currentUser.uid).update({ ...payload, updatedAt: new Date().toISOString() });
@@ -7830,28 +7754,7 @@ async function saveEvent() {
       ticketTypes
     };
     if (editingEventId) {
-      // AVANT : cette mise a jour ecrasait le tableau "ticketTypes" en
-      // entier, y compris "quantitySold" de chaque type de billet -- avec
-      // la valeur mise en cache au moment de l'OUVERTURE du formulaire
-      // "Modifier". Si des billets etaient reserves par des clients
-      // PENDANT que l'organisateur avait ce formulaire ouvert (tres
-      // probable pour un evenement populaire), cette sauvegarde effacait
-      // ces ventes du compteur -- risque reel de SURVENTE (le nombre de
-      // places restantes redevenait artificiellement plus eleve qu'en
-      // realite). Corrige : une transaction relit d'abord le nombre de
-      // billets REELLEMENT vendus au moment exact de l'enregistrement, et
-      // l'utilise a la place de la valeur perimee du formulaire.
-      const eventRef = db.collection('events').doc(editingEventId);
-      await db.runTransaction(async (tx) => {
-        const liveSnap = await tx.get(eventRef);
-        if (!liveSnap.exists) throw new Error('EVENT_GONE');
-        const liveTicketTypes = liveSnap.data().ticketTypes || [];
-        const mergedTicketTypes = payload.ticketTypes.map(tt => {
-          const live = liveTicketTypes.find(l => l.id === tt.id);
-          return { ...tt, quantitySold: live ? (live.quantitySold || 0) : 0 };
-        });
-        tx.update(eventRef, { ...payload, ticketTypes: mergedTicketTypes });
-      });
+      await db.collection('events').doc(editingEventId).update(payload);
       showToast('Événement mis à jour', 'success');
     } else {
       await db.collection('events').add({
@@ -7868,7 +7771,7 @@ async function saveEvent() {
     if (eventsCurrentTab === 'browse') loadEvents();
     if (eventsCurrentTab === 'myevents') loadMyOrganizedEvents();
   } catch (e) {
-    errEl.textContent = e.message === 'EVENT_GONE' ? "Cet événement n'existe plus." : friendlyErrorMessage(e);
+    errEl.textContent = friendlyErrorMessage(e);
     errEl.classList.remove('hidden');
   } finally {
     btn.disabled = false;
@@ -8229,7 +8132,6 @@ async function openTravelDetail(spotId) {
   }
 
   const photos = Array.isArray(spot.photos) ? spot.photos.filter(Boolean) : [];
-  const waLink = spot.whatsapp ? `https://wa.me/${spot.whatsapp.replace(/\D/g, '')}` : null;
 
   const html = `
     <div class="modal-overlay" id="travel-detail-modal">
@@ -8243,7 +8145,7 @@ async function openTravelDetail(spotId) {
         ${photos.length > 0 ? `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">${photos.map((p, i) => `<a href="${escapeHtml(p)}" target="_blank" class="muted small" style="display:inline-flex;align-items:center;gap:4px">${ICON_LINK} Photo ${i + 1}</a>`).join('')}</div>` : ''}
 
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
-          ${waLink ? `<a class="btn btn-outline btn-sm" href="${escapeHtml(waLink)}" target="_blank">${ICON_WHATSAPP} WhatsApp</a>` : ''}
+          ${renderContactLinksHtml(spot, 'row')}
           ${spot.website ? `<a class="btn btn-outline btn-sm" href="${escapeHtml(spot.website)}" target="_blank">${ICON_LINK} Site web</a>` : ''}
         </div>
 
@@ -8384,6 +8286,7 @@ function openTravelForm(spotId) {
           <label for="travel-whatsapp">WhatsApp de contact</label>
           <input type="tel" id="travel-whatsapp" class="text-input" placeholder="+243..." value="${existing ? escapeHtml(existing.whatsapp || '') : ''}">
         </div>
+        ${renderContactFieldsHtml('travel', existing)}
         <div class="field">
           <label for="travel-website">Site web (facultatif)</label>
           <input type="url" id="travel-website" class="text-input" placeholder="https://..." value="${existing ? escapeHtml(existing.website || '') : ''}">
@@ -8432,7 +8335,10 @@ async function saveTravelSpot() {
     // Envoie uniquement les photos fraichement choisies sur le telephone ;
     // celles deja enregistrees (en modification) sont gardees telles quelles.
     const photos = await collectGalleryPhotoUrls('#travel-photo-rows .gallery-photo-row', 'voyage', 5);
-    const payload = { title, category, city, country, description, priceIndication, whatsapp, website: website || null, photos };
+    const payload = {
+      title, category, city, country, description, priceIndication, whatsapp, website: website || null, photos,
+      ...readContactFieldsValues('travel')
+    };
     if (editingTravelSpotId) {
       await db.collection('travel_spots').doc(editingTravelSpotId).update(payload);
       showToast('Lieu mis à jour', 'success');
@@ -8519,30 +8425,8 @@ async function loadBookableProfessionals() {
   const listEl = document.getElementById('booking-find-list');
   listEl.innerHTML = renderFeedSkeletons(2);
   try {
-    // Fusionne deux sources possibles pour une fiche pro reservable :
-    // l'Annuaire "Pres de chez vous" (directory_listings, historique) et
-    // les pages CoeurNoh Business (businesses, plus recentes). Une
-    // personne n'a besoin de configurer les reservations qu'A UN SEUL
-    // endroit -- si elle a les deux, la page Business (plus complete)
-    // est prioritaire pour eviter d'afficher deux fiches pour la meme
-    // personne.
-    const [dirList] = await Promise.all([fetchAllListings()]);
-    const businessSnap = await db.collection('businesses').where('bookingEnabled', '==', true).limit(300).get();
-    const businessAsPros = businessSnap.docs.map(d => {
-      const biz = d.data();
-      return {
-        ownerUid: biz.ownerUid, name: biz.businessName, photoURL: biz.logoUrl || null,
-        profession: NEARBY_CATEGORY_LABELS[biz.category] || biz.category || '',
-        city: biz.address || '',
-        bookingEnabled: biz.bookingEnabled, bookingDays: biz.bookingDays || [],
-        bookingStart: biz.bookingStart, bookingEnd: biz.bookingEnd,
-        slotDuration: biz.slotDuration, services: biz.services || []
-      };
-    });
-    const merged = new Map();
-    dirList.filter(f => f.bookingEnabled).forEach(f => merged.set(f.ownerUid, f));
-    businessAsPros.forEach(f => merged.set(f.ownerUid, f)); // ecrase l'annuaire si les deux existent
-    bookingProsCache = Array.from(merged.values());
+    await fetchAllListings();
+    bookingProsCache = (directoryCache || []).filter(f => f.bookingEnabled);
     runBookingSearch();
   } catch (e) {
     listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
@@ -8570,11 +8454,8 @@ function renderBookableProfessionals(list) {
   if (visible.length === 0) {
     listEl.innerHTML = `
       <div class="order-box" style="text-align:center;padding:24px 16px">
-        <p class="muted small" style="margin-bottom:14px">Aucun professionnel n'accepte encore les réservations en ligne. Reviens bientôt, ou sois le premier en l'activant sur ta fiche pro ou ta page CoeurNoh Business.</p>
-        <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
-          <button class="btn btn-outline btn-sm" onclick="openDirectoryEditForm()">Ma fiche pro (annuaire)</button>
-          <button class="btn btn-primary btn-sm" onclick="openBusinessForm()">Ma page Business</button>
-        </div>
+        <p class="muted small" style="margin-bottom:14px">Aucun professionnel n'accepte encore les réservations en ligne. Reviens bientôt, ou sois le premier en l'activant sur ta propre fiche.</p>
+        <button class="btn btn-primary btn-sm" onclick="openDirectoryEditForm()">Activer les réservations sur ma fiche</button>
       </div>`;
     return;
   }
@@ -9534,7 +9415,6 @@ async function openImmoDetail(propertyId) {
   }
 
   const photos = Array.isArray(p.photos) ? p.photos.filter(Boolean) : [];
-  const waLink = p.whatsapp ? `https://wa.me/${p.whatsapp.replace(/\D/g, '')}` : null;
   const details = [];
   if (p.bedrooms) details.push(`${p.bedrooms} chambre${p.bedrooms > 1 ? 's' : ''}`);
   if (p.bathrooms) details.push(`${p.bathrooms} salle${p.bathrooms > 1 ? 's' : ''} de bain`);
@@ -9552,7 +9432,7 @@ async function openImmoDetail(propertyId) {
         ${p.description ? `<p class="small" style="margin-bottom:14px">${escapeHtml(p.description)}</p>` : ''}
         ${photos.length > 0 ? `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">${photos.map((ph, i) => `<a href="${escapeHtml(ph)}" target="_blank" class="muted small" style="display:inline-flex;align-items:center;gap:4px">${ICON_LINK} Photo ${i + 1}</a>`).join('')}</div>` : ''}
 
-        ${waLink ? `<a class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:10px" href="${escapeHtml(waLink)}" target="_blank">${ICON_WHATSAPP} Contacter sur WhatsApp</a>` : ''}
+        <div style="margin-bottom:10px">${renderContactLinksHtml(p, 'block')}</div>
         <button class="btn ${isFavorited ? 'btn-outline' : 'btn-primary'}" id="immo-fav-btn" style="width:100%;justify-content:center" onclick="toggleImmoFavorite('${p.id}')">${isFavorited ? 'Retirer des favoris' : 'Ajouter aux favoris'}</button>
       </div>
     </div>`;
@@ -9709,6 +9589,7 @@ function openImmoForm(propertyId) {
           <label for="immo-whatsapp">WhatsApp de contact</label>
           <input type="tel" id="immo-whatsapp" class="text-input" placeholder="+243..." value="${existing ? escapeHtml(existing.whatsapp || '') : ''}">
         </div>
+        ${renderContactFieldsHtml('immo', existing)}
         <label class="field-label" style="display:block">Photos (facultatif, 5 max)</label>
         <div id="immo-photo-rows"></div>
         <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:6px 0 14px" onclick="addImmoPhotoRow()">+ Ajouter une photo</button>
@@ -9755,7 +9636,8 @@ async function saveImmoProperty() {
     const photos = await collectGalleryPhotoUrls('#immo-photo-rows .gallery-photo-row', 'immobilier', 5);
     const payload = {
       title, transactionType, propertyType, city, price, currency: 'USD',
-      bedrooms, bathrooms, surfaceArea, description, whatsapp, photos
+      bedrooms, bathrooms, surfaceArea, description, whatsapp, photos,
+      ...readContactFieldsValues('immo')
     };
     if (editingImmoId) {
       await db.collection('properties').doc(editingImmoId).update(payload);
@@ -9891,6 +9773,7 @@ function openSRequestForm() {
           <input type="tel" id="srequest-phone" class="text-input" placeholder="+243...">
           <p class="muted small" style="margin-top:4px">Visible par les professionnels qui consultent ta demande — facultatif, tu peux aussi rester joignable uniquement via l'app.</p>
         </div>
+        ${renderContactFieldsHtml('srequest', null)}
         <button class="btn btn-primary" id="srequest-save-btn" style="width:100%;justify-content:center" onclick="saveSRequest()">Publier la demande</button>
         <p class="muted small" id="srequest-form-msg" style="margin-top:6px"></p>
       </div>
@@ -9917,6 +9800,7 @@ async function saveSRequest() {
     await db.collection('service_requests').add({
       clientUid: currentUser.uid, clientName: currentUser.name || 'Client',
       title, category, city, description, budget, phone: phone || null,
+      ...readContactFieldsValues('srequest'),
       status: 'open', acceptedProUid: null, acceptedProName: null, featured: false,
       createdAt: new Date().toISOString()
     });
@@ -9965,7 +9849,7 @@ async function loadMySRequests() {
         ${r.featured ? '<span class="shop-card-category" style="background:#fff4e0;color:#b5720b;margin-top:4px;display:inline-block">Mise en avant</span>' : ''}
         <div class="muted small" style="margin:4px 0">${escapeHtml(NEARBY_CATEGORY_LABELS[r.category] || '')} · ${escapeHtml(r.city || '')}</div>
         ${r.status === 'open' && quoteCounts[r.id] ? `<div class="muted small" style="margin-bottom:6px">${quoteCounts[r.id]} devis reçu(s)</div>` : ''}
-        ${r.status === 'in_progress' ? `<div class="muted small" style="margin-bottom:8px">Attribuée à ${escapeHtml(r.acceptedProName || '')}${r.acceptedProPhone ? ` — <a href="https://wa.me/${r.acceptedProPhone.replace(/\D/g, '')}" target="_blank">Contacter</a>` : ''}</div>` : ''}
+        ${r.status === 'in_progress' ? `<div class="muted small" style="margin-bottom:8px">Attribuée à ${escapeHtml(r.acceptedProName || '')}</div>${renderContactLinksHtml({ whatsapp: r.acceptedProPhone, email: r.acceptedProEmail, facebook: r.acceptedProFacebook, tiktok: r.acceptedProTiktok }, 'row')}` : ''}
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
           ${r.status === 'open' ? `<button class="btn btn-outline btn-sm" onclick="viewSRequestQuotes('${r.id}')">Voir les devis</button>` : ''}
           ${r.status === 'in_progress' ? `<button class="btn btn-outline btn-sm" onclick="completeSRequest('${r.id}')">Marquer terminée</button>` : ''}
@@ -10030,7 +9914,6 @@ async function viewSRequestQuotes(requestId) {
     } catch (e) { /* best-effort */ }
 
     listEl.innerHTML = quotes.map(q => {
-      const waLink = q.proPhone ? `https://wa.me/${q.proPhone.replace(/\D/g, '')}` : null;
       const rating = ratings[q.proUid];
       return `
       <div class="order-box" style="margin-bottom:10px${q.featured ? ';border-color:#f5a623' : ''}">
@@ -10043,9 +9926,9 @@ async function viewSRequestQuotes(requestId) {
           ${rating ? `★ ${rating.avg.toFixed(1)} (${rating.count} avis)` : 'Pas encore d\'avis'}
         </div>
         ${q.message ? `<p class="muted small" style="margin:4px 0">${escapeHtml(q.message)}</p>` : ''}
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;align-items:center">
           <button class="btn btn-primary btn-sm" onclick="acceptQuote('${requestId}', '${q.proUid}', '${escapeHtml(q.proName)}')">Accepter ce devis</button>
-          ${waLink ? `<a class="btn btn-outline btn-sm" href="${escapeHtml(waLink)}" target="_blank">Contacter</a>` : ''}
+          ${renderContactLinksHtml({ whatsapp: q.proPhone, email: q.proEmail, facebook: q.proFacebook, tiktok: q.proTiktok }, 'row')}
         </div>
       </div>`;
     }).join('');
@@ -10058,15 +9941,21 @@ async function acceptQuote(requestId, proUid, proName) {
   if (!confirm(`Confirmer ${proName} pour cette demande ?`)) return;
   try {
     const quotesSnap = await db.collection('service_quotes').where('requestId', '==', requestId).get();
-    let acceptedProPhone = null;
+    let acceptedProPhone = null, acceptedProEmail = null, acceptedProFacebook = null, acceptedProTiktok = null;
     const batch = db.batch();
     quotesSnap.docs.forEach(d => {
       const isAccepted = d.data().proUid === proUid;
-      if (isAccepted) acceptedProPhone = d.data().proPhone || null;
+      if (isAccepted) {
+        acceptedProPhone = d.data().proPhone || null;
+        acceptedProEmail = d.data().proEmail || null;
+        acceptedProFacebook = d.data().proFacebook || null;
+        acceptedProTiktok = d.data().proTiktok || null;
+      }
       batch.update(d.ref, { status: isAccepted ? 'accepted' : 'declined' });
     });
     batch.update(db.collection('service_requests').doc(requestId), {
-      status: 'in_progress', acceptedProUid: proUid, acceptedProName: proName, acceptedProPhone
+      status: 'in_progress', acceptedProUid: proUid, acceptedProName: proName,
+      acceptedProPhone, acceptedProEmail, acceptedProFacebook, acceptedProTiktok
     });
     await batch.commit();
 
@@ -10211,7 +10100,6 @@ function renderAvailableSRequests(list) {
 
   listEl.innerHTML = visible.map(r => {
     const alreadyQuoted = srequestMyQuotedIds && srequestMyQuotedIds.has(r.id);
-    const waLink = r.phone ? `https://wa.me/${r.phone.replace(/\D/g, '')}` : null;
     return `
     <div class="order-box" style="margin-bottom:12px${r.featured ? ';border-color:#f5a623' : ''}">
       ${r.featured ? '<span class="shop-card-category" style="background:#fff4e0;color:#b5720b;margin-bottom:4px;display:inline-block">Mise en avant</span>' : ''}
@@ -10219,11 +10107,11 @@ function renderAvailableSRequests(list) {
       <div class="muted small" style="margin:4px 0">${escapeHtml(NEARBY_CATEGORY_LABELS[r.category] || '')} · ${escapeHtml(r.city || '')}</div>
       ${r.budget ? `<div class="muted small" style="margin-bottom:6px">Budget indicatif : ${escapeHtml(r.budget)}</div>` : ''}
       <p class="muted small" style="margin-bottom:10px">${escapeHtml(r.description || '')}</p>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
         ${alreadyQuoted
           ? `<span class="shop-card-category">Devis envoyé</span>`
           : `<button class="btn btn-primary btn-sm" onclick="openQuoteForm('${r.id}')">Envoyer un devis</button>`}
-        ${waLink ? `<a class="btn btn-outline btn-sm" href="${escapeHtml(waLink)}" target="_blank">Contacter le client</a>` : ''}
+        ${renderContactLinksHtml({ ...r, whatsapp: r.phone }, 'row')}
       </div>
     </div>`;
   }).join('');
@@ -10253,6 +10141,7 @@ function openQuoteForm(requestId) {
           <label for="quote-phone">Ton WhatsApp (facultatif, pour que le client puisse te contacter)</label>
           <input type="tel" id="quote-phone" class="text-input" placeholder="+243...">
         </div>
+        ${renderContactFieldsHtml('quote', null)}
         <button class="btn btn-primary" id="quote-save-btn" style="width:100%;justify-content:center" onclick="saveQuote('${requestId}')">Envoyer le devis</button>
         <p class="muted small" id="quote-form-msg" style="margin-top:6px"></p>
       </div>
@@ -10263,7 +10152,15 @@ function openQuoteForm(requestId) {
   // du pro, s'il en a deja une -- lui evite une saisie en double.
   db.collection('directory_listings').doc(currentUser.uid).get().then(doc => {
     const phoneInput = document.getElementById('quote-phone');
-    if (doc.exists && phoneInput && !phoneInput.value) phoneInput.value = doc.data().phone || '';
+    if (!doc.exists) return;
+    const d = doc.data();
+    if (phoneInput && !phoneInput.value) phoneInput.value = d.phone || '';
+    const emailInput = document.getElementById('quote-email');
+    if (emailInput && !emailInput.value) emailInput.value = d.email || '';
+    const fbInput = document.getElementById('quote-facebook');
+    if (fbInput && !fbInput.value) fbInput.value = d.facebook || '';
+    const ttInput = document.getElementById('quote-tiktok');
+    if (ttInput && !ttInput.value) ttInput.value = d.tiktok || '';
   }).catch(() => {});
 }
 
@@ -10282,9 +10179,12 @@ async function saveQuote(requestId) {
   btn.disabled = true;
   btn.textContent = 'Envoi...';
   try {
+    const contact = readContactFieldsValues('quote');
     await db.collection('service_quotes').doc(`${requestId}_${currentUser.uid}`).set({
       requestId, proUid: currentUser.uid, proName: currentUser.name || 'Professionnel',
-      price, message, proPhone: phone || null, status: 'pending', featured: false, createdAt: new Date().toISOString()
+      price, message, proPhone: phone || null,
+      proEmail: contact.email || null, proFacebook: contact.facebook || null, proTiktok: contact.tiktok || null,
+      status: 'pending', featured: false, createdAt: new Date().toISOString()
     });
 
     await db.collection('notifications').add({
@@ -10952,11 +10852,6 @@ const BUSINESS_PRO_CLIENT_LIMIT = 300;
 function businessIsProActive(b) {
   return !!(b && b.pro && b.proUntil && new Date(b.proUntil).getTime() > Date.now());
 }
-function businessBoostActive(b) {
-  return !!(b && b.boostedUntil && new Date(b.boostedUntil).getTime() > Date.now());
-}
-const BUSINESS_CAMPAIGN_PRICES = { boost_3: 3, boost_7: 7, banner_3: 10, banner_7: 20, promo: 2 };
-const CAMPAIGN_MAX_RECIPIENTS_HINT = 300; // doit rester identique a CAMPAIGN_MAX_RECIPIENTS dans api/payments-actions.js
 
 let businessCache = null;
 let businessMyProfile = null;
@@ -11022,15 +10917,7 @@ function runBusinessFilter() {
     if (query && !`${b.businessName || ''} ${NEARBY_CATEGORY_LABELS[b.category] || ''}`.toLowerCase().includes(query)) return false;
     return true;
   });
-  // Ordre de priorite d'affichage : mise en avant payante (campagne
-  // "boost") d'abord, puis Pro, puis le reste -- une mise en avant coute
-  // plus cher et cible specifiquement ce classement, elle passe donc
-  // avant le simple badge Pro.
-  matches.sort((a, b) => {
-    const boostDiff = (businessBoostActive(b) ? 1 : 0) - (businessBoostActive(a) ? 1 : 0);
-    if (boostDiff !== 0) return boostDiff;
-    return (businessIsProActive(b) ? 1 : 0) - (businessIsProActive(a) ? 1 : 0);
-  });
+  matches.sort((a, b) => (businessIsProActive(b) ? 1 : 0) - (businessIsProActive(a) ? 1 : 0));
   renderBusinessCards(matches);
 }
 
@@ -11042,11 +10929,11 @@ function renderBusinessCards(list) {
     return;
   }
   listEl.innerHTML = visible.map(b => `
-    <div class="order-box" style="margin-bottom:12px${businessBoostActive(b) ? ';border-color:#2563eb' : (businessIsProActive(b) ? ';border-color:#f5a623' : '')}">
+    <div class="order-box" style="margin-bottom:12px${businessIsProActive(b) ? ';border-color:#f5a623' : ''}">
       <div style="display:flex;align-items:center;gap:10px">
         ${b.logoUrl ? `<img src="${escapeHtml(b.logoUrl)}" style="width:44px;height:44px;border-radius:50%;object-fit:cover">` : ''}
         <div>
-          <strong>${escapeHtml(b.businessName || 'Entreprise')}</strong>${businessBoostActive(b) ? ' <span class="shop-card-category" style="background:#e8f0fe;color:#2563eb">🚀 En avant</span>' : (businessIsProActive(b) ? ' <span class="shop-card-category" style="background:#fff4e0;color:#b5720b">Pro</span>' : '')}
+          <strong>${escapeHtml(b.businessName || 'Entreprise')}</strong>${businessIsProActive(b) ? ' <span class="shop-card-category" style="background:#fff4e0;color:#b5720b">Pro</span>' : ''}
           <div class="muted small">${escapeHtml(NEARBY_CATEGORY_LABELS[b.category] || '')}</div>
         </div>
       </div>
@@ -11087,22 +10974,9 @@ async function openBusinessDetail(ownerUid) {
       <h4>${ICON_TAG} Promotions en cours</h4>
       ${activeCoupons.map(c => `
         <div class="biz-desc-card" style="margin:0 0 10px;border-color:#f5a623;background:#fff8ec">
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
-            <div>
-              <strong style="color:#b5720b">${escapeHtml(c.discountLabel || 'Promo')}</strong> — <span class="muted small">code ${escapeHtml(c.code || '')}</span>
-              ${c.description ? `<p class="muted small" style="margin:4px 0 0">${escapeHtml(c.description)}</p>` : ''}
-            </div>
-            ${(!isOwn && currentUser && b.loyaltyEnabled) ? `<button class="btn btn-outline btn-sm" style="white-space:nowrap" onclick="useLoyaltyCoupon('${ownerUid}','${escapeForJs(c.code || '')}')">Utiliser (+${LOYALTY_COUPON_BONUS_POINTS_HINT}pts)</button>` : ''}
-          </div>
+          <strong style="color:#b5720b">${escapeHtml(c.discountLabel || 'Promo')}</strong> — <span class="muted small">code ${escapeHtml(c.code || '')}</span>
+          ${c.description ? `<p class="muted small" style="margin:4px 0 0">${escapeHtml(c.description)}</p>` : ''}
         </div>`).join('')}
-    </div>` : '';
-
-  const loyaltyHtml = (b.loyaltyEnabled && !isOwn && currentUser) ? `
-    <div class="biz-section" style="padding-top:4px">
-      <h4>🎁 Programme de fidélité</h4>
-      <div class="biz-desc-card" id="business-loyalty-card" style="margin:0">
-        <p class="muted small">Chargement...</p>
-      </div>
     </div>` : '';
 
   // Fiche entreprise = vraie page plein ecran (meme technique que le profil :
@@ -11137,7 +11011,6 @@ async function openBusinessDetail(ownerUid) {
         </div>
         ${b.description ? `<div class="biz-desc-card">${escapeHtml(b.description)}</div>` : ''}
         ${couponsHtml}
-        ${loyaltyHtml}
         ${catalogHtml}
         ${!isOwn && currentUser ? `<div class="biz-section" style="padding-top:0"><button class="btn btn-outline btn-sm" style="width:100%;justify-content:center" onclick="openReportModal('${ownerUid}', '${ownerUid}', 'business')">${ICON_FLAG} Signaler cette page</button></div>` : ''}
         <div class="biz-section">
@@ -11148,76 +11021,10 @@ async function openBusinessDetail(ownerUid) {
     </div>`;
   document.body.insertAdjacentHTML('beforeend', html);
   loadBusinessPostsFeed(ownerUid, 'business-detail-posts');
-  if (b.loyaltyEnabled && !isOwn && currentUser) loadLoyaltyCard(ownerUid, b);
 
   // Comptage des vues, best-effort, uniquement pour les visites d'autrui.
   if (!isOwn) {
     db.collection('businesses').doc(ownerUid).update({ viewsCount: firebase.firestore.FieldValue.increment(1) }).catch(() => {});
-  }
-}
-
-// Carte de fidelite du client CONNECTE pour CETTE entreprise (jamais
-// publique, voir regles Firestore business_loyalty). N'existe peut-etre pas
-// encore (aucun point gagne pour l'instant), ce n'est pas une erreur.
-async function loadLoyaltyCard(ownerUid, b) {
-  const el = document.getElementById('business-loyalty-card');
-  if (!el) return;
-  try {
-    const doc = await db.collection('business_loyalty').doc(`${ownerUid}_${currentUser.uid}`).get();
-    const points = doc.exists ? (doc.data().points || 0) : 0;
-    const threshold = b.loyaltyThreshold || 0;
-    const canClaim = threshold > 0 && points >= threshold;
-    el.innerHTML = `
-      <p style="margin:0 0 6px">Tu as <strong>${points} point${points > 1 ? 's' : ''}</strong>${threshold ? ` sur ${threshold} pour : ${escapeHtml(b.loyaltyReward || 'une récompense')}` : ''}.</p>
-      ${canClaim ? `<button class="btn btn-primary btn-sm" style="width:100%;justify-content:center;margin-bottom:10px" onclick="claimLoyaltyReward('${ownerUid}')">🎁 Réclamer ma récompense</button>` : ''}
-      <p class="muted small" style="margin:0 0 4px">Ton code fidélité (à montrer ou envoyer au commerçant) :</p>
-      <div style="display:flex;gap:6px;align-items:center">
-        <code style="flex:1;background:#f5f5f5;padding:6px 8px;border-radius:6px;font-size:0.8rem;word-break:break-all">${currentUser.uid}</code>
-        <button class="btn btn-outline btn-sm" onclick="copyToClipboard('${currentUser.uid}')">Copier</button>
-      </div>`;
-  } catch (e) {
-    el.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
-  }
-}
-
-async function useLoyaltyCoupon(businessUid, couponCode) {
-  if (!currentUser) { openAuth('register'); return; }
-  try {
-    const idToken = await auth.currentUser.getIdToken();
-    const resp = await fetch('/api/payments-actions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ idToken, action: 'loyalty_use_coupon', businessUid, couponCode })
-    });
-    const data = await resp.json();
-    if (!data.success) { showToast(data.error || 'Erreur', 'error'); return; }
-    showToast(`+${data.bonus} points fidélité ! Total : ${data.newPoints}`, 'success');
-    const bizDoc = await db.collection('businesses').doc(businessUid).get();
-    if (bizDoc.exists) loadLoyaltyCard(businessUid, bizDoc.data());
-  } catch (e) {
-    showToast(friendlyErrorMessage(e), 'error');
-  }
-}
-
-async function claimLoyaltyReward(businessUid) {
-  if (window.__loyaltyClaimPending) return;
-  window.__loyaltyClaimPending = true;
-  try {
-    const idToken = await auth.currentUser.getIdToken();
-    const resp = await fetch('/api/payments-actions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ idToken, action: 'loyalty_claim_reward', businessUid })
-    });
-    const data = await resp.json();
-    if (!data.success) { showToast(data.error || 'Erreur', 'error'); return; }
-    alert(`Récompense débloquée : ${data.reward}\n\nMontre ce code au commerçant : ${data.code}`);
-    const bizDoc = await db.collection('businesses').doc(businessUid).get();
-    if (bizDoc.exists) loadLoyaltyCard(businessUid, bizDoc.data());
-  } catch (e) {
-    showToast(friendlyErrorMessage(e), 'error');
-  } finally {
-    window.__loyaltyClaimPending = false;
   }
 }
 
@@ -11328,19 +11135,12 @@ async function renderMyBusinessStatus() {
 
     ${proBlockHtml}
 
-    ${businessBoostActive(b) ? `
-    <div class="order-box" style="margin-bottom:14px;border-color:#2563eb">
-      <strong>🚀 Mise en avant active</strong>
-      <div class="muted small" style="margin-top:2px">Jusqu'au ${escapeHtml(new Date(b.boostedUntil).toLocaleDateString())}</div>
-    </div>` : ''}
-
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
       <button class="btn btn-outline btn-sm" onclick="openBusinessCatalogManager()">Catalogue (${catalogCount})</button>
       <button class="btn btn-outline btn-sm" onclick="openBusinessCouponsManager()">Coupons (${couponsCount})</button>
       <button class="btn btn-outline btn-sm" onclick="openBusinessClientsManager()">Mes clients</button>
-      <button class="btn btn-outline btn-sm" onclick="openBusinessCampaignsManager()">📣 Campagnes pub</button>
+      <button class="btn btn-primary btn-sm" onclick="openBusinessPostForm()">Publier une actualité</button>
     </div>
-    <button class="btn btn-primary btn-sm" style="width:100%;justify-content:center;margin-bottom:14px" onclick="openBusinessPostForm()">Publier une actualité</button>
 
     <h4 style="margin-bottom:8px">Mes actualités</h4>
     <div id="business-mine-posts"><p class="muted small">Chargement...</p></div>`;
@@ -11487,138 +11287,6 @@ async function saveBusinessCoupons(limit) {
 }
 
 /* ---- Mini-CRM (mes clients) ---- */
-/* ---- CAMPAGNES PUBLICITAIRES ----
-   3 types payes depuis le portefeuille (voir purchaseBusinessCampaign()
-   cote serveur pour le detail) : mise en avant, banniere app entiere,
-   promo envoyee aux abonnes. Les "clients" du mini-CRM ne sont que des
-   fiches contact (nom/telephone) sans compte utilisateur : ils ne
-   peuvent pas recevoir de notification automatique, seulement les
-   abonnes (qui ont un vrai compte). */
-async function openBusinessCampaignsManager() {
-  if (document.getElementById('business-campaigns-modal')) return;
-  const html = `
-    <div class="modal-overlay" id="business-campaigns-modal">
-      <div class="modal">
-        <button class="modal-close" onclick="document.getElementById('business-campaigns-modal').remove()" aria-label="Fermer">×</button>
-        <h3 style="margin-bottom:4px">Campagnes publicitaires</h3>
-        <p class="muted small" style="margin-bottom:14px">Payées depuis ton portefeuille, comme le boost SMM.</p>
-
-        <div class="order-box" style="margin-bottom:12px">
-          <strong>🚀 Mise en avant</strong>
-          <p class="muted small" style="margin:4px 0 10px">Ta page apparaît en tête de "Trouver une entreprise" pendant la durée choisie.</p>
-          <div style="display:flex;gap:8px">
-            <button class="btn btn-outline btn-sm" style="flex:1" onclick="purchaseBusinessCampaign('boost', 3)">3 jours — ${BUSINESS_CAMPAIGN_PRICES.boost_3}$</button>
-            <button class="btn btn-outline btn-sm" style="flex:1" onclick="purchaseBusinessCampaign('boost', 7)">7 jours — ${BUSINESS_CAMPAIGN_PRICES.boost_7}$</button>
-          </div>
-        </div>
-
-        <div class="order-box" style="margin-bottom:12px">
-          <strong>📣 Promo à mes abonnés</strong>
-          <p class="muted small" style="margin:4px 0 10px">Envoie une notification à tous tes abonnés d'un coup (${CAMPAIGN_MAX_RECIPIENTS_HINT} maximum). Ne touche pas tes clients du mini-CRM : ce sont des fiches contact sans compte, contacte-les toi-même par WhatsApp.</p>
-          <div class="field">
-            <label for="business-promo-message">Message (200 caractères max)</label>
-            <textarea id="business-promo-message" class="text-input" rows="2" maxlength="200" placeholder="ex: -20% ce week-end sur tout le catalogue !"></textarea>
-          </div>
-          <button class="btn btn-outline btn-sm" style="width:100%;justify-content:center" onclick="purchaseBusinessCampaign('promo', null)">Envoyer — ${BUSINESS_CAMPAIGN_PRICES.promo}$</button>
-        </div>
-
-        <div class="order-box" style="margin-bottom:12px">
-          <strong>🖼️ Bannière visible par tous les utilisateurs</strong>
-          <p class="muted small" style="margin:4px 0 10px">Affichée en haut du fil d'accueil de TOUT le monde sur CoeurnohBoost, pendant la durée choisie.</p>
-          <div class="field">
-            <label for="business-banner-text">Texte de la bannière (140 caractères max)</label>
-            <input type="text" id="business-banner-text" class="text-input" maxlength="140" placeholder="ex: Nouvelle collection disponible !">
-          </div>
-          <div style="display:flex;gap:8px">
-            <button class="btn btn-outline btn-sm" style="flex:1" onclick="purchaseBusinessCampaign('banner', 3)">3 jours — ${BUSINESS_CAMPAIGN_PRICES.banner_3}$</button>
-            <button class="btn btn-outline btn-sm" style="flex:1" onclick="purchaseBusinessCampaign('banner', 7)">7 jours — ${BUSINESS_CAMPAIGN_PRICES.banner_7}$</button>
-          </div>
-        </div>
-
-        <p class="muted small" id="business-campaigns-msg" style="margin-top:6px"></p>
-        <h4 style="margin:16px 0 8px">Historique</h4>
-        <div id="business-campaigns-history"><p class="muted small">Chargement...</p></div>
-      </div>
-    </div>`;
-  document.body.insertAdjacentHTML('beforeend', html);
-  loadBusinessCampaignsHistory();
-}
-
-async function loadBusinessCampaignsHistory() {
-  const el = document.getElementById('business-campaigns-history');
-  if (!el || !currentUser) return;
-  try {
-    const snap = await db.collection('business_campaigns').where('ownerUid', '==', currentUser.uid).limit(30).get();
-    const list = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
-    if (list.length === 0) { el.innerHTML = '<p class="muted small">Aucune campagne lancée pour l\'instant.</p>'; return; }
-    const typeLabels = { boost: 'Mise en avant', banner: 'Bannière', promo: 'Promo abonnés' };
-    el.innerHTML = list.map(c => {
-      const active = c.status === 'active' && (!c.expiresAt || new Date(c.expiresAt).getTime() > Date.now());
-      return `
-      <div class="order-box" style="margin-bottom:8px">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <strong>${typeLabels[c.type] || c.type}</strong>
-          <span class="shop-card-category" style="background:${active ? '#e6f6ea' : '#f1f1f1'};color:${active ? '#1a7a3c' : '#777'}">${active ? 'Active' : (c.status === 'disabled' ? 'Désactivée' : 'Terminée')}</span>
-        </div>
-        <div class="muted small" style="margin-top:4px">${c.price}$ · ${new Date(c.createdAt).toLocaleDateString('fr-FR')}${c.expiresAt ? ' → ' + new Date(c.expiresAt).toLocaleDateString('fr-FR') : ''}</div>
-        ${c.bannerText ? `<div class="muted small" style="margin-top:4px">« ${escapeHtml(c.bannerText)} »</div>` : ''}
-        ${c.promoMessage ? `<div class="muted small" style="margin-top:4px">« ${escapeHtml(c.promoMessage)} »</div>` : ''}
-      </div>`;
-    }).join('');
-  } catch (e) {
-    el.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
-  }
-}
-
-async function purchaseBusinessCampaign(type, durationDays) {
-  const msgEl = document.getElementById('business-campaigns-msg');
-  msgEl.style.color = 'var(--red)';
-  msgEl.textContent = '';
-
-  let bannerText = null, promoMessage = null;
-  if (type === 'banner') {
-    bannerText = document.getElementById('business-banner-text').value.trim();
-    if (!bannerText) { msgEl.textContent = 'Écris le texte de la bannière.'; return; }
-  }
-  if (type === 'promo') {
-    promoMessage = document.getElementById('business-promo-message').value.trim();
-    if (!promoMessage) { msgEl.textContent = 'Écris le message à envoyer.'; return; }
-  }
-
-  const priceKey = durationDays ? `${type}_${durationDays}` : type;
-  const price = BUSINESS_CAMPAIGN_PRICES[priceKey];
-  if (!confirm(`Lancer cette campagne pour ${price}$, débités de ton portefeuille ?`)) return;
-
-  if (window.__businessCampaignPending) return;
-  window.__businessCampaignPending = true;
-  msgEl.style.color = 'var(--muted)';
-  msgEl.textContent = 'Envoi en cours...';
-  try {
-    const idToken = await auth.currentUser.getIdToken();
-    const resp = await fetch('/api/payments-actions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ idToken, action: 'business_campaign_purchase', type, durationDays, bannerText, promoMessage })
-    });
-    const data = await resp.json();
-    if (!data.success) {
-      msgEl.style.color = 'var(--red)';
-      msgEl.textContent = data.error || "Erreur lors de l'envoi. Réessaie.";
-      return;
-    }
-    currentUser.balance = data.newBalance;
-    showToast(type === 'promo' ? `Promo envoyée à ${data.promoSentCount || 0} abonné(s)` : 'Campagne lancée', 'success');
-    businessCache = null;
-    loadMyBusiness();
-    document.getElementById('business-campaigns-modal').remove();
-  } catch (e) {
-    msgEl.style.color = 'var(--red)';
-    msgEl.textContent = friendlyErrorMessage(e);
-  } finally {
-    window.__businessCampaignPending = false;
-  }
-}
-
 async function openBusinessClientsManager() {
   if (document.getElementById('business-clients-modal')) return;
   const html = `
@@ -11640,54 +11308,11 @@ async function openBusinessClientsManager() {
         </div>
         <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:14px" onclick="addBusinessClient()">Ajouter ce client</button>
         <p class="muted small" id="business-clients-msg" style="margin-bottom:10px"></p>
-
-        ${businessMyProfile && businessMyProfile.loyaltyEnabled ? `
-        <div class="order-box" style="margin-bottom:14px">
-          <strong>🎁 Ajouter des points fidélité</strong>
-          <p class="muted small" style="margin:4px 0 10px">Demande au client son code fidélité (visible sur ta page, dans la section Programme de fidélité).</p>
-          <div class="field">
-            <label for="business-loyalty-code">Code du client</label>
-            <input type="text" id="business-loyalty-code" class="text-input">
-          </div>
-          <div class="field">
-            <label for="business-loyalty-points">Points à ajouter</label>
-            <input type="number" id="business-loyalty-points" class="text-input" min="1" value="10">
-          </div>
-          <button class="btn btn-outline btn-sm" style="width:100%;justify-content:center" onclick="addLoyaltyPointsToClient()">Ajouter les points</button>
-          <p class="muted small" id="business-loyalty-add-msg" style="margin-top:6px"></p>
-        </div>` : ''}
-
         <div id="business-clients-list"><p class="muted small">Chargement...</p></div>
       </div>
     </div>`;
   document.body.insertAdjacentHTML('beforeend', html);
   loadBusinessClients();
-}
-
-async function addLoyaltyPointsToClient() {
-  const msgEl = document.getElementById('business-loyalty-add-msg');
-  const clientCode = document.getElementById('business-loyalty-code').value.trim();
-  const points = parseInt(document.getElementById('business-loyalty-points').value, 10);
-  msgEl.style.color = 'var(--red)';
-  if (!clientCode || !points || points < 1) {
-    msgEl.textContent = 'Renseigne le code du client et un nombre de points valide.';
-    return;
-  }
-  try {
-    const idToken = await auth.currentUser.getIdToken();
-    const resp = await fetch('/api/payments-actions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ idToken, action: 'loyalty_add_points', clientCode, points })
-    });
-    const data = await resp.json();
-    if (!data.success) { msgEl.textContent = data.error || 'Erreur.'; return; }
-    msgEl.style.color = 'var(--green)';
-    msgEl.textContent = `Fait ! Ce client a maintenant ${data.newPoints} points.`;
-    document.getElementById('business-loyalty-code').value = '';
-  } catch (e) {
-    msgEl.textContent = friendlyErrorMessage(e);
-  }
 }
 
 async function loadBusinessClients() {
@@ -11844,91 +11469,11 @@ function openBusinessForm() {
           <label for="business-tiktok">TikTok (facultatif)</label>
           <input type="url" id="business-tiktok" class="text-input" placeholder="https://tiktok.com/@..." value="${escapeHtml(b.tiktokUrl || '')}">
         </div>
-
-        <div style="display:flex;justify-content:space-between;align-items:center;margin:18px 0 12px;padding-top:14px;border-top:1px solid var(--line)">
-          <label class="field-label" style="margin:0">Accepter les réservations en ligne</label>
-          <label class="switch"><input type="checkbox" id="business-booking-enabled" ${b.bookingEnabled ? 'checked' : ''} onchange="toggleBusinessBookingConfigVisibility()"><span class="slider"></span></label>
-        </div>
-
-        <div id="business-booking-config" class="${b.bookingEnabled ? '' : 'hidden'}">
-          <label class="field-label" style="display:block">Jours de disponibilité</label>
-          <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px">
-            ${['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map((d, i) => `
-              <label style="display:flex;align-items:center;gap:5px;font-size:0.85rem">
-                <input type="checkbox" class="business-booking-day" value="${i}" ${(b.bookingDays || []).includes(i) ? 'checked' : ''}> ${d}
-              </label>`).join('')}
-          </div>
-          <div style="display:flex;gap:8px">
-            <div class="field" style="flex:1">
-              <label for="business-booking-start">Ouverture</label>
-              <input type="time" id="business-booking-start" class="text-input" value="${escapeHtml(b.bookingStart || '08:00')}">
-            </div>
-            <div class="field" style="flex:1">
-              <label for="business-booking-end">Fermeture</label>
-              <input type="time" id="business-booking-end" class="text-input" value="${escapeHtml(b.bookingEnd || '17:00')}">
-            </div>
-          </div>
-          <div class="field">
-            <label for="business-booking-duration">Durée de chaque créneau</label>
-            <select id="business-booking-duration" class="select-input">
-              <option value="15" ${b.slotDuration === 15 ? 'selected' : ''}>15 minutes</option>
-              <option value="30" ${!b.slotDuration || b.slotDuration === 30 ? 'selected' : ''}>30 minutes</option>
-              <option value="45" ${b.slotDuration === 45 ? 'selected' : ''}>45 minutes</option>
-              <option value="60" ${b.slotDuration === 60 ? 'selected' : ''}>1 heure</option>
-            </select>
-          </div>
-          <label class="field-label" style="display:block">Services réservables (facultatif)</label>
-          <div id="business-service-rows"></div>
-          <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:6px 0 4px" onclick="addBusinessServiceRow()">+ Ajouter un service</button>
-        </div>
-
-        <div style="display:flex;justify-content:space-between;align-items:center;margin:18px 0 12px;padding-top:14px;border-top:1px solid var(--line)">
-          <label class="field-label" style="margin:0">Programme de fidélité</label>
-          <label class="switch"><input type="checkbox" id="business-loyalty-enabled" ${b.loyaltyEnabled ? 'checked' : ''} onchange="toggleBusinessLoyaltyConfigVisibility()"><span class="slider"></span></label>
-        </div>
-        <div id="business-loyalty-config" class="${b.loyaltyEnabled ? '' : 'hidden'}">
-          <div class="field">
-            <label for="business-loyalty-threshold">Points nécessaires pour la récompense</label>
-            <input type="number" id="business-loyalty-threshold" class="text-input" min="1" value="${b.loyaltyThreshold || 100}">
-          </div>
-          <div class="field">
-            <label for="business-loyalty-reward">Récompense (ex: "5$ de réduction")</label>
-            <input type="text" id="business-loyalty-reward" class="text-input" maxlength="80" value="${escapeHtml(b.loyaltyReward || '')}">
-          </div>
-          <p class="muted small">Tes clients gagnent aussi ${LOYALTY_COUPON_BONUS_POINTS_HINT} points automatiquement à chaque coupon utilisé sur ta page.</p>
-        </div>
-
-        <button class="btn btn-primary" id="business-save-btn" style="width:100%;justify-content:center;margin-top:14px" onclick="saveBusinessProfile()">Enregistrer</button>
+        <button class="btn btn-primary" id="business-save-btn" style="width:100%;justify-content:center" onclick="saveBusinessProfile()">Enregistrer</button>
         <p class="muted small" id="business-form-msg" style="margin-top:6px"></p>
       </div>
     </div>`;
   document.body.insertAdjacentHTML('beforeend', html);
-  const existingBusinessServices = Array.isArray(b.services) && b.services.length > 0 ? b.services : [];
-  existingBusinessServices.forEach(s => addBusinessServiceRow(s));
-}
-
-// Meme moteur de reservation que "Pres de chez vous" (une seule fiche pour
-// le client, pas besoin de creer une fiche annuaire en plus d'une page
-// Business) -- voir loadBookableProfessionals() plus bas, qui fusionne
-// desormais les deux sources.
-function toggleBusinessBookingConfigVisibility() {
-  const enabled = document.getElementById('business-booking-enabled').checked;
-  document.getElementById('business-booking-config').classList.toggle('hidden', !enabled);
-}
-function toggleBusinessLoyaltyConfigVisibility() {
-  const enabled = document.getElementById('business-loyalty-enabled').checked;
-  document.getElementById('business-loyalty-config').classList.toggle('hidden', !enabled);
-}
-const LOYALTY_COUPON_BONUS_POINTS_HINT = 10; // doit rester identique a LOYALTY_COUPON_BONUS_POINTS dans api/payments-actions.js
-function addBusinessServiceRow(service) {
-  const rowsEl = document.getElementById('business-service-rows');
-  const row = document.createElement('div');
-  row.className = 'invoice-item-row';
-  row.innerHTML = `
-    <input type="text" class="text-input business-service-name" placeholder="Nom du service" value="${escapeHtml(service ? service.name || '' : '')}" style="flex:2">
-    <input type="text" class="text-input business-service-price" placeholder="Prix (ex: 10$)" value="${escapeHtml(service ? service.price || '' : '')}" style="flex:1">
-    <button type="button" class="invoice-row-remove" onclick="this.parentElement.remove()" aria-label="Retirer">×</button>`;
-  rowsEl.appendChild(row);
 }
 
 let pendingBusinessLogoFile = null;
@@ -11977,33 +11522,9 @@ async function saveBusinessProfile() {
   const email = document.getElementById('business-email').value.trim();
   const facebookUrl = document.getElementById('business-facebook').value.trim();
   const tiktokUrl = document.getElementById('business-tiktok').value.trim();
-  const bookingEnabled = document.getElementById('business-booking-enabled').checked;
-  const bookingDays = Array.from(document.querySelectorAll('.business-booking-day:checked')).map(el => parseInt(el.value, 10));
-  const bookingStart = document.getElementById('business-booking-start').value;
-  const bookingEnd = document.getElementById('business-booking-end').value;
-  const slotDuration = parseInt(document.getElementById('business-booking-duration').value, 10);
-  const services = Array.from(document.querySelectorAll('#business-service-rows .invoice-item-row')).map(row => ({
-    name: row.querySelector('.business-service-name').value.trim(),
-    price: row.querySelector('.business-service-price').value.trim()
-  })).filter(s => s.name);
-  const loyaltyEnabled = document.getElementById('business-loyalty-enabled').checked;
-  const loyaltyThreshold = parseInt(document.getElementById('business-loyalty-threshold').value, 10);
-  const loyaltyReward = document.getElementById('business-loyalty-reward').value.trim();
 
   if (!businessName || !description || !whatsapp) {
     msgEl.textContent = 'Merci de remplir au moins le nom, la présentation et le WhatsApp.';
-    return;
-  }
-  if (bookingEnabled && bookingDays.length === 0) {
-    msgEl.textContent = 'Coche au moins un jour de disponibilité pour activer les réservations.';
-    return;
-  }
-  if (bookingEnabled && bookingStart >= bookingEnd) {
-    msgEl.textContent = "L'heure de fermeture doit être après l'heure d'ouverture.";
-    return;
-  }
-  if (loyaltyEnabled && (!loyaltyThreshold || loyaltyThreshold < 1 || !loyaltyReward)) {
-    msgEl.textContent = 'Indique un seuil de points valide et la récompense pour activer la fidélité.';
     return;
   }
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -12028,41 +11549,22 @@ async function saveBusinessProfile() {
       });
       coverImageUrl = uploaded.url;
     }
-    const businessPayload = {
+    await db.collection('businesses').doc(currentUser.uid).set({
       ownerUid: currentUser.uid, businessName, category, description,
       logoUrl: logoUrl || null, coverImageUrl: coverImageUrl || null,
       address, hours, whatsapp, phone,
       email: email || null, facebookUrl: facebookUrl || null, tiktokUrl: tiktokUrl || null,
       status: 'active',
-      bookingEnabled, bookingDays, bookingStart, bookingEnd, slotDuration, services,
-      loyaltyEnabled, loyaltyThreshold: loyaltyEnabled ? loyaltyThreshold : null, loyaltyReward: loyaltyEnabled ? loyaltyReward : null,
+      // "pro"/"proUntil"/"viewsCount" ne sont jamais modifies ici (merge:true
+      // les preserve) : seul /api/payments-actions.js (Admin SDK) et
+      // l'incrementation des vues sont autorises a les toucher.
+      pro: businessMyProfile ? (businessMyProfile.pro || false) : false,
+      proUntil: businessMyProfile ? (businessMyProfile.proUntil || null) : null,
+      viewsCount: businessMyProfile ? (businessMyProfile.viewsCount || 0) : 0,
+      catalog: businessMyProfile ? (businessMyProfile.catalog || []) : [],
+      coupons: businessMyProfile ? (businessMyProfile.coupons || []) : [],
       createdAt: businessMyProfile ? businessMyProfile.createdAt : new Date().toISOString()
-    };
-    // "pro", "proUntil", "viewsCount", "catalog" et "coupons" : sur une
-    // MISE A JOUR d'une page existante, on ne les inclut JAMAIS -- merge:true
-    // les preserve alors automatiquement tels qu'ils sont reellement en
-    // base au moment de l'enregistrement. Seul /api/payments-actions.js
-    // (Admin SDK), l'incrementation des vues, et les gestionnaires dedies
-    // (catalogue/coupons) sont autorises a les toucher.
-    // (AVANT : ces 5 champs etaient renvoyes depuis la copie chargee a
-    // l'ouverture du formulaire "Modifier ma page" -- si un visiteur avait
-    // vu la page entre-temps (viewsCount), si le Pro avait ete active
-    // pendant que le formulaire etait ouvert, ou si le catalogue/les
-    // coupons avaient ete modifies via leurs propres gestionnaires
-    // pendant ce temps, cette sauvegarde effacait ces changements avec
-    // l'ancienne copie perimee -- vues perdues, Pro non reconnu, ou pire,
-    // articles/coupons ajoutes qui disparaissaient sans explication.)
-    // Sur une CREATION (aucune page existante), il n'y a alors rien a
-    // preserver via merge -- les regles Firestore exigent explicitement
-    // pro == false, donc on doit le fournir cette fois-la.
-    if (!businessMyProfile) {
-      businessPayload.pro = false;
-      businessPayload.proUntil = null;
-      businessPayload.viewsCount = 0;
-      businessPayload.catalog = [];
-      businessPayload.coupons = [];
-    }
-    await db.collection('businesses').doc(currentUser.uid).set(businessPayload, { merge: true });
+    }, { merge: true });
     document.getElementById('business-form-modal').remove();
     showToast('Page enregistrée', 'success');
     businessCache = null;
@@ -12799,49 +12301,8 @@ async function confirmShopPurchase(pubId, title, price, itemType) {
 }
 
 /* ================= NOTIFICATIONS PUSH (alertes reelles, meme app fermee) ================= */
-// Affiche une fois par session une petite bannière invitant à activer les
-// notifications, avec un vrai bouton à taper -- pour que la demande de
-// permission parte toujours d'un geste utilisateur (voir le commentaire
-// dans onAuthStateChanged ci-dessus). Ne s'affiche jamais deux fois dans
-// la meme session, et jamais si la personne a deja tranche (accepte ou
-// refuse) ou a deja ferme la banniere une fois.
-let notifBannerShown = false;
-function maybeShowNotifPermissionBanner() {
-  if (notifBannerShown) return;
-  if (localStorage.getItem('notifBannerDismissed') === '1') return;
-  if (document.getElementById('notif-permission-banner')) return;
-  notifBannerShown = true;
-
-  const html = `
-    <div id="notif-permission-banner" style="position:fixed;left:12px;right:12px;bottom:calc(70px + env(safe-area-inset-bottom));z-index:9000;
-      background:#111827;color:#fff;border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px;
-      box-shadow:0 6px 18px rgba(0,0,0,.25)">
-      <span style="flex:1;font-size:0.92rem">Active les notifications pour ne rien manquer (messages, commandes, réponses...).</span>
-      <button class="btn btn-primary btn-sm" onclick="acceptNotifPermissionBanner()">Activer</button>
-      <button class="btn btn-outline btn-sm" style="border-color:#fff;color:#fff" onclick="dismissNotifPermissionBanner()" aria-label="Fermer">×</button>
-    </div>`;
-  document.body.insertAdjacentHTML('beforeend', html);
-}
-function acceptNotifPermissionBanner() {
-  dismissNotifPermissionBanner();
-  registerPushNotifications(); // appelee DEPUIS ce clic : vrai geste utilisateur
-}
-function dismissNotifPermissionBanner() {
-  const el = document.getElementById('notif-permission-banner');
-  if (el) el.remove();
-  localStorage.setItem('notifBannerDismissed', '1');
-}
-
-let pushNotificationsRegistered = false;
 async function registerPushNotifications() {
   if (!currentUser) return;
-  // Garde contre un double enregistrement : si onAuthStateChanged se
-  // redeclenche pendant la meme session (rechargement partiel, reprise
-  // de session), messaging.onMessage() plus bas ajouterait un DEUXIEME
-  // ecouteur sans jamais retirer le premier -- chaque notification recue
-  // pendant que l'app est ouverte se serait alors affichee/jouee EN
-  // DOUBLE. Ca correspond bien a un ressenti d' "instabilite".
-  if (pushNotificationsRegistered) return;
   try {
     if (!('Notification' in window) || !firebase.messaging) {
       console.log('[push] Notifications non supportees sur ce navigateur');
@@ -12874,7 +12335,6 @@ async function registerPushNotifications() {
     }
 
     // Reception d'une notification pendant que l'app est ouverte au premier plan
-    pushNotificationsRegistered = true;
     messaging.onMessage((payload) => {
       const title = (payload.notification && payload.notification.title) || 'Coeurnoh Universe';
       const body = (payload.notification && payload.notification.body) || '';
@@ -12960,15 +12420,6 @@ async function saveNotifPrefs() {
   try {
     await db.collection('users').doc(currentUser.uid).update({ notifPrefs: prefs });
   } catch (e) { console.log('[notifPrefs] Erreur sauvegarde :', e.message); }
-
-  // Si la personne active elle-meme ce reglage (vrai geste utilisateur,
-  // que la petite banniere de bienvenue ait ete fermee ou non), c'est
-  // l'occasion ideale de (re)declencher la vraie demande de permission du
-  // navigateur -- sans ca, activer ce reglage ne suffirait pas si la
-  // permission navigateur n'a jamais ete accordee.
-  if (prefs.push && window.Notification && Notification.permission === 'default') {
-    registerPushNotifications();
-  }
 }
 
 /* ================= SOLDE DU PORTEFEUILLE (temps reel) =================

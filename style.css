@@ -785,6 +785,13 @@ a{text-decoration:none;color:inherit}
   padding:8px 14px;font-size:0.85rem;font-weight:600;color:var(--ink);cursor:pointer;transition:0.15s;
 }
 .shop-action-btn.liked{background:#fdecea;color:var(--red)}
+/* ================= LIENS DE CONTACT (WhatsApp/Email/Facebook/TikTok) =================
+   Conteneurs generes par renderContactLinksHtml() dans script.js -- reutilisent
+   les classes .shop-action-btn (icones cote a cote) et .btn/.btn-outline
+   (boutons pleine largeur empiles) deja existantes, juste besoin d'un peu
+   d'agencement pour la version "row". */
+.contact-links-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.contact-links-block{display:flex;flex-direction:column}
 @keyframes likePop{0%{transform:scale(1)}35%{transform:scale(1.35)}60%{transform:scale(0.92)}100%{transform:scale(1)}}
 .like-pop{animation:likePop 0.35s ease}
 .follow-btn{

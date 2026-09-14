@@ -226,7 +226,6 @@
         <div id="account-search-results" class="account-search-results hidden"></div>
       </div>
 
-      <div id="home-banners"></div>
       <div id="home-feed"><p class="muted">Chargement...</p></div>
     </div>
 
@@ -555,7 +554,7 @@
 
       <!-- Carte virtuelle -->
       <div id="pay-panel-card" class="hidden">
-        <p class="muted" data-i18n="pay_card_note">Paiement sécurisé par carte Visa ou Mastercard.</p>
+        <p class="muted" data-i18n="pay_card_note">Paiement par carte virtuelle : bientôt disponible, en cours de mise en place.</p>
       </div>
 
       <div id="recharge-amount-block">
@@ -1889,6 +1888,18 @@
     <div class="field">
       <label for="jobseeker-phone-input">Numéro de téléphone (facultatif)</label>
       <input type="tel" id="jobseeker-phone-input" class="text-input" placeholder="+243...">
+    </div>
+    <div class="field">
+      <label for="jobseeker-email-input">Email de contact (facultatif)</label>
+      <input type="email" id="jobseeker-email-input" class="text-input" placeholder="contact@exemple.com">
+    </div>
+    <div class="field">
+      <label for="jobseeker-facebook-input">Page Facebook (facultatif)</label>
+      <input type="text" id="jobseeker-facebook-input" class="text-input" placeholder="nom de la page ou lien">
+    </div>
+    <div class="field">
+      <label for="jobseeker-tiktok-input">Compte TikTok (facultatif)</label>
+      <input type="text" id="jobseeker-tiktok-input" class="text-input" placeholder="@pseudo ou lien">
     </div>
 
     <button class="btn btn-primary" id="jobseeker-form-submit-btn" style="width:100%;justify-content:center" onclick="saveJobSeekerProfile()">Publier</button>
