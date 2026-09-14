@@ -10368,7 +10368,7 @@ async function purchaseSitePremium() {
   if (!currentUser || !mySiteCache) return;
   if (!confirm(`Activer/renouveler le Premium de ton site pour ${SITE_PREMIUM_PRICE}$ (30 jours), déduits de ton solde Coeurnoh Universe ?`)) return;
   try {
-    const idToken = await currentUser.getIdToken();
+    const idToken = await auth.currentUser.getIdToken();
     const res = await fetch('/api/payments-actions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -11151,7 +11151,7 @@ async function purchaseBusinessPro() {
   if (!currentUser || !businessMyProfile) return;
   if (!confirm(`Activer/renouveler CoeurNoh Business Pro pour ${BUSINESS_PRO_PRICE}$ (30 jours), déduits de ton solde CoeurnohBoost ?`)) return;
   try {
-    const idToken = await currentUser.getIdToken();
+    const idToken = await auth.currentUser.getIdToken();
     const res = await fetch('/api/payments-actions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
