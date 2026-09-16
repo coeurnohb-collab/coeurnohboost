@@ -3005,19 +3005,51 @@ function closeMediaViewer() {
 }
 
 async function downloadMedia(url, type) {
+  if (!url) { showToast('Aucun fichier à télécharger.', 'error'); return; }
+  const filename = `coeurnoh-universe-${Date.now()}.${type === 'video' ? 'mp4' : 'jpg'}`;
+
+  // CAS 1 (le plus courant) : media hebergé sur Cloudinary (uploadFileToStorage
+  // envoie tout dessus). AVANT : on tentait fetch()+blob, qui echoue en
+  // silence des que le CDN ne renvoie pas d'en-tete Access-Control-Allow-Origin
+  // -- exactement ce qui rendait le bouton "Télécharger" inutilisable la
+  // plupart du temps. Corrigé en utilisant le flag officiel Cloudinary
+  // "fl_attachment" : insere dans l'URL de livraison, il force le CDN a
+  // repondre avec Content-Disposition: attachment, donc le navigateur
+  // declenche un vrai telechargement par simple navigation -- aucun fetch,
+  // aucun souci de CORS possible.
+  if (url.includes('res.cloudinary.com') && url.includes('/upload/')) {
+    const safeName = filename.replace(/\.[^.]+$/, '').replace(/[^a-zA-Z0-9_-]/g, '');
+    const attachmentUrl = url.replace('/upload/', `/upload/fl_attachment:${safeName}/`);
+    const a = document.createElement('a');
+    a.href = attachmentUrl;
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    showToast('Téléchargement lancé...', 'success');
+    return;
+  }
+
+  // CAS 2 : autre hebergeur (anciens liens Google Drive, etc.). On tente
+  // d'abord fetch()+blob (fonctionne si le serveur autorise le CORS) ; si ça
+  // echoue, on ouvre le fichier dans un nouvel onglet pour permettre un
+  // enregistrement manuel, plutôt que d'afficher juste un message d'erreur.
   try {
     const response = await fetch(url, { mode: 'cors' });
+    if (!response.ok) throw new Error('reponse invalide');
     const blob = await response.blob();
     const blobUrl = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = blobUrl;
-    a.download = `coeurnohboost-${Date.now()}.${type === 'video' ? 'mp4' : 'jpg'}`;
+    a.download = filename;
     document.body.appendChild(a);
     a.click();
     a.remove();
     URL.revokeObjectURL(blobUrl);
+    showToast('Téléchargement lancé...', 'success');
   } catch (e) {
-    showToast("Téléchargement auto impossible : appui long sur l'image/vidéo puis \"Enregistrer\".", 'info');
+    window.open(url, '_blank', 'noopener');
+    showToast('Le fichier s\'ouvre dans un nouvel onglet : fais un appui long dessus puis "Enregistrer l\'image/la vidéo" pour le télécharger.', 'info');
   }
 }
 
@@ -4090,7 +4122,7 @@ const ICON_HEART_FILLED = `<svg width="16" height="16" viewBox="0 0 24 24" fill=
    choisi est stocke dans le champ "type" du document publication_likes
    (aucun changement de regles Firestore necessaire : c'est le meme
    document, cree/supprime exactement comme avant). */
-const REACTION_EMOJIS = { love: '❤️', like: '👍', haha: '😆', wow: '😮', sad: '😢', angry: '😡' };
+const REACTION_EMOJIS = { like: '👍', love: '🥰', adore: '😍', pleading: '🥺', sad: '😥', angry: '😡', mad: '😠', wow: '😯' };
 
 function reactionIconHtml(type) {
   if (!type) return ICON_HEART_OUTLINE;
@@ -4114,13 +4146,23 @@ function cancelReactionHold() {
   reactionHoldTimer = null;
 }
 
+/* Largeur reelle du popup de reactions, calculee a partir du nombre
+   d'emojis (8 depuis l'ajout de la palette étendue) plutot qu'un chiffre
+   fixe pense pour 6 -- evite que le popup ne deborde de l'ecran sur
+   mobile, quel que soit le nombre de reactions disponibles. */
+const REACTION_PICKER_BTN_WIDTH = 34; // ~largeur reelle d'un bouton (police 1.4rem + padding)
+function reactionPickerWidth() {
+  return Object.keys(REACTION_EMOJIS).length * REACTION_PICKER_BTN_WIDTH + 20;
+}
+
 function openReactionPicker(pubId, anchorEl) {
   closeReactionPicker();
   const rect = anchorEl.getBoundingClientRect();
   const picker = document.createElement('div');
   picker.className = 'reaction-picker';
   picker.id = 'reaction-picker';
-  picker.style.left = Math.max(8, Math.min(rect.left, window.innerWidth - 260)) + 'px';
+  const pickerWidth = reactionPickerWidth();
+  picker.style.left = Math.max(8, Math.min(rect.left, window.innerWidth - pickerWidth - 8)) + 'px';
   picker.style.top = Math.max(8, rect.top - 58) + 'px';
   picker.innerHTML = Object.entries(REACTION_EMOJIS).map(([type, emoji]) =>
     `<button class="reaction-picker-btn" onclick="event.stopPropagation();setReaction('${pubId}','${type}')" aria-label="${type}">${emoji}</button>`
@@ -4516,6 +4558,22 @@ async function openStoryViewer(uid) {
     const stories = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     if (!stories.length) { showToast('Aucune story active.', 'info'); return; }
 
+    // Recupere, pour chacune de ces stories, la reaction que LE VISITEUR
+    // COURANT a deja laissee (si il y en a une) -- necessaire pour que le
+    // bouton coeur affiche le bon etat des l'ouverture (au lieu de toujours
+    // repartir d'un coeur vide, meme si on a deja reagi). Lecture par id de
+    // document direct (storyId_uid), donc aucun index Firestore requis.
+    if (currentUser) {
+      try {
+        const myReactionDocs = await Promise.all(
+          stories.map(st => db.collection('story_views').doc(`${st.id}_${currentUser.uid}`).get())
+        );
+        myReactionDocs.forEach((doc, i) => {
+          stories[i].myReaction = (doc.exists && doc.data().reaction) || null;
+        });
+      } catch (e) { /* pas bloquant : le bouton repart juste d'un coeur vide */ }
+    }
+
     storyViewerState = { stories, index: 0 };
     const overlay = document.createElement('div');
     overlay.className = 'story-viewer-overlay';
@@ -4554,10 +4612,10 @@ function renderStoryViewerFrame() {
          </button>
        </div>`
     : `<div class="story-viewer-footer">
-         <button class="story-reaction-heart-btn" onclick="handleStoryReactionTap('${s.id}', this)"
+         <button class="story-reaction-heart-btn ${s.myReaction ? 'story-reaction-active' : ''}" onclick="handleStoryReactionTap('${s.id}', this)"
            onmousedown="startStoryReactionHold('${s.id}', this)" onmouseup="cancelStoryReactionHold()" onmouseleave="cancelStoryReactionHold()"
            ontouchstart="startStoryReactionHold('${s.id}', this)" ontouchend="cancelStoryReactionHold()" ontouchmove="cancelStoryReactionHold()"
-           aria-label="Réagir à la story">${ICON_HEART_OUTLINE}</button>
+           aria-label="Réagir à la story">${s.myReaction ? `<span class="reaction-emoji">${REACTION_EMOJIS[s.myReaction] || ''}</span>` : ICON_HEART_OUTLINE}</button>
        </div>`;
 
   overlay.innerHTML = `
@@ -4583,6 +4641,12 @@ function renderStoryViewerFrame() {
   // visiteur sont dupliques ici (meme principe que pour "stories" elle-meme)
   // pour pouvoir afficher la liste "Vu par" sans requetes supplementaires.
   if (currentUser) {
+    // AVANT : .set() sans merge remplaçait TOUT le document a chaque fois
+    // qu'on (re)voyait la story -- si on avait deja laisse une reaction, elle
+    // etait effacee des qu'on rouvrait/repassait sur la story. C'etait la
+    // cause du bug signale ("la reaction ne se tient pas chez la personne qui
+    // a reagi"). Avec {merge:true}, seuls les champs de vue sont ecrits/mis a
+    // jour, sans jamais toucher au champ "reaction" deja enregistre.
     db.collection('story_views').doc(`${s.id}_${currentUser.uid}`)
       .set({
         storyId: s.id,
@@ -4590,7 +4654,7 @@ function renderStoryViewerFrame() {
         viewerName: currentUser.name || 'Coeurnoh',
         viewerPhoto: currentUser.photoURL || null,
         viewedAt: new Date().toISOString()
-      })
+      }, { merge: true })
       .catch(() => {});
   }
 
@@ -4696,7 +4760,8 @@ function openStoryReactionPicker(storyId, anchorEl) {
   const picker = document.createElement('div');
   picker.className = 'reaction-picker';
   picker.id = 'story-reaction-picker';
-  picker.style.left = Math.max(8, Math.min(rect.left, window.innerWidth - 260)) + 'px';
+  const pickerWidth = reactionPickerWidth();
+  picker.style.left = Math.max(8, Math.min(rect.left, window.innerWidth - pickerWidth - 8)) + 'px';
   picker.style.top = Math.max(8, rect.top - 58) + 'px';
   picker.innerHTML = Object.entries(REACTION_EMOJIS).map(([type, emoji]) =>
     `<button class="reaction-picker-btn" onclick="event.stopPropagation();setStoryReaction('${storyId}','${type}', document.querySelector('.story-reaction-heart-btn'))" aria-label="${type}">${emoji}</button>`
@@ -4715,14 +4780,28 @@ async function setStoryReaction(storyId, type, btnEl) {
   closeStoryReactionPicker();
   if (!currentUser) { openAuth('register'); return; }
   try {
-    await db.collection('story_views').doc(`${storyId}_${currentUser.uid}`).update({
+    // set(...,{merge:true}) plutot que update() : si le document de vue
+    // n'existe pas encore (cas rare, vue pas encore ecrite), update() aurait
+    // echoue silencieusement et la reaction n'aurait jamais ete enregistree.
+    await db.collection('story_views').doc(`${storyId}_${currentUser.uid}`).set({
+      storyId,
+      viewerUid: currentUser.uid,
+      viewerName: currentUser.name || 'Coeurnoh',
+      viewerPhoto: currentUser.photoURL || null,
       reaction: type,
       reactionAt: new Date().toISOString()
-    });
+    }, { merge: true });
     if (btnEl) {
       btnEl.innerHTML = `<span class="reaction-emoji">${REACTION_EMOJIS[type]}</span>`;
       btnEl.classList.remove('like-pop'); void btnEl.offsetWidth; btnEl.classList.add('like-pop');
       btnEl.classList.add('story-reaction-active');
+    }
+    // Met aussi a jour l'etat en memoire de la visionneuse : si l'utilisateur
+    // avance/revient sur cette meme story dans la meme session, le coeur
+    // affiche tout de suite la bonne reaction sans devoir la re-charger.
+    if (storyViewerState) {
+      const st = storyViewerState.stories.find(x => x.id === storyId);
+      if (st) st.myReaction = type;
     }
   } catch (e) { /* pas grave si la reaction echoue (vue pas encore enregistree, etc.) */ }
 }
