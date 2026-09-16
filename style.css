@@ -877,8 +877,13 @@ a{text-decoration:none;color:inherit}
 .story-bubble-label{font-size:0.7rem;color:var(--ink);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:66px}
 
 /* Visionneuse plein ecran */
+/* AJOUTE : sans cette marge, l'entete (bouton retour compris) pouvait se
+   retrouver cache sous la barre de statut/encoche du telephone sur certains
+   appareils -- signale par un utilisateur qui ne voyait plus le bouton
+   retour en visionnant une story. */
 .story-viewer-overlay{
   position:fixed;inset:0;z-index:3000;background:#000;display:flex;flex-direction:column;
+  padding-top:env(safe-area-inset-top);
 }
 .story-viewer-progress-row{display:flex;gap:4px;padding:8px 10px 0}
 .story-viewer-progress-track{flex:1;height:3px;border-radius:999px;background:rgba(255,255,255,0.3);overflow:hidden}
@@ -898,6 +903,11 @@ a{text-decoration:none;color:inherit}
 .story-viewer-media-wrap{flex:1;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
 .story-viewer-media-wrap img,.story-viewer-media-wrap video{width:100%;height:100%;object-fit:contain}
 .story-viewer-tap-zone{position:absolute;top:0;bottom:0;width:35%}
+.story-mute-btn{
+  position:absolute;bottom:16px;right:14px;z-index:2;
+  width:38px;height:38px;border-radius:50%;border:none;
+  background:rgba(0,0,0,0.45);color:#fff;display:flex;align-items:center;justify-content:center;
+}
 .story-viewer-tap-prev{left:0}
 .story-viewer-tap-next{right:0}
 

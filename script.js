@@ -4106,6 +4106,8 @@ const ICON_EYE = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" st
 // Fleche de retour (remplace l'ancienne croix "×" de la visionneuse) --
 // icone professionnelle vectorielle, pas un emoji, coloree en bleu via CSS.
 const ICON_BACK = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>`;
+const ICON_VOLUME_ON = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>`;
+const ICON_VOLUME_OFF = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>`;
 // Icone "lecture" pour les miniatures video de la grille de profil.
 const ICON_PLAY = `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20"/></svg>`;
 const ICON_PALETTE = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2a10 10 0 1 0 10 10c0-1-1-2-2-2h-2.5a2.5 2.5 0 0 1 0-5H19a2 2 0 0 0 2-2c0-2-4-3-9-3Z"/></svg>`;
@@ -4460,6 +4462,20 @@ async function toggleShopLike(pubId) {
 const STORY_LIFETIME_MS = 24 * 60 * 60 * 1000;
 let storyViewerState = null;
 let storyViewerTimer = null;
+// Son coupe par defaut : necessaire pour que la lecture automatique
+// fonctionne sur telephone (les navigateurs bloquent le son automatique
+// sans interaction de l'utilisateur). Un bouton 🔊 permet de l'activer en un
+// tap, exactement comme Instagram/Facebook. La preference choisie est
+// gardee d'une story video a l'autre pendant la session.
+let storyMuted = true;
+
+function toggleStoryMute() {
+  storyMuted = !storyMuted;
+  const video = document.getElementById('story-current-video');
+  if (video) video.muted = storyMuted;
+  const btn = document.getElementById('story-mute-btn');
+  if (btn) btn.innerHTML = storyMuted ? ICON_VOLUME_OFF : ICON_VOLUME_ON;
+}
 
 function openStoryPicker() {
   const input = document.getElementById('story-upload-file');
@@ -4611,8 +4627,11 @@ function renderStoryViewerFrame() {
   // la visionneuse totalement noire, sans aucun message, au lieu d'afficher
   // le petit avertissement "Media indisponible" habituel.
   const mediaHtml = s.mediaType === 'video'
-    ? `<video src="${escapeHtml(rawUrl)}" autoplay playsinline onended="advanceStory(1)" onerror="mediaLoadError(this)"></video>`
+    ? `<video id="story-current-video" src="${escapeHtml(rawUrl)}" autoplay playsinline ${storyMuted ? 'muted' : ''} onended="advanceStory(1)" onerror="mediaLoadError(this)"></video>`
     : `<img src="${escapeHtml(rawUrl)}" alt="" onerror="mediaLoadError(this)">`;
+  const muteBtnHtml = s.mediaType === 'video'
+    ? `<button class="story-mute-btn" id="story-mute-btn" onclick="toggleStoryMute()" aria-label="Activer/couper le son">${storyMuted ? ICON_VOLUME_OFF : ICON_VOLUME_ON}</button>`
+    : '';
 
   const isOwn = currentUser && s.uid === currentUser.uid;
   const footerHtml = isOwn
@@ -4641,6 +4660,7 @@ function renderStoryViewerFrame() {
     </div>
     <div class="story-viewer-media-wrap">
       ${mediaHtml}
+      ${muteBtnHtml}
       <div class="story-viewer-tap-zone story-viewer-tap-prev" onclick="advanceStory(-1)"></div>
       <div class="story-viewer-tap-zone story-viewer-tap-next" onclick="advanceStory(1)"></div>
     </div>
