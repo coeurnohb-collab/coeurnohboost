@@ -2178,10 +2178,14 @@ if (fbReady) {
       let data;
       try {
         const doc = await db.collection('users').doc(user.uid).get();
-        data = doc.exists ? doc.data() : { name: user.email, email: user.email, balance: 0, createdAt: new Date().toISOString() };
+        data = doc.exists ? doc.data() : { name: user.email.split('@')[0], email: user.email, balance: 0, createdAt: new Date().toISOString() };
       } catch (e) {
+        // AVANT : en cas d'echec de lecture du profil, l'ADRESSE E-MAIL
+        // COMPLETE etait utilisee comme "nom" -- et donc affichee
+        // publiquement (fil, commentaires, fiche profil) partout ou le nom
+        // apparait. Corrige : seule la partie avant le "@" sert de repli.
         console.error("Erreur lecture profil :", e.message);
-        data = { name: user.email, email: user.email, balance: 0, createdAt: new Date().toISOString() };
+        data = { name: user.email.split('@')[0], email: user.email, balance: 0, createdAt: new Date().toISOString() };
       }
       currentUser = { uid: user.uid, ...data };
 
@@ -2703,7 +2707,7 @@ async function submitSellForm() {
       type, title, description, price, category, imageUrl,
       fileUrl: type === 'book' ? fileUrl : null,
       sellerUid: currentUser.uid,
-      sellerName: currentUser.name || 'Vendeur Coeurnoh Universe',
+      sellerName: currentUser.username || currentUser.name || 'Vendeur Coeurnoh Universe',
       sellerVerified: !!currentUser.verified,
       sellerPhotoURL: currentUser.photoURL || null,
       sellerPhone: type === 'product' ? phone : null,
@@ -3305,7 +3309,7 @@ async function submitCreatePost() {
       videoUrl,
       description: caption,
       sellerUid: currentUser.uid,
-      sellerName: currentUser.name || 'Utilisateur',
+      sellerName: currentUser.username || currentUser.name || 'Utilisateur',
       sellerVerified: !!currentUser.verified,
       sellerPhotoURL: currentUser.photoURL || null,
       status: 'published',
@@ -4345,7 +4349,13 @@ async function enrichItemsWithPublicProfiles(items) {
     const p = publicProfileCache.get(item.sellerUid);
     if (p) {
       if (p.photoURL) item.sellerPhotoURL = p.photoURL;
-      if (p.name) item.sellerName = p.name;
+      // Le nom d'utilisateur choisi (s'il existe) devient LE nom visible par
+      // les autres partout ou l'identite du compte apparait -- il prend le
+      // dessus sur "name" (qui peut etre perime, ou par le passe avoir ete
+      // rempli avec une adresse e-mail, voir le correctif dans
+      // onAuthStateChanged plus haut dans ce fichier).
+      if (p.username) item.sellerName = p.username;
+      else if (p.name) item.sellerName = p.name;
       if (typeof p.verified === 'boolean') item.sellerVerified = p.verified;
     }
   });
@@ -5121,19 +5131,25 @@ async function openProfileModal(sellerUid, sellerName, sellerVerified) {
     // pour les comptes qui n'ont pas encore ce profil public (pas encore
     // retouche leur compte depuis cette mise a jour).
     let profilePhotoURL, displayName = sellerName, displayVerified = sellerVerified;
-    let displayUsername = null, displayBio = '';
+    let displayUsername = null, displayBio = '', realName = sellerName;
     if (isOwn) {
       profilePhotoURL = currentUser.photoURL || null;
       displayUsername = currentUser.username || null;
       displayBio = currentUser.bio || '';
+      realName = currentUser.name || sellerName;
     } else {
       const publicProfile = await fetchPublicProfile(sellerUid);
       profilePhotoURL = (publicProfile && publicProfile.photoURL) || (posts[0] && posts[0].sellerPhotoURL) || null;
-      if (publicProfile && publicProfile.name) displayName = publicProfile.name;
+      if (publicProfile && publicProfile.name) { displayName = publicProfile.name; realName = publicProfile.name; }
       if (publicProfile && typeof publicProfile.verified === 'boolean') displayVerified = publicProfile.verified;
       displayUsername = (publicProfile && publicProfile.username) || null;
       displayBio = (publicProfile && publicProfile.bio) || '';
     }
+    // Le nom d'utilisateur choisi devient LE nom principal affiche en haut
+    // de la fiche profil (plus visible que le nom "interne"), exactement
+    // comme sur le fil et les commentaires -- voir enrichItemsWithPublicProfiles()
+    // plus haut dans ce fichier pour le meme principe applique aux publications.
+    if (displayUsername) displayName = displayUsername;
 
     // Statut en ligne -- isole dans son propre try/catch (comme les autres
     // requetes secondaires de ce fichier) : si ca echoue, le profil s'affiche
@@ -5199,7 +5215,7 @@ async function openProfileModal(sellerUid, sellerName, sellerVerified) {
       <div style="text-align:center;padding:10px 0 18px">
         <div class="profile-avatar-center-wrap">${renderAvatarHtml(displayName, profilePhotoURL, 88)}</div>
         <h3 style="margin:12px 0 2px;display:inline-flex;align-items:center;gap:8px">${escapeHtml(displayName || 'Coeurnoh Universe')}${displayVerified ? ICON_VERIFIED_BADGE : ''}${editPencilHtml}</h3>
-        ${displayUsername ? `<p class="profile-username-row">@${escapeHtml(displayUsername)}</p>` : ''}
+        ${displayUsername && realName && realName !== displayUsername ? `<p class="profile-username-row">${escapeHtml(realName)}</p>` : ''}
         ${onlineStatusHtml}
         <div class="profile-stats-row">
           <div class="profile-stat profile-stat-clickable" onclick="openFollowListModal('${sellerUid}','following','${escapeForJs(displayName)}')"><strong>${formatCompactCount(followingCount)}</strong><span data-i18n="stat_following">${t('stat_following')}</span></div>
@@ -5380,13 +5396,13 @@ function openEditProfileScreen() {
         <div class="edit-profile-screen">
           <h2>Modifier le profil</h2>
           <div class="edit-profile-avatar-row">
-            <div class="edit-profile-avatar-wrap" id="edit-profile-avatar-wrap">
-              <span id="edit-profile-avatar-img">${renderAvatarHtml(currentUser.name, currentUser.photoURL, 76)}</span>
-              <label for="edit-profile-photo-file" class="edit-profile-photo-btn" aria-label="Changer la photo de profil">
+            <label for="edit-profile-photo-file" class="edit-profile-avatar-wrap" id="edit-profile-avatar-wrap" aria-label="Changer la photo de profil">
+              <span id="edit-profile-avatar-img">${renderAvatarHtml(currentUser.username || currentUser.name, currentUser.photoURL, 76)}</span>
+              <span class="edit-profile-photo-btn">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2Z"/><circle cx="12" cy="13" r="4"/></svg>
-              </label>
+              </span>
               <input type="file" id="edit-profile-photo-file" class="file-input-hidden" accept="image/*" onchange="handleEditProfilePhotoFileChange(event)">
-            </div>
+            </label>
             <div class="upload-progress-wrap hidden" id="edit-profile-photo-progress-wrap" style="max-width:220px;margin-top:10px">
               <div class="upload-progress-fill" id="edit-profile-photo-progress-fill"></div>
               <span class="upload-progress-label" id="edit-profile-photo-progress-label">0%</span>
@@ -5443,7 +5459,7 @@ async function saveEditProfilePhoto() {
     syncPublicProfile(currentUser.uid, { photoURL: url });
     refreshDashComposerAvatar();
     const imgWrap = document.getElementById('edit-profile-avatar-img');
-    if (imgWrap) imgWrap.innerHTML = renderAvatarHtml(currentUser.name, currentUser.photoURL, 76);
+    if (imgWrap) imgWrap.innerHTML = renderAvatarHtml(currentUser.username || currentUser.name, currentUser.photoURL, 76);
     document.getElementById('edit-profile-photo-progress-wrap')?.classList.add('hidden');
     pendingEditProfilePhotoFile = null;
     const fileInput = document.getElementById('edit-profile-photo-file');
@@ -13137,7 +13153,7 @@ async function addShopComment(pubId, parentId = null) {
     const commentData = {
       pubId,
       uid: currentUser.uid,
-      name: currentUser.name || 'Client',
+      name: currentUser.username || currentUser.name || 'Client',
       text,
       createdAt: new Date().toISOString()
     };

@@ -1383,9 +1383,9 @@ a{text-decoration:none;color:inherit}
 }
 .edit-profile-screen h2{font-size:1.15rem;margin-bottom:18px;text-align:center}
 .edit-profile-avatar-row{display:flex;flex-direction:column;align-items:center;margin-bottom:22px}
-.edit-profile-avatar-wrap{position:relative;display:inline-block}
-.edit-profile-photo-btn{position:absolute;bottom:0;right:0;width:26px;height:26px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;border:2px solid var(--cream);cursor:pointer}
-.edit-profile-photo-btn:active{background:var(--green-dark)}
+.edit-profile-avatar-wrap{position:relative;display:inline-block;cursor:pointer}
+.edit-profile-photo-btn{position:absolute;bottom:0;right:0;width:26px;height:26px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;border:2px solid var(--cream);pointer-events:none}
+.edit-profile-avatar-wrap:active .edit-profile-photo-btn{background:var(--green-dark)}
 .edit-profile-link-btn{
   width:100%;display:flex;align-items:center;justify-content:center;gap:8px;
   background:var(--green-light);color:var(--green-dark);border:none;border-radius:12px;
