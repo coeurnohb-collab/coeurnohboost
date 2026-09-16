@@ -1558,7 +1558,14 @@ function renderReferralBox() {
   const link = `${window.location.origin}${window.location.pathname}?ref=${currentUser.uid}`;
   const el = document.getElementById('referral-link-text');
   if (el) el.textContent = link;
-  db.collection('users').where('referredBy', '==', currentUser.uid).get()
+  // Compte les filleuls via "public_profiles" (deja public, ne contient
+  // jamais d'e-mail ni de solde) et non plus via "users" -- AVANT, ce
+  // comptage lisait la collection "users" (privee), ce qui exigeait une
+  // regle Firestore autorisant un parrain a lire le document COMPLET (email,
+  // solde...) de chaque personne qu'il a parrainee, juste pour un simple
+  // compteur. Corrige : seul le nombre est necessaire, donc seule une donnee
+  // publique est desormais interrogee.
+  db.collection('public_profiles').where('referredBy', '==', currentUser.uid).get()
     .then(snap => {
       const countEl = document.getElementById('referral-count-text');
       if (countEl) countEl.textContent = `${snap.size} ${t('referral_count_suffix')}`;
@@ -1693,7 +1700,7 @@ async function submitAuth() {
         referredBy: getPendingReferrerUid(),
         createdAt: new Date().toISOString()
       });
-      syncPublicProfile(cred.user.uid, { name: finalName, photoURL: null, verified: false });
+      syncPublicProfile(cred.user.uid, { name: finalName, photoURL: null, verified: false, referredBy: getPendingReferrerUid() });
     } else {
       await auth.signInWithEmailAndPassword(email, password);
     }
@@ -1729,7 +1736,7 @@ async function signInWithGoogle() {
         referredBy: getPendingReferrerUid(),
         createdAt: new Date().toISOString()
       });
-      syncPublicProfile(user.uid, { name: finalName, photoURL: user.photoURL || null, verified: false });
+      syncPublicProfile(user.uid, { name: finalName, photoURL: user.photoURL || null, verified: false, referredBy: getPendingReferrerUid() });
     }
     closeAuth();
   } catch (e) {
@@ -5372,7 +5379,19 @@ function openEditProfileScreen() {
         </button>
         <div class="edit-profile-screen">
           <h2>Modifier le profil</h2>
-          <div class="edit-profile-avatar-row">${renderAvatarHtml(currentUser.name, currentUser.photoURL, 76)}</div>
+          <div class="edit-profile-avatar-row">
+            <div class="edit-profile-avatar-wrap" id="edit-profile-avatar-wrap">
+              <span id="edit-profile-avatar-img">${renderAvatarHtml(currentUser.name, currentUser.photoURL, 76)}</span>
+              <label for="edit-profile-photo-file" class="edit-profile-photo-btn" aria-label="Changer la photo de profil">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2Z"/><circle cx="12" cy="13" r="4"/></svg>
+              </label>
+              <input type="file" id="edit-profile-photo-file" class="file-input-hidden" accept="image/*" onchange="handleEditProfilePhotoFileChange(event)">
+            </div>
+            <div class="upload-progress-wrap hidden" id="edit-profile-photo-progress-wrap" style="max-width:220px;margin-top:10px">
+              <div class="upload-progress-fill" id="edit-profile-photo-progress-fill"></div>
+              <span class="upload-progress-label" id="edit-profile-photo-progress-label">0%</span>
+            </div>
+          </div>
           <button class="edit-profile-link-btn" onclick="copyProfileLinkFromEdit()">🔗 Copier le lien de mon profil</button>
           <div class="field">
             <label for="edit-username-input">Nom d'utilisateur</label>
@@ -5394,6 +5413,46 @@ function openEditProfileScreen() {
 function closeEditProfileScreen() {
   const el = document.getElementById('edit-profile-modal');
   if (el) el.remove();
+}
+
+// Photo de profil directement depuis l'ecran "Modifier le profil" (avant,
+// il fallait aller dans Menu > Parametres > Compte pour la changer -- trop
+// cache). Reutilise exactement le meme pipeline d'envoi (Cloudinary via
+// uploadFileToStorage) et le meme champ users/{uid}.photoURL que
+// saveAccountPhoto() dans Parametres > Compte, pour ne jamais desynchroniser
+// les deux ecrans.
+let pendingEditProfilePhotoFile = null;
+
+function handleEditProfilePhotoFileChange(event) {
+  pendingEditProfilePhotoFile = (event.target.files && event.target.files[0]) || null;
+  if (pendingEditProfilePhotoFile) saveEditProfilePhoto();
+}
+
+async function saveEditProfilePhoto() {
+  if (!currentUser || !pendingEditProfilePhotoFile) return;
+  const file = pendingEditProfilePhotoFile;
+  try {
+    const { url } = await uploadFileToStorage(file, 'profils', {
+      maxSizeMB: 10,
+      onProgress: (pct) => setUploadProgress('edit-profile-photo', pct)
+    });
+    await db.collection('users').doc(currentUser.uid).update({ photoURL: url });
+    currentUser.photoURL = url;
+    // Meme raison que dans saveAccountPhoto() : fiabilise l'affichage partout
+    // (fil, profil vu par les autres...), pas seulement sur cet ecran.
+    syncPublicProfile(currentUser.uid, { photoURL: url });
+    refreshDashComposerAvatar();
+    const imgWrap = document.getElementById('edit-profile-avatar-img');
+    if (imgWrap) imgWrap.innerHTML = renderAvatarHtml(currentUser.name, currentUser.photoURL, 76);
+    document.getElementById('edit-profile-photo-progress-wrap')?.classList.add('hidden');
+    pendingEditProfilePhotoFile = null;
+    const fileInput = document.getElementById('edit-profile-photo-file');
+    if (fileInput) fileInput.value = '';
+    showToast('Photo de profil mise à jour !', 'success');
+  } catch (e) {
+    document.getElementById('edit-profile-photo-progress-wrap')?.classList.add('hidden');
+    showToast(friendlyErrorMessage(e), 'error');
+  }
 }
 
 function copyProfileLinkFromEdit() {
@@ -5423,11 +5482,41 @@ async function saveProfileEdits() {
   btn.disabled = true;
   btn.textContent = 'Enregistrement...';
   msgEl.textContent = '';
+
+  const oldUsername = currentUser.username || '';
+  const usernameChanged = username !== oldUsername;
+
   try {
+    // Reservation EXCLUSIVE du nom d'utilisateur (collection "usernames",
+    // 1 document = 1 nom, id du document = le nom lui-meme). Les regles
+    // Firestore n'autorisent la creation de ce document que s'il n'existe
+    // pas deja pour quelqu'un d'autre : si le nom est deja pris, l'ecriture
+        // ci-dessous echoue ICI, AVANT de toucher au profil -- personne ne peut
+    // donc se retrouver avec un nom d'utilisateur deja utilise par un autre
+    // compte.
+    if (usernameChanged && username) {
+      try {
+        await db.collection('usernames').doc(username).set({ uid: currentUser.uid });
+      } catch (e) {
+        msgEl.textContent = "Ce nom d'utilisateur est déjà pris. Choisis-en un autre.";
+        msgEl.style.color = 'var(--red)';
+        btn.disabled = false;
+        btn.textContent = 'Enregistrer';
+        return;
+      }
+    }
+
     await db.collection('users').doc(currentUser.uid).update({ username, bio });
     await syncPublicProfile(currentUser.uid, { username, bio });
     currentUser.username = username;
     currentUser.bio = bio;
+
+    // Libere l'ancien nom d'utilisateur (s'il y en avait un et qu'il vient
+    // de changer) pour qu'il redevienne disponible pour quelqu'un d'autre.
+    if (usernameChanged && oldUsername) {
+      db.collection('usernames').doc(oldUsername).delete().catch(() => {});
+    }
+
     closeEditProfileScreen();
     // Rafraichit l'affichage du profil (nom d'utilisateur/bio) sans tout
     // recharger le reste de l'appli -- reouvre simplement la fiche profil
