@@ -4606,9 +4606,13 @@ function renderStoryViewerFrame() {
   // AVANT : object-fit:cover en CSS recadrait/zoomait l'image ou la video.
   // La CSS a ete corrigee (object-fit:contain) pour toujours montrer le
   // media en entier, sans coupe ni zoom.
+  // AJOUTE : onerror="mediaLoadError(this)" manquant ici (present partout
+  // ailleurs dans l'app) -- sans ca, un lien de story casse/expire laissait
+  // la visionneuse totalement noire, sans aucun message, au lieu d'afficher
+  // le petit avertissement "Media indisponible" habituel.
   const mediaHtml = s.mediaType === 'video'
-    ? `<video src="${escapeHtml(rawUrl)}" autoplay playsinline onended="advanceStory(1)"></video>`
-    : `<img src="${escapeHtml(rawUrl)}" alt="">`;
+    ? `<video src="${escapeHtml(rawUrl)}" autoplay playsinline onended="advanceStory(1)" onerror="mediaLoadError(this)"></video>`
+    : `<img src="${escapeHtml(rawUrl)}" alt="" onerror="mediaLoadError(this)">`;
 
   const isOwn = currentUser && s.uid === currentUser.uid;
   const footerHtml = isOwn
