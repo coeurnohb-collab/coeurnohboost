@@ -4149,6 +4149,14 @@ async function setReaction(pubId, type) {
   try {
     const likeDoc = await likeRef.get();
     const wasLiked = likeDoc.exists;
+    // IMPORTANT : sur un document DEJA existant, .set() est traite par les
+    // regles Firestore comme une "update" (interdite pour publication_likes,
+    // par securite) et non comme une "create" -- d'ou l'erreur de permission
+    // au changement de reaction. On supprime donc d'abord si besoin, puis on
+    // recree, exactement comme le fait deja le like classique (toggleShopLike).
+    if (wasLiked) {
+      await likeRef.delete();
+    }
     await likeRef.set({ pubId, uid: currentUser.uid, type, createdAt: new Date().toISOString() });
     if (!wasLiked) {
       await pubRef.update({ likesCount: firebase.firestore.FieldValue.increment(1) });
