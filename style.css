@@ -836,6 +836,61 @@ a{text-decoration:none;color:inherit}
 .contact-links-block{display:flex;flex-direction:column}
 @keyframes likePop{0%{transform:scale(1)}35%{transform:scale(1.35)}60%{transform:scale(0.92)}100%{transform:scale(1)}}
 .like-pop{animation:likePop 0.35s ease}
+.reaction-emoji{font-size:1rem;line-height:1;display:inline-block}
+
+/* ================= REACTIONS FACON FACEBOOK (popup d'appui long) ================= */
+.reaction-picker{
+  position:fixed;z-index:2000;display:flex;gap:4px;background:#fff;border-radius:999px;
+  padding:6px 8px;box-shadow:0 8px 24px rgba(0,0,0,0.18);
+  opacity:0;transform:translateY(8px) scale(0.9);transition:0.15s ease;pointer-events:none;
+}
+.reaction-picker.show{opacity:1;transform:translateY(0) scale(1);pointer-events:auto}
+.reaction-picker-btn{
+  background:none;border:none;font-size:1.6rem;line-height:1;padding:4px;cursor:pointer;
+  transition:transform 0.12s ease;
+}
+.reaction-picker-btn:active{transform:scale(1.35)}
+
+/* ================= STORIES FACON FACEBOOK/INSTAGRAM ================= */
+.stories-bar{display:flex;gap:10px;overflow-x:auto;padding:12px 4px;margin-bottom:6px;-webkit-overflow-scrolling:touch}
+.stories-bar::-webkit-scrollbar{display:none}
+.story-bubble{display:flex;flex-direction:column;align-items:center;gap:4px;flex:0 0 auto;width:66px;cursor:pointer}
+.story-ring{
+  width:60px;height:60px;border-radius:50%;padding:2.5px;
+  background:linear-gradient(45deg,#f9ce34,#ee2a7b,#6228d7);
+  display:flex;align-items:center;justify-content:center;
+}
+.story-ring.seen{background:var(--border,#d9d9d9)}
+.story-ring.own{background:var(--border,#d9d9d9)}
+.story-ring-inner{width:100%;height:100%;border-radius:50%;background:#fff;padding:2px}
+.story-ring-inner img{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block}
+.story-add-badge{
+  position:relative;width:60px;height:60px;
+}
+.story-add-plus{
+  position:absolute;bottom:-2px;right:-2px;width:20px;height:20px;border-radius:50%;
+  background:var(--red,#e03131);color:#fff;display:flex;align-items:center;justify-content:center;
+  font-size:1rem;font-weight:700;border:2px solid #fff;
+}
+.story-bubble-label{font-size:0.7rem;color:var(--ink);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:66px}
+
+/* Visionneuse plein ecran */
+.story-viewer-overlay{
+  position:fixed;inset:0;z-index:3000;background:#000;display:flex;flex-direction:column;
+}
+.story-viewer-progress-row{display:flex;gap:4px;padding:8px 10px 0}
+.story-viewer-progress-track{flex:1;height:3px;border-radius:999px;background:rgba(255,255,255,0.3);overflow:hidden}
+.story-viewer-progress-fill{height:100%;width:0%;background:#fff;border-radius:999px}
+.story-viewer-progress-fill.done{width:100% !important}
+.story-viewer-header{display:flex;align-items:center;gap:10px;padding:10px 12px;color:#fff}
+.story-viewer-header img{width:34px;height:34px;border-radius:50%;object-fit:cover}
+.story-viewer-close{margin-left:auto;background:none;border:none;color:#fff;font-size:1.5rem;line-height:1;cursor:pointer;padding:4px}
+.story-viewer-media-wrap{flex:1;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.story-viewer-media-wrap img,.story-viewer-media-wrap video{max-width:100%;max-height:100%;object-fit:contain}
+.story-viewer-tap-zone{position:absolute;top:0;bottom:0;width:35%}
+.story-viewer-tap-prev{left:0}
+.story-viewer-tap-next{right:0}
+
 .follow-btn{
   background:var(--green);color:#fff;border:none;border-radius:999px;
   padding:6px 14px;font-size:0.82rem;font-weight:700;cursor:pointer;

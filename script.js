@@ -461,6 +461,7 @@ function showDashTab(tab) {
     const shopFeedEl = document.getElementById('shop-feed');
     if (shopFeedEl) shopFeedEl.innerHTML = '';
     loadHomeFeed();
+    renderStoriesBar();
   }
   if (tab === 'wallet') loadWalletHistory();
   if (tab === 'account') { renderReferralBox(); applyNotifPrefsToUI(); fillAccountForm(); loadSavedFeed(); loadFollowingList(); loadBlockedList(); loadFollowersList(); }
@@ -2807,7 +2808,7 @@ async function loadHomeFeed(append = false) {
           ))
         ]);
         items.forEach((item, i) => {
-          likedMap[item.id] = likeChecks[i].exists;
+          likedMap[item.id] = likeChecks[i].exists ? (likeChecks[i].data().type || 'love') : null;
           savedMap[item.id] = saveChecks[i].exists;
         });
       } catch (e) {
@@ -2921,8 +2922,10 @@ function renderPostCard(item, isLiked, isSaved, hideFollowBtn) {
     ${item.description ? `<p class="post-caption">${escapeHtml(item.description)}</p>` : ''}
     ${mediaHtml}
     <div class="post-actions">
-      <button class="shop-action-btn ${isLiked ? 'liked' : ''}" data-like-btn="${item.id}" onclick="toggleShopLike('${item.id}')">
-        <span data-like-icon="${item.id}">${isLiked ? ICON_HEART_FILLED : ICON_HEART_OUTLINE}</span>
+      <button class="shop-action-btn ${isLiked ? 'liked' : ''}" data-like-btn="${item.id}" onclick="toggleShopLike('${item.id}')"
+        onmousedown="startReactionHold('${item.id}', this)" onmouseup="cancelReactionHold()" onmouseleave="cancelReactionHold()"
+        ontouchstart="startReactionHold('${item.id}', this)" ontouchend="cancelReactionHold()">
+        <span data-like-icon="${item.id}">${reactionIconHtml(isLiked)}</span>
         <span data-like-count="${item.id}" data-raw="${safeCount(item.likesCount)}">${formatCompactCount(safeCount(item.likesCount))}</span>
       </button>
       <button class="shop-action-btn" onclick="openPostDetail('${item.id}')">
@@ -3846,7 +3849,7 @@ async function loadShopFeed() {
             .where('status', '==', 'completed')
             .get()
         ]);
-        shopFeedItems.forEach((item, i) => { shopLikedMap[item.id] = likeChecks[i].exists; });
+        shopFeedItems.forEach((item, i) => { shopLikedMap[item.id] = likeChecks[i].exists ? (likeChecks[i].data().type || 'love') : null; });
         ordersSnap.docs.forEach(doc => shopPurchasedSet.add(doc.data().pubId));
       } catch (e) {
         console.log('[shop like/achat] non bloquant :', e.message);
@@ -3974,8 +3977,10 @@ function renderShopCard(item, isLiked, isPurchased) {
       ${priceHtml}
 
       <div class="shop-card-actions">
-        <button class="shop-action-btn ${isLiked ? 'liked' : ''}" data-like-btn="${item.id}" onclick="toggleShopLike('${item.id}')">
-          <span data-like-icon="${item.id}">${isLiked ? ICON_HEART_FILLED : ICON_HEART_OUTLINE}</span>
+        <button class="shop-action-btn ${isLiked ? 'liked' : ''}" data-like-btn="${item.id}" onclick="toggleShopLike('${item.id}')"
+          onmousedown="startReactionHold('${item.id}', this)" onmouseup="cancelReactionHold()" onmouseleave="cancelReactionHold()"
+          ontouchstart="startReactionHold('${item.id}', this)" ontouchend="cancelReactionHold()">
+          <span data-like-icon="${item.id}">${reactionIconHtml(isLiked)}</span>
           <span data-like-count="${item.id}" data-raw="${safeCount(item.likesCount)}">${formatCompactCount(safeCount(item.likesCount))}</span>
         </button>
         <button class="shop-action-btn" onclick="openPostDetail('${item.id}')">
@@ -4076,6 +4081,107 @@ const ICON_SHIELD = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none"
 const ICON_INFO = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>`;
 const ICON_HEART_OUTLINE = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/></svg>`;
 const ICON_HEART_FILLED = `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/></svg>`;
+
+/* ================= REACTIONS FACON FACEBOOK =================
+   Avant : un seul type de like (coeur). Desormais : appui court = coeur
+   par defaut (comportement inchange), appui long (450ms) fait apparaitre
+   un choix de 6 reactions au-dessus du bouton, comme Facebook. Le type
+   choisi est stocke dans le champ "type" du document publication_likes
+   (aucun changement de regles Firestore necessaire : c'est le meme
+   document, cree/supprime exactement comme avant). */
+const REACTION_EMOJIS = { love: '❤️', like: '👍', haha: '😆', wow: '😮', sad: '😢', angry: '😡' };
+
+function reactionIconHtml(type) {
+  if (!type) return ICON_HEART_OUTLINE;
+  return `<span class="reaction-emoji">${REACTION_EMOJIS[type] || REACTION_EMOJIS.love}</span>`;
+}
+
+let reactionHoldTimer = null;
+let suppressNextLikeClick = false;
+
+function startReactionHold(pubId, anchorEl) {
+  clearTimeout(reactionHoldTimer);
+  reactionHoldTimer = setTimeout(() => {
+    reactionHoldTimer = null;
+    suppressNextLikeClick = true;
+    openReactionPicker(pubId, anchorEl);
+  }, 450);
+}
+
+function cancelReactionHold() {
+  clearTimeout(reactionHoldTimer);
+  reactionHoldTimer = null;
+}
+
+function openReactionPicker(pubId, anchorEl) {
+  closeReactionPicker();
+  const rect = anchorEl.getBoundingClientRect();
+  const picker = document.createElement('div');
+  picker.className = 'reaction-picker';
+  picker.id = 'reaction-picker';
+  picker.style.left = Math.max(8, Math.min(rect.left, window.innerWidth - 260)) + 'px';
+  picker.style.top = Math.max(8, rect.top - 58) + 'px';
+  picker.innerHTML = Object.entries(REACTION_EMOJIS).map(([type, emoji]) =>
+    `<button class="reaction-picker-btn" onclick="event.stopPropagation();setReaction('${pubId}','${type}')" aria-label="${type}">${emoji}</button>`
+  ).join('');
+  document.body.appendChild(picker);
+  requestAnimationFrame(() => picker.classList.add('show'));
+  setTimeout(() => document.addEventListener('click', closeReactionPicker, { once: true }), 0);
+}
+
+function closeReactionPicker() {
+  const el = document.getElementById('reaction-picker');
+  if (el) el.remove();
+}
+
+async function setReaction(pubId, type) {
+  closeReactionPicker();
+  if (!currentUser) { openAuth('register'); return; }
+  const lockKey = pubId + '_' + currentUser.uid;
+  if (likeInFlight.has(lockKey)) return;
+  likeInFlight.add(lockKey);
+
+  const likeRef = db.collection('publication_likes').doc(`${pubId}_${currentUser.uid}`);
+  const pubRef = db.collection('publications').doc(pubId);
+  const iconEls = document.querySelectorAll(`[data-like-icon="${pubId}"]`);
+  const btnEls = document.querySelectorAll(`[data-like-btn="${pubId}"]`);
+
+  try {
+    const likeDoc = await likeRef.get();
+    const wasLiked = likeDoc.exists;
+    await likeRef.set({ pubId, uid: currentUser.uid, type, createdAt: new Date().toISOString() });
+    if (!wasLiked) {
+      await pubRef.update({ likesCount: firebase.firestore.FieldValue.increment(1) });
+    }
+    iconEls.forEach(el => {
+      el.innerHTML = reactionIconHtml(type);
+      el.classList.remove('like-pop');
+      void el.offsetWidth;
+      el.classList.add('like-pop');
+    });
+    btnEls.forEach(el => el.classList.add('liked'));
+
+    if (!wasLiked) {
+      try {
+        const pubSnap = await pubRef.get();
+        const pub = pubSnap.data();
+        if (pub && pub.sellerUid && pub.sellerUid !== currentUser.uid) {
+          const emoji = REACTION_EMOJIS[type] || '❤️';
+          const title = `Nouvelle réaction ${emoji}`;
+          const body = `${currentUser.name || 'Quelqu\'un'} a réagi à "${pub.title || pub.description || 'ta publication'}".`;
+          await db.collection('notifications').add({
+            uid: pub.sellerUid, title, body, type: 'like', read: false, url: '/?open=' + pubId, createdAt: new Date().toISOString()
+          });
+          notifyUserPush(pub.sellerUid, title, body, 'activity', '/?open=' + pubId);
+        }
+      } catch (e) { /* pas grave si la notification echoue */ }
+    }
+  } catch (e) {
+    showToast(friendlyErrorMessage(e), 'error');
+  } finally {
+    likeInFlight.delete(lockKey);
+  }
+}
 const ICON_BOOKMARK = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21 12 16l-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
 const ICON_BOOKMARK_FILLED = `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 21 12 16l-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
 const ICON_FLAG = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>`;
@@ -4227,6 +4333,7 @@ function escapeForJs(str) {
 const likeInFlight = new Set();
 
 async function toggleShopLike(pubId) {
+  if (suppressNextLikeClick) { suppressNextLikeClick = false; return; }
   if (!currentUser) { openAuth('register'); return; }
   const lockKey = pubId + '_' + currentUser.uid;
   if (likeInFlight.has(lockKey)) return;
@@ -4256,10 +4363,10 @@ async function toggleShopLike(pubId) {
       iconEls.forEach(el => el.innerHTML = ICON_HEART_OUTLINE);
       btnEls.forEach(el => el.classList.remove('liked'));
     } else {
-      await likeRef.set({ pubId, uid: currentUser.uid, createdAt: new Date().toISOString() });
+      await likeRef.set({ pubId, uid: currentUser.uid, type: 'love', createdAt: new Date().toISOString() });
       await pubRef.update({ likesCount: firebase.firestore.FieldValue.increment(1) });
       iconEls.forEach(el => {
-        el.innerHTML = ICON_HEART_FILLED;
+        el.innerHTML = reactionIconHtml('love');
         el.classList.remove('like-pop');
         void el.offsetWidth;
         el.classList.add('like-pop');
@@ -4285,6 +4392,199 @@ async function toggleShopLike(pubId) {
   } finally {
     likeInFlight.delete(lockKey);
   }
+}
+
+/* ================= STORIES FACON FACEBOOK/INSTAGRAM =================
+   Collection "stories" (uid, name, photoURL, mediaUrl, mediaType,
+   createdAt) + "story_views" (storyId, viewerUid, viewedAt) pour savoir
+   quel anneau colorer. Pas de fonction serverless dediee a l'expiration :
+   on filtre simplement cote client tout ce qui a plus de 24h (le document
+   reste en base, tres leger, juste invisible). */
+const STORY_LIFETIME_MS = 24 * 60 * 60 * 1000;
+let storyViewerState = null;
+let storyViewerTimer = null;
+
+function openStoryPicker() {
+  const input = document.getElementById('story-upload-file');
+  if (input) input.click();
+}
+
+async function handleStoryFileChange(event) {
+  const file = event.target.files && event.target.files[0];
+  event.target.value = '';
+  if (!file || !currentUser) return;
+  const isVideo = file.type.startsWith('video/');
+  showToast('Envoi de ta story...', 'info');
+  try {
+    const uploaded = await uploadFileToStorage(file, 'stories', { maxSizeMB: isVideo ? 50 : 10 });
+    await db.collection('stories').add({
+      uid: currentUser.uid,
+      name: currentUser.name || 'Coeurnoh',
+      photoURL: currentUser.photoURL || null,
+      mediaUrl: uploaded.url,
+      mediaType: isVideo ? 'video' : 'image',
+      createdAt: new Date().toISOString()
+    });
+    showToast('Story publiée !', 'success');
+    renderStoriesBar();
+  } catch (e) {
+    showToast(friendlyErrorMessage(e), 'error');
+  }
+}
+
+async function renderStoriesBar() {
+  const bar = document.getElementById('stories-bar');
+  if (!bar || !currentUser) return;
+  try {
+    const cutoff = new Date(Date.now() - STORY_LIFETIME_MS).toISOString();
+    const snap = await db.collection('stories')
+      .where('createdAt', '>', cutoff)
+      .orderBy('createdAt', 'desc')
+      .limit(120)
+      .get();
+
+    // Regroupe par auteur : la bulle affiche la plus recente, mais on
+    // garde toutes ses stories actives pour la visionneuse plein ecran.
+    const byUser = new Map();
+    snap.docs.forEach(doc => {
+      const s = { id: doc.id, ...doc.data() };
+      if (!byUser.has(s.uid)) byUser.set(s.uid, []);
+      byUser.get(s.uid).push(s);
+    });
+
+    let viewedIds = new Set();
+    try {
+      const viewsSnap = await db.collection('story_views').where('viewerUid', '==', currentUser.uid).get();
+      viewsSnap.docs.forEach(d => viewedIds.add(d.data().storyId));
+    } catch (e) { /* pas bloquant : tout apparait juste "non vu" */ }
+
+    const myStories = byUser.get(currentUser.uid) || [];
+    byUser.delete(currentUser.uid);
+
+    const ownBubble = `
+      <div class="story-bubble">
+        <div class="story-add-badge" onclick="${myStories.length ? `openStoryViewer('${currentUser.uid}')` : 'openStoryPicker()'}">
+          <div class="story-ring ${myStories.length ? '' : 'own'}">
+            <div class="story-ring-inner">${renderAvatarHtml(currentUser.name, currentUser.photoURL, 50)}</div>
+          </div>
+          <div class="story-add-plus" onclick="event.stopPropagation();openStoryPicker()">+</div>
+        </div>
+        <div class="story-bubble-label">Ta story</div>
+      </div>`;
+
+    const otherBubbles = Array.from(byUser.entries()).map(([uid, stories]) => {
+      const latest = stories[0];
+      const allSeen = stories.every(s => viewedIds.has(s.id));
+      return `
+      <div class="story-bubble" onclick="openStoryViewer('${uid}')">
+        <div class="story-ring ${allSeen ? 'seen' : ''}">
+          <div class="story-ring-inner">${renderAvatarHtml(latest.name, latest.photoURL, 50)}</div>
+        </div>
+        <div class="story-bubble-label">${escapeHtml((latest.name || 'Coeurnoh').split(' ')[0])}</div>
+      </div>`;
+    }).join('');
+
+    bar.innerHTML = ownBubble + otherBubbles;
+  } catch (e) {
+    console.log('[stories] chargement non bloquant :', e.message);
+  }
+}
+
+// NOTE TECHNIQUE : cette requete (egalite sur "uid" + comparaison sur
+// "createdAt" + tri sur "createdAt") peut demander la creation d'un index
+// compose Firestore la toute premiere fois -- si ca arrive, la console du
+// navigateur affiche une erreur avec un lien direct "Create it here" qui
+// cree l'index en un clic (aucune action manuelle a faire a part cliquer
+// ce lien une fois).
+async function openStoryViewer(uid) {
+  try {
+    const cutoff = new Date(Date.now() - STORY_LIFETIME_MS).toISOString();
+    const snap = await db.collection('stories')
+      .where('uid', '==', uid)
+      .where('createdAt', '>', cutoff)
+      .orderBy('createdAt', 'asc')
+      .get();
+    const stories = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    if (!stories.length) { showToast('Aucune story active.', 'info'); return; }
+
+    storyViewerState = { stories, index: 0 };
+    const overlay = document.createElement('div');
+    overlay.className = 'story-viewer-overlay';
+    overlay.id = 'story-viewer-overlay';
+    document.body.appendChild(overlay);
+    renderStoryViewerFrame();
+  } catch (e) {
+    showToast(friendlyErrorMessage(e), 'error');
+  }
+}
+
+function renderStoryViewerFrame() {
+  if (!storyViewerState) return;
+  const { stories, index } = storyViewerState;
+  const s = stories[index];
+  const overlay = document.getElementById('story-viewer-overlay');
+  if (!overlay || !s) return;
+
+  const progressHtml = stories.map((_, i) =>
+    `<div class="story-viewer-progress-track"><div class="story-viewer-progress-fill ${i < index ? 'done' : ''}" id="story-progress-${i}"></div></div>`
+  ).join('');
+
+  const rawUrl = normalizeMediaUrl(s.mediaUrl);
+  const mediaHtml = s.mediaType === 'video'
+    ? `<video src="${escapeHtml(rawUrl)}" autoplay playsinline onended="advanceStory(1)"></video>`
+    : `<img src="${escapeHtml(rawUrl)}" alt="">`;
+
+  overlay.innerHTML = `
+    <div class="story-viewer-progress-row">${progressHtml}</div>
+    <div class="story-viewer-header">
+      ${renderAvatarHtml(s.name, s.photoURL, 34)}
+      <strong style="color:#fff">${escapeHtml(s.name || 'Coeurnoh')}</strong>
+      <span style="color:rgba(255,255,255,0.7);font-size:0.8rem">${timeAgo(s.createdAt)}</span>
+      <button class="story-viewer-close" onclick="closeStoryViewer()" aria-label="Fermer">&times;</button>
+    </div>
+    <div class="story-viewer-media-wrap">
+      ${mediaHtml}
+      <div class="story-viewer-tap-zone story-viewer-tap-prev" onclick="advanceStory(-1)"></div>
+      <div class="story-viewer-tap-zone story-viewer-tap-next" onclick="advanceStory(1)"></div>
+    </div>`;
+
+  // Marque comme vue (id deterministe storyId_viewerUid : idempotent, pas
+  // de doublon si on revoit la meme story plus tard).
+  if (currentUser) {
+    db.collection('story_views').doc(`${s.id}_${currentUser.uid}`)
+      .set({ storyId: s.id, viewerUid: currentUser.uid, viewedAt: new Date().toISOString() })
+      .catch(() => {});
+  }
+
+  clearTimeout(storyViewerTimer);
+  if (s.mediaType !== 'video') {
+    const fill = document.getElementById(`story-progress-${index}`);
+    if (fill) {
+      requestAnimationFrame(() => {
+        fill.style.transition = 'width 5s linear';
+        fill.style.width = '100%';
+      });
+    }
+    storyViewerTimer = setTimeout(() => advanceStory(1), 5000);
+  }
+}
+
+function advanceStory(dir) {
+  if (!storyViewerState) return;
+  const next = storyViewerState.index + dir;
+  if (next < 0) { storyViewerState.index = 0; renderStoryViewerFrame(); return; }
+  if (next >= storyViewerState.stories.length) { closeStoryViewer(); return; }
+  storyViewerState.index = next;
+  renderStoryViewerFrame();
+}
+
+function closeStoryViewer() {
+  clearTimeout(storyViewerTimer);
+  storyViewerTimer = null;
+  const overlay = document.getElementById('story-viewer-overlay');
+  if (overlay) overlay.remove();
+  storyViewerState = null;
+  renderStoriesBar();
 }
 
 /* ================= CONTENUS ENREGISTRÉS ================= */
@@ -11818,11 +12118,11 @@ async function openPostDetail(pubId) {
       console.log('[public_profiles] non bloquant :', e.message);
     }
 
-    let isLiked = false;
+    let isLiked = null;
     let isSaved = false;
     if (currentUser) {
       const likeDoc = await db.collection('publication_likes').doc(`${pubId}_${currentUser.uid}`).get();
-      isLiked = likeDoc.exists;
+      isLiked = likeDoc.exists ? (likeDoc.data().type || 'love') : null;
       const saveDoc = await db.collection('saved_items').doc(`${pubId}_${currentUser.uid}`).get();
       isSaved = saveDoc.exists;
     }
@@ -11869,8 +12169,10 @@ async function openPostDetail(pubId) {
       ${item.description ? `<p class="post-caption">${escapeHtml(item.description)}</p>` : ''}
       ${mediaHtml}
       <div class="post-actions">
-        <button class="shop-action-btn ${isLiked ? 'liked' : ''}" data-like-btn="${item.id}" onclick="toggleShopLike('${item.id}')">
-          <span data-like-icon="${item.id}">${isLiked ? ICON_HEART_FILLED : ICON_HEART_OUTLINE}</span>
+        <button class="shop-action-btn ${isLiked ? 'liked' : ''}" data-like-btn="${item.id}" onclick="toggleShopLike('${item.id}')"
+          onmousedown="startReactionHold('${item.id}', this)" onmouseup="cancelReactionHold()" onmouseleave="cancelReactionHold()"
+          ontouchstart="startReactionHold('${item.id}', this)" ontouchend="cancelReactionHold()">
+          <span data-like-icon="${item.id}">${reactionIconHtml(isLiked)}</span>
           <span data-like-count="${item.id}" data-raw="${safeCount(item.likesCount)}">${formatCompactCount(safeCount(item.likesCount))}</span>
         </button>
         <span class="shop-action-btn">${ICON_COMMENT} <span data-comment-count="${item.id}" data-raw="${item.commentsCount || 0}">${formatCompactCount(item.commentsCount || 0)}</span></span>
