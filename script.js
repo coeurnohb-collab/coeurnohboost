@@ -4070,6 +4070,7 @@ const ICON_EDIT = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" s
 // en permanence sur chaque publication -- meme logique que Facebook/Instagram.
 const ICON_DOTS = `<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2.1"/><circle cx="12" cy="12" r="2.1"/><circle cx="12" cy="19" r="2.1"/></svg>`;
 const ICON_DOWNLOAD = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>`;
+const ICON_EYE = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>`;
 // Fleche de retour (remplace l'ancienne croix "×" de la visionneuse) --
 // icone professionnelle vectorielle, pas un emoji, coloree en bleu via CSS.
 const ICON_BACK = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>`;
@@ -4538,9 +4539,26 @@ function renderStoryViewerFrame() {
   ).join('');
 
   const rawUrl = normalizeMediaUrl(s.mediaUrl);
+  // AVANT : object-fit:cover en CSS recadrait/zoomait l'image ou la video.
+  // La CSS a ete corrigee (object-fit:contain) pour toujours montrer le
+  // media en entier, sans coupe ni zoom.
   const mediaHtml = s.mediaType === 'video'
     ? `<video src="${escapeHtml(rawUrl)}" autoplay playsinline onended="advanceStory(1)"></video>`
     : `<img src="${escapeHtml(rawUrl)}" alt="">`;
+
+  const isOwn = currentUser && s.uid === currentUser.uid;
+  const footerHtml = isOwn
+    ? `<div class="story-viewer-footer">
+         <button class="story-viewer-seenby-btn" onclick="openStoryViewersList('${s.id}')" aria-label="Voir qui a vu cette story">
+           ${ICON_EYE} <span id="story-views-count-${s.id}">…</span>
+         </button>
+       </div>`
+    : `<div class="story-viewer-footer">
+         <button class="story-reaction-heart-btn" onclick="handleStoryReactionTap('${s.id}', this)"
+           onmousedown="startStoryReactionHold('${s.id}', this)" onmouseup="cancelStoryReactionHold()" onmouseleave="cancelStoryReactionHold()"
+           ontouchstart="startStoryReactionHold('${s.id}', this)" ontouchend="cancelStoryReactionHold()" ontouchmove="cancelStoryReactionHold()"
+           aria-label="Réagir à la story">${ICON_HEART_OUTLINE}</button>
+       </div>`;
 
   overlay.innerHTML = `
     <div class="story-viewer-progress-row">${progressHtml}</div>
@@ -4548,20 +4566,41 @@ function renderStoryViewerFrame() {
       ${renderAvatarHtml(s.name, s.photoURL, 34)}
       <strong style="color:#fff">${escapeHtml(s.name || 'Coeurnoh')}</strong>
       <span style="color:rgba(255,255,255,0.7);font-size:0.8rem">${timeAgo(s.createdAt)}</span>
-      <button class="story-viewer-close" onclick="closeStoryViewer()" aria-label="Fermer">&times;</button>
+      <div class="story-viewer-header-actions">
+        <button class="story-viewer-menu-btn" onclick="openStoryOptionsMenu('${escapeForJs(s.mediaUrl)}','${s.mediaType}')" aria-label="Options">${ICON_DOTS}</button>
+        <button class="story-viewer-close" onclick="closeStoryViewer()" aria-label="Retour">${ICON_BACK}</button>
+      </div>
     </div>
     <div class="story-viewer-media-wrap">
       ${mediaHtml}
       <div class="story-viewer-tap-zone story-viewer-tap-prev" onclick="advanceStory(-1)"></div>
       <div class="story-viewer-tap-zone story-viewer-tap-next" onclick="advanceStory(1)"></div>
-    </div>`;
+    </div>
+    ${footerHtml}`;
 
   // Marque comme vue (id deterministe storyId_viewerUid : idempotent, pas
-  // de doublon si on revoit la meme story plus tard).
+  // de doublon si on revoit la meme story plus tard). Le nom/la photo du
+  // visiteur sont dupliques ici (meme principe que pour "stories" elle-meme)
+  // pour pouvoir afficher la liste "Vu par" sans requetes supplementaires.
   if (currentUser) {
     db.collection('story_views').doc(`${s.id}_${currentUser.uid}`)
-      .set({ storyId: s.id, viewerUid: currentUser.uid, viewedAt: new Date().toISOString() })
+      .set({
+        storyId: s.id,
+        viewerUid: currentUser.uid,
+        viewerName: currentUser.name || 'Coeurnoh',
+        viewerPhoto: currentUser.photoURL || null,
+        viewedAt: new Date().toISOString()
+      })
       .catch(() => {});
+  }
+
+  // Pour le proprietaire : nombre de vues (charge en arriere-plan, sans
+  // bloquer l'affichage de la story).
+  if (isOwn) {
+    db.collection('story_views').where('storyId', '==', s.id).get().then(snap => {
+      const el = document.getElementById(`story-views-count-${s.id}`);
+      if (el) el.textContent = snap.size;
+    }).catch(() => {});
   }
 
   clearTimeout(storyViewerTimer);
@@ -4577,6 +4616,156 @@ function renderStoryViewerFrame() {
   }
 }
 
+/* ================= STORIES : "Vu par" (vues + reactions, façon Facebook) =================
+   Ouvre une feuille listant chaque personne ayant vu la story courante,
+   avec sa photo, son nom, l'heure de la vue, et sa reaction si elle en a
+   laisse une. Met la visionneuse en pause pendant la consultation. */
+async function openStoryViewersList(storyId) {
+  clearTimeout(storyViewerTimer);
+  closeStoryViewersList();
+  const overlay = document.createElement('div');
+  overlay.className = 'story-viewers-overlay';
+  overlay.id = 'story-viewers-overlay';
+  overlay.onclick = (e) => { if (e.target === overlay) closeStoryViewersList(); };
+  overlay.innerHTML = `
+    <div class="story-viewers-sheet">
+      <div class="story-viewers-handle"></div>
+      <div class="story-viewers-title">Vu par</div>
+      <div class="story-viewers-list" id="story-viewers-list"><div class="story-viewers-empty">Chargement...</div></div>
+    </div>`;
+  document.body.appendChild(overlay);
+
+  try {
+    const snap = await db.collection('story_views').where('storyId', '==', storyId).get();
+    const rows = snap.docs.map(d => d.data()).sort((a, b) => (b.viewedAt || '').localeCompare(a.viewedAt || ''));
+    const list = document.getElementById('story-viewers-list');
+    if (!list) return;
+    if (!rows.length) { list.innerHTML = '<div class="story-viewers-empty">Aucune vue pour le moment.</div>'; return; }
+    list.innerHTML = rows.map(v => `
+      <div class="story-viewer-row">
+        ${renderAvatarHtml(v.viewerName, v.viewerPhoto, 40)}
+        <div class="story-viewer-row-info">
+          <strong>${escapeHtml(v.viewerName || 'Coeurnoh')}</strong>
+          <span>${timeAgo(v.viewedAt)}</span>
+        </div>
+        ${v.reaction ? `<span class="story-viewer-row-reaction">${REACTION_EMOJIS[v.reaction] || ''}</span>` : ''}
+      </div>`).join('');
+  } catch (e) {
+    const list = document.getElementById('story-viewers-list');
+    if (list) list.innerHTML = '<div class="story-viewers-empty">Impossible de charger les vues.</div>';
+  }
+}
+
+function closeStoryViewersList() {
+  const overlay = document.getElementById('story-viewers-overlay');
+  if (overlay) overlay.remove();
+  renderStoryViewerFrame(); // reprend la lecture/le decompte de la story en cours
+}
+
+/* ================= STORIES : reactions (façon Facebook) =================
+   Appui court sur le coeur = reaction "love" rapide. Appui long (450ms) fait
+   apparaitre le meme choix de 6 reactions que sur les publications. Stockee
+   directement sur le document story_views du visiteur (reaction/reactionAt),
+   visible ensuite par le proprietaire dans la liste "Vu par". */
+let storyReactionHoldTimer = null;
+let suppressNextStoryReactionClick = false;
+
+function startStoryReactionHold(storyId, anchorEl) {
+  clearTimeout(storyReactionHoldTimer);
+  storyReactionHoldTimer = setTimeout(() => {
+    storyReactionHoldTimer = null;
+    suppressNextStoryReactionClick = true;
+    openStoryReactionPicker(storyId, anchorEl);
+  }, 450);
+}
+
+function cancelStoryReactionHold() {
+  clearTimeout(storyReactionHoldTimer);
+  storyReactionHoldTimer = null;
+}
+
+function handleStoryReactionTap(storyId, btnEl) {
+  if (suppressNextStoryReactionClick) { suppressNextStoryReactionClick = false; return; }
+  setStoryReaction(storyId, 'love', btnEl);
+}
+
+function openStoryReactionPicker(storyId, anchorEl) {
+  closeStoryReactionPicker();
+  clearTimeout(storyViewerTimer);
+  const rect = anchorEl.getBoundingClientRect();
+  const picker = document.createElement('div');
+  picker.className = 'reaction-picker';
+  picker.id = 'story-reaction-picker';
+  picker.style.left = Math.max(8, Math.min(rect.left, window.innerWidth - 260)) + 'px';
+  picker.style.top = Math.max(8, rect.top - 58) + 'px';
+  picker.innerHTML = Object.entries(REACTION_EMOJIS).map(([type, emoji]) =>
+    `<button class="reaction-picker-btn" onclick="event.stopPropagation();setStoryReaction('${storyId}','${type}', document.querySelector('.story-reaction-heart-btn'))" aria-label="${type}">${emoji}</button>`
+  ).join('');
+  document.body.appendChild(picker);
+  requestAnimationFrame(() => picker.classList.add('show'));
+  setTimeout(() => document.addEventListener('click', closeStoryReactionPicker, { once: true }), 0);
+}
+
+function closeStoryReactionPicker() {
+  const el = document.getElementById('story-reaction-picker');
+  if (el) el.remove();
+}
+
+async function setStoryReaction(storyId, type, btnEl) {
+  closeStoryReactionPicker();
+  if (!currentUser) { openAuth('register'); return; }
+  try {
+    await db.collection('story_views').doc(`${storyId}_${currentUser.uid}`).update({
+      reaction: type,
+      reactionAt: new Date().toISOString()
+    });
+    if (btnEl) {
+      btnEl.innerHTML = `<span class="reaction-emoji">${REACTION_EMOJIS[type]}</span>`;
+      btnEl.classList.remove('like-pop'); void btnEl.offsetWidth; btnEl.classList.add('like-pop');
+      btnEl.classList.add('story-reaction-active');
+    }
+  } catch (e) { /* pas grave si la reaction echoue (vue pas encore enregistree, etc.) */ }
+}
+
+/* ================= STORIES : menu "..." (telecharger / partager) ================= */
+function openStoryOptionsMenu(mediaUrl, mediaType) {
+  clearTimeout(storyViewerTimer);
+  closeStoryOptionsMenu();
+  const overlay = document.createElement('div');
+  overlay.className = 'action-sheet-overlay';
+  overlay.id = 'story-options-overlay';
+  overlay.onclick = (e) => { if (e.target === overlay) closeStoryOptionsMenu(); };
+  overlay.innerHTML = `
+    <div class="action-sheet">
+      <button class="action-sheet-btn" onclick="storyOptionsDownload('${escapeForJs(mediaUrl)}','${mediaType}')">${ICON_DOWNLOAD} Télécharger</button>
+      <button class="action-sheet-btn" onclick="storyOptionsShare('${escapeForJs(mediaUrl)}')">${ICON_SHARE} Partager</button>
+      <button class="action-sheet-btn action-sheet-cancel" onclick="closeStoryOptionsMenu()">Annuler</button>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+
+function closeStoryOptionsMenu() {
+  const overlay = document.getElementById('story-options-overlay');
+  if (overlay) overlay.remove();
+  renderStoryViewerFrame(); // reprend la lecture/le decompte de la story en cours
+}
+
+function storyOptionsDownload(mediaUrl, mediaType) {
+  closeStoryOptionsMenu();
+  downloadMedia(normalizeMediaUrl(mediaUrl), mediaType === 'video' ? 'video' : 'photo');
+}
+
+function storyOptionsShare(mediaUrl) {
+  closeStoryOptionsMenu();
+  const url = normalizeMediaUrl(mediaUrl);
+  if (navigator.share) {
+    navigator.share({ title: 'Coeurnoh Universe', text: 'Regarde cette story', url }).catch(() => {});
+  } else {
+    navigator.clipboard.writeText(url);
+    showToast('Lien copié !', 'success');
+  }
+}
+
 function advanceStory(dir) {
   if (!storyViewerState) return;
   const next = storyViewerState.index + dir;
@@ -4589,6 +4778,9 @@ function advanceStory(dir) {
 function closeStoryViewer() {
   clearTimeout(storyViewerTimer);
   storyViewerTimer = null;
+  document.getElementById('story-options-overlay')?.remove();
+  document.getElementById('story-viewers-overlay')?.remove();
+  closeStoryReactionPicker();
   const overlay = document.getElementById('story-viewer-overlay');
   if (overlay) overlay.remove();
   storyViewerState = null;

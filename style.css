@@ -61,8 +61,9 @@ a{text-decoration:none;color:inherit}
 /* Fin trait multicolore de marque sous l'en-tête -- petite touche premium
    plutôt qu'une simple ligne grise. */
 .nav-accent-line{
-  height:3px;
-  background:linear-gradient(90deg, var(--red), var(--green), var(--accent));
+  /* Simplifié : Instagram/Facebook n'ont pas de trait multicolore sous
+     l'en-tête, juste une fine séparation neutre. */
+  display:none;
 }
 
 /* BUTTONS */
@@ -884,12 +885,50 @@ a{text-decoration:none;color:inherit}
 .story-viewer-progress-fill.done{width:100% !important}
 .story-viewer-header{display:flex;align-items:center;gap:10px;padding:10px 12px;color:#fff}
 .story-viewer-header img{width:34px;height:34px;border-radius:50%;object-fit:cover}
-.story-viewer-close{margin-left:auto;background:none;border:none;color:#fff;font-size:1.5rem;line-height:1;cursor:pointer;padding:4px}
+.story-viewer-header-actions{display:flex;align-items:center;gap:2px;margin-left:auto}
+.story-viewer-menu-btn,.story-viewer-close{
+  background:none;border:none;color:#fff;cursor:pointer;padding:7px;
+  display:flex;align-items:center;justify-content:center;border-radius:50%;
+}
+.story-viewer-menu-btn:active,.story-viewer-close:active{background:rgba(255,255,255,0.15)}
+/* AVANT : object-fit:cover -- recadrait/zoomait la story pour remplir tout
+   l'ecran. Desormais la story s'affiche entiere, sans coupe ni zoom
+   (letterbox noir si besoin, comme Instagram/Facebook). */
 .story-viewer-media-wrap{flex:1;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
-.story-viewer-media-wrap img,.story-viewer-media-wrap video{width:100%;height:100%;object-fit:cover}
+.story-viewer-media-wrap img,.story-viewer-media-wrap video{width:100%;height:100%;object-fit:contain}
 .story-viewer-tap-zone{position:absolute;top:0;bottom:0;width:35%}
 .story-viewer-tap-prev{left:0}
 .story-viewer-tap-next{right:0}
+
+/* Bas de la visionneuse : "Vu par" (proprio) ou reaction coeur (visiteur) */
+.story-viewer-footer{display:flex;align-items:center;justify-content:center;padding:8px 14px calc(12px + env(safe-area-inset-bottom, 0px))}
+.story-viewer-seenby-btn{
+  display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.15);color:#fff;border:none;
+  border-radius:999px;padding:8px 16px;font-size:0.85rem;font-weight:600;cursor:pointer;
+}
+.story-viewer-seenby-btn svg{width:18px;height:18px}
+.story-reaction-heart-btn{
+  background:rgba(255,255,255,0.15);border:none;color:#fff;width:44px;height:44px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+}
+.story-reaction-heart-btn.story-reaction-active{color:#ff3040}
+
+/* Feuille "Vu par" (liste des vues + reaction de chacun) */
+.story-viewers-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:3200;display:flex;align-items:flex-end;justify-content:center}
+.story-viewers-sheet{
+  background:var(--white);width:100%;max-width:480px;border-radius:18px 18px 0 0;
+  max-height:70vh;display:flex;flex-direction:column;animation:actionSheetUp 0.18s ease;
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+.story-viewers-handle{width:40px;height:4px;border-radius:999px;background:var(--line);margin:10px auto 4px}
+.story-viewers-title{font-weight:700;font-size:0.95rem;color:var(--ink);text-align:center;padding:4px 0 10px;border-bottom:1px solid var(--line)}
+.story-viewers-list{overflow-y:auto;padding:6px 14px}
+.story-viewers-empty{text-align:center;color:var(--muted);padding:24px 0;font-size:0.9rem}
+.story-viewer-row{display:flex;align-items:center;gap:10px;padding:8px 0}
+.story-viewer-row-info{flex:1;min-width:0;display:flex;flex-direction:column}
+.story-viewer-row-info strong{font-size:0.88rem;color:var(--ink)}
+.story-viewer-row-info span{font-size:0.75rem;color:var(--muted)}
+.story-viewer-row-reaction{font-size:1.2rem;flex:0 0 auto}
 
 .follow-btn{
   background:var(--green);color:#fff;border:none;border-radius:999px;
@@ -1209,7 +1248,13 @@ a{text-decoration:none;color:inherit}
 .post-card-header strong{display:block;font-size:0.9rem;color:var(--ink)}
 .post-time{font-size:0.75rem;color:var(--muted)}
 .post-caption{padding:0 14px 10px;font-size:0.92rem;color:var(--ink);line-height:1.5}
-.post-media{width:100%;height:420px;object-fit:cover;display:block;background:var(--bg);cursor:pointer}
+/* AVANT : hauteur fixe 420px + object-fit:cover -- coupait/zoomait toutes
+   les images en un rendu "carré" quel que soit leur format d'origine.
+   Desormais chaque publication s'affiche dans sa forme complete d'origine
+   (comme Instagram/Facebook) : la hauteur s'adapte au ratio reel de
+   l'image, avec juste un plafond pour eviter qu'une photo tres verticale
+   ne prenne tout l'ecran. */
+.post-media{width:100%;height:auto;max-height:600px;object-fit:contain;display:block;background:var(--bg);cursor:pointer}
 .post-actions{display:flex;gap:10px;padding:10px 14px}
 
 /* Apercu video du fil (façon Facebook) : la video ne joue jamais "en
