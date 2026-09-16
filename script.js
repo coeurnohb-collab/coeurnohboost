@@ -4122,11 +4122,15 @@ const ICON_HEART_FILLED = `<svg width="16" height="16" viewBox="0 0 24 24" fill=
    choisi est stocke dans le champ "type" du document publication_likes
    (aucun changement de regles Firestore necessaire : c'est le meme
    document, cree/supprime exactement comme avant). */
-const REACTION_EMOJIS = { like: '👍', love: '🥰', adore: '😍', pleading: '🥺', sad: '😥', angry: '😡', mad: '😠', wow: '😯' };
+// "heart" est place EN PREMIER : c'est la reaction PRINCIPALE (simple tap),
+// exactement comme le coeur d'Instagram / le "J'aime" de Facebook. L'ordre
+// de cet objet determine aussi l'ordre d'affichage dans le picker d'appui
+// long (Object.entries), donc le coeur apparait bien en premiere position.
+const REACTION_EMOJIS = { heart: '❤️', like: '👍', love: '🥰', adore: '😍', pleading: '🥺', sad: '😥', angry: '😡', mad: '😠', wow: '😯' };
 
 function reactionIconHtml(type) {
   if (!type) return ICON_HEART_OUTLINE;
-  return `<span class="reaction-emoji">${REACTION_EMOJIS[type] || REACTION_EMOJIS.love}</span>`;
+  return `<span class="reaction-emoji">${REACTION_EMOJIS[type] || REACTION_EMOJIS.heart}</span>`;
 }
 
 let reactionHoldTimer = null;
@@ -4221,7 +4225,8 @@ async function setReaction(pubId, type) {
           const title = `Nouvelle réaction ${emoji}`;
           const body = `${currentUser.name || 'Quelqu\'un'} a réagi à "${pub.title || pub.description || 'ta publication'}".`;
           await db.collection('notifications').add({
-            uid: pub.sellerUid, title, body, type: 'like', read: false, url: '/?open=' + pubId, createdAt: new Date().toISOString()
+            uid: pub.sellerUid, title, body, type: 'like', read: false, url: '/?open=' + pubId, createdAt: new Date().toISOString(),
+            fromUid: currentUser.uid, fromName: currentUser.name || 'Quelqu\'un'
           });
           notifyUserPush(pub.sellerUid, title, body, 'activity', '/?open=' + pubId);
         }
@@ -4414,10 +4419,10 @@ async function toggleShopLike(pubId) {
       iconEls.forEach(el => el.innerHTML = ICON_HEART_OUTLINE);
       btnEls.forEach(el => el.classList.remove('liked'));
     } else {
-      await likeRef.set({ pubId, uid: currentUser.uid, type: 'love', createdAt: new Date().toISOString() });
+      await likeRef.set({ pubId, uid: currentUser.uid, type: 'heart', createdAt: new Date().toISOString() });
       await pubRef.update({ likesCount: firebase.firestore.FieldValue.increment(1) });
       iconEls.forEach(el => {
-        el.innerHTML = reactionIconHtml('love');
+        el.innerHTML = reactionIconHtml('heart');
         el.classList.remove('like-pop');
         void el.offsetWidth;
         el.classList.add('like-pop');
@@ -4432,7 +4437,8 @@ async function toggleShopLike(pubId) {
           const title = 'Nouveau like ❤️';
           const body = `${currentUser.name || 'Quelqu\'un'} a aimé "${pub.title || pub.description || 'ta publication'}".`;
           await db.collection('notifications').add({
-            uid: pub.sellerUid, title, body, type: 'like', read: false, url: '/?open=' + pubId, createdAt: new Date().toISOString()
+            uid: pub.sellerUid, title, body, type: 'like', read: false, url: '/?open=' + pubId, createdAt: new Date().toISOString(),
+            fromUid: currentUser.uid, fromName: currentUser.name || 'Quelqu\'un'
           });
           notifyUserPush(pub.sellerUid, title, body, 'activity', '/?open=' + pubId);
         }
@@ -4750,7 +4756,7 @@ function cancelStoryReactionHold() {
 
 function handleStoryReactionTap(storyId, btnEl) {
   if (suppressNextStoryReactionClick) { suppressNextStoryReactionClick = false; return; }
-  setStoryReaction(storyId, 'love', btnEl);
+  setStoryReaction(storyId, 'heart', btnEl);
 }
 
 function openStoryReactionPicker(storyId, anchorEl) {
@@ -12605,6 +12611,121 @@ async function deletePublicationFromDetail(pubId) {
   if (deleted) closePostDetail();
 }
 
+/* ================= COMMENTAIRES : reactions ❤️ (principal) + appui long =================
+   Meme mecanisme que les publications/stories : simple tap = coeur ❤️,
+   appui long (450ms) = choix des autres reactions. Stocke dans la
+   collection "comment_likes" (doc id "{commentId}_{uid}"), avec un
+   compteur "likesCount" sur le commentaire lui-meme. Comme ce document
+   change assez peu souvent par rapport a un like de publication, on
+   recharge simplement la liste apres coup plutot que de patcher le DOM a
+   la main -- plus simple, et sans risque d'incoherence d'affichage. */
+let commentReactionHoldTimer = null;
+let suppressNextCommentLikeClick = false;
+const commentLikeInFlight = new Set();
+
+function startCommentReactionHold(pubId, commentId, anchorEl) {
+  clearTimeout(commentReactionHoldTimer);
+  commentReactionHoldTimer = setTimeout(() => {
+    commentReactionHoldTimer = null;
+    suppressNextCommentLikeClick = true;
+    openCommentReactionPicker(pubId, commentId, anchorEl);
+  }, 450);
+}
+
+function cancelCommentReactionHold() {
+  clearTimeout(commentReactionHoldTimer);
+  commentReactionHoldTimer = null;
+}
+
+function openCommentReactionPicker(pubId, commentId, anchorEl) {
+  closeCommentReactionPicker();
+  const rect = anchorEl.getBoundingClientRect();
+  const picker = document.createElement('div');
+  picker.className = 'reaction-picker';
+  picker.id = 'comment-reaction-picker';
+  const pickerWidth = reactionPickerWidth();
+  picker.style.left = Math.max(8, Math.min(rect.left, window.innerWidth - pickerWidth - 8)) + 'px';
+  picker.style.top = Math.max(8, rect.top - 58) + 'px';
+  picker.innerHTML = Object.entries(REACTION_EMOJIS).map(([type, emoji]) =>
+    `<button class="reaction-picker-btn" onclick="event.stopPropagation();setCommentReaction('${pubId}','${commentId}','${type}')" aria-label="${type}">${emoji}</button>`
+  ).join('');
+  document.body.appendChild(picker);
+  requestAnimationFrame(() => picker.classList.add('show'));
+  setTimeout(() => document.addEventListener('click', closeCommentReactionPicker, { once: true }), 0);
+}
+
+function closeCommentReactionPicker() {
+  const el = document.getElementById('comment-reaction-picker');
+  if (el) el.remove();
+}
+
+function handleCommentLikeTap(pubId, commentId) {
+  if (suppressNextCommentLikeClick) { suppressNextCommentLikeClick = false; return; }
+  setCommentReaction(pubId, commentId, 'heart');
+}
+
+async function setCommentReaction(pubId, commentId, type) {
+  closeCommentReactionPicker();
+  if (!currentUser) { openAuth('register'); return; }
+  const lockKey = commentId + '_' + currentUser.uid;
+  if (commentLikeInFlight.has(lockKey)) return;
+  commentLikeInFlight.add(lockKey);
+
+  const likeRef = db.collection('comment_likes').doc(`${commentId}_${currentUser.uid}`);
+  const commentRef = db.collection('publication_comments').doc(commentId);
+  try {
+    const likeDoc = await likeRef.get();
+    const wasLiked = likeDoc.exists;
+    const wasSameType = wasLiked && likeDoc.data().type === type;
+    if (wasLiked) await likeRef.delete();
+    if (wasSameType) {
+      // Deuxieme tap sur la MEME reaction = on la retire (comme "un-like")
+      await commentRef.update({ likesCount: firebase.firestore.FieldValue.increment(-1) });
+    } else {
+      await likeRef.set({ commentId, pubId, uid: currentUser.uid, type, createdAt: new Date().toISOString() });
+      if (!wasLiked) await commentRef.update({ likesCount: firebase.firestore.FieldValue.increment(1) });
+    }
+    await loadShopComments(pubId);
+  } catch (e) {
+    showToast(friendlyErrorMessage(e), 'error');
+  } finally {
+    commentLikeInFlight.delete(lockKey);
+  }
+}
+
+/* ================= COMMENTAIRES : reponses (facon Facebook/Instagram) =================
+   Un seul niveau d'imbrication (comme la plupart des reseaux sociaux) :
+   un commentaire "parent" (parentId absent) peut recevoir des "reponses"
+   (parentId = id du parent). Repliees par defaut derriere un bouton
+   "Voir X reponses" des qu'il y en a, comme sur Instagram -- l'ensemble
+   ci-dessous retient quels fils sont actuellement depliees, pendant la
+   session, y compris apres un rechargement de la liste. */
+const expandedCommentReplies = new Set();
+
+function toggleCommentReplies(pubId, commentId) {
+  if (expandedCommentReplies.has(commentId)) expandedCommentReplies.delete(commentId);
+  else expandedCommentReplies.add(commentId);
+  loadShopComments(pubId);
+}
+
+function showReplyForm(pubId, commentId, replyToName) {
+  if (!currentUser) { openAuth('register'); return; }
+  closeCommentOptionsMenu();
+  document.querySelectorAll('.comment-reply-form').forEach(el => el.remove());
+  const anchor = document.querySelector(`.shop-comment[data-comment-id="${commentId}"]`);
+  if (!anchor) return;
+  expandedCommentReplies.add(commentId); // deplie aussi le fil existant pour situer la reponse
+  const form = document.createElement('div');
+  form.className = 'comment-reply-form';
+  form.innerHTML = `
+    <input type="text" class="text-input" id="comment-reply-input-${commentId}" placeholder="Répondre à ${escapeHtml(replyToName)}..." maxlength="500">
+    <button class="btn btn-outline btn-sm" onclick="addShopComment('${pubId}','${commentId}')">Envoyer</button>
+  `;
+  anchor.insertAdjacentElement('afterend', form);
+  const input = form.querySelector('input');
+  if (input) input.focus();
+}
+
 async function loadShopComments(pubId) {
   const listEl = document.getElementById(`shop-comments-list-${pubId}`);
   if (!listEl) return;
@@ -12618,14 +12739,64 @@ async function loadShopComments(pubId) {
       listEl.innerHTML = '<p class="muted small">Aucun commentaire. Sois le premier !</p>';
       return;
     }
-    listEl.innerHTML = snap.docs.map(doc => {
-      const c = doc.data();
+    const allComments = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    // Reactions personnelles de l'utilisateur sur les commentaires de CETTE
+    // publication -- une seule requete groupee plutot qu'une par commentaire.
+    const myReactions = new Map();
+    if (currentUser) {
+      try {
+        const likesSnap = await db.collection('comment_likes')
+          .where('pubId', '==', pubId).where('uid', '==', currentUser.uid).get();
+        likesSnap.docs.forEach(d => myReactions.set(d.data().commentId, d.data().type));
+      } catch (e) { /* pas bloquant : les coeurs seront juste tous vides */ }
+    }
+
+    const allIds = new Set(allComments.map(c => c.id));
+    // Une reponse dont le parent a ete supprime depuis (orpheline) est
+    // traitee comme un commentaire normal, pour ne jamais disparaitre.
+    const parents = allComments.filter(c => !c.parentId || !allIds.has(c.parentId));
+    const repliesByParent = new Map();
+    allComments.filter(c => c.parentId && allIds.has(c.parentId)).forEach(c => {
+      if (!repliesByParent.has(c.parentId)) repliesByParent.set(c.parentId, []);
+      repliesByParent.get(c.parentId).push(c);
+    });
+
+    const renderOne = (c, isReply) => {
       const isOwn = currentUser && currentUser.uid === c.uid;
-      return `<div class="shop-comment ${isOwn ? 'own-comment' : ''}" data-comment-id="${doc.id}" data-pub-id="${pubId}">
+      const myType = myReactions.get(c.id);
+      const likesCount = c.likesCount || 0;
+      return `<div class="shop-comment ${isOwn ? 'own-comment' : ''}" data-comment-id="${c.id}" data-pub-id="${pubId}">
         <strong>${escapeHtml(c.name || 'Client')}</strong>
-        <span class="shop-comment-text" id="comment-text-${doc.id}">${escapeHtml(c.text)}</span>${c.edited ? '<span class="shop-comment-edited">(modifié)</span>' : ''}
+        <span class="shop-comment-text" id="comment-text-${c.id}">${escapeHtml(c.text)}</span>${c.edited ? '<span class="shop-comment-edited">(modifié)</span>' : ''}
+        <div class="comment-actions-row" onpointerdown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
+          <span class="comment-time">${timeAgo(c.createdAt)}</span>
+          <button class="comment-like-btn ${myType ? 'liked' : ''}" data-comment-like-btn="${c.id}" aria-label="Réagir"
+            onpointerdown="startCommentReactionHold('${pubId}','${c.id}',this)"
+            onpointerup="cancelCommentReactionHold();handleCommentLikeTap('${pubId}','${c.id}')"
+            onpointerleave="cancelCommentReactionHold()"
+            ontouchstart="startCommentReactionHold('${pubId}','${c.id}',this)"
+            ontouchend="cancelCommentReactionHold();handleCommentLikeTap('${pubId}','${c.id}')">
+            ${myType ? reactionIconHtml(myType) : ICON_HEART_OUTLINE}<span class="comment-like-count">${likesCount > 0 ? formatCompactCount(likesCount) : ''}</span>
+          </button>
+          ${!isReply ? `<button class="comment-reply-btn" onclick="showReplyForm('${pubId}','${c.id}','${escapeForJs(c.name || 'Client')}')">Répondre</button>` : ''}
+        </div>
       </div>`;
+    };
+
+    listEl.innerHTML = parents.map(c => {
+      const replies = repliesByParent.get(c.id) || [];
+      let block = renderOne(c, false);
+      if (replies.length > 0) {
+        if (expandedCommentReplies.has(c.id)) {
+          block += `<div class="comment-replies">${replies.map(r => renderOne(r, true)).join('')}</div>`;
+        } else {
+          block += `<button class="comment-view-replies-btn" onclick="toggleCommentReplies('${pubId}','${c.id}')">Voir ${replies.length === 1 ? 'la réponse' : `les ${replies.length} réponses`}</button>`;
+        }
+      }
+      return block;
     }).join('');
+
     // Active l'appui long (Modifier/Supprimer) sur ses propres commentaires --
     // une seule fois pour toute l'application (delegation d'evenements).
     bindCommentLongPress();
@@ -12638,10 +12809,18 @@ async function deleteShopComment(pubId, commentId) {
   if (!currentUser) return;
   if (!confirm('Supprimer ce commentaire ?')) return;
   try {
+    const snap = await db.collection('publication_comments').doc(commentId).get();
+    const c = snap.data();
     await db.collection('publication_comments').doc(commentId).delete();
     await db.collection('publications').doc(pubId).update({
       commentsCount: firebase.firestore.FieldValue.increment(-1)
     });
+    // Si c'etait une reponse, on decremente aussi le compteur du parent.
+    if (c && c.parentId) {
+      db.collection('publication_comments').doc(c.parentId)
+        .update({ repliesCount: firebase.firestore.FieldValue.increment(-1) })
+        .catch(() => { /* le parent a peut-etre deja ete supprime, pas grave */ });
+    }
     document.querySelectorAll(`[data-comment-count="${pubId}"]`).forEach(el => {
       const raw = Math.max(0, (parseInt(el.dataset.raw, 10) || 1) - 1);
       el.dataset.raw = String(raw);
@@ -12814,10 +12993,12 @@ async function saveEditShopComment(pubId, commentId) {
   }
 }
 
-async function addShopComment(pubId) {
+async function addShopComment(pubId, parentId = null) {
   if (!currentUser) { openAuth('register'); return; }
-  const input = document.getElementById(`shop-comment-input-${pubId}`);
-  const btn = document.getElementById(`shop-comment-btn-${pubId}`);
+  const input = parentId
+    ? document.getElementById(`comment-reply-input-${parentId}`)
+    : document.getElementById(`shop-comment-input-${pubId}`);
+  const btn = parentId ? null : document.getElementById(`shop-comment-btn-${pubId}`);
   if (!input) return;
   const text = input.value.trim();
   if (!text) return;
@@ -12840,17 +13021,26 @@ async function addShopComment(pubId) {
   input.disabled = true;
 
   try {
-    await db.collection('publication_comments').add({
+    const commentData = {
       pubId,
       uid: currentUser.uid,
       name: currentUser.name || 'Client',
       text,
       createdAt: new Date().toISOString()
-    });
+    };
+    if (parentId) commentData.parentId = parentId;
+    await db.collection('publication_comments').add(commentData);
     await db.collection('publications').doc(pubId).update({
       commentsCount: firebase.firestore.FieldValue.increment(1)
     });
-    input.value = '';
+    if (parentId) {
+      await db.collection('publication_comments').doc(parentId)
+        .update({ repliesCount: firebase.firestore.FieldValue.increment(1) })
+        .catch(() => { /* pas grave si le parent a entre-temps ete supprime */ });
+      expandedCommentReplies.add(parentId);
+    } else {
+      input.value = '';
+    }
     await loadShopComments(pubId);
     document.querySelectorAll(`[data-comment-count="${pubId}"]`).forEach(el => {
       const raw = (parseInt(el.dataset.raw, 10) || 0) + 1;
@@ -12863,12 +13053,28 @@ async function addShopComment(pubId) {
       const pubSnap = await db.collection('publications').doc(pubId).get();
       const pub = pubSnap.data();
       if (pub && pub.sellerUid && pub.sellerUid !== currentUser.uid) {
-        const title = 'Nouveau commentaire 💬';
-        const body = `${currentUser.name || 'Quelqu\'un'} a commenté "${pub.title || pub.description || 'ta publication'}" : "${text.slice(0, 60)}"`;
+        const title = parentId ? 'Nouvelle réponse 💬' : 'Nouveau commentaire 💬';
+        const body = `${currentUser.name || 'Quelqu\'un'} a ${parentId ? 'répondu sur' : 'commenté'} "${pub.title || pub.description || 'ta publication'}" : "${text.slice(0, 60)}"`;
         await db.collection('notifications').add({
-          uid: pub.sellerUid, title, body, type: 'comment', read: false, url: '/?open=' + pubId, createdAt: new Date().toISOString()
+          uid: pub.sellerUid, title, body, type: 'comment', read: false, url: '/?open=' + pubId, createdAt: new Date().toISOString(),
+          fromUid: currentUser.uid, fromName: currentUser.name || 'Quelqu\'un'
         });
         notifyUserPush(pub.sellerUid, title, body, 'activity', '/?open=' + pubId);
+      }
+      // Reponse : on notifie EN PLUS l'auteur du commentaire d'origine (si ce
+      // n'est ni soi-meme, ni le proprietaire de la publication deja notifie).
+      if (parentId) {
+        const parentSnap = await db.collection('publication_comments').doc(parentId).get();
+        const parent = parentSnap.data();
+        if (parent && parent.uid && parent.uid !== currentUser.uid && (!pub || parent.uid !== pub.sellerUid)) {
+          const title2 = 'Nouvelle réponse 💬';
+          const body2 = `${currentUser.name || 'Quelqu\'un'} a répondu à ton commentaire : "${text.slice(0, 60)}"`;
+          await db.collection('notifications').add({
+            uid: parent.uid, title: title2, body: body2, type: 'comment', read: false, url: '/?open=' + pubId, createdAt: new Date().toISOString(),
+            fromUid: currentUser.uid, fromName: currentUser.name || 'Quelqu\'un'
+          });
+          notifyUserPush(parent.uid, title2, body2, 'activity', '/?open=' + pubId);
+        }
       }
     } catch (e) { /* pas grave si la notification echoue */ }
   } catch (e) {
@@ -12876,6 +13082,7 @@ async function addShopComment(pubId) {
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = 'Envoyer'; }
     input.disabled = false;
+    if (parentId) { const f = input.closest('.comment-reply-form'); if (f) f.remove(); }
   }
 }
 
@@ -13289,21 +13496,23 @@ async function deleteSelectedNotifs() {
 function renderNotifPanel() {
   const listEl = document.getElementById('notif-list');
   if (!listEl) return;
-  // Fusionne notifications personnelles + annonces publiques, triees par date
+  // Fusionne notifications personnelles + annonces publiques, triees par date,
+  // puis retire celles venant d'une personne que l'utilisateur a choisi de
+  // "desactiver" depuis le menu 3 points (option "Desactiver les notifications
+  // concernant les actualites de X", facon Facebook).
+  const mutedUids = new Set((currentUser && currentUser.mutedNotifUids) || []);
   const merged = [
     ...notifCache.map(n => ({ ...n, isAnnouncement: false })),
     ...announcementsCache.map(a => ({ ...a, isAnnouncement: true }))
-  ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 30);
+  ]
+    .filter(n => !n.fromUid || !mutedUids.has(n.fromUid))
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 30);
 
   if (merged.length === 0) {
     listEl.innerHTML = '<p class="muted small" style="padding:16px">Aucune notification pour l\'instant.</p>';
     return;
   }
 
-  const typeIcons = {
-    recharge: ICON_WALLET, purchase: ICON_CART, sale: ICON_TAG, like: ICON_HEART_FILLED, comment: ICON_COMMENT,
-    share: ICON_SHARE, order: ICON_PACKAGE, announcement: ICON_BELL, admin_message: ICON_SHIELD
-  };
   // Petit badge colore en bas a droite de l'icone selon le type -- meme
   // principe visuel qu'un fil de notifications Facebook (bulle "like" rouge,
   // "commentaire" bleue, etc). Un type sans badge dedie ci-dessous retombe
@@ -13315,11 +13524,13 @@ function renderNotifPanel() {
   };
 
   const lastSeen = getLastSeenAnnouncementAt();
-  listEl.innerHTML = merged.map(n => {
+  const isUnread = (n) => (!n.isAnnouncement && !n.read) || (n.isAnnouncement && n.createdAt > lastSeen);
+
+  const renderRow = (n) => {
     const isSelected = selectedNotifIds.has(n.id);
     const badgeClass = 'badge-' + (n.type || 'announcement');
     return `
-    <div class="notif-row ${(!n.isAnnouncement && !n.read) || (n.isAnnouncement && n.createdAt > lastSeen) ? 'unread' : ''} ${isSelected ? 'notif-row-selected' : ''}"
+    <div class="notif-row ${isUnread(n) ? 'unread' : ''} ${isSelected ? 'notif-row-selected' : ''}"
       data-id="${n.id}" data-announcement="${n.isAnnouncement ? '1' : '0'}">
       ${notifSelectMode && !n.isAnnouncement ? `<span class="notif-select-dot ${isSelected ? 'checked' : ''}">${ICON_CHECK}</span>` : ''}
       <span class="notif-icon-wrap">
@@ -13334,14 +13545,28 @@ function renderNotifPanel() {
       ${(!notifSelectMode && !n.isAnnouncement) ? `<button class="notif-more-btn" data-notif-more="${n.id}" aria-label="Options de cette notification" title="Options">${ICON_DOTS}</button>` : ''}
     </div>
   `;
-  }).join('');
+  };
+
+  // En-tete "Nouveau" au-dessus des notifications non lues, exactement comme
+  // sur Facebook -- rien au-dessus des anciennes (deja lues), qui suivent
+  // simplement en dessous.
+  const unreadRows = merged.filter(isUnread);
+  const readRows = merged.filter(n => !isUnread(n));
+  let html = '';
+  if (unreadRows.length > 0) {
+    html += `<div class="notif-section-header">Nouveau</div>` + unreadRows.map(renderRow).join('');
+  }
+  html += readRows.map(renderRow).join('');
+  listEl.innerHTML = html;
   bindNotifListEvents();
 }
 
 /* ================= MENU OPTIONS NOTIFICATION (3 points, façon Facebook) =================
    Remplace l'ancienne icone poubelle affichee en permanence sur chaque
    ligne : un seul bouton "..." ouvre ce petit menu, meme principe que
-   openPostOptionsMenu() pour les publications. */
+   openPostOptionsMenu() pour les publications. Comme sur Facebook, propose
+   aussi de desactiver les notifications d'une personne precise et de
+   signaler un probleme, en plus de la suppression simple. */
 let notifOptionsId = null;
 
 function openNotifOptionsMenu(notifId) {
@@ -13349,8 +13574,14 @@ function openNotifOptionsMenu(notifId) {
   const sheet = document.getElementById('notif-options-sheet');
   const overlay = document.getElementById('notif-options-overlay');
   if (!sheet || !overlay) return;
+  const n = notifCache.find(x => x.id === notifId);
+  const muteBtn = (n && n.fromUid && n.fromUid !== (currentUser && currentUser.uid))
+    ? `<button class="action-sheet-btn" onclick="muteNotifSender('${n.fromUid}','${escapeForJs(n.fromName || 'cette personne')}')">${ICON_BELL} Désactiver les notifications concernant les actualités de ${escapeHtml(n.fromName || 'cette personne')}</button>`
+    : '';
   sheet.innerHTML = `
-    <button class="action-sheet-btn action-sheet-btn-danger" onclick="notifOptionsDelete()">${ICON_TRASH} Supprimer</button>
+    <button class="action-sheet-btn action-sheet-btn-danger" onclick="notifOptionsDelete()">${ICON_TRASH} Supprimer cette notification</button>
+    ${muteBtn}
+    <button class="action-sheet-btn" onclick="reportNotifProblem()">${ICON_FLAG} Signaler le problème à l'équipe de notifications</button>
     <button class="action-sheet-btn action-sheet-cancel" onclick="closeNotifOptionsMenu()">Annuler</button>
   `;
   overlay.classList.remove('hidden');
@@ -13366,6 +13597,45 @@ function notifOptionsDelete() {
   const id = notifOptionsId;
   closeNotifOptionsMenu();
   if (id) deleteNotifRow(id);
+}
+
+// Arrete de recevoir les notifications d'activite (likes/commentaires...)
+// provenant d'une personne precise, sans la bloquer completement -- meme
+// principe que "Desactiver les notifications concernant les actualites de X"
+// sur Facebook. Stocke dans users/{uid}.mutedNotifUids (tableau).
+async function muteNotifSender(fromUid, fromName) {
+  closeNotifOptionsMenu();
+  if (!currentUser || !fromUid) return;
+  try {
+    await db.collection('users').doc(currentUser.uid).update({
+      mutedNotifUids: firebase.firestore.FieldValue.arrayUnion(fromUid)
+    });
+    currentUser.mutedNotifUids = [...((currentUser.mutedNotifUids) || []), fromUid];
+    renderNotifPanel();
+    showToast(`Notifications de ${fromName} désactivées.`, 'info');
+  } catch (e) {
+    showToast(friendlyErrorMessage(e), 'error');
+  }
+}
+
+// Signale un probleme sur une notification precise a l'equipe (simple ticket
+// dans la collection "reports" deja utilisee pour les signalements de
+// publications/profils -- visible uniquement par l'admin).
+async function reportNotifProblem() {
+  const id = notifOptionsId;
+  closeNotifOptionsMenu();
+  if (!currentUser || !id) return;
+  try {
+    await db.collection('reports').add({
+      type: 'notification',
+      notifId: id,
+      reporterUid: currentUser.uid,
+      createdAt: new Date().toISOString()
+    });
+    showToast('Signalement envoyé, merci.', 'success');
+  } catch (e) {
+    showToast(friendlyErrorMessage(e), 'error');
+  }
 }
 
 // Delegation d'evenements unique sur le conteneur (au lieu d'attributs en

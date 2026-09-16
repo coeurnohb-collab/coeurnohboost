@@ -914,6 +914,11 @@ a{text-decoration:none;color:inherit}
 }
 .story-reaction-heart-btn.story-reaction-active{color:#ff3040}
 
+/* BUGFIX telechargement Story : ces deux popups s'ouvrent PAR-DESSUS la
+   visionneuse plein ecran (z-index 3000 ci-dessus), jamais en dessous. */
+#story-reaction-picker{z-index:3300}
+#story-options-overlay{z-index:3300}
+
 /* Feuille "Vu par" (liste des vues + reaction de chacun) */
 .story-viewers-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:3200;display:flex;align-items:flex-end;justify-content:center}
 .story-viewers-sheet{
@@ -950,8 +955,27 @@ a{text-decoration:none;color:inherit}
 .account-search-row:not(:last-child){border-bottom:1px solid var(--line)}
 .shop-comments{margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
 .shop-comments-list{margin-bottom:10px;max-height:220px;overflow-y:auto}
-.shop-comment{padding:8px 0;border-bottom:1px solid var(--line);font-size:0.85rem;display:flex;align-items:center;gap:8px}
+.shop-comment{padding:8px 0;border-bottom:1px solid var(--line);font-size:0.85rem;display:block}
 .shop-comment span{flex:1}
+/* ================= COMMENTAIRES : reactions + reponses (facon FB/IG) ================= */
+.comment-actions-row{display:flex;align-items:center;gap:14px;margin-top:3px;padding-left:2px}
+.comment-time{color:var(--muted);font-size:0.72rem}
+.comment-like-btn,.comment-reply-btn{
+  background:none;border:none;padding:0;cursor:pointer;font-size:0.75rem;font-weight:700;
+  color:var(--muted);display:flex;align-items:center;gap:4px;
+}
+.comment-like-btn.liked{color:var(--red,#e03131)}
+.comment-like-btn .reaction-emoji{font-size:0.85rem}
+.comment-like-count{font-weight:400;color:var(--muted);font-size:0.72rem}
+.comment-replies{margin-left:20px;margin-top:8px;padding-left:12px;border-left:2px solid var(--line)}
+.comment-replies .shop-comment{border-bottom:none;padding:6px 0}
+.comment-view-replies-btn{
+  background:none;border:none;padding:0;margin-top:6px;margin-left:20px;cursor:pointer;
+  color:var(--muted);font-size:0.78rem;font-weight:700;display:flex;align-items:center;gap:6px;
+}
+.comment-view-replies-btn::before{content:'';display:inline-block;width:20px;height:1px;background:var(--line)}
+.comment-reply-form{display:flex;gap:8px;margin:8px 0 4px 20px}
+.comment-reply-form .text-input{flex:1;font-size:0.82rem}
 .comment-delete-btn{background:none;border:none;color:var(--muted);cursor:pointer;flex:0 0 auto;padding:4px;display:flex}
 .comment-delete-btn:hover{color:var(--red)}
 .reviews-section{margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
@@ -1120,6 +1144,7 @@ a{text-decoration:none;color:inherit}
 
 /* Panneau notifications (modale, coherent avec le reste du site) */
 .notif-modal{max-height:75vh;overflow-y:auto}
+.notif-section-header{font-weight:800;font-size:1rem;color:var(--ink);padding:10px 0 6px}
 .notif-row{display:flex;gap:10px;padding:12px 0;border-bottom:1px solid var(--line);cursor:pointer;align-items:flex-start;-webkit-user-select:none;user-select:none;touch-action:pan-y}
 .notif-row-selected{background:var(--green-light);margin:0 -14px;padding:12px 14px;border-radius:10px}
 /* Empeche le menu natif "Copier/Partager/Tout selectionner" et le zoom
