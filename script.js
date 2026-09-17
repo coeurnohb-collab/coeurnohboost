@@ -4509,7 +4509,7 @@ async function handleStoryFileChange(event) {
     const uploaded = await uploadFileToStorage(file, 'stories', { maxSizeMB: isVideo ? 50 : 10 });
     await db.collection('stories').add({
       uid: currentUser.uid,
-      name: currentUser.name || 'Coeurnoh',
+      name: currentUser.username || currentUser.name || 'Coeurnoh',
       photoURL: currentUser.photoURL || null,
       mediaUrl: uploaded.url,
       mediaType: isVideo ? 'video' : 'image',
@@ -4547,6 +4547,23 @@ async function renderStoriesBar() {
       const viewsSnap = await db.collection('story_views').where('viewerUid', '==', currentUser.uid).get();
       viewsSnap.docs.forEach(d => viewedIds.add(d.data().storyId));
     } catch (e) { /* pas bloquant : tout apparait juste "non vu" */ }
+
+    // Corrige nom/photo avec la version la plus recente du profil de chaque
+    // auteur (meme principe que enrichItemsWithPublicProfiles pour le fil) :
+    // si quelqu'un change son nom d'utilisateur ou sa photo, ses stories
+    // deja postees le reflechissent immediatement, sans devoir republier.
+    try {
+      await Promise.all(Array.from(byUser.keys()).map(fetchPublicProfile));
+      byUser.forEach((stories, uid) => {
+        const p = publicProfileCache.get(uid);
+        if (!p) return;
+        stories.forEach(s => {
+          if (p.username) s.name = p.username; else if (p.name) s.name = p.name;
+          if (p.photoURL) s.photoURL = p.photoURL;
+          if (typeof p.verified === 'boolean') s.verified = p.verified;
+        });
+      });
+    } catch (e) { /* non bloquant : les stories s'affichent avec le nom enregistre a la publication */ }
 
     const myStories = byUser.get(currentUser.uid) || [];
     byUser.delete(currentUser.uid);
@@ -4596,6 +4613,21 @@ async function openStoryViewer(uid) {
       .get();
     const stories = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     if (!stories.length) { showToast('Aucune story active.', 'info'); return; }
+
+    // Meme correctif que dans renderStoriesBar() juste au-dessus : le nom/la
+    // photo affiches dans l'en-tete de la visionneuse reflechissent le profil
+    // ACTUEL de l'auteur, pas seulement ce qui etait enregistre au moment de
+    // la publication de la story.
+    try {
+      const p = await fetchPublicProfile(uid);
+      if (p) {
+        stories.forEach(s => {
+          if (p.username) s.name = p.username; else if (p.name) s.name = p.name;
+          if (p.photoURL) s.photoURL = p.photoURL;
+          if (typeof p.verified === 'boolean') s.verified = p.verified;
+        });
+      }
+    } catch (e) { /* non bloquant */ }
 
     // Recupere, pour chacune de ces stories, la reaction que LE VISITEUR
     // COURANT a deja laissee (si il y en a une) -- necessaire pour que le
@@ -4667,8 +4699,10 @@ function renderStoryViewerFrame() {
   overlay.innerHTML = `
     <div class="story-viewer-progress-row">${progressHtml}</div>
     <div class="story-viewer-header">
-      ${renderAvatarHtml(s.name, s.photoURL, 34)}
-      <strong style="color:#fff">${escapeHtml(s.name || 'Coeurnoh')}</strong>
+      <div class="story-viewer-header-identity" onclick="openStoryPosterProfile('${s.uid}','${escapeForJs(s.name)}',${!!s.verified})" role="button" aria-label="Voir le profil">
+        ${renderAvatarHtml(s.name, s.photoURL, 34)}
+        <strong style="color:#fff">${escapeHtml(s.name || 'Coeurnoh')}</strong>
+      </div>
       <span style="color:rgba(255,255,255,0.7);font-size:0.8rem">${timeAgo(s.createdAt)}</span>
       <div class="story-viewer-header-actions">
         <button class="story-viewer-menu-btn" onclick="openStoryOptionsMenu('${escapeForJs(s.mediaUrl)}','${s.mediaType}')" aria-label="Options">${ICON_DOTS}</button>
@@ -4753,7 +4787,7 @@ async function openStoryViewersList(storyId) {
     if (!list) return;
     if (!rows.length) { list.innerHTML = '<div class="story-viewers-empty">Aucune vue pour le moment.</div>'; return; }
     list.innerHTML = rows.map(v => `
-      <div class="story-viewer-row">
+      <div class="story-viewer-row" onclick="openStoryViewerProfile('${v.viewerUid}','${escapeForJs(v.viewerName)}')" role="button" aria-label="Voir le profil">
         ${renderAvatarHtml(v.viewerName, v.viewerPhoto, 40)}
         <div class="story-viewer-row-info">
           <strong>${escapeHtml(v.viewerName || 'Coeurnoh')}</strong>
@@ -4771,6 +4805,16 @@ function closeStoryViewersList() {
   const overlay = document.getElementById('story-viewers-overlay');
   if (overlay) overlay.remove();
   renderStoryViewerFrame(); // reprend la lecture/le decompte de la story en cours
+}
+
+// Tapoter une personne dans la liste "Vu par" ouvre directement son profil
+// (meme principe que openStoryPosterProfile ci-dessus) -- ferme la feuille
+// "Vu par" ET la visionneuse de story au passage.
+function openStoryViewerProfile(uid, name) {
+  const overlay = document.getElementById('story-viewers-overlay');
+  if (overlay) overlay.remove();
+  closeStoryViewer();
+  openProfileModal(uid, name, false);
 }
 
 /* ================= STORIES : reactions (façon Facebook) =================
@@ -4899,6 +4943,15 @@ function advanceStory(dir) {
   if (next >= storyViewerState.stories.length) { closeStoryViewer(); return; }
   storyViewerState.index = next;
   renderStoryViewerFrame();
+}
+
+// Tapoter le nom/la photo de l'auteur d'une story ouvre directement son
+// profil, comme sur Facebook -- ferme la visionneuse au passage (sinon la
+// story continue de defiler en arriere-plan pendant qu'on consulte le
+// profil).
+function openStoryPosterProfile(uid, name, verified) {
+  closeStoryViewer();
+  openProfileModal(uid, name, verified);
 }
 
 function closeStoryViewer() {
