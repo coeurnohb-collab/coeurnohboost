@@ -6328,28 +6328,28 @@ async function loadAlerts() {
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     renderAlertsList(alertsCache);
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${escapeHtml(e.message)}</p>`;
+    listEl.innerHTML = `<p class="muted small">${t('alerts_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
   }
 }
 
 const ALERT_CATEGORY_LABELS = {
-  all: 'Toutes catégories', ebooks: '📚 Livres & Ebooks', beaute: '💄 Beauté & Bien-être',
-  mode: '👗 Mode & Accessoires', electronique: '🔌 Électronique', maison: '🏠 Maison & Déco', autres: '📦 Autres'
+  all: 'shop_cat_all', ebooks: 'shop_cat_ebooks', beaute: 'shop_cat_beaute',
+  mode: 'shop_cat_mode', electronique: 'shop_cat_electronique', maison: 'shop_cat_maison', autres: 'shop_cat_autres'
 };
 
 function renderAlertsList(list) {
   const listEl = document.getElementById('alerts-list');
 
   if (!list || list.length === 0) {
-    listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Aucune alerte enregistrée. Touche « Nouvelle alerte » pour créer la première.</p>';
+    listEl.innerHTML = `<p class="muted small" style="text-align:center;padding:20px 0">${t('alerts_empty')}</p>`;
     return;
   }
 
   listEl.innerHTML = list.map(a => {
     const parts = [];
-    if (a.maxPrice) parts.push(`moins de ${a.maxPrice}$`);
-    if (a.category && a.category !== 'all') parts.push(ALERT_CATEGORY_LABELS[a.category] || a.category);
-    const sub = parts.length ? parts.join(' · ') : 'Toutes catégories, tous prix';
+    if (a.maxPrice) parts.push(`${t('alerts_price_under_prefix')} ${a.maxPrice}$`);
+    if (a.category && a.category !== 'all') parts.push(t(ALERT_CATEGORY_LABELS[a.category]) || a.category);
+    const sub = parts.length ? parts.join(' · ') : t('alerts_default_sub');
     return `
     <div class="order-box" style="margin-bottom:12px">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
@@ -6365,7 +6365,7 @@ function renderAlertsList(list) {
           <span class="slider"></span>
         </label>
       </div>
-      <button class="btn btn-outline btn-sm" style="margin-top:12px;color:var(--red);border-color:var(--red)" onclick="deleteAlertConfirm('${a.id}')">Supprimer</button>
+      <button class="btn btn-outline btn-sm" style="margin-top:12px;color:var(--red);border-color:var(--red)" onclick="deleteAlertConfirm('${a.id}')">${t('common_delete')}</button>
     </div>`;
   }).join('');
 }
@@ -6379,35 +6379,35 @@ function openAlertForm() {
     <div class="modal-overlay" id="alert-form-modal">
       <div class="modal">
         <button class="modal-close" onclick="document.getElementById('alert-form-modal').remove()" aria-label="Fermer">×</button>
-        <h3 style="margin-bottom:14px">Nouvelle alerte</h3>
+        <h3 style="margin-bottom:14px">${t('alert_form_title')}</h3>
 
         <div class="field">
-          <label for="alert-keyword">Mot-clé (ex: iPhone 13)</label>
-          <input type="text" id="alert-keyword" class="text-input" maxlength="80" placeholder="Ce que tu recherches">
+          <label for="alert-keyword">${t('alert_keyword_label')}</label>
+          <input type="text" id="alert-keyword" class="text-input" maxlength="80" placeholder="${t('alert_keyword_ph')}">
         </div>
         <div class="field">
-          <label for="alert-maxprice">Prix maximum en $ (facultatif)</label>
-          <input type="number" id="alert-maxprice" class="text-input" min="0" step="0.01" placeholder="Aucune limite">
+          <label for="alert-maxprice">${t('alert_maxprice_label')}</label>
+          <input type="number" id="alert-maxprice" class="text-input" min="0" step="0.01" placeholder="${t('alert_maxprice_ph')}">
         </div>
         <div class="field">
-          <label for="alert-category">Catégorie (facultatif)</label>
+          <label for="alert-category">${t('alert_category_label')}</label>
           <select id="alert-category" class="select-input">
-            <option value="all">Toutes catégories</option>
-            <option value="ebooks">📚 Livres & Ebooks</option>
-            <option value="beaute">💄 Beauté & Bien-être</option>
-            <option value="mode">👗 Mode & Accessoires</option>
-            <option value="electronique">🔌 Électronique</option>
-            <option value="maison">🏠 Maison & Déco</option>
-            <option value="autres">📦 Autres</option>
+            <option value="all">${t('shop_cat_all')}</option>
+            <option value="ebooks">${t('shop_cat_ebooks')}</option>
+            <option value="beaute">${t('shop_cat_beaute')}</option>
+            <option value="mode">${t('shop_cat_mode')}</option>
+            <option value="electronique">${t('shop_cat_electronique')}</option>
+            <option value="maison">${t('shop_cat_maison')}</option>
+            <option value="autres">${t('shop_cat_autres')}</option>
           </select>
         </div>
         <div class="field">
-          <label for="alert-photo-file">Photo de référence (facultatif)</label>
-          <p class="muted small" style="margin:-2px 0 8px">Une photo du produit ou de la marque recherchée, juste pour t'aider à t'y retrouver dans tes alertes — elle ne sert pas à la recherche automatique, qui reste basée sur le mot-clé.</p>
+          <label for="alert-photo-file">${t('alert_photo_label')}</label>
+          <p class="muted small" style="margin:-2px 0 8px">${t('alert_photo_note')}</p>
           <input type="file" id="alert-photo-file" class="file-input-hidden" accept="image/*" onchange="handleAlertPhotoFileChange(event)">
           <label for="alert-photo-file" class="file-picker-btn" id="alert-photo-file-label">
             <span class="file-picker-icon" id="alert-photo-file-icon">🖼️</span>
-            <span class="file-picker-text" id="alert-photo-file-text">Choisir une photo</span>
+            <span class="file-picker-text" id="alert-photo-file-text">${t('alert_photo_choose')}</span>
           </label>
           <div class="upload-progress-wrap hidden" id="alert-photo-progress-wrap">
             <div class="upload-progress-fill" id="alert-photo-progress-fill"></div>
@@ -6416,7 +6416,7 @@ function openAlertForm() {
           <div id="alert-photo-preview"></div>
         </div>
 
-        <button class="btn btn-primary" id="alert-save-btn" style="width:100%;justify-content:center;margin-top:4px" onclick="saveAlert()">Créer l'alerte</button>
+        <button class="btn btn-primary" id="alert-save-btn" style="width:100%;justify-content:center;margin-top:4px" onclick="saveAlert()">${t('alert_create_btn')}</button>
         <p class="muted small" id="alert-form-msg" style="margin-top:6px"></p>
       </div>
     </div>`;
@@ -6429,7 +6429,7 @@ function handleAlertPhotoFileChange(event) {
   pendingAlertPhotoFile = (event.target.files && event.target.files[0]) || null;
   const text = document.getElementById('alert-photo-file-text');
   const label = document.getElementById('alert-photo-file-label');
-  if (text) text.textContent = pendingAlertPhotoFile ? `✅ ${pendingAlertPhotoFile.name}` : 'Choisir une photo';
+  if (text) text.textContent = pendingAlertPhotoFile ? `✅ ${pendingAlertPhotoFile.name}` : t('alert_photo_choose');
   if (label) label.classList.toggle('has-file', !!pendingAlertPhotoFile);
   const previewEl = document.getElementById('alert-photo-preview');
   if (previewEl) {
@@ -6446,11 +6446,11 @@ async function saveAlert() {
   const maxPrice = maxPriceRaw ? parseFloat(maxPriceRaw) : null;
   const category = document.getElementById('alert-category').value;
 
-  if (!keyword) { msgEl.textContent = 'Merci d\'indiquer un mot-clé.'; return; }
+  if (!keyword) { msgEl.textContent = t('alert_keyword_required'); return; }
 
   if (btn.disabled) return;
   btn.disabled = true;
-  btn.textContent = 'Création...';
+  btn.textContent = t('alert_creating_btn');
   try {
     let referenceImageUrl = null;
     if (pendingAlertPhotoFile) {
@@ -6472,12 +6472,12 @@ async function saveAlert() {
     });
     document.getElementById('alert-form-modal').remove();
     alertsCache = null;
-    showToast('Alerte créée', 'success');
+    showToast(t('alert_created_toast'), 'success');
     loadAlerts();
   } catch (e) {
     msgEl.textContent = friendlyErrorMessage(e);
     btn.disabled = false;
-    btn.textContent = "Créer l'alerte";
+    btn.textContent = t('alert_create_btn');
   }
 }
 
@@ -6485,7 +6485,7 @@ async function toggleAlertActive(alertId, active) {
   try {
     await db.collection('alerts').doc(alertId).update({ active });
     alertsCache = null;
-    showToast(active ? 'Alerte activée' : 'Alerte mise en pause', 'info');
+    showToast(active ? t('alert_activated_toast') : t('alert_paused_toast'), 'info');
   } catch (e) {
     showToast(friendlyErrorMessage(e), 'error');
     loadAlerts(); // resynchronise l'affichage si la mise a jour a echoue
@@ -6493,11 +6493,11 @@ async function toggleAlertActive(alertId, active) {
 }
 
 async function deleteAlertConfirm(alertId) {
-  if (!confirm('Supprimer définitivement cette alerte ?')) return;
+  if (!confirm(t('alert_delete_confirm'))) return;
   try {
     await db.collection('alerts').doc(alertId).delete();
     alertsCache = null;
-    showToast('Alerte supprimée', 'info');
+    showToast(t('alert_deleted_toast'), 'info');
     loadAlerts();
   } catch (e) {
     showToast(friendlyErrorMessage(e), 'error');
@@ -6524,8 +6524,8 @@ async function checkAlertsForNewProduct(product) {
     });
 
   for (const alert of matches) {
-    const title = 'Une annonce correspond à ton alerte 🔔';
-    const body = `« ${alert.keyword} » — ${product.title} à ${(product.price || 0).toFixed(2)}$`;
+    const title = t('alert_match_title');
+    const body = `« ${alert.keyword} » — ${product.title} ${t('alert_match_at')} ${(product.price || 0).toFixed(2)}$`;
     try {
       await db.collection('notifications').add({
         uid: alert.ownerUid, title, body, type: 'alert_match',
