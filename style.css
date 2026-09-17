@@ -1014,7 +1014,8 @@ a{text-decoration:none;color:inherit}
 .tutorial-dot{width:6px;height:6px;border-radius:50%;background:var(--line);transition:0.2s}
 .tutorial-dot.active{background:var(--green);width:18px;border-radius:4px}
 .tutorial-step{text-align:center}
-.tutorial-emoji{font-size:2.6rem;margin-bottom:10px}
+.tutorial-emoji{width:64px;height:64px;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:var(--green-light);color:var(--green)}
+.tutorial-emoji svg{width:32px;height:32px}
 .tutorial-step h2{font-size:1.25rem;margin-bottom:10px;color:var(--ink)}
 .tutorial-step .sub{color:var(--muted);font-size:0.92rem;line-height:1.5;margin-bottom:6px}
 .tutorial-list{text-align:left;list-style:none;margin-top:14px}
