@@ -1249,25 +1249,14 @@ async function submitRecharge() {
         return;
       }
       // data.supported === false : pays non couvert par MboтePay -- on
-      // passe directement au flux manuel juste en dessous. CinetPay est
-      // desormais actif (onglet "carte") mais uniquement pour la RDC pour
-      // le moment (compte CinetPay lie a ce seul pays) : il ne sert pas
-      // encore de relais Mobile Money pour les autres pays non couverts.
+      // passe directement au flux manuel juste en dessous.
     }
 
     if (payMethod === 'card') {
-      // Interrupteur temporaire : CinetPay est bloque cote compte (ticket
-      // support CIN3-001147, erreur IP en attente de resolution). Plutot
-      // que de laisser la personne tomber sur une erreur technique en
-      // essayant de payer, on l'informe tout de suite. Repasser a `true`
-      // des que CinetPay confirme le deblocage -- rien d'autre a changer.
-      const CARD_PAYMENT_ENABLED = false;
-      if (!CARD_PAYMENT_ENABLED) {
-        errEl.textContent = "Le paiement par carte est momentanément indisponible, réessaie un peu plus tard.";
-        errEl.classList.remove('hidden');
-        return;
-      }
-
+      // Paiement carte via MaxiCash (methode "Form Post" officielle) : le
+      // backend renvoie l'URL du formulaire + les champs a y mettre, et
+      // c'est CE navigateur qui soumet le formulaire vers MaxiCash (pas de
+      // redirection vers une URL toute prete comme avant avec CinetPay).
       const idToken = await auth.currentUser.getIdToken();
       const response = await fetch('/api/payment-initiate', {
         method: 'POST',
@@ -1278,12 +1267,23 @@ async function submitRecharge() {
 
       if (!response.ok || !data.success) {
         console.error("Erreur creation paiement carte :", data.error);
-        errEl.textContent = data.error ? `Erreur CinetPay : ${data.error}` : t('pay_err_generic');
+        errEl.textContent = data.error ? `Erreur MaxiCash : ${data.error}` : t('pay_err_generic');
         errEl.classList.remove('hidden');
         return;
       }
 
-      window.location.href = data.paymentUrl;
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = data.formAction;
+      Object.entries(data.formFields).forEach(([name, value]) => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = name;
+        input.value = value;
+        form.appendChild(input);
+      });
+      document.body.appendChild(form);
+      form.submit();
       return;
     }
 
