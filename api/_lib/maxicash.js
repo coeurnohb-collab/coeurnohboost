@@ -1,4 +1,4 @@
-// api/_lib/maxicash.js
+api/_lib// api/_lib/maxicash.js
 // Aide partagee pour MaxiCash (paiement carte/mobile via la passerelle
 // "Form Post"). Fichier dans /_lib : ignore par Vercel pour le compte des
 // 12 fonctions serverless du plan gratuit -- ce n'est pas une fonction,
