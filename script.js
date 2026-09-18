@@ -4082,15 +4082,15 @@ function renderContactFieldsHtml(prefix, existing) {
   const e = existing || {};
   return `
     <div class="field">
-      <label for="${prefix}-email">Email de contact (facultatif)</label>
+      <label for="${prefix}-email">${t('contact_email_label')}</label>
       <input type="email" id="${prefix}-email" class="text-input" placeholder="contact@exemple.com" value="${escapeHtml(e.email || '')}">
     </div>
     <div class="field">
-      <label for="${prefix}-facebook">Page Facebook (facultatif)</label>
+      <label for="${prefix}-facebook">${t('contact_facebook_label')}</label>
       <input type="text" id="${prefix}-facebook" class="text-input" placeholder="nom de la page ou lien" value="${escapeHtml(e.facebook || '')}">
     </div>
     <div class="field">
-      <label for="${prefix}-tiktok">Compte TikTok (facultatif)</label>
+      <label for="${prefix}-tiktok">${t('contact_tiktok_label')}</label>
       <input type="text" id="${prefix}-tiktok" class="text-input" placeholder="@pseudo ou lien" value="${escapeHtml(e.tiktok || '')}">
     </div>`;
 }
@@ -5681,10 +5681,10 @@ let directoryIsEditingExisting = false;
 async function updateDirectoryMyListingButton() {
   const labelEl = document.getElementById('directory-my-listing-label');
   if (!labelEl) return;
-  if (!currentUser) { labelEl.textContent = 'Créer ma fiche professionnelle'; return; }
+  if (!currentUser) { labelEl.textContent = t('nearby_create_listing_btn'); return; }
   try {
     const doc = await db.collection('directory_listings').doc(currentUser.uid).get();
-    labelEl.textContent = doc.exists ? 'Modifier ma fiche professionnelle' : 'Créer ma fiche professionnelle';
+    labelEl.textContent = doc.exists ? t('nearby_edit_listing_btn') : t('nearby_create_listing_btn');
   } catch (e) {
     console.log('[fiches pro] non bloquant :', e.message);
   }
@@ -5712,17 +5712,17 @@ function openDirectoryEditForm() {
       <div class="modal-overlay" id="directory-edit-modal">
         <div class="modal">
           <button class="modal-close" onclick="document.getElementById('directory-edit-modal').remove()" aria-label="Fermer">×</button>
-          <h3 style="margin-bottom:14px">Ma fiche professionnelle</h3>
+          <h3 style="margin-bottom:14px">${t('directory_form_title')}</h3>
           <div class="field">
-            <label for="directory-name">Nom ou nom de l'entreprise</label>
+            <label for="directory-name">${t('directory_name_label')}</label>
             <input type="text" id="directory-name" class="text-input" value="${escapeHtml(f.name || '')}" maxlength="80">
           </div>
           <div class="field">
-            <label for="directory-photo-file">Photo (facultatif)</label>
+            <label for="directory-photo-file">${t('directory_photo_label')}</label>
             <input type="file" id="directory-photo-file" class="file-input-hidden" accept="image/*" onchange="handleDirectoryPhotoFileChange(event)">
             <label for="directory-photo-file" class="file-picker-btn" id="directory-photo-file-label">
               <span class="file-picker-icon" id="directory-photo-file-icon">🖼️</span>
-              <span class="file-picker-text" id="directory-photo-file-text">${f.photoURL ? '✅ Photo déjà enregistrée (toucher pour remplacer)' : 'Choisir une photo'}</span>
+              <span class="file-picker-text" id="directory-photo-file-text">${f.photoURL ? `✅ ${t('directory_photo_saved')}` : t('alert_photo_choose')}</span>
             </label>
             <div class="upload-progress-wrap hidden" id="directory-photo-progress-wrap">
               <div class="upload-progress-fill" id="directory-photo-progress-fill"></div>
@@ -5731,71 +5731,71 @@ function openDirectoryEditForm() {
             <div id="directory-photo-preview">${f.photoURL ? `<img src="${escapeHtml(f.photoURL)}" class="post-media-preview-media" alt="">` : ''}</div>
           </div>
           <div class="field">
-            <label for="directory-profession">Métier</label>
-            <input type="text" id="directory-profession" class="text-input" placeholder="ex: Mécanicien, Graphiste..." value="${escapeHtml(f.profession || '')}" maxlength="60">
+            <label for="directory-profession">${t('directory_profession_label')}</label>
+            <input type="text" id="directory-profession" class="text-input" placeholder="${t('directory_profession_ph')}" value="${escapeHtml(f.profession || '')}" maxlength="60">
           </div>
           <div class="field">
-            <label for="directory-city">Ville</label>
+            <label for="directory-city">${t('directory_city_label')}</label>
             <input type="text" id="directory-city" class="text-input" value="${escapeHtml(f.city || '')}" maxlength="60">
           </div>
           <div class="field">
-            <label for="directory-category">Catégorie (pour apparaître dans « Près de chez vous »)</label>
+            <label for="directory-category">${t('directory_category_label')}</label>
             <select id="directory-category" class="select-input">
-              <option value="">— Choisir —</option>
-              ${Object.entries(NEARBY_CATEGORY_LABELS).map(([val, label]) =>
-                `<option value="${val}" ${f.category === val ? 'selected' : ''}>${label}</option>`
+              <option value="">${t('directory_category_placeholder')}</option>
+              ${Object.entries(NEARBY_CATEGORY_LABELS).map(([val, key]) =>
+                `<option value="${val}" ${f.category === val ? 'selected' : ''}>${t(key)}</option>`
               ).join('')}
             </select>
           </div>
           <div class="field">
-            <label for="directory-phone">Téléphone WhatsApp</label>
+            <label for="directory-phone">${t('directory_phone_label')}</label>
             <input type="tel" id="directory-phone" class="text-input" placeholder="+243..." value="${escapeHtml(f.phone || '')}">
           </div>
           ${renderContactFieldsHtml('directory', f)}
           <div class="field">
-            <label for="directory-desc">Description (facultatif)</label>
+            <label for="directory-desc">${t('directory_desc_label')}</label>
             <textarea id="directory-desc" class="text-input" rows="3" style="resize:vertical" maxlength="400">${escapeHtml(f.description || '')}</textarea>
           </div>
 
           <div style="display:flex;justify-content:space-between;align-items:center;margin:18px 0 12px;padding-top:14px;border-top:1px solid var(--line)">
-            <label class="field-label" style="margin:0">Accepter les réservations en ligne</label>
+            <label class="field-label" style="margin:0">${t('directory_booking_toggle_label')}</label>
             <label class="switch"><input type="checkbox" id="directory-booking-enabled" ${f.bookingEnabled ? 'checked' : ''} onchange="toggleBookingConfigVisibility()"><span class="slider"></span></label>
           </div>
 
           <div id="directory-booking-config" class="${f.bookingEnabled ? '' : 'hidden'}">
-            <label class="field-label" style="display:block">Jours de disponibilité</label>
+            <label class="field-label" style="display:block">${t('directory_booking_days_label')}</label>
             <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px">
-              ${['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map((d, i) => `
+              ${['directory_day_mon','directory_day_tue','directory_day_wed','directory_day_thu','directory_day_fri','directory_day_sat','directory_day_sun'].map((dKey, i) => `
                 <label style="display:flex;align-items:center;gap:5px;font-size:0.85rem">
-                  <input type="checkbox" class="directory-booking-day" value="${i}" ${(f.bookingDays || []).includes(i) ? 'checked' : ''}> ${d}
+                  <input type="checkbox" class="directory-booking-day" value="${i}" ${(f.bookingDays || []).includes(i) ? 'checked' : ''}> ${t(dKey)}
                 </label>`).join('')}
             </div>
             <div style="display:flex;gap:8px">
               <div class="field" style="flex:1">
-                <label for="directory-booking-start">Ouverture</label>
+                <label for="directory-booking-start">${t('directory_booking_start_label')}</label>
                 <input type="time" id="directory-booking-start" class="text-input" value="${escapeHtml(f.bookingStart || '08:00')}">
               </div>
               <div class="field" style="flex:1">
-                <label for="directory-booking-end">Fermeture</label>
+                <label for="directory-booking-end">${t('directory_booking_end_label')}</label>
                 <input type="time" id="directory-booking-end" class="text-input" value="${escapeHtml(f.bookingEnd || '17:00')}">
               </div>
             </div>
             <div class="field">
-              <label for="directory-booking-duration">Durée de chaque créneau</label>
+              <label for="directory-booking-duration">${t('directory_booking_duration_label')}</label>
               <select id="directory-booking-duration" class="select-input">
-                <option value="15" ${f.slotDuration === 15 ? 'selected' : ''}>15 minutes</option>
-                <option value="30" ${!f.slotDuration || f.slotDuration === 30 ? 'selected' : ''}>30 minutes</option>
-                <option value="45" ${f.slotDuration === 45 ? 'selected' : ''}>45 minutes</option>
-                <option value="60" ${f.slotDuration === 60 ? 'selected' : ''}>1 heure</option>
+                <option value="15" ${f.slotDuration === 15 ? 'selected' : ''}>${t('directory_duration_15')}</option>
+                <option value="30" ${!f.slotDuration || f.slotDuration === 30 ? 'selected' : ''}>${t('directory_duration_30')}</option>
+                <option value="45" ${f.slotDuration === 45 ? 'selected' : ''}>${t('directory_duration_45')}</option>
+                <option value="60" ${f.slotDuration === 60 ? 'selected' : ''}>${t('directory_duration_60')}</option>
               </select>
             </div>
-            <label class="field-label" style="display:block">Services proposés (facultatif)</label>
+            <label class="field-label" style="display:block">${t('directory_services_label')}</label>
             <div id="directory-service-rows"></div>
-            <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:6px 0 4px" onclick="addDirectoryServiceRow()">+ Ajouter un service</button>
+            <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:6px 0 4px" onclick="addDirectoryServiceRow()">+ ${t('directory_add_service_btn')}</button>
           </div>
 
-          <button class="btn btn-primary" id="directory-save-btn" style="width:100%;justify-content:center;margin-top:14px" onclick="saveDirectoryListing()">Enregistrer</button>
-          ${doc.exists ? `<button class="btn btn-outline" style="width:100%;justify-content:center;margin-top:10px;color:var(--red);border-color:var(--red)" onclick="deleteDirectoryListing()">Supprimer ma fiche</button>` : ''}
+          <button class="btn btn-primary" id="directory-save-btn" style="width:100%;justify-content:center;margin-top:14px" onclick="saveDirectoryListing()">${t('common_save')}</button>
+          ${doc.exists ? `<button class="btn btn-outline" style="width:100%;justify-content:center;margin-top:10px;color:var(--red);border-color:var(--red)" onclick="deleteDirectoryListing()">${t('directory_delete_listing_btn')}</button>` : ''}
           <p class="muted small" id="directory-form-msg" style="margin-top:6px"></p>
         </div>
       </div>`;
@@ -5815,8 +5815,8 @@ function addDirectoryServiceRow(service) {
   const row = document.createElement('div');
   row.className = 'invoice-item-row';
   row.innerHTML = `
-    <input type="text" class="text-input directory-service-name" placeholder="Nom du service" value="${escapeHtml(service ? service.name || '' : '')}" style="flex:2">
-    <input type="text" class="text-input directory-service-price" placeholder="Prix (ex: 10$)" value="${escapeHtml(service ? service.price || '' : '')}" style="flex:1">
+    <input type="text" class="text-input directory-service-name" placeholder="${t('directory_service_name_ph')}" value="${escapeHtml(service ? service.name || '' : '')}" style="flex:2">
+    <input type="text" class="text-input directory-service-price" placeholder="${t('directory_service_price_ph')}" value="${escapeHtml(service ? service.price || '' : '')}" style="flex:1">
     <button type="button" class="invoice-row-remove" onclick="this.parentElement.remove()" aria-label="Retirer">×</button>`;
   rowsEl.appendChild(row);
 }
@@ -5828,7 +5828,7 @@ function handleDirectoryPhotoFileChange(event) {
   pendingDirectoryPhotoFile = (event.target.files && event.target.files[0]) || null;
   const text = document.getElementById('directory-photo-file-text');
   const label = document.getElementById('directory-photo-file-label');
-  if (text) text.textContent = pendingDirectoryPhotoFile ? `✅ ${pendingDirectoryPhotoFile.name}` : (currentDirectoryPhotoUrl ? '✅ Photo déjà enregistrée (toucher pour remplacer)' : 'Choisir une photo');
+  if (text) text.textContent = pendingDirectoryPhotoFile ? `✅ ${pendingDirectoryPhotoFile.name}` : (currentDirectoryPhotoUrl ? `✅ ${t('directory_photo_saved')}` : t('alert_photo_choose'));
   if (label) label.classList.toggle('has-file', !!(pendingDirectoryPhotoFile || currentDirectoryPhotoUrl));
   const previewEl = document.getElementById('directory-photo-preview');
   if (previewEl) {
@@ -5857,21 +5857,21 @@ async function saveDirectoryListing() {
   })).filter(s => s.name);
 
   if (!name || !profession || !city || !phone) {
-    msgEl.textContent = 'Merci de remplir au moins le nom, le métier, la ville et le téléphone.';
+    msgEl.textContent = t('directory_required_fields');
     return;
   }
   if (bookingEnabled && bookingDays.length === 0) {
-    msgEl.textContent = 'Coche au moins un jour de disponibilité pour activer les réservations.';
+    msgEl.textContent = t('directory_booking_days_required');
     return;
   }
   if (bookingEnabled && bookingStart >= bookingEnd) {
-    msgEl.textContent = "L'heure de fermeture doit être après l'heure d'ouverture.";
+    msgEl.textContent = t('directory_booking_hours_invalid');
     return;
   }
 
   if (btn.disabled) return;
   btn.disabled = true;
-  btn.textContent = 'Enregistrement...';
+  btn.textContent = t('common_saving');
   try {
     let photoURL = currentDirectoryPhotoUrl;
     if (pendingDirectoryPhotoFile) {
@@ -5895,24 +5895,24 @@ async function saveDirectoryListing() {
     const modal = document.getElementById('directory-edit-modal');
     if (modal) modal.remove();
     directoryCache = null;
-    showToast('Fiche enregistrée', 'success');
+    showToast(t('directory_saved_toast'), 'success');
     updateDirectoryMyListingButton();
     loadNearbyListings();
   } catch (e) {
     msgEl.textContent = friendlyErrorMessage(e);
     btn.disabled = false;
-    btn.textContent = 'Enregistrer';
+    btn.textContent = t('common_save');
   }
 }
 
 async function deleteDirectoryListing() {
-  if (!confirm('Supprimer définitivement ta fiche professionnelle ?')) return;
+  if (!confirm(t('directory_delete_confirm'))) return;
   try {
     await db.collection('directory_listings').doc(currentUser.uid).delete();
     const modal = document.getElementById('directory-edit-modal');
     if (modal) modal.remove();
     directoryCache = null;
-    showToast('Fiche supprimée', 'info');
+    showToast(t('directory_deleted_toast'), 'info');
     updateDirectoryMyListingButton();
     loadNearbyListings();
   } catch (e) {
@@ -6544,9 +6544,9 @@ async function checkAlertsForNewProduct(product) {
    filtre categorie (restaurants, coiffeurs, mecaniciens...), sur les memes
    fiches "directory_listings" mises en cache par fetchAllListings(). */
 const NEARBY_CATEGORY_LABELS = {
-  restaurants: 'Restaurants', coiffeurs: 'Coiffeurs', mecaniciens: 'Mécaniciens',
-  photographes: 'Photographes', informaticiens: 'Informaticiens', boutiques: 'Boutiques',
-  professionnels: 'Professionnels', evenements: 'Événements', services: 'Services'
+  restaurants: 'nearby_cat_restaurants', coiffeurs: 'nearby_cat_coiffeurs', mecaniciens: 'nearby_cat_mecaniciens',
+  photographes: 'nearby_cat_photographes', informaticiens: 'nearby_cat_informaticiens', boutiques: 'nearby_cat_boutiques',
+  professionnels: 'nearby_cat_professionnels', evenements: 'nearby_cat_evenements', services: 'menu_services'
 };
 let nearbySelectedCategory = '';
 let nearbySearchDebounce = null;
@@ -6566,7 +6566,7 @@ async function loadNearbyListings() {
     await fetchAllListings(true);
     runNearbyFilter();
   } catch (e) {
-    resultsEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+    resultsEl.innerHTML = `<p class="muted small">${t('alerts_load_error_prefix')} ${e.message}</p>`;
   }
 }
 
@@ -6603,18 +6603,18 @@ function renderNearbyResults(list) {
   const visible = list.filter(f => !blockedSet.has(f.ownerUid));
 
   if (visible.length === 0) {
-    resultsEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Aucun résultat pour l\'instant. Élargis ta recherche, ou sois le premier à créer ta fiche.</p>';
+    resultsEl.innerHTML = `<p class="muted small" style="text-align:center;padding:20px 0">${t('nearby_empty')}</p>`;
     return;
   }
 
   resultsEl.innerHTML = visible.map(f => {
-    const catLabel = f.category ? NEARBY_CATEGORY_LABELS[f.category] : null;
+    const catLabel = f.category ? t(NEARBY_CATEGORY_LABELS[f.category]) : null;
     return `
     <div class="order-box" style="margin-bottom:12px">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
         <div style="display:flex;align-items:center;gap:10px;min-width:0">
           ${renderAvatarHtml(f.name, f.photoURL, 40)}
-          <strong style="font-size:1.02rem">${escapeHtml(f.name || 'Professionnel')}</strong>
+          <strong style="font-size:1.02rem">${escapeHtml(f.name || t('nearby_default_pro'))}</strong>
         </div>
         ${catLabel ? `<span class="shop-card-category" style="white-space:nowrap">${catLabel}</span>` : ''}
       </div>
@@ -7411,9 +7411,9 @@ async function loadSavedFeed() {
    contest_entries). Le champ "featured" (mise en avant) n'est modifiable
    que par l'admin via les regles Firestore -- gere depuis l'espace
    administratif, pas depuis cette interface utilisateur. */
-const JOB_TYPE_LABELS = { emploi: 'Emploi', stage: 'Stage', freelance: 'Freelance', 'petit-boulot': 'Petit boulot' };
-const JOB_CONTRACT_LABELS = { cdi: 'CDI', cdd: 'CDD', freelance: 'Freelance / Prestation', stage: 'Stage', temporaire: 'Temporaire / Ponctuel' };
-const JOB_APP_STATUS_LABELS = { envoyee: 'Envoyée', vue: 'Vue', acceptee: 'Acceptée', refusee: 'Refusée' };
+const JOB_TYPE_LABELS = { emploi: 'job_type_emploi', stage: 'job_type_stage', freelance: 'job_type_freelance', 'petit-boulot': 'job_type_petit_boulot' };
+const JOB_CONTRACT_LABELS = { cdi: 'job_contract_cdi', cdd: 'job_contract_cdd', freelance: 'job_contract_freelance', stage: 'job_contract_stage', temporaire: 'job_contract_temporaire' };
+const JOB_APP_STATUS_LABELS = { envoyee: 'job_app_status_sent', vue: 'job_app_status_seen', acceptee: 'job_app_status_accepted', refusee: 'job_app_status_rejected' };
 
 let jobsCache = null; // offres actives, mises en cache pour filtrer sans re-interroger a chaque frappe
 let jobsCurrentTab = 'browse';
@@ -7501,7 +7501,7 @@ function runJobsFilter() {
 }
 
 function jobSalaryLabel(o) {
-  if (o.salaryHidden || (!o.salaryMin && !o.salaryMax)) return 'Rémunération non communiquée';
+  if (o.salaryHidden || (!o.salaryMin && !o.salaryMax)) return t('job_salary_hidden');
   if (o.salaryMin && o.salaryMax) return `${o.salaryMin}$ - ${o.salaryMax}$`;
   return `${(o.salaryMin || o.salaryMax)}$`;
 }
@@ -7509,32 +7509,32 @@ function jobSalaryLabel(o) {
 function renderJobsBrowseList(list) {
   const listEl = document.getElementById('jobs-browse-list');
   if (list.length === 0) {
-    listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Aucune offre pour l\'instant. Élargis ta recherche, ou sois le premier à en publier une.</p>';
+    listEl.innerHTML = `<p class="muted small" style="text-align:center;padding:20px 0">${t('job_empty_browse')}</p>`;
     return;
   }
   listEl.innerHTML = list.map(o => `
     <div class="order-box" style="margin-bottom:12px${o.featured ? ';border-color:#f5a623' : ''}">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
-        <strong style="font-size:1.02rem">${escapeHtml(o.title || 'Offre')}</strong>
-        <span class="shop-card-category">${JOB_TYPE_LABELS[o.type] || o.type}</span>
+        <strong style="font-size:1.02rem">${escapeHtml(o.title || t('job_default_title'))}</strong>
+        <span class="shop-card-category">${t(JOB_TYPE_LABELS[o.type]) || o.type}</span>
       </div>
-      ${o.featured ? '<span class="shop-card-category" style="background:#fff4e0;color:#b5720b;margin-top:4px;display:inline-block">Mise en avant</span>' : ''}
-      <div class="muted small" style="margin:4px 0">${escapeHtml(o.location || '—')} · ${JOB_CONTRACT_LABELS[o.contractType] || ''}</div>
+      ${o.featured ? `<span class="shop-card-category" style="background:#fff4e0;color:#b5720b;margin-top:4px;display:inline-block">${t('job_featured_badge')}</span>` : ''}
+      <div class="muted small" style="margin:4px 0">${escapeHtml(o.location || '—')} · ${t(JOB_CONTRACT_LABELS[o.contractType]) || ''}</div>
       <div class="muted small" style="margin-bottom:10px">${escapeHtml(jobSalaryLabel(o))}</div>
-      <button class="btn btn-outline btn-sm" onclick="openJobDetail('${o.id}')">Voir l'offre</button>
+      <button class="btn btn-outline btn-sm" onclick="openJobDetail('${o.id}')">${t('job_view_offer_btn')}</button>
     </div>`).join('');
 }
 
 async function openJobDetail(offerId) {
   currentJobDetailId = offerId;
   const bodyEl = document.getElementById('job-detail-body');
-  bodyEl.innerHTML = '<p class="muted small">Chargement...</p>';
+  bodyEl.innerHTML = `<p class="muted small">${t('common_loading')}</p>`;
   document.getElementById('job-detail-modal').classList.remove('hidden');
 
   try {
     const snap = await db.collection('job_offers').doc(offerId).get();
     if (!snap.exists) {
-      bodyEl.innerHTML = '<p class="muted small">Cette offre n\'existe plus.</p>';
+      bodyEl.innerHTML = `<p class="muted small">${t('job_gone')}</p>`;
       return;
     }
     const o = { id: snap.id, ...snap.data() };
@@ -7543,28 +7543,28 @@ async function openJobDetail(offerId) {
     let actionHtml;
     if (isOwner) {
       actionHtml = `
-        <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:8px" onclick="openJobCandidates('${o.id}')">Voir les candidats (${o.applicationsCount || 0})</button>
-        <button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="openJobForm('${o.id}')">Modifier l'offre</button>
-        <button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="toggleJobOfferStatus('${o.id}', '${o.status === 'active' ? 'closed' : 'active'}')">${o.status === 'active' ? 'Clôturer l\'offre' : 'Réactiver l\'offre'}</button>
-        <button class="btn btn-outline" style="width:100%;justify-content:center;color:var(--red)" onclick="deleteJobOffer('${o.id}')">Supprimer l'offre</button>`;
+        <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:8px" onclick="openJobCandidates('${o.id}')">${t('job_view_candidates_btn')} (${o.applicationsCount || 0})</button>
+        <button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="openJobForm('${o.id}')">${t('job_edit_offer_btn')}</button>
+        <button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="toggleJobOfferStatus('${o.id}', '${o.status === 'active' ? 'closed' : 'active'}')">${o.status === 'active' ? t('job_close_offer_btn') : t('job_reopen_offer_btn')}</button>
+        <button class="btn btn-outline" style="width:100%;justify-content:center;color:var(--red)" onclick="deleteJobOffer('${o.id}')">${t('job_delete_offer_btn')}</button>`;
     } else if (!currentUser) {
-      actionHtml = `<button class="btn btn-primary" style="width:100%;justify-content:center" onclick="openAuth('register')">Se connecter pour postuler</button>`;
+      actionHtml = `<button class="btn btn-primary" style="width:100%;justify-content:center" onclick="openAuth('register')">${t('job_login_to_apply_btn')}</button>`;
     } else if (o.status !== 'active') {
-      actionHtml = `<p class="muted small" style="text-align:center">Cette offre n'accepte plus de candidatures.</p>`;
+      actionHtml = `<p class="muted small" style="text-align:center">${t('job_closed_notice')}</p>`;
     } else {
-      actionHtml = `<p class="muted small" id="job-apply-status-slot">Vérification...</p>`;
+      actionHtml = `<p class="muted small" id="job-apply-status-slot">${t('job_checking')}</p>`;
     }
 
     bodyEl.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px">
-        <h3 style="margin:0">${escapeHtml(o.title || 'Offre')}</h3>
-        <span class="shop-card-category">${JOB_TYPE_LABELS[o.type] || o.type}</span>
+        <h3 style="margin:0">${escapeHtml(o.title || t('job_default_title'))}</h3>
+        <span class="shop-card-category">${t(JOB_TYPE_LABELS[o.type]) || o.type}</span>
       </div>
-      <div class="muted small" style="margin-bottom:10px">${escapeHtml(o.location || '—')} · ${JOB_CONTRACT_LABELS[o.contractType] || ''}${o.category ? ' · ' + escapeHtml(o.category) : ''}</div>
+      <div class="muted small" style="margin-bottom:10px">${escapeHtml(o.location || '—')} · ${t(JOB_CONTRACT_LABELS[o.contractType]) || ''}${o.category ? ' · ' + escapeHtml(o.category) : ''}</div>
       <p style="white-space:pre-wrap;margin-bottom:10px">${escapeHtml(o.description || '')}</p>
       <p class="muted small" style="margin-bottom:16px"><strong>${escapeHtml(jobSalaryLabel(o))}</strong></p>
       <div id="job-detail-actions">${actionHtml}</div>
-      ${!isOwner && currentUser ? `<button class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin-top:8px" onclick="openReportModal('${o.id}', '${o.ownerUid}', 'job_offer')">Signaler cette offre</button>` : ''}
+      ${!isOwner && currentUser ? `<button class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin-top:8px" onclick="openReportModal('${o.id}', '${o.ownerUid}', 'job_offer')">${t('job_report_btn')}</button>` : ''}
     `;
 
     // Verifie en arriere-plan si l'utilisateur a deja postule, sans bloquer
@@ -7575,13 +7575,13 @@ async function openJobDetail(offerId) {
       if (!slot) return; // la fiche a ete fermee entre-temps
       if (appSnap.exists) {
         const status = appSnap.data().status || 'envoyee';
-        slot.outerHTML = `<p class="muted small" style="text-align:center">Tu as déjà postulé — statut : <strong>${JOB_APP_STATUS_LABELS[status] || status}</strong></p>`;
+        slot.outerHTML = `<p class="muted small" style="text-align:center">${t('job_already_applied_prefix')} <strong>${t(JOB_APP_STATUS_LABELS[status]) || status}</strong></p>`;
       } else {
-        slot.outerHTML = `<button class="btn btn-primary" style="width:100%;justify-content:center" onclick="openJobApplyForm('${o.id}', '${escapeHtml(o.title || '')}')">Postuler</button>`;
+        slot.outerHTML = `<button class="btn btn-primary" style="width:100%;justify-content:center" onclick="openJobApplyForm('${o.id}', '${escapeHtml(o.title || '')}')">${t('job_apply_btn')}</button>`;
       }
     }
   } catch (e) {
-    bodyEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+    bodyEl.innerHTML = `<p class="muted small">${t('alerts_load_error_prefix')} ${e.message}</p>`;
   }
 }
 
@@ -7594,8 +7594,8 @@ function openJobForm(offerId = null) {
   if (!currentUser) { openAuth('register'); return; }
   editingJobOfferId = offerId;
   document.getElementById('job-form-error').classList.add('hidden');
-  document.getElementById('job-form-title').textContent = offerId ? "Modifier l'offre" : 'Publier une offre';
-  document.getElementById('job-form-submit-btn').textContent = offerId ? 'Enregistrer' : 'Publier';
+  document.getElementById('job-form-title').textContent = offerId ? t('job_edit_offer_btn') : t('jobs_post_offer_btn');
+  document.getElementById('job-form-submit-btn').textContent = offerId ? t('common_save') : t('common_publish');
 
   if (offerId) {
     const cached = (jobsCache || []).find(o => o.id === offerId) || (myJobOffersCache || []).find(o => o.id === offerId);
@@ -7650,7 +7650,7 @@ async function saveJobOffer() {
   const salaryHidden = document.getElementById('job-salary-hidden-input').checked;
 
   if (!title || !location || !description) {
-    errEl.textContent = 'Merci de remplir au moins le titre, la ville et la description.';
+    errEl.textContent = t('job_required_fields');
     errEl.classList.remove('hidden');
     return;
   }
@@ -7659,24 +7659,24 @@ async function saveJobOffer() {
   if (btn.disabled) return;
   btn.disabled = true;
   const originalLabel = btn.textContent;
-  btn.textContent = 'Envoi...';
+  btn.textContent = t('common_sending');
 
   try {
     const payload = { title, type, contractType, category, location, description, salaryMin, salaryMax, salaryHidden };
     if (editingJobOfferId) {
       await db.collection('job_offers').doc(editingJobOfferId).update(payload);
-      showToast('Offre mise à jour', 'success');
+      showToast(t('job_updated_toast'), 'success');
     } else {
       await db.collection('job_offers').add({
         ...payload,
         ownerUid: currentUser.uid,
-        ownerName: currentUser.name || 'Utilisateur',
+        ownerName: currentUser.name || t('common_user_fallback'),
         status: 'active',
         featured: false,
         applicationsCount: 0,
         createdAt: new Date().toISOString()
       });
-      showToast('Offre publiée', 'success');
+      showToast(t('job_published_toast'), 'success');
     }
     closeJobForm();
     jobsCache = null; // force un rechargement pour voir l'offre a jour
@@ -7694,7 +7694,7 @@ async function saveJobOffer() {
 async function toggleJobOfferStatus(offerId, newStatus) {
   try {
     await db.collection('job_offers').doc(offerId).update({ status: newStatus });
-    showToast(newStatus === 'active' ? 'Offre réactivée' : 'Offre clôturée', 'success');
+    showToast(newStatus === 'active' ? t('job_reopened_toast') : t('job_closed_toast'), 'success');
     jobsCache = null;
     closeJobDetail();
     loadMyJobOffers();
@@ -7704,10 +7704,10 @@ async function toggleJobOfferStatus(offerId, newStatus) {
 }
 
 async function deleteJobOffer(offerId) {
-  if (!confirm('Supprimer définitivement cette offre ? Les candidatures reçues resteront visibles par les candidats mais ne seront plus liées à une offre active.')) return;
+  if (!confirm(t('job_delete_confirm'))) return;
   try {
     await db.collection('job_offers').doc(offerId).delete();
-    showToast('Offre supprimée', 'success');
+    showToast(t('job_deleted_toast'), 'success');
     jobsCache = null;
     closeJobDetail();
     loadMyJobOffers();
@@ -7719,11 +7719,11 @@ async function deleteJobOffer(offerId) {
 function openJobApplyForm(offerId, offerTitle) {
   if (!currentUser) { openAuth('register'); return; }
   currentJobApplyOfferId = offerId;
-  document.getElementById('job-apply-offer-title').textContent = offerTitle ? `Offre : ${offerTitle}` : '';
+  document.getElementById('job-apply-offer-title').textContent = offerTitle ? `${t('job_apply_offer_prefix')} ${offerTitle}` : '';
   document.getElementById('job-apply-message').value = '';
   pendingJobApplyCvFile = null;
   document.getElementById('job-apply-cv-file').value = '';
-  document.getElementById('job-apply-cv-file-text').textContent = 'Choisir un fichier';
+  document.getElementById('job-apply-cv-file-text').textContent = t('common_choose_file');
   document.getElementById('job-apply-cv-file-label').classList.remove('has-file');
   resetUploadProgress('job-apply-cv');
   document.getElementById('job-apply-error').classList.add('hidden');
@@ -7736,7 +7736,7 @@ function handleJobApplyCvFileChange(event) {
   pendingJobApplyCvFile = (event.target.files && event.target.files[0]) || null;
   const text = document.getElementById('job-apply-cv-file-text');
   const label = document.getElementById('job-apply-cv-file-label');
-  if (text) text.textContent = pendingJobApplyCvFile ? `✅ ${pendingJobApplyCvFile.name}` : 'Choisir un fichier';
+  if (text) text.textContent = pendingJobApplyCvFile ? `✅ ${pendingJobApplyCvFile.name}` : t('common_choose_file');
   if (label) label.classList.toggle('has-file', !!pendingJobApplyCvFile);
 }
 
@@ -7753,7 +7753,7 @@ async function submitJobApplication() {
 
   const message = document.getElementById('job-apply-message').value.trim();
   if (!message) {
-    errEl.textContent = 'Merci d\'écrire un message de motivation.';
+    errEl.textContent = t('job_apply_message_required');
     errEl.classList.remove('hidden');
     return;
   }
@@ -7761,7 +7761,7 @@ async function submitJobApplication() {
   const btn = document.getElementById('job-apply-submit-btn');
   if (btn.disabled) return;
   btn.disabled = true;
-  btn.textContent = 'Envoi...';
+  btn.textContent = t('common_sending');
 
   const offerId = currentJobApplyOfferId;
   try {
@@ -7783,7 +7783,7 @@ async function submitJobApplication() {
 
     await db.collection('job_applications').doc(`${offerId}_${currentUser.uid}`).set({
       offerId, offerOwnerUid: offer.ownerUid, offerTitle: offer.title || '',
-      applicantUid: currentUser.uid, applicantName: currentUser.name || 'Utilisateur',
+      applicantUid: currentUser.uid, applicantName: currentUser.name || t('common_user_fallback'),
       message, cvUrl: cvUrl || null, status: 'envoyee', createdAt: new Date().toISOString()
     });
 
@@ -7793,8 +7793,8 @@ async function submitJobApplication() {
       applicationsCount: firebase.firestore.FieldValue.increment(1)
     }).catch(() => {});
 
-    const title = 'Nouvelle candidature 📩';
-    const body = `${currentUser.name || "Quelqu'un"} a postulé à ton offre "${offer.title || ''}".`;
+    const title = t('job_new_application_notif_title');
+    const body = `${currentUser.name || t('job_someone_fallback')} ${t('job_app_notif_verb')} "${offer.title || ''}".`;
     db.collection('notifications').add({
       uid: offer.ownerUid, title, body, type: 'job_application', read: false,
       url: '/?open=' + offerId, createdAt: new Date().toISOString()
@@ -7802,26 +7802,26 @@ async function submitJobApplication() {
     notifyUserPush(offer.ownerUid, title, body, 'activity', '/?open=' + offerId);
 
     closeJobApplyForm();
-    showToast('Candidature envoyée', 'success');
+    showToast(t('job_application_sent_toast'), 'success');
     openJobDetail(offerId); // rafraichit la fiche pour montrer le statut "Envoyee"
   } catch (e) {
     if (e.message === 'OFFER_GONE') {
-      errEl.textContent = "Cette offre n'existe plus.";
+      errEl.textContent = t('job_apply_offer_gone');
     } else if (e.code === 'permission-denied') {
-      errEl.textContent = 'Tu as déjà postulé à cette offre.';
+      errEl.textContent = t('job_apply_already_applied');
     } else {
       errEl.textContent = friendlyErrorMessage(e);
     }
     errEl.classList.remove('hidden');
   } finally {
     btn.disabled = false;
-    btn.textContent = 'Envoyer ma candidature';
+    btn.textContent = t('job_apply_submit_btn');
   }
 }
 
 async function loadMyJobApplications() {
   const listEl = document.getElementById('jobs-myapps-list');
-  if (!currentUser) { listEl.innerHTML = '<p class="muted small">Connecte-toi pour voir tes candidatures.</p>'; return; }
+  if (!currentUser) { listEl.innerHTML = `<p class="muted small">${t('job_login_to_view_apps')}</p>`; return; }
   listEl.innerHTML = renderFeedSkeletons(2);
   try {
     const snap = await db.collection('job_applications').where('applicantUid', '==', currentUser.uid).get();
@@ -7829,23 +7829,23 @@ async function loadMyJobApplications() {
     apps.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
 
     if (apps.length === 0) {
-      listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Tu n\'as encore postulé à aucune offre.</p>';
+      listEl.innerHTML = `<p class="muted small" style="text-align:center;padding:20px 0">${t('job_no_applications_yet')}</p>`;
       return;
     }
     listEl.innerHTML = apps.map(a => `
       <div class="order-box" style="margin-bottom:12px">
-        <strong>${escapeHtml(a.offerTitle || 'Offre')}</strong>
-        <div class="muted small" style="margin:4px 0">Statut : ${JOB_APP_STATUS_LABELS[a.status] || a.status}</div>
-        <button class="btn btn-outline btn-sm" onclick="openJobDetail('${a.offerId}')">Voir l'offre</button>
+        <strong>${escapeHtml(a.offerTitle || t('job_default_title'))}</strong>
+        <div class="muted small" style="margin:4px 0">${t('job_status_label_prefix')} ${t(JOB_APP_STATUS_LABELS[a.status]) || a.status}</div>
+        <button class="btn btn-outline btn-sm" onclick="openJobDetail('${a.offerId}')">${t('job_view_offer_btn')}</button>
       </div>`).join('');
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+    listEl.innerHTML = `<p class="muted small">${t('alerts_load_error_prefix')} ${e.message}</p>`;
   }
 }
 
 async function loadMyJobOffers() {
   const listEl = document.getElementById('jobs-myoffers-list');
-  if (!currentUser) { listEl.innerHTML = '<p class="muted small">Connecte-toi pour gérer tes offres.</p>'; return; }
+  if (!currentUser) { listEl.innerHTML = `<p class="muted small">${t('job_login_to_manage_offers')}</p>`; return; }
   listEl.innerHTML = renderFeedSkeletons(2);
   try {
     const snap = await db.collection('job_offers').where('ownerUid', '==', currentUser.uid).get();
@@ -7853,20 +7853,20 @@ async function loadMyJobOffers() {
     myJobOffersCache.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
 
     if (myJobOffersCache.length === 0) {
-      listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Tu n\'as encore publié aucune offre.</p>';
+      listEl.innerHTML = `<p class="muted small" style="text-align:center;padding:20px 0">${t('job_no_offers_yet')}</p>`;
       return;
     }
     listEl.innerHTML = myJobOffersCache.map(o => `
       <div class="order-box" style="margin-bottom:12px">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
-          <strong>${escapeHtml(o.title || 'Offre')}</strong>
-          <span class="shop-card-category">${o.status === 'active' ? 'Active' : 'Clôturée'}</span>
+          <strong>${escapeHtml(o.title || t('job_default_title'))}</strong>
+          <span class="shop-card-category">${o.status === 'active' ? t('job_status_active') : t('job_status_closed')}</span>
         </div>
-        <div class="muted small" style="margin:4px 0">${o.applicationsCount || 0} candidature(s)</div>
-        <button class="btn btn-outline btn-sm" onclick="openJobDetail('${o.id}')">Gérer</button>
+        <div class="muted small" style="margin:4px 0">${o.applicationsCount || 0} ${t('job_applications_suffix')}</div>
+        <button class="btn btn-outline btn-sm" onclick="openJobDetail('${o.id}')">${t('job_manage_btn')}</button>
       </div>`).join('');
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+    listEl.innerHTML = `<p class="muted small">${t('alerts_load_error_prefix')} ${e.message}</p>`;
   }
 }
 
@@ -7876,8 +7876,8 @@ async function openJobCandidates(offerId) {
     <button class="menu-back-btn" onclick="openJobDetail('${offerId}')" aria-label="Retour" style="margin-bottom:10px">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
     </button>
-    <h3 style="margin-bottom:12px">Candidats</h3>
-    <div id="job-candidates-list"><p class="muted small">Chargement...</p></div>`;
+    <h3 style="margin-bottom:12px">${t('job_candidates_title')}</h3>
+    <div id="job-candidates-list"><p class="muted small">${t('common_loading')}</p></div>`;
 
   try {
     const snap = await db.collection('job_applications').where('offerId', '==', offerId).get();
@@ -7886,23 +7886,23 @@ async function openJobCandidates(offerId) {
     const listEl = document.getElementById('job-candidates-list');
 
     if (apps.length === 0) {
-      listEl.innerHTML = '<p class="muted small">Aucune candidature reçue pour l\'instant.</p>';
+      listEl.innerHTML = `<p class="muted small">${t('job_no_candidates')}</p>`;
       return;
     }
     listEl.innerHTML = apps.map(a => `
       <div class="order-box" style="margin-bottom:12px">
-        <strong>${escapeHtml(a.applicantName || 'Candidat')}</strong>
+        <strong>${escapeHtml(a.applicantName || t('job_default_candidate'))}</strong>
         <div class="muted small" style="margin:6px 0;white-space:pre-wrap">${escapeHtml(a.message || '')}</div>
-        ${a.cvUrl ? `<a class="btn btn-outline btn-sm" href="${escapeHtml(a.cvUrl)}" target="_blank" style="margin-bottom:8px">Voir le CV / portfolio</a>` : ''}
-        <div class="muted small" style="margin-bottom:8px">Statut : ${JOB_APP_STATUS_LABELS[a.status] || a.status}</div>
+        ${a.cvUrl ? `<a class="btn btn-outline btn-sm" href="${escapeHtml(a.cvUrl)}" target="_blank" style="margin-bottom:8px">${t('job_view_cv_btn')}</a>` : ''}
+        <div class="muted small" style="margin-bottom:8px">${t('job_status_label_prefix')} ${t(JOB_APP_STATUS_LABELS[a.status]) || a.status}</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn btn-outline btn-sm" onclick="setJobApplicationStatus('${a.id}', 'vue', '${offerId}')">Marquer vue</button>
-          <button class="btn btn-primary btn-sm" onclick="setJobApplicationStatus('${a.id}', 'acceptee', '${offerId}')">Accepter</button>
-          <button class="btn btn-outline btn-sm" style="color:var(--red)" onclick="setJobApplicationStatus('${a.id}', 'refusee', '${offerId}')">Refuser</button>
+          <button class="btn btn-outline btn-sm" onclick="setJobApplicationStatus('${a.id}', 'vue', '${offerId}')">${t('job_mark_seen_btn')}</button>
+          <button class="btn btn-primary btn-sm" onclick="setJobApplicationStatus('${a.id}', 'acceptee', '${offerId}')">${t('job_accept_btn')}</button>
+          <button class="btn btn-outline btn-sm" style="color:var(--red)" onclick="setJobApplicationStatus('${a.id}', 'refusee', '${offerId}')">${t('job_refuse_btn')}</button>
         </div>
       </div>`).join('');
   } catch (e) {
-    document.getElementById('job-candidates-list').innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+    document.getElementById('job-candidates-list').innerHTML = `<p class="muted small">${t('alerts_load_error_prefix')} ${e.message}</p>`;
   }
 }
 
@@ -7913,15 +7913,15 @@ async function setJobApplicationStatus(appId, status, offerId) {
     const app = appSnap.data();
     await db.collection('job_applications').doc(appId).update({ status });
 
-    const title = 'Ta candidature a été mise à jour';
-    const body = `Ta candidature pour "${app.offerTitle || 'une offre'}" est maintenant : ${JOB_APP_STATUS_LABELS[status] || status}.`;
+    const title = t('job_status_updated_notif_title');
+    const body = `${t('job_status_notif_prefix')} "${app.offerTitle || t('job_default_title')}" ${t('job_status_notif_middle')} ${t(JOB_APP_STATUS_LABELS[status]) || status}.`;
     db.collection('notifications').add({
       uid: app.applicantUid, title, body, type: 'job_application_status', read: false,
       url: '/?open=' + offerId, createdAt: new Date().toISOString()
     }).catch(() => {});
     notifyUserPush(app.applicantUid, title, body, 'activity', '/?open=' + offerId);
 
-    showToast('Statut mis à jour', 'success');
+    showToast(t('job_app_updated_toast'), 'success');
     openJobCandidates(offerId);
   } catch (e) {
     showToast(friendlyErrorMessage(e), 'error');
@@ -7972,7 +7972,7 @@ async function loadJobSeekers() {
     jobSeekersCache = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(p => !currentUser || p.ownerUid !== currentUser.uid);
     runJobSeekersFilter();
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+    listEl.innerHTML = `<p class="muted small">${t('alerts_load_error_prefix')} ${e.message}</p>`;
   }
 }
 
@@ -7992,7 +7992,7 @@ function runJobSeekersFilter() {
 }
 
 function jobSeekerSalaryLabel(p) {
-  if (p.salaryHidden || (!p.salaryMin && !p.salaryMax)) return 'Prétention salariale non communiquée';
+  if (p.salaryHidden || (!p.salaryMin && !p.salaryMax)) return t('jobseeker_salary_hidden');
   if (p.salaryMin && p.salaryMax) return `${p.salaryMin}$ - ${p.salaryMax}$`;
   return `${(p.salaryMin || p.salaryMax)}$`;
 }
@@ -8000,25 +8000,25 @@ function jobSeekerSalaryLabel(p) {
 function renderJobSeekersBrowseList(list) {
   const listEl = document.getElementById('jobseekers-browse-list');
   if (list.length === 0) {
-    listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Aucun profil pour l\'instant. Élargis ta recherche, ou sois le premier à publier le tien.</p>';
+    listEl.innerHTML = `<p class="muted small" style="text-align:center;padding:20px 0">${t('jobseeker_empty_browse')}</p>`;
     return;
   }
   listEl.innerHTML = list.map(p => `
     <div class="order-box" style="margin-bottom:12px${p.featured ? ';border-color:#f5a623' : ''}">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
-        <strong style="font-size:1.02rem">${escapeHtml(p.title || 'Profil')}</strong>
-        <span class="shop-card-category">${JOB_TYPE_LABELS[p.type] || p.type}</span>
+        <strong style="font-size:1.02rem">${escapeHtml(p.title || t('jobseeker_default_title'))}</strong>
+        <span class="shop-card-category">${t(JOB_TYPE_LABELS[p.type]) || p.type}</span>
       </div>
-      ${p.featured ? '<span class="shop-card-category" style="background:#fff4e0;color:#b5720b;margin-top:4px;display:inline-block">Mise en avant</span>' : ''}
+      ${p.featured ? `<span class="shop-card-category" style="background:#fff4e0;color:#b5720b;margin-top:4px;display:inline-block">${t('job_featured_badge')}</span>` : ''}
       <div class="muted small" style="margin:4px 0">${escapeHtml(p.location || '—')}${p.category ? ' · ' + escapeHtml(p.category) : ''}</div>
-      <button class="btn btn-outline btn-sm" onclick="openJobSeekerDetail('${p.id}')">Voir le profil</button>
+      <button class="btn btn-outline btn-sm" onclick="openJobSeekerDetail('${p.id}')">${t('jobseeker_view_btn')}</button>
     </div>`).join('');
 }
 
 async function openJobSeekerDetail(profileId) {
   currentJobSeekerDetailId = profileId;
   const bodyEl = document.getElementById('jobseeker-detail-body');
-  bodyEl.innerHTML = '<p class="muted small">Chargement...</p>';
+  bodyEl.innerHTML = `<p class="muted small">${t('common_loading')}</p>`;
   document.getElementById('jobseeker-detail-modal').classList.remove('hidden');
 
   try {
@@ -8026,30 +8026,30 @@ async function openJobSeekerDetail(profileId) {
     const snap = cached ? null : await db.collection('job_seekers').doc(profileId).get();
     const p = cached || (snap && snap.exists ? { id: snap.id, ...snap.data() } : null);
     if (!p) {
-      bodyEl.innerHTML = '<p class="muted small">Ce profil n\'existe plus.</p>';
+      bodyEl.innerHTML = `<p class="muted small">${t('jobseeker_gone')}</p>`;
       return;
     }
     const isOwner = currentUser && currentUser.uid === p.ownerUid;
 
     bodyEl.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px">
-        <h3 style="margin:0">${escapeHtml(p.title || 'Profil')}</h3>
-        <span class="shop-card-category">${JOB_TYPE_LABELS[p.type] || p.type}</span>
+        <h3 style="margin:0">${escapeHtml(p.title || t('jobseeker_default_title'))}</h3>
+        <span class="shop-card-category">${t(JOB_TYPE_LABELS[p.type]) || p.type}</span>
       </div>
       <div class="muted small" style="margin-bottom:10px">${escapeHtml(p.location || '—')}${p.category ? ' · ' + escapeHtml(p.category) : ''}${p.experience ? ' · ' + escapeHtml(p.experience) : ''}</div>
       <p style="white-space:pre-wrap;margin-bottom:10px">${escapeHtml(p.description || '')}</p>
       <p class="muted small" style="margin-bottom:16px"><strong>${escapeHtml(jobSeekerSalaryLabel(p))}</strong></p>
-      ${p.cvUrl ? `<a class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" href="${escapeHtml(p.cvUrl)}" target="_blank">Voir le CV / portfolio</a>` : ''}
+      ${p.cvUrl ? `<a class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" href="${escapeHtml(p.cvUrl)}" target="_blank">${t('job_view_cv_btn')}</a>` : ''}
       ${!isOwner ? `
         <div id="jobseeker-detail-actions">
           ${renderContactLinksHtml(p, 'block')}
-          ${p.phone ? `<p class="muted small" style="text-align:center;margin-bottom:8px">Téléphone : ${escapeHtml(p.phone)}</p>` : ''}
+          ${p.phone ? `<p class="muted small" style="text-align:center;margin-bottom:8px">${t('jobseeker_phone_prefix')} ${escapeHtml(p.phone)}</p>` : ''}
         </div>
-        ${currentUser ? `<button class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin-top:4px" onclick="openReportModal('${p.id}', '${p.ownerUid}', 'job_seeker')">Signaler ce profil</button>` : ''}
-      ` : `<p class="muted small" style="text-align:center">Ceci est ton profil. Modifie-le depuis l'onglet "Mon profil".</p>`}
+        ${currentUser ? `<button class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin-top:4px" onclick="openReportModal('${p.id}', '${p.ownerUid}', 'job_seeker')">${t('jobseeker_report_btn')}</button>` : ''}
+      ` : `<p class="muted small" style="text-align:center">${t('jobseeker_own_profile_notice')}</p>`}
     `;
   } catch (e) {
-    bodyEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+    bodyEl.innerHTML = `<p class="muted small">${t('alerts_load_error_prefix')} ${e.message}</p>`;
   }
 }
 
@@ -8062,46 +8062,46 @@ function closeJobSeekerDetail() {
 async function loadMyJobSeekerProfile() {
   const statusEl = document.getElementById('jobseekers-mine-status');
   if (!currentUser) {
-    statusEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Connecte-toi pour publier ta demande d\'emploi.</p>';
+    statusEl.innerHTML = `<p class="muted small" style="text-align:center;padding:20px 0">${t('jobseeker_login_required')}</p>`;
     return;
   }
-  statusEl.innerHTML = '<p class="muted small">Chargement...</p>';
+  statusEl.innerHTML = `<p class="muted small">${t('common_loading')}</p>`;
   try {
     const snap = await db.collection('job_seekers').doc(currentUser.uid).get();
     myJobSeekerProfile = snap.exists ? { id: snap.id, ...snap.data() } : null;
     renderMyJobSeekerProfile();
   } catch (e) {
-    statusEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+    statusEl.innerHTML = `<p class="muted small">${t('alerts_load_error_prefix')} ${e.message}</p>`;
   }
 }
 
 function renderMyJobSeekerProfile() {
   const statusEl = document.getElementById('jobseekers-mine-status');
   if (!myJobSeekerProfile) {
-    statusEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Tu n\'as pas encore publié de demande d\'emploi.</p>';
+    statusEl.innerHTML = `<p class="muted small" style="text-align:center;padding:20px 0">${t('jobseeker_none_yet')}</p>`;
     return;
   }
   const p = myJobSeekerProfile;
   statusEl.innerHTML = `
     <div class="order-box" style="margin-bottom:14px">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
-        <strong style="font-size:1.05rem">${escapeHtml(p.title || 'Mon profil')}</strong>
-        <span class="shop-card-category">${p.status === 'active' ? 'Actif' : 'En pause'}</span>
+        <strong style="font-size:1.05rem">${escapeHtml(p.title || t('jobseeker_default_myprofile'))}</strong>
+        <span class="shop-card-category">${p.status === 'active' ? t('jobseeker_status_active') : t('jobseeker_status_paused')}</span>
       </div>
       <div class="muted small" style="margin:4px 0">${escapeHtml(p.location || '—')}${p.category ? ' · ' + escapeHtml(p.category) : ''}</div>
     </div>
-    <button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="openJobSeekerForm()">Modifier mon profil</button>
+    <button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="openJobSeekerForm()">${t('jobseeker_edit_btn')}</button>
     ${p.status === 'active'
-      ? `<button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="toggleJobSeekerStatus('paused')">Mettre en pause</button>`
-      : `<button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:8px" onclick="toggleJobSeekerStatus('active')">Réactiver</button>`}
-    <button class="btn btn-outline" style="width:100%;justify-content:center;color:var(--red)" onclick="deleteJobSeekerProfile()">Supprimer mon profil</button>`;
+      ? `<button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="toggleJobSeekerStatus('paused')">${t('jobseeker_pause_btn')}</button>`
+      : `<button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:8px" onclick="toggleJobSeekerStatus('active')">${t('jobseeker_reactivate_btn')}</button>`}
+    <button class="btn btn-outline" style="width:100%;justify-content:center;color:var(--red)" onclick="deleteJobSeekerProfile()">${t('jobseeker_delete_btn')}</button>`;
 }
 
 async function toggleJobSeekerStatus(newStatus) {
   try {
     await db.collection('job_seekers').doc(currentUser.uid).update({ status: newStatus });
     myJobSeekerProfile.status = newStatus;
-    showToast(newStatus === 'active' ? 'Profil réactivé' : 'Profil mis en pause', 'success');
+    showToast(newStatus === 'active' ? t('jobseeker_reactivated_toast') : t('jobseeker_paused_toast'), 'success');
     renderMyJobSeekerProfile();
   } catch (e) {
     showToast(friendlyErrorMessage(e), 'error');
@@ -8109,11 +8109,11 @@ async function toggleJobSeekerStatus(newStatus) {
 }
 
 async function deleteJobSeekerProfile() {
-  if (!confirm('Supprimer définitivement ta demande d\'emploi ?')) return;
+  if (!confirm(t('jobseeker_delete_confirm'))) return;
   try {
     await db.collection('job_seekers').doc(currentUser.uid).delete();
     myJobSeekerProfile = null;
-    showToast('Profil supprimé', 'info');
+    showToast(t('jobseeker_deleted_toast'), 'info');
     renderMyJobSeekerProfile();
   } catch (e) {
     showToast(friendlyErrorMessage(e), 'error');
@@ -8124,8 +8124,8 @@ async function deleteJobSeekerProfile() {
 function openJobSeekerForm() {
   if (!currentUser) { openAuth('register'); return; }
   document.getElementById('jobseeker-form-error').classList.add('hidden');
-  document.getElementById('jobseeker-form-title').textContent = myJobSeekerProfile ? 'Modifier mon profil' : "Publier ma demande d'emploi";
-  document.getElementById('jobseeker-form-submit-btn').textContent = myJobSeekerProfile ? 'Enregistrer' : 'Publier';
+  document.getElementById('jobseeker-form-title').textContent = myJobSeekerProfile ? t('jobseeker_form_title_edit') : t('jobseeker_form_title_new');
+  document.getElementById('jobseeker-form-submit-btn').textContent = myJobSeekerProfile ? t('common_save') : t('common_publish');
 
   const p = myJobSeekerProfile || {};
   document.getElementById('jobseeker-title-input').value = p.title || '';
@@ -8140,7 +8140,7 @@ function openJobSeekerForm() {
   currentJobSeekerCvUrl = p.cvUrl || null;
   pendingJobSeekerCvFile = null;
   document.getElementById('jobseeker-cv-file').value = '';
-  document.getElementById('jobseeker-cv-file-text').textContent = currentJobSeekerCvUrl ? '✅ CV déjà envoyé (choisir pour remplacer)' : 'Choisir un fichier';
+  document.getElementById('jobseeker-cv-file-text').textContent = currentJobSeekerCvUrl ? `✅ ${t('jobseeker_cv_already_sent')}` : t('common_choose_file');
   document.getElementById('jobseeker-cv-file-label').classList.toggle('has-file', !!currentJobSeekerCvUrl);
   resetUploadProgress('jobseeker-cv');
   document.getElementById('jobseeker-whatsapp-input').value = p.whatsapp || '';
@@ -8159,7 +8159,7 @@ function handleJobSeekerCvFileChange(event) {
   pendingJobSeekerCvFile = (event.target.files && event.target.files[0]) || null;
   const text = document.getElementById('jobseeker-cv-file-text');
   const label = document.getElementById('jobseeker-cv-file-label');
-  if (text) text.textContent = pendingJobSeekerCvFile ? `✅ ${pendingJobSeekerCvFile.name}` : (currentJobSeekerCvUrl ? '✅ CV déjà envoyé (choisir pour remplacer)' : 'Choisir un fichier');
+  if (text) text.textContent = pendingJobSeekerCvFile ? `✅ ${pendingJobSeekerCvFile.name}` : (currentJobSeekerCvUrl ? `✅ ${t('jobseeker_cv_already_sent')}` : t('common_choose_file'));
   if (label) label.classList.toggle('has-file', !!(pendingJobSeekerCvFile || currentJobSeekerCvUrl));
 }
 
@@ -8187,7 +8187,7 @@ async function saveJobSeekerProfile() {
   const tiktok = document.getElementById('jobseeker-tiktok-input').value.trim();
 
   if (!title || !location || !description || !whatsapp) {
-    errEl.textContent = 'Merci de remplir au moins le poste recherché, la ville, la présentation et le WhatsApp.';
+    errEl.textContent = t('jobseeker_required_fields');
     errEl.classList.remove('hidden');
     return;
   }
@@ -8196,7 +8196,7 @@ async function saveJobSeekerProfile() {
   if (btn.disabled) return;
   btn.disabled = true;
   const originalLabel = btn.textContent;
-  btn.textContent = 'Envoi...';
+  btn.textContent = t('common_sending');
 
   try {
     // Envoi direct du fichier choisi sur le telephone ; si aucun nouveau
@@ -8218,18 +8218,18 @@ async function saveJobSeekerProfile() {
     };
     if (myJobSeekerProfile) {
       await db.collection('job_seekers').doc(currentUser.uid).update({ ...payload, updatedAt: new Date().toISOString() });
-      showToast('Profil mis à jour', 'success');
+      showToast(t('jobseeker_updated_toast'), 'success');
     } else {
       await db.collection('job_seekers').doc(currentUser.uid).set({
         ...payload,
         ownerUid: currentUser.uid,
-        ownerName: currentUser.name || 'Utilisateur',
+        ownerName: currentUser.name || t('common_user_fallback'),
         status: 'active',
         featured: false,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       });
-      showToast('Demande d\'emploi publiée', 'success');
+      showToast(t('jobseeker_published_toast'), 'success');
     }
     closeJobSeekerForm();
     loadMyJobSeekerProfile();
