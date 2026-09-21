@@ -5951,7 +5951,7 @@ async function loadInvoices() {
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     renderInvoiceList(invoicesCache);
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${escapeHtml(e.message)}</p>`;
+    listEl.innerHTML = `<p class="muted small">${t('invoice_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -5959,7 +5959,7 @@ function renderInvoiceList(list) {
   const listEl = document.getElementById('invoice-list');
 
   if (!list || list.length === 0) {
-    listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Aucune facture pour l\'instant. Touche « Nouvelle facture » pour créer la première.</p>';
+    listEl.innerHTML = `<p class="muted small" style="text-align:center;padding:20px 0">${t('invoice_empty_list')}</p>`;
     return;
   }
 
@@ -5971,8 +5971,8 @@ function renderInvoiceList(list) {
     <div class="order-box" style="margin-bottom:12px;cursor:pointer" onclick="viewInvoice('${inv.id}')">
       <div style="display:flex;justify-content:space-between;align-items:flex-start">
         <div>
-          <strong style="font-size:1.02rem">Facture ${escapeHtml(inv.number || '—')}</strong>
-          <div class="shop-card-category" style="margin:4px 0">${escapeHtml(inv.clientName || 'Client')}</div>
+          <strong style="font-size:1.02rem">${t('invoice_card_title_prefix')} ${escapeHtml(inv.number || '—')}</strong>
+          <div class="shop-card-category" style="margin:4px 0">${escapeHtml(inv.clientName || t('invoice_default_client'))}</div>
         </div>
         <strong style="white-space:nowrap;margin-left:10px">${total} ${escapeHtml(currency)}</strong>
       </div>
@@ -5994,58 +5994,58 @@ function openInvoiceForm(invoiceId) {
     <div class="modal-overlay" id="invoice-form-modal">
       <div class="modal" style="max-width:460px">
         <button class="modal-close" onclick="closeInvoiceForm()" aria-label="Fermer">×</button>
-        <h3 style="margin-bottom:14px">${existing ? 'Modifier la facture ' + escapeHtml(existing.number || '') : 'Nouvelle facture'}</h3>
+        <h3 style="margin-bottom:14px">${existing ? t('invoice_form_title_edit_prefix') + ' ' + escapeHtml(existing.number || '') : t('invoice_form_title_new')}</h3>
 
         <div class="field">
-          <label for="inv-client-name">Nom du client</label>
+          <label for="inv-client-name">${t('invoice_field_client_name')}</label>
           <input type="text" id="inv-client-name" class="text-input" maxlength="80" value="${existing ? escapeHtml(existing.clientName || '') : ''}">
         </div>
         <div class="field">
-          <label for="inv-client-phone">Téléphone / WhatsApp (facultatif)</label>
+          <label for="inv-client-phone">${t('invoice_field_client_phone')}</label>
           <input type="tel" id="inv-client-phone" class="text-input" placeholder="+243..." value="${existing ? escapeHtml(existing.clientPhone || '') : ''}">
         </div>
         <div class="field">
-          <label for="inv-currency">Devise</label>
+          <label for="inv-currency">${t('invoice_field_currency')}</label>
           <select id="inv-currency" class="select-input">
             <option value="USD" ${existing && existing.currency === 'USD' ? 'selected' : ''}>USD ($)</option>
             <option value="CDF" ${existing && existing.currency === 'CDF' ? 'selected' : ''}>CDF (FC)</option>
           </select>
         </div>
 
-        <label class="field-label" style="display:block">Articles / Services</label>
+        <label class="field-label" style="display:block">${t('invoice_items_label')}</label>
         <div id="invoice-items-rows"></div>
-        <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:6px 0 14px" onclick="addInvoiceRow()">+ Ajouter une ligne</button>
+        <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:6px 0 14px" onclick="addInvoiceRow()">${t('invoice_add_row_btn')}</button>
 
         <div class="field">
-          <label>Remise</label>
+          <label>${t('invoice_discount_label')}</label>
           <div style="display:flex;gap:8px">
             <select id="inv-discount-type" class="select-input" style="flex:1" onchange="recalcInvoiceTotals()">
-              <option value="none" ${!existing || !existing.discountType || existing.discountType === 'none' ? 'selected' : ''}>Aucune</option>
-              <option value="percent" ${existing && existing.discountType === 'percent' ? 'selected' : ''}>Pourcentage (%)</option>
-              <option value="amount" ${existing && existing.discountType === 'amount' ? 'selected' : ''}>Montant fixe</option>
+              <option value="none" ${!existing || !existing.discountType || existing.discountType === 'none' ? 'selected' : ''}>${t('invoice_discount_none')}</option>
+              <option value="percent" ${existing && existing.discountType === 'percent' ? 'selected' : ''}>${t('invoice_discount_percent')}</option>
+              <option value="amount" ${existing && existing.discountType === 'amount' ? 'selected' : ''}>${t('invoice_discount_amount')}</option>
             </select>
             <input type="number" id="inv-discount-value" class="text-input" style="flex:1" placeholder="0" min="0" step="0.01" value="${existing ? (existing.discountValue || '') : ''}" oninput="recalcInvoiceTotals()">
           </div>
         </div>
 
         <div class="field">
-          <label for="inv-notes">Note (facultatif)</label>
+          <label for="inv-notes">${t('invoice_field_notes')}</label>
           <textarea id="inv-notes" class="text-input" rows="2" style="resize:vertical" maxlength="300">${existing ? escapeHtml(existing.notes || '') : ''}</textarea>
         </div>
 
         <div class="order-box" style="margin-bottom:14px">
           <div style="display:flex;justify-content:space-between;font-size:0.88rem;margin-bottom:4px">
-            <span class="muted">Sous-total</span><span id="inv-subtotal-display">0.00</span>
+            <span class="muted">${t('invoice_subtotal_label')}</span><span id="inv-subtotal-display">0.00</span>
           </div>
           <div style="display:flex;justify-content:space-between;font-size:0.88rem;margin-bottom:4px">
-            <span class="muted">Remise</span><span id="inv-discount-display">-0.00</span>
+            <span class="muted">${t('invoice_discount_label')}</span><span id="inv-discount-display">-0.00</span>
           </div>
           <div style="display:flex;justify-content:space-between;font-weight:800;font-size:1.05rem;margin-top:6px;padding-top:6px;border-top:1px solid var(--line)">
-            <span>Total</span><span id="inv-total-display">0.00</span>
+            <span>${t('invoice_total_label')}</span><span id="inv-total-display">0.00</span>
           </div>
         </div>
 
-        <button class="btn btn-primary" id="invoice-save-btn" style="width:100%;justify-content:center" onclick="saveInvoiceForm()">${existing ? 'Enregistrer les modifications' : 'Enregistrer la facture'}</button>
+        <button class="btn btn-primary" id="invoice-save-btn" style="width:100%;justify-content:center" onclick="saveInvoiceForm()">${existing ? t('invoice_save_edit_btn') : t('invoice_save_new_btn')}</button>
         <p class="muted small" id="invoice-form-msg" style="margin-top:6px"></p>
       </div>
     </div>`;
@@ -6073,9 +6073,9 @@ function addInvoiceRow(item) {
   const priceVal = item && item.price != null ? item.price : '';
   const html = `
     <div class="invoice-item-row" data-row-id="${rowId}">
-      <input type="text" class="text-input inv-item-desc" placeholder="Description" value="${item ? escapeHtml(item.desc || '') : ''}" oninput="recalcInvoiceTotals()">
-      <input type="number" class="text-input inv-item-qty" placeholder="Qté" min="0" step="1" value="${qtyVal}" oninput="recalcInvoiceTotals()">
-      <input type="number" class="text-input inv-item-price" placeholder="Prix" min="0" step="0.01" value="${priceVal}" oninput="recalcInvoiceTotals()">
+      <input type="text" class="text-input inv-item-desc" placeholder="${t('invoice_item_desc_ph')}" value="${item ? escapeHtml(item.desc || '') : ''}" oninput="recalcInvoiceTotals()">
+      <input type="number" class="text-input inv-item-qty" placeholder="${t('invoice_item_qty_ph')}" min="0" step="1" value="${qtyVal}" oninput="recalcInvoiceTotals()">
+      <input type="number" class="text-input inv-item-price" placeholder="${t('invoice_item_price_ph')}" min="0" step="0.01" value="${priceVal}" oninput="recalcInvoiceTotals()">
       <button type="button" class="invoice-row-remove" onclick="removeInvoiceRow('${rowId}')" aria-label="Retirer la ligne">×</button>
     </div>`;
   rowsEl.insertAdjacentHTML('beforeend', html);
@@ -6133,14 +6133,14 @@ async function saveInvoiceForm() {
   const notes = document.getElementById('inv-notes').value.trim();
   const items = readInvoiceItemsFromForm();
 
-  if (!clientName) { msgEl.textContent = "Merci d'indiquer le nom du client."; return; }
-  if (items.length === 0) { msgEl.textContent = 'Ajoute au moins un article ou service avec une quantité.'; return; }
+  if (!clientName) { msgEl.textContent = t('invoice_required_client'); return; }
+  if (items.length === 0) { msgEl.textContent = t('invoice_required_items'); return; }
 
   const { subtotal, discountAmount, total } = recalcInvoiceTotals();
 
   if (btn.disabled) return;
   btn.disabled = true;
-  btn.textContent = 'Enregistrement...';
+  btn.textContent = t('common_saving');
   msgEl.textContent = '';
 
   const payload = {
@@ -6168,12 +6168,12 @@ async function saveInvoiceForm() {
     }
     closeInvoiceForm();
     invoicesCache = null;
-    showToast(invoiceEditingId ? 'Facture modifiée' : 'Facture créée', 'success');
+    showToast(invoiceEditingId ? t('invoice_updated_toast') : t('invoice_created_toast'), 'success');
     loadInvoices();
   } catch (e) {
     msgEl.textContent = friendlyErrorMessage(e);
     btn.disabled = false;
-    btn.textContent = invoiceEditingId ? 'Enregistrer les modifications' : 'Enregistrer la facture';
+    btn.textContent = invoiceEditingId ? t('invoice_save_edit_btn') : t('invoice_save_new_btn');
   }
 }
 
@@ -6184,7 +6184,7 @@ async function viewInvoice(invoiceId) {
   if (!inv) {
     try {
       const doc = await db.collection('invoices').doc(invoiceId).get();
-      if (!doc.exists) { showToast('Facture introuvable', 'error'); return; }
+      if (!doc.exists) { showToast(t('invoice_not_found'), 'error'); return; }
       inv = { id: doc.id, ...doc.data() };
     } catch (e) {
       showToast(friendlyErrorMessage(e), 'error');
@@ -6205,28 +6205,28 @@ async function viewInvoice(invoiceId) {
     <div class="modal-overlay" id="invoice-view-modal">
       <div class="modal" style="max-width:460px">
         <button class="modal-close" onclick="document.getElementById('invoice-view-modal').remove()" aria-label="Fermer">×</button>
-        <h3 style="margin-bottom:4px">Facture ${escapeHtml(inv.number || '')}</h3>
+        <h3 style="margin-bottom:4px">${t('invoice_card_title_prefix')} ${escapeHtml(inv.number || '')}</h3>
         <p class="muted small" style="margin-bottom:14px">${escapeHtml(dateLabel)}</p>
 
-        <p style="margin-bottom:4px"><strong>${escapeHtml(inv.clientName || 'Client')}</strong></p>
+        <p style="margin-bottom:4px"><strong>${escapeHtml(inv.clientName || t('invoice_default_client'))}</strong></p>
         ${inv.clientPhone ? `<p class="muted small" style="margin-bottom:14px">${escapeHtml(inv.clientPhone)}</p>` : '<div style="margin-bottom:14px"></div>'}
 
         <div style="margin-bottom:10px">${itemsHtml}</div>
 
         <div style="display:flex;justify-content:space-between;font-size:0.88rem;margin-bottom:4px">
-          <span class="muted">Sous-total</span><span>${(inv.subtotal || 0).toFixed(2)} ${escapeHtml(currency)}</span>
+          <span class="muted">${t('invoice_subtotal_label')}</span><span>${(inv.subtotal || 0).toFixed(2)} ${escapeHtml(currency)}</span>
         </div>
         ${inv.discountAmount ? `<div style="display:flex;justify-content:space-between;font-size:0.88rem;margin-bottom:4px">
-          <span class="muted">Remise</span><span>-${(inv.discountAmount || 0).toFixed(2)} ${escapeHtml(currency)}</span>
+          <span class="muted">${t('invoice_discount_label')}</span><span>-${(inv.discountAmount || 0).toFixed(2)} ${escapeHtml(currency)}</span>
         </div>` : ''}
         <div style="display:flex;justify-content:space-between;font-weight:800;font-size:1.05rem;margin-top:6px;padding-top:6px;border-top:1px solid var(--line);margin-bottom:16px">
-          <span>Total</span><span>${(inv.total || 0).toFixed(2)} ${escapeHtml(currency)}</span>
+          <span>${t('invoice_total_label')}</span><span>${(inv.total || 0).toFixed(2)} ${escapeHtml(currency)}</span>
         </div>
         ${inv.notes ? `<p class="muted small" style="margin-bottom:16px">${escapeHtml(inv.notes)}</p>` : ''}
 
-        <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:10px" onclick="printInvoice('${inv.id}')">Imprimer / Télécharger PDF</button>
-        <button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:10px" onclick="document.getElementById('invoice-view-modal').remove();openInvoiceForm('${inv.id}')">Modifier</button>
-        <button class="btn btn-outline" style="width:100%;justify-content:center;color:var(--red);border-color:var(--red)" onclick="deleteInvoiceConfirm('${inv.id}')">Supprimer</button>
+        <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:10px" onclick="printInvoice('${inv.id}')">${t('invoice_print_btn')}</button>
+        <button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:10px" onclick="document.getElementById('invoice-view-modal').remove();openInvoiceForm('${inv.id}')">${t('invoice_edit_btn')}</button>
+        <button class="btn btn-outline" style="width:100%;justify-content:center;color:var(--red);border-color:var(--red)" onclick="deleteInvoiceConfirm('${inv.id}')">${t('invoice_delete_btn')}</button>
       </div>
     </div>`;
   document.body.insertAdjacentHTML('beforeend', html);
@@ -6250,30 +6250,30 @@ function printInvoice(invoiceId) {
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px">
         <div>
           <h1 style="font-size:1.4rem;margin:0 0 4px;color:#1877f2">CoeurNoh Business</h1>
-          <p style="margin:0;font-size:0.85rem;color:#5b6472">Facture ${escapeHtml(inv.number || '')}</p>
+          <p style="margin:0;font-size:0.85rem;color:#5b6472">${t('invoice_card_title_prefix')} ${escapeHtml(inv.number || '')}</p>
         </div>
         <div style="text-align:right;font-size:0.85rem;color:#5b6472">${escapeHtml(dateLabel)}</div>
       </div>
       <div style="margin-bottom:20px">
-        <p style="margin:0;font-size:0.8rem;color:#5b6472">Facturé à</p>
-        <p style="margin:2px 0 0;font-weight:700">${escapeHtml(inv.clientName || 'Client')}</p>
+        <p style="margin:0;font-size:0.8rem;color:#5b6472">${t('invoice_billed_to_label')}</p>
+        <p style="margin:2px 0 0;font-weight:700">${escapeHtml(inv.clientName || t('invoice_default_client'))}</p>
         ${inv.clientPhone ? `<p style="margin:2px 0 0;font-size:0.85rem;color:#5b6472">${escapeHtml(inv.clientPhone)}</p>` : ''}
       </div>
       <table style="width:100%;border-collapse:collapse;margin-bottom:20px">
         <thead>
           <tr style="border-bottom:2px solid #161a1f;font-size:0.8rem;text-align:left">
-            <th style="padding:6px 4px">Description</th>
-            <th style="padding:6px 4px;text-align:center">Qté</th>
-            <th style="padding:6px 4px;text-align:right">Prix</th>
-            <th style="padding:6px 4px;text-align:right">Total</th>
+            <th style="padding:6px 4px">${t('invoice_item_desc_ph')}</th>
+            <th style="padding:6px 4px;text-align:center">${t('invoice_item_qty_ph')}</th>
+            <th style="padding:6px 4px;text-align:right">${t('invoice_item_price_ph')}</th>
+            <th style="padding:6px 4px;text-align:right">${t('invoice_total_label')}</th>
           </tr>
         </thead>
         <tbody style="font-size:0.88rem">${rowsHtml}</tbody>
       </table>
       <div style="width:220px;margin-left:auto;font-size:0.9rem">
-        <div style="display:flex;justify-content:space-between;padding:4px 0"><span>Sous-total</span><span>${(inv.subtotal || 0).toFixed(2)} ${escapeHtml(currency)}</span></div>
-        ${inv.discountAmount ? `<div style="display:flex;justify-content:space-between;padding:4px 0"><span>Remise</span><span>-${(inv.discountAmount || 0).toFixed(2)} ${escapeHtml(currency)}</span></div>` : ''}
-        <div style="display:flex;justify-content:space-between;padding:8px 0;border-top:2px solid #161a1f;font-weight:800;font-size:1.05rem"><span>Total</span><span>${(inv.total || 0).toFixed(2)} ${escapeHtml(currency)}</span></div>
+        <div style="display:flex;justify-content:space-between;padding:4px 0"><span>${t('invoice_subtotal_label')}</span><span>${(inv.subtotal || 0).toFixed(2)} ${escapeHtml(currency)}</span></div>
+        ${inv.discountAmount ? `<div style="display:flex;justify-content:space-between;padding:4px 0"><span>${t('invoice_discount_label')}</span><span>-${(inv.discountAmount || 0).toFixed(2)} ${escapeHtml(currency)}</span></div>` : ''}
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-top:2px solid #161a1f;font-weight:800;font-size:1.05rem"><span>${t('invoice_total_label')}</span><span>${(inv.total || 0).toFixed(2)} ${escapeHtml(currency)}</span></div>
       </div>
       ${inv.notes ? `<p style="margin-top:24px;font-size:0.85rem;color:#5b6472">${escapeHtml(inv.notes)}</p>` : ''}
     </div>`;
@@ -6283,13 +6283,13 @@ function printInvoice(invoiceId) {
 }
 
 async function deleteInvoiceConfirm(invoiceId) {
-  if (!confirm('Supprimer définitivement cette facture ?')) return;
+  if (!confirm(t('invoice_delete_confirm'))) return;
   try {
     await db.collection('invoices').doc(invoiceId).delete();
     const viewModal = document.getElementById('invoice-view-modal');
     if (viewModal) viewModal.remove();
     invoicesCache = null;
-    showToast('Facture supprimée', 'info');
+    showToast(t('invoice_deleted_toast'), 'info');
     loadInvoices();
   } catch (e) {
     showToast(friendlyErrorMessage(e), 'error');
@@ -6644,13 +6644,13 @@ function renderNearbyResults(list) {
    participation a un concours payant affiche clairement l'information au
    lieu de faire semblant que ca fonctionne. */
 const CONTEST_CATEGORY_META = {
-  createur:     { label: 'Meilleur créateur',      icon: '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>' },
-  entrepreneur: { label: 'Meilleur entrepreneur',   icon: '<rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>' },
-  talent:       { label: 'Talent de la semaine',    icon: '<path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>' },
-  photo:        { label: 'Meilleure photo',         icon: '<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2Z"/><circle cx="12" cy="13" r="4"/>' },
-  video:        { label: 'Meilleure vidéo',         icon: '<path d="m22 8-6 4 6 4V8Z"/><rect x="2" y="6" width="14" height="12" rx="2" ry="2"/>' },
-  vendeur:      { label: 'Meilleur vendeur',        icon: '<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/>' },
-  entreprise:   { label: "Concours d'entreprise",   icon: '<path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 9h1"/><path d="M9 13h1"/><path d="M14 9h1"/><path d="M14 13h1"/><path d="M9 21v-4h6v4"/>' }
+  createur:     { label: 'contest_category_createur',      icon: '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>' },
+  entrepreneur: { label: 'contest_category_entrepreneur',   icon: '<rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>' },
+  talent:       { label: 'contest_category_talent',    icon: '<path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>' },
+  photo:        { label: 'contest_category_photo',         icon: '<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2Z"/><circle cx="12" cy="13" r="4"/>' },
+  video:        { label: 'contest_category_video',         icon: '<path d="m22 8-6 4 6 4V8Z"/><rect x="2" y="6" width="14" height="12" rx="2" ry="2"/>' },
+  vendeur:      { label: 'contest_category_vendeur',        icon: '<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/>' },
+  entreprise:   { label: 'contest_category_entreprise',   icon: '<path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 9h1"/><path d="M9 13h1"/><path d="M14 9h1"/><path d="M14 13h1"/><path d="M9 21v-4h6v4"/>' }
 };
 const CONTEST_TROPHY_ICON = '<path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M17 5h2a2 2 0 0 1 2 2 4 4 0 0 1-4 4"/><path d="M7 5H5a2 2 0 0 0-2 2 4 4 0 0 0 4 4"/>';
 const CONTEST_VOTE_ICON = '<path d="M7 10v12"/><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z"/>';
@@ -6687,7 +6687,7 @@ async function loadContests() {
     contestsCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     renderContestsList();
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${escapeHtml(e.message)}</p>`;
+    listEl.innerHTML = `<p class="muted small">${t('contest_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -6706,32 +6706,32 @@ function renderContestsList() {
   const filtered = contestsCache.filter(c => computeContestStatus(c) === contestStatusFilter);
 
   if (filtered.length === 0) {
-    const msg = contestStatusFilter === 'active' ? 'Aucun concours en cours pour le moment.' :
-      contestStatusFilter === 'upcoming' ? 'Aucun concours à venir pour le moment.' :
-      'Aucun concours terminé pour le moment.';
+    const msg = contestStatusFilter === 'active' ? t('contest_empty_active') :
+      contestStatusFilter === 'upcoming' ? t('contest_empty_upcoming') :
+      t('contest_empty_ended');
     listEl.innerHTML = `<p class="muted small" style="text-align:center;padding:20px 0">${msg}</p>`;
     return;
   }
 
   listEl.innerHTML = filtered.map(c => {
-    const meta = CONTEST_CATEGORY_META[c.category] || { label: c.category || 'Concours', icon: CONTEST_TROPHY_ICON };
+    const meta = CONTEST_CATEGORY_META[c.category] || { label: 'contest_default_title', icon: CONTEST_TROPHY_ICON };
     const dateRange = c.startDate && c.endDate
       ? `${new Date(c.startDate).toLocaleDateString('fr-FR')} — ${new Date(c.endDate).toLocaleDateString('fr-FR')}`
       : '';
     const feeBadge = c.type === 'paid'
-      ? `<span class="shop-card-category" style="background:#fdecea;color:#c3183f">Payant · ${(c.entryFee || 0).toFixed(2)}$</span>`
-      : `<span class="shop-card-category">Gratuit</span>`;
+      ? `<span class="shop-card-category" style="background:#fdecea;color:#c3183f">${t('contest_paid_badge_prefix')} ${(c.entryFee || 0).toFixed(2)}$</span>`
+      : `<span class="shop-card-category">${t('contest_free_badge')}</span>`;
     return `
     <div class="order-box" style="margin-bottom:12px;cursor:pointer" onclick="viewContest('${c.id}')">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
         <div style="min-width:0">
-          <div class="muted small" style="display:flex;align-items:center;gap:6px;margin-bottom:4px">${contestIconSvg(meta.icon)} ${escapeHtml(meta.label)}</div>
-          <strong style="font-size:1.02rem;word-break:break-word">${escapeHtml(c.title || 'Concours')}</strong>
+          <div class="muted small" style="display:flex;align-items:center;gap:6px;margin-bottom:4px">${contestIconSvg(meta.icon)} ${t(meta.label)}</div>
+          <strong style="font-size:1.02rem;word-break:break-word">${escapeHtml(c.title || t('contest_default_title'))}</strong>
         </div>
         ${feeBadge}
       </div>
       ${dateRange ? `<div class="muted small" style="margin-top:8px">${escapeHtml(dateRange)}</div>` : ''}
-      ${c.prize ? `<div class="muted small" style="margin-top:4px">Récompense : ${escapeHtml(c.prize)}</div>` : ''}
+      ${c.prize ? `<div class="muted small" style="margin-top:4px">${t('contest_prize_prefix')} ${escapeHtml(c.prize)}</div>` : ''}
     </div>`;
   }).join('');
 }
@@ -6744,53 +6744,53 @@ function openContestForm() {
   pendingContestCoverFile = null;
 
   const catOptions = Object.entries(CONTEST_CATEGORY_META)
-    .map(([val, meta]) => `<option value="${val}">${escapeHtml(meta.label)}</option>`).join('');
+    .map(([val, meta]) => `<option value="${val}">${t(meta.label)}</option>`).join('');
 
   const html = `
     <div class="modal-overlay" id="contest-form-modal">
       <div class="modal" style="max-width:460px">
         <button class="modal-close" onclick="document.getElementById('contest-form-modal').remove()" aria-label="Fermer">×</button>
-        <h3 style="margin-bottom:14px">Nouveau concours</h3>
+        <h3 style="margin-bottom:14px">${t('contest_form_title_new')}</h3>
 
         <div class="field">
-          <label for="contest-title">Titre du concours</label>
+          <label for="contest-title">${t('contest_field_title')}</label>
           <input type="text" id="contest-title" class="text-input" maxlength="100">
         </div>
         <div class="field">
-          <label for="contest-category">Catégorie</label>
+          <label for="contest-category">${t('contest_field_category')}</label>
           <select id="contest-category" class="select-input">${catOptions}</select>
         </div>
         <div class="field">
-          <label for="contest-description">Règlement / description</label>
+          <label for="contest-description">${t('contest_field_description')}</label>
           <textarea id="contest-description" class="text-input" rows="3" style="resize:vertical" maxlength="600"></textarea>
         </div>
         <div class="field">
-          <label for="contest-prize">Récompense</label>
-          <input type="text" id="contest-prize" class="text-input" placeholder="ex: 50$ + mise en avant sur la page d'accueil" maxlength="120">
+          <label for="contest-prize">${t('contest_field_prize')}</label>
+          <input type="text" id="contest-prize" class="text-input" placeholder="${t('contest_field_prize_ph')}" maxlength="120">
         </div>
         <div class="field">
-          <label>Dates</label>
+          <label>${t('contest_field_dates')}</label>
           <div style="display:flex;gap:8px">
             <input type="date" id="contest-start" class="text-input" style="flex:1">
             <input type="date" id="contest-end" class="text-input" style="flex:1">
           </div>
         </div>
         <div class="field">
-          <label>Type de concours</label>
+          <label>${t('contest_field_type')}</label>
           <div style="display:flex;gap:8px">
             <select id="contest-type" class="select-input" style="flex:1" onchange="document.getElementById('contest-fee').classList.toggle('hidden', this.value !== 'paid')">
-              <option value="free">Gratuit</option>
-              <option value="paid">Payant</option>
+              <option value="free">${t('contest_free_badge')}</option>
+              <option value="paid">${t('contest_type_paid')}</option>
             </select>
-            <input type="number" id="contest-fee" class="text-input hidden" style="flex:1" placeholder="Frais en $" min="0" step="0.01">
+            <input type="number" id="contest-fee" class="text-input hidden" style="flex:1" placeholder="${t('contest_fee_ph')}" min="0" step="0.01">
           </div>
         </div>
         <div class="field">
-          <label for="contest-cover-file">Image de couverture (facultatif)</label>
+          <label for="contest-cover-file">${t('contest_field_cover')}</label>
           <input type="file" id="contest-cover-file" class="file-input-hidden" accept="image/*" onchange="handleContestCoverFileChange(event)">
           <label for="contest-cover-file" class="file-picker-btn" id="contest-cover-file-label">
             <span class="file-picker-icon" id="contest-cover-file-icon">🖼️</span>
-            <span class="file-picker-text" id="contest-cover-file-text">Choisir une image</span>
+            <span class="file-picker-text" id="contest-cover-file-text">${t('common_choose_image')}</span>
           </label>
           <div class="upload-progress-wrap hidden" id="contest-cover-progress-wrap">
             <div class="upload-progress-fill" id="contest-cover-progress-fill"></div>
@@ -6799,7 +6799,7 @@ function openContestForm() {
           <div id="contest-cover-preview"></div>
         </div>
 
-        <button class="btn btn-primary" id="contest-save-btn" style="width:100%;justify-content:center;margin-top:4px" onclick="saveContestForm()">Publier le concours</button>
+        <button class="btn btn-primary" id="contest-save-btn" style="width:100%;justify-content:center;margin-top:4px" onclick="saveContestForm()">${t('contest_publish_btn')}</button>
         <p class="muted small" id="contest-form-msg" style="margin-top:6px"></p>
       </div>
     </div>`;
@@ -6812,7 +6812,7 @@ function handleContestCoverFileChange(event) {
   pendingContestCoverFile = (event.target.files && event.target.files[0]) || null;
   const text = document.getElementById('contest-cover-file-text');
   const label = document.getElementById('contest-cover-file-label');
-  if (text) text.textContent = pendingContestCoverFile ? `✅ ${pendingContestCoverFile.name}` : 'Choisir une image';
+  if (text) text.textContent = pendingContestCoverFile ? `✅ ${pendingContestCoverFile.name}` : t('common_choose_image');
   if (label) label.classList.toggle('has-file', !!pendingContestCoverFile);
   const previewEl = document.getElementById('contest-cover-preview');
   if (previewEl) {
@@ -6834,21 +6834,21 @@ async function saveContestForm() {
   const entryFee = parseFloat(document.getElementById('contest-fee').value) || 0;
 
   if (!title || !startDate || !endDate) {
-    msgEl.textContent = 'Merci de remplir au moins le titre et les deux dates.';
+    msgEl.textContent = t('contest_required_fields');
     return;
   }
   if (new Date(endDate) < new Date(startDate)) {
-    msgEl.textContent = 'La date de fin doit être après la date de début.';
+    msgEl.textContent = t('contest_end_before_start_error');
     return;
   }
   if (type === 'paid' && entryFee <= 0) {
-    msgEl.textContent = 'Indique des frais de participation supérieurs à 0 pour un concours payant.';
+    msgEl.textContent = t('contest_fee_required_error');
     return;
   }
 
   if (btn.disabled) return;
   btn.disabled = true;
-  btn.textContent = 'Publication...';
+  btn.textContent = t('business_posting_btn');
   try {
     let coverImage = null;
     if (pendingContestCoverFile) {
@@ -6869,12 +6869,12 @@ async function saveContestForm() {
     });
     document.getElementById('contest-form-modal').remove();
     contestsCache = null;
-    showToast('Concours publié', 'success');
+    showToast(t('contest_published_toast'), 'success');
     loadContests();
   } catch (e) {
     msgEl.textContent = friendlyErrorMessage(e);
     btn.disabled = false;
-    btn.textContent = 'Publier le concours';
+    btn.textContent = t('contest_publish_btn');
   }
 }
 
@@ -6885,7 +6885,7 @@ async function viewContest(contestId) {
   if (!c) return;
   if (document.getElementById('contest-view-modal')) return;
 
-  const meta = CONTEST_CATEGORY_META[c.category] || { label: c.category || 'Concours', icon: CONTEST_TROPHY_ICON };
+  const meta = CONTEST_CATEGORY_META[c.category] || { label: 'contest_default_title', icon: CONTEST_TROPHY_ICON };
   const status = computeContestStatus(c);
   const dateRange = `${new Date(c.startDate).toLocaleDateString('fr-FR')} — ${new Date(c.endDate).toLocaleDateString('fr-FR')}`;
 
@@ -6893,27 +6893,27 @@ async function viewContest(contestId) {
   if (status === 'ended') {
     participateHtml = '';
   } else if (!currentUser) {
-    participateHtml = `<button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:14px" onclick="openAuth('login')">Se connecter pour participer</button>`;
+    participateHtml = `<button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:14px" onclick="openAuth('login')">${t('contest_login_participate_btn')}</button>`;
   } else if (c.type === 'paid') {
-    participateHtml = `<button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:14px" onclick="openContestEntryForm('${c.id}', true, ${c.entryFee || 0})">Participer — ${(c.entryFee || 0).toFixed(2)}$</button>`;
+    participateHtml = `<button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:14px" onclick="openContestEntryForm('${c.id}', true, ${c.entryFee || 0})">${t('contest_participate_paid_btn_prefix')} ${(c.entryFee || 0).toFixed(2)}$</button>`;
   } else {
-    participateHtml = `<button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:14px" onclick="openContestEntryForm('${c.id}', false, 0)">Participer</button>`;
+    participateHtml = `<button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:14px" onclick="openContestEntryForm('${c.id}', false, 0)">${t('contest_participate_free_btn')}</button>`;
   }
 
   const html = `
     <div class="modal-overlay" id="contest-view-modal">
       <div class="modal" style="max-width:480px">
         <button class="modal-close" onclick="document.getElementById('contest-view-modal').remove()" aria-label="Fermer">×</button>
-        <div class="muted small" style="display:flex;align-items:center;gap:6px;margin-bottom:4px">${contestIconSvg(meta.icon)} ${escapeHtml(meta.label)}</div>
+        <div class="muted small" style="display:flex;align-items:center;gap:6px;margin-bottom:4px">${contestIconSvg(meta.icon)} ${t(meta.label)}</div>
         <h3 style="margin-bottom:4px">${escapeHtml(c.title)}</h3>
         <p class="muted small" style="margin-bottom:12px">${escapeHtml(dateRange)}</p>
         ${c.description ? `<p class="small" style="margin-bottom:10px">${escapeHtml(c.description)}</p>` : ''}
-        ${c.prize ? `<p class="small" style="margin-bottom:14px"><strong>Récompense :</strong> ${escapeHtml(c.prize)}</p>` : ''}
+        ${c.prize ? `<p class="small" style="margin-bottom:14px"><strong>${t('contest_prize_prefix')}</strong> ${escapeHtml(c.prize)}</p>` : ''}
 
         ${participateHtml}
 
-        <h4 style="margin-bottom:10px;font-size:0.95rem">Participants</h4>
-        <div id="contest-entries-list-${c.id}"><p class="muted small">Chargement...</p></div>
+        <h4 style="margin-bottom:10px;font-size:0.95rem">${t('contest_participants_heading')}</h4>
+        <div id="contest-entries-list-${c.id}"><p class="muted small">${t('common_loading')}</p></div>
       </div>
     </div>`;
   document.body.insertAdjacentHTML('beforeend', html);
@@ -6943,7 +6943,7 @@ async function loadContestEntries(contestId, status) {
 
     renderContestEntries(contestId, entries, status);
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${escapeHtml(e.message)}</p>`;
+    listEl.innerHTML = `<p class="muted small">${t('contest_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -6952,7 +6952,7 @@ function renderContestEntries(contestId, entries, status) {
   if (!listEl) return;
 
   if (entries.length === 0) {
-    listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:14px 0">Aucun participant pour l\'instant.</p>';
+    listEl.innerHTML = `<p class="muted small" style="text-align:center;padding:14px 0">${t('contest_no_participants')}</p>`;
     return;
   }
 
@@ -6968,13 +6968,13 @@ function renderContestEntries(contestId, entries, status) {
       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
         <div style="display:flex;align-items:center;gap:8px;min-width:0">
           ${isWinner ? contestIconSvg(CONTEST_TROPHY_ICON, 18) : `<span class="muted small" style="min-width:20px">#${rank}</span>`}
-          <strong style="word-break:break-word">${escapeHtml(e.name || 'Participant')}</strong>
+          <strong style="word-break:break-word">${escapeHtml(e.name || t('contest_default_participant_name'))}</strong>
         </div>
-        <span class="muted small" style="white-space:nowrap">${e.votesCount || 0} vote${(e.votesCount || 0) > 1 ? 's' : ''}</span>
+        <span class="muted small" style="white-space:nowrap">${e.votesCount || 0} ${(e.votesCount || 0) > 1 ? t('contest_vote_plural') : t('contest_vote_singular')}</span>
       </div>
       ${e.caption ? `<p class="muted small" style="margin-top:6px">${escapeHtml(e.caption)}</p>` : ''}
       ${renderContestEntryMedia(e)}
-      ${canVote ? `<button class="btn ${alreadyVoted ? 'btn-outline' : 'btn-primary'} btn-sm" style="margin-top:8px;margin-left:8px" ${alreadyVoted ? 'disabled' : ''} onclick="voteForEntry('${contestId}', '${e.id}')">${contestIconSvg(CONTEST_VOTE_ICON, 14)} ${alreadyVoted ? 'Voté' : 'Voter'}</button>` : ''}
+      ${canVote ? `<button class="btn ${alreadyVoted ? 'btn-outline' : 'btn-primary'} btn-sm" style="margin-top:8px;margin-left:8px" ${alreadyVoted ? 'disabled' : ''} onclick="voteForEntry('${contestId}', '${e.id}')">${contestIconSvg(CONTEST_VOTE_ICON, 14)} ${alreadyVoted ? t('contest_voted_btn') : t('contest_vote_btn')}</button>` : ''}
     </div>`;
   }).join('');
 }
@@ -6997,7 +6997,7 @@ function renderContestEntryMedia(e) {
       <span class="post-media-play-overlay">${ICON_PLAY}</span>
     </div>`;
   }
-  return `<a href="${url}" target="_blank" class="btn btn-outline btn-sm" style="margin-top:8px">Voir la participation</a>`;
+  return `<a href="${url}" target="_blank" class="btn btn-outline btn-sm" style="margin-top:8px">${t('contest_view_entry_btn')}</a>`;
 }
 
 function openContestEntryForm(contestId, isPaid, entryFee) {
@@ -7009,18 +7009,18 @@ function openContestEntryForm(contestId, isPaid, entryFee) {
     <div class="modal-overlay" id="contest-entry-modal">
       <div class="modal">
         <button class="modal-close" onclick="document.getElementById('contest-entry-modal').remove()" aria-label="Fermer">×</button>
-        <h3 style="margin-bottom:14px">Participer au concours</h3>
-        ${isPaid ? `<p class="muted small" style="margin-bottom:14px">Frais de participation : <strong>${entryFee.toFixed(2)}$</strong>, débités de ton solde Coeurnoh Universe à l'envoi.</p>` : ''}
+        <h3 style="margin-bottom:14px">${t('contest_entry_form_title')}</h3>
+        ${isPaid ? `<p class="muted small" style="margin-bottom:14px">${t('contest_entry_fee_notice_prefix')} <strong>${entryFee.toFixed(2)}$</strong>, ${t('contest_entry_fee_notice_suffix')}</p>` : ''}
         <div class="field">
-          <label for="entry-name">Ton nom / nom d'artiste</label>
+          <label for="entry-name">${t('contest_field_entry_name')}</label>
           <input type="text" id="entry-name" class="text-input" maxlength="60" value="${escapeHtml(currentUser.name || '')}">
         </div>
         <div class="field">
-          <label for="entry-file">Ta photo / vidéo / preuve</label>
+          <label for="entry-file">${t('contest_field_entry_file')}</label>
           <input type="file" id="entry-file" class="file-input-hidden" accept="image/*,video/*" onchange="handleContestEntryFileChange(event)">
           <label for="entry-file" class="file-picker-btn" id="entry-file-label">
             <span class="file-picker-icon" id="entry-file-icon">📎</span>
-            <span class="file-picker-text" id="entry-file-text">Choisir un fichier</span>
+            <span class="file-picker-text" id="entry-file-text">${t('common_choose_file')}</span>
           </label>
           <div class="upload-progress-wrap hidden" id="entry-file-progress-wrap">
             <div class="upload-progress-fill" id="entry-file-progress-fill"></div>
@@ -7029,10 +7029,10 @@ function openContestEntryForm(contestId, isPaid, entryFee) {
           <div id="entry-file-preview"></div>
         </div>
         <div class="field">
-          <label for="entry-caption">Message (facultatif)</label>
+          <label for="entry-caption">${t('contest_field_entry_caption')}</label>
           <textarea id="entry-caption" class="text-input" rows="2" style="resize:vertical" maxlength="200"></textarea>
         </div>
-        <button class="btn btn-primary" id="entry-save-btn" style="width:100%;justify-content:center" onclick="${isPaid ? `payAndSubmitContestEntry('${contestId}')` : `saveContestEntry('${contestId}')`}">${isPaid ? `Payer ${entryFee.toFixed(2)}$ et participer` : 'Envoyer ma participation'}</button>
+        <button class="btn btn-primary" id="entry-save-btn" style="width:100%;justify-content:center" onclick="${isPaid ? `payAndSubmitContestEntry('${contestId}')` : `saveContestEntry('${contestId}')`}">${isPaid ? `${t('contest_pay_and_participate_btn_prefix')} ${entryFee.toFixed(2)}$ ${t('contest_pay_and_participate_btn_suffix')}` : t('contest_send_entry_btn')}</button>
         <p class="muted small" id="entry-form-msg" style="margin-top:6px"></p>
       </div>
     </div>`;
@@ -7048,7 +7048,7 @@ function handleContestEntryFileChange(event) {
   const icon = document.getElementById('entry-file-icon');
   const isVideo = pendingContestEntryFile && pendingContestEntryFile.type.startsWith('video/');
   if (icon) icon.textContent = isVideo ? '🎥' : '📷';
-  if (text) text.textContent = pendingContestEntryFile ? `✅ ${pendingContestEntryFile.name}` : 'Choisir un fichier';
+  if (text) text.textContent = pendingContestEntryFile ? `✅ ${pendingContestEntryFile.name}` : t('common_choose_file');
   if (label) label.classList.toggle('has-file', !!pendingContestEntryFile);
   const previewEl = document.getElementById('entry-file-preview');
   if (previewEl) {
@@ -7079,12 +7079,12 @@ async function saveContestEntry(contestId) {
   const name = document.getElementById('entry-name').value.trim();
   const caption = document.getElementById('entry-caption').value.trim();
 
-  if (!name) { msgEl.textContent = 'Merci d\'indiquer ton nom.'; return; }
-  if (!pendingContestEntryFile) { msgEl.textContent = 'Merci de choisir une photo ou une vidéo depuis ton téléphone.'; return; }
+  if (!name) { msgEl.textContent = t('contest_name_required'); return; }
+  if (!pendingContestEntryFile) { msgEl.textContent = t('contest_file_required'); return; }
 
   if (btn.disabled) return;
   btn.disabled = true;
-  btn.textContent = 'Envoi...';
+  btn.textContent = t('common_sending');
   try {
     const submissionType = pendingContestEntryFile.type.startsWith('video/') ? 'video' : 'image';
     const submissionUrl = await uploadContestEntryFile();
@@ -7096,13 +7096,13 @@ async function saveContestEntry(contestId) {
       votesCount: 0, paid: false, createdAt: new Date().toISOString()
     }, { merge: true });
     document.getElementById('contest-entry-modal').remove();
-    showToast('Participation envoyée', 'success');
+    showToast(t('contest_entry_sent_toast'), 'success');
     const status = computeContestStatus((contestsCache || []).find(c => c.id === contestId) || {});
     loadContestEntries(contestId, status);
   } catch (e) {
     msgEl.textContent = friendlyErrorMessage(e);
     btn.disabled = false;
-    btn.textContent = 'Envoyer ma participation';
+    btn.textContent = t('contest_send_entry_btn');
   }
 }
 
@@ -7116,19 +7116,19 @@ async function payAndSubmitContestEntry(contestId) {
   const name = document.getElementById('entry-name').value.trim();
   const caption = document.getElementById('entry-caption').value.trim();
 
-  if (!name) { msgEl.textContent = 'Merci d\'indiquer ton nom.'; return; }
-  if (!pendingContestEntryFile) { msgEl.textContent = 'Merci de choisir une photo ou une vidéo depuis ton téléphone.'; return; }
+  if (!name) { msgEl.textContent = t('contest_name_required'); return; }
+  if (!pendingContestEntryFile) { msgEl.textContent = t('contest_file_required'); return; }
 
   if (btn.disabled) return;
   btn.disabled = true;
   const originalLabel = btn.textContent;
-  btn.textContent = 'Envoi du fichier...';
+  btn.textContent = t('contest_uploading_file_btn');
   msgEl.textContent = '';
 
   try {
     const submissionType = pendingContestEntryFile.type.startsWith('video/') ? 'video' : 'image';
     const submissionUrl = await uploadContestEntryFile();
-    btn.textContent = 'Paiement en cours...';
+    btn.textContent = t('contest_paying_btn');
     const idToken = await auth.currentUser.getIdToken();
     const resp = await fetch('/api/payments-actions', {
       method: 'POST',
@@ -7136,13 +7136,13 @@ async function payAndSubmitContestEntry(contestId) {
       body: JSON.stringify({ idToken, action: 'contest_entry', contestId, name, submissionUrl, submissionType, caption })
     });
     const data = await resp.json();
-    if (!data.success) throw new Error(data.error || 'Le paiement a échoué.');
+    if (!data.success) throw new Error(data.error || t('contest_payment_failed'));
 
     currentUser.balance = data.newBalance;
     const dashBalanceEl = document.getElementById('wallet-balance');
     if (dashBalanceEl) dashBalanceEl.textContent = data.newBalance.toFixed(2) + '$';
     document.getElementById('contest-entry-modal').remove();
-    showToast('Participation payée et confirmée', 'success');
+    showToast(t('contest_entry_paid_toast'), 'success');
     const status = computeContestStatus((contestsCache || []).find(c => c.id === contestId) || {});
     loadContestEntries(contestId, status);
   } catch (e) {
@@ -7165,12 +7165,12 @@ async function voteForEntry(contestId, entryId) {
       tx.update(entryRef, { votesCount: firebase.firestore.FieldValue.increment(1) });
     });
     contestMyVotesCache.add(voteKey);
-    showToast('Vote enregistré', 'success');
+    showToast(t('contest_vote_recorded_toast'), 'success');
     const status = computeContestStatus((contestsCache || []).find(c => c.id === contestId) || {});
     loadContestEntries(contestId, status);
   } catch (e) {
     if (e.message === 'ALREADY_VOTED') {
-      showToast('Tu as déjà voté pour cette participation', 'info');
+      showToast(t('contest_already_voted_toast'), 'info');
     } else {
       showToast(friendlyErrorMessage(e), 'error');
     }
@@ -8300,7 +8300,7 @@ async function loadEvents() {
     eventsCache.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
     runEventsFilter();
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+    listEl.innerHTML = `<p class="muted small">${t('event_load_error_prefix')} ${e.message}</p>`;
   }
 }
 
@@ -8328,40 +8328,40 @@ function eventDateRangeLabel(e) {
 
 function eventPriceFromLabel(e) {
   const types = e.ticketTypes || [];
-  if (types.length === 0) return 'Places non définies';
+  if (types.length === 0) return t('event_tickets_undefined');
   const prices = types.map(t => t.price || 0);
   const min = Math.min(...prices);
-  if (min === 0 && prices.every(p => p === 0)) return 'Gratuit';
-  return min === 0 ? 'À partir de gratuit' : `À partir de ${min}$`;
+  if (min === 0 && prices.every(p => p === 0)) return t('event_free');
+  return min === 0 ? t('event_from_free') : `${t('event_from_price_prefix')} ${min}$`;
 }
 
 function renderEventsBrowseList(list) {
   const listEl = document.getElementById('events-browse-list');
   if (list.length === 0) {
-    listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Aucun événement à venir pour l\'instant. Sois le premier à en publier un.</p>';
+    listEl.innerHTML = `<p class="muted small" style="text-align:center;padding:20px 0">${t('event_empty_browse')}</p>`;
     return;
   }
   listEl.innerHTML = list.map(e => `
     <div class="order-box" style="margin-bottom:12px">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
-        <strong style="font-size:1.02rem">${escapeHtml(e.title || 'Événement')}</strong>
+        <strong style="font-size:1.02rem">${escapeHtml(e.title || t('event_default_title'))}</strong>
         <span class="shop-card-category">${escapeHtml(e.category || '—')}</span>
       </div>
       <div class="muted small" style="margin:4px 0">${escapeHtml(eventDateRangeLabel(e))} · ${escapeHtml(e.location || '—')}</div>
       <div class="muted small" style="margin-bottom:10px">${eventPriceFromLabel(e)}</div>
-      <button class="btn btn-outline btn-sm" onclick="openEventDetail('${e.id}')">Voir l'événement</button>
+      <button class="btn btn-outline btn-sm" onclick="openEventDetail('${e.id}')">${t('event_view_btn')}</button>
     </div>`).join('');
 }
 
 async function openEventDetail(eventId) {
   const bodyEl = document.getElementById('event-detail-body');
-  bodyEl.innerHTML = '<p class="muted small">Chargement...</p>';
+  bodyEl.innerHTML = `<p class="muted small">${t('common_loading')}</p>`;
   document.getElementById('event-detail-modal').classList.remove('hidden');
 
   try {
     const snap = await db.collection('events').doc(eventId).get();
     if (!snap.exists) {
-      bodyEl.innerHTML = '<p class="muted small">Cet événement n\'existe plus.</p>';
+      bodyEl.innerHTML = `<p class="muted small">${t('event_gone')}</p>`;
       return;
     }
     const e = { id: snap.id, ...snap.data() };
@@ -8369,55 +8369,55 @@ async function openEventDetail(eventId) {
     const isPast = new Date(e.endDate || e.startDate).getTime() < Date.now();
     const types = e.ticketTypes || [];
 
-    const ticketsHtml = types.map(t => {
-      const left = (t.quantityTotal || 0) - (t.quantitySold || 0);
+    const ticketsHtml = types.map(tk => {
+      const left = (tk.quantityTotal || 0) - (tk.quantitySold || 0);
       const soldOut = left <= 0;
       let btnHtml;
       if (isOwner) {
-        btnHtml = `<span class="muted small">${left} place(s) restante(s)</span>`;
+        btnHtml = `<span class="muted small">${left} ${t('event_seats_left')}</span>`;
       } else if (isPast || e.status !== 'active') {
-        btnHtml = `<span class="muted small">Événement terminé</span>`;
+        btnHtml = `<span class="muted small">${t('event_ended')}</span>`;
       } else if (soldOut) {
-        btnHtml = `<span class="muted small">Complet</span>`;
+        btnHtml = `<span class="muted small">${t('event_sold_out')}</span>`;
       } else if (!currentUser) {
-        btnHtml = `<button class="btn btn-outline btn-sm" onclick="openAuth('register')">Se connecter pour réserver</button>`;
+        btnHtml = `<button class="btn btn-outline btn-sm" onclick="openAuth('register')">${t('event_login_to_reserve_btn')}</button>`;
       } else {
-        btnHtml = `<button class="btn btn-primary btn-sm" onclick='openEventReserveForm(${JSON.stringify(eventId)}, ${JSON.stringify(t.id)}, ${JSON.stringify(t.name || "Billet")}, ${t.price || 0}, ${left})'>Réserver</button>`;
+        btnHtml = `<button class="btn btn-primary btn-sm" onclick='openEventReserveForm(${JSON.stringify(eventId)}, ${JSON.stringify(tk.id)}, ${JSON.stringify(tk.name || t('event_default_ticket_name'))}, ${tk.price || 0}, ${left})'>${t('event_reserve_btn')}</button>`;
       }
       return `<div class="order-box" style="margin-bottom:8px">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
-          <div><strong>${escapeHtml(t.name || 'Billet')}</strong><div class="muted small">${(t.price || 0) === 0 ? 'Gratuit' : (t.price || 0) + '$'} · ${left}/${t.quantityTotal || 0} places restantes</div></div>
+          <div><strong>${escapeHtml(tk.name || t('event_default_ticket_name'))}</strong><div class="muted small">${(tk.price || 0) === 0 ? t('event_free') : (tk.price || 0) + '$'} · ${left}/${tk.quantityTotal || 0} ${t('event_seats_left')}</div></div>
           ${btnHtml}
         </div>
       </div>`;
-    }).join('') || '<p class="muted small">Aucun type de billet défini.</p>';
+    }).join('') || `<p class="muted small">${t('event_no_ticket_types')}</p>`;
 
     let ownerActionsHtml = '';
     if (isOwner) {
       ownerActionsHtml = `
-        <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:8px" onclick="openEventAttendees('${e.id}')">Voir les réservations</button>
-        <button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="openEventForm('${e.id}')">Modifier l'événement</button>
+        <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:8px" onclick="openEventAttendees('${e.id}')">${t('event_view_reservations_btn')}</button>
+        <button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="openEventForm('${e.id}')">${t('event_edit_btn')}</button>
         ${e.status === 'active'
-          ? `<button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="toggleEventStatus('${e.id}', 'cancelled')">Annuler l'événement</button>`
-          : `<button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="toggleEventStatus('${e.id}', 'active')">Réactiver l'événement</button>`}
-        <button class="btn btn-outline" style="width:100%;justify-content:center;color:var(--red)" onclick="deleteEvent('${e.id}')">Supprimer l'événement</button>`;
+          ? `<button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="toggleEventStatus('${e.id}', 'cancelled')">${t('event_cancel_event_btn')}</button>`
+          : `<button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="toggleEventStatus('${e.id}', 'active')">${t('event_reactivate_btn')}</button>`}
+        <button class="btn btn-outline" style="width:100%;justify-content:center;color:var(--red)" onclick="deleteEvent('${e.id}')">${t('event_delete_btn')}</button>`;
     }
 
     bodyEl.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px">
-        <h3 style="margin:0">${escapeHtml(e.title || 'Événement')}</h3>
+        <h3 style="margin:0">${escapeHtml(e.title || t('event_default_title'))}</h3>
         <span class="shop-card-category">${escapeHtml(e.category || '—')}</span>
       </div>
       <div class="muted small" style="margin-bottom:10px">${escapeHtml(eventDateRangeLabel(e))} · ${escapeHtml(e.location || '—')}</div>
-      ${e.status === 'cancelled' ? '<p class="muted small" style="color:var(--red);margin-bottom:10px">Cet événement a été annulé par l\'organisateur.</p>' : ''}
+      ${e.status === 'cancelled' ? `<p class="muted small" style="color:var(--red);margin-bottom:10px">${t('event_cancelled_notice')}</p>` : ''}
       <p style="white-space:pre-wrap;margin-bottom:16px">${escapeHtml(e.description || '')}</p>
-      <h4 style="margin-bottom:8px">Billets</h4>
+      <h4 style="margin-bottom:8px">${t('event_tickets_heading')}</h4>
       ${ticketsHtml}
       <div style="margin-top:14px">${ownerActionsHtml}</div>
-      ${!isOwner && currentUser ? `<button class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin-top:8px" onclick="openReportModal('${e.id}', '${e.ownerUid}', 'event')">Signaler cet événement</button>` : ''}
+      ${!isOwner && currentUser ? `<button class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin-top:8px" onclick="openReportModal('${e.id}', '${e.ownerUid}', 'event')">${t('event_report_btn')}</button>` : ''}
     `;
   } catch (e) {
-    bodyEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+    bodyEl.innerHTML = `<p class="muted small">${t('event_load_error_prefix')} ${e.message}</p>`;
   }
 }
 
@@ -8430,8 +8430,8 @@ function openEventForm(eventId = null) {
   if (!currentUser) { openAuth('register'); return; }
   editingEventId = eventId;
   document.getElementById('event-form-error').classList.add('hidden');
-  document.getElementById('event-form-title').textContent = eventId ? "Modifier l'événement" : 'Créer un événement';
-  document.getElementById('event-form-submit-btn').textContent = eventId ? 'Enregistrer' : "Publier l'événement";
+  document.getElementById('event-form-title').textContent = eventId ? t('event_form_title_edit') : t('event_form_title_new');
+  document.getElementById('event-form-submit-btn').textContent = eventId ? t('common_save') : t('event_publish_btn');
   document.getElementById('event-ticket-types-list').innerHTML = '';
 
   const fill = (e) => {
@@ -8444,11 +8444,11 @@ function openEventForm(eventId = null) {
     currentEventCoverUrl = e.coverImage || null;
     pendingEventCoverFile = null;
     document.getElementById('event-cover-file').value = '';
-    document.getElementById('event-cover-file-text').textContent = 'Choisir une image';
+    document.getElementById('event-cover-file-text').textContent = t('common_choose_image');
     document.getElementById('event-cover-file-label').classList.remove('has-file');
     resetUploadProgress('event-cover');
     renderEventCoverPreview();
-    (e.ticketTypes || []).forEach(t => addEventTicketTypeRow(t));
+    (e.ticketTypes || []).forEach(tk => addEventTicketTypeRow(tk));
     if (!e.ticketTypes || e.ticketTypes.length === 0) addEventTicketTypeRow();
   };
 
@@ -8469,7 +8469,7 @@ function openEventForm(eventId = null) {
     currentEventCoverUrl = null;
     pendingEventCoverFile = null;
     document.getElementById('event-cover-file').value = '';
-    document.getElementById('event-cover-file-text').textContent = 'Choisir une image';
+    document.getElementById('event-cover-file-text').textContent = t('common_choose_image');
     document.getElementById('event-cover-file-label').classList.remove('has-file');
     resetUploadProgress('event-cover');
     renderEventCoverPreview();
@@ -8486,7 +8486,7 @@ function handleEventCoverFileChange(event) {
   pendingEventCoverFile = (event.target.files && event.target.files[0]) || null;
   const text = document.getElementById('event-cover-file-text');
   const label = document.getElementById('event-cover-file-label');
-  if (text) text.textContent = pendingEventCoverFile ? `✅ ${pendingEventCoverFile.name}` : 'Choisir une image';
+  if (text) text.textContent = pendingEventCoverFile ? `✅ ${pendingEventCoverFile.name}` : t('common_choose_image');
   if (label) label.classList.toggle('has-file', !!pendingEventCoverFile);
   renderEventCoverPreview();
 }
@@ -8521,9 +8521,9 @@ function addEventTicketTypeRow(existing = null) {
   row.dataset.quantitySold = soldSoFar;
   row.style.cssText = 'display:flex;gap:6px;margin-bottom:8px;align-items:center';
   row.innerHTML = `
-    <input type="text" class="text-input event-tt-name" placeholder="Nom (ex: Standard)" style="flex:2" value="${existing ? escapeHtml(existing.name || '') : ''}">
-    <input type="number" class="text-input event-tt-price" placeholder="Prix $" min="0" step="0.01" style="flex:1" value="${existing ? (existing.price || 0) : 0}">
-    <input type="number" class="text-input event-tt-quantity" placeholder="Places" min="${soldSoFar}" step="1" style="flex:1" value="${existing ? (existing.quantityTotal || 0) : ''}">
+    <input type="text" class="text-input event-tt-name" placeholder="${t('event_tt_name_ph')}" style="flex:2" value="${existing ? escapeHtml(existing.name || '') : ''}">
+    <input type="number" class="text-input event-tt-price" placeholder="${t('event_tt_price_ph')}" min="0" step="0.01" style="flex:1" value="${existing ? (existing.price || 0) : 0}">
+    <input type="number" class="text-input event-tt-quantity" placeholder="${t('event_tt_quantity_ph')}" min="${soldSoFar}" step="1" style="flex:1" value="${existing ? (existing.quantityTotal || 0) : ''}">
     <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('${rowId}').remove()" aria-label="Retirer">×</button>`;
   document.getElementById('event-ticket-types-list').appendChild(row);
 }
@@ -8531,11 +8531,11 @@ function addEventTicketTypeRow(existing = null) {
 function collectEventTicketTypesFromForm() {
   return Array.from(document.querySelectorAll('#event-ticket-types-list > div')).map(row => ({
     id: row.dataset.ticketId,
-    name: row.querySelector('.event-tt-name').value.trim() || 'Billet',
+    name: row.querySelector('.event-tt-name').value.trim() || t('event_default_ticket_name'),
     price: parseFloat(row.querySelector('.event-tt-price').value) || 0,
     quantityTotal: parseInt(row.querySelector('.event-tt-quantity').value, 10) || 0,
     quantitySold: parseInt(row.dataset.quantitySold, 10) || 0
-  })).filter(t => t.quantityTotal > 0);
+  })).filter(tk => tk.quantityTotal > 0);
 }
 
 async function saveEvent() {
@@ -8551,17 +8551,17 @@ async function saveEvent() {
   const ticketTypes = collectEventTicketTypesFromForm();
 
   if (!title || !location || !startDate) {
-    errEl.textContent = 'Merci de remplir au moins le titre, le lieu et la date de début.';
+    errEl.textContent = t('event_required_fields');
     errEl.classList.remove('hidden');
     return;
   }
   if (endDate && new Date(endDate) < new Date(startDate)) {
-    errEl.textContent = 'La date de fin doit être après la date de début.';
+    errEl.textContent = t('event_end_before_start_error');
     errEl.classList.remove('hidden');
     return;
   }
   if (ticketTypes.length === 0) {
-    errEl.textContent = 'Ajoute au moins un type de billet avec un nombre de places.';
+    errEl.textContent = t('event_no_ticket_type_error');
     errEl.classList.remove('hidden');
     return;
   }
@@ -8570,7 +8570,7 @@ async function saveEvent() {
   if (btn.disabled) return;
   btn.disabled = true;
   const originalLabel = btn.textContent;
-  btn.textContent = 'Envoi...';
+  btn.textContent = t('common_sending');
 
   try {
     // Garde l'image deja enregistree si aucune nouvelle n'est choisie
@@ -8593,16 +8593,16 @@ async function saveEvent() {
     };
     if (editingEventId) {
       await db.collection('events').doc(editingEventId).update(payload);
-      showToast('Événement mis à jour', 'success');
+      showToast(t('event_updated_toast'), 'success');
     } else {
       await db.collection('events').add({
         ...payload,
         ownerUid: currentUser.uid,
-        ownerName: currentUser.name || 'Utilisateur',
+        ownerName: currentUser.name || t('common_user_fallback'),
         status: 'active',
         createdAt: new Date().toISOString()
       });
-      showToast('Événement publié', 'success');
+      showToast(t('event_published_toast'), 'success');
     }
     closeEventForm();
     eventsCache = null;
@@ -8620,7 +8620,7 @@ async function saveEvent() {
 async function toggleEventStatus(eventId, newStatus) {
   try {
     await db.collection('events').doc(eventId).update({ status: newStatus });
-    showToast(newStatus === 'active' ? 'Événement réactivé' : 'Événement annulé', 'success');
+    showToast(newStatus === 'active' ? t('event_reactivated_toast') : t('event_cancelled_toast'), 'success');
     eventsCache = null;
     closeEventDetail();
     loadMyOrganizedEvents();
@@ -8630,10 +8630,10 @@ async function toggleEventStatus(eventId, newStatus) {
 }
 
 async function deleteEvent(eventId) {
-  if (!confirm('Supprimer définitivement cet événement ? Les billets déjà réservés resteront visibles par les acheteurs mais ne seront plus liés à un événement actif.')) return;
+  if (!confirm(t('event_delete_confirm'))) return;
   try {
     await db.collection('events').doc(eventId).delete();
-    showToast('Événement supprimé', 'success');
+    showToast(t('event_deleted_toast'), 'success');
     eventsCache = null;
     closeEventDetail();
     loadMyOrganizedEvents();
@@ -8646,7 +8646,7 @@ async function deleteEvent(eventId) {
 function openEventReserveForm(eventId, ticketTypeId, ticketTypeName, unitPrice, availableLeft) {
   if (!currentUser) { openAuth('register'); return; }
   currentEventReserve = { eventId, ticketTypeId, ticketTypeName, unitPrice, availableLeft };
-  document.getElementById('event-reserve-ticket-label').textContent = `${ticketTypeName} — ${unitPrice === 0 ? 'Gratuit' : unitPrice + '$'} (${availableLeft} place(s) restante(s))`;
+  document.getElementById('event-reserve-ticket-label').textContent = `${ticketTypeName} — ${unitPrice === 0 ? t('event_free') : unitPrice + '$'} (${availableLeft} ${t('event_seats_left')})`;
   document.getElementById('event-reserve-quantity').value = 1;
   document.getElementById('event-reserve-quantity').max = availableLeft;
   document.getElementById('event-reserve-error').classList.add('hidden');
@@ -8658,7 +8658,7 @@ function updateEventReserveTotal() {
   if (!currentEventReserve) return;
   const qty = parseInt(document.getElementById('event-reserve-quantity').value, 10) || 0;
   const total = qty * currentEventReserve.unitPrice;
-  document.getElementById('event-reserve-total').textContent = total === 0 ? 'Gratuit' : total.toFixed(2) + '$';
+  document.getElementById('event-reserve-total').textContent = total === 0 ? t('event_free') : total.toFixed(2) + '$';
 }
 
 function closeEventReserveForm() {
@@ -8673,12 +8673,12 @@ async function submitEventReservation() {
 
   const quantity = parseInt(document.getElementById('event-reserve-quantity').value, 10) || 0;
   if (quantity < 1) {
-    errEl.textContent = 'Indique au moins 1 place.';
+    errEl.textContent = t('event_reserve_min_qty_error');
     errEl.classList.remove('hidden');
     return;
   }
   if (quantity > currentEventReserve.availableLeft) {
-    errEl.textContent = `Il ne reste que ${currentEventReserve.availableLeft} place(s).`;
+    errEl.textContent = `${t('event_reserve_not_enough_prefix')} ${currentEventReserve.availableLeft} ${t('event_seats_word')}.`;
     errEl.classList.remove('hidden');
     return;
   }
@@ -8686,7 +8686,7 @@ async function submitEventReservation() {
   const btn = document.getElementById('event-reserve-submit-btn');
   if (btn.disabled) return;
   btn.disabled = true;
-  btn.textContent = 'Réservation...';
+  btn.textContent = t('event_reserving_btn');
 
   try {
     const idToken = await auth.currentUser.getIdToken();
@@ -8701,7 +8701,7 @@ async function submitEventReservation() {
       })
     });
     const data = await resp.json();
-    if (!data.success) throw new Error(data.error || 'La réservation a échoué.');
+    if (!data.success) throw new Error(data.error || t('event_generic_error'));
 
     if (typeof data.newBalance === 'number') {
       currentUser.balance = data.newBalance;
@@ -8710,21 +8710,21 @@ async function submitEventReservation() {
     }
     const reservedEventId = currentEventReserve.eventId;
     closeEventReserveForm();
-    showToast('Réservation confirmée', 'success');
+    showToast(t('event_reservation_confirmed_toast'), 'success');
     eventsCache = null;
     openEventDetail(reservedEventId);
   } catch (e) {
-    errEl.textContent = e.message || 'Une erreur est survenue.';
+    errEl.textContent = e.message || t('event_generic_error');
     errEl.classList.remove('hidden');
   } finally {
     btn.disabled = false;
-    btn.textContent = 'Confirmer la réservation';
+    btn.textContent = t('event_confirm_reservation_btn');
   }
 }
 
 async function loadMyEventTickets() {
   const listEl = document.getElementById('events-mytickets-list');
-  if (!currentUser) { listEl.innerHTML = '<p class="muted small">Connecte-toi pour voir tes réservations.</p>'; return; }
+  if (!currentUser) { listEl.innerHTML = `<p class="muted small">${t('event_login_mytickets_prompt')}</p>`; return; }
   listEl.innerHTML = renderFeedSkeletons(2);
   try {
     const snap = await db.collection('event_tickets').where('buyerUid', '==', currentUser.uid).get();
@@ -8732,30 +8732,30 @@ async function loadMyEventTickets() {
     tickets.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
 
     if (tickets.length === 0) {
-      listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Tu n\'as encore réservé aucun billet.</p>';
+      listEl.innerHTML = `<p class="muted small" style="text-align:center;padding:20px 0">${t('event_no_tickets_mine')}</p>`;
       return;
     }
-    listEl.innerHTML = tickets.map(t => {
-      const isPast = t.eventStartDate && new Date(t.eventStartDate).getTime() < Date.now();
-      const canCancel = t.status === 'confirmed' && !isPast;
+    listEl.innerHTML = tickets.map(tk => {
+      const isPast = tk.eventStartDate && new Date(tk.eventStartDate).getTime() < Date.now();
+      const canCancel = tk.status === 'confirmed' && !isPast;
       return `
       <div class="order-box" style="margin-bottom:12px">
-        <strong>${escapeHtml(t.eventTitle || 'Événement')}</strong>
-        <div class="muted small" style="margin:4px 0">${escapeHtml(t.ticketTypeName || '')} × ${t.quantity || 1} — ${(t.amountPaid || 0) === 0 ? 'Gratuit' : (t.amountPaid || 0).toFixed(2) + '$'}</div>
-        <div class="muted small" style="margin-bottom:8px">Statut : ${t.status === 'cancelled' ? 'Annulée' : 'Confirmée'}</div>
+        <strong>${escapeHtml(tk.eventTitle || t('event_default_title'))}</strong>
+        <div class="muted small" style="margin:4px 0">${escapeHtml(tk.ticketTypeName || '')} × ${tk.quantity || 1} — ${(tk.amountPaid || 0) === 0 ? t('event_free') : (tk.amountPaid || 0).toFixed(2) + '$'}</div>
+        <div class="muted small" style="margin-bottom:8px">${t('event_status_prefix')} ${tk.status === 'cancelled' ? t('event_ticket_status_cancelled') : t('event_ticket_status_confirmed')}</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn btn-outline btn-sm" onclick="openEventDetail('${t.eventId}')">Voir l'événement</button>
-          ${canCancel ? `<button class="btn btn-outline btn-sm" style="color:var(--red)" onclick="cancelEventTicket('${t.id}')">Annuler</button>` : ''}
+          <button class="btn btn-outline btn-sm" onclick="openEventDetail('${tk.eventId}')">${t('event_view_btn')}</button>
+          ${canCancel ? `<button class="btn btn-outline btn-sm" style="color:var(--red)" onclick="cancelEventTicket('${tk.id}')">${t('event_cancel_ticket_btn')}</button>` : ''}
         </div>
       </div>`;
     }).join('');
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+    listEl.innerHTML = `<p class="muted small">${t('event_load_error_prefix')} ${e.message}</p>`;
   }
 }
 
 async function cancelEventTicket(ticketId) {
-  if (!confirm('Annuler cette réservation ? Si elle était payante, le montant sera remboursé sur ton solde.')) return;
+  if (!confirm(t('event_cancel_ticket_confirm'))) return;
   try {
     const idToken = await auth.currentUser.getIdToken();
     const resp = await fetch('/api/payments-actions', {
@@ -8764,23 +8764,23 @@ async function cancelEventTicket(ticketId) {
       body: JSON.stringify({ idToken, action: 'event_cancel', ticketId })
     });
     const data = await resp.json();
-    if (!data.success) throw new Error(data.error || "L'annulation a échoué.");
+    if (!data.success) throw new Error(data.error || t('event_cancel_ticket_failed'));
 
     if (typeof data.newBalance === 'number') {
       currentUser.balance = data.newBalance;
       const dashBalanceEl = document.getElementById('wallet-balance');
       if (dashBalanceEl) dashBalanceEl.textContent = data.newBalance.toFixed(2) + '$';
     }
-    showToast('Réservation annulée', 'success');
+    showToast(t('event_ticket_cancelled_toast'), 'success');
     loadMyEventTickets();
   } catch (e) {
-    showToast(e.message || 'Une erreur est survenue.', 'error');
+    showToast(e.message || t('event_generic_error'), 'error');
   }
 }
 
 async function loadMyOrganizedEvents() {
   const listEl = document.getElementById('events-myevents-list');
-  if (!currentUser) { listEl.innerHTML = '<p class="muted small">Connecte-toi pour gérer tes événements.</p>'; return; }
+  if (!currentUser) { listEl.innerHTML = `<p class="muted small">${t('event_login_myevents_prompt')}</p>`; return; }
   listEl.innerHTML = renderFeedSkeletons(2);
   try {
     const snap = await db.collection('events').where('ownerUid', '==', currentUser.uid).get();
@@ -8788,23 +8788,23 @@ async function loadMyOrganizedEvents() {
     myEventsCache.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
 
     if (myEventsCache.length === 0) {
-      listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Tu n\'as encore publié aucun événement.</p>';
+      listEl.innerHTML = `<p class="muted small" style="text-align:center;padding:20px 0">${t('event_no_events_mine')}</p>`;
       return;
     }
     listEl.innerHTML = myEventsCache.map(e => {
-      const sold = (e.ticketTypes || []).reduce((sum, t) => sum + (t.quantitySold || 0), 0);
+      const sold = (e.ticketTypes || []).reduce((sum, tk) => sum + (tk.quantitySold || 0), 0);
       return `
       <div class="order-box" style="margin-bottom:12px">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
-          <strong>${escapeHtml(e.title || 'Événement')}</strong>
-          <span class="shop-card-category">${e.status === 'active' ? 'Actif' : 'Annulé'}</span>
+          <strong>${escapeHtml(e.title || t('event_default_title'))}</strong>
+          <span class="shop-card-category">${e.status === 'active' ? t('event_status_active') : t('event_status_cancelled')}</span>
         </div>
-        <div class="muted small" style="margin:4px 0">${escapeHtml(eventDateRangeLabel(e))} · ${sold} billet(s) vendu(s)</div>
-        <button class="btn btn-outline btn-sm" onclick="openEventDetail('${e.id}')">Gérer</button>
+        <div class="muted small" style="margin:4px 0">${escapeHtml(eventDateRangeLabel(e))} · ${sold} ${t('event_tickets_sold_suffix')}</div>
+        <button class="btn btn-outline btn-sm" onclick="openEventDetail('${e.id}')">${t('event_manage_btn')}</button>
       </div>`;
     }).join('');
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+    listEl.innerHTML = `<p class="muted small">${t('event_load_error_prefix')} ${e.message}</p>`;
   }
 }
 
@@ -8814,8 +8814,8 @@ async function openEventAttendees(eventId) {
     <button class="menu-back-btn" onclick="openEventDetail('${eventId}')" aria-label="Retour" style="margin-bottom:10px">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
     </button>
-    <h3 style="margin-bottom:12px">Réservations</h3>
-    <div id="event-attendees-list"><p class="muted small">Chargement...</p></div>`;
+    <h3 style="margin-bottom:12px">${t('event_reservations_heading')}</h3>
+    <div id="event-attendees-list"><p class="muted small">${t('common_loading')}</p></div>`;
 
   try {
     const snap = await db.collection('event_tickets').where('eventId', '==', eventId).get();
@@ -8824,17 +8824,17 @@ async function openEventAttendees(eventId) {
     const listEl = document.getElementById('event-attendees-list');
 
     if (tickets.length === 0) {
-      listEl.innerHTML = '<p class="muted small">Aucune réservation pour l\'instant.</p>';
+      listEl.innerHTML = `<p class="muted small">${t('event_no_reservations')}</p>`;
       return;
     }
-    listEl.innerHTML = tickets.map(t => `
+    listEl.innerHTML = tickets.map(tk => `
       <div class="order-box" style="margin-bottom:10px">
-        <strong>${escapeHtml(t.buyerName || 'Participant')}</strong>
-        <div class="muted small">${escapeHtml(t.ticketTypeName || '')} × ${t.quantity || 1} — ${(t.amountPaid || 0) === 0 ? 'Gratuit' : (t.amountPaid || 0).toFixed(2) + '$'}</div>
-        <div class="muted small">Statut : ${t.status === 'cancelled' ? 'Annulée' : 'Confirmée'}</div>
+        <strong>${escapeHtml(tk.buyerName || t('event_default_attendee_name'))}</strong>
+        <div class="muted small">${escapeHtml(tk.ticketTypeName || '')} × ${tk.quantity || 1} — ${(tk.amountPaid || 0) === 0 ? t('event_free') : (tk.amountPaid || 0).toFixed(2) + '$'}</div>
+        <div class="muted small">${t('event_status_prefix')} ${tk.status === 'cancelled' ? t('event_ticket_status_cancelled') : t('event_ticket_status_confirmed')}</div>
       </div>`).join('');
   } catch (e) {
-    document.getElementById('event-attendees-list').innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+    document.getElementById('event-attendees-list').innerHTML = `<p class="muted small">${t('event_load_error_prefix')} ${e.message}</p>`;
   }
 }
 
@@ -8859,8 +8859,8 @@ let travelSearchDebounce = null;
 let editingTravelSpotId = null;
 
 const TRAVEL_CATEGORY_LABELS = {
-  hotel: 'Hôtel', restaurant: 'Restaurant', site: 'Site touristique',
-  activite: 'Activité', bon_plan: 'Bon plan'
+  hotel: 'travel_category_hotel', restaurant: 'travel_category_restaurant', site: 'travel_category_site',
+  activite: 'travel_category_activite', bon_plan: 'travel_category_bon_plan'
 };
 
 function openTravelScreen() {
@@ -8891,7 +8891,7 @@ async function loadTravelSpots() {
     travelCache.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
     runTravelFilter();
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+    listEl.innerHTML = `<p class="muted small">${t('travel_load_error_prefix')} ${e.message}</p>`;
   }
 }
 
@@ -8923,7 +8923,7 @@ function runTravelFilter() {
 }
 
 function renderTravelBrowseList(list) {
-  renderTravelCards(list, 'travel-browse-list', "Aucun résultat pour l'instant. Sois le premier à publier un lieu ou un bon plan.");
+  renderTravelCards(list, 'travel-browse-list', t('travel_empty_browse'));
 }
 
 function renderTravelCards(list, targetId, emptyMessage) {
@@ -8938,12 +8938,12 @@ function renderTravelCards(list, targetId, emptyMessage) {
   listEl.innerHTML = visible.map(s => `
     <div class="order-box" style="margin-bottom:12px">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
-        <strong style="font-size:1.02rem">${escapeHtml(s.title || 'Lieu')}</strong>
-        <span class="shop-card-category" style="white-space:nowrap">${escapeHtml(TRAVEL_CATEGORY_LABELS[s.category] || s.category || '—')}</span>
+        <strong style="font-size:1.02rem">${escapeHtml(s.title || t('travel_default_title'))}</strong>
+        <span class="shop-card-category" style="white-space:nowrap">${t(TRAVEL_CATEGORY_LABELS[s.category]) || s.category || '—'}</span>
       </div>
       <div class="muted small" style="margin:4px 0">${escapeHtml([s.city, s.country].filter(Boolean).join(', ') || '—')}</div>
       ${s.priceIndication ? `<div class="muted small" style="margin-bottom:8px">${escapeHtml(s.priceIndication)}</div>` : ''}
-      <button class="btn btn-outline btn-sm" onclick="openTravelDetail('${s.id}')">Voir les détails</button>
+      <button class="btn btn-outline btn-sm" onclick="openTravelDetail('${s.id}')">${t('travel_view_details_btn')}</button>
     </div>`).join('');
 }
 
@@ -8952,7 +8952,7 @@ async function openTravelDetail(spotId) {
   if (!spot) {
     try {
       const doc = await db.collection('travel_spots').doc(spotId).get();
-      if (!doc.exists) { showToast('Ce lieu n\'existe plus', 'error'); return; }
+      if (!doc.exists) { showToast(t('travel_gone'), 'error'); return; }
       spot = { id: doc.id, ...doc.data() };
     } catch (e) { showToast(friendlyErrorMessage(e), 'error'); return; }
   }
@@ -8975,20 +8975,20 @@ async function openTravelDetail(spotId) {
     <div class="modal-overlay" id="travel-detail-modal">
       <div class="modal" style="max-width:480px">
         <button class="modal-close" onclick="document.getElementById('travel-detail-modal').remove()" aria-label="Fermer">×</button>
-        <div class="muted small" style="margin-bottom:4px">${escapeHtml(TRAVEL_CATEGORY_LABELS[spot.category] || spot.category || '—')}</div>
-        <h3 style="margin-bottom:4px">${escapeHtml(spot.title || 'Lieu')}</h3>
+        <div class="muted small" style="margin-bottom:4px">${t(TRAVEL_CATEGORY_LABELS[spot.category]) || spot.category || '—'}</div>
+        <h3 style="margin-bottom:4px">${escapeHtml(spot.title || t('travel_default_title'))}</h3>
         <p class="muted small" style="margin-bottom:12px">${escapeHtml([spot.city, spot.country].filter(Boolean).join(', '))}</p>
         ${spot.priceIndication ? `<p class="small" style="margin-bottom:10px"><strong>${escapeHtml(spot.priceIndication)}</strong></p>` : ''}
         ${spot.description ? `<p class="small" style="margin-bottom:14px">${escapeHtml(spot.description)}</p>` : ''}
-        ${photos.length > 0 ? `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">${photos.map((p, i) => `<a href="${escapeHtml(p)}" target="_blank" class="muted small" style="display:inline-flex;align-items:center;gap:4px">${ICON_LINK} Photo ${i + 1}</a>`).join('')}</div>` : ''}
+        ${photos.length > 0 ? `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">${photos.map((p, i) => `<a href="${escapeHtml(p)}" target="_blank" class="muted small" style="display:inline-flex;align-items:center;gap:4px">${ICON_LINK} ${t('travel_photo_label')} ${i + 1}</a>`).join('')}</div>` : ''}
 
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
           ${renderContactLinksHtml(spot, 'row')}
-          ${spot.website ? `<a class="btn btn-outline btn-sm" href="${escapeHtml(spot.website)}" target="_blank">${ICON_LINK} Site web</a>` : ''}
+          ${spot.website ? `<a class="btn btn-outline btn-sm" href="${escapeHtml(spot.website)}" target="_blank">${ICON_LINK} ${t('travel_website_btn')}</a>` : ''}
         </div>
 
-        <button class="btn ${isFavorited ? 'btn-outline' : 'btn-primary'}" id="travel-fav-btn" style="width:100%;justify-content:center" onclick="toggleTravelFavorite('${spot.id}')">${isFavorited ? 'Retirer des favoris' : 'Ajouter aux favoris'}</button>
-        ${currentUser && currentUser.uid !== spot.ownerUid ? `<button class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin-top:8px" onclick="openReportModal('${spot.id}', '${spot.ownerUid}', 'travel_spot')">Signaler ce lieu</button>` : ''}
+        <button class="btn ${isFavorited ? 'btn-outline' : 'btn-primary'}" id="travel-fav-btn" style="width:100%;justify-content:center" onclick="toggleTravelFavorite('${spot.id}')">${isFavorited ? t('travel_remove_favorite_btn') : t('travel_add_favorite_btn')}</button>
+        ${currentUser && currentUser.uid !== spot.ownerUid ? `<button class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin-top:8px" onclick="openReportModal('${spot.id}', '${spot.ownerUid}', 'travel_spot')">${t('travel_report_btn')}</button>` : ''}
       </div>
     </div>`;
   document.body.insertAdjacentHTML('beforeend', html);
@@ -9003,14 +9003,14 @@ async function toggleTravelFavorite(spotId) {
     if (travelFavoritesCache && travelFavoritesCache.has(spotId)) {
       await favRef.delete();
       travelFavoritesCache.delete(spotId);
-      if (btn) { btn.textContent = 'Ajouter aux favoris'; btn.classList.remove('btn-outline'); btn.classList.add('btn-primary'); }
-      showToast('Retiré des favoris', 'info');
+      if (btn) { btn.textContent = t('travel_add_favorite_btn'); btn.classList.remove('btn-outline'); btn.classList.add('btn-primary'); }
+      showToast(t('travel_removed_favorite_toast'), 'info');
     } else {
       await favRef.set({ spotId, uid: currentUser.uid, createdAt: new Date().toISOString() });
       if (!travelFavoritesCache) travelFavoritesCache = new Set();
       travelFavoritesCache.add(spotId);
-      if (btn) { btn.textContent = 'Retirer des favoris'; btn.classList.add('btn-outline'); btn.classList.remove('btn-primary'); }
-      showToast('Ajouté aux favoris', 'success');
+      if (btn) { btn.textContent = t('travel_remove_favorite_btn'); btn.classList.add('btn-outline'); btn.classList.remove('btn-primary'); }
+      showToast(t('travel_added_favorite_toast'), 'success');
     }
     if (travelCurrentTab === 'favorites') loadTravelFavorites();
   } catch (e) {
@@ -9023,7 +9023,7 @@ async function toggleTravelFavorite(spotId) {
 async function loadTravelFavorites() {
   const listEl = document.getElementById('travel-favorites-list');
   if (!currentUser) {
-    listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Connecte-toi pour voir tes favoris.</p>';
+    listEl.innerHTML = `<p class="muted small" style="text-align:center;padding:20px 0">${t('travel_login_favorites_prompt')}</p>`;
     return;
   }
   listEl.innerHTML = renderFeedSkeletons(2);
@@ -9033,22 +9033,22 @@ async function loadTravelFavorites() {
     travelFavoritesCache = new Set(favDocs.map(d => d.data().spotId));
 
     if (favDocs.length === 0) {
-      listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Aucun favori pour l\'instant. Touche « Ajouter aux favoris » sur un lieu qui t\'intéresse.</p>';
+      listEl.innerHTML = `<p class="muted small" style="text-align:center;padding:20px 0">${t('travel_no_favorites')}</p>`;
       return;
     }
 
     const spotDocs = await Promise.all(favDocs.map(d => db.collection('travel_spots').doc(d.data().spotId).get()));
     const spots = spotDocs.filter(d => d.exists).map(d => ({ id: d.id, ...d.data() }));
-    renderTravelCards(spots, 'travel-favorites-list', "Aucun favori pour l'instant. Touche « Ajouter aux favoris » sur un lieu qui t'intéresse.");
+    renderTravelCards(spots, 'travel-favorites-list', t('travel_no_favorites'));
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+    listEl.innerHTML = `<p class="muted small">${t('travel_load_error_prefix')} ${e.message}</p>`;
   }
 }
 
 async function loadMyTravelSpots() {
   const listEl = document.getElementById('travel-mine-list');
   if (!currentUser) {
-    listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Connecte-toi pour publier un lieu.</p>';
+    listEl.innerHTML = `<p class="muted small" style="text-align:center;padding:20px 0">${t('travel_login_publish_prompt')}</p>`;
     return;
   }
   listEl.innerHTML = renderFeedSkeletons(2);
@@ -9058,7 +9058,7 @@ async function loadMyTravelSpots() {
     travelMyCache.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
 
     if (travelMyCache.length === 0) {
-      listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Tu n\'as encore rien publié.</p>';
+      listEl.innerHTML = `<p class="muted small" style="text-align:center;padding:20px 0">${t('travel_no_listings_mine')}</p>`;
       return;
     }
 
@@ -9066,17 +9066,17 @@ async function loadMyTravelSpots() {
       <div class="order-box" style="margin-bottom:12px">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
           <strong style="font-size:1.02rem">${escapeHtml(s.title)}</strong>
-          <span class="shop-card-category">${s.status === 'active' ? 'Visible' : 'Masqué'}</span>
+          <span class="shop-card-category">${s.status === 'active' ? t('travel_status_visible') : t('travel_status_hidden')}</span>
         </div>
-        <div class="muted small" style="margin:4px 0">${escapeHtml(TRAVEL_CATEGORY_LABELS[s.category] || s.category || '—')} · ${escapeHtml([s.city, s.country].filter(Boolean).join(', '))}</div>
+        <div class="muted small" style="margin:4px 0">${t(TRAVEL_CATEGORY_LABELS[s.category]) || s.category || '—'} · ${escapeHtml([s.city, s.country].filter(Boolean).join(', '))}</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
-          <button class="btn btn-outline btn-sm" onclick="openTravelForm('${s.id}')">Modifier</button>
-          <button class="btn btn-outline btn-sm" onclick="toggleTravelSpotStatus('${s.id}', '${s.status === 'active' ? 'inactive' : 'active'}')">${s.status === 'active' ? 'Masquer' : 'Réactiver'}</button>
-          <button class="btn btn-outline btn-sm" style="color:var(--red);border-color:var(--red)" onclick="deleteTravelSpot('${s.id}')">Supprimer</button>
+          <button class="btn btn-outline btn-sm" onclick="openTravelForm('${s.id}')">${t('travel_edit_btn')}</button>
+          <button class="btn btn-outline btn-sm" onclick="toggleTravelSpotStatus('${s.id}', '${s.status === 'active' ? 'inactive' : 'active'}')">${s.status === 'active' ? t('travel_hide_btn') : t('travel_reactivate_btn')}</button>
+          <button class="btn btn-outline btn-sm" style="color:var(--red);border-color:var(--red)" onclick="deleteTravelSpot('${s.id}')">${t('travel_delete_btn')}</button>
         </div>
       </div>`).join('');
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+    listEl.innerHTML = `<p class="muted small">${t('travel_load_error_prefix')} ${e.message}</p>`;
   }
 }
 
@@ -9087,53 +9087,53 @@ function openTravelForm(spotId) {
   const existing = editingTravelSpotId ? (travelMyCache || []).find(s => s.id === editingTravelSpotId) : null;
 
   const catOptions = Object.entries(TRAVEL_CATEGORY_LABELS)
-    .map(([val, label]) => `<option value="${val}" ${existing && existing.category === val ? 'selected' : ''}>${escapeHtml(label)}</option>`).join('');
+    .map(([val, key]) => `<option value="${val}" ${existing && existing.category === val ? 'selected' : ''}>${t(key)}</option>`).join('');
 
   const html = `
     <div class="modal-overlay" id="travel-form-modal">
       <div class="modal" style="max-width:460px">
         <button class="modal-close" onclick="document.getElementById('travel-form-modal').remove()" aria-label="Fermer">×</button>
-        <h3 style="margin-bottom:14px">${existing ? 'Modifier le lieu' : 'Publier un lieu / bon plan'}</h3>
+        <h3 style="margin-bottom:14px">${existing ? t('travel_form_title_edit') : t('travel_form_title_new')}</h3>
         <div class="field">
-          <label for="travel-title">Titre</label>
+          <label for="travel-title">${t('travel_field_title')}</label>
           <input type="text" id="travel-title" class="text-input" maxlength="100" value="${existing ? escapeHtml(existing.title || '') : ''}">
         </div>
         <div class="field">
-          <label for="travel-category">Catégorie</label>
+          <label for="travel-category">${t('travel_field_category')}</label>
           <select id="travel-category" class="select-input">${catOptions}</select>
         </div>
         <div style="display:flex;gap:8px">
           <div class="field" style="flex:1">
-            <label for="travel-city">Ville</label>
+            <label for="travel-city">${t('travel_field_city')}</label>
             <input type="text" id="travel-city" class="text-input" maxlength="60" value="${existing ? escapeHtml(existing.city || '') : ''}">
           </div>
           <div class="field" style="flex:1">
-            <label for="travel-country">Pays</label>
+            <label for="travel-country">${t('travel_field_country')}</label>
             <input type="text" id="travel-country" class="text-input" maxlength="60" value="${existing ? escapeHtml(existing.country || '') : ''}">
           </div>
         </div>
         <div class="field">
-          <label for="travel-description">Description</label>
+          <label for="travel-description">${t('travel_field_description')}</label>
           <textarea id="travel-description" class="text-input" rows="3" style="resize:vertical" maxlength="500">${existing ? escapeHtml(existing.description || '') : ''}</textarea>
         </div>
         <div class="field">
-          <label for="travel-price">Indication de prix (facultatif)</label>
-          <input type="text" id="travel-price" class="text-input" placeholder="ex: à partir de 30$/nuit" maxlength="80" value="${existing ? escapeHtml(existing.priceIndication || '') : ''}">
+          <label for="travel-price">${t('travel_field_price')}</label>
+          <input type="text" id="travel-price" class="text-input" placeholder="${t('travel_field_price_ph')}" maxlength="80" value="${existing ? escapeHtml(existing.priceIndication || '') : ''}">
         </div>
         <div class="field">
-          <label for="travel-whatsapp">WhatsApp de contact</label>
+          <label for="travel-whatsapp">${t('travel_field_whatsapp')}</label>
           <input type="tel" id="travel-whatsapp" class="text-input" placeholder="+243..." value="${existing ? escapeHtml(existing.whatsapp || '') : ''}">
         </div>
         ${renderContactFieldsHtml('travel', existing)}
         <div class="field">
-          <label for="travel-website">Site web (facultatif)</label>
+          <label for="travel-website">${t('travel_field_website')}</label>
           <input type="url" id="travel-website" class="text-input" placeholder="https://..." value="${existing ? escapeHtml(existing.website || '') : ''}">
         </div>
-        <label class="field-label" style="display:block">Photos (facultatif, 5 max)</label>
+        <label class="field-label" style="display:block">${t('travel_photos_label')}</label>
         <div id="travel-photo-rows"></div>
-        <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:6px 0 14px" onclick="addTravelPhotoRow()">+ Ajouter une photo</button>
+        <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:6px 0 14px" onclick="addTravelPhotoRow()">${t('travel_add_photo_btn')}</button>
 
-        <button class="btn btn-primary" id="travel-save-btn" style="width:100%;justify-content:center" onclick="saveTravelSpot()">${existing ? 'Enregistrer les modifications' : 'Publier'}</button>
+        <button class="btn btn-primary" id="travel-save-btn" style="width:100%;justify-content:center" onclick="saveTravelSpot()">${existing ? t('travel_save_edit_btn') : t('common_publish')}</button>
         <p class="muted small" id="travel-form-msg" style="margin-top:6px"></p>
       </div>
     </div>`;
@@ -9162,13 +9162,13 @@ async function saveTravelSpot() {
   const website = document.getElementById('travel-website').value.trim();
 
   if (!title || !city || !whatsapp) {
-    msgEl.textContent = 'Merci de remplir au moins le titre, la ville et le WhatsApp.';
+    msgEl.textContent = t('travel_required_fields');
     return;
   }
 
   if (btn.disabled) return;
   btn.disabled = true;
-  btn.textContent = 'Enregistrement...';
+  btn.textContent = t('common_saving');
   try {
     // Envoie uniquement les photos fraichement choisies sur le telephone ;
     // celles deja enregistrees (en modification) sont gardees telles quelles.
@@ -9179,13 +9179,13 @@ async function saveTravelSpot() {
     };
     if (editingTravelSpotId) {
       await db.collection('travel_spots').doc(editingTravelSpotId).update(payload);
-      showToast('Lieu mis à jour', 'success');
+      showToast(t('travel_updated_toast'), 'success');
     } else {
       await db.collection('travel_spots').add({
-        ...payload, ownerUid: currentUser.uid, ownerName: currentUser.name || 'Utilisateur',
+        ...payload, ownerUid: currentUser.uid, ownerName: currentUser.name || t('common_user_fallback'),
         status: 'active', createdAt: new Date().toISOString()
       });
-      showToast('Lieu publié', 'success');
+      showToast(t('travel_published_toast'), 'success');
     }
     document.getElementById('travel-form-modal').remove();
     travelCache = null;
@@ -9194,14 +9194,14 @@ async function saveTravelSpot() {
   } catch (e) {
     msgEl.textContent = friendlyErrorMessage(e);
     btn.disabled = false;
-    btn.textContent = editingTravelSpotId ? 'Enregistrer les modifications' : 'Publier';
+    btn.textContent = editingTravelSpotId ? t('travel_save_edit_btn') : t('common_publish');
   }
 }
 
 async function toggleTravelSpotStatus(spotId, newStatus) {
   try {
     await db.collection('travel_spots').doc(spotId).update({ status: newStatus });
-    showToast(newStatus === 'active' ? 'Lieu réactivé' : 'Lieu masqué', 'success');
+    showToast(newStatus === 'active' ? t('travel_reactivated_toast') : t('travel_hidden_toast'), 'success');
     travelCache = null;
     loadMyTravelSpots();
   } catch (e) {
@@ -9210,10 +9210,10 @@ async function toggleTravelSpotStatus(spotId, newStatus) {
 }
 
 async function deleteTravelSpot(spotId) {
-  if (!confirm('Supprimer définitivement cette publication ?')) return;
+  if (!confirm(t('travel_delete_confirm'))) return;
   try {
     await db.collection('travel_spots').doc(spotId).delete();
-    showToast('Publication supprimée', 'info');
+    showToast(t('travel_deleted_toast'), 'info');
     travelCache = null;
     loadMyTravelSpots();
   } catch (e) {
@@ -9267,7 +9267,7 @@ async function loadBookableProfessionals() {
     bookingProsCache = (directoryCache || []).filter(f => f.bookingEnabled);
     runBookingSearch();
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+    listEl.innerHTML = `<p class="muted small">${t('booking_load_error_prefix')} ${e.message}</p>`;
   }
 }
 
@@ -9292,8 +9292,8 @@ function renderBookableProfessionals(list) {
   if (visible.length === 0) {
     listEl.innerHTML = `
       <div class="order-box" style="text-align:center;padding:24px 16px">
-        <p class="muted small" style="margin-bottom:14px">Aucun professionnel n'accepte encore les réservations en ligne. Reviens bientôt, ou sois le premier en l'activant sur ta propre fiche.</p>
-        <button class="btn btn-primary btn-sm" onclick="openDirectoryEditForm()">Activer les réservations sur ma fiche</button>
+        <p class="muted small" style="margin-bottom:14px">${t('booking_no_pros_yet')}</p>
+        <button class="btn btn-primary btn-sm" onclick="openDirectoryEditForm()">${t('booking_enable_on_my_listing_btn')}</button>
       </div>`;
     return;
   }
@@ -9308,12 +9308,12 @@ function renderBookableProfessionals(list) {
       <div style="display:flex;align-items:center;gap:10px">
         ${renderAvatarHtml(f.name, f.photoURL, 44)}
         <div style="min-width:0">
-          <strong style="font-size:1.02rem">${escapeHtml(f.name || 'Professionnel')}</strong>
+          <strong style="font-size:1.02rem">${escapeHtml(f.name || t('booking_default_pro_name'))}</strong>
           <div class="muted small" style="margin-top:2px">${escapeHtml(f.profession || '—')}${f.city ? ' · ' + escapeHtml(f.city) : ''}</div>
         </div>
       </div>
       ${serviceSummary ? `<div class="muted small" style="margin-top:8px">${serviceSummary}</div>` : ''}
-      <button class="btn btn-outline btn-sm" style="margin-top:10px" onclick="openBookingFlow('${f.ownerUid}')">Réserver</button>
+      <button class="btn btn-outline btn-sm" style="margin-top:10px" onclick="openBookingFlow('${f.ownerUid}')">${t('booking_reserve_btn')}</button>
     </div>`;
   }).join('');
 }
@@ -9323,37 +9323,37 @@ function renderBookableProfessionals(list) {
 function openBookingFlow(proUid) {
   if (!currentUser) { openAuth('login'); return; }
   const pro = (bookingProsCache || (directoryCache || [])).find(f => f.ownerUid === proUid);
-  if (!pro) { showToast('Professionnel introuvable', 'error'); return; }
+  if (!pro) { showToast(t('booking_pro_not_found'), 'error'); return; }
   if (document.getElementById('booking-flow-modal')) return;
 
   bookingSelectedProUid = proUid;
   bookingSelectedDate = null;
   bookingSelectedSlot = null;
 
-  const services = Array.isArray(pro.services) && pro.services.length > 0 ? pro.services : [{ name: 'Rendez-vous général', price: '' }];
+  const services = Array.isArray(pro.services) && pro.services.length > 0 ? pro.services : [{ name: t('booking_default_service_name'), price: '' }];
   const todayStr = new Date().toISOString().slice(0, 10);
 
   const html = `
     <div class="modal-overlay" id="booking-flow-modal">
       <div class="modal" style="max-width:460px">
         <button class="modal-close" onclick="document.getElementById('booking-flow-modal').remove()" aria-label="Fermer">×</button>
-        <h3 style="margin-bottom:4px">Réserver chez ${escapeHtml(pro.name || 'ce professionnel')}</h3>
+        <h3 style="margin-bottom:4px">${t('booking_flow_title_prefix')} ${escapeHtml(pro.name || t('booking_default_pro_name_this'))}</h3>
         <p class="muted small" style="margin-bottom:14px">${escapeHtml(pro.profession || '')}</p>
 
         <div class="field">
-          <label for="booking-service-select">Service</label>
+          <label for="booking-service-select">${t('booking_field_service')}</label>
           <select id="booking-service-select" class="select-input">
             ${services.map((s, i) => `<option value="${i}">${escapeHtml(s.name)}${s.price ? ' — ' + escapeHtml(s.price) : ''}</option>`).join('')}
           </select>
         </div>
         <div class="field">
-          <label for="booking-date-input">Date</label>
+          <label for="booking-date-input">${t('booking_field_date')}</label>
           <input type="date" id="booking-date-input" class="text-input" min="${todayStr}" onchange="loadAvailableSlots('${proUid}')">
         </div>
 
         <div id="booking-slots-container"></div>
 
-        <button class="btn btn-primary" id="booking-confirm-btn" style="width:100%;justify-content:center;margin-top:10px" disabled onclick="confirmBooking()">Choisis un créneau</button>
+        <button class="btn btn-primary" id="booking-confirm-btn" style="width:100%;justify-content:center;margin-top:10px" disabled onclick="confirmBooking()">${t('booking_choose_slot_btn')}</button>
         <p class="muted small" id="booking-flow-msg" style="margin-top:6px"></p>
       </div>
     </div>`;
@@ -9376,7 +9376,7 @@ async function loadAvailableSlots(proUid) {
   const confirmBtn = document.getElementById('booking-confirm-btn');
   bookingSelectedSlot = null;
   confirmBtn.disabled = true;
-  confirmBtn.textContent = 'Choisis un créneau';
+  confirmBtn.textContent = t('booking_choose_slot_btn');
   if (!date) { containerEl.innerHTML = ''; return; }
 
   const pro = (bookingProsCache || []).find(f => f.ownerUid === proUid);
@@ -9386,11 +9386,11 @@ async function loadAvailableSlots(proUid) {
   const jsDay = new Date(date + 'T00:00:00').getDay();
   const myDayIndex = (jsDay + 6) % 7;
   if (!(pro.bookingDays || []).includes(myDayIndex)) {
-    containerEl.innerHTML = '<p class="muted small">Ce professionnel n\'est pas disponible ce jour-là.</p>';
+    containerEl.innerHTML = `<p class="muted small">${t('booking_not_available_day')}</p>`;
     return;
   }
 
-  containerEl.innerHTML = '<p class="muted small">Chargement des créneaux...</p>';
+  containerEl.innerHTML = `<p class="muted small">${t('booking_loading_slots')}</p>`;
   try {
     const duration = pro.slotDuration || 30;
     const startMin = timeToMinutes(pro.bookingStart || '08:00');
@@ -9411,17 +9411,17 @@ async function loadAvailableSlots(proUid) {
     const available = allSlots.filter(t => !taken.has(t) && !(isToday && timeToMinutes(t) <= nowMin));
 
     if (available.length === 0) {
-      containerEl.innerHTML = '<p class="muted small">Aucun créneau disponible ce jour-là. Essaie une autre date.</p>';
+      containerEl.innerHTML = `<p class="muted small">${t('booking_no_slots_available')}</p>`;
       return;
     }
 
     containerEl.innerHTML = `
-      <label class="field-label" style="display:block;margin-top:10px">Créneaux disponibles</label>
+      <label class="field-label" style="display:block;margin-top:10px">${t('booking_available_slots_label')}</label>
       <div style="display:flex;flex-wrap:wrap;gap:8px">
         ${available.map(t => `<button type="button" class="btn btn-outline btn-sm" data-slot="${t}" onclick="selectBookingSlot('${t}', ${duration})">${t}</button>`).join('')}
       </div>`;
   } catch (e) {
-    containerEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+    containerEl.innerHTML = `<p class="muted small">${t('booking_load_error_prefix')} ${e.message}</p>`;
   }
 }
 
@@ -9433,7 +9433,7 @@ function selectBookingSlot(startTime, duration) {
   });
   const confirmBtn = document.getElementById('booking-confirm-btn');
   confirmBtn.disabled = false;
-  confirmBtn.textContent = `Confirmer pour ${startTime}`;
+  confirmBtn.textContent = `${t('booking_confirm_for_prefix')} ${startTime}`;
 }
 
 async function confirmBooking() {
@@ -9443,12 +9443,12 @@ async function confirmBooking() {
   const serviceIdx = parseInt(document.getElementById('booking-service-select').value, 10);
   const pro = (bookingProsCache || []).find(f => f.ownerUid === bookingSelectedProUid);
   if (!pro || !date || !bookingSelectedSlot) return;
-  const services = Array.isArray(pro.services) && pro.services.length > 0 ? pro.services : [{ name: 'Rendez-vous général', price: '' }];
+  const services = Array.isArray(pro.services) && pro.services.length > 0 ? pro.services : [{ name: t('booking_default_service_name'), price: '' }];
   const service = services[serviceIdx] || services[0];
 
   if (btn.disabled) return;
   btn.disabled = true;
-  btn.textContent = 'Réservation...';
+  btn.textContent = t('booking_reserving_btn');
   msgEl.textContent = '';
 
   const bookingRef = db.collection('bookings').doc(`${bookingSelectedProUid}_${date}_${bookingSelectedSlot.startTime}`);
@@ -9456,11 +9456,11 @@ async function confirmBooking() {
     await db.runTransaction(async tx => {
       const existing = await tx.get(bookingRef);
       if (existing.exists && existing.data().status !== 'cancelled') {
-        throw new Error('Ce créneau vient d\'être pris par quelqu\'un d\'autre, choisis-en un autre.');
+        throw new Error(t('booking_slot_taken_error'));
       }
       tx.set(bookingRef, {
-        proUid: bookingSelectedProUid, proName: pro.name || 'Professionnel',
-        clientUid: currentUser.uid, clientName: currentUser.name || 'Client',
+        proUid: bookingSelectedProUid, proName: pro.name || t('booking_default_pro_name'),
+        clientUid: currentUser.uid, clientName: currentUser.name || t('booking_default_client_name'),
         serviceName: service.name, servicePrice: service.price || '',
         date, startTime: bookingSelectedSlot.startTime, endTime: bookingSelectedSlot.endTime,
         status: 'confirmed', createdAt: new Date().toISOString()
@@ -9468,19 +9468,19 @@ async function confirmBooking() {
     });
 
     await db.collection('notifications').add({
-      uid: bookingSelectedProUid, title: 'Nouvelle réservation 📅',
-      body: `${currentUser.name || 'Un client'} a réservé "${service.name}" le ${new Date(date).toLocaleDateString('fr-FR')} à ${bookingSelectedSlot.startTime}.`,
+      uid: bookingSelectedProUid, title: t('booking_new_booking_notif_title'),
+      body: `${currentUser.name || t('booking_notif_client_fallback')} ${t('booking_notif_reserved_verb')} "${service.name}" ${t('booking_notif_on_prefix')} ${new Date(date).toLocaleDateString('fr-FR')} ${t('booking_notif_at_prefix')} ${bookingSelectedSlot.startTime}.`,
       type: 'booking', read: false, createdAt: new Date().toISOString()
     });
-    notifyUserPush(bookingSelectedProUid, 'Nouvelle réservation 📅', `${currentUser.name || 'Un client'} a réservé le ${new Date(date).toLocaleDateString('fr-FR')} à ${bookingSelectedSlot.startTime}.`);
+    notifyUserPush(bookingSelectedProUid, t('booking_new_booking_notif_title'), `${currentUser.name || t('booking_notif_client_fallback')} ${t('booking_notif_reserved_verb')} ${t('booking_notif_on_prefix')} ${new Date(date).toLocaleDateString('fr-FR')} ${t('booking_notif_at_prefix')} ${bookingSelectedSlot.startTime}.`);
 
     document.getElementById('booking-flow-modal').remove();
-    showToast('Réservation confirmée', 'success');
+    showToast(t('booking_confirmed_toast'), 'success');
     if (bookingCurrentTab === 'mine') loadMyBookings();
   } catch (e) {
     msgEl.textContent = friendlyErrorMessage(e) || e.message;
     btn.disabled = false;
-    btn.textContent = `Confirmer pour ${bookingSelectedSlot.startTime}`;
+    btn.textContent = `${t('booking_confirm_for_prefix')} ${bookingSelectedSlot.startTime}`;
   }
 }
 
@@ -9495,53 +9495,53 @@ function renderBookingsList(list, targetId, emptyMessage, isProSide) {
   const now = new Date();
   listEl.innerHTML = list.map(b => {
     const isPast = new Date(`${b.date}T${b.endTime}`) < now;
-    const statusLabel = b.status === 'cancelled' ? 'Annulée' : (isPast ? 'Terminée' : 'Confirmée');
+    const statusLabel = b.status === 'cancelled' ? t('booking_status_cancelled') : (isPast ? t('booking_status_past') : t('booking_status_confirmed'));
     return `
     <div class="order-box" style="margin-bottom:12px">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
-        <strong style="font-size:1.02rem">${escapeHtml(b.serviceName || 'Rendez-vous')}</strong>
+        <strong style="font-size:1.02rem">${escapeHtml(b.serviceName || t('booking_default_appointment_name'))}</strong>
         <span class="shop-card-category">${statusLabel}</span>
       </div>
       <div class="muted small" style="margin:4px 0">${escapeHtml(isProSide ? b.clientName : b.proName)}</div>
       <div class="muted small">${new Date(b.date).toLocaleDateString('fr-FR')} · ${escapeHtml(b.startTime)} — ${escapeHtml(b.endTime)}</div>
-      ${(!isPast && b.status !== 'cancelled') ? `<button class="btn btn-outline btn-sm" style="margin-top:8px;color:var(--red);border-color:var(--red)" onclick="cancelBooking('${b.id}')">Annuler</button>` : ''}
+      ${(!isPast && b.status !== 'cancelled') ? `<button class="btn btn-outline btn-sm" style="margin-top:8px;color:var(--red);border-color:var(--red)" onclick="cancelBooking('${b.id}')">${t('booking_cancel_btn')}</button>` : ''}
     </div>`;
   }).join('');
 }
 
 async function loadMyBookings() {
   const listEl = document.getElementById('booking-mine-list');
-  if (!currentUser) { listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Connecte-toi pour voir tes réservations.</p>'; return; }
+  if (!currentUser) { listEl.innerHTML = `<p class="muted small" style="text-align:center;padding:20px 0">${t('booking_login_mine_prompt')}</p>`; return; }
   listEl.innerHTML = renderFeedSkeletons(2);
   try {
     const snap = await db.collection('bookings').where('clientUid', '==', currentUser.uid).get();
     const bookings = snap.docs.map(d => ({ id: d.id, ...d.data() }))
       .sort((a, b) => `${b.date}${b.startTime}`.localeCompare(`${a.date}${a.startTime}`));
-    renderBookingsList(bookings, 'booking-mine-list', 'Aucune réservation pour l\'instant.', false);
+    renderBookingsList(bookings, 'booking-mine-list', t('booking_no_bookings_mine'), false);
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+    listEl.innerHTML = `<p class="muted small">${t('booking_load_error_prefix')} ${e.message}</p>`;
   }
 }
 
 async function loadReceivedBookings() {
   const listEl = document.getElementById('booking-received-list');
-  if (!currentUser) { listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Connecte-toi pour voir tes rendez-vous.</p>'; return; }
+  if (!currentUser) { listEl.innerHTML = `<p class="muted small" style="text-align:center;padding:20px 0">${t('booking_login_received_prompt')}</p>`; return; }
   listEl.innerHTML = renderFeedSkeletons(2);
   try {
     const snap = await db.collection('bookings').where('proUid', '==', currentUser.uid).get();
     const bookings = snap.docs.map(d => ({ id: d.id, ...d.data() }))
       .sort((a, b) => `${b.date}${b.startTime}`.localeCompare(`${a.date}${a.startTime}`));
-    renderBookingsList(bookings, 'booking-received-list', 'Aucun rendez-vous reçu pour l\'instant.', true);
+    renderBookingsList(bookings, 'booking-received-list', t('booking_no_bookings_received'), true);
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+    listEl.innerHTML = `<p class="muted small">${t('booking_load_error_prefix')} ${e.message}</p>`;
   }
 }
 
 async function cancelBooking(bookingId) {
-  if (!confirm('Annuler ce rendez-vous ?')) return;
+  if (!confirm(t('booking_cancel_confirm'))) return;
   try {
     await db.collection('bookings').doc(bookingId).update({ status: 'cancelled' });
-    showToast('Rendez-vous annulé', 'info');
+    showToast(t('booking_cancelled_toast'), 'info');
     if (bookingCurrentTab === 'mine') loadMyBookings();
     else loadReceivedBookings();
   } catch (e) {
@@ -9564,7 +9564,7 @@ async function cancelBooking(bookingId) {
    progression (chapitres termines) est modifiable uniquement par
    l'etudiant sur SA PROPRE inscription (regle Firestore : le champ
    "completedChapters" uniquement). */
-const COURSE_LEVEL_LABELS = { debutant: 'Débutant', intermediaire: 'Intermédiaire', avance: 'Avancé' };
+const COURSE_LEVEL_LABELS = { debutant: 'course_level_debutant', intermediaire: 'course_level_intermediaire', avance: 'course_level_avance' };
 
 let academyCache = null;
 let academyCurrentTab = 'browse';
@@ -9601,7 +9601,7 @@ async function loadCourses() {
     academyCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     runAcademyFilter();
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+    listEl.innerHTML = `<p class="muted small">${t('course_load_error_prefix')} ${e.message}</p>`;
   }
 }
 
@@ -9620,37 +9620,37 @@ function runAcademyFilter() {
 }
 
 function coursePriceLabel(c) {
-  return (c.price || 0) === 0 ? 'Gratuit' : `${c.price}$`;
+  return (c.price || 0) === 0 ? t('course_free') : `${c.price}$`;
 }
 
 function renderAcademyBrowseList(list) {
   const listEl = document.getElementById('academy-browse-list');
   const visible = list.filter(c => !blockedSet.has(c.ownerUid));
   if (visible.length === 0) {
-    listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Aucun cours pour l\'instant. Sois le premier à en publier un.</p>';
+    listEl.innerHTML = `<p class="muted small" style="text-align:center;padding:20px 0">${t('course_empty_browse')}</p>`;
     return;
   }
   listEl.innerHTML = visible.map(c => `
     <div class="order-box" style="margin-bottom:12px">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
-        <strong style="font-size:1.02rem">${escapeHtml(c.title || 'Cours')}</strong>
+        <strong style="font-size:1.02rem">${escapeHtml(c.title || t('course_default_title'))}</strong>
         <span class="shop-card-category">${escapeHtml(c.category || '—')}</span>
       </div>
-      <div class="muted small" style="margin:4px 0">${COURSE_LEVEL_LABELS[c.level] || ''} · ${(c.chapters || []).length} chapitre(s) · ${c.studentsCount || 0} étudiant(s)</div>
+      <div class="muted small" style="margin:4px 0">${t(COURSE_LEVEL_LABELS[c.level]) || ''} · ${(c.chapters || []).length} ${t('course_chapters_count_suffix')} · ${c.studentsCount || 0} ${t('course_students_count_suffix')}</div>
       <div class="muted small" style="margin-bottom:10px">${coursePriceLabel(c)}</div>
-      <button class="btn btn-outline btn-sm" onclick="openCourseDetail('${c.id}')">Voir le cours</button>
+      <button class="btn btn-outline btn-sm" onclick="openCourseDetail('${c.id}')">${t('course_view_btn')}</button>
     </div>`).join('');
 }
 
 async function openCourseDetail(courseId) {
   const bodyEl = document.getElementById('course-detail-body');
-  bodyEl.innerHTML = '<p class="muted small">Chargement...</p>';
+  bodyEl.innerHTML = `<p class="muted small">${t('common_loading')}</p>`;
   document.getElementById('course-detail-modal').classList.remove('hidden');
 
   try {
     const snap = await db.collection('courses').doc(courseId).get();
     if (!snap.exists) {
-      bodyEl.innerHTML = '<p class="muted small">Ce cours n\'existe plus.</p>';
+      bodyEl.innerHTML = `<p class="muted small">${t('course_gone')}</p>`;
       return;
     }
     const c = { id: snap.id, ...snap.data() };
@@ -9666,12 +9666,12 @@ async function openCourseDetail(courseId) {
     let ownerActionsHtml = '';
     if (isOwner) {
       ownerActionsHtml = `
-        <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:8px" onclick="openCourseStudents('${c.id}')">Voir les étudiants (${c.studentsCount || 0})</button>
-        <button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="openCourseForm('${c.id}')">Modifier le cours</button>
+        <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:8px" onclick="openCourseStudents('${c.id}')">${t('course_view_students_btn')} (${c.studentsCount || 0})</button>
+        <button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="openCourseForm('${c.id}')">${t('course_edit_btn')}</button>
         ${c.status === 'active'
-          ? `<button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="toggleCourseStatus('${c.id}', 'closed')">Clôturer le cours</button>`
-          : `<button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="toggleCourseStatus('${c.id}', 'active')">Réactiver le cours</button>`}
-        <button class="btn btn-outline" style="width:100%;justify-content:center;color:var(--red)" onclick="deleteCourse('${c.id}')">Supprimer le cours</button>`;
+          ? `<button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="toggleCourseStatus('${c.id}', 'closed')">${t('course_close_btn')}</button>`
+          : `<button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="toggleCourseStatus('${c.id}', 'active')">${t('course_reactivate_btn')}</button>`}
+        <button class="btn btn-outline" style="width:100%;justify-content:center;color:var(--red)" onclick="deleteCourse('${c.id}')">${t('course_delete_btn')}</button>`;
     }
 
     let chaptersHtml;
@@ -9680,49 +9680,49 @@ async function openCourseDetail(courseId) {
       chaptersHtml = chapters.map((ch, i) => {
         const done = completed.includes(ch.id);
         const contentHtml = ch.contentType === 'video' || ch.contentType === 'document'
-          ? `<a href="${escapeHtml(ch.content || '')}" target="_blank" class="btn btn-outline btn-sm" style="margin:6px 0">${ch.contentType === 'video' ? 'Voir la vidéo' : 'Voir le document'}</a>`
+          ? `<a href="${escapeHtml(ch.content || '')}" target="_blank" class="btn btn-outline btn-sm" style="margin:6px 0">${ch.contentType === 'video' ? t('course_view_video_btn') : t('course_view_document_btn')}</a>`
           : `<p style="white-space:pre-wrap;margin:6px 0">${escapeHtml(ch.content || '')}</p>`;
         return `<div class="order-box" style="margin-bottom:8px">
-          <strong>${i + 1}. ${escapeHtml(ch.title || 'Chapitre')}</strong>
+          <strong>${i + 1}. ${escapeHtml(ch.title || t('course_default_chapter_title'))}</strong>
           ${contentHtml}
-          ${enrollment ? `<button class="btn btn-outline btn-sm" onclick="toggleChapterComplete('${c.id}', '${ch.id}', ${done})">${done ? '✓ Terminé' : 'Marquer comme terminé'}</button>` : ''}
+          ${enrollment ? `<button class="btn btn-outline btn-sm" onclick="toggleChapterComplete('${c.id}', '${ch.id}', ${done})">${done ? t('course_chapter_done_btn') : t('course_mark_done_btn')}</button>` : ''}
         </div>`;
-      }).join('') || '<p class="muted small">Aucun chapitre pour l\'instant.</p>';
+      }).join('') || `<p class="muted small">${t('course_no_chapters')}</p>`;
     } else {
-      chaptersHtml = chapters.map((ch, i) => `<div class="order-box" style="margin-bottom:8px"><strong>${i + 1}. ${escapeHtml(ch.title || 'Chapitre')}</strong></div>`).join('')
-        || '<p class="muted small">Aucun chapitre pour l\'instant.</p>';
+      chaptersHtml = chapters.map((ch, i) => `<div class="order-box" style="margin-bottom:8px"><strong>${i + 1}. ${escapeHtml(ch.title || t('course_default_chapter_title'))}</strong></div>`).join('')
+        || `<p class="muted small">${t('course_no_chapters')}</p>`;
     }
 
     let enrollActionHtml = '';
     if (!isOwner) {
       if (!currentUser) {
-        enrollActionHtml = `<button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:10px" onclick="openAuth('register')">Se connecter pour s'inscrire</button>`;
+        enrollActionHtml = `<button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:10px" onclick="openAuth('register')">${t('course_login_to_enroll_btn')}</button>`;
       } else if (enrollment) {
         const total = chapters.length || 1;
         const pct = Math.round(((enrollment.completedChapters || []).length / total) * 100);
-        enrollActionHtml = `<p class="muted small" style="margin-top:10px">Inscrit(e) — progression : <strong>${pct}%</strong></p>`;
+        enrollActionHtml = `<p class="muted small" style="margin-top:10px">${t('course_enrolled_progress_prefix')} <strong>${pct}%</strong></p>`;
       } else if (c.status !== 'active') {
-        enrollActionHtml = `<p class="muted small" style="margin-top:10px">Ce cours n'accepte plus d'inscriptions.</p>`;
+        enrollActionHtml = `<p class="muted small" style="margin-top:10px">${t('course_closed_notice')}</p>`;
       } else {
-        enrollActionHtml = `<button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:10px" onclick="openCourseEnroll('${c.id}', '${escapeHtml(c.title || '')}', ${c.price || 0})">S'inscrire${(c.price || 0) > 0 ? ' — ' + c.price + '$' : ' gratuitement'}</button>`;
+        enrollActionHtml = `<button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:10px" onclick="openCourseEnroll('${c.id}', '${escapeHtml(c.title || '')}', ${c.price || 0})">${t('course_enroll_btn')}${(c.price || 0) > 0 ? ' — ' + c.price + '$' : ' ' + t('course_enroll_free_suffix')}</button>`;
       }
     }
 
     bodyEl.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px">
-        <h3 style="margin:0">${escapeHtml(c.title || 'Cours')}</h3>
+        <h3 style="margin:0">${escapeHtml(c.title || t('course_default_title'))}</h3>
         <span class="shop-card-category">${escapeHtml(c.category || '—')}</span>
       </div>
-      <div class="muted small" style="margin-bottom:10px">${COURSE_LEVEL_LABELS[c.level] || ''} · ${coursePriceLabel(c)}</div>
+      <div class="muted small" style="margin-bottom:10px">${t(COURSE_LEVEL_LABELS[c.level]) || ''} · ${coursePriceLabel(c)}</div>
       <p style="white-space:pre-wrap;margin-bottom:16px">${escapeHtml(c.description || '')}</p>
-      <h4 style="margin-bottom:8px">Chapitres</h4>
+      <h4 style="margin-bottom:8px">${t('course_chapters_heading')}</h4>
       ${chaptersHtml}
       ${enrollActionHtml}
       <div style="margin-top:14px">${ownerActionsHtml}</div>
-      ${!isOwner && currentUser ? `<button class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin-top:8px" onclick="openReportModal('${c.id}', '${c.ownerUid}', 'course')">Signaler ce cours</button>` : ''}
+      ${!isOwner && currentUser ? `<button class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin-top:8px" onclick="openReportModal('${c.id}', '${c.ownerUid}', 'course')">${t('course_report_btn')}</button>` : ''}
     `;
   } catch (e) {
-    bodyEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+    bodyEl.innerHTML = `<p class="muted small">${t('course_load_error_prefix')} ${e.message}</p>`;
   }
 }
 
@@ -9735,8 +9735,8 @@ function openCourseForm(courseId = null) {
   if (!currentUser) { openAuth('register'); return; }
   editingCourseId = courseId;
   document.getElementById('course-form-error').classList.add('hidden');
-  document.getElementById('course-form-title').textContent = courseId ? 'Modifier le cours' : 'Créer un cours';
-  document.getElementById('course-form-submit-btn').textContent = courseId ? 'Enregistrer' : 'Publier';
+  document.getElementById('course-form-title').textContent = courseId ? t('course_form_title_edit') : t('course_form_title_new');
+  document.getElementById('course-form-submit-btn').textContent = courseId ? t('common_save') : t('common_publish');
   document.getElementById('course-chapters-list').innerHTML = '';
 
   const fill = (c) => {
@@ -9747,7 +9747,7 @@ function openCourseForm(courseId = null) {
     currentCourseCoverUrl = c.coverImage || null;
     pendingCourseCoverFile = null;
     document.getElementById('course-cover-file').value = '';
-    document.getElementById('course-cover-file-text').textContent = 'Choisir une image';
+    document.getElementById('course-cover-file-text').textContent = t('common_choose_image');
     document.getElementById('course-cover-file-label').classList.remove('has-file');
     resetUploadProgress('course-cover');
     renderCourseCoverPreview();
@@ -9771,7 +9771,7 @@ function openCourseForm(courseId = null) {
     currentCourseCoverUrl = null;
     pendingCourseCoverFile = null;
     document.getElementById('course-cover-file').value = '';
-    document.getElementById('course-cover-file-text').textContent = 'Choisir une image';
+    document.getElementById('course-cover-file-text').textContent = t('common_choose_image');
     document.getElementById('course-cover-file-label').classList.remove('has-file');
     resetUploadProgress('course-cover');
     renderCourseCoverPreview();
@@ -9789,7 +9789,7 @@ function handleCourseCoverFileChange(event) {
   pendingCourseCoverFile = (event.target.files && event.target.files[0]) || null;
   const text = document.getElementById('course-cover-file-text');
   const label = document.getElementById('course-cover-file-label');
-  if (text) text.textContent = pendingCourseCoverFile ? `✅ ${pendingCourseCoverFile.name}` : 'Choisir une image';
+  if (text) text.textContent = pendingCourseCoverFile ? `✅ ${pendingCourseCoverFile.name}` : t('common_choose_image');
   if (label) label.classList.toggle('has-file', !!pendingCourseCoverFile);
   renderCourseCoverPreview();
 }
@@ -9819,21 +9819,21 @@ function addCourseChapterRow(existing = null) {
   row.className = 'order-box';
   row.style.cssText = 'margin-bottom:8px';
   row.innerHTML = `
-    <input type="text" class="text-input course-ch-title" placeholder="Titre du chapitre" style="margin-bottom:6px" value="${existing ? escapeHtml(existing.title || '') : ''}">
+    <input type="text" class="text-input course-ch-title" placeholder="${t('course_ch_title_ph')}" style="margin-bottom:6px" value="${existing ? escapeHtml(existing.title || '') : ''}">
     <select class="text-input course-ch-type" style="margin-bottom:6px">
-      <option value="texte" ${existing && existing.contentType === 'texte' ? 'selected' : ''}>Texte</option>
-      <option value="video" ${existing && existing.contentType === 'video' ? 'selected' : ''}>Lien vidéo</option>
-      <option value="document" ${existing && existing.contentType === 'document' ? 'selected' : ''}>Lien document</option>
+      <option value="texte" ${existing && existing.contentType === 'texte' ? 'selected' : ''}>${t('course_ch_type_text')}</option>
+      <option value="video" ${existing && existing.contentType === 'video' ? 'selected' : ''}>${t('course_ch_type_video')}</option>
+      <option value="document" ${existing && existing.contentType === 'document' ? 'selected' : ''}>${t('course_ch_type_document')}</option>
     </select>
-    <textarea class="text-input course-ch-content" rows="2" placeholder="Texte du chapitre, ou lien https://...">${existing ? escapeHtml(existing.content || '') : ''}</textarea>
-    <button type="button" class="btn btn-outline btn-sm" style="margin-top:6px" onclick="document.getElementById('${rowId}').remove()">Retirer ce chapitre</button>`;
+    <textarea class="text-input course-ch-content" rows="2" placeholder="${t('course_ch_content_ph')}">${existing ? escapeHtml(existing.content || '') : ''}</textarea>
+    <button type="button" class="btn btn-outline btn-sm" style="margin-top:6px" onclick="document.getElementById('${rowId}').remove()">${t('course_remove_chapter_btn')}</button>`;
   document.getElementById('course-chapters-list').appendChild(row);
 }
 
 function collectCourseChaptersFromForm() {
   return Array.from(document.querySelectorAll('#course-chapters-list > div')).map((row, i) => ({
     id: row.dataset.chapterId,
-    title: row.querySelector('.course-ch-title').value.trim() || `Chapitre ${i + 1}`,
+    title: row.querySelector('.course-ch-title').value.trim() || `${t('course_default_chapter_title')} ${i + 1}`,
     contentType: row.querySelector('.course-ch-type').value,
     content: row.querySelector('.course-ch-content').value.trim(),
     order: i
@@ -9852,12 +9852,12 @@ async function saveCourse() {
   const chapters = collectCourseChaptersFromForm();
 
   if (!title || !description) {
-    errEl.textContent = 'Merci de remplir au moins le titre et la description.';
+    errEl.textContent = t('course_required_fields');
     errEl.classList.remove('hidden');
     return;
   }
   if (chapters.length === 0) {
-    errEl.textContent = 'Ajoute au moins un chapitre avec du contenu.';
+    errEl.textContent = t('course_no_chapter_error');
     errEl.classList.remove('hidden');
     return;
   }
@@ -9866,7 +9866,7 @@ async function saveCourse() {
   if (btn.disabled) return;
   btn.disabled = true;
   const originalLabel = btn.textContent;
-  btn.textContent = 'Envoi...';
+  btn.textContent = t('common_sending');
 
   try {
     // Garde l'image deja enregistree si aucune nouvelle n'est choisie
@@ -9883,17 +9883,17 @@ async function saveCourse() {
     const payload = { title, category, level, description, coverImage: coverImage || null, price, chapters };
     if (editingCourseId) {
       await db.collection('courses').doc(editingCourseId).update(payload);
-      showToast('Cours mis à jour', 'success');
+      showToast(t('course_updated_toast'), 'success');
     } else {
       await db.collection('courses').add({
         ...payload,
         ownerUid: currentUser.uid,
-        ownerName: currentUser.name || 'Utilisateur',
+        ownerName: currentUser.name || t('common_user_fallback'),
         status: 'active',
         studentsCount: 0,
         createdAt: new Date().toISOString()
       });
-      showToast('Cours publié', 'success');
+      showToast(t('course_published_toast'), 'success');
     }
     closeCourseForm();
     academyCache = null;
@@ -9911,7 +9911,7 @@ async function saveCourse() {
 async function toggleCourseStatus(courseId, newStatus) {
   try {
     await db.collection('courses').doc(courseId).update({ status: newStatus });
-    showToast(newStatus === 'active' ? 'Cours réactivé' : 'Cours clôturé', 'success');
+    showToast(newStatus === 'active' ? t('course_reactivated_toast') : t('course_closed_toast'), 'success');
     academyCache = null;
     closeCourseDetail();
     loadMyTaughtCourses();
@@ -9921,10 +9921,10 @@ async function toggleCourseStatus(courseId, newStatus) {
 }
 
 async function deleteCourse(courseId) {
-  if (!confirm('Supprimer définitivement ce cours ? Les étudiants déjà inscrits ne pourront plus y accéder.')) return;
+  if (!confirm(t('course_delete_confirm'))) return;
   try {
     await db.collection('courses').doc(courseId).delete();
-    showToast('Cours supprimé', 'success');
+    showToast(t('course_deleted_toast'), 'success');
     academyCache = null;
     closeCourseDetail();
     loadMyTaughtCourses();
@@ -9938,8 +9938,8 @@ function openCourseEnroll(courseId, courseTitle, price) {
   if (!currentUser) { openAuth('register'); return; }
   currentCourseEnroll = { courseId, courseTitle, price };
   document.getElementById('course-enroll-summary').textContent = price > 0
-    ? `"${courseTitle}" — ${price}$ seront déduits de ton solde.`
-    : `"${courseTitle}" — inscription gratuite.`;
+    ? `"${courseTitle}" — ${price}$ ${t('course_enroll_paid_suffix')}`
+    : `"${courseTitle}" — ${t('course_enroll_free_label')}`;
   document.getElementById('course-enroll-error').classList.add('hidden');
   document.getElementById('course-enroll-modal').classList.remove('hidden');
 }
@@ -9958,7 +9958,7 @@ async function submitCourseEnrollment() {
   const btn = document.getElementById('course-enroll-submit-btn');
   if (btn.disabled) return;
   btn.disabled = true;
-  btn.textContent = 'Inscription...';
+  btn.textContent = t('course_enrolling_btn');
 
   try {
     if (price > 0) {
@@ -9970,7 +9970,7 @@ async function submitCourseEnrollment() {
         body: JSON.stringify({ idToken, action: 'course_enroll', courseId })
       });
       const data = await resp.json();
-      if (!data.success) throw new Error(data.error || "L'inscription a échoué.");
+      if (!data.success) throw new Error(data.error || t('course_enroll_failed'));
       if (typeof data.newBalance === 'number') {
         currentUser.balance = data.newBalance;
         const walletBalanceEl = document.getElementById('wallet-balance');
@@ -9985,15 +9985,15 @@ async function submitCourseEnrollment() {
 
       await db.collection('course_enrollments').doc(`${courseId}_${currentUser.uid}`).set({
         courseId, courseTitle: course.title || '', courseOwnerUid: course.ownerUid,
-        studentUid: currentUser.uid, studentName: currentUser.name || 'Utilisateur',
+        studentUid: currentUser.uid, studentName: currentUser.name || t('common_user_fallback'),
         completedChapters: [], amountPaid: 0, createdAt: new Date().toISOString()
       });
       db.collection('courses').doc(courseId).update({
         studentsCount: firebase.firestore.FieldValue.increment(1)
       }).catch(() => {});
 
-      const title = 'Nouvel étudiant inscrit 📚';
-      const body = `${currentUser.name || "Quelqu'un"} s'est inscrit(e) à "${course.title || ''}".`;
+      const title = t('course_new_student_notif_title');
+      const body = `${currentUser.name || t('course_someone_fallback')} ${t('course_enrollment_notif_verb')} "${course.title || ''}".`;
       db.collection('notifications').add({
         uid: course.ownerUid, title, body, type: 'course_enrollment', read: false,
         url: '/?open=' + courseId, createdAt: new Date().toISOString()
@@ -10002,20 +10002,20 @@ async function submitCourseEnrollment() {
     }
 
     closeCourseEnrollModal();
-    showToast('Inscription confirmée', 'success');
+    showToast(t('course_enrollment_confirmed_toast'), 'success');
     openCourseDetail(courseId);
   } catch (e) {
     if (e.message === 'OFFER_GONE') {
-      errEl.textContent = "Ce cours n'existe plus.";
+      errEl.textContent = t('course_gone');
     } else if (e.code === 'permission-denied') {
-      errEl.textContent = 'Tu es déjà inscrit(e) à ce cours.';
+      errEl.textContent = t('course_already_enrolled_error');
     } else {
       errEl.textContent = e.message || friendlyErrorMessage(e);
     }
     errEl.classList.remove('hidden');
   } finally {
     btn.disabled = false;
-    btn.textContent = "Confirmer l'inscription";
+    btn.textContent = t('course_confirm_enrollment_btn');
   }
 }
 
@@ -10036,7 +10036,7 @@ async function toggleChapterComplete(courseId, chapterId, currentlyDone) {
 
 async function loadMyEnrolledCourses() {
   const listEl = document.getElementById('academy-mycourses-list');
-  if (!currentUser) { listEl.innerHTML = '<p class="muted small">Connecte-toi pour voir tes cours.</p>'; return; }
+  if (!currentUser) { listEl.innerHTML = `<p class="muted small">${t('course_login_mycourses_prompt')}</p>`; return; }
   listEl.innerHTML = renderFeedSkeletons(2);
   try {
     const snap = await db.collection('course_enrollments').where('studentUid', '==', currentUser.uid).get();
@@ -10044,23 +10044,23 @@ async function loadMyEnrolledCourses() {
     enrollments.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
 
     if (enrollments.length === 0) {
-      listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Tu n\'es inscrit(e) à aucun cours pour l\'instant.</p>';
+      listEl.innerHTML = `<p class="muted small" style="text-align:center;padding:20px 0">${t('course_no_enrollments')}</p>`;
       return;
     }
     listEl.innerHTML = enrollments.map(en => `
       <div class="order-box" style="margin-bottom:12px">
-        <strong>${escapeHtml(en.courseTitle || 'Cours')}</strong>
-        <div class="muted small" style="margin:4px 0">${(en.completedChapters || []).length} chapitre(s) terminé(s)</div>
-        <button class="btn btn-outline btn-sm" onclick="openCourseDetail('${en.courseId}')">Continuer</button>
+        <strong>${escapeHtml(en.courseTitle || t('course_default_title'))}</strong>
+        <div class="muted small" style="margin:4px 0">${(en.completedChapters || []).length} ${t('course_chapters_completed_suffix')}</div>
+        <button class="btn btn-outline btn-sm" onclick="openCourseDetail('${en.courseId}')">${t('course_continue_btn')}</button>
       </div>`).join('');
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+    listEl.innerHTML = `<p class="muted small">${t('course_load_error_prefix')} ${e.message}</p>`;
   }
 }
 
 async function loadMyTaughtCourses() {
   const listEl = document.getElementById('academy-myteaching-list');
-  if (!currentUser) { listEl.innerHTML = '<p class="muted small">Connecte-toi pour gérer tes cours.</p>'; return; }
+  if (!currentUser) { listEl.innerHTML = `<p class="muted small">${t('course_login_myteaching_prompt')}</p>`; return; }
   listEl.innerHTML = renderFeedSkeletons(2);
   try {
     const snap = await db.collection('courses').where('ownerUid', '==', currentUser.uid).get();
@@ -10068,20 +10068,20 @@ async function loadMyTaughtCourses() {
     myTaughtCoursesCache.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
 
     if (myTaughtCoursesCache.length === 0) {
-      listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Tu n\'as encore publié aucun cours.</p>';
+      listEl.innerHTML = `<p class="muted small" style="text-align:center;padding:20px 0">${t('course_no_courses_mine')}</p>`;
       return;
     }
     listEl.innerHTML = myTaughtCoursesCache.map(c => `
       <div class="order-box" style="margin-bottom:12px">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
-          <strong>${escapeHtml(c.title || 'Cours')}</strong>
-          <span class="shop-card-category">${c.status === 'active' ? 'Actif' : 'Clôturé'}</span>
+          <strong>${escapeHtml(c.title || t('course_default_title'))}</strong>
+          <span class="shop-card-category">${c.status === 'active' ? t('course_status_active') : t('course_status_closed')}</span>
         </div>
-        <div class="muted small" style="margin:4px 0">${c.studentsCount || 0} étudiant(s)</div>
-        <button class="btn btn-outline btn-sm" onclick="openCourseDetail('${c.id}')">Gérer</button>
+        <div class="muted small" style="margin:4px 0">${c.studentsCount || 0} ${t('course_students_count_suffix')}</div>
+        <button class="btn btn-outline btn-sm" onclick="openCourseDetail('${c.id}')">${t('course_manage_btn')}</button>
       </div>`).join('');
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+    listEl.innerHTML = `<p class="muted small">${t('course_load_error_prefix')} ${e.message}</p>`;
   }
 }
 
@@ -10091,8 +10091,8 @@ async function openCourseStudents(courseId) {
     <button class="menu-back-btn" onclick="openCourseDetail('${courseId}')" aria-label="Retour" style="margin-bottom:10px">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
     </button>
-    <h3 style="margin-bottom:12px">Étudiants</h3>
-    <div id="course-students-list"><p class="muted small">Chargement...</p></div>`;
+    <h3 style="margin-bottom:12px">${t('course_students_heading')}</h3>
+    <div id="course-students-list"><p class="muted small">${t('common_loading')}</p></div>`;
 
   try {
     const courseSnap = await db.collection('courses').doc(courseId).get();
@@ -10103,18 +10103,18 @@ async function openCourseStudents(courseId) {
     const listEl = document.getElementById('course-students-list');
 
     if (students.length === 0) {
-      listEl.innerHTML = '<p class="muted small">Aucun étudiant inscrit pour l\'instant.</p>';
+      listEl.innerHTML = `<p class="muted small">${t('course_no_students')}</p>`;
       return;
     }
     listEl.innerHTML = students.map(s => {
       const pct = Math.round(((s.completedChapters || []).length / totalChapters) * 100);
       return `<div class="order-box" style="margin-bottom:10px">
-        <strong>${escapeHtml(s.studentName || 'Étudiant')}</strong>
-        <div class="muted small">Progression : ${pct}%${(s.amountPaid || 0) > 0 ? ` · ${s.amountPaid.toFixed(2)}$ payés` : ' · gratuit'}</div>
+        <strong>${escapeHtml(s.studentName || t('course_default_student_name'))}</strong>
+        <div class="muted small">${t('course_progress_prefix')} ${pct}%${(s.amountPaid || 0) > 0 ? ` · ${s.amountPaid.toFixed(2)}$ ${t('course_paid_suffix')}` : ` · ${t('course_free_word')}`}</div>
       </div>`;
     }).join('');
   } catch (e) {
-    document.getElementById('course-students-list').innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+    document.getElementById('course-students-list').innerHTML = `<p class="muted small">${t('course_load_error_prefix')} ${e.message}</p>`;
   }
 }
 
@@ -10138,10 +10138,10 @@ let immoSearchDebounce = null;
 let editingImmoId = null;
 
 const IMMO_TYPE_LABELS = {
-  maison: 'Maison', appartement: 'Appartement', terrain: 'Terrain', local_commercial: 'Local commercial'
+  maison: 'immo_type_maison', appartement: 'immo_type_appartement', terrain: 'immo_type_terrain', local_commercial: 'immo_type_local_commercial'
 };
-const IMMO_TRANSACTION_LABELS = { vente: 'À vendre', location: 'À louer' };
-const IMMO_STATUS_LABELS = { disponible: 'Disponible', vendu: 'Vendu', loue: 'Loué' };
+const IMMO_TRANSACTION_LABELS = { vente: 'immo_tx_vente', location: 'immo_tx_location' };
+const IMMO_STATUS_LABELS = { disponible: 'immo_status_disponible', vendu: 'immo_status_vendu', loue: 'immo_status_loue' };
 
 function openImmoScreen() {
   showMenuScreen('immo');
@@ -10171,7 +10171,7 @@ async function loadImmoProperties() {
     immoCache.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
     runImmoFilter();
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+    listEl.innerHTML = `<p class="muted small">${t('immo_load_error_prefix')} ${e.message}</p>`;
   }
 }
 
@@ -10199,7 +10199,7 @@ function runImmoFilter() {
     if (query && !`${p.title || ''} ${p.city || ''}`.toLowerCase().includes(query)) return false;
     return true;
   });
-  renderImmoCards(matches, 'immo-browse-list', "Aucune annonce pour l'instant. Sois le premier à publier.");
+  renderImmoCards(matches, 'immo-browse-list', t('immo_empty_browse'));
 }
 
 function renderImmoCards(list, targetId, emptyMessage) {
@@ -10213,19 +10213,19 @@ function renderImmoCards(list, targetId, emptyMessage) {
 
   listEl.innerHTML = visible.map(p => {
     const details = [];
-    if (p.bedrooms) details.push(`${p.bedrooms} ch.`);
-    if (p.bathrooms) details.push(`${p.bathrooms} sdb`);
+    if (p.bedrooms) details.push(`${p.bedrooms} ${t('immo_card_bedroom_abbr')}`);
+    if (p.bathrooms) details.push(`${p.bathrooms} ${t('immo_card_bathroom_abbr')}`);
     if (p.surfaceArea) details.push(escapeHtml(p.surfaceArea));
     return `
     <div class="order-box" style="margin-bottom:12px">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
-        <strong style="font-size:1.02rem">${escapeHtml(p.title || 'Bien immobilier')}</strong>
-        <span class="shop-card-category" style="white-space:nowrap">${escapeHtml(IMMO_TRANSACTION_LABELS[p.transactionType] || '')}</span>
+        <strong style="font-size:1.02rem">${escapeHtml(p.title || t('immo_default_title'))}</strong>
+        <span class="shop-card-category" style="white-space:nowrap">${t(IMMO_TRANSACTION_LABELS[p.transactionType]) || ''}</span>
       </div>
-      <div class="muted small" style="margin:4px 0">${escapeHtml(IMMO_TYPE_LABELS[p.propertyType] || p.propertyType || '—')} · ${escapeHtml(p.city || '—')}</div>
+      <div class="muted small" style="margin:4px 0">${t(IMMO_TYPE_LABELS[p.propertyType]) || p.propertyType || '—'} · ${escapeHtml(p.city || '—')}</div>
       ${details.length ? `<div class="muted small" style="margin-bottom:6px">${details.join(' · ')}</div>` : ''}
-      <strong style="display:block;margin-bottom:8px">${(p.price || 0).toLocaleString('fr-FR')} ${escapeHtml(p.currency || 'USD')}${p.transactionType === 'location' ? ' / mois' : ''}</strong>
-      <button class="btn btn-outline btn-sm" onclick="openImmoDetail('${p.id}')">Voir les détails</button>
+      <strong style="display:block;margin-bottom:8px">${(p.price || 0).toLocaleString('fr-FR')} ${escapeHtml(p.currency || 'USD')}${p.transactionType === 'location' ? ' ' + t('immo_per_month_suffix') : ''}</strong>
+      <button class="btn btn-outline btn-sm" onclick="openImmoDetail('${p.id}')">${t('immo_view_details_btn')}</button>
     </div>`;
   }).join('');
 }
@@ -10235,7 +10235,7 @@ async function openImmoDetail(propertyId) {
   if (!p) {
     try {
       const doc = await db.collection('properties').doc(propertyId).get();
-      if (!doc.exists) { showToast('Cette annonce n\'existe plus', 'error'); return; }
+      if (!doc.exists) { showToast(t('immo_gone'), 'error'); return; }
       p = { id: doc.id, ...doc.data() };
     } catch (e) { showToast(friendlyErrorMessage(e), 'error'); return; }
   }
@@ -10254,24 +10254,24 @@ async function openImmoDetail(propertyId) {
 
   const photos = Array.isArray(p.photos) ? p.photos.filter(Boolean) : [];
   const details = [];
-  if (p.bedrooms) details.push(`${p.bedrooms} chambre${p.bedrooms > 1 ? 's' : ''}`);
-  if (p.bathrooms) details.push(`${p.bathrooms} salle${p.bathrooms > 1 ? 's' : ''} de bain`);
+  if (p.bedrooms) details.push(`${p.bedrooms} ${t(p.bedrooms > 1 ? 'immo_detail_bedroom_other' : 'immo_detail_bedroom_one')}`);
+  if (p.bathrooms) details.push(`${p.bathrooms} ${t(p.bathrooms > 1 ? 'immo_detail_bathroom_other' : 'immo_detail_bathroom_one')}`);
   if (p.surfaceArea) details.push(escapeHtml(p.surfaceArea));
 
   const html = `
     <div class="modal-overlay" id="immo-detail-modal">
       <div class="modal" style="max-width:480px">
         <button class="modal-close" onclick="document.getElementById('immo-detail-modal').remove()" aria-label="Fermer">×</button>
-        <div class="muted small" style="margin-bottom:4px">${escapeHtml(IMMO_TRANSACTION_LABELS[p.transactionType] || '')} · ${escapeHtml(IMMO_TYPE_LABELS[p.propertyType] || '')}</div>
-        <h3 style="margin-bottom:4px">${escapeHtml(p.title || 'Bien immobilier')}</h3>
+        <div class="muted small" style="margin-bottom:4px">${t(IMMO_TRANSACTION_LABELS[p.transactionType]) || ''} · ${t(IMMO_TYPE_LABELS[p.propertyType]) || ''}</div>
+        <h3 style="margin-bottom:4px">${escapeHtml(p.title || t('immo_default_title'))}</h3>
         <p class="muted small" style="margin-bottom:10px">${escapeHtml(p.city || '')}</p>
-        <strong style="display:block;font-size:1.15rem;margin-bottom:10px">${(p.price || 0).toLocaleString('fr-FR')} ${escapeHtml(p.currency || 'USD')}${p.transactionType === 'location' ? ' / mois' : ''}</strong>
+        <strong style="display:block;font-size:1.15rem;margin-bottom:10px">${(p.price || 0).toLocaleString('fr-FR')} ${escapeHtml(p.currency || 'USD')}${p.transactionType === 'location' ? ' ' + t('immo_per_month_suffix') : ''}</strong>
         ${details.length ? `<p class="small" style="margin-bottom:10px">${details.join(' · ')}</p>` : ''}
         ${p.description ? `<p class="small" style="margin-bottom:14px">${escapeHtml(p.description)}</p>` : ''}
-        ${photos.length > 0 ? `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">${photos.map((ph, i) => `<a href="${escapeHtml(ph)}" target="_blank" class="muted small" style="display:inline-flex;align-items:center;gap:4px">${ICON_LINK} Photo ${i + 1}</a>`).join('')}</div>` : ''}
+        ${photos.length > 0 ? `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">${photos.map((ph, i) => `<a href="${escapeHtml(ph)}" target="_blank" class="muted small" style="display:inline-flex;align-items:center;gap:4px">${ICON_LINK} ${t('immo_photo_label')} ${i + 1}</a>`).join('')}</div>` : ''}
 
         <div style="margin-bottom:10px">${renderContactLinksHtml(p, 'block')}</div>
-        <button class="btn ${isFavorited ? 'btn-outline' : 'btn-primary'}" id="immo-fav-btn" style="width:100%;justify-content:center" onclick="toggleImmoFavorite('${p.id}')">${isFavorited ? 'Retirer des favoris' : 'Ajouter aux favoris'}</button>
+        <button class="btn ${isFavorited ? 'btn-outline' : 'btn-primary'}" id="immo-fav-btn" style="width:100%;justify-content:center" onclick="toggleImmoFavorite('${p.id}')">${isFavorited ? t('immo_remove_favorite_btn') : t('immo_add_favorite_btn')}</button>
       </div>
     </div>`;
   document.body.insertAdjacentHTML('beforeend', html);
@@ -10286,14 +10286,14 @@ async function toggleImmoFavorite(propertyId) {
     if (immoFavoritesCache && immoFavoritesCache.has(propertyId)) {
       await favRef.delete();
       immoFavoritesCache.delete(propertyId);
-      if (btn) { btn.textContent = 'Ajouter aux favoris'; btn.classList.remove('btn-outline'); btn.classList.add('btn-primary'); }
-      showToast('Retiré des favoris', 'info');
+      if (btn) { btn.textContent = t('immo_add_favorite_btn'); btn.classList.remove('btn-outline'); btn.classList.add('btn-primary'); }
+      showToast(t('immo_removed_favorite_toast'), 'info');
     } else {
       await favRef.set({ propertyId, uid: currentUser.uid, createdAt: new Date().toISOString() });
       if (!immoFavoritesCache) immoFavoritesCache = new Set();
       immoFavoritesCache.add(propertyId);
-      if (btn) { btn.textContent = 'Retirer des favoris'; btn.classList.add('btn-outline'); btn.classList.remove('btn-primary'); }
-      showToast('Ajouté aux favoris', 'success');
+      if (btn) { btn.textContent = t('immo_remove_favorite_btn'); btn.classList.add('btn-outline'); btn.classList.remove('btn-primary'); }
+      showToast(t('immo_added_favorite_toast'), 'success');
     }
     if (immoCurrentTab === 'favorites') loadImmoFavorites();
   } catch (e) {
@@ -10306,7 +10306,7 @@ async function toggleImmoFavorite(propertyId) {
 async function loadImmoFavorites() {
   const listEl = document.getElementById('immo-favorites-list');
   if (!currentUser) {
-    listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Connecte-toi pour voir tes favoris.</p>';
+    listEl.innerHTML = `<p class="muted small" style="text-align:center;padding:20px 0">${t('immo_login_favorites_prompt')}</p>`;
     return;
   }
   listEl.innerHTML = renderFeedSkeletons(2);
@@ -10316,21 +10316,21 @@ async function loadImmoFavorites() {
     immoFavoritesCache = new Set(favDocs.map(d => d.data().propertyId));
 
     if (favDocs.length === 0) {
-      listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Aucun favori pour l\'instant.</p>';
+      listEl.innerHTML = `<p class="muted small" style="text-align:center;padding:20px 0">${t('immo_no_favorites')}</p>`;
       return;
     }
     const propDocs = await Promise.all(favDocs.map(d => db.collection('properties').doc(d.data().propertyId).get()));
     const properties = propDocs.filter(d => d.exists).map(d => ({ id: d.id, ...d.data() }));
-    renderImmoCards(properties, 'immo-favorites-list', "Aucun favori pour l'instant.");
+    renderImmoCards(properties, 'immo-favorites-list', t('immo_no_favorites'));
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+    listEl.innerHTML = `<p class="muted small">${t('immo_load_error_prefix')} ${e.message}</p>`;
   }
 }
 
 async function loadMyImmoProperties() {
   const listEl = document.getElementById('immo-mine-list');
   if (!currentUser) {
-    listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Connecte-toi pour publier une annonce.</p>';
+    listEl.innerHTML = `<p class="muted small" style="text-align:center;padding:20px 0">${t('immo_login_publish_prompt')}</p>`;
     return;
   }
   listEl.innerHTML = renderFeedSkeletons(2);
@@ -10340,29 +10340,29 @@ async function loadMyImmoProperties() {
     immoMyCache.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
 
     if (immoMyCache.length === 0) {
-      listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Tu n\'as encore publié aucune annonce.</p>';
+      listEl.innerHTML = `<p class="muted small" style="text-align:center;padding:20px 0">${t('immo_no_listings_mine')}</p>`;
       return;
     }
 
     listEl.innerHTML = immoMyCache.map(p => {
       const nextStatus = p.status === 'disponible' ? (p.transactionType === 'location' ? 'loue' : 'vendu') : 'disponible';
-      const nextLabel = p.status === 'disponible' ? `Marquer comme ${IMMO_STATUS_LABELS[nextStatus].toLowerCase()}` : 'Remettre disponible';
+      const nextLabel = p.status === 'disponible' ? `${t('immo_mark_as_prefix')} ${(t(IMMO_STATUS_LABELS[nextStatus]) || '').toLowerCase()}` : t('immo_mark_available_btn');
       return `
       <div class="order-box" style="margin-bottom:12px">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
           <strong style="font-size:1.02rem">${escapeHtml(p.title)}</strong>
-          <span class="shop-card-category">${escapeHtml(IMMO_STATUS_LABELS[p.status] || p.status)}</span>
+          <span class="shop-card-category">${t(IMMO_STATUS_LABELS[p.status]) || p.status}</span>
         </div>
-        <div class="muted small" style="margin:4px 0">${escapeHtml(IMMO_TYPE_LABELS[p.propertyType] || '')} · ${escapeHtml(p.city || '')}</div>
+        <div class="muted small" style="margin:4px 0">${t(IMMO_TYPE_LABELS[p.propertyType]) || ''} · ${escapeHtml(p.city || '')}</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
-          <button class="btn btn-outline btn-sm" onclick="openImmoForm('${p.id}')">Modifier</button>
+          <button class="btn btn-outline btn-sm" onclick="openImmoForm('${p.id}')">${t('immo_edit_btn')}</button>
           <button class="btn btn-outline btn-sm" onclick="toggleImmoStatus('${p.id}', '${nextStatus}')">${nextLabel}</button>
-          <button class="btn btn-outline btn-sm" style="color:var(--red);border-color:var(--red)" onclick="deleteImmoProperty('${p.id}')">Supprimer</button>
+          <button class="btn btn-outline btn-sm" style="color:var(--red);border-color:var(--red)" onclick="deleteImmoProperty('${p.id}')">${t('immo_delete_btn')}</button>
         </div>
       </div>`;
     }).join('');
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+    listEl.innerHTML = `<p class="muted small">${t('immo_load_error_prefix')} ${e.message}</p>`;
   }
 }
 
@@ -10379,60 +10379,60 @@ function openImmoForm(propertyId) {
     <div class="modal-overlay" id="immo-form-modal">
       <div class="modal" style="max-width:460px">
         <button class="modal-close" onclick="document.getElementById('immo-form-modal').remove()" aria-label="Fermer">×</button>
-        <h3 style="margin-bottom:14px">${existing ? "Modifier l'annonce" : 'Publier une annonce'}</h3>
+        <h3 style="margin-bottom:14px">${existing ? t('immo_form_title_edit') : t('immo_form_title_new')}</h3>
         <div class="field">
-          <label for="immo-title">Titre</label>
+          <label for="immo-title">${t('immo_field_title')}</label>
           <input type="text" id="immo-title" class="text-input" maxlength="100" value="${existing ? escapeHtml(existing.title || '') : ''}">
         </div>
         <div style="display:flex;gap:8px">
           <div class="field" style="flex:1">
-            <label for="immo-transaction">Transaction</label>
+            <label for="immo-transaction">${t('immo_field_transaction')}</label>
             <select id="immo-transaction" class="select-input">
-              <option value="vente" ${existing && existing.transactionType === 'vente' ? 'selected' : ''}>À vendre</option>
-              <option value="location" ${existing && existing.transactionType === 'location' ? 'selected' : ''}>À louer</option>
+              <option value="vente" ${existing && existing.transactionType === 'vente' ? 'selected' : ''}>${t('immo_tx_vente')}</option>
+              <option value="location" ${existing && existing.transactionType === 'location' ? 'selected' : ''}>${t('immo_tx_location')}</option>
             </select>
           </div>
           <div class="field" style="flex:1">
-            <label for="immo-type">Type de bien</label>
+            <label for="immo-type">${t('immo_field_type')}</label>
             <select id="immo-type" class="select-input">${typeOptions}</select>
           </div>
         </div>
         <div class="field">
-          <label for="immo-city">Ville / quartier</label>
+          <label for="immo-city">${t('immo_field_city')}</label>
           <input type="text" id="immo-city" class="text-input" maxlength="80" value="${existing ? escapeHtml(existing.city || '') : ''}">
         </div>
         <div class="field">
-          <label for="immo-price">Prix en $ ${existing && existing.transactionType === 'location' ? '(par mois)' : ''}</label>
+          <label for="immo-price">${t('immo_field_price_label')} ${existing && existing.transactionType === 'location' ? t('immo_field_price_permonth') : ''}</label>
           <input type="number" id="immo-price" class="text-input" min="0" step="1" value="${existing ? (existing.price || '') : ''}">
         </div>
         <div style="display:flex;gap:8px">
           <div class="field" style="flex:1">
-            <label for="immo-bedrooms">Chambres (facultatif)</label>
+            <label for="immo-bedrooms">${t('immo_field_bedrooms')}</label>
             <input type="number" id="immo-bedrooms" class="text-input" min="0" value="${existing && existing.bedrooms ? existing.bedrooms : ''}">
           </div>
           <div class="field" style="flex:1">
-            <label for="immo-bathrooms">Salles de bain (facultatif)</label>
+            <label for="immo-bathrooms">${t('immo_field_bathrooms')}</label>
             <input type="number" id="immo-bathrooms" class="text-input" min="0" value="${existing && existing.bathrooms ? existing.bathrooms : ''}">
           </div>
         </div>
         <div class="field">
-          <label for="immo-surface">Superficie (facultatif)</label>
-          <input type="text" id="immo-surface" class="text-input" placeholder="ex: 120 m²" value="${existing ? escapeHtml(existing.surfaceArea || '') : ''}">
+          <label for="immo-surface">${t('immo_field_surface')}</label>
+          <input type="text" id="immo-surface" class="text-input" placeholder="${t('immo_field_surface_placeholder')}" value="${existing ? escapeHtml(existing.surfaceArea || '') : ''}">
         </div>
         <div class="field">
-          <label for="immo-description">Description</label>
+          <label for="immo-description">${t('immo_field_description')}</label>
           <textarea id="immo-description" class="text-input" rows="3" style="resize:vertical" maxlength="500">${existing ? escapeHtml(existing.description || '') : ''}</textarea>
         </div>
         <div class="field">
-          <label for="immo-whatsapp">WhatsApp de contact</label>
+          <label for="immo-whatsapp">${t('immo_field_whatsapp')}</label>
           <input type="tel" id="immo-whatsapp" class="text-input" placeholder="+243..." value="${existing ? escapeHtml(existing.whatsapp || '') : ''}">
         </div>
         ${renderContactFieldsHtml('immo', existing)}
-        <label class="field-label" style="display:block">Photos (facultatif, 5 max)</label>
+        <label class="field-label" style="display:block">${t('immo_photos_label')}</label>
         <div id="immo-photo-rows"></div>
-        <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:6px 0 14px" onclick="addImmoPhotoRow()">+ Ajouter une photo</button>
+        <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:6px 0 14px" onclick="addImmoPhotoRow()">${t('immo_add_photo_btn')}</button>
 
-        <button class="btn btn-primary" id="immo-save-btn" style="width:100%;justify-content:center" onclick="saveImmoProperty()">${existing ? 'Enregistrer les modifications' : 'Publier'}</button>
+        <button class="btn btn-primary" id="immo-save-btn" style="width:100%;justify-content:center" onclick="saveImmoProperty()">${existing ? t('immo_save_edit_btn') : t('common_publish')}</button>
         <p class="muted small" id="immo-form-msg" style="margin-top:6px"></p>
       </div>
     </div>`;
@@ -10463,13 +10463,13 @@ async function saveImmoProperty() {
   const whatsapp = document.getElementById('immo-whatsapp').value.trim();
 
   if (!title || !city || !price || !whatsapp) {
-    msgEl.textContent = 'Merci de remplir au moins le titre, la ville, le prix et le WhatsApp.';
+    msgEl.textContent = t('immo_form_required_msg');
     return;
   }
 
   if (btn.disabled) return;
   btn.disabled = true;
-  btn.textContent = 'Enregistrement...';
+  btn.textContent = t('immo_saving_btn');
   try {
     const photos = await collectGalleryPhotoUrls('#immo-photo-rows .gallery-photo-row', 'immobilier', 5);
     const payload = {
@@ -10479,13 +10479,13 @@ async function saveImmoProperty() {
     };
     if (editingImmoId) {
       await db.collection('properties').doc(editingImmoId).update(payload);
-      showToast('Annonce mise à jour', 'success');
+      showToast(t('immo_updated_toast'), 'success');
     } else {
       await db.collection('properties').add({
-        ...payload, ownerUid: currentUser.uid, ownerName: currentUser.name || 'Utilisateur',
+        ...payload, ownerUid: currentUser.uid, ownerName: currentUser.name || t('common_user_fallback'),
         status: 'disponible', createdAt: new Date().toISOString()
       });
-      showToast('Annonce publiée', 'success');
+      showToast(t('immo_published_toast'), 'success');
     }
     document.getElementById('immo-form-modal').remove();
     immoCache = null;
@@ -10494,14 +10494,14 @@ async function saveImmoProperty() {
   } catch (e) {
     msgEl.textContent = friendlyErrorMessage(e);
     btn.disabled = false;
-    btn.textContent = editingImmoId ? 'Enregistrer les modifications' : 'Publier';
+    btn.textContent = editingImmoId ? t('immo_save_edit_btn') : t('common_publish');
   }
 }
 
 async function toggleImmoStatus(propertyId, newStatus) {
   try {
     await db.collection('properties').doc(propertyId).update({ status: newStatus });
-    showToast('Statut mis à jour', 'success');
+    showToast(t('immo_status_updated_toast'), 'success');
     immoCache = null;
     loadMyImmoProperties();
   } catch (e) {
@@ -10510,10 +10510,10 @@ async function toggleImmoStatus(propertyId, newStatus) {
 }
 
 async function deleteImmoProperty(propertyId) {
-  if (!confirm('Supprimer définitivement cette annonce ?')) return;
+  if (!confirm(t('immo_delete_confirm'))) return;
   try {
     await db.collection('properties').doc(propertyId).delete();
-    showToast('Annonce supprimée', 'info');
+    showToast(t('immo_deleted_toast'), 'info');
     immoCache = null;
     loadMyImmoProperties();
   } catch (e) {
@@ -11099,11 +11099,11 @@ async function loadMyQuotes() {
    n'est connecte, le code de detection de sous-domaine ci-dessous reste
    inactif (aucune casse) et pourra s'activer sans rien reecrire. */
 const SITE_TEMPLATES = {
-  classique: { label: 'Classique', accent: '#2563eb' },
-  sombre: { label: 'Sombre', accent: '#111827' },
-  chaleureux: { label: 'Chaleureux', accent: '#e11d48' },
-  doux: { label: 'Doux (Premium)', accent: '#db2777', premium: true },
-  nature: { label: 'Nature (Premium)', accent: '#15803d', premium: true }
+  classique: { label: 'site_template_classique', accent: '#2563eb' },
+  sombre: { label: 'site_template_sombre', accent: '#111827' },
+  chaleureux: { label: 'site_template_chaleureux', accent: '#e11d48' },
+  doux: { label: 'site_template_doux', accent: '#db2777', premium: true },
+  nature: { label: 'site_template_nature', accent: '#15803d', premium: true }
 };
 const SITE_PREMIUM_PRICE = 5; // en $, par mois
 const SITE_FREE_PHOTO_LIMIT = 6;
@@ -11124,16 +11124,16 @@ function openSiteBuilderScreen() {
 async function loadMySite() {
   const statusEl = document.getElementById('site-builder-status');
   if (!currentUser) {
-    statusEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Connecte-toi pour créer ton site.</p>';
+    statusEl.innerHTML = `<p class="muted small" style="text-align:center;padding:20px 0">${t('site_login_create_prompt')}</p>`;
     return;
   }
-  statusEl.innerHTML = '<p class="muted small">Chargement...</p>';
+  statusEl.innerHTML = `<p class="muted small">${t('common_loading')}</p>`;
   try {
     const snap = await db.collection('mini_sites').doc(currentUser.uid).get();
     mySiteCache = snap.exists ? snap.data() : null;
     renderSiteStatusView();
   } catch (e) {
-    statusEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+    statusEl.innerHTML = `<p class="muted small">${t('site_load_error_prefix')} ${e.message}</p>`;
   }
 }
 
@@ -11141,8 +11141,8 @@ function renderSiteStatusView() {
   const statusEl = document.getElementById('site-builder-status');
   if (!mySiteCache) {
     statusEl.innerHTML = `
-      <p class="muted small" style="margin-bottom:14px">Crée gratuitement une page de présentation pour ton activité : présentation, services, photos, contact WhatsApp. Elle sera accessible via un lien que tu pourras partager partout.</p>
-      <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="openSiteForm()">Créer mon site</button>`;
+      <p class="muted small" style="margin-bottom:14px">${t('site_create_intro')}</p>
+      <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="openSiteForm()">${t('site_create_btn')}</button>`;
     return;
   }
   const site = mySiteCache;
@@ -11154,43 +11154,43 @@ function renderSiteStatusView() {
   const premiumBlockHtml = isPremium ? `
     <div class="order-box" style="margin-bottom:14px;border-color:#f5a623">
       <div style="display:flex;justify-content:space-between;align-items:center">
-        <strong>Premium actif ${ICON_SPARKLE}</strong>
-        <span class="shop-card-category" style="background:#fff4e0;color:#b5720b">Jusqu'au ${escapeHtml(new Date(site.premiumUntil).toLocaleDateString())}</span>
+        <strong>${t('site_premium_active_label')} ${ICON_SPARKLE}</strong>
+        <span class="shop-card-category" style="background:#fff4e0;color:#b5720b">${t('site_premium_until_prefix')} ${escapeHtml(new Date(site.premiumUntil).toLocaleDateString())}</span>
       </div>
-      <div class="muted small" style="margin:8px 0">${site.viewsCount || 0} visite(s) depuis la création du site</div>
-      ${subdomainLink ? `<p class="muted small" style="word-break:break-all;margin-bottom:8px">Adresse perso : ${escapeHtml(subdomainLink)}</p>` : `<p class="muted small" style="margin-bottom:8px">Adresse perso en sous-domaine : bientôt disponible, dès qu'un nom de domaine sera connecté.</p>`}
-      <button class="btn btn-outline btn-sm" onclick="purchaseSitePremium()">Renouveler (+30 jours, ${SITE_PREMIUM_PRICE}$)</button>
+      <div class="muted small" style="margin:8px 0">${site.viewsCount || 0} ${t('site_views_suffix')}</div>
+      ${subdomainLink ? `<p class="muted small" style="word-break:break-all;margin-bottom:8px">${t('site_personal_address_prefix')} ${escapeHtml(subdomainLink)}</p>` : `<p class="muted small" style="margin-bottom:8px">${t('site_personal_address_coming_soon')}</p>`}
+      <button class="btn btn-outline btn-sm" onclick="purchaseSitePremium()">${t('site_renew_prefix')} ${SITE_PREMIUM_PRICE}$)</button>
     </div>` : `
     <div class="order-box" style="margin-bottom:14px">
-      <strong>Passe en Premium — ${SITE_PREMIUM_PRICE}$/mois</strong>
+      <strong>${t('site_upgrade_title_prefix')} ${SITE_PREMIUM_PRICE}$/mois</strong>
       <ul class="muted small" style="margin:8px 0 10px;padding-left:18px;line-height:1.6">
-        <li>Jusqu'à ${SITE_PREMIUM_PHOTO_LIMIT} photos (au lieu de ${SITE_FREE_PHOTO_LIMIT})</li>
-        <li>Thèmes supplémentaires</li>
-        <li>Aucune mention "Créé avec Coeurnoh Universe"</li>
-        <li>Statistiques de visites</li>
-        <li>Adresse perso en sous-domaine (dès qu'un domaine sera connecté)</li>
+        <li>${t('site_feature_photos_prefix')} ${SITE_PREMIUM_PHOTO_LIMIT} ${t('site_feature_photos_mid')} ${SITE_FREE_PHOTO_LIMIT})</li>
+        <li>${t('site_feature_themes')}</li>
+        <li>${t('site_feature_no_branding')}</li>
+        <li>${t('site_feature_stats')}</li>
+        <li>${t('site_feature_subdomain')}</li>
       </ul>
-      <button class="btn btn-primary btn-sm" onclick="purchaseSitePremium()">Activer le Premium</button>
+      <button class="btn btn-primary btn-sm" onclick="purchaseSitePremium()">${t('site_activate_premium_btn')}</button>
     </div>`;
 
   statusEl.innerHTML = `
     <div class="order-box" style="margin-bottom:14px">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
-        <strong style="font-size:1.05rem">${escapeHtml(site.businessName || 'Mon site')}</strong>
-        <span class="shop-card-category">${site.status === 'published' ? 'Publié' : 'Brouillon'}</span>
+        <strong style="font-size:1.05rem">${escapeHtml(site.businessName || t('site_default_name'))}</strong>
+        <span class="shop-card-category">${site.status === 'published' ? t('site_status_published') : t('site_status_draft')}</span>
       </div>
       <p class="muted small" id="site-link-text" style="margin:8px 0;word-break:break-all">${escapeHtml(link)}</p>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn btn-outline btn-sm" onclick="copySiteLink()">Copier le lien</button>
-        <a class="btn btn-outline btn-sm" href="${escapeHtml(link)}" target="_blank">Aperçu</a>
+        <button class="btn btn-outline btn-sm" onclick="copySiteLink()">${t('site_copy_link_btn')}</button>
+        <a class="btn btn-outline btn-sm" href="${escapeHtml(link)}" target="_blank">${t('site_preview_btn')}</a>
       </div>
     </div>
     ${premiumBlockHtml}
-    <button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="openSiteForm()">Modifier mon site</button>
+    <button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="openSiteForm()">${t('site_edit_btn')}</button>
     ${site.status === 'published'
-      ? `<button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="toggleSitePublish('draft')">Dépublier</button>`
-      : `<button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:8px" onclick="toggleSitePublish('published')">Publier mon site</button>`}
-    <button class="btn btn-outline" style="width:100%;justify-content:center;color:var(--red)" onclick="deleteMySite()">Supprimer mon site</button>`;
+      ? `<button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="toggleSitePublish('draft')">${t('site_unpublish_btn')}</button>`
+      : `<button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:8px" onclick="toggleSitePublish('published')">${t('site_publish_btn')}</button>`}
+    <button class="btn btn-outline" style="width:100%;justify-content:center;color:var(--red)" onclick="deleteMySite()">${t('site_delete_btn')}</button>`;
 }
 
 /* SITE_ROOT_DOMAIN reste "null" tant qu'aucun nom de domaine n'est connecte
@@ -11204,7 +11204,7 @@ const SITE_ROOT_DOMAIN = null;
 
 async function purchaseSitePremium() {
   if (!currentUser || !mySiteCache) return;
-  if (!confirm(`Activer/renouveler le Premium de ton site pour ${SITE_PREMIUM_PRICE}$ (30 jours), déduits de ton solde Coeurnoh Universe ?`)) return;
+  if (!confirm(`${t('site_confirm_premium_prefix')} ${SITE_PREMIUM_PRICE}$ ${t('site_confirm_premium_suffix')}`)) return;
   try {
     const idToken = await auth.currentUser.getIdToken();
     const res = await fetch('/api/payments-actions', {
@@ -11214,10 +11214,10 @@ async function purchaseSitePremium() {
     });
     const data = await res.json();
     if (!data.success) {
-      showToast(data.error || 'Paiement impossible', 'error');
+      showToast(data.error || t('site_purchase_error'), 'error');
       return;
     }
-    showToast('Site Premium activé 🎉', 'success');
+    showToast(t('site_premium_activated_toast'), 'success');
     mySiteCache.premium = true;
     mySiteCache.premiumUntil = data.premiumUntil;
     renderSiteStatusView();
@@ -11228,14 +11228,14 @@ async function purchaseSitePremium() {
 
 function copySiteLink() {
   const text = document.getElementById('site-link-text').textContent;
-  if (navigator.clipboard) navigator.clipboard.writeText(text).then(() => showToast('Lien copié', 'success'));
+  if (navigator.clipboard) navigator.clipboard.writeText(text).then(() => showToast(t('site_link_copied_toast'), 'success'));
 }
 
 async function toggleSitePublish(newStatus) {
   try {
     await db.collection('mini_sites').doc(currentUser.uid).update({ status: newStatus });
     mySiteCache.status = newStatus;
-    showToast(newStatus === 'published' ? 'Site publié 🎉' : 'Site dépublié', 'success');
+    showToast(newStatus === 'published' ? t('site_published_toast') : t('site_unpublished_toast'), 'success');
     renderSiteStatusView();
   } catch (e) {
     showToast(friendlyErrorMessage(e), 'error');
@@ -11243,7 +11243,7 @@ async function toggleSitePublish(newStatus) {
 }
 
 async function deleteMySite() {
-  if (!confirm('Supprimer définitivement ton site ? Le lien cessera de fonctionner.')) return;
+  if (!confirm(t('site_delete_confirm'))) return;
   try {
     const slug = mySiteCache.slug;
     const batch = db.batch();
@@ -11251,7 +11251,7 @@ async function deleteMySite() {
     if (slug) batch.delete(db.collection('site_slugs').doc(slug));
     await batch.commit();
     mySiteCache = null;
-    showToast('Site supprimé', 'info');
+    showToast(t('site_deleted_toast'), 'info');
     renderSiteStatusView();
   } catch (e) {
     showToast(friendlyErrorMessage(e), 'error');
@@ -11276,42 +11276,42 @@ function openSiteForm() {
   currentSiteCoverUrl = s.coverImageUrl || null;
 
   const templateOptions = Object.entries(SITE_TEMPLATES)
-    .map(([val, t]) => `<option value="${val}" ${s.template === val ? 'selected' : ''} ${t.premium && !isPremium ? 'disabled' : ''}>${escapeHtml(t.label)}${t.premium && !isPremium ? ' — nécessite Premium' : ''}</option>`).join('');
+    .map(([val, tpl]) => `<option value="${val}" ${s.template === val ? 'selected' : ''} ${tpl.premium && !isPremium ? 'disabled' : ''}>${t(tpl.label)}${tpl.premium ? ' ' + t('site_premium_suffix') : ''}${tpl.premium && !isPremium ? ' ' + t('site_requires_premium_suffix') : ''}</option>`).join('');
 
   const html = `
     <div class="modal-overlay" id="site-form-modal">
       <div class="modal" style="max-width:480px">
         <button class="modal-close" onclick="document.getElementById('site-form-modal').remove()" aria-label="Fermer">×</button>
-        <h3 style="margin-bottom:14px">${editingSiteExisting ? 'Modifier mon site' : 'Créer mon site'}</h3>
+        <h3 style="margin-bottom:14px">${editingSiteExisting ? t('site_form_title_edit') : t('site_form_title_new')}</h3>
         <div class="modal-error hidden" id="site-form-error"></div>
 
         <div class="field">
-          <label for="site-slug">Adresse de ton site</label>
+          <label for="site-slug">${t('site_field_slug_label')}</label>
           <div class="muted small" style="margin-bottom:4px;word-break:break-all">${escapeHtml(window.location.origin)}/?site=<span id="site-slug-preview">${escapeHtml(s.slug || '')}</span></div>
-          <input type="text" id="site-slug" class="text-input" placeholder="ex: boutique-fatou" maxlength="30" value="${escapeHtml(s.slug || '')}" oninput="document.getElementById('site-slug-preview').textContent = this.value.trim().toLowerCase()">
+          <input type="text" id="site-slug" class="text-input" placeholder="${t('site_field_slug_ph')}" maxlength="30" value="${escapeHtml(s.slug || '')}" oninput="document.getElementById('site-slug-preview').textContent = this.value.trim().toLowerCase()">
         </div>
         <div class="field">
-          <label for="site-template">Thème</label>
+          <label for="site-template">${t('site_field_template')}</label>
           <select id="site-template" class="select-input">${templateOptions}</select>
         </div>
         <div class="field">
-          <label for="site-business-name">Nom de l'activité</label>
+          <label for="site-business-name">${t('site_field_business_name')}</label>
           <input type="text" id="site-business-name" class="text-input" maxlength="80" value="${escapeHtml(s.businessName || '')}">
         </div>
         <div class="field">
-          <label for="site-tagline">Phrase d'accroche</label>
-          <input type="text" id="site-tagline" class="text-input" maxlength="120" placeholder="ex: Coiffure et beauté à domicile" value="${escapeHtml(s.tagline || '')}">
+          <label for="site-tagline">${t('site_field_tagline')}</label>
+          <input type="text" id="site-tagline" class="text-input" maxlength="120" placeholder="${t('site_field_tagline_ph')}" value="${escapeHtml(s.tagline || '')}">
         </div>
         <div class="field">
-          <label for="site-about">À propos</label>
+          <label for="site-about">${t('site_field_about')}</label>
           <textarea id="site-about" class="text-input" rows="3" maxlength="800">${escapeHtml(s.aboutText || '')}</textarea>
         </div>
         <div class="field">
-          <label for="site-logo-file">Logo (facultatif)</label>
+          <label for="site-logo-file">${t('site_field_logo')}</label>
           <input type="file" id="site-logo-file" class="file-input-hidden" accept="image/*" onchange="handleSiteLogoFileChange(event)">
           <label for="site-logo-file" class="file-picker-btn" id="site-logo-file-label">
             <span class="file-picker-icon" id="site-logo-file-icon">🖼️</span>
-            <span class="file-picker-text" id="site-logo-file-text">${s.logoUrl ? '✅ Logo déjà enregistré (choisir pour remplacer)' : 'Choisir une image'}</span>
+            <span class="file-picker-text" id="site-logo-file-text">${s.logoUrl ? t('site_logo_already_saved') : t('common_choose_image')}</span>
           </label>
           <div class="upload-progress-wrap hidden" id="site-logo-progress-wrap">
             <div class="upload-progress-fill" id="site-logo-progress-fill"></div>
@@ -11320,11 +11320,11 @@ function openSiteForm() {
           <div id="site-logo-preview">${s.logoUrl ? `<img src="${escapeHtml(s.logoUrl)}" class="post-media-preview-media" alt="">` : ''}</div>
         </div>
         <div class="field">
-          <label for="site-cover-file">Image de couverture (facultatif)</label>
+          <label for="site-cover-file">${t('site_field_cover')}</label>
           <input type="file" id="site-cover-file" class="file-input-hidden" accept="image/*" onchange="handleSiteCoverFileChange(event)">
           <label for="site-cover-file" class="file-picker-btn" id="site-cover-file-label">
             <span class="file-picker-icon" id="site-cover-file-icon">🖼️</span>
-            <span class="file-picker-text" id="site-cover-file-text">${s.coverImageUrl ? '✅ Image déjà enregistrée (choisir pour remplacer)' : 'Choisir une image'}</span>
+            <span class="file-picker-text" id="site-cover-file-text">${s.coverImageUrl ? t('site_cover_already_saved') : t('common_choose_image')}</span>
           </label>
           <div class="upload-progress-wrap hidden" id="site-cover-progress-wrap">
             <div class="upload-progress-fill" id="site-cover-progress-fill"></div>
@@ -11333,46 +11333,46 @@ function openSiteForm() {
           <div id="site-cover-preview">${s.coverImageUrl ? `<img src="${escapeHtml(s.coverImageUrl)}" class="post-media-preview-media" alt="">` : ''}</div>
         </div>
 
-        <label class="field-label" style="display:block">Services / produits (facultatif)</label>
+        <label class="field-label" style="display:block">${t('site_field_services')}</label>
         <div id="site-service-rows"></div>
-        <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:6px 0 14px" onclick="addSiteServiceRow()">+ Ajouter</button>
+        <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:6px 0 14px" onclick="addSiteServiceRow()">${t('site_add_service_btn')}</button>
 
-        <label class="field-label" style="display:block">Photos (facultatif, ${photoLimit} max${isPremium ? '' : ', Premium : jusqu\'à ' + SITE_PREMIUM_PHOTO_LIMIT})</label>
+        <label class="field-label" style="display:block">${t('site_field_photos_prefix')} ${photoLimit} ${t('site_field_photos_max_suffix')}${isPremium ? '' : t('site_field_photos_premium_hint') + ' ' + SITE_PREMIUM_PHOTO_LIMIT})</label>
         <div id="site-photo-rows"></div>
-        <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:6px 0 14px" onclick="addSitePhotoRow(null, ${photoLimit})">+ Ajouter une photo</button>
+        <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:6px 0 14px" onclick="addSitePhotoRow(null, ${photoLimit})">${t('site_add_photo_btn')}</button>
 
         <div class="field">
-          <label for="site-whatsapp">WhatsApp de contact</label>
+          <label for="site-whatsapp">${t('site_field_whatsapp')}</label>
           <input type="tel" id="site-whatsapp" class="text-input" placeholder="+243..." value="${escapeHtml(s.contactWhatsapp || '')}">
         </div>
         <div class="field">
-          <label for="site-phone">Téléphone (facultatif)</label>
+          <label for="site-phone">${t('site_field_phone')}</label>
           <input type="tel" id="site-phone" class="text-input" value="${escapeHtml(s.contactPhone || '')}">
         </div>
         <div class="field">
-          <label for="site-email">E-mail (facultatif)</label>
+          <label for="site-email">${t('site_field_email')}</label>
           <input type="email" id="site-email" class="text-input" value="${escapeHtml(s.contactEmail || '')}">
         </div>
         <div class="field">
-          <label for="site-address">Adresse / ville (facultatif)</label>
+          <label for="site-address">${t('site_field_address')}</label>
           <input type="text" id="site-address" class="text-input" value="${escapeHtml(s.address || '')}">
         </div>
         <div style="display:flex;gap:8px">
           <div class="field" style="flex:1">
-            <label for="site-facebook">Facebook (facultatif)</label>
+            <label for="site-facebook">${t('site_field_facebook')}</label>
             <input type="url" id="site-facebook" class="text-input" placeholder="https://..." value="${escapeHtml((s.socialLinks && s.socialLinks.facebook) || '')}">
           </div>
           <div class="field" style="flex:1">
-            <label for="site-instagram">Instagram (facultatif)</label>
+            <label for="site-instagram">${t('site_field_instagram')}</label>
             <input type="url" id="site-instagram" class="text-input" placeholder="https://..." value="${escapeHtml((s.socialLinks && s.socialLinks.instagram) || '')}">
           </div>
           <div class="field" style="flex:1">
-            <label for="site-tiktok">TikTok (facultatif)</label>
+            <label for="site-tiktok">${t('site_field_tiktok')}</label>
             <input type="url" id="site-tiktok" class="text-input" placeholder="https://tiktok.com/@..." value="${escapeHtml((s.socialLinks && s.socialLinks.tiktok) || '')}">
           </div>
         </div>
 
-        <button class="btn btn-primary" id="site-form-submit-btn" style="width:100%;justify-content:center" onclick="saveMySite()">Enregistrer</button>
+        <button class="btn btn-primary" id="site-form-submit-btn" style="width:100%;justify-content:center" onclick="saveMySite()">${t('common_save')}</button>
         <p class="muted small" id="site-form-msg" style="margin-top:6px"></p>
       </div>
     </div>`;
@@ -11389,8 +11389,8 @@ function addSiteServiceRow(service) {
   const row = document.createElement('div');
   row.className = 'invoice-item-row';
   row.innerHTML = `
-    <input type="text" class="text-input site-service-name" placeholder="Nom du service/produit" value="${escapeHtml(service ? service.name || '' : '')}" style="flex:2">
-    <input type="text" class="text-input site-service-price" placeholder="Prix (ex: 10$)" value="${escapeHtml(service ? service.price || '' : '')}" style="flex:1">
+    <input type="text" class="text-input site-service-name" placeholder="${t('site_service_name_ph')}" value="${escapeHtml(service ? service.name || '' : '')}" style="flex:2">
+    <input type="text" class="text-input site-service-price" placeholder="${t('site_service_price_ph')}" value="${escapeHtml(service ? service.price || '' : '')}" style="flex:1">
     <button type="button" class="invoice-row-remove" onclick="this.parentElement.remove()" aria-label="Retirer">×</button>`;
   rowsEl.appendChild(row);
 }
@@ -11410,7 +11410,7 @@ function handleSiteLogoFileChange(event) {
   pendingSiteLogoFile = (event.target.files && event.target.files[0]) || null;
   const text = document.getElementById('site-logo-file-text');
   const label = document.getElementById('site-logo-file-label');
-  if (text) text.textContent = pendingSiteLogoFile ? `✅ ${pendingSiteLogoFile.name}` : (currentSiteLogoUrl ? '✅ Logo déjà enregistré (choisir pour remplacer)' : 'Choisir une image');
+  if (text) text.textContent = pendingSiteLogoFile ? `✅ ${pendingSiteLogoFile.name}` : (currentSiteLogoUrl ? t('site_logo_already_saved') : t('common_choose_image'));
   if (label) label.classList.toggle('has-file', !!(pendingSiteLogoFile || currentSiteLogoUrl));
   const previewEl = document.getElementById('site-logo-preview');
   if (previewEl) {
@@ -11423,7 +11423,7 @@ function handleSiteCoverFileChange(event) {
   pendingSiteCoverFile = (event.target.files && event.target.files[0]) || null;
   const text = document.getElementById('site-cover-file-text');
   const label = document.getElementById('site-cover-file-label');
-  if (text) text.textContent = pendingSiteCoverFile ? `✅ ${pendingSiteCoverFile.name}` : (currentSiteCoverUrl ? '✅ Image déjà enregistrée (choisir pour remplacer)' : 'Choisir une image');
+  if (text) text.textContent = pendingSiteCoverFile ? `✅ ${pendingSiteCoverFile.name}` : (currentSiteCoverUrl ? t('site_cover_already_saved') : t('common_choose_image'));
   if (label) label.classList.toggle('has-file', !!(pendingSiteCoverFile || currentSiteCoverUrl));
   const previewEl = document.getElementById('site-cover-preview');
   if (previewEl) {
@@ -11462,24 +11462,24 @@ async function saveMySite() {
   };
 
   if (!/^[a-z0-9-]{3,30}$/.test(slug)) {
-    errEl.textContent = "L'adresse du site doit faire 3 à 30 caractères : lettres minuscules, chiffres et tirets uniquement.";
+    errEl.textContent = t('site_slug_invalid_error');
     errEl.classList.remove('hidden');
     return;
   }
   if (!businessName || !aboutText || !contactWhatsapp) {
-    errEl.textContent = 'Merci de remplir au moins le nom, le "à propos" et le WhatsApp de contact.';
+    errEl.textContent = t('site_required_fields');
     errEl.classList.remove('hidden');
     return;
   }
   if (SITE_TEMPLATES[template] && SITE_TEMPLATES[template].premium && !isPremiumNow) {
-    errEl.textContent = 'Ce thème est réservé aux sites Premium. Active le Premium ou choisis un autre thème.';
+    errEl.textContent = t('site_theme_premium_required');
     errEl.classList.remove('hidden');
     return;
   }
 
   if (btn.disabled) return;
   btn.disabled = true;
-  btn.textContent = 'Enregistrement...';
+  btn.textContent = t('common_saving');
 
   const uid = currentUser.uid;
   const oldSlug = editingSiteExisting ? editingSiteExisting.slug : null;
@@ -11552,18 +11552,18 @@ async function saveMySite() {
     });
 
     document.getElementById('site-form-modal').remove();
-    showToast('Site enregistré', 'success');
+    showToast(t('site_saved_toast'), 'success');
     editingSiteExisting = null;
     loadMySite();
   } catch (e) {
     if (e.message === 'SLUG_TAKEN') {
-      errEl.textContent = 'Cette adresse est déjà utilisée par quelqu\'un d\'autre, choisis-en une autre.';
+      errEl.textContent = t('site_slug_taken_error');
     } else {
       errEl.textContent = friendlyErrorMessage(e);
     }
     errEl.classList.remove('hidden');
     btn.disabled = false;
-    btn.textContent = 'Enregistrer';
+    btn.textContent = t('common_save');
   }
 }
 
@@ -11587,13 +11587,13 @@ async function checkForPublicSiteView() {
   if (!slug) return;
 
   const overlay = document.getElementById('public-site-overlay');
-  overlay.innerHTML = '<p class="muted small" style="padding:40px;text-align:center">Chargement du site...</p>';
+  overlay.innerHTML = `<p class="muted small" style="padding:40px;text-align:center">${t('site_loading_public')}</p>`;
   overlay.classList.remove('hidden');
 
   try {
     const snap = await db.collection('mini_sites').where('slug', '==', slug).limit(1).get();
     if (snap.empty || snap.docs[0].data().status !== 'published') {
-      overlay.innerHTML = '<p class="muted small" style="padding:40px;text-align:center">Ce site n\'existe pas ou n\'est plus disponible.</p>';
+      overlay.innerHTML = `<p class="muted small" style="padding:40px;text-align:center">${t('site_not_found_public')}</p>`;
       return;
     }
     const siteDoc = snap.docs[0];
@@ -11602,12 +11602,12 @@ async function checkForPublicSiteView() {
     // ralentir l'affichage du site pour le visiteur.
     siteDoc.ref.update({ viewsCount: firebase.firestore.FieldValue.increment(1) }).catch(() => {});
   } catch (e) {
-    overlay.innerHTML = `<p class="muted small" style="padding:40px;text-align:center">Erreur de chargement : ${escapeHtml(e.message)}</p>`;
+    overlay.innerHTML = `<p class="muted small" style="padding:40px;text-align:center">${t('site_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
   }
 }
 
 function renderPublicSiteHtml(site, overlay) {
-  document.title = (site.businessName || 'Site') + ' — CoeurNoh';
+  document.title = (site.businessName || t('site_default_title_public')) + ' — CoeurNoh';
   const accent = (SITE_TEMPLATES[site.template] || SITE_TEMPLATES.classique).accent;
   const waLink = site.contactWhatsapp ? `https://wa.me/${site.contactWhatsapp.replace(/\D/g, '')}` : null;
   const gallery = Array.isArray(site.gallery) ? site.gallery.filter(Boolean) : [];
@@ -11628,14 +11628,14 @@ function renderPublicSiteHtml(site, overlay) {
         ${site.aboutText ? `<p style="white-space:pre-wrap;line-height:1.5;margin-bottom:20px">${escapeHtml(site.aboutText)}</p>` : ''}
 
         ${services.length > 0 ? `
-          <h3 style="color:${accent};margin-bottom:10px">Services & produits</h3>
+          <h3 style="color:${accent};margin-bottom:10px">${t('site_services_heading')}</h3>
           <div style="margin-bottom:20px">${services.map(sv => `
             <div class="order-box" style="margin-bottom:8px">
               <strong>${escapeHtml(sv.name)}</strong>${sv.price ? ` — ${escapeHtml(sv.price)}` : ''}
             </div>`).join('')}</div>` : ''}
 
         ${gallery.length > 0 ? `
-          <h3 style="color:${accent};margin-bottom:10px">Photos</h3>
+          <h3 style="color:${accent};margin-bottom:10px">${t('site_photos_heading')}</h3>
           <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px">
             ${gallery.map(g => `<img src="${escapeHtml(g)}" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px">`).join('')}
           </div>` : ''}
@@ -11643,15 +11643,15 @@ function renderPublicSiteHtml(site, overlay) {
         ${site.address ? `<p class="muted small" style="margin-bottom:8px">${ICON_LOCATION} ${escapeHtml(site.address)}</p>` : ''}
 
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin:20px 0">
-          ${waLink ? `<a class="btn btn-primary" href="${escapeHtml(waLink)}" target="_blank">${ICON_WHATSAPP} Contacter sur WhatsApp</a>` : ''}
-          ${site.contactPhone ? `<a class="btn btn-outline" href="tel:${escapeHtml(site.contactPhone)}">${ICON_PHONE} Appeler</a>` : ''}
-          ${site.contactEmail ? `<a class="btn btn-outline" href="mailto:${escapeHtml(site.contactEmail)}">${ICON_MAIL} E-mail</a>` : ''}
+          ${waLink ? `<a class="btn btn-primary" href="${escapeHtml(waLink)}" target="_blank">${ICON_WHATSAPP} ${t('site_whatsapp_contact_btn')}</a>` : ''}
+          ${site.contactPhone ? `<a class="btn btn-outline" href="tel:${escapeHtml(site.contactPhone)}">${ICON_PHONE} ${t('site_call_btn')}</a>` : ''}
+          ${site.contactEmail ? `<a class="btn btn-outline" href="mailto:${escapeHtml(site.contactEmail)}">${ICON_MAIL} ${t('site_email_btn')}</a>` : ''}
           ${site.socialLinks && site.socialLinks.facebook ? `<a class="btn btn-outline" href="${escapeHtml(site.socialLinks.facebook)}" target="_blank">${ICON_FACEBOOK} Facebook</a>` : ''}
           ${site.socialLinks && site.socialLinks.instagram ? `<a class="btn btn-outline" href="${escapeHtml(site.socialLinks.instagram)}" target="_blank">${ICON_INSTAGRAM} Instagram</a>` : ''}
           ${site.socialLinks && site.socialLinks.tiktok ? `<a class="btn btn-outline" href="${escapeHtml(site.socialLinks.tiktok)}" target="_blank">${ICON_TIKTOK} TikTok</a>` : ''}
         </div>
 
-        ${siteIsPremiumActive(site) ? '' : `<p class="muted small" style="text-align:center;margin-top:30px">Site créé avec <a href="${escapeHtml(window.location.origin)}" style="color:${accent}">Coeurnoh Universe</a></p>`}
+        ${siteIsPremiumActive(site) ? '' : `<p class="muted small" style="text-align:center;margin-top:30px">${t('site_made_with_prefix')} <a href="${escapeHtml(window.location.origin)}" style="color:${accent}">Coeurnoh Universe</a></p>`}
       </div>
     </div>`;
 }
@@ -11733,7 +11733,7 @@ async function loadBusinesses() {
     businessCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     runBusinessFilter();
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+    listEl.innerHTML = `<p class="muted small">${t('business_load_error_prefix')} ${e.message}</p>`;
   }
 }
 
@@ -11752,7 +11752,7 @@ function runBusinessFilter() {
   const query = document.getElementById('business-search-input').value.trim().toLowerCase();
   const matches = businessCache.filter(b => {
     if (businessSelectedCategory && b.category !== businessSelectedCategory) return false;
-    if (query && !`${b.businessName || ''} ${NEARBY_CATEGORY_LABELS[b.category] || ''}`.toLowerCase().includes(query)) return false;
+    if (query && !`${b.businessName || ''} ${t(NEARBY_CATEGORY_LABELS[b.category]) || ''}`.toLowerCase().includes(query)) return false;
     return true;
   });
   matches.sort((a, b) => (businessIsProActive(b) ? 1 : 0) - (businessIsProActive(a) ? 1 : 0));
@@ -11763,7 +11763,7 @@ function renderBusinessCards(list) {
   const listEl = document.getElementById('business-browse-list');
   const visible = list.filter(b => !blockedSet.has(b.ownerUid));
   if (visible.length === 0) {
-    listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Aucune entreprise pour l\'instant.</p>';
+    listEl.innerHTML = `<p class="muted small" style="text-align:center;padding:20px 0">${t('business_empty_browse')}</p>`;
     return;
   }
   listEl.innerHTML = visible.map(b => `
@@ -11771,11 +11771,11 @@ function renderBusinessCards(list) {
       <div style="display:flex;align-items:center;gap:10px">
         ${b.logoUrl ? `<img src="${escapeHtml(b.logoUrl)}" style="width:44px;height:44px;border-radius:50%;object-fit:cover">` : ''}
         <div>
-          <strong>${escapeHtml(b.businessName || 'Entreprise')}</strong>${businessIsProActive(b) ? ' <span class="shop-card-category" style="background:#fff4e0;color:#b5720b">Pro</span>' : ''}
-          <div class="muted small">${escapeHtml(NEARBY_CATEGORY_LABELS[b.category] || '')}</div>
+          <strong>${escapeHtml(b.businessName || t('business_default_name'))}</strong>${businessIsProActive(b) ? ` <span class="shop-card-category" style="background:#fff4e0;color:#b5720b">${t('business_pro_badge')}</span>` : ''}
+          <div class="muted small">${t(NEARBY_CATEGORY_LABELS[b.category]) || ''}</div>
         </div>
       </div>
-      <button class="btn btn-outline btn-sm" style="margin-top:10px" onclick="openBusinessDetail('${b.ownerUid}')">Voir la page</button>
+      <button class="btn btn-outline btn-sm" style="margin-top:10px" onclick="openBusinessDetail('${b.ownerUid}')">${t('business_view_page_btn')}</button>
     </div>`).join('');
 }
 
@@ -11785,7 +11785,7 @@ async function openBusinessDetail(ownerUid) {
   if (!b) {
     try {
       const doc = await db.collection('businesses').doc(ownerUid).get();
-      if (!doc.exists) { showToast("Cette page n'existe plus", 'error'); return; }
+      if (!doc.exists) { showToast(t('business_gone'), 'error'); return; }
       b = { id: doc.id, ...doc.data() };
     } catch (e) { showToast(friendlyErrorMessage(e), 'error'); return; }
   }
@@ -11802,17 +11802,17 @@ async function openBusinessDetail(ownerUid) {
   const activeCoupons = (b.coupons || []).filter(c => c.active && (!c.expiresAt || new Date(c.expiresAt).getTime() > Date.now()));
   const catalogHtml = (b.catalog && b.catalog.length > 0) ? `
     <div class="biz-section" style="padding-top:4px">
-      <h4>${ICON_GRID3} Catalogue</h4>
+      <h4>${ICON_GRID3} ${t('business_catalog_heading')}</h4>
       <div class="biz-desc-card" style="margin:0">
         ${b.catalog.map(it => `<div style="display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--line)"><span>${escapeHtml(it.name || '')}</span><strong style="color:var(--green-dark);white-space:nowrap">${escapeHtml(it.price || '')}</strong></div>`).join('')}
       </div>
     </div>` : '';
   const couponsHtml = activeCoupons.length > 0 ? `
     <div class="biz-section" style="padding-top:4px">
-      <h4>${ICON_TAG} Promotions en cours</h4>
+      <h4>${ICON_TAG} ${t('business_promos_heading')}</h4>
       ${activeCoupons.map(c => `
         <div class="biz-desc-card" style="margin:0 0 10px;border-color:#f5a623;background:#fff8ec">
-          <strong style="color:#b5720b">${escapeHtml(c.discountLabel || 'Promo')}</strong> — <span class="muted small">code ${escapeHtml(c.code || '')}</span>
+          <strong style="color:#b5720b">${escapeHtml(c.discountLabel || t('business_default_promo_label'))}</strong> — <span class="muted small">code ${escapeHtml(c.code || '')}</span>
           ${c.description ? `<p class="muted small" style="margin:4px 0 0">${escapeHtml(c.description)}</p>` : ''}
         </div>`).join('')}
     </div>` : '';
@@ -11832,28 +11832,28 @@ async function openBusinessDetail(ownerUid) {
         <div class="biz-header">
           ${b.logoUrl ? `<img src="${escapeHtml(b.logoUrl)}" class="biz-avatar" alt="">` : `<div class="biz-avatar-placeholder">${escapeHtml(initial)}</div>`}
           <div class="biz-name-row">
-            <h2>${escapeHtml(b.businessName || 'Entreprise')}</h2>
-            ${businessIsProActive(b) ? `<span class="biz-pro-badge">${ICON_SPARKLE} Pro</span>` : ''}
+            <h2>${escapeHtml(b.businessName || t('business_default_name'))}</h2>
+            ${businessIsProActive(b) ? `<span class="biz-pro-badge">${ICON_SPARKLE} ${t('business_pro_badge')}</span>` : ''}
           </div>
-          <div class="biz-category-row">${escapeHtml(NEARBY_CATEGORY_LABELS[b.category] || '')}</div>
+          <div class="biz-category-row">${t(NEARBY_CATEGORY_LABELS[b.category]) || ''}</div>
           ${b.address ? `<div class="biz-meta-row">${ICON_LOCATION} ${escapeHtml(b.address)}</div>` : ''}
           ${b.hours ? `<div class="biz-meta-row">${ICON_CLOCK} ${escapeHtml(b.hours)}</div>` : ''}
           ${followBtnHtml ? `<div style="margin-top:14px">${followBtnHtml}</div>` : ''}
         </div>
         <div class="biz-actions-row">
-          ${waLink ? `<a class="btn btn-primary" href="${escapeHtml(waLink)}" target="_blank">${ICON_WHATSAPP} WhatsApp</a>` : ''}
-          ${b.phone ? `<a class="btn btn-outline" href="tel:${escapeHtml(b.phone)}">${ICON_PHONE} Appeler</a>` : ''}
-          ${b.email ? `<a class="btn btn-outline" href="mailto:${escapeHtml(b.email)}">${ICON_MAIL} E-mail</a>` : ''}
+          ${waLink ? `<a class="btn btn-primary" href="${escapeHtml(waLink)}" target="_blank">${ICON_WHATSAPP} ${t('business_whatsapp_btn')}</a>` : ''}
+          ${b.phone ? `<a class="btn btn-outline" href="tel:${escapeHtml(b.phone)}">${ICON_PHONE} ${t('business_call_btn')}</a>` : ''}
+          ${b.email ? `<a class="btn btn-outline" href="mailto:${escapeHtml(b.email)}">${ICON_MAIL} ${t('business_email_btn')}</a>` : ''}
           ${b.facebookUrl ? `<a class="btn btn-outline" href="${escapeHtml(b.facebookUrl)}" target="_blank">${ICON_FACEBOOK} Facebook</a>` : ''}
           ${b.tiktokUrl ? `<a class="btn btn-outline" href="${escapeHtml(b.tiktokUrl)}" target="_blank">${ICON_TIKTOK} TikTok</a>` : ''}
         </div>
         ${b.description ? `<div class="biz-desc-card">${escapeHtml(b.description)}</div>` : ''}
         ${couponsHtml}
         ${catalogHtml}
-        ${!isOwn && currentUser ? `<div class="biz-section" style="padding-top:0"><button class="btn btn-outline btn-sm" style="width:100%;justify-content:center" onclick="openReportModal('${ownerUid}', '${ownerUid}', 'business')">${ICON_FLAG} Signaler cette page</button></div>` : ''}
+        ${!isOwn && currentUser ? `<div class="biz-section" style="padding-top:0"><button class="btn btn-outline btn-sm" style="width:100%;justify-content:center" onclick="openReportModal('${ownerUid}', '${ownerUid}', 'business')">${ICON_FLAG} ${t('business_report_btn')}</button></div>` : ''}
         <div class="biz-section">
-          <h4>Actualités</h4>
-          <div id="business-detail-posts"><p class="muted small">Chargement...</p></div>
+          <h4>${t('business_news_heading')}</h4>
+          <div id="business-detail-posts"><p class="muted small">${t('common_loading')}</p></div>
         </div>
       </div>
     </div>`;
@@ -11872,7 +11872,7 @@ async function loadBusinessPostsFeed(ownerUid, targetId) {
     const snap = await db.collection('business_posts').where('businessUid', '==', ownerUid).limit(30).get();
     const posts = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
     if (posts.length === 0) {
-      el.innerHTML = '<p class="muted small">Aucune actualité publiée pour l\'instant.</p>';
+      el.innerHTML = `<p class="muted small">${t('business_no_posts')}</p>`;
       return;
     }
     const isOwn = currentUser && currentUser.uid === ownerUid;
@@ -11881,25 +11881,25 @@ async function loadBusinessPostsFeed(ownerUid, targetId) {
         ${p.imageUrl ? `<img src="${escapeHtml(p.imageUrl)}" alt="" onerror="mediaLoadError(this)">` : ''}
         <div class="biz-post-card-body">
           <p style="white-space:pre-wrap;margin:0">${escapeHtml(p.text || '')}</p>
-          ${isOwn ? `<button class="btn btn-outline btn-sm" style="margin-top:10px;color:var(--red)" onclick="deleteBusinessPost('${p.id}', '${ownerUid}', '${targetId}')">Supprimer</button>` : ''}
+          ${isOwn ? `<button class="btn btn-outline btn-sm" style="margin-top:10px;color:var(--red)" onclick="deleteBusinessPost('${p.id}', '${ownerUid}', '${targetId}')">${t('business_delete_post_btn')}</button>` : ''}
         </div>
       </div>`).join('');
   } catch (e) {
-    el.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+    el.innerHTML = `<p class="muted small">${t('business_load_error_prefix')} ${e.message}</p>`;
   }
 }
 
 /* ---- Onglet "Mon entreprise" ---- */
 async function loadMyBusiness() {
   const statusEl = document.getElementById('business-mine-status');
-  if (!currentUser) { statusEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Connecte-toi pour créer ta page entreprise.</p>'; return; }
-  statusEl.innerHTML = '<p class="muted small">Chargement...</p>';
+  if (!currentUser) { statusEl.innerHTML = `<p class="muted small" style="text-align:center;padding:20px 0">${t('business_login_create_page_prompt')}</p>`; return; }
+  statusEl.innerHTML = `<p class="muted small">${t('common_loading')}</p>`;
   try {
     const snap = await db.collection('businesses').doc(currentUser.uid).get();
     businessMyProfile = snap.exists ? snap.data() : null;
     renderMyBusinessStatus();
   } catch (e) {
-    statusEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+    statusEl.innerHTML = `<p class="muted small">${t('business_load_error_prefix')} ${e.message}</p>`;
   }
 }
 
@@ -11907,8 +11907,8 @@ async function renderMyBusinessStatus() {
   const statusEl = document.getElementById('business-mine-status');
   if (!businessMyProfile) {
     statusEl.innerHTML = `
-      <p class="muted small" style="margin-bottom:14px">Crée la page de ton entreprise : profil, services, et un fil d'actualités que tes clients peuvent suivre.</p>
-      <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="openBusinessForm()">Créer ma page entreprise</button>`;
+      <p class="muted small" style="margin-bottom:14px">${t('business_create_page_intro')}</p>
+      <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="openBusinessForm()">${t('business_create_page_btn')}</button>`;
     return;
   }
   let followerCount = '…';
@@ -11937,57 +11937,57 @@ async function renderMyBusinessStatus() {
   const proBlockHtml = isPro ? `
     <div class="order-box" style="margin-bottom:14px;border-color:#f5a623">
       <div style="display:flex;justify-content:space-between;align-items:center">
-        <strong>CoeurNoh Business Pro actif ${ICON_SPARKLE}</strong>
-        <span class="shop-card-category" style="background:#fff4e0;color:#b5720b">Jusqu'au ${escapeHtml(new Date(b.proUntil).toLocaleDateString())}</span>
+        <strong>${t('business_pro_active_label')} ${ICON_SPARKLE}</strong>
+        <span class="shop-card-category" style="background:#fff4e0;color:#b5720b">${t('business_pro_until_prefix')} ${escapeHtml(new Date(b.proUntil).toLocaleDateString())}</span>
       </div>
-      <button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="purchaseBusinessPro()">Renouveler (+30 jours, ${BUSINESS_PRO_PRICE}$)</button>
+      <button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="purchaseBusinessPro()">${t('business_renew_prefix')} ${BUSINESS_PRO_PRICE}$)</button>
     </div>` : `
     <div class="order-box" style="margin-bottom:14px">
-      <strong>Passe en CoeurNoh Business Pro — ${BUSINESS_PRO_PRICE}$/mois</strong>
+      <strong>${t('business_upgrade_title_prefix')} ${BUSINESS_PRO_PRICE}$${t('business_per_month_suffix')}</strong>
       <ul class="muted small" style="margin:8px 0 10px;padding-left:18px;line-height:1.6">
-        <li>Catalogue jusqu'à ${BUSINESS_PRO_CATALOG_LIMIT} articles (au lieu de ${BUSINESS_FREE_CATALOG_LIMIT})</li>
-        <li>Jusqu'à ${BUSINESS_PRO_COUPON_LIMIT} coupons actifs (au lieu de ${BUSINESS_FREE_COUPON_LIMIT})</li>
-        <li>Mini-CRM jusqu'à ${BUSINESS_PRO_CLIENT_LIMIT} clients (au lieu de ${BUSINESS_FREE_CLIENT_LIMIT})</li>
-        <li>Badge "Pro" et priorité d'affichage</li>
+        <li>${t('business_feature_catalog_prefix')} ${BUSINESS_PRO_CATALOG_LIMIT} ${t('business_feature_catalog_suffix')} ${BUSINESS_FREE_CATALOG_LIMIT})</li>
+        <li>${t('business_feature_coupons_prefix')} ${BUSINESS_PRO_COUPON_LIMIT} ${t('business_feature_coupons_mid')} ${BUSINESS_FREE_COUPON_LIMIT})</li>
+        <li>${t('business_feature_crm_prefix')} ${BUSINESS_PRO_CLIENT_LIMIT} ${t('business_feature_crm_mid')} ${BUSINESS_FREE_CLIENT_LIMIT})</li>
+        <li>${t('business_feature_badge')}</li>
       </ul>
-      <button class="btn btn-primary btn-sm" onclick="purchaseBusinessPro()">Activer le Pro</button>
+      <button class="btn btn-primary btn-sm" onclick="purchaseBusinessPro()">${t('business_activate_pro_btn')}</button>
     </div>`;
 
   statusEl.innerHTML = `
     <div class="order-box" style="margin-bottom:14px">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
-        <strong>${escapeHtml(b.businessName || '')}</strong>${isPro ? ' <span class="shop-card-category" style="background:#fff4e0;color:#b5720b">Pro</span>' : ''}
+        <strong>${escapeHtml(b.businessName || '')}</strong>${isPro ? ` <span class="shop-card-category" style="background:#fff4e0;color:#b5720b">${t('business_pro_badge')}</span>` : ''}
       </div>
-      <button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="openBusinessForm()">Modifier ma page</button>
+      <button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="openBusinessForm()">${t('business_edit_page_btn')}</button>
     </div>
 
-    <h4 style="margin-bottom:8px">Tableau de bord</h4>
+    <h4 style="margin-bottom:8px">${t('business_dashboard_heading')}</h4>
     <div class="order-box" style="margin-bottom:14px">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;text-align:center">
-        <div><strong style="font-size:1.2rem">${followerCount}</strong><div class="muted small">Abonnés</div></div>
-        <div><strong style="font-size:1.2rem">${b.viewsCount || 0}</strong><div class="muted small">Vues de la page</div></div>
-        <div><strong style="font-size:1.2rem">${postsCount}</strong><div class="muted small">Actualités</div></div>
-        <div><strong style="font-size:1.2rem">${clientsCount}</strong><div class="muted small">Clients enregistrés</div></div>
+        <div><strong style="font-size:1.2rem">${followerCount}</strong><div class="muted small">${t('business_followers_label')}</div></div>
+        <div><strong style="font-size:1.2rem">${b.viewsCount || 0}</strong><div class="muted small">${t('business_page_views_label')}</div></div>
+        <div><strong style="font-size:1.2rem">${postsCount}</strong><div class="muted small">${t('business_news_heading')}</div></div>
+        <div><strong style="font-size:1.2rem">${clientsCount}</strong><div class="muted small">${t('business_clients_registered_label')}</div></div>
       </div>
     </div>
 
     ${proBlockHtml}
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
-      <button class="btn btn-outline btn-sm" onclick="openBusinessCatalogManager()">Catalogue (${catalogCount})</button>
-      <button class="btn btn-outline btn-sm" onclick="openBusinessCouponsManager()">Coupons (${couponsCount})</button>
-      <button class="btn btn-outline btn-sm" onclick="openBusinessClientsManager()">Mes clients</button>
-      <button class="btn btn-primary btn-sm" onclick="openBusinessPostForm()">Publier une actualité</button>
+      <button class="btn btn-outline btn-sm" onclick="openBusinessCatalogManager()">${t('business_catalog_heading')} (${catalogCount})</button>
+      <button class="btn btn-outline btn-sm" onclick="openBusinessCouponsManager()">${t('business_coupons_btn')} (${couponsCount})</button>
+      <button class="btn btn-outline btn-sm" onclick="openBusinessClientsManager()">${t('business_my_clients_btn')}</button>
+      <button class="btn btn-primary btn-sm" onclick="openBusinessPostForm()">${t('business_publish_news_btn')}</button>
     </div>
 
-    <h4 style="margin-bottom:8px">Mes actualités</h4>
-    <div id="business-mine-posts"><p class="muted small">Chargement...</p></div>`;
+    <h4 style="margin-bottom:8px">${t('business_my_news_heading')}</h4>
+    <div id="business-mine-posts"><p class="muted small">${t('common_loading')}</p></div>`;
   loadBusinessPostsFeed(currentUser.uid, 'business-mine-posts');
 }
 
 async function purchaseBusinessPro() {
   if (!currentUser || !businessMyProfile) return;
-  if (!confirm(`Activer/renouveler CoeurNoh Business Pro pour ${BUSINESS_PRO_PRICE}$ (30 jours), déduits de ton solde CoeurnohBoost ?`)) return;
+  if (!confirm(`${t('business_confirm_pro_prefix')} ${BUSINESS_PRO_PRICE}$ ${t('business_confirm_pro_suffix')}`)) return;
   try {
     const idToken = await auth.currentUser.getIdToken();
     const res = await fetch('/api/payments-actions', {
@@ -11996,8 +11996,8 @@ async function purchaseBusinessPro() {
       body: JSON.stringify({ idToken, action: 'business_pro_purchase' })
     });
     const data = await res.json();
-    if (!data.success) { showToast(data.error || 'Paiement impossible', 'error'); return; }
-    showToast('CoeurNoh Business Pro activé 🎉', 'success');
+    if (!data.success) { showToast(data.error || t('business_pro_purchase_error'), 'error'); return; }
+    showToast(t('business_pro_activated_toast'), 'success');
     businessMyProfile.pro = true;
     businessMyProfile.proUntil = data.proUntil;
     renderMyBusinessStatus();
@@ -12017,11 +12017,11 @@ function openBusinessCatalogManager() {
     <div class="modal-overlay" id="business-catalog-modal">
       <div class="modal">
         <button class="modal-close" onclick="document.getElementById('business-catalog-modal').remove()" aria-label="Fermer">×</button>
-        <h3 style="margin-bottom:4px">Catalogue</h3>
-        <p class="muted small" style="margin-bottom:14px">${catalog.length}/${limit} articles${!isPro ? ' — passe en Pro pour aller jusqu\'à ' + BUSINESS_PRO_CATALOG_LIMIT : ''}</p>
+        <h3 style="margin-bottom:4px">${t('business_catalog_heading')}</h3>
+        <p class="muted small" style="margin-bottom:14px">${catalog.length}/${limit} ${t('business_catalog_items_suffix')}${!isPro ? ' ' + t('business_upgrade_to_prefix') + ' ' + BUSINESS_PRO_CATALOG_LIMIT : ''}</p>
         <div id="business-catalog-rows"></div>
-        <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:6px 0 14px" onclick="addBusinessCatalogRow(null, null, ${limit})">+ Ajouter un article</button>
-        <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="saveBusinessCatalog()">Enregistrer</button>
+        <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:6px 0 14px" onclick="addBusinessCatalogRow(null, null, ${limit})">${t('business_add_item_btn')}</button>
+        <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="saveBusinessCatalog()">${t('common_save')}</button>
         <p class="muted small" id="business-catalog-msg" style="margin-top:6px"></p>
       </div>
     </div>`;
@@ -12036,8 +12036,8 @@ function addBusinessCatalogRow(name, price, limit) {
   const row = document.createElement('div');
   row.className = 'invoice-item-row';
   row.innerHTML = `
-    <input type="text" class="text-input business-catalog-name" placeholder="Nom du produit/service" value="${escapeHtml(name || '')}" style="flex:2">
-    <input type="text" class="text-input business-catalog-price" placeholder="Prix (ex: 10$)" value="${escapeHtml(price || '')}" style="flex:1">
+    <input type="text" class="text-input business-catalog-name" placeholder="${t('business_item_name_ph')}" value="${escapeHtml(name || '')}" style="flex:2">
+    <input type="text" class="text-input business-catalog-price" placeholder="${t('business_item_price_ph')}" value="${escapeHtml(price || '')}" style="flex:1">
     <button type="button" class="invoice-row-remove" onclick="this.parentElement.remove()" aria-label="Retirer">×</button>`;
   rowsEl.appendChild(row);
 }
@@ -12049,7 +12049,7 @@ async function saveBusinessCatalog() {
   try {
     await db.collection('businesses').doc(currentUser.uid).update({ catalog });
     businessMyProfile.catalog = catalog;
-    showToast('Catalogue enregistré', 'success');
+    showToast(t('business_catalog_saved_toast'), 'success');
     document.getElementById('business-catalog-modal').remove();
     renderMyBusinessStatus();
   } catch (e) {
@@ -12068,11 +12068,11 @@ function openBusinessCouponsManager() {
     <div class="modal-overlay" id="business-coupons-modal">
       <div class="modal">
         <button class="modal-close" onclick="document.getElementById('business-coupons-modal').remove()" aria-label="Fermer">×</button>
-        <h3 style="margin-bottom:4px">Coupons & promotions</h3>
-        <p class="muted small" style="margin-bottom:14px">${coupons.filter(c => c.active).length}/${limit} coupons actifs${!isPro ? ' — passe en Pro pour aller jusqu\'à ' + BUSINESS_PRO_COUPON_LIMIT : ''}</p>
+        <h3 style="margin-bottom:4px">${t('business_coupons_modal_heading')}</h3>
+        <p class="muted small" style="margin-bottom:14px">${coupons.filter(c => c.active).length}/${limit} ${t('business_active_coupons_suffix')}${!isPro ? ' ' + t('business_upgrade_to_prefix') + ' ' + BUSINESS_PRO_COUPON_LIMIT : ''}</p>
         <div id="business-coupons-rows"></div>
-        <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:6px 0 14px" onclick="addBusinessCouponRow(null, ${limit})">+ Ajouter un coupon</button>
-        <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="saveBusinessCoupons(${limit})">Enregistrer</button>
+        <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:6px 0 14px" onclick="addBusinessCouponRow(null, ${limit})">${t('business_add_coupon_btn')}</button>
+        <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="saveBusinessCoupons(${limit})">${t('common_save')}</button>
         <p class="muted small" id="business-coupons-msg" style="margin-top:6px"></p>
       </div>
     </div>`;
@@ -12087,14 +12087,14 @@ function addBusinessCouponRow(c, limit) {
   row.className = 'order-box';
   row.style.marginBottom = '10px';
   row.innerHTML = `
-    <input type="text" class="text-input business-coupon-code" placeholder="Code (ex: PROMO10)" value="${escapeHtml(c && c.code || '')}" style="margin-bottom:6px">
-    <input type="text" class="text-input business-coupon-label" placeholder="Ex: -10% sur tout" value="${escapeHtml(c && c.discountLabel || '')}" style="margin-bottom:6px">
-    <textarea class="text-input business-coupon-desc" placeholder="Détails (facultatif)" rows="2" style="margin-bottom:6px">${escapeHtml(c && c.description || '')}</textarea>
+    <input type="text" class="text-input business-coupon-code" placeholder="${t('business_coupon_code_ph')}" value="${escapeHtml(c && c.code || '')}" style="margin-bottom:6px">
+    <input type="text" class="text-input business-coupon-label" placeholder="${t('business_coupon_label_ph')}" value="${escapeHtml(c && c.discountLabel || '')}" style="margin-bottom:6px">
+    <textarea class="text-input business-coupon-desc" placeholder="${t('business_coupon_desc_ph')}" rows="2" style="margin-bottom:6px">${escapeHtml(c && c.description || '')}</textarea>
     <input type="date" class="text-input business-coupon-expires" value="${c && c.expiresAt ? c.expiresAt.slice(0, 10) : ''}" style="margin-bottom:6px">
     <label class="report-reason-option" style="margin-bottom:6px">
-      <input type="checkbox" class="business-coupon-active" ${!c || c.active !== false ? 'checked' : ''}> Actif
+      <input type="checkbox" class="business-coupon-active" ${!c || c.active !== false ? 'checked' : ''}> ${t('business_active_checkbox_label')}
     </label>
-    <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;color:var(--red)" onclick="this.parentElement.remove()">Retirer ce coupon</button>`;
+    <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;color:var(--red)" onclick="this.parentElement.remove()">${t('business_remove_coupon_btn')}</button>`;
   rowsEl.appendChild(row);
 }
 
@@ -12110,13 +12110,13 @@ async function saveBusinessCoupons(limit) {
 
   const activeCount = coupons.filter(c => c.active).length;
   if (activeCount > limit) {
-    document.getElementById('business-coupons-msg').textContent = `Tu ne peux avoir que ${limit} coupon(s) actif(s) pour l'instant. Désactive-en ou passe en Pro.`;
+    document.getElementById('business-coupons-msg').textContent = `${t('business_coupon_limit_error_prefix')} ${limit} ${t('business_coupon_limit_error_suffix')}`;
     return;
   }
   try {
     await db.collection('businesses').doc(currentUser.uid).update({ coupons });
     businessMyProfile.coupons = coupons;
-    showToast('Coupons enregistrés', 'success');
+    showToast(t('business_coupons_saved_toast'), 'success');
     document.getElementById('business-coupons-modal').remove();
     renderMyBusinessStatus();
   } catch (e) {
@@ -12131,22 +12131,22 @@ async function openBusinessClientsManager() {
     <div class="modal-overlay" id="business-clients-modal">
       <div class="modal">
         <button class="modal-close" onclick="document.getElementById('business-clients-modal').remove()" aria-label="Fermer">×</button>
-        <h3 style="margin-bottom:14px">Mes clients</h3>
+        <h3 style="margin-bottom:14px">${t('business_my_clients_btn')}</h3>
         <div class="field">
-          <label for="business-client-name">Nom</label>
+          <label for="business-client-name">${t('business_client_name_label')}</label>
           <input type="text" id="business-client-name" class="text-input">
         </div>
         <div class="field">
-          <label for="business-client-phone">Téléphone / WhatsApp (facultatif)</label>
+          <label for="business-client-phone">${t('business_client_phone_label')}</label>
           <input type="tel" id="business-client-phone" class="text-input">
         </div>
         <div class="field">
-          <label for="business-client-notes">Notes (facultatif)</label>
+          <label for="business-client-notes">${t('business_client_notes_label')}</label>
           <textarea id="business-client-notes" class="text-input" rows="2"></textarea>
         </div>
-        <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:14px" onclick="addBusinessClient()">Ajouter ce client</button>
+        <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:14px" onclick="addBusinessClient()">${t('business_add_client_btn')}</button>
         <p class="muted small" id="business-clients-msg" style="margin-bottom:10px"></p>
-        <div id="business-clients-list"><p class="muted small">Chargement...</p></div>
+        <div id="business-clients-list"><p class="muted small">${t('common_loading')}</p></div>
       </div>
     </div>`;
   document.body.insertAdjacentHTML('beforeend', html);
@@ -12166,21 +12166,21 @@ async function loadBusinessClients() {
     listEl.dataset.count = clients.length;
 
     if (clients.length === 0) {
-      listEl.innerHTML = '<p class="muted small">Aucun client enregistré pour l\'instant.</p>';
+      listEl.innerHTML = `<p class="muted small">${t('business_no_clients')}</p>`;
       return;
     }
-    listEl.innerHTML = `<p class="muted small" style="margin-bottom:8px">${clients.length}/${limit} clients${!isPro ? ' — passe en Pro pour aller jusqu\'à ' + BUSINESS_PRO_CLIENT_LIMIT : ''}</p>` +
+    listEl.innerHTML = `<p class="muted small" style="margin-bottom:8px">${clients.length}/${limit} ${t('business_clients_count_suffix')}${!isPro ? ' ' + t('business_upgrade_to_prefix') + ' ' + BUSINESS_PRO_CLIENT_LIMIT : ''}</p>` +
       clients.map(c => `
       <div class="order-box" style="margin-bottom:8px">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
           <strong>${escapeHtml(c.name)}</strong>
-          <button class="btn btn-outline btn-sm" style="color:var(--red)" onclick="deleteBusinessClient('${c.id}')">Supprimer</button>
+          <button class="btn btn-outline btn-sm" style="color:var(--red)" onclick="deleteBusinessClient('${c.id}')">${t('business_delete_client_btn')}</button>
         </div>
         ${c.phone ? `<div class="muted small">${escapeHtml(c.phone)}</div>` : ''}
         ${c.notes ? `<p class="muted small" style="margin-top:4px">${escapeHtml(c.notes)}</p>` : ''}
       </div>`).join('');
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+    listEl.innerHTML = `<p class="muted small">${t('business_load_error_prefix')} ${e.message}</p>`;
   }
 }
 
@@ -12189,13 +12189,13 @@ async function addBusinessClient() {
   const name = document.getElementById('business-client-name').value.trim();
   const phone = document.getElementById('business-client-phone').value.trim();
   const notes = document.getElementById('business-client-notes').value.trim();
-  if (!name) { msgEl.textContent = 'Indique au moins un nom.'; return; }
+  if (!name) { msgEl.textContent = t('business_client_name_required'); return; }
 
   const isPro = businessIsProActive(businessMyProfile);
   const limit = isPro ? BUSINESS_PRO_CLIENT_LIMIT : BUSINESS_FREE_CLIENT_LIMIT;
   const currentCount = parseInt(document.getElementById('business-clients-list').dataset.count || '0', 10);
   if (currentCount >= limit) {
-    msgEl.textContent = `Limite de ${limit} clients atteinte. Passe en Pro pour aller jusqu'à ${BUSINESS_PRO_CLIENT_LIMIT}.`;
+    msgEl.textContent = `${t('business_client_limit_prefix')} ${limit} ${t('business_client_limit_suffix')} ${BUSINESS_PRO_CLIENT_LIMIT}.`;
     return;
   }
 
@@ -12215,7 +12215,7 @@ async function addBusinessClient() {
 }
 
 async function deleteBusinessClient(clientId) {
-  if (!confirm('Supprimer ce client de ta liste ?')) return;
+  if (!confirm(t('business_delete_client_confirm'))) return;
   try {
     await db.collection('business_clients').doc(clientId).delete();
     loadBusinessClients();
@@ -12229,7 +12229,7 @@ function openBusinessForm() {
   if (document.getElementById('business-form-modal')) return;
   const b = businessMyProfile || {};
   const catOptions = Object.entries(NEARBY_CATEGORY_LABELS)
-    .map(([val, label]) => `<option value="${val}" ${b.category === val ? 'selected' : ''}>${escapeHtml(label)}</option>`).join('');
+    .map(([val, key]) => `<option value="${val}" ${b.category === val ? 'selected' : ''}>${t(key)}</option>`).join('');
 
   pendingBusinessLogoFile = null;
   currentBusinessLogoUrl = b.logoUrl || null;
@@ -12240,25 +12240,25 @@ function openBusinessForm() {
     <div class="modal-overlay" id="business-form-modal">
       <div class="modal" style="max-width:460px">
         <button class="modal-close" onclick="document.getElementById('business-form-modal').remove()" aria-label="Fermer">×</button>
-        <h3 style="margin-bottom:14px">${businessMyProfile ? 'Modifier ma page' : 'Créer ma page entreprise'}</h3>
+        <h3 style="margin-bottom:14px">${businessMyProfile ? t('business_form_title_edit') : t('business_form_title_new')}</h3>
         <div class="field">
-          <label for="business-name">Nom de l'entreprise</label>
+          <label for="business-name">${t('business_field_name_label')}</label>
           <input type="text" id="business-name" class="text-input" maxlength="80" value="${escapeHtml(b.businessName || '')}">
         </div>
         <div class="field">
-          <label for="business-category">Catégorie</label>
+          <label for="business-category">${t('business_field_category_label')}</label>
           <select id="business-category" class="select-input">${catOptions}</select>
         </div>
         <div class="field">
-          <label for="business-description">Présentation</label>
+          <label for="business-description">${t('business_field_description_label')}</label>
           <textarea id="business-description" class="text-input" rows="3" style="resize:vertical" maxlength="500">${escapeHtml(b.description || '')}</textarea>
         </div>
         <div class="field">
-          <label for="business-logo-file">Logo (facultatif)</label>
+          <label for="business-logo-file">${t('business_field_logo_label')}</label>
           <input type="file" id="business-logo-file" class="file-input-hidden" accept="image/*" onchange="handleBusinessLogoFileChange(event)">
           <label for="business-logo-file" class="file-picker-btn" id="business-logo-file-label">
             <span class="file-picker-icon" id="business-logo-file-icon">🖼️</span>
-            <span class="file-picker-text" id="business-logo-file-text">${b.logoUrl ? '✅ Logo déjà enregistré (choisir pour remplacer)' : 'Choisir une image'}</span>
+            <span class="file-picker-text" id="business-logo-file-text">${b.logoUrl ? t('business_logo_already_saved') : t('common_choose_image')}</span>
           </label>
           <div class="upload-progress-wrap hidden" id="business-logo-progress-wrap">
             <div class="upload-progress-fill" id="business-logo-progress-fill"></div>
@@ -12267,11 +12267,11 @@ function openBusinessForm() {
           <div id="business-logo-preview">${b.logoUrl ? `<img src="${escapeHtml(b.logoUrl)}" class="post-media-preview-media" alt="">` : ''}</div>
         </div>
         <div class="field">
-          <label for="business-cover-file">Image de couverture (facultatif)</label>
+          <label for="business-cover-file">${t('business_field_cover_label')}</label>
           <input type="file" id="business-cover-file" class="file-input-hidden" accept="image/*" onchange="handleBusinessCoverFileChange(event)">
           <label for="business-cover-file" class="file-picker-btn" id="business-cover-file-label">
             <span class="file-picker-icon" id="business-cover-file-icon">🖼️</span>
-            <span class="file-picker-text" id="business-cover-file-text">${b.coverImageUrl ? '✅ Image déjà enregistrée (choisir pour remplacer)' : 'Choisir une image'}</span>
+            <span class="file-picker-text" id="business-cover-file-text">${b.coverImageUrl ? t('business_cover_already_saved') : t('common_choose_image')}</span>
           </label>
           <div class="upload-progress-wrap hidden" id="business-cover-progress-wrap">
             <div class="upload-progress-fill" id="business-cover-progress-fill"></div>
@@ -12280,34 +12280,34 @@ function openBusinessForm() {
           <div id="business-cover-preview">${b.coverImageUrl ? `<img src="${escapeHtml(b.coverImageUrl)}" class="post-media-preview-media" alt="">` : ''}</div>
         </div>
         <div class="field">
-          <label for="business-address">Adresse / ville</label>
+          <label for="business-address">${t('business_field_address_label')}</label>
           <input type="text" id="business-address" class="text-input" value="${escapeHtml(b.address || '')}">
         </div>
         <div class="field">
-          <label for="business-hours">Horaires (facultatif)</label>
-          <input type="text" id="business-hours" class="text-input" placeholder="ex: Lun-Sam 8h-18h" value="${escapeHtml(b.hours || '')}">
+          <label for="business-hours">${t('business_field_hours_label')}</label>
+          <input type="text" id="business-hours" class="text-input" placeholder="${t('business_field_hours_ph')}" value="${escapeHtml(b.hours || '')}">
         </div>
         <div class="field">
-          <label for="business-whatsapp">WhatsApp de contact</label>
+          <label for="business-whatsapp">${t('business_field_whatsapp_label')}</label>
           <input type="tel" id="business-whatsapp" class="text-input" placeholder="+243..." value="${escapeHtml(b.whatsapp || '')}">
         </div>
         <div class="field">
-          <label for="business-phone">Téléphone (facultatif)</label>
+          <label for="business-phone">${t('business_field_phone_label')}</label>
           <input type="tel" id="business-phone" class="text-input" value="${escapeHtml(b.phone || '')}">
         </div>
         <div class="field">
-          <label for="business-email">E-mail de contact (facultatif)</label>
+          <label for="business-email">${t('business_field_email_label')}</label>
           <input type="email" id="business-email" class="text-input" placeholder="contact@entreprise.com" value="${escapeHtml(b.email || '')}">
         </div>
         <div class="field">
-          <label for="business-facebook">Page Facebook (facultatif)</label>
+          <label for="business-facebook">${t('business_field_facebook_label')}</label>
           <input type="url" id="business-facebook" class="text-input" placeholder="https://facebook.com/..." value="${escapeHtml(b.facebookUrl || '')}">
         </div>
         <div class="field">
-          <label for="business-tiktok">TikTok (facultatif)</label>
+          <label for="business-tiktok">${t('business_field_tiktok_label')}</label>
           <input type="url" id="business-tiktok" class="text-input" placeholder="https://tiktok.com/@..." value="${escapeHtml(b.tiktokUrl || '')}">
         </div>
-        <button class="btn btn-primary" id="business-save-btn" style="width:100%;justify-content:center" onclick="saveBusinessProfile()">Enregistrer</button>
+        <button class="btn btn-primary" id="business-save-btn" style="width:100%;justify-content:center" onclick="saveBusinessProfile()">${t('common_save')}</button>
         <p class="muted small" id="business-form-msg" style="margin-top:6px"></p>
       </div>
     </div>`;
@@ -12323,7 +12323,7 @@ function handleBusinessLogoFileChange(event) {
   pendingBusinessLogoFile = (event.target.files && event.target.files[0]) || null;
   const text = document.getElementById('business-logo-file-text');
   const label = document.getElementById('business-logo-file-label');
-  if (text) text.textContent = pendingBusinessLogoFile ? `✅ ${pendingBusinessLogoFile.name}` : (currentBusinessLogoUrl ? '✅ Logo déjà enregistré (choisir pour remplacer)' : 'Choisir une image');
+  if (text) text.textContent = pendingBusinessLogoFile ? `✅ ${pendingBusinessLogoFile.name}` : (currentBusinessLogoUrl ? t('business_logo_already_saved') : t('common_choose_image'));
   if (label) label.classList.toggle('has-file', !!(pendingBusinessLogoFile || currentBusinessLogoUrl));
   const previewEl = document.getElementById('business-logo-preview');
   if (previewEl) {
@@ -12336,7 +12336,7 @@ function handleBusinessCoverFileChange(event) {
   pendingBusinessCoverFile = (event.target.files && event.target.files[0]) || null;
   const text = document.getElementById('business-cover-file-text');
   const label = document.getElementById('business-cover-file-label');
-  if (text) text.textContent = pendingBusinessCoverFile ? `✅ ${pendingBusinessCoverFile.name}` : (currentBusinessCoverUrl ? '✅ Image déjà enregistrée (choisir pour remplacer)' : 'Choisir une image');
+  if (text) text.textContent = pendingBusinessCoverFile ? `✅ ${pendingBusinessCoverFile.name}` : (currentBusinessCoverUrl ? t('business_cover_already_saved') : t('common_choose_image'));
   if (label) label.classList.toggle('has-file', !!(pendingBusinessCoverFile || currentBusinessCoverUrl));
   const previewEl = document.getElementById('business-cover-preview');
   if (previewEl) {
@@ -12362,16 +12362,16 @@ async function saveBusinessProfile() {
   const tiktokUrl = document.getElementById('business-tiktok').value.trim();
 
   if (!businessName || !description || !whatsapp) {
-    msgEl.textContent = 'Merci de remplir au moins le nom, la présentation et le WhatsApp.';
+    msgEl.textContent = t('business_required_fields');
     return;
   }
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    msgEl.textContent = "L'adresse e-mail n'est pas valide.";
+    msgEl.textContent = t('business_invalid_email');
     return;
   }
   if (btn.disabled) return;
   btn.disabled = true;
-  btn.textContent = 'Enregistrement...';
+  btn.textContent = t('common_saving');
   try {
     if (pendingBusinessLogoFile) {
       const uploaded = await uploadFileToStorage(pendingBusinessLogoFile, 'entreprises/logos', {
@@ -12404,13 +12404,13 @@ async function saveBusinessProfile() {
       createdAt: businessMyProfile ? businessMyProfile.createdAt : new Date().toISOString()
     }, { merge: true });
     document.getElementById('business-form-modal').remove();
-    showToast('Page enregistrée', 'success');
+    showToast(t('business_page_saved_toast'), 'success');
     businessCache = null;
     loadMyBusiness();
   } catch (e) {
     msgEl.textContent = friendlyErrorMessage(e);
     btn.disabled = false;
-    btn.textContent = 'Enregistrer';
+    btn.textContent = t('common_save');
   }
 }
 
@@ -12421,17 +12421,17 @@ function openBusinessPostForm() {
     <div class="modal-overlay" id="business-post-form-modal">
       <div class="modal">
         <button class="modal-close" onclick="document.getElementById('business-post-form-modal').remove()" aria-label="Fermer">×</button>
-        <h3 style="margin-bottom:14px">Publier une actualité</h3>
+        <h3 style="margin-bottom:14px">${t('business_post_form_heading')}</h3>
         <div class="field">
-          <label for="business-post-text">Texte</label>
+          <label for="business-post-text">${t('business_post_text_label')}</label>
           <textarea id="business-post-text" class="text-input" rows="3" style="resize:vertical" maxlength="500"></textarea>
         </div>
         <div class="field">
-          <label for="business-post-image-file">Image (facultatif)</label>
+          <label for="business-post-image-file">${t('business_post_image_label')}</label>
           <input type="file" id="business-post-image-file" class="file-input-hidden" accept="image/*" onchange="handleBusinessPostImageFileChange(event)">
           <label for="business-post-image-file" class="file-picker-btn" id="business-post-image-file-label">
             <span class="file-picker-icon" id="business-post-image-file-icon">🖼️</span>
-            <span class="file-picker-text" id="business-post-image-file-text">Choisir une image</span>
+            <span class="file-picker-text" id="business-post-image-file-text">${t('common_choose_image')}</span>
           </label>
           <div class="upload-progress-wrap hidden" id="business-post-image-progress-wrap">
             <div class="upload-progress-fill" id="business-post-image-progress-fill"></div>
@@ -12439,7 +12439,7 @@ function openBusinessPostForm() {
           </div>
           <div id="business-post-image-preview"></div>
         </div>
-        <button class="btn btn-primary" id="business-post-save-btn" style="width:100%;justify-content:center" onclick="saveBusinessPost()">Publier</button>
+        <button class="btn btn-primary" id="business-post-save-btn" style="width:100%;justify-content:center" onclick="saveBusinessPost()">${t('common_publish')}</button>
         <p class="muted small" id="business-post-form-msg" style="margin-top:6px"></p>
       </div>
     </div>`;
@@ -12452,7 +12452,7 @@ function handleBusinessPostImageFileChange(event) {
   pendingBusinessPostImageFile = (event.target.files && event.target.files[0]) || null;
   const text = document.getElementById('business-post-image-file-text');
   const label = document.getElementById('business-post-image-file-label');
-  if (text) text.textContent = pendingBusinessPostImageFile ? `✅ ${pendingBusinessPostImageFile.name}` : 'Choisir une image';
+  if (text) text.textContent = pendingBusinessPostImageFile ? `✅ ${pendingBusinessPostImageFile.name}` : t('common_choose_image');
   if (label) label.classList.toggle('has-file', !!pendingBusinessPostImageFile);
   const previewEl = document.getElementById('business-post-image-preview');
   if (previewEl) {
@@ -12465,10 +12465,10 @@ async function saveBusinessPost() {
   const btn = document.getElementById('business-post-save-btn');
   const msgEl = document.getElementById('business-post-form-msg');
   const text = document.getElementById('business-post-text').value.trim();
-  if (!text) { msgEl.textContent = 'Écris un texte pour ton actualité.'; return; }
+  if (!text) { msgEl.textContent = t('business_post_text_required'); return; }
   if (btn.disabled) return;
   btn.disabled = true;
-  btn.textContent = 'Publication...';
+  btn.textContent = t('business_posting_btn');
   try {
     let imageUrl = null;
     if (pendingBusinessPostImageFile) {
@@ -12483,20 +12483,20 @@ async function saveBusinessPost() {
       text, imageUrl: imageUrl || null, createdAt: new Date().toISOString()
     });
     document.getElementById('business-post-form-modal').remove();
-    showToast('Actualité publiée', 'success');
+    showToast(t('business_post_published_toast'), 'success');
     loadBusinessPostsFeed(currentUser.uid, 'business-mine-posts');
   } catch (e) {
     msgEl.textContent = friendlyErrorMessage(e);
     btn.disabled = false;
-    btn.textContent = 'Publier';
+    btn.textContent = t('common_publish');
   }
 }
 
 async function deleteBusinessPost(postId, ownerUid, targetId) {
-  if (!confirm('Supprimer cette actualité ?')) return;
+  if (!confirm(t('business_delete_post_confirm'))) return;
   try {
     await db.collection('business_posts').doc(postId).delete();
-    showToast('Actualité supprimée', 'info');
+    showToast(t('business_post_deleted_toast'), 'info');
     loadBusinessPostsFeed(ownerUid, targetId);
   } catch (e) {
     showToast(friendlyErrorMessage(e), 'error');
