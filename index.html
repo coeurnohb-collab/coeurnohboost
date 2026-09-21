@@ -1259,10 +1259,10 @@
 
       <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:14px" onclick="openInvoiceForm()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Nouvelle facture
+        <span data-i18n="invoice_form_title_new">Nouvelle facture</span>
       </button>
 
-      <div id="invoice-list"><p class="muted small">Chargement...</p></div>
+      <div id="invoice-list"><p class="muted small" data-i18n="common_loading">Chargement...</p></div>
     </div>
 
     <!-- COEURNOH ALERTES -->
@@ -1321,21 +1321,21 @@
         <button class="menu-back-btn" onclick="showMenuScreen('items-services')" aria-label="Retour">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
-        <h2>Concours &amp; Récompenses</h2>
+        <h2 data-i18n="svc_contests">Concours &amp; Récompenses</h2>
       </div>
 
       <button id="contest-create-btn" class="btn btn-primary hidden" style="width:100%;justify-content:center;margin-bottom:14px" onclick="openContestForm()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Nouveau concours
+        <span data-i18n="contest_form_title_new">Nouveau concours</span>
       </button>
 
       <div class="shop-filter-tabs" id="contest-status-tabs" style="margin-bottom:14px">
-        <button class="active" data-status="active" onclick="setContestStatusFilter('active')">En cours</button>
-        <button data-status="upcoming" onclick="setContestStatusFilter('upcoming')">À venir</button>
-        <button data-status="ended" onclick="setContestStatusFilter('ended')">Terminés</button>
+        <button class="active" data-status="active" onclick="setContestStatusFilter('active')" data-i18n="contest_status_active_tab">En cours</button>
+        <button data-status="upcoming" onclick="setContestStatusFilter('upcoming')" data-i18n="contest_status_upcoming_tab">À venir</button>
+        <button data-status="ended" onclick="setContestStatusFilter('ended')" data-i18n="contest_status_ended_tab">Terminés</button>
       </div>
 
-      <div id="contests-list"><p class="muted small">Chargement...</p></div>
+      <div id="contests-list"><p class="muted small" data-i18n="common_loading">Chargement...</p></div>
     </div>
 
     <!-- EMPLOI & FREELANCE -->
@@ -1658,9 +1658,9 @@
         <button class="menu-back-btn" onclick="showMenuScreen('items-services')" aria-label="Retour">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
-        <h2>Crée ton site</h2>
+        <h2 data-i18n="svc_site">Crée ton site</h2>
       </div>
-      <div id="site-builder-status"><p class="muted small">Chargement...</p></div>
+      <div id="site-builder-status"><p class="muted small" data-i18n="common_loading">Chargement...</p></div>
     </div>
 
     <!-- COEURNOH BUSINESS -->
@@ -1955,38 +1955,38 @@
 <div class="modal-overlay hidden" id="event-form-modal">
   <div class="modal">
     <button class="modal-close" onclick="closeEventForm()" aria-label="Fermer">×</button>
-    <h2 id="event-form-title">Créer un événement</h2>
+    <h2 id="event-form-title" data-i18n="event_form_title_new">Créer un événement</h2>
     <div class="modal-error hidden" id="event-form-error"></div>
 
     <div class="field">
-      <label for="event-title-input">Titre de l'événement</label>
-      <input type="text" id="event-title-input" class="text-input" placeholder="Ex: Concert live, Formation Excel...">
+      <label for="event-title-input" data-i18n="event_field_title_label">Titre de l'événement</label>
+      <input type="text" id="event-title-input" class="text-input" data-i18n-placeholder="event_field_title_ph" placeholder="Ex: Concert live, Formation Excel...">
     </div>
     <div class="field">
-      <label for="event-category-input">Catégorie</label>
-      <input type="text" id="event-category-input" class="text-input" placeholder="Ex: Concert, Conférence, Formation, Mariage...">
+      <label for="event-category-input" data-i18n="event_field_category_label">Catégorie</label>
+      <input type="text" id="event-category-input" class="text-input" data-i18n-placeholder="event_field_category_ph" placeholder="Ex: Concert, Conférence, Formation, Mariage...">
     </div>
     <div class="field">
-      <label for="event-location-input">Lieu</label>
-      <input type="text" id="event-location-input" class="text-input" placeholder="Ex: Kinshasa, Salle Fikin...">
+      <label for="event-location-input" data-i18n="event_field_location_label">Lieu</label>
+      <input type="text" id="event-location-input" class="text-input" data-i18n-placeholder="event_field_location_ph" placeholder="Ex: Kinshasa, Salle Fikin...">
     </div>
     <div class="field">
-      <label>Dates</label>
+      <label data-i18n="event_field_dates_label">Dates</label>
       <div style="display:flex;gap:8px">
         <input type="date" id="event-start-input" class="text-input" style="flex:1">
-        <input type="date" id="event-end-input" class="text-input" style="flex:1" placeholder="Fin (facultatif)">
+        <input type="date" id="event-end-input" class="text-input" style="flex:1" data-i18n-placeholder="event_field_end_ph" placeholder="Fin (facultatif)">
       </div>
     </div>
     <div class="field">
-      <label for="event-description-input">Description</label>
-      <textarea id="event-description-input" class="text-input" rows="4" placeholder="Programme, informations pratiques..."></textarea>
+      <label for="event-description-input" data-i18n="event_field_description_label">Description</label>
+      <textarea id="event-description-input" class="text-input" rows="4" data-i18n-placeholder="event_field_description_ph" placeholder="Programme, informations pratiques..."></textarea>
     </div>
     <div class="field">
-      <label for="event-cover-file">Image de couverture (facultatif)</label>
+      <label for="event-cover-file" data-i18n="event_field_cover_label">Image de couverture (facultatif)</label>
       <input type="file" id="event-cover-file" class="file-input-hidden" accept="image/*" onchange="handleEventCoverFileChange(event)">
       <label for="event-cover-file" class="file-picker-btn" id="event-cover-file-label">
         <span class="file-picker-icon" id="event-cover-file-icon">🖼️</span>
-        <span class="file-picker-text" id="event-cover-file-text">Choisir une image</span>
+        <span class="file-picker-text" id="event-cover-file-text" data-i18n="common_choose_image">Choisir une image</span>
       </label>
       <div class="upload-progress-wrap hidden" id="event-cover-progress-wrap">
         <div class="upload-progress-fill" id="event-cover-progress-fill"></div>
@@ -1996,27 +1996,27 @@
     </div>
 
     <div class="field">
-      <label>Types de billets</label>
+      <label data-i18n="event_field_tickets_label">Types de billets</label>
       <div id="event-ticket-types-list"></div>
-      <button type="button" class="btn btn-outline btn-sm" style="margin-top:6px" onclick="addEventTicketTypeRow()">+ Ajouter un type de billet</button>
+      <button type="button" class="btn btn-outline btn-sm" style="margin-top:6px" onclick="addEventTicketTypeRow()" data-i18n="event_add_ticket_type_btn">+ Ajouter un type de billet</button>
     </div>
 
-    <button class="btn btn-primary" id="event-form-submit-btn" style="width:100%;justify-content:center;margin-top:10px" onclick="saveEvent()">Publier l'événement</button>
+    <button class="btn btn-primary" id="event-form-submit-btn" style="width:100%;justify-content:center;margin-top:10px" onclick="saveEvent()" data-i18n="event_publish_btn">Publier l'événement</button>
   </div>
 </div>
 
 <div class="modal-overlay hidden" id="event-reserve-modal">
   <div class="modal">
     <button class="modal-close" onclick="closeEventReserveForm()" aria-label="Fermer">×</button>
-    <h3 style="margin-bottom:4px">Réserver un billet</h3>
+    <h3 style="margin-bottom:4px" data-i18n="event_reserve_ticket_modal_title">Réserver un billet</h3>
     <p class="muted small" style="margin-bottom:14px" id="event-reserve-ticket-label"></p>
     <div class="modal-error hidden" id="event-reserve-error"></div>
     <div class="field">
-      <label for="event-reserve-quantity">Nombre de places</label>
+      <label for="event-reserve-quantity" data-i18n="event_reserve_qty_label">Nombre de places</label>
       <input type="number" id="event-reserve-quantity" class="text-input" value="1" min="1" step="1" oninput="updateEventReserveTotal()">
     </div>
-    <p class="muted small" style="margin-bottom:14px">Total : <strong id="event-reserve-total">—</strong></p>
-    <button class="btn btn-primary" id="event-reserve-submit-btn" style="width:100%;justify-content:center" onclick="submitEventReservation()">Confirmer la réservation</button>
+    <p class="muted small" style="margin-bottom:14px"><span data-i18n="event_reserve_total_label">Total :</span> <strong id="event-reserve-total">—</strong></p>
+    <button class="btn btn-primary" id="event-reserve-submit-btn" style="width:100%;justify-content:center" onclick="submitEventReservation()" data-i18n="event_confirm_reservation_btn">Confirmer la réservation</button>
   </div>
 </div>
 
@@ -2030,35 +2030,35 @@
 <div class="modal-overlay hidden" id="course-form-modal">
   <div class="modal">
     <button class="modal-close" onclick="closeCourseForm()" aria-label="Fermer">×</button>
-    <h2 id="course-form-title">Créer un cours</h2>
+    <h2 id="course-form-title" data-i18n="course_form_title_new">Créer un cours</h2>
     <div class="modal-error hidden" id="course-form-error"></div>
 
     <div class="field">
-      <label for="course-title-input">Titre du cours</label>
-      <input type="text" id="course-title-input" class="text-input" placeholder="Ex: Initiation à Excel, Anglais des affaires...">
+      <label for="course-title-input" data-i18n="course_field_title_label">Titre du cours</label>
+      <input type="text" id="course-title-input" class="text-input" data-i18n-placeholder="course_field_title_ph" placeholder="Ex: Initiation à Excel, Anglais des affaires...">
     </div>
     <div class="field">
-      <label for="course-category-input">Catégorie</label>
-      <input type="text" id="course-category-input" class="text-input" placeholder="Ex: Informatique, Business, Langues...">
+      <label for="course-category-input" data-i18n="course_field_category_label">Catégorie</label>
+      <input type="text" id="course-category-input" class="text-input" data-i18n-placeholder="course_field_category_ph" placeholder="Ex: Informatique, Business, Langues...">
     </div>
     <div class="field">
-      <label for="course-level-select">Niveau</label>
+      <label for="course-level-select" data-i18n="course_field_level_label">Niveau</label>
       <select id="course-level-select" class="text-input">
-        <option value="debutant">Débutant</option>
-        <option value="intermediaire">Intermédiaire</option>
-        <option value="avance">Avancé</option>
+        <option value="debutant" data-i18n="course_level_debutant">Débutant</option>
+        <option value="intermediaire" data-i18n="course_level_intermediaire">Intermédiaire</option>
+        <option value="avance" data-i18n="course_level_avance">Avancé</option>
       </select>
     </div>
     <div class="field">
-      <label for="course-description-input">Description</label>
-      <textarea id="course-description-input" class="text-input" rows="4" placeholder="Ce que les étudiants vont apprendre..."></textarea>
+      <label for="course-description-input" data-i18n="course_field_description_label">Description</label>
+      <textarea id="course-description-input" class="text-input" rows="4" data-i18n-placeholder="course_field_description_ph" placeholder="Ce que les étudiants vont apprendre..."></textarea>
     </div>
     <div class="field">
-      <label for="course-cover-file">Image de couverture (facultatif)</label>
+      <label for="course-cover-file" data-i18n="course_field_cover_label">Image de couverture (facultatif)</label>
       <input type="file" id="course-cover-file" class="file-input-hidden" accept="image/*" onchange="handleCourseCoverFileChange(event)">
       <label for="course-cover-file" class="file-picker-btn" id="course-cover-file-label">
         <span class="file-picker-icon" id="course-cover-file-icon">🖼️</span>
-        <span class="file-picker-text" id="course-cover-file-text">Choisir une image</span>
+        <span class="file-picker-text" id="course-cover-file-text" data-i18n="common_choose_image">Choisir une image</span>
       </label>
       <div class="upload-progress-wrap hidden" id="course-cover-progress-wrap">
         <div class="upload-progress-fill" id="course-cover-progress-fill"></div>
@@ -2067,25 +2067,25 @@
       <div id="course-cover-preview"></div>
     </div>
     <div class="field">
-      <label for="course-price-input">Prix (0 = gratuit, en $)</label>
+      <label for="course-price-input" data-i18n="course_field_price_label">Prix (0 = gratuit, en $)</label>
       <input type="number" id="course-price-input" class="text-input" min="0" step="0.01" value="0">
     </div>
 
-    <label style="display:block;margin-bottom:8px;font-weight:600">Chapitres</label>
+    <label style="display:block;margin-bottom:8px;font-weight:600" data-i18n="course_field_chapters_label">Chapitres</label>
     <div id="course-chapters-list" style="margin-bottom:8px"></div>
-    <button type="button" class="btn btn-outline btn-sm" style="margin-bottom:16px" onclick="addCourseChapterRow()">+ Ajouter un chapitre</button>
+    <button type="button" class="btn btn-outline btn-sm" style="margin-bottom:16px" onclick="addCourseChapterRow()" data-i18n="course_add_chapter_btn">+ Ajouter un chapitre</button>
 
-    <button class="btn btn-primary" id="course-form-submit-btn" style="width:100%;justify-content:center" onclick="saveCourse()">Publier</button>
+    <button class="btn btn-primary" id="course-form-submit-btn" style="width:100%;justify-content:center" onclick="saveCourse()" data-i18n="common_publish">Publier</button>
   </div>
 </div>
 
 <div class="modal-overlay hidden" id="course-enroll-modal">
   <div class="modal">
     <button class="modal-close" onclick="closeCourseEnrollModal()" aria-label="Fermer">×</button>
-    <h3 style="margin-bottom:4px">Confirmer l'inscription</h3>
+    <h3 style="margin-bottom:4px" data-i18n="course_confirm_enrollment_btn">Confirmer l'inscription</h3>
     <p class="muted small" style="margin-bottom:14px" id="course-enroll-summary"></p>
     <div class="modal-error hidden" id="course-enroll-error"></div>
-    <button class="btn btn-primary" id="course-enroll-submit-btn" style="width:100%;justify-content:center" onclick="submitCourseEnrollment()">Confirmer l'inscription</button>
+    <button class="btn btn-primary" id="course-enroll-submit-btn" style="width:100%;justify-content:center" onclick="submitCourseEnrollment()" data-i18n="course_confirm_enrollment_btn">Confirmer l'inscription</button>
   </div>
 </div>
 
