@@ -368,7 +368,6 @@ async function installApp() {
   if (deferredInstallPrompt) {
     deferredInstallPrompt.prompt();
     const { outcome } = await deferredInstallPrompt.userChoice;
-    console.log('[install] Choix utilisateur :', outcome);
     deferredInstallPrompt = null;
     document.getElementById('install-app-btn').classList.add('hidden');
     return;
@@ -410,7 +409,6 @@ try {
   });
   db = firebase.firestore();
   fbReady = true;
-  console.log("✅ Firebase initialisé");
 } catch (e) {
   console.error("🔴 Firebase a échoué :", e.message);
 }
@@ -653,7 +651,6 @@ async function fetchLiveRates() {
     const data = await res.json();
     if (data && data.result === 'success' && data.rates) {
       LIVE_RATES = data.rates;
-      console.log('✅ Taux de change en direct chargés');
     }
   } catch (e) {
     console.warn('⚠️ Taux en direct indisponibles, utilisation des taux indicatifs.', e.message);
@@ -668,7 +665,6 @@ async function loadPricingOverrides() {
     const overrides = {};
     snap.forEach(doc => { overrides[doc.id] = doc.data().services || []; });
     applyPricingOverrides(overrides);
-    console.log('✅ Prix personnalisés chargés');
   } catch (e) {
     console.warn('⚠️ Pas de prix personnalisés (utilisation des prix par défaut).', e.message);
   }
@@ -686,7 +682,6 @@ async function loadBundlePricingOverrides() {
     const overrides = {};
     snap.forEach(doc => { overrides[doc.id] = doc.data().bundles || []; });
     applyBundlePricingOverrides(overrides);
-    console.log('✅ Prix de forfaits personnalisés chargés');
   } catch (e) {
     console.warn('⚠️ Pas de prix de forfaits personnalisés (utilisation des prix par défaut).', e.message);
   }
@@ -13346,13 +13341,11 @@ async function registerPushNotifications() {
   if (!currentUser) return;
   try {
     if (!('Notification' in window) || !firebase.messaging) {
-      console.log('[push] Notifications non supportees sur ce navigateur');
       return;
     }
 
     const permission = await Notification.requestPermission();
     if (permission !== 'granted') {
-      console.log("[push] Permission refusee par l'utilisateur");
       return;
     }
 
@@ -13372,7 +13365,6 @@ async function registerPushNotifications() {
       await db.collection('users').doc(currentUser.uid).update({
         fcmTokens: firebase.firestore.FieldValue.arrayUnion(token)
       });
-      console.log('[push] Jeton enregistre avec succes');
     }
 
     // Reception d'une notification pendant que l'app est ouverte au premier plan
