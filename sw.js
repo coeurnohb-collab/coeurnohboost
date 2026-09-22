@@ -70,7 +70,7 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
-const CACHE_NAME = 'coeurnohboost-v9';
+const CACHE_NAME = 'coeurnohboost-v10';
 const APP_SHELL = [
   '/',
   '/index.html',
@@ -106,7 +106,16 @@ self.addEventListener('fetch', (event) => {
   // On ne gere que nos propres fichiers (meme origine), en GET.
   // Les appels vers Firebase/Firestore/API externes passent directement,
   // sans interference du service worker.
-  if (event.request.method !== 'GET' || url.origin !== self.location.origin) {
+  //
+  // CORRECTIF (chantier 3) : /api/* est sur la MEME origine que le site,
+  // donc etait avant mis en cache comme n'importe quelle page -- une
+  // coupure reseau juste apres un achat pouvait renvoyer la reponse EN
+  // CACHE d'un appel /api precedent (parfois celle d'un autre utilisateur
+  // du meme appareil partage), au lieu d'une vraie erreur reseau. Les
+  // reponses /api/* ne sont plus jamais mises en cache ni servies depuis
+  // le cache : en cas de coupure, l'appli recoit une vraie erreur reseau
+  // qu'elle sait deja afficher proprement.
+  if (event.request.method !== 'GET' || url.origin !== self.location.origin || url.pathname.startsWith('/api/')) {
     return;
   }
 

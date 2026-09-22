@@ -12,6 +12,15 @@
   --line:#e3e6eb;
   --white:#ffffff;
   --radius:16px;
+  /* CORRECTIF (chantier 5) : variables dediees au TEXTE (et aux bordures)
+     en rouge / bleu fonce. En mode sombre, --red et --green-dark restent
+     inchanges car ils servent aussi de FOND (bouton, badge) avec du texte
+     blanc dessus -- les eclaircir aurait casse le contraste inverse. Ces
+     deux nouvelles variables sont identiques a --red/--green-dark en mode
+     clair (aucun changement visuel) mais s'eclaircissent uniquement en
+     mode sombre pour rester lisibles sur un fond fonce (voir plus bas). */
+  --red-text:#c3183f;
+  --green-dark-text:#145dbf;
   --font: 'Plus Jakarta Sans', 'Segoe UI', system-ui, -apple-system, sans-serif;
 }
 html{font-size:16px}
@@ -27,6 +36,16 @@ html[data-theme="dark"]{
   --line:#2a2f38;
   --white:#1b1f26;
   --green-light:#17263f;
+  /* CORRECTIF (chantier 5) : le rouge et le bleu fonce d'origine tombent
+     sous 3:1 de contraste une fois utilises comme TEXTE sur les fonds
+     sombres (mesure : ~2.6-2.8:1, sous le minimum WCAG AA de 4.5:1) --
+     titres de section, prix, boutons "Supprimer", messages d'erreur
+     etaient donc a peine lisibles en mode sombre. Ces deux teintes
+     eclaircies retrouvent un bon contraste (>6:1) sans toucher au rouge
+     ni au bleu utilises comme FOND (badges, bouton "J'aime"...), qui
+     restent inchanges et lisibles avec du texte blanc. */
+  --red-text:#ff6b7a;
+  --green-dark-text:#6fb1ff;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{
@@ -37,7 +56,7 @@ body{
   -webkit-font-smoothing:antialiased;
 }
 h1,h2,h3,h4{font-family:var(--font);letter-spacing:-0.015em}
-h2.page-title{color:var(--red);font-weight:800}
+h2.page-title{color:var(--red-text);font-weight:800}
 .hidden{display:none !important}
 .wrap{max-width:1100px;margin:0 auto;padding:0 20px}
 a{text-decoration:none;color:inherit}
@@ -45,7 +64,7 @@ a{text-decoration:none;color:inherit}
 /* NAV */
 #nav{position:sticky;top:0;background:var(--white);border-bottom:1px solid var(--line);z-index:100;box-shadow:0 1px 3px rgba(0,0,0,0.03)}
 .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;gap:12px}
-.logo{font-weight:800;font-size:1.25rem;cursor:pointer;color:var(--red);letter-spacing:-0.01em}
+.logo{font-weight:800;font-size:1.25rem;cursor:pointer;color:var(--red-text);letter-spacing:-0.01em}
 .logo span{color:var(--green)}
 .nav-right{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .lang-select{
@@ -145,7 +164,7 @@ a{text-decoration:none;color:inherit}
 }
 .multi-service-card:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(0,0,0,0.06)}
 .multi-service-icon{
-  width:40px;height:40px;border-radius:50%;background:var(--green-light);color:var(--green-dark);
+  width:40px;height:40px;border-radius:50%;background:var(--green-light);color:var(--green-dark-text);
   display:flex;align-items:center;justify-content:center;flex:0 0 auto;
 }
 .multi-service-card span{font-size:0.82rem;font-weight:600;color:var(--ink);line-height:1.3}
@@ -224,7 +243,7 @@ a{text-decoration:none;color:inherit}
 }
 .muted{color:var(--muted);font-size:0.9rem}
 .order-box{border:1px solid var(--line);border-radius:var(--radius);padding:18px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,0.03)}
-.order-box h3{margin-bottom:8px;color:var(--red);font-size:1rem;font-weight:700}
+.order-box h3{margin-bottom:8px;color:var(--red-text);font-size:1rem;font-weight:700}
 .profile-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line);font-size:0.9rem}
 .profile-row:last-child{border-bottom:none}
 .switch{position:relative;display:inline-block;width:44px;height:24px;flex-shrink:0}
@@ -277,10 +296,10 @@ a{text-decoration:none;color:inherit}
   animation:splashBrandIn .55s ease .45s forwards;
 }
 #app-splash-name{font-size:1.5rem;font-weight:800;letter-spacing:-0.01em}
-.app-splash-name-red{color:var(--red)}
+.app-splash-name-red{color:var(--red-text)}
 .app-splash-name-green{color:var(--green)}
 #app-splash-tagline{
-  font-size:0.72rem;font-weight:700;color:var(--red);
+  font-size:0.72rem;font-weight:700;color:var(--red-text);
   text-transform:uppercase;letter-spacing:0.22em;
   opacity:0;animation:splashTaglineIn .5s ease .75s forwards;
 }
@@ -376,13 +395,13 @@ a{text-decoration:none;color:inherit}
 .quality-card:hover{border-color:#cfe1fd}
 .quality-card.active{border-color:var(--green);background:var(--green-light);box-shadow:0 3px 10px rgba(24,119,242,0.12)}
 .quality-card .q-name{font-weight:800;font-size:0.85rem;display:block;letter-spacing:0.01em}
-.quality-card .q-mult{font-size:0.78rem;color:var(--green-dark);font-weight:700;display:block;margin-top:4px}
+.quality-card .q-mult{font-size:0.78rem;color:var(--green-dark-text);font-weight:700;display:block;margin-top:4px}
 .quality-card .q-mult small{font-weight:500;color:var(--muted);font-size:0.65rem}
 .order-summary{margin-top:20px;border-top:1px solid var(--line);padding-top:16px}
 .order-summary-row{display:flex;justify-content:space-between;font-size:0.9rem;padding:5px 0}
 .order-summary-row strong{color:var(--green);font-size:1.25rem;font-weight:800}
 .order-status{
-  background:var(--cream);color:var(--green-dark);font-size:0.72rem;font-weight:700;
+  background:var(--cream);color:var(--green-dark-text);font-size:0.72rem;font-weight:700;
   padding:3px 10px;border-radius:999px;text-transform:capitalize;
 }
 
@@ -465,13 +484,13 @@ a{text-decoration:none;color:inherit}
 }
 .price-table-head span:first-child{text-align:left}
 .price-table-head span:nth-child(2){color:var(--muted)}
-.price-table-head span:nth-child(3){color:var(--green-dark)}
+.price-table-head span:nth-child(3){color:var(--green-dark-text)}
 .price-table-head span:nth-child(4){color:#a6720a}
 .price-table-row{border-bottom:1px solid var(--line)}
 .price-table-row:last-child{border-bottom:none}
 .pt-label{font-weight:700;font-size:0.85rem}
 .pt-price{
-  text-align:center;font-weight:800;font-size:0.95rem;color:var(--green-dark);
+  text-align:center;font-weight:800;font-size:0.95rem;color:var(--green-dark-text);
   background:var(--green-light);border-radius:8px;padding:6px 4px;
 }
 
@@ -479,7 +498,7 @@ a{text-decoration:none;color:inherit}
 .bundle-card{border:1.5px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
 .bundle-head{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .bundle-label{font-weight:700;font-size:0.85rem}
-.bundle-price{font-weight:800;color:var(--green-dark);font-size:1rem;white-space:nowrap}
+.bundle-price{font-weight:800;color:var(--green-dark-text);font-size:1rem;white-space:nowrap}
 
 /* PARRAINAGE */
 .referral-box{
@@ -504,7 +523,7 @@ a{text-decoration:none;color:inherit}
 
 /* BANNIÈRE DE CONFIANCE */
 .trust-banner{
-  display:flex;align-items:center;gap:10px;background:var(--green-light);color:var(--green-dark);
+  display:flex;align-items:center;gap:10px;background:var(--green-light);color:var(--green-dark-text);
   border-radius:14px;padding:14px 16px;font-size:0.82rem;font-weight:600;margin-bottom:16px;
 }
 .trust-banner span:first-child{font-size:1.3rem}
@@ -525,7 +544,7 @@ a{text-decoration:none;color:inherit}
 /* PACK PRIX FIXE (monétisation) */
 .pack-card{border-color:var(--green);background:var(--green-light)}
 .pack-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
-.pack-price{font-size:1.3rem;font-weight:800;color:var(--green-dark);white-space:nowrap}
+.pack-price{font-size:1.3rem;font-weight:800;color:var(--green-dark-text);white-space:nowrap}
 
 /* SERVICES TEASER */
 .modal-overlay{
@@ -569,8 +588,8 @@ a{text-decoration:none;color:inherit}
 }
 .modal h2{font-size:1.3rem;margin-bottom:4px}
 .modal .sub{color:var(--muted);font-size:0.85rem;margin-bottom:16px}
-.modal-error{background:rgba(195,24,63,0.1);color:var(--red);border:1px solid rgba(195,24,63,0.3);border-radius:10px;padding:10px 12px;font-size:0.85rem;margin-bottom:14px}
-.modal-loading{background:var(--cream);color:var(--green-dark);border-radius:10px;padding:10px 12px;font-size:0.85rem;margin-bottom:14px;text-align:center}
+.modal-error{background:rgba(195,24,63,0.1);color:var(--red-text);border:1px solid rgba(195,24,63,0.3);border-radius:10px;padding:10px 12px;font-size:0.85rem;margin-bottom:14px}
+.modal-loading{background:var(--cream);color:var(--green-dark-text);border-radius:10px;padding:10px 12px;font-size:0.85rem;margin-bottom:14px;text-align:center}
 .google-btn{
   width:100%;display:flex;align-items:center;justify-content:center;gap:10px;
   background:var(--white);border:1.5px solid var(--line);border-radius:999px;padding:11px;
@@ -595,7 +614,7 @@ a{text-decoration:none;color:inherit}
 .invoice-item-row .inv-item-qty{flex:0 0 54px;padding:11px 6px;text-align:center}
 .invoice-item-row .inv-item-price{flex:0 0 72px;padding:11px 6px;text-align:right}
 .invoice-row-remove{
-  flex:0 0 32px;height:32px;border:none;background:var(--green-light);color:var(--red);
+  flex:0 0 32px;height:32px;border:none;background:var(--green-light);color:var(--red-text);
   border-radius:8px;font-size:1.1rem;line-height:1;cursor:pointer;
   display:flex;align-items:center;justify-content:center;
 }
@@ -744,7 +763,7 @@ a{text-decoration:none;color:inherit}
 .lang-choice.active{background:var(--green);border-color:var(--green);color:#fff}
 
 .coming-soon-badge{
-  display:inline-block;background:var(--green-light);color:var(--green-dark);
+  display:inline-block;background:var(--green-light);color:var(--green-dark-text);
   font-size:0.8rem;font-weight:700;padding:6px 16px;border-radius:999px;
 }
 
@@ -988,7 +1007,7 @@ a{text-decoration:none;color:inherit}
 .comment-reply-form{display:flex;gap:8px;margin:8px 0 4px 20px}
 .comment-reply-form .text-input{flex:1;font-size:0.82rem}
 .comment-delete-btn{background:none;border:none;color:var(--muted);cursor:pointer;flex:0 0 auto;padding:4px;display:flex}
-.comment-delete-btn:hover{color:var(--red)}
+.comment-delete-btn:hover{color:var(--red-text)}
 .reviews-section{margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
 .reviews-section h4{margin-bottom:10px;font-size:0.95rem}
 .review-form{background:var(--cream);border:1px solid var(--line);border-radius:var(--radius);padding:12px;margin-bottom:12px}
@@ -1041,7 +1060,7 @@ a{text-decoration:none;color:inherit}
 .tutorial-tier-badge{flex:0 0 auto;padding:5px 12px;border-radius:999px;font-weight:700;font-size:0.78rem;color:#fff;white-space:nowrap}
 .tier-standard{background:var(--muted)}
 .tier-premium{background:var(--green)}
-.tier-vip{background:var(--accent)}
+.tier-vip{background:var(--accent);color:#161a1f}
 .tutorial-nav{display:flex;gap:10px;margin-top:20px}
 .tutorial-nav .btn{flex:1}
 #tutorial-prev.tutorial-nav-hidden{visibility:hidden}
@@ -1377,7 +1396,7 @@ a{text-decoration:none;color:inherit}
    propre profil, ouvre l'ecran dedie "Modifier le profil". Remplace
    l'ancien gros bouton "Modifier le profil" separe sous les stats. */
 .profile-edit-pencil-btn{
-  background:var(--green-light);border:none;color:var(--green-dark);
+  background:var(--green-light);border:none;color:var(--green-dark-text);
   width:26px;height:26px;border-radius:50%;display:inline-flex;
   align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto;
   vertical-align:middle;
@@ -1406,7 +1425,7 @@ a{text-decoration:none;color:inherit}
 .edit-profile-avatar-wrap:active .edit-profile-photo-btn{background:var(--green-dark)}
 .edit-profile-link-btn{
   width:100%;display:flex;align-items:center;justify-content:center;gap:8px;
-  background:var(--green-light);color:var(--green-dark);border:none;border-radius:12px;
+  background:var(--green-light);color:var(--green-dark-text);border:none;border-radius:12px;
   padding:12px;font-weight:700;font-size:0.9rem;cursor:pointer;margin:6px 0 22px;
 }
 .edit-profile-link-btn:active{background:var(--line)}
@@ -1537,7 +1556,7 @@ a{text-decoration:none;color:inherit}
 }
 .action-sheet-btn:not(:last-child){border-bottom:1px solid var(--line)}
 .action-sheet-btn:active{background:var(--cream)}
-.action-sheet-btn-danger{color:var(--red)}
+.action-sheet-btn-danger{color:var(--red-text)}
 .action-sheet-cancel{justify-content:center;font-weight:700;color:var(--muted);margin-top:6px}
 
 /* ================= COMMENTAIRES : appui long pour Modifier/Supprimer =================

@@ -528,7 +528,7 @@ async function loadWalletHistory() {
               <div class="muted small">${escapeHtml(dateStr)}</div>
             </div>
           </div>
-          <strong style="white-space:nowrap;color:${isCredit ? 'var(--green)' : 'var(--red)'}">${isCredit ? '+' : ''}${(t.amount || 0).toFixed(2)}$</strong>
+          <strong style="white-space:nowrap;color:${isCredit ? 'var(--green)' : 'var(--red-text)'}">${isCredit ? '+' : ''}${(t.amount || 0).toFixed(2)}$</strong>
         </div>`;
     }).join('');
   } catch (e) {
@@ -1403,7 +1403,7 @@ function renderMonetizationDetail(platformId) {
     <div class="order-box pack-card">
       <div class="pack-head">
         <div>
-          <h3 style="color:var(--red);margin-bottom:2px">${m.pack.title}</h3>
+          <h3 style="color:var(--red-text);margin-bottom:2px">${m.pack.title}</h3>
           <p class="muted" style="font-size:0.8rem">${m.pack.desc}</p>
         </div>
         <div class="pack-price">${m.pack.price}$</div>
@@ -1893,7 +1893,7 @@ async function reauthenticateCurrentUser(currentPassword) {
 async function saveAccountEmail() {
   if (!currentUser) return;
   const msgEl = document.getElementById('account-email-msg');
-  msgEl.style.color = 'var(--red)';
+  msgEl.style.color = 'var(--red-text)';
   const newEmail = document.getElementById('account-email-input').value.trim();
   const currentPassword = document.getElementById('account-email-currentpass').value;
   if (!newEmail || !currentPassword) {
@@ -1917,7 +1917,7 @@ async function saveAccountEmail() {
 async function saveAccountPassword() {
   if (!currentUser) return;
   const msgEl = document.getElementById('account-pass-msg');
-  msgEl.style.color = 'var(--red)';
+  msgEl.style.color = 'var(--red-text)';
   const currentPassword = document.getElementById('account-pass-current').value;
   const newPassword = document.getElementById('account-pass-new').value;
   if (!currentPassword || !newPassword) {
@@ -1947,7 +1947,7 @@ async function saveAccountPassword() {
 async function deleteMyAccount() {
   if (!currentUser || !auth.currentUser) return;
   const msgEl = document.getElementById('delete-account-msg');
-  msgEl.style.color = 'var(--red)';
+  msgEl.style.color = 'var(--red-text)';
   const password = document.getElementById('delete-account-pass').value;
   if (!password) {
     msgEl.textContent = 'Merci de saisir ton mot de passe pour confirmer.';
@@ -3988,7 +3988,7 @@ function renderShopCard(item, isLiked, isPurchased) {
   const shareHtml = `<button class="shop-action-btn" onclick="shareShopItem('${item.id}','${escapeForJs(item.title)}')" title="Partager">${ICON_SHARE}</button>`;
 
   const deleteHtml = (currentUser && currentUser.uid === item.sellerUid)
-    ? `<button class="shop-action-btn" onclick="deleteMyPublication('${item.id}')" title="Supprimer" aria-label="Supprimer cette publication" style="color:var(--red)">${ICON_TRASH}</button>`
+    ? `<button class="shop-action-btn" onclick="deleteMyPublication('${item.id}')" title="Supprimer" aria-label="Supprimer cette publication" style="color:var(--red-text)">${ICON_TRASH}</button>`
     : '';
 
   const sellerLine = item.sellerName
@@ -5539,7 +5539,7 @@ async function saveProfileEdits() {
   const bio = document.getElementById('edit-bio-input').value.trim().slice(0, 150);
   if (username && (username.length < 3 || username.length > 24)) {
     msgEl.textContent = "Le nom d'utilisateur doit faire entre 3 et 24 caractères.";
-    msgEl.style.color = 'var(--red)';
+    msgEl.style.color = 'var(--red-text)';
     return;
   }
 
@@ -5563,7 +5563,7 @@ async function saveProfileEdits() {
         await db.collection('usernames').doc(username).set({ uid: currentUser.uid });
       } catch (e) {
         msgEl.textContent = "Ce nom d'utilisateur est déjà pris. Choisis-en un autre.";
-        msgEl.style.color = 'var(--red)';
+        msgEl.style.color = 'var(--red-text)';
         btn.disabled = false;
         btn.textContent = 'Enregistrer';
         return;
@@ -5592,7 +5592,7 @@ async function saveProfileEdits() {
     showToast('Profil mis à jour !', 'success');
   } catch (e) {
     msgEl.textContent = friendlyErrorMessage(e);
-    msgEl.style.color = 'var(--red)';
+    msgEl.style.color = 'var(--red-text)';
   } finally {
     btn.disabled = false;
     btn.textContent = 'Enregistrer';
@@ -5790,7 +5790,7 @@ function openDirectoryEditForm() {
           </div>
 
           <button class="btn btn-primary" id="directory-save-btn" style="width:100%;justify-content:center;margin-top:14px" onclick="saveDirectoryListing()">${t('common_save')}</button>
-          ${doc.exists ? `<button class="btn btn-outline" style="width:100%;justify-content:center;margin-top:10px;color:var(--red);border-color:var(--red)" onclick="deleteDirectoryListing()">${t('directory_delete_listing_btn')}</button>` : ''}
+          ${doc.exists ? `<button class="btn btn-outline" style="width:100%;justify-content:center;margin-top:10px;color:var(--red-text);border-color:var(--red-text)" onclick="deleteDirectoryListing()">${t('directory_delete_listing_btn')}</button>` : ''}
           <p class="muted small" id="directory-form-msg" style="margin-top:6px"></p>
         </div>
       </div>`;
@@ -6221,7 +6221,7 @@ async function viewInvoice(invoiceId) {
 
         <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:10px" onclick="printInvoice('${inv.id}')">${t('invoice_print_btn')}</button>
         <button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:10px" onclick="document.getElementById('invoice-view-modal').remove();openInvoiceForm('${inv.id}')">${t('invoice_edit_btn')}</button>
-        <button class="btn btn-outline" style="width:100%;justify-content:center;color:var(--red);border-color:var(--red)" onclick="deleteInvoiceConfirm('${inv.id}')">${t('invoice_delete_btn')}</button>
+        <button class="btn btn-outline" style="width:100%;justify-content:center;color:var(--red-text);border-color:var(--red-text)" onclick="deleteInvoiceConfirm('${inv.id}')">${t('invoice_delete_btn')}</button>
       </div>
     </div>`;
   document.body.insertAdjacentHTML('beforeend', html);
@@ -6360,7 +6360,7 @@ function renderAlertsList(list) {
           <span class="slider"></span>
         </label>
       </div>
-      <button class="btn btn-outline btn-sm" style="margin-top:12px;color:var(--red);border-color:var(--red)" onclick="deleteAlertConfirm('${a.id}')">${t('common_delete')}</button>
+      <button class="btn btn-outline btn-sm" style="margin-top:12px;color:var(--red-text);border-color:var(--red-text)" onclick="deleteAlertConfirm('${a.id}')">${t('common_delete')}</button>
     </div>`;
   }).join('');
 }
@@ -7541,7 +7541,7 @@ async function openJobDetail(offerId) {
         <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:8px" onclick="openJobCandidates('${o.id}')">${t('job_view_candidates_btn')} (${o.applicationsCount || 0})</button>
         <button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="openJobForm('${o.id}')">${t('job_edit_offer_btn')}</button>
         <button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="toggleJobOfferStatus('${o.id}', '${o.status === 'active' ? 'closed' : 'active'}')">${o.status === 'active' ? t('job_close_offer_btn') : t('job_reopen_offer_btn')}</button>
-        <button class="btn btn-outline" style="width:100%;justify-content:center;color:var(--red)" onclick="deleteJobOffer('${o.id}')">${t('job_delete_offer_btn')}</button>`;
+        <button class="btn btn-outline" style="width:100%;justify-content:center;color:var(--red-text)" onclick="deleteJobOffer('${o.id}')">${t('job_delete_offer_btn')}</button>`;
     } else if (!currentUser) {
       actionHtml = `<button class="btn btn-primary" style="width:100%;justify-content:center" onclick="openAuth('register')">${t('job_login_to_apply_btn')}</button>`;
     } else if (o.status !== 'active') {
@@ -7893,7 +7893,7 @@ async function openJobCandidates(offerId) {
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button class="btn btn-outline btn-sm" onclick="setJobApplicationStatus('${a.id}', 'vue', '${offerId}')">${t('job_mark_seen_btn')}</button>
           <button class="btn btn-primary btn-sm" onclick="setJobApplicationStatus('${a.id}', 'acceptee', '${offerId}')">${t('job_accept_btn')}</button>
-          <button class="btn btn-outline btn-sm" style="color:var(--red)" onclick="setJobApplicationStatus('${a.id}', 'refusee', '${offerId}')">${t('job_refuse_btn')}</button>
+          <button class="btn btn-outline btn-sm" style="color:var(--red-text)" onclick="setJobApplicationStatus('${a.id}', 'refusee', '${offerId}')">${t('job_refuse_btn')}</button>
         </div>
       </div>`).join('');
   } catch (e) {
@@ -8089,7 +8089,7 @@ function renderMyJobSeekerProfile() {
     ${p.status === 'active'
       ? `<button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="toggleJobSeekerStatus('paused')">${t('jobseeker_pause_btn')}</button>`
       : `<button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:8px" onclick="toggleJobSeekerStatus('active')">${t('jobseeker_reactivate_btn')}</button>`}
-    <button class="btn btn-outline" style="width:100%;justify-content:center;color:var(--red)" onclick="deleteJobSeekerProfile()">${t('jobseeker_delete_btn')}</button>`;
+    <button class="btn btn-outline" style="width:100%;justify-content:center;color:var(--red-text)" onclick="deleteJobSeekerProfile()">${t('jobseeker_delete_btn')}</button>`;
 }
 
 async function toggleJobSeekerStatus(newStatus) {
@@ -8395,7 +8395,7 @@ async function openEventDetail(eventId) {
         ${e.status === 'active'
           ? `<button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="toggleEventStatus('${e.id}', 'cancelled')">${t('event_cancel_event_btn')}</button>`
           : `<button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="toggleEventStatus('${e.id}', 'active')">${t('event_reactivate_btn')}</button>`}
-        <button class="btn btn-outline" style="width:100%;justify-content:center;color:var(--red)" onclick="deleteEvent('${e.id}')">${t('event_delete_btn')}</button>`;
+        <button class="btn btn-outline" style="width:100%;justify-content:center;color:var(--red-text)" onclick="deleteEvent('${e.id}')">${t('event_delete_btn')}</button>`;
     }
 
     bodyEl.innerHTML = `
@@ -8404,7 +8404,7 @@ async function openEventDetail(eventId) {
         <span class="shop-card-category">${escapeHtml(e.category || '—')}</span>
       </div>
       <div class="muted small" style="margin-bottom:10px">${escapeHtml(eventDateRangeLabel(e))} · ${escapeHtml(e.location || '—')}</div>
-      ${e.status === 'cancelled' ? `<p class="muted small" style="color:var(--red);margin-bottom:10px">${t('event_cancelled_notice')}</p>` : ''}
+      ${e.status === 'cancelled' ? `<p class="muted small" style="color:var(--red-text);margin-bottom:10px">${t('event_cancelled_notice')}</p>` : ''}
       <p style="white-space:pre-wrap;margin-bottom:16px">${escapeHtml(e.description || '')}</p>
       <h4 style="margin-bottom:8px">${t('event_tickets_heading')}</h4>
       ${ticketsHtml}
@@ -8740,7 +8740,7 @@ async function loadMyEventTickets() {
         <div class="muted small" style="margin-bottom:8px">${t('event_status_prefix')} ${tk.status === 'cancelled' ? t('event_ticket_status_cancelled') : t('event_ticket_status_confirmed')}</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button class="btn btn-outline btn-sm" onclick="openEventDetail('${tk.eventId}')">${t('event_view_btn')}</button>
-          ${canCancel ? `<button class="btn btn-outline btn-sm" style="color:var(--red)" onclick="cancelEventTicket('${tk.id}')">${t('event_cancel_ticket_btn')}</button>` : ''}
+          ${canCancel ? `<button class="btn btn-outline btn-sm" style="color:var(--red-text)" onclick="cancelEventTicket('${tk.id}')">${t('event_cancel_ticket_btn')}</button>` : ''}
         </div>
       </div>`;
     }).join('');
@@ -9067,7 +9067,7 @@ async function loadMyTravelSpots() {
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
           <button class="btn btn-outline btn-sm" onclick="openTravelForm('${s.id}')">${t('travel_edit_btn')}</button>
           <button class="btn btn-outline btn-sm" onclick="toggleTravelSpotStatus('${s.id}', '${s.status === 'active' ? 'inactive' : 'active'}')">${s.status === 'active' ? t('travel_hide_btn') : t('travel_reactivate_btn')}</button>
-          <button class="btn btn-outline btn-sm" style="color:var(--red);border-color:var(--red)" onclick="deleteTravelSpot('${s.id}')">${t('travel_delete_btn')}</button>
+          <button class="btn btn-outline btn-sm" style="color:var(--red-text);border-color:var(--red-text)" onclick="deleteTravelSpot('${s.id}')">${t('travel_delete_btn')}</button>
         </div>
       </div>`).join('');
   } catch (e) {
@@ -9499,7 +9499,7 @@ function renderBookingsList(list, targetId, emptyMessage, isProSide) {
       </div>
       <div class="muted small" style="margin:4px 0">${escapeHtml(isProSide ? b.clientName : b.proName)}</div>
       <div class="muted small">${new Date(b.date).toLocaleDateString('fr-FR')} · ${escapeHtml(b.startTime)} — ${escapeHtml(b.endTime)}</div>
-      ${(!isPast && b.status !== 'cancelled') ? `<button class="btn btn-outline btn-sm" style="margin-top:8px;color:var(--red);border-color:var(--red)" onclick="cancelBooking('${b.id}')">${t('booking_cancel_btn')}</button>` : ''}
+      ${(!isPast && b.status !== 'cancelled') ? `<button class="btn btn-outline btn-sm" style="margin-top:8px;color:var(--red-text);border-color:var(--red-text)" onclick="cancelBooking('${b.id}')">${t('booking_cancel_btn')}</button>` : ''}
     </div>`;
   }).join('');
 }
@@ -9666,7 +9666,7 @@ async function openCourseDetail(courseId) {
         ${c.status === 'active'
           ? `<button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="toggleCourseStatus('${c.id}', 'closed')">${t('course_close_btn')}</button>`
           : `<button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="toggleCourseStatus('${c.id}', 'active')">${t('course_reactivate_btn')}</button>`}
-        <button class="btn btn-outline" style="width:100%;justify-content:center;color:var(--red)" onclick="deleteCourse('${c.id}')">${t('course_delete_btn')}</button>`;
+        <button class="btn btn-outline" style="width:100%;justify-content:center;color:var(--red-text)" onclick="deleteCourse('${c.id}')">${t('course_delete_btn')}</button>`;
     }
 
     let chaptersHtml;
@@ -10352,7 +10352,7 @@ async function loadMyImmoProperties() {
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
           <button class="btn btn-outline btn-sm" onclick="openImmoForm('${p.id}')">${t('immo_edit_btn')}</button>
           <button class="btn btn-outline btn-sm" onclick="toggleImmoStatus('${p.id}', '${nextStatus}')">${nextLabel}</button>
-          <button class="btn btn-outline btn-sm" style="color:var(--red);border-color:var(--red)" onclick="deleteImmoProperty('${p.id}')">${t('immo_delete_btn')}</button>
+          <button class="btn btn-outline btn-sm" style="color:var(--red-text);border-color:var(--red-text)" onclick="deleteImmoProperty('${p.id}')">${t('immo_delete_btn')}</button>
         </div>
       </div>`;
     }).join('');
@@ -10686,8 +10686,8 @@ async function loadMySRequests() {
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
           ${r.status === 'open' ? `<button class="btn btn-outline btn-sm" onclick="viewSRequestQuotes('${r.id}')">Voir les devis</button>` : ''}
           ${r.status === 'in_progress' ? `<button class="btn btn-outline btn-sm" onclick="completeSRequest('${r.id}')">Marquer terminée</button>` : ''}
-          ${r.status === 'open' ? `<button class="btn btn-outline btn-sm" style="color:var(--red);border-color:var(--red)" onclick="cancelSRequest('${r.id}')">Annuler</button>` : ''}
-          <button class="btn btn-outline btn-sm" style="color:var(--red);border-color:var(--red)" onclick="deleteSRequest('${r.id}')">Supprimer</button>
+          ${r.status === 'open' ? `<button class="btn btn-outline btn-sm" style="color:var(--red-text);border-color:var(--red-text)" onclick="cancelSRequest('${r.id}')">Annuler</button>` : ''}
+          <button class="btn btn-outline btn-sm" style="color:var(--red-text);border-color:var(--red-text)" onclick="deleteSRequest('${r.id}')">Supprimer</button>
         </div>
       </div>`).join('');
   } catch (e) {
@@ -11185,7 +11185,7 @@ function renderSiteStatusView() {
     ${site.status === 'published'
       ? `<button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="toggleSitePublish('draft')">${t('site_unpublish_btn')}</button>`
       : `<button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:8px" onclick="toggleSitePublish('published')">${t('site_publish_btn')}</button>`}
-    <button class="btn btn-outline" style="width:100%;justify-content:center;color:var(--red)" onclick="deleteMySite()">${t('site_delete_btn')}</button>`;
+    <button class="btn btn-outline" style="width:100%;justify-content:center;color:var(--red-text)" onclick="deleteMySite()">${t('site_delete_btn')}</button>`;
 }
 
 /* SITE_ROOT_DOMAIN reste "null" tant qu'aucun nom de domaine n'est connecte
@@ -11610,10 +11610,10 @@ function renderPublicSiteHtml(site, overlay) {
 
   overlay.innerHTML = `
     <div style="max-width:640px;margin:0 auto;font-family:inherit">
-      ${site.coverImageUrl ? `<img src="${escapeHtml(site.coverImageUrl)}" style="width:100%;max-height:260px;object-fit:cover;display:block">` : `<div style="height:100px;background:${accent}"></div>`}
+      ${site.coverImageUrl ? `<img src="${escapeHtml(site.coverImageUrl)}" alt="" style="width:100%;max-height:260px;object-fit:cover;display:block">` : `<div style="height:100px;background:${accent}"></div>`}
       <div style="padding:24px">
         <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">
-          ${site.logoUrl ? `<img src="${escapeHtml(site.logoUrl)}" style="width:64px;height:64px;border-radius:50%;object-fit:cover">` : ''}
+          ${site.logoUrl ? `<img src="${escapeHtml(site.logoUrl)}" alt="${escapeHtml(site.businessName || '')}" style="width:64px;height:64px;border-radius:50%;object-fit:cover">` : ''}
           <div>
             <h1 style="margin:0;font-size:1.4rem">${escapeHtml(site.businessName || '')}</h1>
             ${site.tagline ? `<p class="muted small" style="margin:2px 0 0">${escapeHtml(site.tagline)}</p>` : ''}
@@ -11632,7 +11632,7 @@ function renderPublicSiteHtml(site, overlay) {
         ${gallery.length > 0 ? `
           <h3 style="color:${accent};margin-bottom:10px">${t('site_photos_heading')}</h3>
           <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px">
-            ${gallery.map(g => `<img src="${escapeHtml(g)}" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px">`).join('')}
+            ${gallery.map((g, i) => `<img src="${escapeHtml(g)}" alt="${escapeHtml(t('site_photos_heading'))} ${i + 1}" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px">`).join('')}
           </div>` : ''}
 
         ${site.address ? `<p class="muted small" style="margin-bottom:8px">${ICON_LOCATION} ${escapeHtml(site.address)}</p>` : ''}
@@ -11764,7 +11764,7 @@ function renderBusinessCards(list) {
   listEl.innerHTML = visible.map(b => `
     <div class="order-box" style="margin-bottom:12px${businessIsProActive(b) ? ';border-color:#f5a623' : ''}">
       <div style="display:flex;align-items:center;gap:10px">
-        ${b.logoUrl ? `<img src="${escapeHtml(b.logoUrl)}" style="width:44px;height:44px;border-radius:50%;object-fit:cover">` : ''}
+        ${b.logoUrl ? `<img src="${escapeHtml(b.logoUrl)}" alt="${escapeHtml(b.businessName || '')}" style="width:44px;height:44px;border-radius:50%;object-fit:cover">` : ''}
         <div>
           <strong>${escapeHtml(b.businessName || t('business_default_name'))}</strong>${businessIsProActive(b) ? ` <span class="shop-card-category" style="background:#fff4e0;color:#b5720b">${t('business_pro_badge')}</span>` : ''}
           <div class="muted small">${t(NEARBY_CATEGORY_LABELS[b.category]) || ''}</div>
@@ -11799,7 +11799,7 @@ async function openBusinessDetail(ownerUid) {
     <div class="biz-section" style="padding-top:4px">
       <h4>${ICON_GRID3} ${t('business_catalog_heading')}</h4>
       <div class="biz-desc-card" style="margin:0">
-        ${b.catalog.map(it => `<div style="display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--line)"><span>${escapeHtml(it.name || '')}</span><strong style="color:var(--green-dark);white-space:nowrap">${escapeHtml(it.price || '')}</strong></div>`).join('')}
+        ${b.catalog.map(it => `<div style="display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--line)"><span>${escapeHtml(it.name || '')}</span><strong style="color:var(--green-dark-text);white-space:nowrap">${escapeHtml(it.price || '')}</strong></div>`).join('')}
       </div>
     </div>` : '';
   const couponsHtml = activeCoupons.length > 0 ? `
@@ -11876,7 +11876,7 @@ async function loadBusinessPostsFeed(ownerUid, targetId) {
         ${p.imageUrl ? `<img src="${escapeHtml(p.imageUrl)}" alt="" onerror="mediaLoadError(this)">` : ''}
         <div class="biz-post-card-body">
           <p style="white-space:pre-wrap;margin:0">${escapeHtml(p.text || '')}</p>
-          ${isOwn ? `<button class="btn btn-outline btn-sm" style="margin-top:10px;color:var(--red)" onclick="deleteBusinessPost('${p.id}', '${ownerUid}', '${targetId}')">${t('business_delete_post_btn')}</button>` : ''}
+          ${isOwn ? `<button class="btn btn-outline btn-sm" style="margin-top:10px;color:var(--red-text)" onclick="deleteBusinessPost('${p.id}', '${ownerUid}', '${targetId}')">${t('business_delete_post_btn')}</button>` : ''}
         </div>
       </div>`).join('');
   } catch (e) {
@@ -12089,7 +12089,7 @@ function addBusinessCouponRow(c, limit) {
     <label class="report-reason-option" style="margin-bottom:6px">
       <input type="checkbox" class="business-coupon-active" ${!c || c.active !== false ? 'checked' : ''}> ${t('business_active_checkbox_label')}
     </label>
-    <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;color:var(--red)" onclick="this.parentElement.remove()">${t('business_remove_coupon_btn')}</button>`;
+    <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;color:var(--red-text)" onclick="this.parentElement.remove()">${t('business_remove_coupon_btn')}</button>`;
   rowsEl.appendChild(row);
 }
 
@@ -12169,7 +12169,7 @@ async function loadBusinessClients() {
       <div class="order-box" style="margin-bottom:8px">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
           <strong>${escapeHtml(c.name)}</strong>
-          <button class="btn btn-outline btn-sm" style="color:var(--red)" onclick="deleteBusinessClient('${c.id}')">${t('business_delete_client_btn')}</button>
+          <button class="btn btn-outline btn-sm" style="color:var(--red-text)" onclick="deleteBusinessClient('${c.id}')">${t('business_delete_client_btn')}</button>
         </div>
         ${c.phone ? `<div class="muted small">${escapeHtml(c.phone)}</div>` : ''}
         ${c.notes ? `<p class="muted small" style="margin-top:4px">${escapeHtml(c.notes)}</p>` : ''}
