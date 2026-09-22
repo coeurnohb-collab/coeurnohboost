@@ -1,8 +1,0 @@
-{
-  "crons": [
-    {
-      "path": "/api/check-mtp-balance",
-      "schedule": "0 6 * * *"
-    }
-  ]
-}
