@@ -41,6 +41,44 @@ function showToast(message, type = 'info') {
   }, 3200);
 }
 
+/* ================= DETECTION HORS-LIGNE =================
+   CORRECTIF (chantier 6 - robustesse reseau) : avant, aucune indication
+   n'etait donnee lors d'une coupure reseau -- une action echouait juste
+   silencieusement (spinner qui tourne indefiniment, ou rien du tout).
+   Cette banniere fixe en haut de l'ecran previent immediatement, et
+   confirme quand la connexion revient. */
+function showOfflineBanner() {
+  if (document.getElementById('offline-banner')) return;
+  const el = document.createElement('div');
+  el.id = 'offline-banner';
+  el.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:100001;background:var(--red-text);color:#fff;text-align:center;padding:8px 12px;font-size:0.85rem;font-weight:700';
+  el.textContent = t('offline_banner_text');
+  document.body.appendChild(el);
+}
+function hideOfflineBanner(showReconnected) {
+  const el = document.getElementById('offline-banner');
+  if (el) el.remove();
+  if (showReconnected) showToast(t('online_restored_toast'), 'success');
+}
+window.addEventListener('offline', () => showOfflineBanner());
+window.addEventListener('online', () => hideOfflineBanner(true));
+
+/* ================= FILET DE SECURITE GLOBAL =================
+   CORRECTIF (chantier 6 - plantage silencieux) : si une promesse echoue
+   sans jamais etre "catch()ee" quelque part dans le code (oubli), rien
+   n'etait avant journalise ni signale -- l'action semblait juste "ne rien
+   faire". Desormais elle est au moins journalisee dans la console (utile
+   pour le diagnostic) ET signalee discretement, sans bloquer le reste de
+   l'app. */
+window.addEventListener('unhandledrejection', (event) => {
+  console.error('[promesse non interceptee]', event.reason);
+  showToast(t('unexpected_error_toast'), 'error');
+});
+// Si l'app demarre deja hors-ligne (pas seulement une coupure en cours de
+// route), la banniere doit s'afficher tout de suite -- l'evenement
+// "offline" ne se declenche que sur un CHANGEMENT d'etat, pas au demarrage.
+if (navigator.onLine === false) showOfflineBanner();
+
 // Protege contre l'injection de code (XSS) : transforme un texte libre
 // (nom, titre, description, commentaire...) pour qu'il s'affiche tel quel
 // au lieu d'etre interprete comme du HTML/JavaScript. A utiliser partout
@@ -408,6 +446,15 @@ try {
     console.log('[auth] Persistance non definie :', e.message);
   });
   db = firebase.firestore();
+  // CORRECTIF (chantier 6 - robustesse hors-ligne) : garde en cache local
+  // les dernieres donnees lues (fil, profil, portefeuille...) pour qu'elles
+  // restent visibles pendant une coupure reseau, au lieu d'un ecran vide.
+  // "failed-precondition" = deja active dans un autre onglet (normal, pas
+  // grave, ce 2e onglet utilisera juste le reseau) ; "unimplemented" =
+  // navigateur trop ancien (pas grave non plus, juste pas de cache).
+  db.enablePersistence({ synchronizeTabs: true }).catch((e) => {
+    console.log('[firestore] Cache hors-ligne non active :', e.code);
+  });
   fbReady = true;
 } catch (e) {
   console.error("🔴 Firebase a échoué :", e.message);
@@ -1138,6 +1185,7 @@ function updateRechargeEquivalent() {
 async function submitRecharge() {
   const errEl = document.getElementById('recharge-error');
   const okEl = document.getElementById('recharge-success');
+  const btn = document.getElementById('recharge-submit-btn');
   errEl.classList.add('hidden');
   okEl.classList.add('hidden');
 
@@ -1178,6 +1226,12 @@ async function submitRecharge() {
   }
 
   try {
+    // CORRECTIF (chantier 6 - etat de chargement) : avant, ce bouton
+    // restait actif et cliquable pendant toute la duree de la demande --
+    // un appui repete (reseau lent, impatience) pouvait declencher
+    // plusieurs demandes de recharge, ou plusieurs invites Mobile Money
+    // sur le telephone de la personne.
+    if (btn) { btn.disabled = true; btn.dataset.originalLabel = btn.textContent; btn.textContent = t('sending_in_progress'); }
     const country = COUNTRIES.find(c => c.code === payCountryCode);
     const crypto = CRYPTOS.find(c => c.id === payCryptoId);
 
@@ -1301,6 +1355,8 @@ async function submitRecharge() {
     console.error("Erreur demande recharge :", e.message);
     errEl.textContent = t('pay_err_generic');
     errEl.classList.remove('hidden');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = btn.dataset.originalLabel || t('pay_submit'); }
   }
 }
 
@@ -2214,8 +2270,31 @@ if (fbReady) {
     }
   });
 } else {
-  renderLoggedOutNav();
+  // CORRECTIF (chantier 6 - plantage silencieux) : avant, si Firebase
+  // echouait totalement a s'initialiser (reseau bloque, extension de
+  // blocage, configuration corrompue...), l'app affichait quand meme
+  // l'ecran public normal "Se connecter / Creer un compte" -- SANS
+  // prevenir que rien ne fonctionnerait en cliquant dessus. La personne
+  // decouvrait le probleme seulement apres coup, sans explication.
+  showFatalLoadError();
   hideAppSplash();
+}
+
+// Ecran plein cran affiche uniquement si l'app n'a reellement pas pu
+// demarrer (voir ci-dessus) -- jamais pour une simple coupure reseau
+// passagere, geree separement par la banniere hors-ligne plus bas.
+function showFatalLoadError() {
+  const el = document.createElement('div');
+  el.id = 'fatal-load-error';
+  el.style.cssText = 'position:fixed;inset:0;z-index:100000;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:24px;text-align:center';
+  el.innerHTML = `
+    <div style="max-width:340px">
+      <div style="font-size:2.6rem;margin-bottom:14px">⚠️</div>
+      <h2 style="margin:0 0 10px">${t('fatal_load_error_title')}</h2>
+      <p class="muted" style="margin:0 0 20px">${t('fatal_load_error_body')}</p>
+      <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="window.location.reload()">${t('fatal_load_error_retry')}</button>
+    </div>`;
+  document.body.appendChild(el);
 }
 
 // Cache l'ecran de chargement initial, une fois qu'on sait si la personne
