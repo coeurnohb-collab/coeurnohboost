@@ -452,6 +452,26 @@ a{text-decoration:none;color:inherit}
   background:rgba(255,255,255,0.16);border:1px solid rgba(255,255,255,0.28);
   border-radius:999px;padding:4px 12px;font-size:0.72rem;font-weight:700;letter-spacing:0.02em;
 }
+/* CORRECTIF (chantier post-audit) : avant, "Visa" et "Mastercard" etaient
+   deux pastilles identiques en texte blanc simple, qui semblaient
+   "faites maison". Sans reproduire les logos officiels (voir le meme
+   principe deja applique pour les operateurs Mobile Money plus haut dans
+   ce fichier), ce style reprend juste les codes visuels universellement
+   associes a chaque marque -- fond blanc + italique bleu pour Visa,
+   les deux cercles superposes pour Mastercard -- pour un rendu bien plus
+   professionnel et immediatement reconnaissable. */
+.brand-pill-visa{
+  background:#fff;border:none;color:#1a1f71;font-style:italic;font-weight:800;
+  font-size:0.82rem;padding:5px 12px;letter-spacing:-0.01em;
+}
+.brand-pill-mastercard{
+  background:#fff;border:none;display:flex;align-items:center;gap:5px;padding:5px 10px 5px 6px;
+}
+.brand-pill-mastercard .mc-circles{display:inline-flex;width:26px;height:16px;position:relative;flex-shrink:0}
+.brand-pill-mastercard .mc-circles span{position:absolute;top:0;width:16px;height:16px;border-radius:50%}
+.brand-pill-mastercard .mc-circles span:first-child{left:0;background:#eb001b}
+.brand-pill-mastercard .mc-circles span:last-child{right:0;background:#f79e1b;mix-blend-mode:multiply}
+.brand-pill-mastercard span.mc-label{color:#161a1f;font-weight:800;font-size:0.72rem}
 
 /* ONGLETS (méthode de paiement, catégories, etc.) */
 .platform-tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;margin-bottom:16px;scrollbar-width:none}

@@ -1477,22 +1477,21 @@ function showMonetization() {
 /* =========================================================
    PARRAINAGE — lien unique par utilisateur, 5% de commission
    ========================================================= */
-/* Ouvre directement la Boutique sur l'article partage, si le lien contient ?produit=ID */
+/* CORRECTIF (chantier post-audit) : avant, un lien de produit partage
+   (?produit=ID) ouvrait TOUTE la Boutique (showShop()) puis tentait de
+   faire defiler jusqu'a la carte -- si la personne n'etait pas encore
+   connectee, elle atterrissait dans la Boutique juste apres avoir termine
+   sa connexion, au lieu de l'Accueil. Desormais : l'Accueil reste TOUJOURS
+   la base (deja affiche a ce stade par showDashboard()), et le lien ouvre
+   UNIQUEMENT la fiche du produit partage, en fenetre par-dessus -- comme
+   un lien Instagram/TikTok vers un post precis. Fermer la fenetre revient
+   naturellement a l'Accueil, qui etait deja dessous. */
 async function openSharedProductIfAny() {
   const params = new URLSearchParams(window.location.search);
   const pubId = params.get('produit');
   if (!pubId) return;
-
-  showShop();
-  // Laisse le temps au fil de se charger avant de chercher la carte
-  setTimeout(() => {
-    const card = document.getElementById(`shop-card-${pubId}`);
-    if (card) {
-      card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      card.classList.add('shop-card-highlight');
-      setTimeout(() => card.classList.remove('shop-card-highlight'), 2000);
-    }
-  }, 900);
+  await openPostDetail(pubId);
+  window.history.replaceState({}, '', window.location.pathname);
 }
 
 // Ouvre automatiquement le bon contenu quand on arrive depuis le clic sur
@@ -2205,6 +2204,12 @@ if (fbReady) {
       currentUser = null;
       renderLoggedOutNav();
       showHome();
+      // CORRECTIF : un lien de produit partage (?produit=ID) doit pouvoir
+      // s'ouvrir meme pour une personne pas encore connectee -- comme sur
+      // Instagram/TikTok, on peut voir un contenu partage avant de creer
+      // un compte. Les publications publiees sont lisibles publiquement.
+      openSharedProductIfAny();
+      installBackTrap();
       hideAppSplash();
     }
   });
@@ -2239,15 +2244,73 @@ function hideAppSplash() {
 // un retour arriere revient simplement au tableau de bord — il faut se
 // deconnecter explicitement (bouton "Se deconnecter") pour quitter le compte.
 let backTrapInstalled = false;
+// CORRECTIF (chantier post-audit) : avant, une pression sur le bouton
+// "retour" du telephone ramenait TOUJOURS directement a l'Accueil, meme
+// quand une fenetre (fiche produit, paiement, creation de site, formulaire
+// quelconque...) etait ouverte par-dessus -- cette fenetre restait affichee
+// au premier plan malgre le changement d'onglet en dessous, donnant
+// l'impression que "retour" ne faisait rien ou renvoyait encore vers la
+// Boutique/l'ecran precedent. Desormais : la premiere pression ferme la
+// fenetre ouverte au premier plan (comme une app native) ; seule une
+// pression "retour" sans aucune fenetre ouverte ramene a l'Accueil.
+//
+// STATIC_MODAL_CLOSERS couvre les fenetres FIXES d'index.html (toujours
+// presentes dans le DOM, seulement cachees/affichees) : il faut les
+// FERMER avec leur fonction dediee (classList.add('hidden')), jamais les
+// retirer du DOM, sinon plus rien ne pourrait les rouvrir ensuite.
+// Toute autre fenetre ".modal-overlay" trouvee est une fenetre CREEE
+// dynamiquement (vente, retrait, creation de site, paiement boutique,
+// facture, formulaires d'evenement/cours/offre d'emploi...) : le code de
+// l'app les ferme toujours en les retirant completement du DOM, donc
+// c'est ce qui est reproduit ici par defaut.
+function closeTopmostOverlay() {
+  const STATIC_MODAL_CLOSERS = {
+    'auth-modal': () => closeAuth(),
+    'tutorial-modal': () => closeTutorial(),
+    'main-menu-modal': () => closeMainMenu(),
+    'post-detail-modal': () => closePostDetail(),
+    'profile-modal': () => closeProfileModal(),
+    'follow-list-modal': () => closeFollowListModal(),
+    'job-detail-modal': () => closeJobDetail(),
+    'job-form-modal': () => closeJobForm(),
+    'job-apply-modal': () => closeJobApplyForm(),
+    'jobseeker-detail-modal': () => closeJobSeekerDetail(),
+    'jobseeker-form-modal': () => closeJobSeekerForm(),
+    'event-detail-modal': () => closeEventDetail(),
+    'event-form-modal': () => closeEventForm(),
+    'event-reserve-modal': () => closeEventReserveForm(),
+    'course-detail-modal': () => closeCourseDetail(),
+    'course-form-modal': () => closeCourseForm(),
+    'course-enroll-modal': () => closeCourseEnrollModal(),
+    'report-modal': () => closeReportModal(),
+    'notif-detail-modal': () => closeNotifDetailModal(),
+    'create-post-modal': () => closeCreatePostForm(),
+    'post-options-overlay': () => closePostOptionsMenu(),
+    'notif-options-overlay': () => closeNotifOptionsMenu(),
+    'media-viewer': () => closeMediaViewer(),
+    'public-site-overlay': () => closePublicSite()
+  };
+  const overlays = document.querySelectorAll(
+    '.modal-overlay:not(.hidden), .action-sheet-overlay:not(.hidden), .media-viewer:not(.hidden), #public-site-overlay:not(.hidden)'
+  );
+  if (overlays.length === 0) return false;
+  const top = overlays[overlays.length - 1];
+  const closer = STATIC_MODAL_CLOSERS[top.id];
+  if (closer) closer();
+  else top.remove();
+  return true;
+}
+
 function installBackTrap() {
   if (backTrapInstalled) return;
   backTrapInstalled = true;
   history.pushState({ app: true }, '', window.location.href);
   window.addEventListener('popstate', () => {
-    if (currentUser) {
-      history.pushState({ app: true }, '', window.location.href);
-      showDashboard();
-    }
+    history.pushState({ app: true }, '', window.location.href);
+    if (closeTopmostOverlay()) return;
+    // CORRECTIF : fonctionne aussi pour un visiteur pas encore connecte
+    // (fiche produit ou mini-site ouverts sans compte).
+    if (currentUser) showDashboard(); else showHome();
   });
 }
 
@@ -11427,6 +11490,27 @@ function handleSiteCoverFileChange(event) {
   }
 }
 
+// CORRECTIF (chantier post-audit) : cette adresse est la principale porte
+// d'entree de "Crée ton site", pense pour des personnes qui n'ont jamais eu
+// de site -- elle doit gener le moins possible. Avant, taper un nom tout a
+// fait normal ("Musique Pro", avec majuscule et espace) affichait une
+// erreur bloquante au lieu de simplement le corriger. Cette fonction
+// convertit silencieusement n'importe quelle saisie en adresse valide
+// (accents retires, espaces/underscores -> tirets, tout le reste enleve) --
+// l'erreur ne s'affiche plus que si le resultat est vide ou trop court.
+function slugifySiteAddress(raw) {
+  return (raw || '')
+    .toString()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // accents -> lettres simples
+    .toLowerCase()
+    .trim()
+    .replace(/[\s_]+/g, '-')
+    .replace(/[^a-z0-9-]/g, '')
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 30);
+}
+
 async function saveMySite() {
   const btn = document.getElementById('site-form-submit-btn');
   const errEl = document.getElementById('site-form-error');
@@ -11434,7 +11518,7 @@ async function saveMySite() {
   errEl.classList.add('hidden');
   msgEl.textContent = '';
 
-  const slug = document.getElementById('site-slug').value.trim().toLowerCase();
+  const slug = slugifySiteAddress(document.getElementById('site-slug').value);
   const template = document.getElementById('site-template').value;
   const businessName = document.getElementById('site-business-name').value.trim();
   const tagline = document.getElementById('site-tagline').value.trim();
@@ -11461,7 +11545,11 @@ async function saveMySite() {
     errEl.classList.remove('hidden');
     return;
   }
-  if (!businessName || !aboutText || !contactWhatsapp) {
+  // CORRECTIF : cette fonctionnalite s'adresse a des personnes qui n'ont
+  // encore rien -- "a propos" et "WhatsApp" sont utiles mais ne doivent pas
+  // empecher de creer le site tout de suite ; ils restent modifiables a
+  // tout moment ensuite. Seul le nom de l'activite reste obligatoire.
+  if (!businessName) {
     errEl.textContent = t('site_required_fields');
     errEl.classList.remove('hidden');
     return;
@@ -11601,43 +11689,101 @@ async function checkForPublicSiteView() {
   }
 }
 
+// CORRECTIF : ferme la page publique d'un mini-site et revient a
+// l'application (bouton retour demande -- avant, il n'existait aucun
+// moyen de revenir en arriere depuis la page publique d'un site).
+function closePublicSite() {
+  const overlay = document.getElementById('public-site-overlay');
+  overlay.classList.add('hidden');
+  overlay.innerHTML = '';
+  document.title = 'Coeurnoh Universe';
+  const params = new URLSearchParams(window.location.search);
+  if (params.has('site')) {
+    params.delete('site');
+    const qs = params.toString();
+    window.history.replaceState({}, '', window.location.pathname + (qs ? '?' + qs : ''));
+  } else {
+    // Acces via sous-domaine personnalise : pas de parametre a retirer,
+    // on renvoie vers l'application principale.
+    window.location.href = 'https://coeurnohboost.vercel.app/';
+  }
+}
+
+function scrollToSiteSection(id) {
+  const el = document.getElementById(id);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
 function renderPublicSiteHtml(site, overlay) {
   document.title = (site.businessName || t('site_default_title_public')) + ' — CoeurNoh';
   const accent = (SITE_TEMPLATES[site.template] || SITE_TEMPLATES.classique).accent;
   const waLink = site.contactWhatsapp ? `https://wa.me/${site.contactWhatsapp.replace(/\D/g, '')}` : null;
   const gallery = Array.isArray(site.gallery) ? site.gallery.filter(Boolean) : [];
   const services = Array.isArray(site.services) ? site.services.filter(s => s.name) : [];
+  const isPremium = siteIsPremiumActive(site);
+  const initial = (site.businessName || '?').trim().charAt(0).toUpperCase();
+
+  // CORRECTIF (chantier post-audit) : la page publique d'un mini-site
+  // ressemblait a un simple formulaire rempli ("semble être local") plutot
+  // qu'a un vrai site professionnel. Reutilise le MEME habillage deja
+  // approuve pour les pages CoeurNoh Business (couverture pleine largeur,
+  // avatar qui chevauche, badge, cartes arrondies) pour une coherence et
+  // une credibilite visuelle immediates, plus une barre de navigation par
+  // ancres (comme un vrai site vitrine) qui ne montre que les sections
+  // qui existent reellement, et un bouton retour flottant.
+  const navPills = [
+    services.length > 0 ? { id: 'site-sec-services', label: t('site_services_heading') } : null,
+    gallery.length > 0 ? { id: 'site-sec-gallery', label: t('site_photos_heading') } : null,
+    (waLink || site.contactPhone || site.contactEmail) ? { id: 'site-sec-contact', label: t('site_contact_heading') } : null
+  ].filter(Boolean);
+  const pillStyle = `border:1px solid var(--line);background:var(--cream);color:var(--ink);border-radius:999px;padding:7px 14px;font-size:0.82rem;font-weight:700;cursor:pointer`;
 
   overlay.innerHTML = `
-    <div style="max-width:640px;margin:0 auto;font-family:inherit">
-      ${site.coverImageUrl ? `<img src="${escapeHtml(site.coverImageUrl)}" alt="" style="width:100%;max-height:260px;object-fit:cover;display:block">` : `<div style="height:100px;background:${accent}"></div>`}
-      <div style="padding:24px">
-        <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">
-          ${site.logoUrl ? `<img src="${escapeHtml(site.logoUrl)}" alt="${escapeHtml(site.businessName || '')}" style="width:64px;height:64px;border-radius:50%;object-fit:cover">` : ''}
-          <div>
-            <h1 style="margin:0;font-size:1.4rem">${escapeHtml(site.businessName || '')}</h1>
-            ${site.tagline ? `<p class="muted small" style="margin:2px 0 0">${escapeHtml(site.tagline)}</p>` : ''}
-          </div>
+    <button class="profile-page-back" style="background:rgba(0,0,0,0.35);color:#fff;top:14px;left:14px;position:fixed;z-index:3" onclick="closePublicSite()" aria-label="Retour">
+      ${ICON_BACK}
+    </button>
+    <div style="max-width:640px;margin:0 auto;font-family:inherit;padding-bottom:${waLink ? '84px' : '24px'}">
+      ${site.coverImageUrl
+        ? `<img src="${escapeHtml(site.coverImageUrl)}" class="biz-cover" alt="">`
+        : `<div class="biz-cover" style="background:linear-gradient(135deg,${accent},#000)"></div>`}
+      <div class="biz-header">
+        ${site.logoUrl
+          ? `<img src="${escapeHtml(site.logoUrl)}" class="biz-avatar" alt="${escapeHtml(site.businessName || '')}">`
+          : `<div class="biz-avatar-placeholder" style="background:${accent}">${escapeHtml(initial)}</div>`}
+        <div class="biz-name-row">
+          <h2>${escapeHtml(site.businessName || '')}</h2>
+          ${isPremium ? `<span class="biz-pro-badge">${ICON_VERIFIED_BADGE} PRO</span>` : ''}
         </div>
+        ${site.tagline ? `<p class="biz-category-row">${escapeHtml(site.tagline)}</p>` : ''}
+      </div>
 
-        ${site.aboutText ? `<p style="white-space:pre-wrap;line-height:1.5;margin-bottom:20px">${escapeHtml(site.aboutText)}</p>` : ''}
+      ${navPills.length > 0 ? `
+      <div style="display:flex;gap:8px;flex-wrap:wrap;padding:14px 18px 0">
+        ${navPills.map(p => `<button style="${pillStyle}" onclick="scrollToSiteSection('${p.id}')">${escapeHtml(p.label)}</button>`).join('')}
+      </div>` : ''}
 
-        ${services.length > 0 ? `
-          <h3 style="color:${accent};margin-bottom:10px">${t('site_services_heading')}</h3>
-          <div style="margin-bottom:20px">${services.map(sv => `
+      ${site.aboutText ? `<div class="biz-desc-card">${escapeHtml(site.aboutText)}</div>` : ''}
+
+      ${services.length > 0 ? `
+        <div class="biz-section" id="site-sec-services">
+          <h4 style="color:${accent}">${t('site_services_heading')}</h4>
+          ${services.map(sv => `
             <div class="order-box" style="margin-bottom:8px">
               <strong>${escapeHtml(sv.name)}</strong>${sv.price ? ` — ${escapeHtml(sv.price)}` : ''}
-            </div>`).join('')}</div>` : ''}
+            </div>`).join('')}
+        </div>` : ''}
 
-        ${gallery.length > 0 ? `
-          <h3 style="color:${accent};margin-bottom:10px">${t('site_photos_heading')}</h3>
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px">
+      ${gallery.length > 0 ? `
+        <div class="biz-section" id="site-sec-gallery">
+          <h4 style="color:${accent}">${t('site_photos_heading')}</h4>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
             ${gallery.map((g, i) => `<img src="${escapeHtml(g)}" alt="${escapeHtml(t('site_photos_heading'))} ${i + 1}" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px">`).join('')}
-          </div>` : ''}
+          </div>
+        </div>` : ''}
 
-        ${site.address ? `<p class="muted small" style="margin-bottom:8px">${ICON_LOCATION} ${escapeHtml(site.address)}</p>` : ''}
-
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin:20px 0">
+      <div class="biz-section" id="site-sec-contact">
+        ${site.address ? `<p class="biz-meta-row">${ICON_LOCATION} ${escapeHtml(site.address)}</p>` : ''}
+        <div class="biz-actions-row" style="margin-left:0;margin-right:0">
           ${waLink ? `<a class="btn btn-primary" href="${escapeHtml(waLink)}" target="_blank">${ICON_WHATSAPP} ${t('site_whatsapp_contact_btn')}</a>` : ''}
           ${site.contactPhone ? `<a class="btn btn-outline" href="tel:${escapeHtml(site.contactPhone)}">${ICON_PHONE} ${t('site_call_btn')}</a>` : ''}
           ${site.contactEmail ? `<a class="btn btn-outline" href="mailto:${escapeHtml(site.contactEmail)}">${ICON_MAIL} ${t('site_email_btn')}</a>` : ''}
@@ -11645,10 +11791,18 @@ function renderPublicSiteHtml(site, overlay) {
           ${site.socialLinks && site.socialLinks.instagram ? `<a class="btn btn-outline" href="${escapeHtml(site.socialLinks.instagram)}" target="_blank">${ICON_INSTAGRAM} Instagram</a>` : ''}
           ${site.socialLinks && site.socialLinks.tiktok ? `<a class="btn btn-outline" href="${escapeHtml(site.socialLinks.tiktok)}" target="_blank">${ICON_TIKTOK} TikTok</a>` : ''}
         </div>
-
-        ${siteIsPremiumActive(site) ? '' : `<p class="muted small" style="text-align:center;margin-top:30px">${t('site_made_with_prefix')} <a href="${escapeHtml(window.location.origin)}" style="color:${accent}">Coeurnoh Universe</a></p>`}
       </div>
-    </div>`;
+
+      ${isPremium ? '' : `
+        <div style="margin:24px 18px 0;padding:18px;border-radius:14px;background:linear-gradient(135deg,var(--green-light),var(--cream));text-align:center;border:1px solid var(--line)">
+          <p style="margin:0 0 10px;font-weight:700">${t('site_made_with_prefix')} <span style="color:${accent}">Coeurnoh Universe</span></p>
+          <a class="btn btn-primary btn-sm" href="${escapeHtml(window.location.origin)}">${t('site_cta_create_yours')}</a>
+        </div>`}
+    </div>
+    ${waLink ? `
+    <div style="position:fixed;left:0;right:0;bottom:0;padding:10px 14px;background:var(--cream);border-top:1px solid var(--line);z-index:2">
+      <a class="btn btn-primary" style="width:100%;justify-content:center;max-width:640px;margin:0 auto;display:flex" href="${escapeHtml(waLink)}" target="_blank">${ICON_WHATSAPP} ${t('site_whatsapp_contact_btn')}</a>
+    </div>` : ''}`;
 }
 
 document.addEventListener('DOMContentLoaded', checkForPublicSiteView);
@@ -12590,7 +12744,12 @@ async function openPostDetail(pubId) {
     }
 
     const isOwnItem = currentUser && currentUser.uid === item.sellerUid;
-    const detailShareUrl = `${window.location.origin}${window.location.pathname}?pub=${item.id}`;
+    // CORRECTIF : "?pub=" n'etait lu par AUCUN code au chargement de la
+    // page -- tout lien partage depuis cette fiche detaillee etait donc
+    // mort (s'ouvrait sur l'app sans jamais afficher le contenu vise).
+    // Desormais "?produit=", le meme parametre que partout ailleurs dans
+    // l'app pour "ouvrir ce contenu precis" (voir openSharedProductIfAny).
+    const detailShareUrl = `${window.location.origin}${window.location.pathname}?produit=${item.id}`;
 
     const mediaUrl = item.imageUrl || null;
     const videoUrl = item.videoUrl || null;
