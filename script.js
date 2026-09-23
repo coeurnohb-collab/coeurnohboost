@@ -647,6 +647,12 @@ function icoWave(c){return `<svg viewBox="0 0 24 24" width="20" height="20" fill
 function icoExchange(c){return `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="${c}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3l4 4-4 4"/><path d="M21 7H7a4 4 0 0 0-4 4"/><path d="M7 21l-4-4 4-4"/><path d="M3 17h14a4 4 0 0 0 4-4"/></svg>`;}
 function icoBolt(c){return `<svg viewBox="0 0 24 24" width="20" height="20" fill="${c}"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>`;}
 function icoLeaf(c){return `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="${c}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 4C10 4 4 10 4 18c0 0 0 2 2 2 8 0 14-6 14-16z"/><path d="M6 18C10 14 14 10 19 5"/></svg>`;}
+// CORRECTIF (demande utilisateur) : "icoSwoosh" remplace l'ancien telephone
+// generique (icoPhone) pour Mobile Money -- une forme dynamique en "virgule"
+// evoque le mouvement de l'argent transfere, un rendu plus premium qu'un
+// simple rectangle de telephone. Toujours une forme originale/generique
+// (jamais le trace exact d'un logo de marque).
+function icoSwoosh(c){return `<svg viewBox="0 0 24 24" width="20" height="20" fill="${c}"><path d="M12 2c5 6 8 9.5 8 13.5A8 8 0 1 1 8.6 6.9C10 5.2 11 3.6 12 2z" transform="rotate(35 12 12)"/></svg>`;}
 function icoWallet(c){return `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="${c}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h13a1 1 0 0 1 1 1v3"/><path d="M3 7v10a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-6a1 1 0 0 0-1-1h-5a2 2 0 1 0 0 4"/></svg>`;}
 function icoTower(c){return `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="${c}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V10"/><path d="M8 20h8"/><path d="M9 10l3-7 3 7"/><path d="M6 14a9 9 0 0 1 12 0"/></svg>`;}
 function icoCoin(c){return `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="${c}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9 12h6M12 9v6"/></svg>`;}
@@ -656,11 +662,11 @@ function icoCoin(c){return `<svg viewBox="0 0 24 24" width="20" height="20" fill
    stylisée pour les opérateurs plus rares non couverts ci-dessous. */
 function getOperatorBadge(name) {
   const n = name.toLowerCase();
-  if (n.includes('m-pesa') && n.includes('vodacom')) return { bg:'#E60000', bg2:'#A30000', icon: icoPhone('#fff') };
-  if (n.includes('m-pesa')) return { bg:'#4CAF50', bg2:'#2E7D32', icon: icoPhone('#fff') };
-  if (n.includes('vodacom')) return { bg:'#E60000', bg2:'#A30000', icon: icoLeaf('#fff') };
+  if (n.includes('m-pesa') && n.includes('vodacom')) return { bg:'#E60000', bg2:'#A30000', icon: icoSwoosh('#fff') };
+  if (n.includes('m-pesa')) return { bg:'#4CAF50', bg2:'#2E7D32', icon: icoSwoosh('#fff') };
+  if (n.includes('vodacom')) return { bg:'#E60000', bg2:'#A30000', icon: icoSwoosh('#fff') };
   if (n.includes('airteltigo')) return { bg:'#0033A0', bg2:'#001F66', icon: icoExchange('#fff') };
-  if (n.includes('airtel')) return { bg:'#ED1C24', bg2:'#B71119', icon: icoLeaf('#fff') };
+  if (n.includes('airtel')) return { bg:'#ED1C24', bg2:'#B71119', icon: icoSwoosh('#fff') };
   if (n.includes('orange')) return { bg:'#FF6600', bg2:'#CC5200', icon: icoExchange('#fff') };
   if (n.includes('mtn')) return { bg:'#FFCC00', bg2:'#E6B800', icon: icoTower('#151515'), dark:true };
   if (n.includes('moov')) return { bg:'#0066CC', bg2:'#004999', icon: icoWallet('#fff') };
