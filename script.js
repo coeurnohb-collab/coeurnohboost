@@ -4430,6 +4430,136 @@ const ICON_CARD = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" s
 const ICON_LOCATION = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg>`;
 const ICON_CLOCK = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
 const ICON_SPARKLE = `<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8Z"/></svg>`;
+const ICON_STAR_FILLED = `<svg width="15" height="15" viewBox="0 0 24 24" fill="#f5a623"><path d="M12 2.5l2.9 6.4 7 .7-5.3 4.7 1.6 6.9L12 17.6l-6.2 3.6 1.6-6.9L2.1 9.6l7-.7Z"/></svg>`;
+const ICON_STAR_EMPTY = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#c8c2b6" stroke-width="1.6" stroke-linejoin="round"><path d="M12 2.5l2.9 6.4 7 .7-5.3 4.7 1.6 6.9L12 17.6l-6.2 3.6 1.6-6.9L2.1 9.6l7-.7Z"/></svg>`;
+
+/* =========================================================
+   AVIS CLIENTS — partages entre "Entreprise" et "Crée ton site"
+   NOUVEAU (demande utilisateur : rendre ces deux modules professionnels,
+   inspirer confiance comme un vrai site pro). Une seule collection
+   "public_reviews", distinguee par targetType ('business' ou 'site').
+   ========================================================= */
+function renderStarsHtml(avg) {
+  const rounded = Math.round(avg);
+  let html = '';
+  for (let i = 1; i <= 5; i++) html += i <= rounded ? ICON_STAR_FILLED : ICON_STAR_EMPTY;
+  return html;
+}
+
+async function loadPublicReviews(targetType, targetId, containerId, targetName) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  try {
+    const snap = await db.collection('public_reviews')
+      .where('targetType', '==', targetType)
+      .where('targetId', '==', targetId)
+      .get();
+    const reviews = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+      .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+    const avg = reviews.length > 0 ? reviews.reduce((s, r) => s + (r.rating || 0), 0) / reviews.length : 0;
+    const myReview = currentUser ? reviews.find(r => r.authorUid === currentUser.uid) : null;
+    const isOwnTarget = currentUser && currentUser.uid === targetId;
+
+    const headerHtml = `
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+        <div style="display:flex;gap:2px">${renderStarsHtml(avg)}</div>
+        <strong>${avg > 0 ? avg.toFixed(1) : '—'}</strong>
+        <span class="muted small">${reviews.length > 0 ? `(${reviews.length})` : t('reviews_empty_short')}</span>
+        ${!isOwnTarget && currentUser ? `
+          <button class="btn btn-outline btn-sm" style="margin-left:auto" onclick="openReviewForm('${targetType}','${targetId}','${escapeForJs(targetName || '')}')">
+            ${myReview ? t('review_edit_your_btn') : t('review_write_btn')}
+          </button>` : ''}
+      </div>`;
+
+    const listHtml = reviews.length === 0
+      ? `<p class="muted small">${t('reviews_empty')}</p>`
+      : reviews.slice(0, 20).map(r => `
+        <div style="padding:10px 0;border-bottom:1px solid var(--line)">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+            <strong style="font-size:0.88rem">${escapeHtml(r.authorName || t('reviews_anonymous'))}</strong>
+            <div style="display:flex;gap:1px">${renderStarsHtml(r.rating || 0)}</div>
+          </div>
+          ${r.comment ? `<p style="margin:4px 0 0;font-size:0.88rem">${escapeHtml(r.comment)}</p>` : ''}
+          ${currentUser && r.authorUid === currentUser.uid ? `<button class="btn btn-outline btn-sm" style="margin-top:6px;color:var(--red-text)" onclick="deletePublicReview('${targetType}','${targetId}','${containerId}','${escapeForJs(targetName || '')}')">${t('review_delete_btn')}</button>` : ''}
+        </div>`).join('');
+
+    el.innerHTML = headerHtml + listHtml;
+  } catch (e) {
+    el.innerHTML = `<p class="muted small">${friendlyErrorMessage(e)}</p>`;
+  }
+}
+
+function openReviewForm(targetType, targetId, targetName) {
+  if (!currentUser) { openAuth('register'); return; }
+  if (document.getElementById('review-form-modal')) return;
+  const html = `
+    <div class="modal-overlay" id="review-form-modal">
+      <div class="modal" style="max-width:420px">
+        <button class="modal-close" onclick="document.getElementById('review-form-modal').remove()" aria-label="Fermer">×</button>
+        <h3 style="margin-bottom:14px">${t('review_form_title')}${targetName ? ` — ${escapeHtml(targetName)}` : ''}</h3>
+        <div class="field">
+          <label>${t('review_rating_label')}</label>
+          <div id="review-star-picker" style="display:flex;gap:6px;font-size:1.6rem;cursor:pointer;margin-top:4px"></div>
+          <input type="hidden" id="review-rating-value" value="5">
+        </div>
+        <div class="field">
+          <label for="review-comment">${t('review_comment_label')}</label>
+          <textarea id="review-comment" class="text-input" rows="3" maxlength="400" placeholder="${t('review_comment_ph')}"></textarea>
+        </div>
+        <div class="modal-error hidden" id="review-form-error"></div>
+        <button class="btn btn-primary" id="review-submit-btn" style="width:100%;justify-content:center" onclick="submitPublicReview('${targetType}','${targetId}')">${t('review_submit_btn')}</button>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+  renderReviewStarPicker(5);
+}
+
+function renderReviewStarPicker(selected) {
+  const wrap = document.getElementById('review-star-picker');
+  if (!wrap) return;
+  document.getElementById('review-rating-value').value = selected;
+  wrap.innerHTML = [1, 2, 3, 4, 5].map(i => `
+    <span onclick="renderReviewStarPicker(${i})" style="display:inline-flex">${i <= selected ? ICON_STAR_FILLED.replace('width="15" height="15"', 'width="26" height="26"') : ICON_STAR_EMPTY.replace('width="15" height="15"', 'width="26" height="26"')}</span>
+  `).join('');
+}
+
+async function submitPublicReview(targetType, targetId) {
+  const errEl = document.getElementById('review-form-error');
+  const btn = document.getElementById('review-submit-btn');
+  errEl.classList.add('hidden');
+  const rating = parseInt(document.getElementById('review-rating-value').value, 10);
+  const comment = document.getElementById('review-comment').value.trim().slice(0, 400);
+  const reviewId = `${targetType}_${targetId}_${currentUser.uid}`;
+  btn.disabled = true;
+  try {
+    await db.collection('public_reviews').doc(reviewId).set({
+      targetType, targetId,
+      authorUid: currentUser.uid,
+      authorName: currentUser.name || currentUser.username || t('reviews_anonymous'),
+      rating, comment,
+      createdAt: new Date().toISOString()
+    });
+    document.getElementById('review-form-modal').remove();
+    showToast(t('review_saved_toast'), 'success');
+    const containerId = targetType === 'business' ? 'business-detail-reviews' : 'site-sec-reviews-list';
+    if (document.getElementById(containerId)) loadPublicReviews(targetType, targetId, containerId);
+  } catch (e) {
+    errEl.textContent = friendlyErrorMessage(e);
+    errEl.classList.remove('hidden');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function deletePublicReview(targetType, targetId, containerId, targetName) {
+  if (!confirm(t('review_delete_confirm'))) return;
+  try {
+    await db.collection('public_reviews').doc(`${targetType}_${targetId}_${currentUser.uid}`).delete();
+    loadPublicReviews(targetType, targetId, containerId, targetName);
+  } catch (e) {
+    showToast(friendlyErrorMessage(e), 'error');
+  }
+}
 
 // Affiche un nombre de façon compacte au-dela de 10 000 (ex: 39500 -> "39,5 K"),
 // et avec separateur de milliers en dessous (ex: 6617 -> "6 617") -- meme
@@ -11500,6 +11630,10 @@ function openSiteForm() {
           <label for="site-address">${t('site_field_address')}</label>
           <input type="text" id="site-address" class="text-input" value="${escapeHtml(s.address || '')}">
         </div>
+        <div class="field">
+          <label for="site-hours">${t('business_field_hours_label')}</label>
+          <input type="text" id="site-hours" class="text-input" placeholder="${t('business_field_hours_ph')}" value="${escapeHtml(s.hours || '')}">
+        </div>
         <div style="display:flex;gap:8px">
           <div class="field" style="flex:1">
             <label for="site-facebook">${t('site_field_facebook')}</label>
@@ -11619,6 +11753,7 @@ async function saveMySite() {
   const contactPhone = document.getElementById('site-phone').value.trim();
   const contactEmail = document.getElementById('site-email').value.trim();
   const address = document.getElementById('site-address').value.trim();
+  const hours = document.getElementById('site-hours').value.trim();
   const socialLinks = {
     facebook: document.getElementById('site-facebook').value.trim() || null,
     instagram: document.getElementById('site-instagram').value.trim() || null,
@@ -11686,7 +11821,7 @@ async function saveMySite() {
       const sitePayload = {
         ownerUid: uid, slug, template, businessName, tagline, aboutText,
         logoUrl: logoUrl || null, coverImageUrl: coverImageUrl || null,
-        services, gallery, contactWhatsapp, contactPhone, contactEmail, address, socialLinks,
+        services, gallery, contactWhatsapp, contactPhone, contactEmail, address, hours, socialLinks,
         status: editingSiteExisting ? editingSiteExisting.status : 'draft',
         createdAt: editingSiteExisting ? editingSiteExisting.createdAt : new Date().toISOString(),
         updatedAt: new Date().toISOString()
@@ -11819,6 +11954,7 @@ function renderPublicSiteHtml(site, overlay) {
   const navPills = [
     services.length > 0 ? { id: 'site-sec-services', label: t('site_services_heading') } : null,
     gallery.length > 0 ? { id: 'site-sec-gallery', label: t('site_photos_heading') } : null,
+    { id: 'site-sec-reviews', label: t('reviews_heading') },
     (waLink || site.contactPhone || site.contactEmail) ? { id: 'site-sec-contact', label: t('site_contact_heading') } : null
   ].filter(Boolean);
   const pillStyle = `border:1px solid var(--line);background:var(--cream);color:var(--ink);border-radius:999px;padding:7px 14px;font-size:0.82rem;font-weight:700;cursor:pointer`;
@@ -11840,6 +11976,8 @@ function renderPublicSiteHtml(site, overlay) {
           ${isPremium ? `<span class="biz-pro-badge">${ICON_VERIFIED_BADGE} PRO</span>` : ''}
         </div>
         ${site.tagline ? `<p class="biz-category-row">${escapeHtml(site.tagline)}</p>` : ''}
+        ${site.hours ? `<p class="biz-meta-row">${ICON_CLOCK} ${escapeHtml(site.hours)}</p>` : ''}
+        <p class="biz-meta-row muted small">${safeCount(site.viewsCount)} ${t('site_views_label')}</p>
       </div>
 
       ${navPills.length > 0 ? `
@@ -11866,6 +12004,11 @@ function renderPublicSiteHtml(site, overlay) {
           </div>
         </div>` : ''}
 
+      <div class="biz-section" id="site-sec-reviews">
+        <h4 style="color:${accent}">${t('reviews_heading')}</h4>
+        <div id="site-sec-reviews-list"><p class="muted small">${t('common_loading')}</p></div>
+      </div>
+
       <div class="biz-section" id="site-sec-contact">
         ${site.address ? `<p class="biz-meta-row">${ICON_LOCATION} ${escapeHtml(site.address)}</p>` : ''}
         <div class="biz-actions-row" style="margin-left:0;margin-right:0">
@@ -11888,6 +12031,7 @@ function renderPublicSiteHtml(site, overlay) {
     <div style="position:fixed;left:0;right:0;bottom:0;padding:10px 14px;background:var(--cream);border-top:1px solid var(--line);z-index:2">
       <a class="btn btn-primary" style="width:100%;justify-content:center;max-width:640px;margin:0 auto;display:flex" href="${escapeHtml(waLink)}" target="_blank">${ICON_WHATSAPP} ${t('site_whatsapp_contact_btn')}</a>
     </div>` : ''}`;
+  loadPublicReviews('site', site.ownerUid, 'site-sec-reviews-list', site.businessName);
 }
 
 document.addEventListener('DOMContentLoaded', checkForPublicSiteView);
@@ -12072,6 +12216,10 @@ async function openBusinessDetail(ownerUid) {
           <div class="biz-category-row">${t(NEARBY_CATEGORY_LABELS[b.category]) || ''}</div>
           ${b.address ? `<div class="biz-meta-row">${ICON_LOCATION} ${escapeHtml(b.address)}</div>` : ''}
           ${b.hours ? `<div class="biz-meta-row">${ICON_CLOCK} ${escapeHtml(b.hours)}</div>` : ''}
+          <div class="biz-meta-row" style="gap:14px;margin-top:6px">
+            <span><strong id="biz-public-followers-count">…</strong> ${t('business_followers_label')}</span>
+            <span><strong id="biz-public-posts-count">…</strong> ${t('business_news_heading')}</span>
+          </div>
           ${followBtnHtml ? `<div style="margin-top:14px">${followBtnHtml}</div>` : ''}
         </div>
         <div class="biz-actions-row">
@@ -12086,6 +12234,10 @@ async function openBusinessDetail(ownerUid) {
         ${catalogHtml}
         ${!isOwn && currentUser ? `<div class="biz-section" style="padding-top:0"><button class="btn btn-outline btn-sm" style="width:100%;justify-content:center" onclick="openReportModal('${ownerUid}', '${ownerUid}', 'business')">${ICON_FLAG} ${t('business_report_btn')}</button></div>` : ''}
         <div class="biz-section">
+          <h4>${t('reviews_heading')}</h4>
+          <div id="business-detail-reviews"><p class="muted small">${t('common_loading')}</p></div>
+        </div>
+        <div class="biz-section">
           <h4>${t('business_news_heading')}</h4>
           <div id="business-detail-posts"><p class="muted small">${t('common_loading')}</p></div>
         </div>
@@ -12093,6 +12245,18 @@ async function openBusinessDetail(ownerUid) {
     </div>`;
   document.body.insertAdjacentHTML('beforeend', html);
   loadBusinessPostsFeed(ownerUid, 'business-detail-posts');
+  loadPublicReviews('business', ownerUid, 'business-detail-reviews', b.businessName);
+
+  // Compteurs publics (abonnes, publications) -- pas de champ stocke sur la
+  // fiche, calcules a la volee comme dans le tableau de bord prive du
+  // proprietaire (voir renderMyBusinessStatus), pour un vrai signal de
+  // confiance visible par les visiteurs (avant : invisible publiquement).
+  db.collection('follows').where('followedUid', '==', ownerUid).get()
+    .then(snap => { const el = document.getElementById('biz-public-followers-count'); if (el) el.textContent = snap.size; })
+    .catch(() => {});
+  db.collection('business_posts').where('businessUid', '==', ownerUid).get()
+    .then(snap => { const el = document.getElementById('biz-public-posts-count'); if (el) el.textContent = snap.size; })
+    .catch(() => {});
 
   // Comptage des vues, best-effort, uniquement pour les visites d'autrui.
   if (!isOwn) {
