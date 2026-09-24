@@ -1,5 +1,6 @@
 User-agent: *
 Allow: /
 Disallow: /admin.html
+Disallow: /api/
 
-Sitemap: https://coeurnohboost.netlify.app/sitemap.xml
+Sitemap: https://coeurnohboost.vercel.app/sitemap.xml

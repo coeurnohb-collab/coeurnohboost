@@ -43,7 +43,7 @@
 
 /* ---------- Raccourcis (grille 4 colonnes) ---------- */
 .mp-shortcuts{
-  display:grid;grid-template-columns:repeat(4,1fr);gap:10px 6px;margin-bottom:16px;
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px 6px;margin-bottom:16px;
 }
 .mp-short{
   display:flex;flex-direction:column;align-items:center;gap:7px;
@@ -75,8 +75,8 @@
 /* ---------- Badges (Gratuit / Pro / Nouveau) ---------- */
 .mp-badge{
   display:inline-block;font-style:normal;font-weight:800;font-size:.64rem;
-  letter-spacing:.02em;padding:3px 8px;border-radius:999px;white-space:nowrap;
-  line-height:1.25;flex:0 0 auto;
+  letter-spacing:.02em;padding:3px 8px;border-radius:999px;
+  line-height:1.25;max-width:100%;
 }
 .mp-b-free{background:#e3f6ea;color:#177a3f}
 .mp-b-premium,.mp-b-pro,.mp-b-paid{background:#fff1cf;color:#8a5600}
@@ -87,13 +87,14 @@ html[data-theme="dark"] .mp-b-pro,
 html[data-theme="dark"] .mp-b-paid{background:#3a2c0b;color:#ffd166}
 html[data-theme="dark"] .mp-b-new{background:#12284a;color:#8ec5ff}
 
-/* ---------- Grille de services (3 colonnes) ---------- */
+/* ---------- Grille de services (2 colonnes sur téléphone, 3 sur grand écran) ---------- */
 .mp-hub-section{margin-bottom:20px}
-.mp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.mp-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (min-width:560px){.mp-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .mp-tile{
   position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:8px;
   background:var(--white);border:1px solid var(--line);border-radius:16px;
-  padding:12px 10px 10px;cursor:pointer;min-height:118px;
+  padding:12px 12px 12px;cursor:pointer;min-height:118px;min-width:0;
   box-shadow:0 1px 3px rgba(0,0,0,.04);
   transition:transform .12s ease,box-shadow .15s ease;
   -webkit-tap-highlight-color:transparent;
