@@ -4,3 +4,4 @@ Disallow: /admin.html
 Disallow: /api/
 
 Sitemap: https://coeurnohboost.vercel.app/sitemap.xml
+Sitemap: https://coeurnohboost.vercel.app/sitemap-sites.xml

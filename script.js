@@ -11378,9 +11378,12 @@ const SITE_TEMPLATES = {
   doux: { label: 'site_template_doux', accent: '#db2777', premium: true },
   nature: { label: 'site_template_nature', accent: '#15803d', premium: true }
 };
-const SITE_PREMIUM_PRICE = 5; // en $, par mois
+const SITE_PREMIUM_PRICE = 20; // en $, par mois -- Pack Site Professionnel
 const SITE_FREE_PHOTO_LIMIT = 6;
-const SITE_PREMIUM_PHOTO_LIMIT = 15;
+const SITE_PREMIUM_PHOTO_LIMIT = Infinity; // Premium = photos illimitees
+// SITE_ROOT_DOMAIN plus bas reste "null" tant qu'aucun nom de domaine n'est
+// connecte au projet Vercel -- le champ "customDomain" ci-dessous peut deja
+// etre rempli par l'utilisateur (demande preparee a l'avance).
 
 let mySiteCache = null;
 let editingSiteExisting = null;
@@ -11419,10 +11422,22 @@ function renderSiteStatusView() {
     return;
   }
   const site = mySiteCache;
-  const link = `${window.location.origin}/?site=${encodeURIComponent(site.slug)}`;
+  // CORRECTIF (chantier "site professionnel") : le lien public officiel est
+  // desormais une vraie adresse (/s/<slug>), servie par une fonction
+  // serveur (api/render-site.js) qui repond meme si le JavaScript du
+  // visiteur echoue ou est lent a charger -- fini le "Ce site n'existe pas"
+  // affiche a tort le temps que l'application demarre. L'ancien lien
+  // "?site=" continue de fonctionner (redirection automatique cote
+  // serveur) pour ne casser aucun lien deja partage.
+  const link = `${window.location.origin}/s/${encodeURIComponent(site.slug)}`;
   const isPremium = siteIsPremiumActive(site);
   const subdomainReady = SITE_ROOT_DOMAIN !== null; // devient vrai des qu'un domaine sera connecte a Vercel
   const subdomainLink = subdomainReady ? `https://${encodeURIComponent(site.slug)}.${SITE_ROOT_DOMAIN}` : null;
+  const isPublished = site.status === 'published';
+
+  const statusPillHtml = isPublished
+    ? `<span class="shop-card-category" style="background:#e3f6ea;color:#177a3f">${ICON_SPARKLE} ${t('site_status_published')}</span>`
+    : `<span class="shop-card-category" style="background:#fff1cf;color:#8a5600">${t('site_status_draft')}</span>`;
 
   const premiumBlockHtml = isPremium ? `
     <div class="order-box" style="margin-bottom:14px;border-color:#f5a623">
@@ -11431,39 +11446,62 @@ function renderSiteStatusView() {
         <span class="shop-card-category" style="background:#fff4e0;color:#b5720b">${t('site_premium_until_prefix')} ${escapeHtml(new Date(site.premiumUntil).toLocaleDateString())}</span>
       </div>
       <div class="muted small" style="margin:8px 0">${site.viewsCount || 0} ${t('site_views_suffix')}</div>
-      ${subdomainLink ? `<p class="muted small" style="word-break:break-all;margin-bottom:8px">${t('site_personal_address_prefix')} ${escapeHtml(subdomainLink)}</p>` : `<p class="muted small" style="margin-bottom:8px">${t('site_personal_address_coming_soon')}</p>`}
       <button class="btn btn-outline btn-sm" onclick="purchaseSitePremium()">${t('site_renew_prefix')} ${SITE_PREMIUM_PRICE}$)</button>
     </div>` : `
-    <div class="order-box" style="margin-bottom:14px">
-      <strong>${t('site_upgrade_title_prefix')} ${SITE_PREMIUM_PRICE}$/mois</strong>
-      <ul class="muted small" style="margin:8px 0 10px;padding-left:18px;line-height:1.6">
-        <li>${t('site_feature_photos_prefix')} ${SITE_PREMIUM_PHOTO_LIMIT} ${t('site_feature_photos_mid')} ${SITE_FREE_PHOTO_LIMIT})</li>
+    <div class="order-box" style="margin-bottom:14px;border-color:#f5a623;background:linear-gradient(135deg,rgba(255,212,59,.10),var(--white) 60%)">
+      <strong style="font-size:1.02rem">${t('site_pack_pro_title')} — ${SITE_PREMIUM_PRICE}$${t('site_pack_pro_price_suffix')}</strong>
+      <ul class="muted small" style="margin:8px 0 10px;padding-left:18px;line-height:1.7">
+        <li>${t('site_feature_photos_prefix')} ${t('site_unlimited_label')} ${t('site_feature_photos_mid')} ${SITE_FREE_PHOTO_LIMIT})</li>
         <li>${t('site_feature_themes')}</li>
         <li>${t('site_feature_no_branding')}</li>
         <li>${t('site_feature_stats')}</li>
-        <li>${t('site_feature_subdomain')}</li>
+        <li>${t('site_feature_domain')}</li>
+        <li>${t('site_feature_seo')}</li>
       </ul>
-      <button class="btn btn-primary btn-sm" onclick="purchaseSitePremium()">${t('site_activate_premium_btn')}</button>
+      <button class="btn btn-primary btn-sm" style="width:100%;justify-content:center" onclick="purchaseSitePremium()">${t('site_activate_premium_btn')}</button>
     </div>`;
 
   statusEl.innerHTML = `
     <div class="order-box" style="margin-bottom:14px">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
         <strong style="font-size:1.05rem">${escapeHtml(site.businessName || t('site_default_name'))}</strong>
-        <span class="shop-card-category">${site.status === 'published' ? t('site_status_published') : t('site_status_draft')}</span>
+        ${statusPillHtml}
       </div>
       <p class="muted small" id="site-link-text" style="margin:8px 0;word-break:break-all">${escapeHtml(link)}</p>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn btn-outline btn-sm" onclick="copySiteLink()">${t('site_copy_link_btn')}</button>
         <a class="btn btn-outline btn-sm" href="${escapeHtml(link)}" target="_blank">${t('site_preview_btn')}</a>
+        <button class="btn btn-outline btn-sm" onclick="verifyPublicSiteLink()">${t('site_check_link_btn')}</button>
       </div>
+      <p class="muted small" id="site-check-link-result" style="margin-top:8px"></p>
     </div>
     ${premiumBlockHtml}
     <button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="openSiteForm()">${t('site_edit_btn')}</button>
-    ${site.status === 'published'
+    <button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="openSiteSettingsScreen()">${t('site_settings_btn')}</button>
+    ${isPublished
       ? `<button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="toggleSitePublish('draft')">${t('site_unpublish_btn')}</button>`
       : `<button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:8px" onclick="toggleSitePublish('published')">${t('site_publish_btn')}</button>`}
     <button class="btn btn-outline" style="width:100%;justify-content:center;color:var(--red-text)" onclick="deleteMySite()">${t('site_delete_btn')}</button>`;
+}
+
+// NOUVEAU : verifie EXACTEMENT ce qu'un visiteur verrait (la meme requete
+// que checkForPublicSiteView), directement depuis l'ecran du proprietaire --
+// avant qu'il ne partage son lien a qui que ce soit. Repond a la confusion
+// la plus frequente ("j'ai publié mais ça dit que le site n'existe pas").
+async function verifyPublicSiteLink() {
+  const resultEl = document.getElementById('site-check-link-result');
+  if (!resultEl || !mySiteCache) return;
+  resultEl.textContent = t('common_loading');
+  resultEl.style.color = '';
+  try {
+    const snap = await db.collection('mini_sites').where('slug', '==', mySiteCache.slug).limit(1).get();
+    const ok = !snap.empty && snap.docs[0].data().status === 'published';
+    resultEl.textContent = ok ? `✅ ${t('site_check_link_ok')}` : `⚠️ ${t('site_check_link_fail')}`;
+    resultEl.style.color = ok ? '#177a3f' : '#b5720b';
+  } catch (e) {
+    resultEl.textContent = friendlyErrorMessage(e);
+    resultEl.style.color = 'var(--red-text)';
+  }
 }
 
 /* SITE_ROOT_DOMAIN reste "null" tant qu'aucun nom de domaine n'est connecte
@@ -11496,6 +11534,82 @@ async function purchaseSitePremium() {
     renderSiteStatusView();
   } catch (e) {
     showToast(friendlyErrorMessage(e), 'error');
+  }
+}
+
+/* ---- Parametres du site (domaine, referencement, image de marque) ----
+   NOUVEAU (chantier "site professionnel") : ecran separe du contenu, comme
+   sur un vrai constructeur de site -- le proprietaire y gere ce qui
+   concerne l'adresse et la visibilite de son site plutot que son contenu. */
+function openSiteSettingsScreen() {
+  if (!mySiteCache || document.getElementById('site-settings-modal')) return;
+  const site = mySiteCache;
+  const isPremium = siteIsPremiumActive(site);
+  const html = `
+    <div class="modal-overlay" id="site-settings-modal">
+      <div class="modal" style="max-width:480px">
+        <button class="modal-close" onclick="document.getElementById('site-settings-modal').remove()" aria-label="Fermer">×</button>
+        <h3 style="margin-bottom:4px">${t('site_settings_title')}</h3>
+        <p class="muted small" style="margin-bottom:14px">${t('site_settings_intro')}</p>
+
+        <label class="field-label" style="display:block">${t('site_field_domain_label')}</label>
+        <div class="field">
+          <input type="text" id="site-settings-domain" class="text-input" maxlength="60" placeholder="${t('site_field_domain_ph')}" value="${escapeHtml(site.customDomain || '')}">
+          <p class="muted small" style="margin-top:4px">${t('site_field_domain_hint')}</p>
+        </div>
+
+        <label class="field-label" style="display:block">${t('site_seo_section_title')}</label>
+        <div class="field">
+          <label for="site-settings-seo-title">${t('site_seo_title_label')}</label>
+          <input type="text" id="site-settings-seo-title" class="text-input" maxlength="70" placeholder="${escapeHtml(site.businessName || '')}" value="${escapeHtml(site.seoTitle || '')}">
+        </div>
+        <div class="field">
+          <label for="site-settings-seo-desc">${t('site_seo_desc_label')}</label>
+          <textarea id="site-settings-seo-desc" class="text-input" rows="2" maxlength="160" placeholder="${escapeHtml(site.tagline || '')}">${escapeHtml(site.seoDescription || '')}</textarea>
+          <p class="muted small" style="margin-top:4px">${t('site_seo_desc_hint')}</p>
+        </div>
+
+        <label class="field" style="display:flex;align-items:center;gap:10px;background:${isPremium ? 'var(--green-light)' : 'var(--cream)'};border-radius:12px;padding:10px 12px;margin:10px 0 14px;opacity:${isPremium ? '1' : '0.6'}">
+          <input type="checkbox" id="site-settings-hide-branding" ${site.hideBranding ? 'checked' : ''} ${isPremium ? '' : 'disabled'} style="width:18px;height:18px;flex:0 0 auto">
+          <span style="font-size:0.86rem;font-weight:700">${t('site_hide_branding_label')}${isPremium ? '' : ' ' + t('site_requires_premium_suffix')}</span>
+        </label>
+
+        <div class="modal-error hidden" id="site-settings-error"></div>
+        <button class="btn btn-primary" id="site-settings-save-btn" style="width:100%;justify-content:center" onclick="saveSiteSettings()">${t('common_save')}</button>
+        <p class="muted small" id="site-settings-msg" style="margin-top:6px;text-align:center"></p>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+async function saveSiteSettings() {
+  const btn = document.getElementById('site-settings-save-btn');
+  const errEl = document.getElementById('site-settings-error');
+  errEl.classList.add('hidden');
+  const customDomain = cleanCustomDomainInput(document.getElementById('site-settings-domain').value);
+  const seoTitle = document.getElementById('site-settings-seo-title').value.trim();
+  const seoDescription = document.getElementById('site-settings-seo-desc').value.trim();
+  const isPremium = siteIsPremiumActive(mySiteCache);
+  const hideBranding = isPremium && document.getElementById('site-settings-hide-branding').checked;
+
+  btn.disabled = true;
+  btn.textContent = t('common_saving');
+  try {
+    await db.collection('mini_sites').doc(currentUser.uid).update({
+      customDomain: customDomain || null, seoTitle, seoDescription, hideBranding,
+      updatedAt: new Date().toISOString()
+    });
+    mySiteCache.customDomain = customDomain || null;
+    mySiteCache.seoTitle = seoTitle;
+    mySiteCache.seoDescription = seoDescription;
+    mySiteCache.hideBranding = hideBranding;
+    document.getElementById('site-settings-modal').remove();
+    showToast(t('site_settings_saved_toast'), 'success');
+  } catch (e) {
+    errEl.textContent = friendlyErrorMessage(e);
+    errEl.classList.remove('hidden');
+    btn.disabled = false;
+    btn.textContent = t('common_save');
   }
 }
 
@@ -11557,11 +11671,21 @@ function openSiteForm() {
         <button class="modal-close" onclick="document.getElementById('site-form-modal').remove()" aria-label="Fermer">×</button>
         <h3 style="margin-bottom:14px">${editingSiteExisting ? t('site_form_title_edit') : t('site_form_title_new')}</h3>
         <div class="modal-error hidden" id="site-form-error"></div>
+        ${!editingSiteExisting ? `
+        <label class="field" style="display:flex;align-items:center;gap:10px;background:var(--green-light);border-radius:12px;padding:10px 12px;margin-bottom:14px">
+          <input type="checkbox" id="site-publish-now" checked style="width:18px;height:18px;flex:0 0 auto">
+          <span style="font-size:0.86rem;font-weight:700">${t('site_publish_now_label')}</span>
+        </label>` : ''}
 
         <div class="field">
           <label for="site-slug">${t('site_field_slug_label')}</label>
           <div class="muted small" style="margin-bottom:4px;word-break:break-all">${escapeHtml(window.location.origin)}/?site=<span id="site-slug-preview">${escapeHtml(s.slug || '')}</span></div>
           <input type="text" id="site-slug" class="text-input" placeholder="${t('site_field_slug_ph')}" maxlength="30" value="${escapeHtml(s.slug || '')}" oninput="document.getElementById('site-slug-preview').textContent = this.value.trim().toLowerCase()">
+        </div>
+        <div class="field">
+          <label for="site-domain">${t('site_field_domain_label')}</label>
+          <input type="text" id="site-domain" class="text-input" maxlength="60" placeholder="${t('site_field_domain_ph')}" value="${escapeHtml(s.customDomain || '')}">
+          <p class="muted small" style="margin-top:4px">${t('site_field_domain_hint')}</p>
         </div>
         <div class="field">
           <label for="site-template">${t('site_field_template')}</label>
@@ -11610,9 +11734,30 @@ function openSiteForm() {
         <div id="site-service-rows"></div>
         <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:6px 0 14px" onclick="addSiteServiceRow()">${t('site_add_service_btn')}</button>
 
-        <label class="field-label" style="display:block">${t('site_field_photos_prefix')} ${photoLimit} ${t('site_field_photos_max_suffix')}${isPremium ? '' : t('site_field_photos_premium_hint') + ' ' + SITE_PREMIUM_PHOTO_LIMIT})</label>
+        <label class="field-label" style="display:block">${isPremium
+          ? `${t('site_field_photos_prefix')} ${t('site_unlimited_label')})`
+          : `${t('site_field_photos_prefix')} ${photoLimit} ${t('site_field_photos_max_suffix')}${t('site_field_photos_premium_hint')} ${t('site_unlimited_label')})`}</label>
         <div id="site-photo-rows"></div>
         <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:6px 0 14px" onclick="addSitePhotoRow(null, ${photoLimit})">${t('site_add_photo_btn')}</button>
+
+        <label class="field-label" style="display:block">${t('site_section_faq')}</label>
+        <div id="site-faq-rows"></div>
+        <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:6px 0 14px" onclick="addSiteFaqRow()">${t('site_add_faq_btn')}</button>
+
+        <label class="field-label" style="display:block">${t('site_section_testimonials')}</label>
+        <p class="muted small" style="margin:-4px 0 8px">${t('site_section_testimonials_hint')}</p>
+        <div id="site-testimonial-rows"></div>
+        <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:6px 0 14px" onclick="addSiteTestimonialRow()">${t('site_add_testimonial_btn')}</button>
+
+        <label class="field-label" style="display:block">${t('site_section_blog')}</label>
+        <p class="muted small" style="margin:-4px 0 8px">${t('site_section_blog_hint')}</p>
+        <div id="site-blog-rows"></div>
+        <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:6px 0 14px" onclick="addSiteBlogRow()">${t('site_add_post_btn')}</button>
+
+        <label class="field-label" style="display:block">${t('site_section_custom')}</label>
+        <p class="muted small" style="margin:-4px 0 8px">${t('site_section_custom_hint')}</p>
+        <div id="site-custom-rows"></div>
+        <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:6px 0 14px" onclick="addSiteCustomSectionRow()">${t('site_add_custom_btn')}</button>
 
         <div class="field">
           <label for="site-whatsapp">${t('site_field_whatsapp')}</label>
@@ -11659,6 +11804,14 @@ function openSiteForm() {
   existingServices.forEach(sv => addSiteServiceRow(sv));
   const existingPhotos = Array.isArray(s.gallery) && s.gallery.length > 0 ? s.gallery : [''];
   existingPhotos.forEach(p => addSitePhotoRow(p, photoLimit));
+  const existingFaq = Array.isArray(s.faq) ? s.faq : [];
+  existingFaq.forEach(item => addSiteFaqRow(item));
+  const existingTestimonials = Array.isArray(s.testimonials) ? s.testimonials : [];
+  existingTestimonials.forEach(item => addSiteTestimonialRow(item));
+  const existingBlogPosts = Array.isArray(s.blogPosts) ? s.blogPosts : [];
+  existingBlogPosts.forEach(item => addSiteBlogRow(item));
+  const existingCustomSections = Array.isArray(s.customSections) ? s.customSections : [];
+  existingCustomSections.forEach(item => addSiteCustomSectionRow(item));
 }
 
 function addSiteServiceRow(service) {
@@ -11676,6 +11829,71 @@ function addSitePhotoRow(value, max) {
   const rowsEl = document.getElementById('site-photo-rows');
   if (rowsEl.children.length >= (max || SITE_FREE_PHOTO_LIMIT)) return;
   rowsEl.insertAdjacentHTML('beforeend', renderGalleryPhotoRow('site-photo-row', value));
+}
+
+/* ---- Contenu illimite (chantier "site professionnel") : FAQ, temoignages,
+   actus/blog et sections libres. Aucune de ces listes n'a de plafond --
+   contrairement aux photos (cout de stockage), du texte ne coute presque
+   rien a heberger, donc rien n'empeche l'utilisateur d'en ajouter autant
+   qu'il le souhaite pour publier ses informations. */
+function addSiteFaqRow(item) {
+  const rowsEl = document.getElementById('site-faq-rows');
+  const row = document.createElement('div');
+  row.className = 'invoice-item-row';
+  row.style.flexDirection = 'column';
+  row.style.alignItems = 'stretch';
+  row.innerHTML = `
+    <div style="display:flex;gap:8px;width:100%">
+      <input type="text" class="text-input site-faq-question" placeholder="${t('site_faq_question_ph')}" maxlength="150" value="${escapeHtml(item ? item.question || '' : '')}" style="flex:1">
+      <button type="button" class="invoice-row-remove" onclick="this.closest('.invoice-item-row').remove()" aria-label="Retirer">×</button>
+    </div>
+    <textarea class="text-input site-faq-answer" rows="2" maxlength="500" placeholder="${t('site_faq_answer_ph')}" style="margin-top:6px">${escapeHtml(item ? item.answer || '' : '')}</textarea>`;
+  rowsEl.appendChild(row);
+}
+
+function addSiteTestimonialRow(item) {
+  const rowsEl = document.getElementById('site-testimonial-rows');
+  const row = document.createElement('div');
+  row.className = 'invoice-item-row';
+  row.style.flexDirection = 'column';
+  row.style.alignItems = 'stretch';
+  row.innerHTML = `
+    <div style="display:flex;gap:8px;width:100%">
+      <input type="text" class="text-input site-testimonial-name" placeholder="${t('site_testimonial_name_ph')}" maxlength="60" value="${escapeHtml(item ? item.name || '' : '')}" style="flex:1">
+      <button type="button" class="invoice-row-remove" onclick="this.closest('.invoice-item-row').remove()" aria-label="Retirer">×</button>
+    </div>
+    <textarea class="text-input site-testimonial-text" rows="2" maxlength="400" placeholder="${t('site_testimonial_text_ph')}" style="margin-top:6px">${escapeHtml(item ? item.text || '' : '')}</textarea>`;
+  rowsEl.appendChild(row);
+}
+
+function addSiteBlogRow(item) {
+  const rowsEl = document.getElementById('site-blog-rows');
+  const row = document.createElement('div');
+  row.className = 'invoice-item-row';
+  row.style.flexDirection = 'column';
+  row.style.alignItems = 'stretch';
+  row.innerHTML = `
+    <div style="display:flex;gap:8px;width:100%">
+      <input type="text" class="text-input site-blog-title" placeholder="${t('site_post_title_ph')}" maxlength="100" value="${escapeHtml(item ? item.title || '' : '')}" style="flex:1">
+      <button type="button" class="invoice-row-remove" onclick="this.closest('.invoice-item-row').remove()" aria-label="Retirer">×</button>
+    </div>
+    <textarea class="text-input site-blog-body" rows="3" maxlength="1500" placeholder="${t('site_post_body_ph')}" style="margin-top:6px">${escapeHtml(item ? item.body || '' : '')}</textarea>`;
+  rowsEl.appendChild(row);
+}
+
+function addSiteCustomSectionRow(item) {
+  const rowsEl = document.getElementById('site-custom-rows');
+  const row = document.createElement('div');
+  row.className = 'invoice-item-row';
+  row.style.flexDirection = 'column';
+  row.style.alignItems = 'stretch';
+  row.innerHTML = `
+    <div style="display:flex;gap:8px;width:100%">
+      <input type="text" class="text-input site-custom-title" placeholder="${t('site_custom_title_ph')}" maxlength="80" value="${escapeHtml(item ? item.title || '' : '')}" style="flex:1">
+      <button type="button" class="invoice-row-remove" onclick="this.closest('.invoice-item-row').remove()" aria-label="Retirer">×</button>
+    </div>
+    <textarea class="text-input site-custom-body" rows="3" maxlength="1500" placeholder="${t('site_custom_body_ph')}" style="margin-top:6px">${escapeHtml(item ? item.body || '' : '')}</textarea>`;
+  rowsEl.appendChild(row);
 }
 
 let pendingSiteLogoFile = null;
@@ -11717,6 +11935,11 @@ function handleSiteCoverFileChange(event) {
 // convertit silencieusement n'importe quelle saisie en adresse valide
 // (accents retires, espaces/underscores -> tirets, tout le reste enleve) --
 // l'erreur ne s'affiche plus que si le resultat est vide ou trop court.
+function cleanCustomDomainInput(raw) {
+  return (raw || '').toString().trim().toLowerCase()
+    .replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/.*$/, '');
+}
+
 function slugifySiteAddress(raw) {
   return (raw || '')
     .toString()
@@ -11759,6 +11982,26 @@ async function saveMySite() {
     instagram: document.getElementById('site-instagram').value.trim() || null,
     tiktok: document.getElementById('site-tiktok').value.trim() || null
   };
+  const customDomain = cleanCustomDomainInput(document.getElementById('site-domain').value);
+  const faq = Array.from(document.querySelectorAll('#site-faq-rows .invoice-item-row')).map(row => ({
+    question: row.querySelector('.site-faq-question').value.trim(),
+    answer: row.querySelector('.site-faq-answer').value.trim()
+  })).filter(f => f.question && f.answer);
+  const testimonials = Array.from(document.querySelectorAll('#site-testimonial-rows .invoice-item-row')).map(row => ({
+    name: row.querySelector('.site-testimonial-name').value.trim(),
+    text: row.querySelector('.site-testimonial-text').value.trim()
+  })).filter(x => x.name && x.text);
+  const existingBlogDates = (editingSiteExisting && Array.isArray(editingSiteExisting.blogPosts))
+    ? editingSiteExisting.blogPosts.map(p => p.date) : [];
+  const blogPosts = Array.from(document.querySelectorAll('#site-blog-rows .invoice-item-row')).map((row, i) => ({
+    title: row.querySelector('.site-blog-title').value.trim(),
+    body: row.querySelector('.site-blog-body').value.trim(),
+    date: existingBlogDates[i] || new Date().toISOString()
+  })).filter(x => x.title && x.body);
+  const customSections = Array.from(document.querySelectorAll('#site-custom-rows .invoice-item-row')).map(row => ({
+    title: row.querySelector('.site-custom-title').value.trim(),
+    body: row.querySelector('.site-custom-body').value.trim()
+  })).filter(x => x.title && x.body);
 
   if (!/^[a-z0-9-]{3,30}$/.test(slug)) {
     errEl.textContent = t('site_slug_invalid_error');
@@ -11822,7 +12065,11 @@ async function saveMySite() {
         ownerUid: uid, slug, template, businessName, tagline, aboutText,
         logoUrl: logoUrl || null, coverImageUrl: coverImageUrl || null,
         services, gallery, contactWhatsapp, contactPhone, contactEmail, address, hours, socialLinks,
-        status: editingSiteExisting ? editingSiteExisting.status : 'draft',
+        status: editingSiteExisting
+          ? editingSiteExisting.status
+          : (document.getElementById('site-publish-now').checked ? 'published' : 'draft'),
+        customDomain: customDomain || null,
+        faq, testimonials, blogPosts, customSections,
         createdAt: editingSiteExisting ? editingSiteExisting.createdAt : new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
@@ -11935,11 +12182,19 @@ function scrollToSiteSection(id) {
 }
 
 function renderPublicSiteHtml(site, overlay) {
-  document.title = (site.businessName || t('site_default_title_public')) + ' — CoeurNoh';
+  document.title = (site.seoTitle || site.businessName || t('site_default_title_public')) + ' — CoeurNoh';
+  const metaDescContent = (site.seoDescription || site.tagline || site.aboutText || '').slice(0, 160);
+  let metaDescTag = document.querySelector('meta[name="description"]');
+  if (!metaDescTag) { metaDescTag = document.createElement('meta'); metaDescTag.name = 'description'; document.head.appendChild(metaDescTag); }
+  metaDescTag.setAttribute('content', metaDescContent);
   const accent = (SITE_TEMPLATES[site.template] || SITE_TEMPLATES.classique).accent;
   const waLink = site.contactWhatsapp ? `https://wa.me/${site.contactWhatsapp.replace(/\D/g, '')}` : null;
   const gallery = Array.isArray(site.gallery) ? site.gallery.filter(Boolean) : [];
   const services = Array.isArray(site.services) ? site.services.filter(s => s.name) : [];
+  const faq = Array.isArray(site.faq) ? site.faq.filter(f => f.question && f.answer) : [];
+  const testimonials = Array.isArray(site.testimonials) ? site.testimonials.filter(x => x.name && x.text) : [];
+  const blogPosts = Array.isArray(site.blogPosts) ? site.blogPosts.filter(x => x.title && x.body).slice().reverse() : [];
+  const customSections = Array.isArray(site.customSections) ? site.customSections.filter(x => x.title && x.body) : [];
   const isPremium = siteIsPremiumActive(site);
   const initial = (site.businessName || '?').trim().charAt(0).toUpperCase();
 
@@ -11954,6 +12209,9 @@ function renderPublicSiteHtml(site, overlay) {
   const navPills = [
     services.length > 0 ? { id: 'site-sec-services', label: t('site_services_heading') } : null,
     gallery.length > 0 ? { id: 'site-sec-gallery', label: t('site_photos_heading') } : null,
+    blogPosts.length > 0 ? { id: 'site-sec-blog', label: t('site_section_blog_heading') } : null,
+    testimonials.length > 0 ? { id: 'site-sec-testimonials', label: t('site_section_testimonials_heading') } : null,
+    faq.length > 0 ? { id: 'site-sec-faq', label: t('site_section_faq_heading') } : null,
     { id: 'site-sec-reviews', label: t('reviews_heading') },
     (waLink || site.contactPhone || site.contactEmail) ? { id: 'site-sec-contact', label: t('site_contact_heading') } : null
   ].filter(Boolean);
@@ -12004,6 +12262,43 @@ function renderPublicSiteHtml(site, overlay) {
           </div>
         </div>` : ''}
 
+      ${customSections.length > 0 ? customSections.map(cs => `
+        <div class="biz-section">
+          <h4 style="color:${accent}">${escapeHtml(cs.title)}</h4>
+          <div class="biz-desc-card" style="white-space:pre-line">${escapeHtml(cs.body)}</div>
+        </div>`).join('') : ''}
+
+      ${blogPosts.length > 0 ? `
+        <div class="biz-section" id="site-sec-blog">
+          <h4 style="color:${accent}">${t('site_section_blog_heading')}</h4>
+          ${blogPosts.map(post => `
+            <div class="order-box" style="margin-bottom:8px">
+              <strong>${escapeHtml(post.title)}</strong>
+              <p class="muted small" style="margin:4px 0 0">${new Date(post.date).toLocaleDateString()}</p>
+              <p style="margin:6px 0 0;white-space:pre-line">${escapeHtml(post.body)}</p>
+            </div>`).join('')}
+        </div>` : ''}
+
+      ${testimonials.length > 0 ? `
+        <div class="biz-section" id="site-sec-testimonials">
+          <h4 style="color:${accent}">${t('site_section_testimonials_heading')}</h4>
+          ${testimonials.map(x => `
+            <div class="order-box" style="margin-bottom:8px">
+              <p style="margin:0 0 6px;font-style:italic">“${escapeHtml(x.text)}”</p>
+              <strong class="muted small">— ${escapeHtml(x.name)}</strong>
+            </div>`).join('')}
+        </div>` : ''}
+
+      ${faq.length > 0 ? `
+        <div class="biz-section" id="site-sec-faq">
+          <h4 style="color:${accent}">${t('site_section_faq_heading')}</h4>
+          ${faq.map(f => `
+            <details style="margin-bottom:8px;border:1px solid var(--line);border-radius:10px;padding:10px 12px">
+              <summary style="font-weight:700;cursor:pointer">${escapeHtml(f.question)}</summary>
+              <p style="margin:8px 0 0;white-space:pre-line">${escapeHtml(f.answer)}</p>
+            </details>`).join('')}
+        </div>` : ''}
+
       <div class="biz-section" id="site-sec-reviews">
         <h4 style="color:${accent}">${t('reviews_heading')}</h4>
         <div id="site-sec-reviews-list"><p class="muted small">${t('common_loading')}</p></div>
@@ -12021,7 +12316,7 @@ function renderPublicSiteHtml(site, overlay) {
         </div>
       </div>
 
-      ${isPremium ? '' : `
+      ${(isPremium && site.hideBranding) ? '' : `
         <div style="margin:24px 18px 0;padding:18px;border-radius:14px;background:linear-gradient(135deg,var(--green-light),var(--cream));text-align:center;border:1px solid var(--line)">
           <p style="margin:0 0 10px;font-weight:700">${t('site_made_with_prefix')} <span style="color:${accent}">Coeurnoh Universe</span></p>
           <a class="btn btn-primary btn-sm" href="${escapeHtml(window.location.origin)}">${t('site_cta_create_yours')}</a>

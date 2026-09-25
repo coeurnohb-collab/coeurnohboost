@@ -461,7 +461,8 @@
     pl_cta_site: ['Activer Premium', 'Get Premium', 'Activar Premium', 'Attiva Premium', 'Ativar Premium'],
     pl_cta_biz: ['Activer Pro', 'Get Pro', 'Activar Pro', 'Attiva Pro', 'Ativar Pro'],
     pl_pay: ['Recharge ton portefeuille par Mobile Money, crypto ou carte, puis active le plan en un tap.', 'Top up your wallet with mobile money, crypto or card, then activate a plan in one tap.', 'Recarga tu billetera con dinero móvil, cripto o tarjeta y activa el plan con un toque.', 'Ricarica il portafoglio con mobile money, crypto o carta e attiva il piano con un tocco.', 'Recarregue a carteira com mobile money, cripto ou cartão e ative o plano com um toque.'],
-    pl_cta_wallet: ['Recharger mon portefeuille', 'Top up my wallet', 'Recargar mi billetera', 'Ricarica portafoglio', 'Recarregar carteira']
+    pl_cta_wallet: ['Recharger mon portefeuille', 'Top up my wallet', 'Recargar mi billetera', 'Ricarica portafoglio', 'Recarregar carteira'],
+    unlimited_short: ['illimité', 'unlimited', 'ilimitado', 'illimitato', 'ilimitado']
   };
 
   function curLang() {
@@ -901,9 +902,10 @@
   function num(read, fallback) {
     try {
       var v = read();
-      return (typeof v === 'number' && isFinite(v)) ? v : fallback;
+      return (typeof v === 'number' && !isNaN(v)) ? v : fallback;
     } catch (e) { return fallback; }
   }
+  function fmtLimit(n) { return (n === Infinity) ? L('unlimited_short') : n; }
   function renderPlans() {
     var body = $('mp-plans-body');
     if (!body) return;
@@ -924,9 +926,9 @@
       '<em class="mp-badge mp-b-free">0 $</em></div><ul class="mp-plan-list">' +
       li(L('pl_f1')) + li(L('pl_f2')) + li(L('pl_f3')) + li(L('pl_f4')) + li(L('pl_f5')) + '</ul></div>' +
 
-      '<div class="mp-plan mp-plan-premium"><div class="mp-plan-head"><span class="mp-plan-name">Site Premium</span>' +
+      '<div class="mp-plan mp-plan-premium"><div class="mp-plan-head"><span class="mp-plan-name">Pack Site Professionnel</span>' +
       '<span class="mp-plan-price">' + sitePrice + ' $ <small>' + esc(L('per_month')) + '</small></span></div><ul class="mp-plan-list">' +
-      li(L('pl_photos'), photosF + ' → ' + photosP) + '</ul>' +
+      li(L('pl_photos'), photosF + ' → ' + fmtLimit(photosP)) + '</ul>' +
       '<button type="button" class="btn btn-primary" id="mp-cta-site">' + esc(L('pl_cta_site')) + '</button></div>' +
 
       '<div class="mp-plan mp-plan-pro"><div class="mp-plan-head"><span class="mp-plan-name">Business Pro</span>' +
