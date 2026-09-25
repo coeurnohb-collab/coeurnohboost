@@ -11379,6 +11379,7 @@ const SITE_TEMPLATES = {
   nature: { label: 'site_template_nature', accent: '#15803d', premium: true }
 };
 const SITE_PREMIUM_PRICE = 20; // en $, par mois -- Pack Site Professionnel
+const SITE_DOMAIN_PRICE_YEAR = 15; // en $, par an -- achat d'un nom de domaine PAR l'équipe pour le compte du propriétaire du site (distinct des 20$/mois Premium ci-dessus ; doit rester identique à SITE_DOMAIN_PRICE_YEAR dans api/payments-actions.js)
 const SITE_FREE_PHOTO_LIMIT = 6;
 const SITE_PREMIUM_PHOTO_LIMIT = Infinity; // Premium = photos illimitees
 // SITE_ROOT_DOMAIN plus bas reste "null" tant qu'aucun nom de domaine n'est
@@ -11558,6 +11559,8 @@ function openSiteSettingsScreen() {
           <p class="muted small" style="margin-top:4px">${t('site_field_domain_hint')}</p>
         </div>
 
+        <div class="field" id="site-domain-purchase-block"></div>
+
         <label class="field-label" style="display:block">${t('site_seo_section_title')}</label>
         <div class="field">
           <label for="site-settings-seo-title">${t('site_seo_title_label')}</label>
@@ -11580,6 +11583,81 @@ function openSiteSettingsScreen() {
       </div>
     </div>`;
   document.body.insertAdjacentHTML('beforeend', html);
+  loadDomainPurchaseStatus();
+}
+
+/* ---- Achat de domaine PAR l'équipe (distinct du champ "domaine personnalisé"
+   ci-dessus, qui sert a rattacher un domaine que le proprietaire possede DEJA
+   ailleurs). Ici, le proprietaire n'a pas de domaine et demande qu'on le lui
+   achete : SITE_DOMAIN_PRICE_YEAR est debite de son portefeuille (meme
+   mecanisme que purchaseSitePremium, transaction securisee cote serveur dans
+   api/payments-actions.js), puis un document "domain_purchase_requests/{uid}"
+   est cree pour que l'equipe (admin) traite l'achat reel chez un registrar et
+   la connexion DNS -- exactement le meme principe manuel que topup_requests /
+   withdrawal_requests, puisqu'aucun achat de domaine ne peut etre automatise
+   sans integrer un registrar tiers. */
+let myDomainRequestCache = null;
+
+async function loadDomainPurchaseStatus() {
+  const el = document.getElementById('site-domain-purchase-block');
+  if (!el || !currentUser) return;
+  el.innerHTML = `<p class="muted small">${t('common_loading')}</p>`;
+  try {
+    const snap = await db.collection('domain_purchase_requests').doc(currentUser.uid).get();
+    myDomainRequestCache = snap.exists ? snap.data() : null;
+    renderDomainPurchaseBlock();
+  } catch (e) {
+    el.innerHTML = '';
+  }
+}
+
+function renderDomainPurchaseBlock() {
+  const el = document.getElementById('site-domain-purchase-block');
+  if (!el) return;
+  const req = myDomainRequestCache;
+  const formHtml = `
+    <label class="field-label" style="display:block;margin-top:4px">${t('site_domain_buy_title')}</label>
+    <p class="muted small" style="margin:2px 0 8px">${t('site_domain_buy_desc_prefix')} ${SITE_DOMAIN_PRICE_YEAR}$${t('site_domain_buy_desc_suffix')}</p>
+    <input type="text" id="site-domain-purchase-input" class="text-input" maxlength="60" placeholder="${t('site_field_domain_ph')}">
+    <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin-top:8px" onclick="purchaseSiteDomain()">${t('site_domain_buy_btn_prefix')}${SITE_DOMAIN_PRICE_YEAR}$)</button>`;
+
+  if (req && req.status === 'pending') {
+    el.innerHTML = `<div class="order-box" style="border-color:#f5a623">
+      <strong>${t('site_domain_pending_title')}</strong>
+      <p class="muted small" style="margin:6px 0 0">${escapeHtml(req.desiredDomain || '')} — ${t('site_domain_pending_desc')}</p>
+    </div>`;
+  } else if (req && req.status === 'active') {
+    el.innerHTML = `<div class="order-box" style="border-color:#177a3f">
+      <strong>${ICON_SPARKLE} ${t('site_domain_active_title')}</strong>
+      <p class="muted small" style="margin:6px 0 0">${escapeHtml(req.desiredDomain || '')}${req.expiresAt ? ` — ${t('site_domain_active_until_prefix')} ${escapeHtml(new Date(req.expiresAt).toLocaleDateString())}` : ''}</p>
+    </div>`;
+  } else if (req && req.status === 'rejected') {
+    el.innerHTML = `<div class="order-box" style="border-color:var(--red-text);margin-bottom:10px"><p class="muted small" style="margin:0">${t('site_domain_rejected_desc')}</p></div>${formHtml}`;
+  } else {
+    el.innerHTML = formHtml;
+  }
+}
+
+async function purchaseSiteDomain() {
+  const input = document.getElementById('site-domain-purchase-input');
+  const desiredDomain = input ? input.value.trim().toLowerCase() : '';
+  if (!desiredDomain) { showToast(t('site_domain_missing_toast'), 'error'); return; }
+  if (!confirm(`${t('site_domain_confirm_prefix')} ${desiredDomain} (${SITE_DOMAIN_PRICE_YEAR}$)${t('site_domain_confirm_suffix')}`)) return;
+  try {
+    const idToken = await auth.currentUser.getIdToken();
+    const res = await fetch('/api/payments-actions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken, action: 'site_domain_purchase', desiredDomain })
+    });
+    const data = await res.json();
+    if (!data.success) { showToast(data.error || t('site_purchase_error'), 'error'); return; }
+    showToast(t('site_domain_request_sent_toast'), 'success');
+    myDomainRequestCache = { status: 'pending', desiredDomain };
+    renderDomainPurchaseBlock();
+  } catch (e) {
+    showToast(friendlyErrorMessage(e), 'error');
+  }
 }
 
 async function saveSiteSettings() {

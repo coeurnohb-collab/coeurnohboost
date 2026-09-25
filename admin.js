@@ -225,6 +225,7 @@ const ADMIN_TABS = [
   { id: "monetization", label: "💵 Monétisation" },
   { id: "shop",         label: "🏪 Boutique" },
   { id: "withdrawals",  label: "💸 Retraits" },
+  { id: "domains",      label: "🌐 Domaines" },
   { id: "reports",      label: "🚩 Signalements" },
   { id: "announcements",label: "📢 Annonces" },
   { id: "users",        label: "👤 Utilisateurs" },
@@ -252,6 +253,7 @@ function showAdminTab(tab) {
   if (tab === 'monetization') loadMonetizationAdmin();
   if (tab === 'shop') loadShopAdmin();
   if (tab === 'withdrawals') loadWithdrawalsAdmin();
+  if (tab === 'domains') loadDomainsAdmin();
   if (tab === 'reports') loadReportsAdmin();
   if (tab === 'announcements') loadAnnouncementsAdmin();
   if (tab === 'users') loadUsersAdmin();
@@ -1488,6 +1490,89 @@ async function rejectWithdrawal(reqId, uid, amount) {
       });
     });
     loadWithdrawalsAdmin();
+  } catch (e) {
+    alert("Erreur : " + e.message);
+  }
+}
+
+/* =========================================================
+   ACHAT DE DOMAINE ("Crée ton site") -- traitement manuel
+   Meme principe que Retraits ci-dessus : le paiement (debit du
+   portefeuille) a deja eu lieu cote serveur au moment de la demande
+   (api/payments-actions.js, action site_domain_purchase) ; ici l'admin
+   achete REELLEMENT le nom de domaine chez un registrar, connecte le
+   DNS/Vercel a la main, puis marque la demande "active". Si le nom
+   demande n'est pas disponible, "Rejeter" rembourse automatiquement le
+   montant paye (req.pricePaid) sur le portefeuille du proprietaire,
+   exactement comme rejectWithdrawal.
+   ========================================================= */
+async function loadDomainsAdmin() {
+  const el = document.getElementById('admin-domains-list');
+  el.innerHTML = `<p class="admin-empty">Chargement...</p>`;
+  try {
+    const snap = await db.collection('domain_purchase_requests').orderBy('createdAt', 'desc').limit(100).get();
+    if (snap.empty) { el.innerHTML = `<p class="admin-empty">Aucune demande d'achat de domaine.</p>`; return; }
+
+    const statusLabels = { pending: 'en attente', active: 'actif', rejected: 'rejeté' };
+
+    el.innerHTML = snap.docs.map(doc => {
+      const r = doc.data();
+      const status = r.status || 'pending';
+      return `
+      <div class="admin-row">
+        <div class="admin-row-top">
+          <div>
+            <div class="admin-row-title">${escapeHtml(r.desiredDomain || '')}</div>
+            <div class="admin-row-meta">Propriétaire : ${escapeHtml(r.uid || doc.id)} · Payé : ${(r.pricePaid || 0).toFixed(2)}$</div>
+          </div>
+          <span class="admin-badge ${status}">${statusLabels[status] || status}</span>
+        </div>
+        ${status === 'pending' ? `
+        <div class="admin-row-actions">
+          <button class="btn btn-outline btn-sm" onclick="activateDomain('${doc.id}','${escapeHtml(r.desiredDomain || '')}')">✅ Marquer comme actif (1 an)</button>
+          <button class="btn btn-outline btn-sm" onclick="rejectDomain('${doc.id}','${r.uid || doc.id}',${r.pricePaid || 0})">❌ Rejeter (rembourse)</button>
+        </div>` : ''}
+      </div>`;
+    }).join('');
+  } catch (e) {
+    el.innerHTML = `<p class="admin-empty">Erreur : ${e.message}</p>`;
+  }
+}
+
+async function activateDomain(uid, desiredDomain) {
+  if (!confirm(`Confirmer que "${desiredDomain}" est bien acheté et connecté au site ?`)) return;
+  try {
+    const expiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
+    await db.collection('domain_purchase_requests').doc(uid).update({
+      status: 'active', expiresAt, processedAt: new Date().toISOString()
+    });
+    loadDomainsAdmin();
+  } catch (e) {
+    alert("Erreur : " + e.message);
+  }
+}
+
+async function rejectDomain(uid, ownerUid, amount) {
+  if (!confirm("Rejeter cette demande ? Le montant sera automatiquement remboursé sur le portefeuille du propriétaire.")) return;
+  try {
+    const userRef = db.collection('users').doc(ownerUid);
+    await db.runTransaction(async (transaction) => {
+      const userSnap = await transaction.get(userRef);
+      if (!userSnap.exists) throw new Error("Compte introuvable");
+      const currentBalance = userSnap.data().balance || 0;
+      const newBalance = Math.round((currentBalance + amount) * 100) / 100;
+      transaction.update(userRef, { balance: newBalance });
+      transaction.update(db.collection('domain_purchase_requests').doc(uid), {
+        status: 'rejected',
+        processedAt: new Date().toISOString()
+      });
+      transaction.set(db.collection('wallet_transactions').doc(), {
+        uid: ownerUid, type: 'site_domain_purchase_rejected_refund', amount, balanceAfter: newBalance,
+        description: 'Achat de domaine refusé, remboursé', relatedId: uid,
+        createdAt: new Date().toISOString()
+      });
+    });
+    loadDomainsAdmin();
   } catch (e) {
     alert("Erreur : " + e.message);
   }
