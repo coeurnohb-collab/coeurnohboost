@@ -744,15 +744,35 @@ async function loadBundlePricingOverrides() {
    l'admin depuis son espace (onglet Domaines), document Firestore
    "pricing/site" -- doc separe de "pricing/monetization" etc. car sa
    forme est differente (pas un tableau "services" mais un prix Premium
-   et une LISTE de formules de domaine, chacune avec sa propre duree en
-   mois et son propre prix, ex: "1 mois" / "1 an" / "2 ans"). Tant que
-   l'admin n'a rien configure, on retombe sur les valeurs par defaut
-   codees en dur ci-dessous (memes valeurs que cote serveur,
-   api/payments-actions.js, qui applique la meme regle de repli). */
+   ET un SEUL prix de domaine "par mois" : les durees proposees au client
+   (1 mois / 3 mois-trimestre / 6 mois-semestre / 1 an) sont calculees
+   AUTOMATIQUEMENT a partir de ce prix mensuel -- l'admin n'a qu'un seul
+   chiffre a regler, jamais une formule a la fois. Tant que l'admin n'a
+   rien configure, on retombe sur les valeurs par defaut codees en dur
+   ci-dessous (memes valeurs que cote serveur, api/payments-actions.js,
+   qui applique la meme regle de repli et le meme calcul). */
 let SITE_PRICING = {
-  premiumPriceMonth: 20, // valeur de repli -- doit rester identique a SITE_PREMIUM_PRICE plus bas dans ce fichier et a SITE_PREMIUM_PRICE dans api/payments-actions.js
-  domainPlans: [{ id: 'default', label: '1 an', months: 12, price: 15 }] // valeur de repli -- doit rester identique a SITE_DOMAIN_PRICE_YEAR plus bas dans ce fichier et dans api/payments-actions.js
+  premiumPriceMonth: 20,  // valeur de repli -- doit rester identique a SITE_PREMIUM_PRICE plus bas dans ce fichier et a SITE_PREMIUM_PRICE dans api/payments-actions.js
+  domainPriceMonth: 4     // valeur de repli ($/mois) -- doit rester identique a SITE_DOMAIN_PRICE_MONTH dans api/payments-actions.js ; sert de base au calcul automatique des formules
 };
+// Durees standards proposees au client, toujours calculees a partir de
+// SITE_PRICING.domainPriceMonth (jamais de prix fixe par duree).
+const SITE_DOMAIN_DURATIONS_MONTHS = [1, 3, 6, 12];
+function siteDomainDurationLabel(months) {
+  if (months === 1) return t('site_domain_duration_month');
+  if (months === 3) return t('site_domain_duration_quarter');
+  if (months === 6) return t('site_domain_duration_semester');
+  if (months === 12) return t('site_domain_duration_year');
+  return `${months} ${t('site_domain_duration_months_suffix')}`;
+}
+function getSiteDomainPlans() {
+  return SITE_DOMAIN_DURATIONS_MONTHS.map(months => ({
+    id: 'm' + months,
+    months,
+    price: Math.round(SITE_PRICING.domainPriceMonth * months * 100) / 100,
+    label: siteDomainDurationLabel(months)
+  }));
+}
 async function loadSitePricingOverrides() {
   try {
     const snap = await db.collection('pricing').doc('site').get();
@@ -761,8 +781,8 @@ async function loadSitePricingOverrides() {
       if (typeof data.premiumPriceMonth === 'number' && data.premiumPriceMonth > 0) {
         SITE_PRICING.premiumPriceMonth = data.premiumPriceMonth;
       }
-      if (Array.isArray(data.domainPlans) && data.domainPlans.length > 0) {
-        SITE_PRICING.domainPlans = data.domainPlans;
+      if (typeof data.domainPriceMonth === 'number' && data.domainPriceMonth > 0) {
+        SITE_PRICING.domainPriceMonth = data.domainPriceMonth;
       }
     }
   } catch (e) {
@@ -11410,11 +11430,12 @@ const SITE_TEMPLATES = {
   nature: { label: 'site_template_nature', accent: '#15803d', premium: true }
 };
 const SITE_PREMIUM_PRICE = 20; // en $, par mois -- Pack Site Professionnel
-const SITE_DOMAIN_PRICE_YEAR = 15; // en $, par an -- achat d'un nom de domaine PAR l'équipe pour le compte du propriétaire du site (distinct des 20$/mois Premium ci-dessus ; doit rester identique à SITE_DOMAIN_PRICE_YEAR dans api/payments-actions.js)
+const SITE_DOMAIN_PRICE_MONTH = 4; // en $, par mois -- base du calcul automatique des formules d'achat de domaine (distinct des 20$/mois Premium ci-dessus ; doit rester identique à SITE_DOMAIN_PRICE_MONTH dans api/payments-actions.js)
 const SITE_FREE_PHOTO_LIMIT = 6;
 const SITE_PREMIUM_PHOTO_LIMIT = Infinity; // Premium = photos illimitees
 const SITE_FREE_BLOG_LIMIT = 3; // articles/actus publiables gratuitement, au-dela il faut Premium
 const SITE_PREMIUM_BLOG_LIMIT = Infinity;
+const SITE_CATEGORY_LIMIT = 12; // categories d'articles -- fonctionnalite reservee au Premium
 // SITE_ROOT_DOMAIN plus bas reste "null" tant qu'aucun nom de domaine n'est
 // connecte au projet Vercel -- le champ "customDomain" ci-dessous peut deja
 // etre rempli par l'utilisateur (demande preparee a l'avance).
@@ -11623,13 +11644,15 @@ function openSiteSettingsScreen() {
 /* ---- Achat de domaine PAR l'équipe (distinct du champ "domaine personnalisé"
    ci-dessus, qui sert a rattacher un domaine que le proprietaire possede DEJA
    ailleurs). Ici, le proprietaire n'a pas de domaine et demande qu'on le lui
-   achete : SITE_DOMAIN_PRICE_YEAR est debite de son portefeuille (meme
-   mecanisme que purchaseSitePremium, transaction securisee cote serveur dans
-   api/payments-actions.js), puis un document "domain_purchase_requests/{uid}"
-   est cree pour que l'equipe (admin) traite l'achat reel chez un registrar et
-   la connexion DNS -- exactement le meme principe manuel que topup_requests /
-   withdrawal_requests, puisqu'aucun achat de domaine ne peut etre automatise
-   sans integrer un registrar tiers. */
+   achete : le prix (calcule automatiquement a partir de
+   SITE_PRICING.domainPriceMonth selon la duree choisie) est debite de son
+   portefeuille (meme mecanisme que purchaseSitePremium, transaction
+   securisee cote serveur dans api/payments-actions.js), puis un document
+   "domain_purchase_requests/{uid}" est cree pour que l'equipe (admin)
+   traite l'achat reel chez un registrar et la connexion DNS -- exactement
+   le meme principe manuel que topup_requests / withdrawal_requests,
+   puisqu'aucun achat de domaine ne peut etre automatise sans integrer un
+   registrar tiers. */
 let myDomainRequestCache = null;
 
 async function loadDomainPurchaseStatus() {
@@ -11649,15 +11672,13 @@ function renderDomainPurchaseBlock() {
   const el = document.getElementById('site-domain-purchase-block');
   if (!el) return;
   const req = myDomainRequestCache;
-  const plans = SITE_PRICING.domainPlans.length ? SITE_PRICING.domainPlans : [{ id: 'default', label: '1 an', months: 12, price: SITE_DOMAIN_PRICE_YEAR }];
-  const planOptionsHtml = plans.map(p => `<option value="${escapeHtml(p.id)}">${escapeHtml(p.label)} — ${p.price}$</option>`).join('');
+  const plans = getSiteDomainPlans();
+  const planOptionsHtml = plans.map(p => `<option value="${p.months}">${escapeHtml(p.label)} — ${p.price}$</option>`).join('');
   const formHtml = `
     <label class="field-label" style="display:block;margin-top:4px">${t('site_domain_buy_title')}</label>
     <p class="muted small" style="margin:2px 0 8px">${t('site_domain_buy_desc_prefix2')}</p>
     <input type="text" id="site-domain-purchase-input" class="text-input" maxlength="60" placeholder="${t('site_field_domain_ph')}">
-    ${plans.length > 1
-      ? `<select id="site-domain-purchase-plan" class="text-input" style="margin-top:8px">${planOptionsHtml}</select>`
-      : `<input type="hidden" id="site-domain-purchase-plan" value="${escapeHtml(plans[0].id)}">`}
+    <select id="site-domain-purchase-plan" class="text-input" style="margin-top:8px">${planOptionsHtml}</select>
     <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin-top:8px" onclick="purchaseSiteDomain()">${t('site_domain_buy_btn_prefix2')}</button>`;
 
   if (req && req.status === 'pending') {
@@ -11681,8 +11702,8 @@ async function purchaseSiteDomain() {
   const input = document.getElementById('site-domain-purchase-input');
   const planSelect = document.getElementById('site-domain-purchase-plan');
   const desiredDomain = input ? input.value.trim().toLowerCase() : '';
-  const planId = planSelect ? planSelect.value : null;
-  const plan = (SITE_PRICING.domainPlans || []).find(p => p.id === planId) || SITE_PRICING.domainPlans[0];
+  const months = planSelect ? parseInt(planSelect.value, 10) : 12;
+  const plan = getSiteDomainPlans().find(p => p.months === months) || getSiteDomainPlans()[getSiteDomainPlans().length - 1];
   if (!desiredDomain) { showToast(t('site_domain_missing_toast'), 'error'); return; }
   if (!confirm(`${t('site_domain_confirm_prefix')} ${desiredDomain} (${plan.price}$ — ${plan.label})${t('site_domain_confirm_suffix')}`)) return;
   try {
@@ -11690,7 +11711,7 @@ async function purchaseSiteDomain() {
     const res = await fetch('/api/payments-actions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ idToken, action: 'site_domain_purchase', desiredDomain, planId: plan.id })
+      body: JSON.stringify({ idToken, action: 'site_domain_purchase', desiredDomain, months: plan.months })
     });
     const data = await res.json();
     if (!data.success) { showToast(data.error || t('site_purchase_error'), 'error'); return; }
@@ -11870,6 +11891,14 @@ function openSiteForm() {
         <div id="site-testimonial-rows"></div>
         <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:6px 0 14px" onclick="addSiteTestimonialRow()">${t('site_add_testimonial_btn')}</button>
 
+        <label class="field-label" style="display:block">${t('site_section_categories')}</label>
+        <p class="muted small" style="margin:-4px 0 8px">${t('site_section_categories_hint')}${isPremium ? '' : ' ' + t('site_requires_premium_suffix')}</p>
+        <div id="site-categories-chips" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;opacity:${isPremium ? '1' : '0.6'}">${(s.categories || []).map(c => renderCategoryChip(c)).join('')}</div>
+        <div style="display:flex;gap:8px;margin-bottom:14px;opacity:${isPremium ? '1' : '0.6'}">
+          <input type="text" id="site-category-input" class="text-input" maxlength="30" placeholder="${t('site_category_input_ph')}" ${isPremium ? '' : 'disabled'} style="flex:1">
+          <button type="button" class="btn btn-outline btn-sm" onclick="addSiteCategoryChip()" ${isPremium ? '' : 'disabled'}>${t('site_add_category_btn')}</button>
+        </div>
+
         <label class="field-label" style="display:block">${t('site_section_blog')}</label>
         <p class="muted small" style="margin:-4px 0 8px">${t('site_section_blog_hint')} ${isPremium
           ? `${t('site_blog_limit_premium_suffix')}`
@@ -11989,6 +12018,51 @@ function addSiteTestimonialRow(item) {
   rowsEl.appendChild(row);
 }
 
+/* ---- Categories d'articles (reserve Premium) -- simples "puces" texte
+   stockees sur le site (site.categories), assignables ensuite a chaque
+   article via un menu deroulant. Purement declaratif : aucune page de
+   filtrage par categorie cote site public pour l'instant, seulement un
+   badge affiche sur chaque article (voir renderMySitePreview et
+   api/render-site.js). */
+function renderCategoryChip(name) {
+  return `<span class="pill" data-cat="${escapeHtml(name)}" style="display:inline-flex;align-items:center;gap:6px;background:var(--cream);border:1px solid #ddd6c8;border-radius:999px;padding:5px 10px;font-size:.78rem;font-weight:700">${escapeHtml(name)}<button type="button" onclick="this.closest('[data-cat]').remove();refreshSiteBlogCategoryOptions()" style="border:none;background:none;padding:0;cursor:pointer;font-weight:900;color:var(--red-text);line-height:1" aria-label="Retirer">×</button></span>`;
+}
+
+function addSiteCategoryChip() {
+  const input = document.getElementById('site-category-input');
+  if (!input || input.disabled) return;
+  const name = input.value.trim();
+  if (!name) return;
+  const chipsEl = document.getElementById('site-categories-chips');
+  const existing = Array.from(chipsEl.querySelectorAll('[data-cat]')).map(el => el.dataset.cat.toLowerCase());
+  if (existing.includes(name.toLowerCase())) { showToast(t('site_category_duplicate_toast'), 'error'); return; }
+  if (existing.length >= SITE_CATEGORY_LIMIT) { showToast(`${t('site_category_limit_toast_prefix')} ${SITE_CATEGORY_LIMIT}${t('site_category_limit_toast_suffix')}`, 'info'); return; }
+  chipsEl.insertAdjacentHTML('beforeend', renderCategoryChip(name));
+  input.value = '';
+  refreshSiteBlogCategoryOptions();
+}
+
+function getSiteCategoriesDraft() {
+  const chipsEl = document.getElementById('site-categories-chips');
+  return chipsEl ? Array.from(chipsEl.querySelectorAll('[data-cat]')).map(el => el.dataset.cat) : [];
+}
+
+// Met a jour le menu deroulant de CHAQUE article deja affiche a l'ecran
+// des qu'une categorie est ajoutee/retiree, sans perdre la selection en
+// cours quand elle existe encore.
+function refreshSiteBlogCategoryOptions() {
+  const categories = getSiteCategoriesDraft();
+  document.querySelectorAll('#site-blog-rows .site-blog-category').forEach(select => {
+    const current = select.value;
+    select.innerHTML = buildBlogCategoryOptionsHtml(categories, current);
+  });
+}
+
+function buildBlogCategoryOptionsHtml(categories, selected) {
+  return `<option value="">${t('site_category_none_option')}</option>` +
+    categories.map(c => `<option value="${escapeHtml(c)}" ${c === selected ? 'selected' : ''}>${escapeHtml(c)}</option>`).join('');
+}
+
 function addSiteBlogRow(item, max) {
   const rowsEl = document.getElementById('site-blog-rows');
   const limit = max || SITE_FREE_BLOG_LIMIT;
@@ -11996,6 +12070,7 @@ function addSiteBlogRow(item, max) {
     showToast(`${t('site_blog_limit_reached_prefix')} ${limit}${t('site_blog_limit_reached_suffix')}`, 'info');
     return;
   }
+  const categories = getSiteCategoriesDraft();
   const row = document.createElement('div');
   row.className = 'invoice-item-row';
   row.style.flexDirection = 'column';
@@ -12005,7 +12080,9 @@ function addSiteBlogRow(item, max) {
       <input type="text" class="text-input site-blog-title" placeholder="${t('site_post_title_ph')}" maxlength="100" value="${escapeHtml(item ? item.title || '' : '')}" style="flex:1">
       <button type="button" class="invoice-row-remove" onclick="this.closest('.invoice-item-row').remove()" aria-label="Retirer">×</button>
     </div>
-    <textarea class="text-input site-blog-body" rows="3" maxlength="1500" placeholder="${t('site_post_body_ph')}" style="margin-top:6px">${escapeHtml(item ? item.body || '' : '')}</textarea>`;
+    ${categories.length ? `<select class="text-input site-blog-category" style="margin-top:6px">${buildBlogCategoryOptionsHtml(categories, item ? item.category || '' : '')}</select>` : ''}
+    <textarea class="text-input site-blog-body" rows="3" maxlength="1500" placeholder="${t('site_post_body_ph')}" style="margin-top:6px">${escapeHtml(item ? item.body || '' : '')}</textarea>
+    <div style="margin-top:6px">${renderGalleryPhotoRow('site-blog-photo-row', item ? item.imageUrl : null)}</div>`;
   rowsEl.appendChild(row);
 }
 
@@ -12121,11 +12198,27 @@ async function saveMySite() {
   })).filter(x => x.name && x.text);
   const existingBlogDates = (editingSiteExisting && Array.isArray(editingSiteExisting.blogPosts))
     ? editingSiteExisting.blogPosts.map(p => p.date) : [];
-  const blogPosts = Array.from(document.querySelectorAll('#site-blog-rows .invoice-item-row')).map((row, i) => ({
-    title: row.querySelector('.site-blog-title').value.trim(),
-    body: row.querySelector('.site-blog-body').value.trim(),
-    date: existingBlogDates[i] || new Date().toISOString()
-  })).filter(x => x.title && x.body).slice(0, isPremiumNow ? SITE_PREMIUM_BLOG_LIMIT : SITE_FREE_BLOG_LIMIT);
+  const blogPostsAll = await Promise.all(Array.from(document.querySelectorAll('#site-blog-rows .invoice-item-row')).map(async (row, i) => {
+    const categorySelect = row.querySelector('.site-blog-category');
+    const photoInput = row.querySelector('.gallery-photo-file');
+    const photoRow = row.querySelector('.gallery-photo-row');
+    let imageUrl = null;
+    if (photoInput && photoInput._pendingFile) {
+      const uploaded = await uploadFileToStorage(photoInput._pendingFile, 'sites/articles', { maxSizeMB: 10 });
+      imageUrl = uploaded.url;
+    } else if (photoRow && photoRow.dataset.existingUrl) {
+      imageUrl = photoRow.dataset.existingUrl;
+    }
+    return {
+      title: row.querySelector('.site-blog-title').value.trim(),
+      body: row.querySelector('.site-blog-body').value.trim(),
+      category: (isPremiumNow && categorySelect && categorySelect.value) || null,
+      imageUrl,
+      date: existingBlogDates[i] || new Date().toISOString()
+    };
+  }));
+  const blogPosts = blogPostsAll.filter(x => x.title && x.body).slice(0, isPremiumNow ? SITE_PREMIUM_BLOG_LIMIT : SITE_FREE_BLOG_LIMIT);
+  const categories = isPremiumNow ? getSiteCategoriesDraft().slice(0, SITE_CATEGORY_LIMIT) : [];
   const customSections = Array.from(document.querySelectorAll('#site-custom-rows .invoice-item-row')).map(row => ({
     title: row.querySelector('.site-custom-title').value.trim(),
     body: row.querySelector('.site-custom-body').value.trim()
@@ -12197,7 +12290,7 @@ async function saveMySite() {
           ? editingSiteExisting.status
           : (document.getElementById('site-publish-now').checked ? 'published' : 'draft'),
         customDomain: customDomain || null,
-        faq, testimonials, blogPosts, customSections,
+        faq, testimonials, blogPosts, customSections, categories,
         createdAt: editingSiteExisting ? editingSiteExisting.createdAt : new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
@@ -12400,10 +12493,14 @@ function renderPublicSiteHtml(site, overlay) {
         <div class="biz-section" id="site-sec-blog">
           <h4 style="color:${accent}">${t('site_section_blog_heading')}</h4>
           ${blogPosts.map(post => `
-            <div class="order-box" style="margin-bottom:8px">
-              <strong>${escapeHtml(post.title)}</strong>
-              <p class="muted small" style="margin:4px 0 0">${new Date(post.date).toLocaleDateString()}</p>
-              <p style="margin:6px 0 0;white-space:pre-line">${escapeHtml(post.body)}</p>
+            <div class="order-box" style="margin-bottom:8px;padding:0;overflow:hidden">
+              ${post.imageUrl ? `<img src="${escapeHtml(post.imageUrl)}" alt="" style="width:100%;max-height:200px;object-fit:cover;display:block">` : ''}
+              <div style="padding:12px">
+                ${post.category ? `<span class="shop-card-category" style="margin-bottom:4px">${escapeHtml(post.category)}</span>` : ''}
+                <strong>${escapeHtml(post.title)}</strong>
+                <p class="muted small" style="margin:4px 0 0">${new Date(post.date).toLocaleDateString()}</p>
+                <p style="margin:6px 0 0;white-space:pre-line">${escapeHtml(post.body)}</p>
+              </div>
             </div>`).join('')}
         </div>` : ''}
 

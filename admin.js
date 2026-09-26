@@ -1496,13 +1496,22 @@ async function rejectWithdrawal(reqId, uid, amount) {
 }
 
 /* =========================================================
-   TARIFS "CRÉE TON SITE" (Premium + formules de domaine) --
+   TARIFS "CRÉE TON SITE" (Premium + domaine) --
    entièrement gérés par l'admin, document Firestore pricing/site.
    Tant que rien n'est enregistré ici, le serveur (api/payments-actions.js)
    et le client (script.js) retombent sur des valeurs par défaut codées en
-   dur (20$/mois Premium, 15$ pour 1 an de domaine).
+   dur (20$/mois Premium, 4$/mois pour le domaine).
+   Le prix de domaine est un SEUL prix "par mois" : les durées proposées
+   au client (1 mois, 3 mois/trimestre, 6 mois/semestre, 1 an) sont
+   calculées AUTOMATIQUEMENT à partir de ce prix -- l'admin ne règle
+   qu'un seul chiffre, jamais une formule à la fois.
    ========================================================= */
-let siteDomainPlansDraft = [];
+const SITE_DOMAIN_DURATIONS_MONTHS_ADMIN = [
+  { months: 1, label: '1 mois' },
+  { months: 3, label: '3 mois (trimestre)' },
+  { months: 6, label: '6 mois (semestre)' },
+  { months: 12, label: '1 an' }
+];
 
 async function loadDomainsAdmin() {
   await loadSitePricingEditor();
@@ -1516,22 +1525,20 @@ async function loadSitePricingEditor() {
     const snap = await db.collection('pricing').doc('site').get();
     const data = snap.exists ? snap.data() : {};
     const premiumPriceMonth = (typeof data.premiumPriceMonth === 'number' && data.premiumPriceMonth > 0) ? data.premiumPriceMonth : 20;
-    siteDomainPlansDraft = (Array.isArray(data.domainPlans) && data.domainPlans.length > 0)
-      ? data.domainPlans.map(p => ({ ...p }))
-      : [{ id: 'default', label: '1 an', months: 12, price: 15 }];
-    renderSitePricingEditor(premiumPriceMonth);
+    const domainPriceMonth = (typeof data.domainPriceMonth === 'number' && data.domainPriceMonth > 0) ? data.domainPriceMonth : 4;
+    renderSitePricingEditor(premiumPriceMonth, domainPriceMonth);
   } catch (e) {
     el.innerHTML = `<p class="admin-empty">Erreur de chargement des tarifs : ${e.message}</p>`;
   }
 }
 
-function renderSitePricingEditor(premiumPriceMonth) {
+function renderSitePricingEditor(premiumPriceMonth, domainPriceMonth) {
   const el = document.getElementById('admin-site-pricing-editor');
   el.innerHTML = `
     <div class="order-box">
       <div class="pricing-service-block">
         <label class="pricing-service-label">Abonnement Site Premium</label>
-        <p class="muted small" style="margin:-4px 0 8px">Prix facturé pour 30 jours de Premium (photos et articles illimités, thèmes, retrait de la mention, statistiques, éligibilité à l'achat de domaine).</p>
+        <p class="muted small" style="margin:-4px 0 8px">Prix facturé pour 30 jours de Premium (photos et articles illimités, catégories, thèmes, retrait de la mention, statistiques, éligibilité à l'achat de domaine).</p>
         <div class="pricing-tier-row" style="grid-template-columns:1fr">
           <div class="pricing-tier-field">
             <span>Prix par mois ($)</span>
@@ -1540,61 +1547,45 @@ function renderSitePricingEditor(premiumPriceMonth) {
         </div>
       </div>
 
-      <label class="pricing-service-label" style="display:block;margin-top:16px">Formules d'achat de domaine</label>
-      <p class="muted small" style="margin:-4px 0 8px">Une ou plusieurs formules (ex: 1 mois, 6 mois, 1 an...). Le propriétaire du site choisit parmi celles-ci au moment de la demande.</p>
-      <div id="site-pricing-domain-plans">${siteDomainPlansDraft.map((p, i) => renderDomainPlanRow(p, i)).join('')}</div>
-      <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:8px 0 16px" onclick="addSitePricingDomainPlanRow()">+ Ajouter une formule</button>
+      <div class="pricing-service-block">
+        <label class="pricing-service-label">Achat de domaine</label>
+        <p class="muted small" style="margin:-4px 0 8px">Un seul prix "par mois" : le prix pour 3 mois, 6 mois ou 1 an est calculé automatiquement, en multipliant simplement par le nombre de mois. Le propriétaire du site choisit la durée qui lui convient au moment de la demande.</p>
+        <div class="pricing-tier-row" style="grid-template-columns:1fr">
+          <div class="pricing-tier-field">
+            <span>Prix par mois ($)</span>
+            <input type="number" step="0.01" min="0" id="site-pricing-domain-month" oninput="updateSiteDomainPricingPreview()" value="${domainPriceMonth}">
+          </div>
+        </div>
+        <div id="site-domain-pricing-preview" style="margin-top:10px"></div>
+      </div>
 
       <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="saveSitePricingConfig()">💾 Enregistrer les tarifs</button>
       <div class="modal-loading hidden" id="site-pricing-saved-msg" style="margin-top:10px">✅ Tarifs enregistrés !</div>
     </div>`;
+  updateSiteDomainPricingPreview();
 }
 
-function renderDomainPlanRow(plan, i) {
-  return `
-    <div class="pricing-tier-row" id="site-domain-plan-row-${i}" style="grid-template-columns:2fr 1fr 1fr auto;align-items:end;margin-bottom:8px">
-      <div class="pricing-tier-field">
-        <span>Nom (ex: 1 an)</span>
-        <input type="text" id="site-domain-plan-${i}-label" value="${escapeHtml(plan.label || '')}">
-      </div>
-      <div class="pricing-tier-field">
-        <span>Durée (mois)</span>
-        <input type="number" min="1" step="1" id="site-domain-plan-${i}-months" value="${plan.months || 12}">
-      </div>
-      <div class="pricing-tier-field">
-        <span>Prix ($)</span>
-        <input type="number" min="0" step="0.01" id="site-domain-plan-${i}-price" value="${plan.price || 0}">
-      </div>
-      <button type="button" class="btn btn-outline btn-sm" style="padding:8px 10px" onclick="removeSitePricingDomainPlanRow(${i})" aria-label="Retirer">×</button>
-    </div>`;
-}
-
-function addSitePricingDomainPlanRow() {
-  siteDomainPlansDraft.push({ id: 'plan_' + Date.now(), label: '', months: 12, price: 0 });
-  document.getElementById('site-pricing-domain-plans').innerHTML =
-    siteDomainPlansDraft.map((p, i) => renderDomainPlanRow(p, i)).join('');
-}
-
-function removeSitePricingDomainPlanRow(i) {
-  if (siteDomainPlansDraft.length <= 1) { alert('Il faut garder au moins une formule de domaine.'); return; }
-  siteDomainPlansDraft.splice(i, 1);
-  document.getElementById('site-pricing-domain-plans').innerHTML =
-    siteDomainPlansDraft.map((p, i2) => renderDomainPlanRow(p, i2)).join('');
+// Recalcule et affiche, en direct pendant que l'admin tape, le prix que
+// verra le client pour chacune des 4 durees standards -- pour qu'il voie
+// immediatement l'effet du prix mensuel qu'il est en train de regler.
+function updateSiteDomainPricingPreview() {
+  const input = document.getElementById('site-pricing-domain-month');
+  const previewEl = document.getElementById('site-domain-pricing-preview');
+  if (!input || !previewEl) return;
+  const monthPrice = parseFloat(input.value) || 0;
+  previewEl.innerHTML = SITE_DOMAIN_DURATIONS_MONTHS_ADMIN.map(d => {
+    const price = Math.round(monthPrice * d.months * 100) / 100;
+    return `<div class="admin-row-meta" style="margin-bottom:2px">${d.label} → <strong>${price}$</strong></div>`;
+  }).join('');
 }
 
 async function saveSitePricingConfig() {
   const premiumPriceMonth = parseFloat(document.getElementById('site-pricing-premium-month').value) || 0;
-  const domainPlans = siteDomainPlansDraft.map((p, i) => ({
-    id: p.id || ('plan_' + i),
-    label: document.getElementById(`site-domain-plan-${i}-label`).value.trim() || `Formule ${i + 1}`,
-    months: parseInt(document.getElementById(`site-domain-plan-${i}-months`).value, 10) || 12,
-    price: parseFloat(document.getElementById(`site-domain-plan-${i}-price`).value) || 0
-  }));
+  const domainPriceMonth = parseFloat(document.getElementById('site-pricing-domain-month').value) || 0;
   if (premiumPriceMonth <= 0) { alert('Le prix Premium doit être supérieur à 0.'); return; }
-  if (domainPlans.some(p => p.price <= 0)) { alert('Chaque formule de domaine doit avoir un prix supérieur à 0.'); return; }
+  if (domainPriceMonth <= 0) { alert('Le prix du domaine doit être supérieur à 0.'); return; }
   try {
-    await db.collection('pricing').doc('site').set({ premiumPriceMonth, domainPlans });
-    siteDomainPlansDraft = domainPlans;
+    await db.collection('pricing').doc('site').set({ premiumPriceMonth, domainPriceMonth });
     const msg = document.getElementById('site-pricing-saved-msg');
     msg.classList.remove('hidden');
     setTimeout(() => msg.classList.add('hidden'), 2500);
