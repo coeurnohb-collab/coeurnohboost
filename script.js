@@ -750,8 +750,8 @@ async function loadBundlePricingOverrides() {
    codees en dur ci-dessous (memes valeurs que cote serveur,
    api/payments-actions.js, qui applique la meme regle de repli). */
 let SITE_PRICING = {
-  premiumPriceMonth: SITE_PREMIUM_PRICE,
-  domainPlans: [{ id: 'default', label: '1 an', months: 12, price: SITE_DOMAIN_PRICE_YEAR }]
+  premiumPriceMonth: 20, // valeur de repli -- doit rester identique a SITE_PREMIUM_PRICE plus bas dans ce fichier et a SITE_PREMIUM_PRICE dans api/payments-actions.js
+  domainPlans: [{ id: 'default', label: '1 an', months: 12, price: 15 }] // valeur de repli -- doit rester identique a SITE_DOMAIN_PRICE_YEAR plus bas dans ce fichier et dans api/payments-actions.js
 };
 async function loadSitePricingOverrides() {
   try {
