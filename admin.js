@@ -1496,17 +1496,125 @@ async function rejectWithdrawal(reqId, uid, amount) {
 }
 
 /* =========================================================
-   ACHAT DE DOMAINE ("Crée ton site") -- traitement manuel
-   Meme principe que Retraits ci-dessus : le paiement (debit du
-   portefeuille) a deja eu lieu cote serveur au moment de la demande
-   (api/payments-actions.js, action site_domain_purchase) ; ici l'admin
-   achete REELLEMENT le nom de domaine chez un registrar, connecte le
-   DNS/Vercel a la main, puis marque la demande "active". Si le nom
-   demande n'est pas disponible, "Rejeter" rembourse automatiquement le
-   montant paye (req.pricePaid) sur le portefeuille du proprietaire,
-   exactement comme rejectWithdrawal.
+   TARIFS "CRÉE TON SITE" (Premium + formules de domaine) --
+   entièrement gérés par l'admin, document Firestore pricing/site.
+   Tant que rien n'est enregistré ici, le serveur (api/payments-actions.js)
+   et le client (script.js) retombent sur des valeurs par défaut codées en
+   dur (20$/mois Premium, 15$ pour 1 an de domaine).
    ========================================================= */
+let siteDomainPlansDraft = [];
+
 async function loadDomainsAdmin() {
+  await loadSitePricingEditor();
+  await loadDomainRequestsList();
+}
+
+async function loadSitePricingEditor() {
+  const el = document.getElementById('admin-site-pricing-editor');
+  el.innerHTML = `<p class="admin-empty">Chargement des tarifs...</p>`;
+  try {
+    const snap = await db.collection('pricing').doc('site').get();
+    const data = snap.exists ? snap.data() : {};
+    const premiumPriceMonth = (typeof data.premiumPriceMonth === 'number' && data.premiumPriceMonth > 0) ? data.premiumPriceMonth : 20;
+    siteDomainPlansDraft = (Array.isArray(data.domainPlans) && data.domainPlans.length > 0)
+      ? data.domainPlans.map(p => ({ ...p }))
+      : [{ id: 'default', label: '1 an', months: 12, price: 15 }];
+    renderSitePricingEditor(premiumPriceMonth);
+  } catch (e) {
+    el.innerHTML = `<p class="admin-empty">Erreur de chargement des tarifs : ${e.message}</p>`;
+  }
+}
+
+function renderSitePricingEditor(premiumPriceMonth) {
+  const el = document.getElementById('admin-site-pricing-editor');
+  el.innerHTML = `
+    <div class="order-box">
+      <div class="pricing-service-block">
+        <label class="pricing-service-label">Abonnement Site Premium</label>
+        <p class="muted small" style="margin:-4px 0 8px">Prix facturé pour 30 jours de Premium (photos et articles illimités, thèmes, retrait de la mention, statistiques, éligibilité à l'achat de domaine).</p>
+        <div class="pricing-tier-row" style="grid-template-columns:1fr">
+          <div class="pricing-tier-field">
+            <span>Prix par mois ($)</span>
+            <input type="number" step="0.01" min="0" id="site-pricing-premium-month" value="${premiumPriceMonth}">
+          </div>
+        </div>
+      </div>
+
+      <label class="pricing-service-label" style="display:block;margin-top:16px">Formules d'achat de domaine</label>
+      <p class="muted small" style="margin:-4px 0 8px">Une ou plusieurs formules (ex: 1 mois, 6 mois, 1 an...). Le propriétaire du site choisit parmi celles-ci au moment de la demande.</p>
+      <div id="site-pricing-domain-plans">${siteDomainPlansDraft.map((p, i) => renderDomainPlanRow(p, i)).join('')}</div>
+      <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:8px 0 16px" onclick="addSitePricingDomainPlanRow()">+ Ajouter une formule</button>
+
+      <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="saveSitePricingConfig()">💾 Enregistrer les tarifs</button>
+      <div class="modal-loading hidden" id="site-pricing-saved-msg" style="margin-top:10px">✅ Tarifs enregistrés !</div>
+    </div>`;
+}
+
+function renderDomainPlanRow(plan, i) {
+  return `
+    <div class="pricing-tier-row" id="site-domain-plan-row-${i}" style="grid-template-columns:2fr 1fr 1fr auto;align-items:end;margin-bottom:8px">
+      <div class="pricing-tier-field">
+        <span>Nom (ex: 1 an)</span>
+        <input type="text" id="site-domain-plan-${i}-label" value="${escapeHtml(plan.label || '')}">
+      </div>
+      <div class="pricing-tier-field">
+        <span>Durée (mois)</span>
+        <input type="number" min="1" step="1" id="site-domain-plan-${i}-months" value="${plan.months || 12}">
+      </div>
+      <div class="pricing-tier-field">
+        <span>Prix ($)</span>
+        <input type="number" min="0" step="0.01" id="site-domain-plan-${i}-price" value="${plan.price || 0}">
+      </div>
+      <button type="button" class="btn btn-outline btn-sm" style="padding:8px 10px" onclick="removeSitePricingDomainPlanRow(${i})" aria-label="Retirer">×</button>
+    </div>`;
+}
+
+function addSitePricingDomainPlanRow() {
+  siteDomainPlansDraft.push({ id: 'plan_' + Date.now(), label: '', months: 12, price: 0 });
+  document.getElementById('site-pricing-domain-plans').innerHTML =
+    siteDomainPlansDraft.map((p, i) => renderDomainPlanRow(p, i)).join('');
+}
+
+function removeSitePricingDomainPlanRow(i) {
+  if (siteDomainPlansDraft.length <= 1) { alert('Il faut garder au moins une formule de domaine.'); return; }
+  siteDomainPlansDraft.splice(i, 1);
+  document.getElementById('site-pricing-domain-plans').innerHTML =
+    siteDomainPlansDraft.map((p, i2) => renderDomainPlanRow(p, i2)).join('');
+}
+
+async function saveSitePricingConfig() {
+  const premiumPriceMonth = parseFloat(document.getElementById('site-pricing-premium-month').value) || 0;
+  const domainPlans = siteDomainPlansDraft.map((p, i) => ({
+    id: p.id || ('plan_' + i),
+    label: document.getElementById(`site-domain-plan-${i}-label`).value.trim() || `Formule ${i + 1}`,
+    months: parseInt(document.getElementById(`site-domain-plan-${i}-months`).value, 10) || 12,
+    price: parseFloat(document.getElementById(`site-domain-plan-${i}-price`).value) || 0
+  }));
+  if (premiumPriceMonth <= 0) { alert('Le prix Premium doit être supérieur à 0.'); return; }
+  if (domainPlans.some(p => p.price <= 0)) { alert('Chaque formule de domaine doit avoir un prix supérieur à 0.'); return; }
+  try {
+    await db.collection('pricing').doc('site').set({ premiumPriceMonth, domainPlans });
+    siteDomainPlansDraft = domainPlans;
+    const msg = document.getElementById('site-pricing-saved-msg');
+    msg.classList.remove('hidden');
+    setTimeout(() => msg.classList.add('hidden'), 2500);
+  } catch (e) {
+    alert("Erreur d'enregistrement : " + e.message);
+  }
+}
+
+/* ---- Demandes d'achat de domaine -- traitement manuel. Meme principe
+   que Retraits ci-dessus : le paiement (debit du portefeuille) a deja eu
+   lieu cote serveur au moment de la demande (api/payments-actions.js,
+   action site_domain_purchase, avec le prix ET la duree de la formule
+   choisie a ce moment-la, stockes sur la demande -- "months"). Ici
+   l'admin achete REELLEMENT le nom de domaine chez un registrar, connecte
+   le DNS/Vercel a la main, puis marque la demande "active" : la date
+   d'expiration respecte alors la formule payee, pas une duree fixe. Si le
+   nom demande n'est pas disponible, "Rejeter" rembourse automatiquement
+   le montant paye (r.pricePaid) sur le portefeuille du proprietaire,
+   exactement comme rejectWithdrawal. */
+async function loadDomainRequestsList() {
   const el = document.getElementById('admin-domains-list');
   el.innerHTML = `<p class="admin-empty">Chargement...</p>`;
   try {
@@ -1518,18 +1626,19 @@ async function loadDomainsAdmin() {
     el.innerHTML = snap.docs.map(doc => {
       const r = doc.data();
       const status = r.status || 'pending';
+      const months = r.months || 12;
       return `
       <div class="admin-row">
         <div class="admin-row-top">
           <div>
             <div class="admin-row-title">${escapeHtml(r.desiredDomain || '')}</div>
-            <div class="admin-row-meta">Propriétaire : ${escapeHtml(r.uid || doc.id)} · Payé : ${(r.pricePaid || 0).toFixed(2)}$</div>
+            <div class="admin-row-meta">Propriétaire : ${escapeHtml(r.uid || doc.id)} · Payé : ${(r.pricePaid || 0).toFixed(2)}$ (${escapeHtml(r.planLabel || months + ' mois')})</div>
           </div>
           <span class="admin-badge ${status}">${statusLabels[status] || status}</span>
         </div>
         ${status === 'pending' ? `
         <div class="admin-row-actions">
-          <button class="btn btn-outline btn-sm" onclick="activateDomain('${doc.id}','${escapeHtml(r.desiredDomain || '')}')">✅ Marquer comme actif (1 an)</button>
+          <button class="btn btn-outline btn-sm" onclick="activateDomain('${doc.id}','${escapeHtml(r.desiredDomain || '')}',${months})">✅ Marquer comme actif (${months} mois)</button>
           <button class="btn btn-outline btn-sm" onclick="rejectDomain('${doc.id}','${r.uid || doc.id}',${r.pricePaid || 0})">❌ Rejeter (rembourse)</button>
         </div>` : ''}
       </div>`;
@@ -1539,14 +1648,14 @@ async function loadDomainsAdmin() {
   }
 }
 
-async function activateDomain(uid, desiredDomain) {
+async function activateDomain(uid, desiredDomain, months) {
   if (!confirm(`Confirmer que "${desiredDomain}" est bien acheté et connecté au site ?`)) return;
   try {
-    const expiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
+    const expiresAt = new Date(Date.now() + (months || 12) * 30 * 24 * 60 * 60 * 1000).toISOString();
     await db.collection('domain_purchase_requests').doc(uid).update({
       status: 'active', expiresAt, processedAt: new Date().toISOString()
     });
-    loadDomainsAdmin();
+    loadDomainRequestsList();
   } catch (e) {
     alert("Erreur : " + e.message);
   }
@@ -1572,7 +1681,7 @@ async function rejectDomain(uid, ownerUid, amount) {
         createdAt: new Date().toISOString()
       });
     });
-    loadDomainsAdmin();
+    loadDomainRequestsList();
   } catch (e) {
     alert("Erreur : " + e.message);
   }

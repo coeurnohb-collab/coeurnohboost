@@ -740,6 +740,36 @@ async function loadBundlePricingOverrides() {
   }
 }
 
+/* Tarifs "Crée ton site" (Premium + achat de domaine) modifiables par
+   l'admin depuis son espace (onglet Domaines), document Firestore
+   "pricing/site" -- doc separe de "pricing/monetization" etc. car sa
+   forme est differente (pas un tableau "services" mais un prix Premium
+   et une LISTE de formules de domaine, chacune avec sa propre duree en
+   mois et son propre prix, ex: "1 mois" / "1 an" / "2 ans"). Tant que
+   l'admin n'a rien configure, on retombe sur les valeurs par defaut
+   codees en dur ci-dessous (memes valeurs que cote serveur,
+   api/payments-actions.js, qui applique la meme regle de repli). */
+let SITE_PRICING = {
+  premiumPriceMonth: SITE_PREMIUM_PRICE,
+  domainPlans: [{ id: 'default', label: '1 an', months: 12, price: SITE_DOMAIN_PRICE_YEAR }]
+};
+async function loadSitePricingOverrides() {
+  try {
+    const snap = await db.collection('pricing').doc('site').get();
+    if (snap.exists) {
+      const data = snap.data();
+      if (typeof data.premiumPriceMonth === 'number' && data.premiumPriceMonth > 0) {
+        SITE_PRICING.premiumPriceMonth = data.premiumPriceMonth;
+      }
+      if (Array.isArray(data.domainPlans) && data.domainPlans.length > 0) {
+        SITE_PRICING.domainPlans = data.domainPlans;
+      }
+    }
+  } catch (e) {
+    console.warn('⚠️ Pas de tarifs Site/Domaine personnalisés (utilisation des prix par défaut).', e.message);
+  }
+}
+
 function renderPlatformGrid(gridId) {
   const el = document.getElementById(gridId);
   el.innerHTML = PLATFORMS.map(p => `
@@ -2229,6 +2259,7 @@ function stopPresenceUpdates() {
 if (fbReady) {
   loadPricingOverrides();
   loadBundlePricingOverrides();
+  loadSitePricingOverrides();
   auth.onAuthStateChanged(async (user) => {
     if (user) {
       let data;
@@ -11382,6 +11413,8 @@ const SITE_PREMIUM_PRICE = 20; // en $, par mois -- Pack Site Professionnel
 const SITE_DOMAIN_PRICE_YEAR = 15; // en $, par an -- achat d'un nom de domaine PAR l'équipe pour le compte du propriétaire du site (distinct des 20$/mois Premium ci-dessus ; doit rester identique à SITE_DOMAIN_PRICE_YEAR dans api/payments-actions.js)
 const SITE_FREE_PHOTO_LIMIT = 6;
 const SITE_PREMIUM_PHOTO_LIMIT = Infinity; // Premium = photos illimitees
+const SITE_FREE_BLOG_LIMIT = 3; // articles/actus publiables gratuitement, au-dela il faut Premium
+const SITE_PREMIUM_BLOG_LIMIT = Infinity;
 // SITE_ROOT_DOMAIN plus bas reste "null" tant qu'aucun nom de domaine n'est
 // connecte au projet Vercel -- le champ "customDomain" ci-dessous peut deja
 // etre rempli par l'utilisateur (demande preparee a l'avance).
@@ -11447,12 +11480,13 @@ function renderSiteStatusView() {
         <span class="shop-card-category" style="background:#fff4e0;color:#b5720b">${t('site_premium_until_prefix')} ${escapeHtml(new Date(site.premiumUntil).toLocaleDateString())}</span>
       </div>
       <div class="muted small" style="margin:8px 0">${site.viewsCount || 0} ${t('site_views_suffix')}</div>
-      <button class="btn btn-outline btn-sm" onclick="purchaseSitePremium()">${t('site_renew_prefix')} ${SITE_PREMIUM_PRICE}$)</button>
+      <button class="btn btn-outline btn-sm" onclick="purchaseSitePremium()">${t('site_renew_prefix')} ${SITE_PRICING.premiumPriceMonth}$)</button>
     </div>` : `
     <div class="order-box" style="margin-bottom:14px;border-color:#f5a623;background:linear-gradient(135deg,rgba(255,212,59,.10),var(--white) 60%)">
-      <strong style="font-size:1.02rem">${t('site_pack_pro_title')} — ${SITE_PREMIUM_PRICE}$${t('site_pack_pro_price_suffix')}</strong>
+      <strong style="font-size:1.02rem">${t('site_pack_pro_title')} — ${SITE_PRICING.premiumPriceMonth}$${t('site_pack_pro_price_suffix')}</strong>
       <ul class="muted small" style="margin:8px 0 10px;padding-left:18px;line-height:1.7">
         <li>${t('site_feature_photos_prefix')} ${t('site_unlimited_label')} ${t('site_feature_photos_mid')} ${SITE_FREE_PHOTO_LIMIT})</li>
+        <li>${t('site_feature_blog_prefix')} ${t('site_unlimited_label')} ${t('site_feature_blog_mid')} ${SITE_FREE_BLOG_LIMIT})</li>
         <li>${t('site_feature_themes')}</li>
         <li>${t('site_feature_no_branding')}</li>
         <li>${t('site_feature_stats')}</li>
@@ -11516,7 +11550,7 @@ const SITE_ROOT_DOMAIN = null;
 
 async function purchaseSitePremium() {
   if (!currentUser || !mySiteCache) return;
-  if (!confirm(`${t('site_confirm_premium_prefix')} ${SITE_PREMIUM_PRICE}$ ${t('site_confirm_premium_suffix')}`)) return;
+  if (!confirm(`${t('site_confirm_premium_prefix')} ${SITE_PRICING.premiumPriceMonth}$ ${t('site_confirm_premium_suffix')}`)) return;
   try {
     const idToken = await auth.currentUser.getIdToken();
     const res = await fetch('/api/payments-actions', {
@@ -11615,11 +11649,16 @@ function renderDomainPurchaseBlock() {
   const el = document.getElementById('site-domain-purchase-block');
   if (!el) return;
   const req = myDomainRequestCache;
+  const plans = SITE_PRICING.domainPlans.length ? SITE_PRICING.domainPlans : [{ id: 'default', label: '1 an', months: 12, price: SITE_DOMAIN_PRICE_YEAR }];
+  const planOptionsHtml = plans.map(p => `<option value="${escapeHtml(p.id)}">${escapeHtml(p.label)} — ${p.price}$</option>`).join('');
   const formHtml = `
     <label class="field-label" style="display:block;margin-top:4px">${t('site_domain_buy_title')}</label>
-    <p class="muted small" style="margin:2px 0 8px">${t('site_domain_buy_desc_prefix')} ${SITE_DOMAIN_PRICE_YEAR}$${t('site_domain_buy_desc_suffix')}</p>
+    <p class="muted small" style="margin:2px 0 8px">${t('site_domain_buy_desc_prefix2')}</p>
     <input type="text" id="site-domain-purchase-input" class="text-input" maxlength="60" placeholder="${t('site_field_domain_ph')}">
-    <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin-top:8px" onclick="purchaseSiteDomain()">${t('site_domain_buy_btn_prefix')}${SITE_DOMAIN_PRICE_YEAR}$)</button>`;
+    ${plans.length > 1
+      ? `<select id="site-domain-purchase-plan" class="text-input" style="margin-top:8px">${planOptionsHtml}</select>`
+      : `<input type="hidden" id="site-domain-purchase-plan" value="${escapeHtml(plans[0].id)}">`}
+    <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin-top:8px" onclick="purchaseSiteDomain()">${t('site_domain_buy_btn_prefix2')}</button>`;
 
   if (req && req.status === 'pending') {
     el.innerHTML = `<div class="order-box" style="border-color:#f5a623">
@@ -11640,15 +11679,18 @@ function renderDomainPurchaseBlock() {
 
 async function purchaseSiteDomain() {
   const input = document.getElementById('site-domain-purchase-input');
+  const planSelect = document.getElementById('site-domain-purchase-plan');
   const desiredDomain = input ? input.value.trim().toLowerCase() : '';
+  const planId = planSelect ? planSelect.value : null;
+  const plan = (SITE_PRICING.domainPlans || []).find(p => p.id === planId) || SITE_PRICING.domainPlans[0];
   if (!desiredDomain) { showToast(t('site_domain_missing_toast'), 'error'); return; }
-  if (!confirm(`${t('site_domain_confirm_prefix')} ${desiredDomain} (${SITE_DOMAIN_PRICE_YEAR}$)${t('site_domain_confirm_suffix')}`)) return;
+  if (!confirm(`${t('site_domain_confirm_prefix')} ${desiredDomain} (${plan.price}$ — ${plan.label})${t('site_domain_confirm_suffix')}`)) return;
   try {
     const idToken = await auth.currentUser.getIdToken();
     const res = await fetch('/api/payments-actions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ idToken, action: 'site_domain_purchase', desiredDomain })
+      body: JSON.stringify({ idToken, action: 'site_domain_purchase', desiredDomain, planId: plan.id })
     });
     const data = await res.json();
     if (!data.success) { showToast(data.error || t('site_purchase_error'), 'error'); return; }
@@ -11731,6 +11773,7 @@ function openSiteForm() {
   const s = editingSiteExisting || {};
   const isPremium = siteIsPremiumActive(s);
   const photoLimit = isPremium ? SITE_PREMIUM_PHOTO_LIMIT : SITE_FREE_PHOTO_LIMIT;
+  const blogLimit = isPremium ? SITE_PREMIUM_BLOG_LIMIT : SITE_FREE_BLOG_LIMIT;
 
   // Reinitialise l'etat des fichiers logo/couverture a chaque ouverture --
   // repart de l'image deja enregistree (le formulaire est entierement
@@ -11828,9 +11871,11 @@ function openSiteForm() {
         <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:6px 0 14px" onclick="addSiteTestimonialRow()">${t('site_add_testimonial_btn')}</button>
 
         <label class="field-label" style="display:block">${t('site_section_blog')}</label>
-        <p class="muted small" style="margin:-4px 0 8px">${t('site_section_blog_hint')}</p>
+        <p class="muted small" style="margin:-4px 0 8px">${t('site_section_blog_hint')} ${isPremium
+          ? `${t('site_blog_limit_premium_suffix')}`
+          : `${t('site_blog_limit_free_prefix')} ${SITE_FREE_BLOG_LIMIT} ${t('site_blog_limit_free_suffix')}`}</p>
         <div id="site-blog-rows"></div>
-        <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:6px 0 14px" onclick="addSiteBlogRow()">${t('site_add_post_btn')}</button>
+        <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:6px 0 14px" onclick="addSiteBlogRow(null, ${blogLimit})">${t('site_add_post_btn')}</button>
 
         <label class="field-label" style="display:block">${t('site_section_custom')}</label>
         <p class="muted small" style="margin:-4px 0 8px">${t('site_section_custom_hint')}</p>
@@ -11887,7 +11932,7 @@ function openSiteForm() {
   const existingTestimonials = Array.isArray(s.testimonials) ? s.testimonials : [];
   existingTestimonials.forEach(item => addSiteTestimonialRow(item));
   const existingBlogPosts = Array.isArray(s.blogPosts) ? s.blogPosts : [];
-  existingBlogPosts.forEach(item => addSiteBlogRow(item));
+  existingBlogPosts.forEach(item => addSiteBlogRow(item, blogLimit));
   const existingCustomSections = Array.isArray(s.customSections) ? s.customSections : [];
   existingCustomSections.forEach(item => addSiteCustomSectionRow(item));
 }
@@ -11944,8 +11989,13 @@ function addSiteTestimonialRow(item) {
   rowsEl.appendChild(row);
 }
 
-function addSiteBlogRow(item) {
+function addSiteBlogRow(item, max) {
   const rowsEl = document.getElementById('site-blog-rows');
+  const limit = max || SITE_FREE_BLOG_LIMIT;
+  if (!item && rowsEl.children.length >= limit) {
+    showToast(`${t('site_blog_limit_reached_prefix')} ${limit}${t('site_blog_limit_reached_suffix')}`, 'info');
+    return;
+  }
   const row = document.createElement('div');
   row.className = 'invoice-item-row';
   row.style.flexDirection = 'column';
@@ -12075,7 +12125,7 @@ async function saveMySite() {
     title: row.querySelector('.site-blog-title').value.trim(),
     body: row.querySelector('.site-blog-body').value.trim(),
     date: existingBlogDates[i] || new Date().toISOString()
-  })).filter(x => x.title && x.body);
+  })).filter(x => x.title && x.body).slice(0, isPremiumNow ? SITE_PREMIUM_BLOG_LIMIT : SITE_FREE_BLOG_LIMIT);
   const customSections = Array.from(document.querySelectorAll('#site-custom-rows .invoice-item-row')).map(row => ({
     title: row.querySelector('.site-custom-title').value.trim(),
     body: row.querySelector('.site-custom-body').value.trim()
