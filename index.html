@@ -2268,5 +2268,13 @@ if ('serviceWorker' in navigator) {
      style.css -- n'affecte jamais l'affichage normal de l'app. -->
 <div id="invoice-print-sheet" class="hidden"></div>
 
+<!-- Visionneuse plein ecran reutilisable (photos entreprise, etc.),
+     ouverte/fermee via openMediaLightbox()/closeMediaLightbox() dans
+     script.js. -->
+<div class="media-lightbox" id="media-lightbox" onclick="closeMediaLightbox()">
+  <button type="button" class="media-lightbox-close" onclick="event.stopPropagation();closeMediaLightbox()" aria-label="Fermer">×</button>
+  <img id="media-lightbox-img" src="" alt="">
+</div>
+
 </body>
 </html>

@@ -117,6 +117,20 @@ function mediaLoadError(el) {
   el.insertAdjacentElement('afterend', msg);
 }
 
+// Visionneuse plein ecran reutilisable dans toute l'app (photos entreprise
+// pour l'instant, mais pensee pour etre reprise ailleurs) -- element HTML
+// unique dans index.html (#media-lightbox), rempli/affiche a la demande.
+function openMediaLightbox(src) {
+  const box = document.getElementById('media-lightbox');
+  if (!box) return;
+  document.getElementById('media-lightbox-img').src = src;
+  box.classList.add('open');
+}
+function closeMediaLightbox() {
+  const box = document.getElementById('media-lightbox');
+  if (box) box.classList.remove('open');
+}
+
 /* ================= AVATAR (photo de profil) =================
    AVANT : uniquement un rond de couleur avec l'initiale du nom. On affiche
    maintenant la vraie photo de profil quand la personne en a mis une
@@ -2310,6 +2324,7 @@ if (fbReady) {
       showDashboard();
       openSharedProductIfAny();
       openSharedContestIfAny();
+      openSharedBusinessIfAny();
       openNotifTargetIfAny();
       registerPushNotifications();
       installBackTrap();
@@ -2324,6 +2339,7 @@ if (fbReady) {
       // un compte. Les publications publiees sont lisibles publiquement.
       openSharedProductIfAny();
       openSharedContestIfAny();
+      openSharedBusinessIfAny();
       installBackTrap();
       hideAppSplash();
     }
@@ -12883,12 +12899,22 @@ async function openBusinessDetail(ownerUid) {
   // chevauche, boutons d'action en pleine largeur, sections en cartes --
   // habillage professionnel façon page Facebook/Instagram Business.
   const initial = (b.businessName || '?').trim().charAt(0).toUpperCase();
+  const navTabsHtml = [
+    couponsHtml ? '<a href="#biz-sec-promos">' + t('business_promos_heading') + '</a>' : '',
+    catalogHtml ? '<a href="#biz-sec-catalog">' + t('business_catalog_heading') + '</a>' : '',
+    '<a href="#biz-sec-reviews">' + t('reviews_heading') + '</a>',
+    '<a href="#biz-sec-posts">' + t('business_news_heading') + '</a>'
+  ].filter(Boolean).join('');
+
   const html = `
     <div class="modal-overlay" id="business-detail-modal">
       <div class="modal post-detail-modal-inner">
         <button class="profile-page-back" onclick="document.getElementById('business-detail-modal').remove()" aria-label="Retour">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
         </button>
+        <div class="biz-header-actions">
+          <button class="biz-icon-btn" onclick="shareBusiness('${ownerUid}','${escapeForJs(b.businessName || '')}')" aria-label="Partager">${ICON_SHARE}</button>
+        </div>
         ${b.coverImageUrl ? `<img src="${escapeHtml(b.coverImageUrl)}" class="biz-cover" alt="" onerror="mediaLoadError(this)">` : `<div class="biz-cover-placeholder"></div>`}
         <div class="biz-header">
           ${b.logoUrl ? `<img src="${escapeHtml(b.logoUrl)}" class="biz-avatar" alt="">` : `<div class="biz-avatar-placeholder">${escapeHtml(initial)}</div>`}
@@ -12896,12 +12922,16 @@ async function openBusinessDetail(ownerUid) {
             <h2>${escapeHtml(b.businessName || t('business_default_name'))}</h2>
             ${businessIsProActive(b) ? `<span class="biz-pro-badge">${ICON_SPARKLE} ${t('business_pro_badge')}</span>` : ''}
           </div>
-          <div class="biz-category-row">${t(NEARBY_CATEGORY_LABELS[b.category]) || ''}</div>
+          <div class="biz-category-row" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <span>${t(NEARBY_CATEGORY_LABELS[b.category]) || ''}</span>
+            <span class="biz-rating-badge" id="biz-rating-badge-${ownerUid}"></span>
+          </div>
           ${b.address ? `<div class="biz-meta-row">${ICON_LOCATION} ${escapeHtml(b.address)}</div>` : ''}
           ${b.hours ? `<div class="biz-meta-row">${ICON_CLOCK} ${escapeHtml(b.hours)}</div>` : ''}
           <div class="biz-meta-row" style="gap:14px;margin-top:6px">
             <span><strong id="biz-public-followers-count">…</strong> ${t('business_followers_label')}</span>
             <span><strong id="biz-public-posts-count">…</strong> ${t('business_news_heading')}</span>
+            <span><strong>${(b.viewsCount || 0).toLocaleString()}</strong> ${t('business_views_label')}</span>
           </div>
           ${followBtnHtml ? `<div style="margin-top:14px">${followBtnHtml}</div>` : ''}
         </div>
@@ -12912,15 +12942,16 @@ async function openBusinessDetail(ownerUid) {
           ${b.facebookUrl ? `<a class="btn btn-outline" href="${escapeHtml(b.facebookUrl)}" target="_blank">${ICON_FACEBOOK} Facebook</a>` : ''}
           ${b.tiktokUrl ? `<a class="btn btn-outline" href="${escapeHtml(b.tiktokUrl)}" target="_blank">${ICON_TIKTOK} TikTok</a>` : ''}
         </div>
+        ${navTabsHtml ? `<nav class="biz-nav-tabs">${navTabsHtml}</nav>` : ''}
         ${b.description ? `<div class="biz-desc-card">${escapeHtml(b.description)}</div>` : ''}
         ${couponsHtml}
         ${catalogHtml}
         ${!isOwn && currentUser ? `<div class="biz-section" style="padding-top:0"><button class="btn btn-outline btn-sm" style="width:100%;justify-content:center" onclick="openReportModal('${ownerUid}', '${ownerUid}', 'business')">${ICON_FLAG} ${t('business_report_btn')}</button></div>` : ''}
-        <div class="biz-section">
+        <div class="biz-section" id="biz-sec-reviews">
           <h4>${t('reviews_heading')}</h4>
           <div id="business-detail-reviews"><p class="muted small">${t('common_loading')}</p></div>
         </div>
-        <div class="biz-section">
+        <div class="biz-section" id="biz-sec-posts">
           <h4>${t('business_news_heading')}</h4>
           <div id="business-detail-posts"><p class="muted small">${t('common_loading')}</p></div>
         </div>
@@ -12929,6 +12960,7 @@ async function openBusinessDetail(ownerUid) {
   document.body.insertAdjacentHTML('beforeend', html);
   loadBusinessPostsFeed(ownerUid, 'business-detail-posts');
   loadPublicReviews('business', ownerUid, 'business-detail-reviews', b.businessName);
+  loadBusinessRatingBadge(ownerUid);
 
   // Compteurs publics (abonnes, publications) -- pas de champ stocke sur la
   // fiche, calcules a la volee comme dans le tableau de bord prive du
@@ -12947,6 +12979,48 @@ async function openBusinessDetail(ownerUid) {
   }
 }
 
+// Badge "⭐ 4.8 (23)" affiche directement a cote du nom de l'entreprise --
+// avant, la note moyenne n'etait visible qu'en descendant jusqu'a la
+// section Avis tout en bas de la page. Meme requete que loadPublicReviews,
+// mais tres legere (pas de rendu de liste).
+async function loadBusinessRatingBadge(ownerUid) {
+  const el = document.getElementById(`biz-rating-badge-${ownerUid}`);
+  if (!el) return;
+  try {
+    const snap = await db.collection('public_reviews')
+      .where('targetType', '==', 'business')
+      .where('targetId', '==', ownerUid)
+      .get();
+    if (snap.empty) return;
+    const ratings = snap.docs.map(d => d.data().rating || 0);
+    const avg = ratings.reduce((s, r) => s + r, 0) / ratings.length;
+    el.innerHTML = `${ICON_STAR_FILLED} ${avg.toFixed(1)} <span class="muted small" style="font-weight:600">(${ratings.length})</span>`;
+  } catch (e) { /* discret -- pas grave si ça ne charge pas */ }
+}
+
+// Partage natif d'une fiche entreprise, meme motif que shareContest --
+// deep link ?entreprise=UID ouvert automatiquement par
+// openSharedBusinessIfAny() a l'ouverture de l'app.
+function shareBusiness(ownerUid, businessName) {
+  const shareUrl = `${window.location.origin}${window.location.pathname}?entreprise=${ownerUid}`;
+  const shareText = `${t('business_share_text_prefix')} ${businessName}`;
+  if (navigator.share) {
+    navigator.share({ title: businessName, text: shareText, url: shareUrl }).catch(() => {});
+  } else {
+    navigator.clipboard.writeText(`${shareText} ${shareUrl}`)
+      .then(() => showToast(t('referral_copied'), 'success'))
+      .catch(() => prompt('Copie ce lien :', shareUrl));
+  }
+}
+
+async function openSharedBusinessIfAny() {
+  const params = new URLSearchParams(window.location.search);
+  const ownerUid = params.get('entreprise');
+  if (!ownerUid) return;
+  window.history.replaceState({}, '', window.location.pathname);
+  openBusinessDetail(ownerUid);
+}
+
 async function loadBusinessPostsFeed(ownerUid, targetId) {
   const el = document.getElementById(targetId);
   try {
@@ -12959,7 +13033,7 @@ async function loadBusinessPostsFeed(ownerUid, targetId) {
     const isOwn = currentUser && currentUser.uid === ownerUid;
     el.innerHTML = posts.map(p => `
       <div class="biz-post-card">
-        ${p.imageUrl ? `<img src="${escapeHtml(p.imageUrl)}" alt="" onerror="mediaLoadError(this)">` : ''}
+        ${p.imageUrl ? `<img src="${escapeHtml(p.imageUrl)}" alt="" onerror="mediaLoadError(this)" onclick="openMediaLightbox('${escapeForJs(p.imageUrl)}')">` : ''}
         <div class="biz-post-card-body">
           <p style="white-space:pre-wrap;margin:0">${escapeHtml(p.text || '')}</p>
           ${isOwn ? `<button class="btn btn-outline btn-sm" style="margin-top:10px;color:var(--red-text)" onclick="deleteBusinessPost('${p.id}', '${ownerUid}', '${targetId}')">${t('business_delete_post_btn')}</button>` : ''}
