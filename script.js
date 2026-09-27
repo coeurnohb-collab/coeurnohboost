@@ -2309,6 +2309,7 @@ if (fbReady) {
 
       showDashboard();
       openSharedProductIfAny();
+      openSharedContestIfAny();
       openNotifTargetIfAny();
       registerPushNotifications();
       installBackTrap();
@@ -2322,6 +2323,7 @@ if (fbReady) {
       // Instagram/TikTok, on peut voir un contenu partage avant de creer
       // un compte. Les publications publiees sont lisibles publiquement.
       openSharedProductIfAny();
+      openSharedContestIfAny();
       installBackTrap();
       hideAppSplash();
     }
@@ -6999,7 +7001,7 @@ function computeContestStatus(c) {
 
 function openContestsScreen() {
   showMenuScreen('contests');
-  document.getElementById('contest-create-btn').classList.toggle('hidden', !currentUser || currentUser.uid !== ADMIN_UID);
+  document.getElementById('contest-create-btn').classList.toggle('hidden', !currentUser);
   loadContests();
 }
 
@@ -7008,7 +7010,17 @@ async function loadContests() {
   listEl.innerHTML = renderFeedSkeletons(2);
   try {
     const snap = await db.collection('contests').orderBy('startDate', 'desc').limit(100).get();
-    contestsCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const all = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    // CORRECTIF (concours proposes par les utilisateurs) : les concours
+    // sans "status" sont d'anciens concours crees par l'admin AVANT ce
+    // chantier -- toujours consideres "approved" pour ne rien casser.
+    // Un concours "pending_review"/"rejected" ne doit etre visible QUE
+    // par son organisateur (pour suivre sa demande) et par l'admin
+    // (moderation) -- jamais par le grand public.
+    contestsCache = all.filter(c =>
+      (c.status || 'approved') === 'approved' ||
+      (currentUser && (c.organizerUid === currentUser.uid || currentUser.uid === ADMIN_UID))
+    );
     renderContestsList();
   } catch (e) {
     listEl.innerHTML = `<p class="muted small">${t('contest_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
@@ -7027,10 +7039,20 @@ function renderContestsList() {
   const listEl = document.getElementById('contests-list');
   if (!contestsCache) return;
 
-  const filtered = contestsCache.filter(c => computeContestStatus(c) === contestStatusFilter);
+  let filtered;
+  if (contestStatusFilter === 'mine') {
+    if (!currentUser) {
+      listEl.innerHTML = `<button class="btn btn-outline" style="width:100%;justify-content:center" onclick="openAuth('login')">${t('contest_login_participate_btn')}</button>`;
+      return;
+    }
+    filtered = contestsCache.filter(c => c.organizerUid === currentUser.uid);
+  } else {
+    filtered = contestsCache.filter(c => (c.status || 'approved') === 'approved' && computeContestStatus(c) === contestStatusFilter);
+  }
 
   if (filtered.length === 0) {
-    const msg = contestStatusFilter === 'active' ? t('contest_empty_active') :
+    const msg = contestStatusFilter === 'mine' ? t('contest_empty_mine') :
+      contestStatusFilter === 'active' ? t('contest_empty_active') :
       contestStatusFilter === 'upcoming' ? t('contest_empty_upcoming') :
       t('contest_empty_ended');
     listEl.innerHTML = `<p class="muted small" style="text-align:center;padding:20px 0">${msg}</p>`;
@@ -7052,20 +7074,53 @@ function renderContestsList() {
           <div class="muted small" style="display:flex;align-items:center;gap:6px;margin-bottom:4px">${contestIconSvg(meta.icon)} ${t(meta.label)}</div>
           <strong style="font-size:1.02rem;word-break:break-word">${escapeHtml(c.title || t('contest_default_title'))}</strong>
         </div>
-        ${feeBadge}
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">${feeBadge}${contestStatusBadgeHtml(c)}</div>
       </div>
-      ${dateRange ? `<div class="muted small" style="margin-top:8px">${escapeHtml(dateRange)}</div>` : ''}
+      <div class="muted small" style="margin-top:8px;display:flex;align-items:center;gap:6px">${contestOrganizerIconHtml(c)} ${contestOrganizerLabel(c)}</div>
+      ${dateRange ? `<div class="muted small" style="margin-top:4px">${escapeHtml(dateRange)} · ${contestDaysLeftLabel(c)}</div>` : ''}
       ${c.prize ? `<div class="muted small" style="margin-top:4px">${t('contest_prize_prefix')} ${escapeHtml(c.prize)}</div>` : ''}
     </div>`;
   }).join('');
 }
 
-/* ---- Creation d'un concours (admin uniquement) ---- */
+// Badge "en attente"/"refusé" -- ne s'affiche que dans les contextes ou
+// ces concours sont visibles (organisateur ou admin), jamais au public.
+function contestStatusBadgeHtml(c) {
+  const status = c.status || 'approved';
+  if (status === 'pending_review') return `<span class="shop-card-category" style="background:#fff4e0;color:#a15c00">${t('contest_status_pending_badge')}</span>`;
+  if (status === 'rejected') return `<span class="shop-card-category" style="background:#fdecea;color:#c3183f">${t('contest_status_rejected_badge')}</span>`;
+  return '';
+}
+
+// Concours organise par la plateforme elle-meme (admin) vs par un
+// utilisateur -- signal de confiance affiche sur chaque carte, comme le
+// badge "verifie" ailleurs dans l'app.
+function contestOrganizerLabel(c) {
+  if ((c.organizerUid || ADMIN_UID) === ADMIN_UID) return t('contest_organizer_official');
+  return `${t('contest_organizer_prefix')} ${escapeHtml(c.organizerName || t('contest_default_participant_name'))}`;
+}
+function contestOrganizerIconHtml(c) {
+  return (c.organizerUid || ADMIN_UID) === ADMIN_UID ? ICON_VERIFIED_BADGE : '';
+}
+
+// Temps restant -- ajoute un vrai sentiment d'urgence/d'evenement en
+// cours, comme un vrai site de concours professionnel.
+function contestDaysLeftLabel(c) {
+  const status = computeContestStatus(c);
+  if (status === 'ended') return t('contest_ended_label');
+  if (status === 'upcoming') return t('contest_upcoming_label');
+  const days = Math.max(0, Math.ceil((new Date(c.endDate).getTime() - Date.now()) / 86400000));
+  if (days === 0) return t('contest_ends_today_label');
+  return `${t('contest_ends_in_prefix')} ${days} ${days > 1 ? t('contest_days_plural') : t('contest_day_singular')}`;
+}
+
+/* ---- Creation d'un concours (admin = publie direct, utilisateur = envoye pour validation) ---- */
 
 function openContestForm() {
-  if (!currentUser || currentUser.uid !== ADMIN_UID) return;
+  if (!currentUser) { openAuth('login'); return; }
   if (document.getElementById('contest-form-modal')) return;
   pendingContestCoverFile = null;
+  const isAdminOrganizer = currentUser.uid === ADMIN_UID;
 
   const catOptions = Object.entries(CONTEST_CATEGORY_META)
     .map(([val, meta]) => `<option value="${val}">${t(meta.label)}</option>`).join('');
@@ -7075,6 +7130,7 @@ function openContestForm() {
       <div class="modal" style="max-width:460px">
         <button class="modal-close" onclick="document.getElementById('contest-form-modal').remove()" aria-label="Fermer">×</button>
         <h3 style="margin-bottom:14px">${t('contest_form_title_new')}</h3>
+        ${!isAdminOrganizer ? `<p class="muted small" style="margin:-6px 0 14px">${t('contest_moderation_notice')}</p>` : ''}
 
         <div class="field">
           <label for="contest-title">${t('contest_field_title')}</label>
@@ -7189,11 +7245,13 @@ async function saveContestForm() {
       type, entryFee: type === 'paid' ? entryFee : 0,
       coverImage: coverImage || null,
       organizerUid: currentUser.uid,
+      organizerName: currentUser.name || '',
+      status: currentUser.uid === ADMIN_UID ? 'approved' : 'pending_review',
       createdAt: new Date().toISOString()
     });
     document.getElementById('contest-form-modal').remove();
     contestsCache = null;
-    showToast(t('contest_published_toast'), 'success');
+    showToast(currentUser.uid === ADMIN_UID ? t('contest_published_toast') : t('contest_submitted_toast'), 'success');
     loadContests();
   } catch (e) {
     msgEl.textContent = friendlyErrorMessage(e);
@@ -7211,10 +7269,14 @@ async function viewContest(contestId) {
 
   const meta = CONTEST_CATEGORY_META[c.category] || { label: 'contest_default_title', icon: CONTEST_TROPHY_ICON };
   const status = computeContestStatus(c);
+  const isApproved = (c.status || 'approved') === 'approved';
+  const isAdminViewer = currentUser && currentUser.uid === ADMIN_UID;
   const dateRange = `${new Date(c.startDate).toLocaleDateString('fr-FR')} — ${new Date(c.endDate).toLocaleDateString('fr-FR')}`;
 
   let participateHtml;
-  if (status === 'ended') {
+  if (!isApproved) {
+    participateHtml = '';
+  } else if (status === 'ended') {
     participateHtml = '';
   } else if (!currentUser) {
     participateHtml = `<button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:14px" onclick="openAuth('login')">${t('contest_login_participate_btn')}</button>`;
@@ -7224,24 +7286,108 @@ async function viewContest(contestId) {
     participateHtml = `<button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:14px" onclick="openContestEntryForm('${c.id}', false, 0)">${t('contest_participate_free_btn')}</button>`;
   }
 
+  // Boutons de moderation : uniquement visibles par l'admin, uniquement
+  // sur une proposition pas encore traitee. Approuver/rejeter met a jour
+  // le document puis rafraichit toute la liste (le concours change de
+  // categorie de visibilite).
+  const moderationHtml = (isAdminViewer && (c.status || 'approved') === 'pending_review') ? `
+    <div class="order-box" style="margin-bottom:14px;border-color:#f5a623">
+      <strong style="font-size:.88rem">${t('contest_moderation_admin_heading')}</strong>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="btn btn-primary btn-sm" style="flex:1;justify-content:center" onclick="approveContest('${c.id}')">${t('contest_approve_btn')}</button>
+        <button class="btn btn-outline btn-sm" style="flex:1;justify-content:center" onclick="rejectContest('${c.id}')">${t('contest_reject_btn')}</button>
+      </div>
+    </div>` : '';
+
   const html = `
     <div class="modal-overlay" id="contest-view-modal">
       <div class="modal" style="max-width:480px">
         <button class="modal-close" onclick="document.getElementById('contest-view-modal').remove()" aria-label="Fermer">×</button>
-        <div class="muted small" style="display:flex;align-items:center;gap:6px;margin-bottom:4px">${contestIconSvg(meta.icon)} ${t(meta.label)}</div>
-        <h3 style="margin-bottom:4px">${escapeHtml(c.title)}</h3>
-        <p class="muted small" style="margin-bottom:12px">${escapeHtml(dateRange)}</p>
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:4px">
+          <div class="muted small" style="display:flex;align-items:center;gap:6px">${contestIconSvg(meta.icon)} ${t(meta.label)}</div>
+          ${contestStatusBadgeHtml(c)}
+        </div>
+        <h3 style="margin-bottom:4px;display:flex;align-items:center;gap:8px">
+          ${escapeHtml(c.title)}
+          <button type="button" onclick="shareContest('${c.id}','${escapeForJs(c.title)}')" aria-label="Partager" style="background:none;border:none;cursor:pointer;color:var(--muted-text,#6b7280)">${ICON_SHARE}</button>
+        </h3>
+        <div class="muted small" style="display:flex;align-items:center;gap:6px;margin-bottom:2px">${contestOrganizerIconHtml(c)} ${contestOrganizerLabel(c)}</div>
+        <p class="muted small" style="margin-bottom:12px">${escapeHtml(dateRange)} · <strong>${contestDaysLeftLabel(c)}</strong></p>
         ${c.description ? `<p class="small" style="margin-bottom:10px">${escapeHtml(c.description)}</p>` : ''}
         ${c.prize ? `<p class="small" style="margin-bottom:14px"><strong>${t('contest_prize_prefix')}</strong> ${escapeHtml(c.prize)}</p>` : ''}
 
+        ${moderationHtml}
         ${participateHtml}
 
-        <h4 style="margin-bottom:10px;font-size:0.95rem">${t('contest_participants_heading')}</h4>
+        <h4 style="margin-bottom:10px;font-size:0.95rem" id="contest-participants-heading-${c.id}">${t('contest_participants_heading')}</h4>
         <div id="contest-entries-list-${c.id}"><p class="muted small">${t('common_loading')}</p></div>
       </div>
     </div>`;
   document.body.insertAdjacentHTML('beforeend', html);
   loadContestEntries(c.id, status);
+}
+
+async function approveContest(contestId) {
+  try {
+    await db.collection('contests').doc(contestId).update({ status: 'approved' });
+    showToast(t('contest_approved_toast'), 'success');
+    contestsCache = null;
+    document.getElementById('contest-view-modal')?.remove();
+    loadContests();
+  } catch (e) {
+    showToast(friendlyErrorMessage(e), 'error');
+  }
+}
+
+async function rejectContest(contestId) {
+  if (!confirm(t('contest_reject_confirm'))) return;
+  try {
+    await db.collection('contests').doc(contestId).update({ status: 'rejected' });
+    showToast(t('contest_rejected_toast'), 'info');
+    contestsCache = null;
+    document.getElementById('contest-view-modal')?.remove();
+    loadContests();
+  } catch (e) {
+    showToast(friendlyErrorMessage(e), 'error');
+  }
+}
+
+// Partage natif (WhatsApp/Statut/Messenger...) d'un concours, meme motif
+// que shareShopItem -- deep link ?concours=ID ouvert automatiquement par
+// openSharedContestIfAny() a l'ouverture de l'app.
+function shareContest(contestId, title) {
+  const shareUrl = `${window.location.origin}${window.location.pathname}?concours=${contestId}`;
+  const shareText = `${t('contest_share_text_prefix')} ${title}`;
+  if (navigator.share) {
+    navigator.share({ title, text: shareText, url: shareUrl }).catch(() => {});
+  } else {
+    navigator.clipboard.writeText(`${shareText} ${shareUrl}`)
+      .then(() => showToast(t('referral_copied'), 'success'))
+      .catch(() => prompt('Copie ce lien :', shareUrl));
+  }
+}
+
+// Ouvre automatiquement le bon concours quand on arrive via un lien
+// partage (?concours=ID), meme principe que openSharedProductIfAny.
+async function openSharedContestIfAny() {
+  const params = new URLSearchParams(window.location.search);
+  const contestId = params.get('concours');
+  if (!contestId) return;
+  window.history.replaceState({}, '', window.location.pathname);
+  openContestsScreen();
+  // Le concours partage n'est pas forcement deja dans contestsCache (il
+  // peut etre "a venir" ou meme ne pas apparaitre dans les 100 premiers
+  // resultats) -- on le charge individuellement si besoin.
+  try {
+    const doc = await db.collection('contests').doc(contestId).get();
+    if (!doc.exists) { showToast(t('contest_not_found_toast'), 'error'); return; }
+    const c = { id: doc.id, ...doc.data() };
+    if (!contestsCache) contestsCache = [];
+    if (!contestsCache.some(x => x.id === c.id)) contestsCache.push(c);
+    viewContest(c.id);
+  } catch (e) {
+    showToast(t('contest_not_found_toast'), 'error');
+  }
 }
 
 async function loadContestEntries(contestId, status) {
@@ -7258,11 +7404,28 @@ async function loadContestEntries(contestId, status) {
       .sort((a, b) => (b.votesCount || 0) - (a.votesCount || 0));
     contestEntriesCache[contestId] = entries;
 
-    if (currentUser && !contestMyVotesCache) {
-      // Charge une seule fois par session tous mes votes existants (id
-      // deterministe "{contestId}_{entryId}_{uid}") pour savoir quels
-      // boutons "Voter" desactiver, sans requete supplementaire par entree.
-      contestMyVotesCache = new Set();
+    // CORRECTIF : avant, ce cache restait TOUJOURS vide (juste "new Set()"
+    // sans jamais rien charger depuis Firestore) -- le bouton "Voter"
+    // redevenait donc disponible a chaque nouvelle session meme apres
+    // avoir deja vote, meme si Firestore refusait bien le second vote au
+    // clic. Desormais on charge une seule fois par session les votes deja
+    // donnes pour CE concours, pour que le bouton affiche "Déjà voté"
+    // directement.
+    if (currentUser) {
+      if (!contestMyVotesCache) contestMyVotesCache = new Set();
+      if (!contestMyVotesCache.has('__loaded_' + contestId)) {
+        const votesSnap = await db.collection('contest_votes')
+          .where('contestId', '==', contestId)
+          .where('uid', '==', currentUser.uid)
+          .get();
+        votesSnap.forEach(v => contestMyVotesCache.add(`${contestId}_${v.data().entryId}_${currentUser.uid}`));
+        contestMyVotesCache.add('__loaded_' + contestId);
+      }
+    }
+
+    const headingEl = document.getElementById(`contest-participants-heading-${contestId}`);
+    if (headingEl) {
+      headingEl.textContent = `${t('contest_participants_heading')} (${entries.length})`;
     }
 
     renderContestEntries(contestId, entries, status);
