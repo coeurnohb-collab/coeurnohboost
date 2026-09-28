@@ -549,6 +549,8 @@ const WALLET_TX_LABELS = {
   event_income_reversed: { label: 'Reprise revenu (billet annulé)', icon: '↩️' },
   course_enrollment: { label: 'Inscription à un cours', icon: '📚' },
   course_income: { label: 'Revenu formation', icon: '📚' },
+  book_purchase: { label: 'Achat d\'un livre', icon: '📖' },
+  book_income: { label: 'Vente de livre', icon: '📖' },
   order_income: { label: 'Revenu commande SMM', icon: '🚀' },
   order_income_reversed: { label: 'Reprise revenu (commande refusée)', icon: '↩️' },
   commission_income: { label: 'Commission perçue', icon: '💰' },
@@ -10067,6 +10069,7 @@ async function cancelBooking(bookingId) {
    progression (chapitres termines) est modifiable uniquement par
    l'etudiant sur SA PROPRE inscription (regle Firestore : le champ
    "completedChapters" uniquement). */
+const BOOK_COMMISSION_PERCENT_DISPLAY = 15; // pour l'estimation des gains affichee a l'auteur -- doit rester identique a BOOK_COMMISSION_PERCENT dans api/payments-actions.js
 const COURSE_LEVEL_LABELS = { debutant: 'course_level_debutant', intermediaire: 'course_level_intermediaire', avance: 'course_level_avance' };
 
 let academyCache = null;
@@ -10216,14 +10219,21 @@ async function openCourseDetail(courseId) {
         <h3 style="margin:0">${escapeHtml(c.title || t('course_default_title'))}</h3>
         <span class="shop-card-category">${escapeHtml(c.category || '—')}</span>
       </div>
-      <div class="muted small" style="margin-bottom:10px">${t(COURSE_LEVEL_LABELS[c.level]) || ''} · ${coursePriceLabel(c)}</div>
+      <div class="muted small" style="margin-bottom:6px">${t(COURSE_LEVEL_LABELS[c.level]) || ''} · ${coursePriceLabel(c)} · ${escapeHtml(c.ownerName || '')}</div>
+      <div id="course-rating-badge-${c.id}" class="small" style="margin-bottom:10px;display:flex;align-items:center;gap:4px"></div>
       <p style="white-space:pre-wrap;margin-bottom:16px">${escapeHtml(c.description || '')}</p>
       <h4 style="margin-bottom:8px">${t('course_chapters_heading')}</h4>
       ${chaptersHtml}
       ${enrollActionHtml}
       <div style="margin-top:14px">${ownerActionsHtml}</div>
       ${!isOwner && currentUser ? `<button class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin-top:8px" onclick="openReportModal('${c.id}', '${c.ownerUid}', 'course')">${t('course_report_btn')}</button>` : ''}
+      <div style="margin-top:18px">
+        <h4 style="margin-bottom:10px">${t('reviews_heading')}</h4>
+        <div id="course-detail-reviews"><p class="muted small">${t('common_loading')}</p></div>
+      </div>
     `;
+    loadPublicReviews('course', c.id, 'course-detail-reviews', c.title);
+    loadRatingBadgeInline('course', c.id, `course-rating-badge-${c.id}`);
   } catch (e) {
     bodyEl.innerHTML = `<p class="muted small">${t('course_load_error_prefix')} ${e.message}</p>`;
   }
@@ -10231,6 +10241,403 @@ async function openCourseDetail(courseId) {
 
 function closeCourseDetail() {
   document.getElementById('course-detail-modal').classList.add('hidden');
+}
+
+/* =========================================================
+   ACADEMIE — LIVRES A VENDRE
+   Meme principe que les cours payants : le paiement, la commission
+   plateforme (BOOK_COMMISSION_PERCENT dans api/payments-actions.js) et
+   la creation de l'achat "book_purchases/{bookId}_{uid}" se font dans une
+   seule transaction serveur (action "book_purchase"). Le client ne peut
+   jamais ecrire dans book_purchases ni modifier salesCount (regles
+   Firestore). Le fichier PDF n'est montre qu'apres achat (ou a son
+   auteur) -- meme niveau de protection que le reste de l'app (pas de DRM).
+   ========================================================= */
+let academyContentType = 'courses';
+let booksCurrentTab = 'browse';
+let booksSearchDebounce = null;
+let booksCache = null;
+let myPurchasedBooksCache = null;
+let myPublishedBooksCache = null;
+let editingBookId = null;
+let pendingBookCoverFile = null;
+let currentBookCoverUrl = null;
+let pendingBookFile = null;
+let currentBookFileUrl = null;
+
+function setAcademyContentType(type) {
+  academyContentType = type;
+  document.querySelectorAll('#academy-content-type-tabs button').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.contentType === type);
+  });
+  document.getElementById('academy-courses-section').classList.toggle('hidden', type !== 'courses');
+  document.getElementById('academy-books-section').classList.toggle('hidden', type !== 'books');
+  if (type === 'books') setBooksTab(booksCurrentTab || 'browse');
+}
+
+function setBooksTab(tab) {
+  booksCurrentTab = tab;
+  document.querySelectorAll('#academy-books-main-tabs button').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.tab === tab);
+  });
+  ['browse', 'mybooks', 'mypublished'].forEach(k => {
+    document.getElementById('books-tab-' + k).classList.toggle('hidden', k !== tab);
+  });
+  if (tab === 'browse') loadBooks();
+  else if (tab === 'mybooks') loadMyPurchasedBooks();
+  else if (tab === 'mypublished') loadMyPublishedBooks();
+}
+
+async function loadBooks() {
+  const listEl = document.getElementById('books-browse-list');
+  if (!booksCache) listEl.innerHTML = renderFeedSkeletons(2);
+  try {
+    const snap = await db.collection('academy_books').where('status', '==', 'active').limit(300).get();
+    booksCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    runBooksFilter();
+  } catch (e) {
+    listEl.innerHTML = `<p class="muted small">${t('book_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
+  }
+}
+
+function scheduleBooksSearch() {
+  clearTimeout(booksSearchDebounce);
+  booksSearchDebounce = setTimeout(runBooksFilter, 250);
+}
+
+function runBooksFilter() {
+  if (!booksCache) return;
+  const query = document.getElementById('books-search-input').value.trim().toLowerCase();
+  const matches = query
+    ? booksCache.filter(b => `${b.title || ''} ${b.category || ''}`.toLowerCase().includes(query))
+    : booksCache;
+  renderBooksBrowseList(matches);
+}
+
+function bookPriceLabel(b) {
+  return `${(b.price || 0).toFixed(2)}$`;
+}
+
+function bookCoverHtml(b, w, h, fontSize) {
+  return b.coverImage
+    ? `<img src="${escapeHtml(b.coverImage)}" alt="" style="width:${w}px;height:${h}px;object-fit:cover;border-radius:8px;flex:0 0 auto;box-shadow:0 4px 12px rgba(0,0,0,.15)">`
+    : `<div style="width:${w}px;height:${h}px;border-radius:8px;background:var(--cream);display:flex;align-items:center;justify-content:center;flex:0 0 auto;font-size:${fontSize}">📖</div>`;
+}
+
+function renderBooksBrowseList(list) {
+  const listEl = document.getElementById('books-browse-list');
+  const visible = list.filter(b => !blockedSet.has(b.ownerUid));
+  if (visible.length === 0) {
+    listEl.innerHTML = `<p class="muted small" style="text-align:center;padding:20px 0">${t('book_empty_browse')}</p>`;
+    return;
+  }
+  listEl.innerHTML = visible.map(b => `
+    <div class="order-box" style="margin-bottom:12px;display:flex;gap:12px;cursor:pointer" onclick="openBookDetail('${b.id}')">
+      ${bookCoverHtml(b, 68, 92, '1.6rem')}
+      <div style="min-width:0;flex:1">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+          <strong style="font-size:.98rem;word-break:break-word">${escapeHtml(b.title || t('book_default_title'))}</strong>
+          <span class="shop-card-category">${escapeHtml(b.category || '—')}</span>
+        </div>
+        <div class="muted small" style="margin:4px 0">${escapeHtml(b.ownerName || '')} · ${b.salesCount || 0} ${t('book_sales_count_suffix')}</div>
+        <div style="font-weight:800;color:var(--green)">${bookPriceLabel(b)}</div>
+      </div>
+    </div>`).join('');
+}
+
+// Note moyenne compacte "⭐ 4.8 (23)" reutilisable pour n'importe quelle
+// cible d'avis (livre, cours...) via la collection generique public_reviews.
+async function loadRatingBadgeInline(targetType, targetId, elId) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  try {
+    const snap = await db.collection('public_reviews')
+      .where('targetType', '==', targetType)
+      .where('targetId', '==', targetId)
+      .get();
+    if (snap.empty) return;
+    const ratings = snap.docs.map(d => d.data().rating || 0);
+    const avg = ratings.reduce((s, r) => s + r, 0) / ratings.length;
+    el.innerHTML = `${ICON_STAR_FILLED} <strong>${avg.toFixed(1)}</strong> (${ratings.length})`;
+  } catch (e) { /* discret */ }
+}
+
+async function openBookDetail(bookId) {
+  if (document.getElementById('book-detail-modal')) return;
+  let b = (booksCache || []).find(x => x.id === bookId) || (myPublishedBooksCache || []).find(x => x.id === bookId);
+  if (!b) {
+    try {
+      const doc = await db.collection('academy_books').doc(bookId).get();
+      if (!doc.exists) { showToast(t('book_gone'), 'error'); return; }
+      b = { id: doc.id, ...doc.data() };
+    } catch (e) { showToast(friendlyErrorMessage(e), 'error'); return; }
+  }
+  const isOwner = currentUser && currentUser.uid === b.ownerUid;
+  let purchase = null;
+  if (!isOwner && currentUser) {
+    try {
+      const purchSnap = await db.collection('book_purchases').doc(`${bookId}_${currentUser.uid}`).get();
+      if (purchSnap.exists) purchase = purchSnap.data();
+    } catch (e) { /* on traite comme non achete */ }
+  }
+
+  let actionHtml;
+  if (isOwner) {
+    actionHtml = `
+      <a class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:8px" href="${escapeHtml(b.fileUrl || '#')}" target="_blank">${t('book_download_btn')}</a>
+      <button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="document.getElementById('book-detail-modal').remove();openBookForm('${b.id}')">${t('book_edit_btn')}</button>
+      <button class="btn btn-outline" style="width:100%;justify-content:center;color:var(--red-text)" onclick="deleteBook('${b.id}')">${t('book_delete_btn')}</button>`;
+  } else if (purchase) {
+    actionHtml = `<a class="btn btn-primary" style="width:100%;justify-content:center" href="${escapeHtml(purchase.fileUrl || b.fileUrl || '#')}" target="_blank">${t('book_download_btn')}</a>`;
+  } else if (!currentUser) {
+    actionHtml = `<button class="btn btn-primary" style="width:100%;justify-content:center" onclick="openAuth('register')">${t('book_login_to_buy_btn')}</button>`;
+  } else if (b.status !== 'active') {
+    actionHtml = `<p class="muted small">${t('book_unavailable_notice')}</p>`;
+  } else {
+    actionHtml = `<button class="btn btn-primary" style="width:100%;justify-content:center" onclick="purchaseBook('${b.id}','${escapeForJs(b.title || '')}',${b.price || 0})">${t('book_buy_btn_prefix')} ${bookPriceLabel(b)}</button>`;
+  }
+
+  const html = `
+    <div class="modal-overlay" id="book-detail-modal">
+      <div class="modal" style="max-width:460px">
+        <button class="modal-close" onclick="document.getElementById('book-detail-modal').remove()" aria-label="Fermer">×</button>
+        <div style="display:flex;gap:14px;margin-bottom:14px">
+          ${bookCoverHtml(b, 92, 124, '2.2rem')}
+          <div style="min-width:0">
+            <h3 style="margin:0 0 4px;word-break:break-word">${escapeHtml(b.title || t('book_default_title'))}</h3>
+            <div class="muted small">${escapeHtml(b.ownerName || '')}</div>
+            <span class="shop-card-category" style="margin-top:4px;display:inline-block">${escapeHtml(b.category || '—')}</span>
+            <div id="book-rating-badge-${b.id}" class="small" style="margin-top:6px;display:flex;align-items:center;gap:4px"></div>
+            <div style="font-weight:800;color:var(--green);margin-top:6px;font-size:1.1rem">${bookPriceLabel(b)}</div>
+          </div>
+        </div>
+        <p style="white-space:pre-wrap;margin-bottom:12px">${escapeHtml(b.description || '')}</p>
+        <div class="muted small" style="margin-bottom:14px">${b.salesCount || 0} ${t('book_sales_count_suffix')}</div>
+        ${actionHtml}
+        ${!isOwner && currentUser ? `<button class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin-top:8px" onclick="openReportModal('${b.id}', '${b.ownerUid}', 'book')">${t('book_report_btn')}</button>` : ''}
+        <div style="margin-top:18px">
+          <h4 style="margin-bottom:10px">${t('reviews_heading')}</h4>
+          <div id="book-detail-reviews"><p class="muted small">${t('common_loading')}</p></div>
+        </div>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+  loadPublicReviews('book', bookId, 'book-detail-reviews', b.title);
+  loadRatingBadgeInline('book', bookId, `book-rating-badge-${b.id}`);
+}
+
+/* ---- Formulaire de publication / modification ---- */
+function openBookForm(bookId = null) {
+  if (!currentUser) { openAuth('register'); return; }
+  editingBookId = bookId;
+  document.getElementById('book-form-error').classList.add('hidden');
+  document.getElementById('book-form-title').textContent = bookId ? t('book_form_title_edit') : t('book_form_title_new');
+  document.getElementById('book-form-submit-btn').textContent = bookId ? t('common_save') : t('common_publish');
+
+  const fill = (b) => {
+    document.getElementById('book-title-input').value = b.title || '';
+    document.getElementById('book-category-input').value = b.category || '';
+    document.getElementById('book-description-input').value = b.description || '';
+    document.getElementById('book-price-input').value = b.price || 5;
+    currentBookCoverUrl = b.coverImage || null;
+    pendingBookCoverFile = null;
+    document.getElementById('book-cover-file').value = '';
+    document.getElementById('book-cover-file-text').textContent = t('common_choose_image');
+    resetUploadProgress('book-cover');
+    renderBookCoverPreview();
+    currentBookFileUrl = b.fileUrl || null;
+    pendingBookFile = null;
+    document.getElementById('book-file-input').value = '';
+    document.getElementById('book-file-text').textContent = currentBookFileUrl ? t('book_file_already_uploaded') : t('book_choose_pdf');
+    resetUploadProgress('book-file');
+  };
+
+  if (bookId) {
+    const cached = (booksCache || []).find(x => x.id === bookId) || (myPublishedBooksCache || []).find(x => x.id === bookId);
+    if (cached) fill(cached);
+    else db.collection('academy_books').doc(bookId).get().then(snap => { if (snap.exists) fill(snap.data()); });
+  } else {
+    fill({});
+  }
+  document.getElementById('book-form-modal').classList.remove('hidden');
+}
+
+function closeBookForm() {
+  document.getElementById('book-form-modal').classList.add('hidden');
+  editingBookId = null;
+}
+
+function handleBookCoverFileChange(event) {
+  pendingBookCoverFile = (event.target.files && event.target.files[0]) || null;
+  const text = document.getElementById('book-cover-file-text');
+  if (text) text.textContent = pendingBookCoverFile ? `✅ ${pendingBookCoverFile.name}` : t('common_choose_image');
+  renderBookCoverPreview();
+}
+
+function renderBookCoverPreview() {
+  const el = document.getElementById('book-cover-preview');
+  if (!el) return;
+  const url = pendingBookCoverFile ? URL.createObjectURL(pendingBookCoverFile) : currentBookCoverUrl;
+  el.innerHTML = url ? `<img src="${escapeHtml(url)}" class="post-media-preview-media" alt="">` : '';
+}
+
+function handleBookFileChange(event) {
+  pendingBookFile = (event.target.files && event.target.files[0]) || null;
+  const text = document.getElementById('book-file-text');
+  if (text) text.textContent = pendingBookFile ? `✅ ${pendingBookFile.name}` : (currentBookFileUrl ? t('book_file_already_uploaded') : t('book_choose_pdf'));
+}
+
+async function saveBook() {
+  const errEl = document.getElementById('book-form-error');
+  errEl.classList.add('hidden');
+  const fail = (msg) => { errEl.textContent = msg; errEl.classList.remove('hidden'); };
+
+  const title = document.getElementById('book-title-input').value.trim();
+  const category = document.getElementById('book-category-input').value.trim();
+  const description = document.getElementById('book-description-input').value.trim();
+  const price = Math.round((parseFloat(document.getElementById('book-price-input').value) || 0) * 100) / 100;
+
+  if (!title || !description) return fail(t('book_required_fields'));
+  if (price <= 0) return fail(t('book_price_required'));
+  if (!pendingBookFile && !currentBookFileUrl) return fail(t('book_file_required'));
+
+  const btn = document.getElementById('book-form-submit-btn');
+  if (btn.disabled) return;
+  btn.disabled = true;
+  const originalLabel = btn.textContent;
+  btn.textContent = t('common_sending');
+
+  try {
+    let coverImage = currentBookCoverUrl;
+    if (pendingBookCoverFile) {
+      const up = await uploadFileToStorage(pendingBookCoverFile, 'academie/livres/couvertures', {
+        maxSizeMB: 10, onProgress: (pct) => setUploadProgress('book-cover', pct)
+      });
+      coverImage = up.url;
+    }
+    let fileUrl = currentBookFileUrl;
+    if (pendingBookFile) {
+      const up = await uploadFileToStorage(pendingBookFile, 'academie/livres/fichiers', {
+        maxSizeMB: 50, onProgress: (pct) => setUploadProgress('book-file', pct)
+      });
+      fileUrl = up.url;
+    }
+
+    const payload = { title, category, description, coverImage: coverImage || null, fileUrl, price };
+    if (editingBookId) {
+      await db.collection('academy_books').doc(editingBookId).update(payload);
+      showToast(t('book_updated_toast'), 'success');
+    } else {
+      await db.collection('academy_books').add({
+        ...payload,
+        ownerUid: currentUser.uid,
+        ownerName: currentUser.name || t('common_user_fallback'),
+        status: 'active',
+        salesCount: 0,
+        createdAt: new Date().toISOString()
+      });
+      showToast(t('book_published_toast'), 'success');
+    }
+    closeBookForm();
+    booksCache = null;
+    myPublishedBooksCache = null;
+    if (booksCurrentTab === 'browse') loadBooks();
+    if (booksCurrentTab === 'mypublished') loadMyPublishedBooks();
+  } catch (e) {
+    fail(friendlyErrorMessage(e));
+  } finally {
+    btn.disabled = false;
+    btn.textContent = originalLabel;
+  }
+}
+
+async function deleteBook(bookId) {
+  if (!confirm(t('book_delete_confirm'))) return;
+  try {
+    await db.collection('academy_books').doc(bookId).delete();
+    showToast(t('book_deleted_toast'), 'success');
+    document.getElementById('book-detail-modal')?.remove();
+    booksCache = null;
+    myPublishedBooksCache = null;
+    if (booksCurrentTab === 'browse') loadBooks(); else loadMyPublishedBooks();
+  } catch (e) { showToast(friendlyErrorMessage(e), 'error'); }
+}
+
+/* ---- Achat (paiement + commission dans une transaction serveur) ---- */
+async function purchaseBook(bookId, title, price) {
+  if (!confirm(`${t('book_confirm_purchase_prefix')} "${title}" (${price.toFixed(2)}$) ${t('book_confirm_purchase_suffix')}`)) return;
+  try {
+    const idToken = await auth.currentUser.getIdToken();
+    const res = await fetch('/api/payments-actions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken, action: 'book_purchase', bookId })
+    });
+    const data = await res.json();
+    if (!data.success) { showToast(data.error || t('book_purchase_error'), 'error'); return; }
+    showToast(t('book_purchase_success_toast'), 'success');
+    document.getElementById('book-detail-modal')?.remove();
+    booksCache = null;
+    myPurchasedBooksCache = null;
+    openBookDetail(bookId);
+  } catch (e) { showToast(friendlyErrorMessage(e), 'error'); }
+}
+
+async function loadMyPurchasedBooks() {
+  const listEl = document.getElementById('books-mine-list');
+  if (!currentUser) { listEl.innerHTML = `<p class="muted small" style="text-align:center;padding:20px 0">${t('book_login_prompt')}</p>`; return; }
+  listEl.innerHTML = renderFeedSkeletons(2);
+  try {
+    const snap = await db.collection('book_purchases').where('buyerUid', '==', currentUser.uid).limit(200).get();
+    myPurchasedBooksCache = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+      .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+    if (myPurchasedBooksCache.length === 0) {
+      listEl.innerHTML = `<p class="muted small" style="text-align:center;padding:20px 0">${t('book_empty_purchased')}</p>`;
+      return;
+    }
+    listEl.innerHTML = myPurchasedBooksCache.map(p => `
+      <div class="order-box" style="margin-bottom:12px">
+        <strong>${escapeHtml(p.bookTitle || '')}</strong>
+        <div class="muted small" style="margin:4px 0 10px">${(p.amountPaid || 0).toFixed(2)}$ · ${new Date(p.createdAt).toLocaleDateString('fr-FR')}</div>
+        <div style="display:flex;gap:8px">
+          <a class="btn btn-primary btn-sm" style="flex:1;justify-content:center" href="${escapeHtml(p.fileUrl || '#')}" target="_blank">${t('book_download_btn')}</a>
+          <button class="btn btn-outline btn-sm" onclick="openBookDetail('${p.bookId}')">${t('book_view_btn')}</button>
+        </div>
+      </div>`).join('');
+  } catch (e) {
+    listEl.innerHTML = `<p class="muted small">${t('book_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
+  }
+}
+
+async function loadMyPublishedBooks() {
+  const listEl = document.getElementById('books-published-list');
+  if (!currentUser) { listEl.innerHTML = `<p class="muted small" style="text-align:center;padding:20px 0">${t('book_login_prompt')}</p>`; return; }
+  listEl.innerHTML = renderFeedSkeletons(2);
+  try {
+    const snap = await db.collection('academy_books').where('ownerUid', '==', currentUser.uid).limit(100).get();
+    myPublishedBooksCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    if (myPublishedBooksCache.length === 0) {
+      listEl.innerHTML = `<p class="muted small" style="text-align:center;padding:20px 0">${t('book_empty_published')}</p>`;
+      return;
+    }
+    const totalSales = myPublishedBooksCache.reduce((s, b) => s + (b.salesCount || 0), 0);
+    const totalEarned = myPublishedBooksCache.reduce((s, b) => s + (b.salesCount || 0) * (b.price || 0) * (1 - BOOK_COMMISSION_PERCENT_DISPLAY / 100), 0);
+    listEl.innerHTML = `
+      <div class="order-box" style="margin-bottom:12px;display:flex;justify-content:space-around;text-align:center">
+        <div><div style="font-weight:800;font-size:1.2rem">${myPublishedBooksCache.length}</div><div class="muted small">${t('book_stat_books')}</div></div>
+        <div><div style="font-weight:800;font-size:1.2rem">${totalSales}</div><div class="muted small">${t('book_stat_sales')}</div></div>
+        <div><div style="font-weight:800;font-size:1.2rem">${totalEarned.toFixed(2)}$</div><div class="muted small">${t('book_stat_earned')}</div></div>
+      </div>` + myPublishedBooksCache.map(b => `
+      <div class="order-box" style="margin-bottom:12px;display:flex;gap:12px;cursor:pointer" onclick="openBookDetail('${b.id}')">
+        ${bookCoverHtml(b, 56, 76, '1.3rem')}
+        <div style="min-width:0;flex:1">
+          <div style="display:flex;justify-content:space-between;gap:8px"><strong style="word-break:break-word">${escapeHtml(b.title || '')}</strong><span class="shop-card-category">${bookPriceLabel(b)}</span></div>
+          <div class="muted small" style="margin-top:4px">${b.salesCount || 0} ${t('book_sales_count_suffix')}</div>
+        </div>
+      </div>`).join('');
+  } catch (e) {
+    listEl.innerHTML = `<p class="muted small">${t('book_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
+  }
 }
 
 /* ---- Formulaire de creation / modification ---- */

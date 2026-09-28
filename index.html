@@ -1722,28 +1722,113 @@
         <h2 data-i18n="svc_academy">Académie</h2>
       </div>
 
-      <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:14px" onclick="openCourseForm()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Créer un cours
-      </button>
-
-      <div class="shop-filter-tabs" id="academy-main-tabs" style="margin-bottom:14px">
-        <button class="active" data-tab="browse" onclick="setAcademyTab('browse')">Découvrir</button>
-        <button data-tab="mycourses" onclick="setAcademyTab('mycourses')">Mes cours</button>
-        <button data-tab="myteaching" onclick="setAcademyTab('myteaching')">Mes formations</button>
+      <div class="shop-filter-tabs" id="academy-content-type-tabs" style="margin-bottom:14px">
+        <button class="active" data-content-type="courses" onclick="setAcademyContentType('courses')" data-i18n="academy_type_courses_tab">🎓 Cours</button>
+        <button data-content-type="books" onclick="setAcademyContentType('books')" data-i18n="academy_type_books_tab">📚 Livres</button>
       </div>
 
-      <div id="academy-tab-browse">
-        <input type="text" id="academy-search-input" class="text-input" style="margin-bottom:12px" placeholder="Titre, catégorie ou mot-clé (ex: Excel, anglais)" oninput="scheduleAcademySearch()">
-        <div id="academy-browse-list"><p class="muted small">Chargement...</p></div>
+      <div id="academy-courses-section">
+        <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:14px" onclick="openCourseForm()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Créer un cours
+        </button>
+
+        <div class="shop-filter-tabs" id="academy-main-tabs" style="margin-bottom:14px">
+          <button class="active" data-tab="browse" onclick="setAcademyTab('browse')">Découvrir</button>
+          <button data-tab="mycourses" onclick="setAcademyTab('mycourses')">Mes cours</button>
+          <button data-tab="myteaching" onclick="setAcademyTab('myteaching')">Mes formations</button>
+        </div>
+
+        <div id="academy-tab-browse">
+          <input type="text" id="academy-search-input" class="text-input" style="margin-bottom:12px" placeholder="Titre, catégorie ou mot-clé (ex: Excel, anglais)" oninput="scheduleAcademySearch()">
+          <div id="academy-browse-list"><p class="muted small">Chargement...</p></div>
+        </div>
+
+        <div id="academy-tab-mycourses" class="hidden">
+          <div id="academy-mycourses-list"><p class="muted small">Chargement...</p></div>
+        </div>
+
+        <div id="academy-tab-myteaching" class="hidden">
+          <div id="academy-myteaching-list"><p class="muted small">Chargement...</p></div>
+        </div>
       </div>
 
-      <div id="academy-tab-mycourses" class="hidden">
-        <div id="academy-mycourses-list"><p class="muted small">Chargement...</p></div>
-      </div>
+      <div id="academy-books-section" class="hidden">
+        <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:14px" onclick="openBookForm()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span data-i18n="book_publish_btn">Publier un livre</span>
+        </button>
 
-      <div id="academy-tab-myteaching" class="hidden">
-        <div id="academy-myteaching-list"><p class="muted small">Chargement...</p></div>
+        <div class="shop-filter-tabs" id="academy-books-main-tabs" style="margin-bottom:14px">
+          <button class="active" data-tab="browse" onclick="setBooksTab('browse')" data-i18n="book_tab_browse">Découvrir</button>
+          <button data-tab="mybooks" onclick="setBooksTab('mybooks')" data-i18n="book_tab_mine">Mes achats</button>
+          <button data-tab="mypublished" onclick="setBooksTab('mypublished')" data-i18n="book_tab_published">Mes publications</button>
+        </div>
+
+        <div id="books-tab-browse">
+          <input type="text" id="books-search-input" class="text-input" style="margin-bottom:12px" data-i18n-placeholder="book_search_ph" placeholder="Titre, catégorie ou mot-clé" oninput="scheduleBooksSearch()">
+          <div id="books-browse-list"><p class="muted small">Chargement...</p></div>
+        </div>
+
+        <div id="books-tab-mybooks" class="hidden">
+          <div id="books-mine-list"><p class="muted small">Chargement...</p></div>
+        </div>
+
+        <div id="books-tab-mypublished" class="hidden">
+          <div id="books-published-list"><p class="muted small">Chargement...</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Formulaire de publication/edition d'un livre (Academie) -->
+    <div class="modal-overlay hidden" id="book-form-modal">
+      <div class="modal">
+        <button class="modal-close" onclick="closeBookForm()" aria-label="Fermer">×</button>
+        <h3 id="book-form-title" style="margin-bottom:4px">Publier un livre</h3>
+        <p class="muted small" style="margin-bottom:14px" data-i18n="book_commission_notice">Une commission de la plateforme s'applique sur chaque vente (voir les Conditions).</p>
+        <div class="field">
+          <label data-i18n="book_title_label">Titre du livre</label>
+          <input type="text" id="book-title-input" class="text-input" maxlength="120" data-i18n-placeholder="book_title_ph" placeholder="Ex: Maîtriser Excel en 7 jours">
+        </div>
+        <div class="field">
+          <label data-i18n="book_category_label">Catégorie</label>
+          <input type="text" id="book-category-input" class="text-input" maxlength="60" data-i18n-placeholder="book_category_ph" placeholder="Ex: Bureautique, Langues, Business">
+        </div>
+        <div class="field">
+          <label data-i18n="book_description_label">Description</label>
+          <textarea id="book-description-input" class="text-input" rows="4" maxlength="2000" data-i18n-placeholder="book_description_ph" placeholder="Ce que la personne va apprendre en lisant ce livre..."></textarea>
+        </div>
+        <div class="field">
+          <label data-i18n="book_price_label">Prix ($)</label>
+          <input type="number" id="book-price-input" class="text-input" min="0.5" step="0.01" value="5">
+        </div>
+        <div class="field">
+          <label for="book-cover-file" data-i18n="book_cover_label">Couverture (facultatif)</label>
+          <input type="file" id="book-cover-file" class="file-input-hidden" accept="image/*" onchange="handleBookCoverFileChange(event)">
+          <label for="book-cover-file" class="file-picker-btn" id="book-cover-file-label">
+            <span class="file-picker-icon">🖼️</span>
+            <span class="file-picker-text" id="book-cover-file-text" data-i18n="common_choose_image">Choisir une image</span>
+          </label>
+          <div class="upload-progress-wrap hidden" id="book-cover-progress-wrap">
+            <div class="upload-progress-fill" id="book-cover-progress-fill"></div>
+            <span class="upload-progress-label" id="book-cover-progress-label">0%</span>
+          </div>
+          <div id="book-cover-preview"></div>
+        </div>
+        <div class="field">
+          <label for="book-file-input" data-i18n="book_file_label">Fichier du livre (PDF)</label>
+          <input type="file" id="book-file-input" class="file-input-hidden" accept="application/pdf" onchange="handleBookFileChange(event)">
+          <label for="book-file-input" class="file-picker-btn" id="book-file-label">
+            <span class="file-picker-icon">📄</span>
+            <span class="file-picker-text" id="book-file-text" data-i18n="book_choose_pdf">Choisir un fichier PDF</span>
+          </label>
+          <div class="upload-progress-wrap hidden" id="book-file-progress-wrap">
+            <div class="upload-progress-fill" id="book-file-progress-fill"></div>
+            <span class="upload-progress-label" id="book-file-progress-label">0%</span>
+          </div>
+        </div>
+        <div class="modal-error hidden" id="book-form-error"></div>
+        <button class="btn btn-primary" id="book-form-submit-btn" style="width:100%;justify-content:center" onclick="saveBook()" data-i18n="common_publish">Publier</button>
       </div>
     </div>
 
