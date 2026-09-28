@@ -211,3 +211,188 @@ html[data-theme="dark"] .mp-plan-premium,html[data-theme="dark"] .mp-plan-pro{bo
 .mp-plan-list li svg{flex:0 0 auto;margin-top:2px;color:#2f9e44}
 .mp-plan-list li b{margin-left:auto;white-space:nowrap;padding-left:8px;color:var(--ink)}
 .mp-plan .btn{width:100%}
+
+
+/* =====================================================================
+   MENU v2 — refonte visuelle "grande application" (Revolut / Grab / GPay)
+   Ajoutée EN FIN de fichier : ne touche à aucune structure HTML/JS, elle
+   ne fait que surcharger l'apparence des classes existantes.
+   Principes : fond gris très clair + cartes blanches (profondeur), en-tête
+   solide (fini le contenu qui transparaît derrière "Menu"), services en
+   grille d'icônes compacte 4 colonnes (au lieu de grosses cartes vides),
+   badges discrets, animations douces, mode sombre automatique.
+   ===================================================================== */
+.modal.main-menu-panel{
+  --mp-bg:#f2f4f7;
+  --mp-shadow:0 1px 2px rgba(16,24,40,.05),0 6px 18px -8px rgba(16,24,40,.10);
+  background:var(--mp-bg);
+  padding:0 16px calc(28px + env(safe-area-inset-bottom,0px));
+}
+html[data-theme="dark"] .modal.main-menu-panel{
+  --mp-bg:#0f1216;
+  --mp-shadow:0 1px 2px rgba(0,0,0,.4);
+}
+
+/* ---------- En-tête : solide, avec ombre fine, safe-area iOS/Android ---------- */
+.main-menu-panel .menu-page-header{
+  position:sticky;top:0;z-index:20;
+  margin:0 -16px 14px;
+  padding:calc(14px + env(safe-area-inset-top,0px)) 16px 12px;
+  background:var(--mp-bg);
+  box-shadow:0 1px 0 var(--line);
+}
+.main-menu-panel .menu-page-header h2{
+  font-size:1.55rem;font-weight:800;letter-spacing:-.03em;margin:0;
+}
+.main-menu-panel .menu-back-btn,
+.main-menu-panel .menu-page-header .modal-close{
+  width:40px;height:40px;padding:0;border-radius:50%;
+  background:var(--white);box-shadow:var(--mp-shadow);
+  align-items:center;justify-content:center;
+  transition:transform .12s ease;
+}
+.main-menu-panel .menu-back-btn:active,
+.main-menu-panel .menu-page-header .modal-close:active{transform:scale(.92)}
+
+/* ---------- Transition douce entre écrans ---------- */
+@keyframes mpIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.main-menu-panel > div[id^="menu-screen-"]:not(.hidden){animation:mpIn .22s ease both}
+
+/* ---------- Recherche ---------- */
+.mp-search-input{
+  height:48px;border-radius:14px;border:1px solid transparent;
+  background:var(--white);box-shadow:var(--mp-shadow);font-size:1rem;
+}
+.mp-search-input:focus{border-color:var(--green);box-shadow:0 0 0 4px rgba(24,119,242,.14)}
+
+/* ---------- Carte profil ---------- */
+.menu-profile-card{
+  background:var(--white);border:none;border-radius:20px;padding:14px 16px;
+  box-shadow:var(--mp-shadow);margin-bottom:14px;
+}
+.menu-profile-card img,.menu-profile-card .avatar,.menu-profile-card > :first-child{flex:0 0 auto}
+.menu-profile-name{font-size:1.08rem;letter-spacing:-.02em}
+
+/* ---------- Titres de section : sobres, sans liseré ---------- */
+.mp-section-title{
+  text-transform:none;letter-spacing:-.01em;font-size:1.02rem;font-weight:800;
+  color:var(--ink);margin:2px 4px 12px;
+}
+.mp-section-title::before{display:none}
+
+/* ---------- Icônes : squircle + relief, plus grandes ---------- */
+.mp-ico{
+  width:50px;height:50px;border-radius:16px;
+  box-shadow:0 6px 14px -4px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.28),inset 0 -6px 12px rgba(0,0,0,.08);
+}
+.mp-ico svg{width:24px;height:24px}
+
+/* ---------- Raccourcis : panneau blanc unique ---------- */
+.mp-shortcuts{
+  background:var(--white);border-radius:20px;padding:14px 6px 10px;
+  box-shadow:var(--mp-shadow);margin-bottom:14px;
+}
+#mp-shortcuts-title{margin:6px 4px 10px}
+.mp-short-label{font-size:.72rem;font-weight:700}
+
+/* ---------- Bannière Pro ---------- */
+.mp-promo{
+  position:relative;overflow:hidden;border-radius:20px;padding:16px 18px;margin-bottom:14px;
+  background:linear-gradient(120deg,#1668e3 0%,#5b3fd6 62%,#8a3ffc 100%);
+  box-shadow:0 12px 24px -10px rgba(91,63,214,.55);
+}
+.mp-promo::after{
+  content:"";position:absolute;right:-30px;top:-40px;width:130px;height:130px;border-radius:50%;
+  background:radial-gradient(circle,rgba(255,255,255,.22),rgba(255,255,255,0) 70%);pointer-events:none;
+}
+.mp-promo-title{font-size:1.06rem}
+
+/* ---------- Liste de niveau 1 (Mon espace, Paramètres...) : cartes avec séparateurs inset ---------- */
+.menu-card{border:none;border-radius:20px;box-shadow:var(--mp-shadow)}
+.menu-category-row{
+  border-bottom:none;padding:14px 16px;font-size:1rem;
+  background-image:linear-gradient(var(--line),var(--line));
+  background-repeat:no-repeat;background-position:68px 100%;background-size:calc(100% - 68px) 1px;
+}
+.menu-card .menu-category-row:last-child{background-image:none}
+.menu-category-row svg:first-child{width:38px;height:38px;border-radius:12px;padding:8px}
+.menu-category-row:hover,.menu-category-row:active{background-color:var(--green-light)}
+
+/* ---------- Écrans de niveau 2 (listes .menu-category / .menu-item) en cartes ---------- */
+.main-menu-panel .menu-category{
+  background:var(--white);border-radius:20px;padding:14px 8px 8px;margin-bottom:14px;
+  box-shadow:var(--mp-shadow);
+}
+.main-menu-panel .menu-category h4{
+  text-transform:none;letter-spacing:-.01em;font-size:1rem;color:var(--ink);margin:0 8px 8px;
+}
+.main-menu-panel .menu-category h4::before{display:none}
+.main-menu-panel .menu-item{padding:11px 8px}
+
+/* ---------- Services : grille d'icônes compacte (4 colonnes) dans un panneau ---------- */
+.mp-hub-section{
+  background:var(--white);border-radius:20px;padding:16px 8px 8px;margin-bottom:14px;
+  box-shadow:var(--mp-shadow);
+}
+.mp-hub-section .mp-section-title{margin:0 8px 12px}
+.mp-hub-section .mp-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:2px 0}
+@media (min-width:560px){.mp-hub-section .mp-grid{grid-template-columns:repeat(5,minmax(0,1fr))}}
+.mp-hub-section .mp-tile{
+  align-items:center;text-align:center;gap:7px;min-height:0;
+  padding:8px 2px 12px;border:none;border-radius:16px;background:transparent;box-shadow:none;
+}
+.mp-hub-section .mp-tile:active{background:var(--green-light);transform:scale(.95)}
+.mp-hub-section .mp-tile-label{
+  margin-top:0;font-size:.72rem;font-weight:700;line-height:1.2;text-align:center;
+  -webkit-line-clamp:2;
+}
+/* Étoile "épingler" : discrète dans un coin */
+.mp-hub-section .mp-pin{top:0;right:2px;width:22px;height:22px;opacity:.28}
+.mp-hub-section .mp-pin svg{width:13px;height:13px}
+.mp-hub-section .mp-pin.on{opacity:1}
+/* Badges : "Gratuit" masqué (bruit), les offres payantes en puce discrète sur l'icône */
+.mp-hub-section .mp-badge{
+  position:absolute;top:44px;left:calc(50% + 6px);margin:0;
+  font-size:0;line-height:0;padding:0;border:2px solid var(--white);
+  min-width:20px;height:20px;display:flex;align-items:center;justify-content:center;
+}
+.mp-hub-section .mp-b-free{display:none}
+.mp-hub-section .mp-b-paid::after{content:"$";font-size:.7rem;line-height:1;font-weight:800}
+.mp-hub-section .mp-b-premium::after,
+.mp-hub-section .mp-b-pro::after{content:"PRO";font-size:.5rem;line-height:1;font-weight:800;letter-spacing:.02em}
+.mp-hub-section .mp-b-premium,.mp-hub-section .mp-b-pro{padding:0 5px;border-radius:999px}
+.mp-hub-section .mp-b-paid{border-radius:50%}
+.mp-hub-section .mp-b-new::after{content:"N";font-size:.6rem;line-height:1;font-weight:800}
+.mp-hub-section .mp-b-new{border-radius:50%}
+
+/* ---------- Boîte à outils : liste de cartes horizontales (icône + titre + description) ---------- */
+#mp-tools-list{grid-template-columns:1fr;gap:10px}
+#mp-tools-list .mp-tile{
+  display:grid;grid-template-columns:auto 1fr;column-gap:14px;row-gap:2px;align-items:center;
+  min-height:0;padding:14px 40px 14px 14px;border:none;border-radius:18px;box-shadow:var(--mp-shadow);
+}
+#mp-tools-list .mp-tile .mp-ico{grid-row:1 / span 3;width:52px;height:52px}
+#mp-tools-list .mp-tile-label{margin:0;font-size:.98rem;-webkit-line-clamp:1}
+#mp-tools-list .mp-tile-desc{font-size:.8rem;-webkit-line-clamp:2}
+#mp-tools-list .mp-tile .mp-badge{justify-self:start;margin-top:4px}
+#mp-tools-list .mp-pin{top:50%;right:8px;transform:translateY(-50%);opacity:.35}
+#mp-tools-list .mp-pin.on{opacity:1}
+
+/* ---------- Résultats de recherche : lignes dans une carte ---------- */
+.mp-rows{background:var(--white);border-radius:20px;padding:6px;box-shadow:var(--mp-shadow)}
+.mp-row{padding:10px}
+
+/* ---------- Plans & tarifs ---------- */
+.mp-plan{border:none;border-radius:20px;box-shadow:var(--mp-shadow)}
+.mp-plan-premium,.mp-plan-pro{box-shadow:0 0 0 1.5px #f1c453,var(--mp-shadow)}
+
+/* ---------- Déconnexion : bouton doux, pas un gros contour rouge ---------- */
+#menu-screen-categories > .btn.btn-outline{
+  height:52px;border:none;border-radius:16px;font-weight:800;
+  background:rgba(217,54,54,.09);color:var(--red-text,#c3183f)!important;
+}
+#menu-screen-categories > .btn.btn-outline:active{transform:scale(.98)}
+
+@media (prefers-reduced-motion:reduce){
+  .main-menu-panel > div[id^="menu-screen-"]:not(.hidden){animation:none}
+}
