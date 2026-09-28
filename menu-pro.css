@@ -17,7 +17,7 @@
   background:var(--green-light);color:var(--ink);font:inherit;font-size:.98rem;
   padding:0 16px 0 42px;outline:none;transition:border-color .15s ease,box-shadow .15s ease;
 }
-.mp-search-input:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(24,119,242,.15)}
+.mp-search-input:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(40,55,79,.15)}
 .mp-search-input::placeholder{color:var(--muted)}
 
 /* Pendant une recherche, on masque le reste de l'écran d'accueil du menu */
@@ -62,8 +62,8 @@
 .mp-promo{
   display:flex;align-items:center;gap:14px;width:100%;text-align:left;cursor:pointer;
   border:none;border-radius:16px;padding:14px 16px;margin-bottom:16px;color:#fff;font:inherit;
-  background:linear-gradient(135deg,#1877f2 0%,#6741d9 100%);
-  box-shadow:0 6px 16px rgba(24,119,242,.28);transition:transform .12s ease;
+  background:linear-gradient(135deg,#28374f 0%,#f39c1f 140%);
+  box-shadow:0 6px 16px rgba(40,55,79,.28);transition:transform .12s ease;
 }
 .mp-promo:active{transform:scale(.985)}
 .mp-promo .mp-ico{background:rgba(255,255,255,.2);box-shadow:none}
@@ -263,7 +263,7 @@ html[data-theme="dark"] .modal.main-menu-panel{
   height:48px;border-radius:14px;border:1px solid transparent;
   background:var(--white);box-shadow:var(--mp-shadow);font-size:1rem;
 }
-.mp-search-input:focus{border-color:var(--green);box-shadow:0 0 0 4px rgba(24,119,242,.14)}
+.mp-search-input:focus{border-color:var(--green);box-shadow:0 0 0 4px rgba(40,55,79,.14)}
 
 /* ---------- Carte profil ---------- */
 .menu-profile-card{

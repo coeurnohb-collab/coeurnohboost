@@ -111,7 +111,7 @@
 
 <!-- PWA / Installation en application (Android, Google Play via TWA) -->
 <link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#0e0a0c">
+<meta name="theme-color" content="#1a2436">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Coeurnoh">
@@ -120,7 +120,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="menu-pro.css">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -152,7 +152,7 @@
 <!-- ================= NAV ================= -->
 <nav id="nav">
   <div class="wrap nav-inner">
-    <div class="logo" onclick="showHome()">Coeurnoh <span>Universe</span></div>
+    <div class="logo" onclick="showHome()"><svg class="brand-mark" viewBox="0 0 48 48" fill="none" aria-hidden="true"><circle cx="24" cy="24" r="13" fill="#28374f"/><path d="M11 24h26M24 11c-5 4-5 22 0 26M24 11c5 4 5 22 0 26" stroke="#f39c1f" stroke-width="1.6" opacity=".9"/><ellipse cx="24" cy="24" rx="21" ry="8" transform="rotate(-24 24 24)" stroke="#f39c1f" stroke-width="2.6"/><circle cx="40" cy="14" r="2.6" fill="#f39c1f"/></svg><b>Coeurnoh <span>Universe</span></b></div>
     <div class="nav-right">
       <select id="lang-select" class="lang-select" onchange="changeLanguage(this.value)">
         <option value="fr">🇫🇷 FR</option>
@@ -777,39 +777,61 @@
 
 
 <!-- ================= AUTH MODAL ================= -->
-<div class="modal-overlay hidden" id="auth-modal">
-  <div class="modal">
+<div class="modal-overlay auth-modal-overlay hidden" id="auth-modal" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+  <div class="modal auth-modal">
     <button class="modal-close" onclick="closeAuth()" aria-label="Fermer">×</button>
-    <h2 id="auth-title" data-i18n="auth_title_register">Créer un compte</h2>
-    <p class="sub" data-i18n="auth_sub">Rejoins Coeurnoh Universe en moins d'une minute.</p>
-    <div class="modal-error hidden" id="auth-error"></div>
-    <div class="modal-loading hidden" id="auth-loading">⏳ Connexion en cours...</div>
 
-    <button class="google-btn" id="google-btn" onclick="signInWithGoogle()">
-      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.6-6 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 3l5.7-5.7C34.6 6 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.2-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 15.9 18.9 13 24 13c3 0 5.8 1.1 7.9 3l5.7-5.7C34.6 6 29.6 4 24 4c-7.4 0-13.7 4.1-17.1 10.2z"/><path fill="#4CAF50" d="M24 44c5.5 0 10.4-1.9 14.2-5.1l-6.6-5.4C29.6 35 26.9 36 24 36c-5.3 0-9.7-3.4-11.3-8.1l-6.6 5c3.3 6.6 10.1 11.1 18 11.1z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.2 4.2-4.1 5.5l6.6 5.4C41.7 35.9 44 30.4 44 24c0-1.2-.1-2.4-.4-3.5z"/></svg>
-      <span data-i18n="auth_google">Continuer avec Google</span>
-    </button>
-    <div class="divider-or" data-i18n="auth_or">ou</div>
-
-    <div class="field" id="auth-name-field">
-      <label data-i18n="auth_name_label">Nom / Pseudo</label>
-      <input type="text" id="auth-name" data-i18n-placeholder="auth_name_ph" placeholder="Ton nom">
-    </div>
-    <div class="field">
-      <label data-i18n="auth_email_label">Email</label>
-      <input type="email" id="auth-email" data-i18n-placeholder="auth_email_ph" placeholder="toi@email.com">
-    </div>
-    <div class="field">
-      <label data-i18n="auth_password_label">Mot de passe</label>
-      <div class="password-wrap">
-        <input type="password" id="auth-password" data-i18n-placeholder="auth_password_ph" placeholder="•••••••• (6 caractères min.)">
-        <button type="button" class="password-toggle" id="password-toggle-btn" onclick="togglePasswordVisibility()" data-i18n="auth_show_password">Afficher</button>
+    <div class="auth-hero">
+      <div class="auth-brand">
+        <svg class="brand-mark" viewBox="0 0 48 48" fill="none" aria-hidden="true"><circle cx="24" cy="24" r="13" fill="#28374f"/><path d="M11 24h26M24 11c-5 4-5 22 0 26M24 11c5 4 5 22 0 26" stroke="#f39c1f" stroke-width="1.6" opacity=".9"/><ellipse cx="24" cy="24" rx="21" ry="8" transform="rotate(-24 24 24)" stroke="#f39c1f" stroke-width="2.6"/><circle cx="40" cy="14" r="2.6" fill="#f39c1f"/></svg>
+        <div>
+          <div class="auth-brand-name">Coeurnoh <span>Universe</span></div>
+          <span class="auth-brand-tag">Multi Services</span>
+        </div>
+      </div>
+      <p class="auth-hero-line" id="auth-hero-line" data-i18n="auth_hero_line">Réseaux sociaux, boutique et services multiples — un seul compte.</p>
+      <div class="auth-trust">
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4 6v6c0 5 3.4 8.4 8 9 4.6-.6 8-4 8-9V6l-8-3Z"/><path d="m9 12 2 2 4-4"/></svg><i id="auth-trust-1" style="font-style:normal" data-i18n="auth_trust_1">Paiement sécurisé</i></span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg><i id="auth-trust-2" style="font-style:normal" data-i18n="auth_trust_2">5 langues</i></span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg><i id="auth-trust-3" style="font-style:normal" data-i18n="auth_trust_3">Support 24/7</i></span>
       </div>
     </div>
-    <button class="btn btn-primary" id="auth-submit" data-i18n="auth_submit_register" onclick="submitAuth()">Créer mon compte</button>
-    <div class="modal-switch">
-      <span id="auth-switch-text" data-i18n="auth_switch_to_login">Déjà un compte ?</span>
-      <button onclick="toggleAuthMode()" id="auth-switch-btn" data-i18n="auth_switch_btn_login">Se connecter</button>
+
+    <div class="auth-body">
+      <h2 id="auth-title" data-i18n="auth_title_register">Créer un compte</h2>
+      <p class="sub" data-i18n="auth_sub">Rejoins Coeurnoh Universe en moins d'une minute.</p>
+      <div class="modal-error hidden" id="auth-error" role="alert"></div>
+      <div class="modal-success hidden" id="auth-success" role="status"></div>
+      <div class="modal-loading hidden" id="auth-loading">⏳ Connexion en cours...</div>
+
+      <button class="google-btn" id="google-btn" type="button" onclick="signInWithGoogle()">
+        <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.6-6 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 3l5.7-5.7C34.6 6 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.2-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 15.9 18.9 13 24 13c3 0 5.8 1.1 7.9 3l5.7-5.7C34.6 6 29.6 4 24 4c-7.4 0-13.7 4.1-17.1 10.2z"/><path fill="#4CAF50" d="M24 44c5.5 0 10.4-1.9 14.2-5.1l-6.6-5.4C29.6 35 26.9 36 24 36c-5.3 0-9.7-3.4-11.3-8.1l-6.6 5c3.3 6.6 10.1 11.1 18 11.1z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.2 4.2-4.1 5.5l6.6 5.4C41.7 35.9 44 30.4 44 24c0-1.2-.1-2.4-.4-3.5z"/></svg>
+        <span data-i18n="auth_google">Continuer avec Google</span>
+      </button>
+      <div class="divider-or" data-i18n="auth_or">ou</div>
+
+      <div class="field" id="auth-name-field">
+        <label for="auth-name" data-i18n="auth_name_label">Nom / Pseudo</label>
+        <div class="auth-input"><svg class="lead" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><input type="text" id="auth-name" autocomplete="name" data-i18n-placeholder="auth_name_ph" placeholder="Ton nom"></div>
+      </div>
+      <div class="field">
+        <label for="auth-email" data-i18n="auth_email_label">Email</label>
+        <div class="auth-input"><svg class="lead" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="m22 7-10 6L2 7"/></svg><input type="email" id="auth-email" autocomplete="email" inputmode="email" autocapitalize="off" data-i18n-placeholder="auth_email_ph" placeholder="toi@email.com"></div>
+      </div>
+      <div class="field">
+        <label for="auth-password" data-i18n="auth_password_label">Mot de passe</label>
+        <div class="auth-input password-wrap"><svg class="lead" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="3"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><input type="password" id="auth-password" autocomplete="current-password" data-i18n-placeholder="auth_password_ph" placeholder="•••••••• (6 caractères min.)" oninput="updatePasswordStrength()">
+          <button type="button" class="password-toggle" id="password-toggle-btn" onclick="togglePasswordVisibility()" aria-label="Afficher le mot de passe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        </div>
+        <div id="auth-pw-strength" class="hidden"><div class="pw-meter"><i id="auth-pw-bar"></i></div><div class="pw-hint" id="auth-pw-hint"></div></div>
+      </div>
+      <div class="auth-row hidden" id="auth-forgot-row"><button type="button" class="auth-link" id="auth-forgot-btn" onclick="forgotPassword()" data-i18n="auth_forgot">Mot de passe oublié ?</button></div>
+      <button class="btn btn-primary" id="auth-submit" type="button" data-i18n="auth_submit_register" onclick="submitAuth()">Créer mon compte</button>
+      <div class="modal-switch">
+        <span id="auth-switch-text" data-i18n="auth_switch_to_login">Déjà un compte ?</span>
+        <button type="button" onclick="toggleAuthMode()" id="auth-switch-btn" data-i18n="auth_switch_btn_login">Se connecter</button>
+      </div>
+      <p class="auth-legal" id="auth-legal"></p>
     </div>
   </div>
 </div>

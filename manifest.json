@@ -8,8 +8,8 @@
   "lang": "fr",
   "dir": "ltr",
   "display": "standalone",
-  "background_color": "#f3ede1",
-  "theme_color": "#0e0a0c",
+  "background_color": "#eef0f4",
+  "theme_color": "#1a2436",
   "orientation": "portrait-primary",
   "categories": ["business", "shopping", "social", "productivity"],
   "icons": [

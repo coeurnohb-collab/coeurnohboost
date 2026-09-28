@@ -648,10 +648,10 @@ const COUNTRIES = [
 ];
 
 const CRYPTOS = [
-  { id:"usdt-trc20", name:"USDT (TRC20 - Tron)", icon:"₮", bg:"#26A17B", bg2:"#1B7A5C" },
-  { id:"usdt-bep20", name:"USDT (BEP20 - BSC)",  icon:"₮", bg:"#26A17B", bg2:"#1B7A5C" },
-  { id:"btc",        name:"Bitcoin (BTC)",        icon:"₿", bg:"#F7931A", bg2:"#C9750C" },
-  { id:"trx",        name:"TRON (TRX)",           icon: icoTriangle('#fff'), bg:"#EB0029", bg2:"#B0001F" }
+  { id:"usdt-trc20", name:"USDT (TRC20 - Tron)", icon:"₮", bg:"#26A17B", bg2:"#1E8A69", code:"USDT" },
+  { id:"usdt-bep20", name:"USDT (BEP20 - BSC)",  icon:"₮", bg:"#26A17B", bg2:"#1E8A69", code:"USDT" },
+  { id:"btc",        name:"Bitcoin (BTC)",        icon:"₿", bg:"#F7931A", bg2:"#DB7C0B", code:"BTC" },
+  { id:"trx",        name:"TRON (TRX)",           icon: icoTriangle('#fff'), bg:"#EB0029", bg2:"#C40022", code:"TRX" }
 ];
 function icoTriangle(c){return `<svg viewBox="0 0 24 24" width="18" height="18" fill="${c}"><path d="M4 4l16 3-8 13L4 4z"/></svg>`;}
 
@@ -673,37 +673,62 @@ function icoWallet(c){return `<svg viewBox="0 0 24 24" width="20" height="20" fi
 function icoTower(c){return `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="${c}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V10"/><path d="M8 20h8"/><path d="M9 10l3-7 3 7"/><path d="M6 14a9 9 0 0 1 12 0"/></svg>`;}
 function icoCoin(c){return `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="${c}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9 12h6M12 9v6"/></svg>`;}
 
-/* Badge coloré par opérateur mobile money (dégradé de marque + pictogramme,
-   reconnaissance visuelle professionnelle). Repli sur une pastille lettre
-   stylisée pour les opérateurs plus rares non couverts ci-dessous. */
+/* Tuiles de marque des opérateurs Mobile Money.
+   Chaque opérateur = tuile aux couleurs de sa marque + mot-symbole typographique
+   (style logo), au lieu de pictogrammes génériques.
+   LOGOS OFFICIELS : si tu déposes un fichier dans le dossier /logos du dépôt
+   (ex. logos/m-pesa.png, logos/airtel-money.png, logos/orange-money.png,
+   logos/mtn-momo.png ...), il est utilisé automatiquement à la place du
+   mot-symbole ; s'il n'existe pas, le mot-symbole s'affiche (aucune erreur). */
+const OPERATOR_BRANDS = [
+  [['m-pesa','vodacom'], 'M-PESA',    '#E60000', '#B80000'],
+  [['m-pesa'],           'M-PESA',    '#3FA34D', '#2E8540'],
+  [['vodafone'],         'vodafone',  '#E60000', '#B80000'],
+  [['vodacom'],          'vodacom',   '#E60000', '#B80000'],
+  [['airteltigo'],       'AirtelTigo','#0B3D91', '#082B69', '#fff', true],
+  [['tigo'],             'tigo',      '#00377B', '#00265A'],
+  [['airtel'],           'airtel',    '#E40000', '#B30000'],
+  [['orange'],           'orange',    '#FF6600', '#DB5500'],
+  [['mtn'],              'MTN',       '#FFCC00', '#F2B800', '#111'],
+  [['moov'],             'moov',      '#0072CE', '#0059A0'],
+  [['wave'],             'wave',      '#1AA7E0', '#0E86B8'],
+  [['free'],             'free',      '#CD1E25', '#A3161C'],
+  [['telecel'],          'telecel',   '#D6001C', '#A80016'],
+  [['t-money'],          'T-Money',   '#00A19A', '#007F79'],
+  [['togocom'],          'T-Money',   '#00A19A', '#007F79'],
+  [['zain'],             'zain',      '#7A2E8E', '#5C216B'],
+  [['lumitel'],          'lumitel',   '#F7941D', '#D77A08'],
+  [['ecocash'],          'EcoCash',   '#0072BC', '#005A94'],
+  [['unitel'],           'unitel',    '#F58220', '#D66A0E'],
+  [['multicaixa'],       'Multicaixa','#D71920', '#AB1218', '#fff', true],
+  [['djezzy'],           'djezzy',    '#E2231A', '#B51A13'],
+  [['mobilis'],          'mobilis',   '#00A651', '#008640'],
+  [['mobicash'],         'Mobicash',  '#0057A8', '#00437F'],
+  [['inwi'],             'inwi',      '#7B2D8E', '#5E2270'],
+  [['d17'],              'D17',       '#0057A8', '#00437F'],
+  [['telebirr'],         'telebirr',  '#4CA30D', '#3B8009'],
+  [['africell'],         'africell',  '#7B2C8F', '#5D216C'],
+  [['opay'],             'OPay',      '#00A86B', '#008554'],
+  [['mvola'],            'MVola',     '#FCC30B', '#E0A800', '#111'],
+  [['telma'],            'MVola',     '#FCC30B', '#E0A800', '#111']
+];
+function operatorSlug(name) {
+  return String(name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+}
 function getOperatorBadge(name) {
-  const n = name.toLowerCase();
-  if (n.includes('m-pesa') && n.includes('vodacom')) return { bg:'#E60000', bg2:'#A30000', icon: icoSwoosh('#fff') };
-  if (n.includes('m-pesa')) return { bg:'#4CAF50', bg2:'#2E7D32', icon: icoSwoosh('#fff') };
-  if (n.includes('vodacom')) return { bg:'#E60000', bg2:'#A30000', icon: icoSwoosh('#fff') };
-  if (n.includes('airteltigo')) return { bg:'#0033A0', bg2:'#001F66', icon: icoExchange('#fff') };
-  if (n.includes('airtel')) return { bg:'#ED1C24', bg2:'#B71119', icon: icoSwoosh('#fff') };
-  if (n.includes('orange')) return { bg:'#FF6600', bg2:'#CC5200', icon: icoExchange('#fff') };
-  if (n.includes('mtn')) return { bg:'#FFCC00', bg2:'#E6B800', icon: icoTower('#151515'), dark:true };
-  if (n.includes('moov')) return { bg:'#0066CC', bg2:'#004999', icon: icoWallet('#fff') };
-  if (n.includes('wave')) return { bg:'#00A3E0', bg2:'#0077A8', icon: icoWave('#fff') };
-  if (n.includes('free')) return { bg:'#CC0000', bg2:'#990000', icon: icoBolt('#fff') };
-  if (n.includes('telecel')) return { bg:'#6A1B9A', bg2:'#4A1170', icon: icoTower('#fff') };
-  if (n.includes('t-money') || n.includes('togocom')) return { bg:'#00A19A', bg2:'#007871', icon: icoWallet('#fff') };
-  if (n.includes('zain')) return { bg:'#6A1B9A', bg2:'#4A1170', icon: icoCoin('#fff') };
-  if (n.includes('lumitel')) return { bg:'#F7941D', bg2:'#C97300', icon: icoBolt('#fff') };
-  if (n.includes('ecocash')) return { bg:'#1E8449', bg2:'#145A32', icon: icoWallet('#fff') };
-  if (n.includes('unitel')) return { bg:'#0057A8', bg2:'#003D77', icon: icoTower('#fff') };
-  if (n.includes('multicaixa')) return { bg:'#D32F2F', bg2:'#9A2020', icon: icoWallet('#fff') };
-  if (n.includes('djezzy')) return { bg:'#6A1B9A', bg2:'#4A1170', icon: icoTower('#fff') };
-  if (n.includes('mobilis')) return { bg:'#2E7D32', bg2:'#1B5E20', icon: icoTower('#fff') };
-  if (n.includes('mobicash')) return { bg:'#0057A8', bg2:'#003D77', icon: icoWallet('#fff') };
-  if (n.includes('inwi')) return { bg:'#FF6600', bg2:'#CC5200', icon: icoTower('#fff') };
-  if (n.includes('d17')) return { bg:'#0057A8', bg2:'#003D77', icon: icoWallet('#fff') };
-  if (n.includes('telebirr')) return { bg:'#2E9E4F', bg2:'#1E6E37', icon: icoWallet('#fff') };
-  if (n.includes('africell')) return { bg:'#6A1B9A', bg2:'#4A1170', icon: icoTower('#fff') };
-  if (n.includes('opay')) return { bg:'#00A650', bg2:'#007A3C', icon: icoWallet('#fff') };
-  return { bg:'#5B6472', bg2:'#3B4149', icon: null, label: name[0].toUpperCase() };
+  const n = String(name || '').toLowerCase();
+  for (const [keys, code, bg, bg2, fg, long] of OPERATOR_BRANDS) {
+    if (keys.every(k => n.includes(k))) {
+      return { bg, bg2, code, fg: fg || '#fff', long: !!(long || code.length > 8), slug: operatorSlug(name), dark: fg === '#111', label: code };
+    }
+  }
+  const initials = String(name || '?').replace(/[^A-Za-zÀ-ÿ0-9 ]/g, '').split(' ').filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('') || '?';
+  return { bg: '#475569', bg2: '#334155', code: initials, fg: '#fff', long: false, slug: operatorSlug(name), dark: false, label: initials };
+}
+/* Contenu d'une tuile : logo officiel s'il existe dans /logos, sinon mot-symbole. */
+function badgeInner(badge) {
+  const img = badge.slug ? `<img class="op-logo" src="logos/${badge.slug}.png" alt="" loading="lazy" onerror="this.remove()">` : '';
+  return `<span class="op-mark${badge.long ? ' long' : ''}" style="color:${badge.fg || '#fff'}">${escapeHtml(badge.code || badge.label || '')}</span>${img}`;
 }
 
 let payMethod = "mobile";
@@ -1206,7 +1231,7 @@ function renderPayOperators() {
     const badge = getOperatorBadge(op);
     return `
     <div class="op-card${op === payOperator ? ' active' : ''}" onclick="selectOperator('${op.replace(/'/g,"\\'")}')">
-      <div class="op-icon" style="background:linear-gradient(135deg,${badge.bg},${badge.bg2 || badge.bg})">${badge.icon ? badge.icon : `<span class="op-icon-letter" style="${badge.dark ? 'color:#151515' : 'color:#fff'}">${badge.label}</span>`}</div>
+      <div class="op-icon" style="background:linear-gradient(135deg,${badge.bg},${badge.bg2 || badge.bg})">${badgeInner(badge)}</div>
       <span class="op-name">${op}</span>
     </div>`;
   }).join('');
@@ -1753,6 +1778,11 @@ function updateAuthModalMode() {
   document.getElementById('auth-submit').textContent = isReg ? t('auth_submit_register') : t('auth_submit_login');
   document.getElementById('auth-switch-text').textContent = isReg ? t('auth_switch_to_login') : t('auth_switch_to_register');
   document.getElementById('auth-switch-btn').textContent = isReg ? t('auth_switch_btn_login') : t('auth_switch_btn_register');
+  document.getElementById('auth-forgot-row').classList.toggle('hidden', isReg);
+  const legal = document.getElementById('auth-legal');
+  if (legal) legal.textContent = isReg ? t('auth_legal') : '';
+  const strength = document.getElementById('auth-pw-strength');
+  if (strength) strength.classList.add('hidden');
   hideAuthError();
 }
 function togglePasswordVisibility() {
@@ -1760,7 +1790,57 @@ function togglePasswordVisibility() {
   const btn = document.getElementById('password-toggle-btn');
   const showing = input.type === 'text';
   input.type = showing ? 'password' : 'text';
-  btn.textContent = showing ? t('auth_show_password') : t('auth_hide_password');
+  btn.setAttribute('aria-label', showing ? t('auth_show_password') : t('auth_hide_password'));
+  btn.classList.toggle('pw-visible', !showing);
+}
+/* Barre de robustesse du mot de passe, visible uniquement à l'inscription. */
+function updatePasswordStrength() {
+  const wrap = document.getElementById('auth-pw-strength');
+  const bar = document.getElementById('auth-pw-bar');
+  const hint = document.getElementById('auth-pw-hint');
+  if (!wrap || !bar || !hint) return;
+  const val = document.getElementById('auth-password').value;
+  if (authMode !== 'register' || !val) { wrap.classList.add('hidden'); return; }
+  wrap.classList.remove('hidden');
+  let score = 0;
+  if (val.length >= 6) score++;
+  if (val.length >= 10) score++;
+  if (/[A-Z]/.test(val) && /[a-z]/.test(val)) score++;
+  if (/[0-9]/.test(val) || /[^A-Za-z0-9]/.test(val)) score++;
+  const levels = [
+    { w: '25%',  c: 'var(--red)',    label: t('auth_pw_weak') },
+    { w: '50%',  c: 'var(--red)',    label: t('auth_pw_weak') },
+    { w: '75%',  c: 'var(--accent)', label: t('auth_pw_medium') },
+    { w: '100%', c: '#16a34a',       label: t('auth_pw_strong') }
+  ];
+  const lvl = levels[Math.min(score, levels.length - 1)];
+  bar.style.width = lvl.w;
+  bar.style.background = lvl.c;
+  hint.textContent = lvl.label;
+}
+/* Réinitialisation du mot de passe par email (Firebase Auth). */
+async function forgotPassword() {
+  hideAuthError();
+  const email = document.getElementById('auth-email').value.trim();
+  if (!email) {
+    showAuthError(t('auth_reset_need_email'));
+    return;
+  }
+  if (!fbReady) {
+    showAuthError("Connexion au service indisponible. Vérifie ta connexion internet et réessaie.");
+    return;
+  }
+  setAuthLoading(true);
+  try {
+    await auth.sendPasswordResetEmail(email);
+    const el = document.getElementById('auth-success');
+    if (el) { el.textContent = t('auth_reset_sent'); el.classList.remove('hidden'); }
+  } catch (e) {
+    console.error("Erreur reset password :", e.code, e.message);
+    showAuthError(translateAuthError(e));
+  } finally {
+    setAuthLoading(false);
+  }
 }
 function showAuthError(msg) {
   const el = document.getElementById('auth-error');
@@ -1769,6 +1849,8 @@ function showAuthError(msg) {
 }
 function hideAuthError() {
   document.getElementById('auth-error').classList.add('hidden');
+  const s = document.getElementById('auth-success');
+  if (s) s.classList.add('hidden');
 }
 function setAuthLoading(isLoading) {
   document.getElementById('auth-loading').classList.toggle('hidden', !isLoading);
@@ -2485,18 +2567,16 @@ function renderHeroPayIcons() {
   const el = document.getElementById('hero-pay-icons');
   if (!el) return;
   const items = [
-    { label: 'M-Pesa', badge: getOperatorBadge('M-Pesa') },
+    { label: 'M-Pesa', badge: getOperatorBadge('M-Pesa Vodacom') },
     { label: 'Airtel Money', badge: getOperatorBadge('Airtel Money') },
     { label: 'Orange Money', badge: getOperatorBadge('Orange Money') },
     { label: 'MTN MoMo', badge: getOperatorBadge('MTN MoMo') },
-    { label: 'Bitcoin', badge: { bg:'#F7931A', bg2:'#C9750C', icon:'₿' } },
-    { label: 'USDT', badge: { bg:'#26A17B', bg2:'#1B7A5C', icon:'₮' } }
+    { label: 'Wave', badge: getOperatorBadge('Wave') },
+    { label: 'Bitcoin', badge: { bg:'#F7931A', bg2:'#DB7C0B', code:'₿ BTC', fg:'#fff', slug:'bitcoin' } },
+    { label: 'USDT', badge: { bg:'#26A17B', bg2:'#1E8A69', code:'₮ USDT', fg:'#fff', slug:'usdt' } }
   ];
   el.innerHTML = items.map(it => `
-    <span class="chip">
-      <span class="chip-dot" style="background:linear-gradient(135deg,${it.badge.bg},${it.badge.bg2 || it.badge.bg});${it.badge.dark ? 'color:#151515' : 'color:#fff'}">${it.badge.icon || ''}</span>
-      ${it.label}
-    </span>`).join('');
+    <span class="pay-tile" title="${escapeHtml(it.label)}" role="img" aria-label="${escapeHtml(it.label)}" style="background:linear-gradient(135deg,${it.badge.bg},${it.badge.bg2 || it.badge.bg});color:${it.badge.fg || '#fff'}">${escapeHtml(it.badge.code)}${it.badge.slug ? `<img src="logos/${it.badge.slug}.png" alt="" loading="lazy" onerror="this.remove()">` : ''}</span>`).join('');
 }
 
 /* ================= TUTORIEL / GUIDE D'UTILISATION ================= */
@@ -3718,7 +3798,7 @@ function renderWithdrawOperators() {
     const badge = getOperatorBadge(op);
     return `
     <div class="op-card${op === withdrawOperator ? ' active' : ''}" onclick="selectWithdrawOperator('${op.replace(/'/g, "\\'")}')">
-      <div class="op-icon" style="background:linear-gradient(135deg,${badge.bg},${badge.bg2 || badge.bg})">${badge.icon ? badge.icon : `<span class="op-icon-letter" style="${badge.dark ? 'color:#151515' : 'color:#fff'}">${badge.label}</span>`}</div>
+      <div class="op-icon" style="background:linear-gradient(135deg,${badge.bg},${badge.bg2 || badge.bg})">${badgeInner(badge)}</div>
       <span class="op-name">${op}</span>
     </div>`;
   }).join('');
@@ -6593,7 +6673,7 @@ function printInvoice(invoiceId) {
     <div style="max-width:700px;margin:0 auto;font-family:Arial,sans-serif;color:#161a1f">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px">
         <div>
-          <h1 style="font-size:1.4rem;margin:0 0 4px;color:#1877f2">CoeurNoh Business</h1>
+          <h1 style="font-size:1.4rem;margin:0 0 4px;color:#28374f">CoeurNoh Business</h1>
           <p style="margin:0;font-size:0.85rem;color:#5b6472">${t('invoice_card_title_prefix')} ${escapeHtml(inv.number || '')}</p>
         </div>
         <div style="text-align:right;font-size:0.85rem;color:#5b6472">${escapeHtml(dateLabel)}</div>
