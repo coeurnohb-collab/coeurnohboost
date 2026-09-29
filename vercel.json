@@ -3,6 +3,10 @@
     {
       "path": "/api/check-mtp-balance",
       "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/run-scheduled-broadcasts",
+      "schedule": "0 * * * *"
     }
   ],
   "headers": [

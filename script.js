@@ -3228,7 +3228,7 @@ function renderPostCard(item, isLiked, isSaved, hideFollowBtn) {
       <button class="post-more-btn" onclick="openPostOptionsMenu('${item.id}',true)" title="Options" aria-label="Options de la publication">${ICON_DOTS}</button>
       ` : ''}
     </div>
-    ${item.mediaType === 'text' && item.textBg && item.description ? `<div class="text-post-box" style="background:${textBgCss(item.textBg) || '#1a2436'}">${escapeHtml(item.description)}</div>` : (item.description ? `<p class="post-caption">${escapeHtml(item.description)}</p>` : '')}
+    ${item.mediaType === 'text' && item.textBg && item.description ? `<div class="text-post-box ${textLenClass(item.description)}" style="background:${textBgCss(item.textBg) || '#1a2436'};font-family:${textFontCss(item.textFont)}">${escapeHtml(item.description)}</div>` : (item.description ? `<p class="post-caption">${escapeHtml(item.description)}</p>` : '')}
     ${mediaHtml}
     <div class="post-actions">
       <button class="shop-action-btn ${isLiked ? 'liked' : ''}" data-like-btn="${item.id}" onclick="toggleShopLike('${item.id}')"
@@ -3328,7 +3328,17 @@ async function downloadMedia(url, type) {
   // aucun souci de CORS possible.
   if (url.includes('res.cloudinary.com') && url.includes('/upload/')) {
     const safeName = filename.replace(/\.[^.]+$/, '').replace(/[^a-zA-Z0-9_-]/g, '');
-    const attachmentUrl = url.replace('/upload/', `/upload/fl_attachment:${safeName}/`);
+    // Petit filigrane de marque façon TikTok/Instagram sur les PHOTOS
+    // téléchargées : Cloudinary compose l'incrustation lui-même côté CDN
+    // (aucun fetch ni canvas côté navigateur -- donc aucun des soucis de
+    // CORS qui avaient rendu ce bouton inutilisable avant, voir plus haut).
+    // Les vidéos ne sont pas encore filigranées ici (l'incrustation vidéo
+    // à la volée dépend du plan Cloudinary et ré-encode le fichier, donc
+    // c'est plus lent/coûteux) -- elles se téléchargent telles quelles.
+    const watermark = type === 'video'
+      ? ''
+      : 'l_text:Arial_46_bold:Coeurnoh%2520Universe,co_white,o_70,b_rgb:00000066,g_south_east,x_22,y_22/';
+    const attachmentUrl = url.replace('/upload/', `/upload/${watermark}fl_attachment:${safeName}/`);
     const a = document.createElement('a');
     a.href = attachmentUrl;
     a.rel = 'noopener';
@@ -3534,6 +3544,42 @@ function textBgCss(id) {
 }
 let pendingPostTextBg = null;
 
+// Styles d'écriture proposés pour les publications "texte seul", façon
+// Facebook -- polices professionnelles, déjà chargées par l'app (Sora/Inter)
+// ou disponibles nativement sur tous les téléphones (pas de police externe
+// supplémentaire à charger).
+const TEXT_FONT_PRESETS = [
+  { id: 'sans', css: '"Sora","Inter",system-ui,sans-serif', sample: 'Aa' },
+  { id: 'clean', css: '"Inter",system-ui,sans-serif', sample: 'Aa' },
+  { id: 'serif', css: 'Georgia,"Times New Roman",serif', sample: 'Aa' },
+  { id: 'mono', css: '"Courier New",Courier,monospace', sample: 'Aa' },
+  { id: 'hand', css: '"Segoe Print","Bradley Hand",cursive', sample: 'Aa' }
+];
+let pendingPostTextFont = 'sans';
+function textFontCss(id) {
+  const p = TEXT_FONT_PRESETS.find(x => x.id === id);
+  return p ? p.css : TEXT_FONT_PRESETS[0].css;
+}
+// Longueur du texte -> classe qui réduit la taille de police pour que tout
+// tienne dans le format carré, sans jamais dépasser du cadre.
+function textLenClass(text) {
+  const len = String(text || '').length;
+  if (len > 140) return 'tp-len-l';
+  if (len > 70) return 'tp-len-m';
+  return '';
+}
+
+function renderPostTextFontSwatches() {
+  const el = document.getElementById('post-text-font-swatches');
+  if (!el) return;
+  el.innerHTML = TEXT_FONT_PRESETS.map(p => `<button type="button" class="text-font-swatch${pendingPostTextFont === p.id ? ' active' : ''}" style="font-family:${p.css}" onclick="selectPostTextFont('${p.id}')" aria-label="Police">${p.sample}</button>`).join('');
+}
+function selectPostTextFont(id) {
+  pendingPostTextFont = id;
+  renderPostTextFontSwatches();
+  updatePostTextBgPreview();
+}
+
 function renderPostTextBgSwatches() {
   const el = document.getElementById('post-text-bg-swatches');
   if (!el) return;
@@ -3555,6 +3601,10 @@ function updatePostTextBgPreview() {
   if (type !== 'text' || !pendingPostTextBg) { wrap.classList.add('hidden'); return; }
   wrap.classList.remove('hidden');
   wrap.style.background = textBgCss(pendingPostTextBg);
+  wrap.style.fontFamily = textFontCss(pendingPostTextFont);
+  wrap.classList.remove('tp-len-m', 'tp-len-l');
+  const lenClass = textLenClass(caption.value);
+  if (lenClass) wrap.classList.add(lenClass);
   txt.textContent = caption.value || 'Aa';
 }
 
@@ -3565,6 +3615,7 @@ function openCreatePostForm() {
   document.getElementById('post-media-file').value = '';
   pendingPostMediaFile = null;
   pendingPostTextBg = null;
+  pendingPostTextFont = 'sans';
   resetUploadProgress('post-media');
   togglePostMediaField();
 }
@@ -3588,7 +3639,7 @@ function togglePostMediaField() {
   if (hint) hint.classList.toggle('hidden', type === 'text');
   const bgPicker = document.getElementById('post-text-bg-picker');
   if (bgPicker) bgPicker.classList.toggle('hidden', type !== 'text');
-  if (type === 'text') { renderPostTextBgSwatches(); updatePostTextBgPreview(); }
+  if (type === 'text') { renderPostTextBgSwatches(); renderPostTextFontSwatches(); updatePostTextBgPreview(); }
   updatePostMediaPreview();
 }
 
@@ -3658,6 +3709,7 @@ async function submitCreatePost() {
       imageUrl,
       videoUrl,
       textBg: mediaType === 'text' ? (pendingPostTextBg || null) : null,
+      textFont: mediaType === 'text' ? (pendingPostTextFont || 'sans') : null,
       description: caption,
       sellerUid: currentUser.uid,
       sellerName: currentUser.username || currentUser.name || 'Utilisateur',
@@ -3681,6 +3733,7 @@ async function submitCreatePost() {
     document.getElementById('post-media-file').value = '';
     pendingPostMediaFile = null;
     pendingPostTextBg = null;
+    pendingPostTextFont = 'sans';
     document.getElementById('post-caption').value = '';
     document.getElementById('post-media-preview').innerHTML = '';
     resetUploadProgress('post-media');

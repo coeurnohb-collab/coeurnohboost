@@ -303,6 +303,58 @@
 
       <h3 style="margin-bottom:10px">Annonces envoyées</h3>
       <div id="admin-announcements-list"></div>
+
+      <h2 class="page-title" style="margin-top:32px">Messages programmés (automatiques)</h2>
+      <p class="muted" style="margin-bottom:14px">Écris un message une fois, choisis quand il doit partir, et l'application l'enverra toute seule à tous les utilisateurs — sans que tu aies à revenir ici. Toutes les heures indiquées sont celles de ton téléphone.</p>
+
+      <div class="order-box" style="margin-bottom:20px">
+        <div class="field">
+          <label>Titre</label>
+          <input type="text" id="sched-title" class="text-input" placeholder="Ex: Nouveauté de la semaine">
+        </div>
+        <div class="field">
+          <label>Message</label>
+          <textarea id="sched-body" class="text-input" rows="3" placeholder="Détails du message..."></textarea>
+        </div>
+        <div class="field">
+          <label>Répétition</label>
+          <select id="sched-recurrence" class="text-input" onchange="updateSchedRecurrenceFields()">
+            <option value="once">Une seule fois, à une date précise</option>
+            <option value="interval_hours">Toutes les X heures (ex: 12h, 24h)</option>
+            <option value="weekly">Chaque semaine, tel jour à telle heure</option>
+          </select>
+        </div>
+        <div class="field" id="sched-field-once">
+          <label>Date et heure d'envoi</label>
+          <input type="datetime-local" id="sched-once-at" class="text-input">
+        </div>
+        <div class="field hidden" id="sched-field-interval">
+          <label>Envoyer toutes les combien d'heures ?</label>
+          <input type="number" id="sched-interval-hours" class="text-input" min="1" max="720" value="24">
+          <p class="muted small" style="margin:4px 0 10px">Mets 12 pour deux fois par jour, 24 pour une fois par jour, 168 pour une fois par semaine.</p>
+          <label>Premier envoi à partir de</label>
+          <input type="datetime-local" id="sched-interval-start" class="text-input">
+        </div>
+        <div class="field hidden" id="sched-field-weekly">
+          <label>Jour de la semaine</label>
+          <select id="sched-weekday" class="text-input">
+            <option value="0">Dimanche</option>
+            <option value="1">Lundi</option>
+            <option value="2">Mardi</option>
+            <option value="3">Mercredi</option>
+            <option value="4">Jeudi</option>
+            <option value="5">Vendredi</option>
+            <option value="6">Samedi</option>
+          </select>
+          <label style="margin-top:10px">Heure d'envoi</label>
+          <input type="time" id="sched-weekly-time" class="text-input" value="08:00">
+        </div>
+        <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="createScheduledBroadcast()">🕐 Programmer ce message</button>
+        <p class="muted small" id="sched-form-msg" style="margin-top:8px"></p>
+      </div>
+
+      <h3 style="margin-bottom:10px">Messages programmés en cours</h3>
+      <div id="admin-scheduled-list"></div>
     </div>
 
   </div>

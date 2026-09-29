@@ -255,7 +255,7 @@ function showAdminTab(tab) {
   if (tab === 'withdrawals') loadWithdrawalsAdmin();
   if (tab === 'domains') loadDomainsAdmin();
   if (tab === 'reports') loadReportsAdmin();
-  if (tab === 'announcements') loadAnnouncementsAdmin();
+  if (tab === 'announcements') { loadAnnouncementsAdmin(); loadScheduledBroadcastsAdmin(); updateSchedRecurrenceFields(); }
   if (tab === 'users') loadUsersAdmin();
   if (tab === 'automation') { loadAutomationStatus(); loadServiceMapAdmin(); }
 }
@@ -1750,6 +1750,132 @@ async function deleteAnnouncement(id) {
   try {
     await db.collection('announcements').doc(id).delete();
     loadAnnouncementsAdmin();
+  } catch (e) {
+    alert("Erreur : " + e.message);
+  }
+}
+
+/* =========================================================
+   MESSAGES PROGRAMMÉS (envoi automatique récurrent)
+   Collection Firestore "scheduled_broadcasts" — un cron Vercel
+   (api/run-scheduled-broadcasts.js) vérifie régulièrement ce qui est dû
+   et envoie tout seul, même si l'admin n'est pas connecté.
+   ========================================================= */
+const SCHED_WEEKDAY_LABELS = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+
+function updateSchedRecurrenceFields() {
+  const mode = document.getElementById('sched-recurrence').value;
+  document.getElementById('sched-field-once').classList.toggle('hidden', mode !== 'once');
+  document.getElementById('sched-field-interval').classList.toggle('hidden', mode !== 'interval_hours');
+  document.getElementById('sched-field-weekly').classList.toggle('hidden', mode !== 'weekly');
+}
+
+// Prochaine occurrence d'un jour de semaine + heure donnés, à partir de
+// maintenant (ex: "chaque dimanche à 8h" -> le prochain dimanche 8h).
+function computeNextWeeklyLocal(weekday, timeOfDay) {
+  const [hh, mm] = String(timeOfDay || '08:00').split(':').map(n => parseInt(n, 10) || 0);
+  const now = new Date();
+  const next = new Date(now.getTime());
+  next.setHours(hh, mm, 0, 0);
+  let diff = (weekday - next.getDay() + 7) % 7;
+  if (diff === 0 && next.getTime() <= now.getTime()) diff = 7;
+  next.setDate(next.getDate() + diff);
+  return next;
+}
+
+async function createScheduledBroadcast() {
+  const msgEl = document.getElementById('sched-form-msg');
+  msgEl.textContent = '';
+  const title = document.getElementById('sched-title').value.trim();
+  const body = document.getElementById('sched-body').value.trim();
+  const recurrence = document.getElementById('sched-recurrence').value;
+  if (!title || !body) { msgEl.textContent = "Merci de remplir le titre et le message."; return; }
+
+  let nextSendAt = null;
+  const payload = { title, body, recurrence, active: true, sentCount: 0, lastSentAt: null, createdBy: ADMIN_UID, createdAt: new Date().toISOString() };
+
+  if (recurrence === 'once') {
+    const raw = document.getElementById('sched-once-at').value;
+    if (!raw) { msgEl.textContent = "Choisis une date et une heure d'envoi."; return; }
+    nextSendAt = new Date(raw);
+  } else if (recurrence === 'interval_hours') {
+    const hours = Math.max(1, parseInt(document.getElementById('sched-interval-hours').value, 10) || 24);
+    const rawStart = document.getElementById('sched-interval-start').value;
+    if (!rawStart) { msgEl.textContent = "Indique à partir de quand le premier envoi doit partir."; return; }
+    nextSendAt = new Date(rawStart);
+    payload.intervalHours = hours;
+  } else if (recurrence === 'weekly') {
+    const weekday = parseInt(document.getElementById('sched-weekday').value, 10);
+    const timeOfDay = document.getElementById('sched-weekly-time').value || '08:00';
+    nextSendAt = computeNextWeeklyLocal(weekday, timeOfDay);
+    payload.weekday = weekday;
+    payload.timeOfDay = timeOfDay;
+  }
+  if (!nextSendAt || isNaN(nextSendAt.getTime())) { msgEl.textContent = "Date invalide."; return; }
+  payload.nextSendAt = nextSendAt.toISOString();
+
+  try {
+    await db.collection('scheduled_broadcasts').add(payload);
+    document.getElementById('sched-title').value = '';
+    document.getElementById('sched-body').value = '';
+    msgEl.textContent = '✅ Message programmé.';
+    loadScheduledBroadcastsAdmin();
+  } catch (e) {
+    msgEl.textContent = "Erreur : " + e.message;
+  }
+}
+
+function schedRecurrenceLabel(d) {
+  if (d.recurrence === 'once') return 'Une seule fois';
+  if (d.recurrence === 'interval_hours') return `Toutes les ${d.intervalHours || 24} h`;
+  if (d.recurrence === 'weekly') return `Chaque ${SCHED_WEEKDAY_LABELS[d.weekday] || ''} à ${d.timeOfDay || ''}`;
+  return d.recurrence || '';
+}
+
+async function loadScheduledBroadcastsAdmin() {
+  const el = document.getElementById('admin-scheduled-list');
+  el.innerHTML = `<p class="admin-empty">Chargement...</p>`;
+  try {
+    const snap = await db.collection('scheduled_broadcasts').orderBy('createdAt', 'desc').limit(100).get();
+    if (snap.empty) { el.innerHTML = `<p class="admin-empty">Aucun message programmé pour l'instant.</p>`; return; }
+    el.innerHTML = snap.docs.map(doc => {
+      const d = doc.data();
+      const next = d.nextSendAt ? new Date(d.nextSendAt).toLocaleString('fr-FR') : '—';
+      const last = d.lastSentAt ? new Date(d.lastSentAt).toLocaleString('fr-FR') : 'Jamais encore envoyé';
+      return `
+      <div class="admin-row">
+        <div class="admin-row-top">
+          <div>
+            <div class="admin-row-title">${escapeHtml(d.title)} ${d.active ? '' : '<span class="muted small">(en pause)</span>'}</div>
+            <div class="admin-row-meta">${escapeHtml(d.body)}</div>
+            <div class="admin-row-meta">🔁 ${escapeHtml(schedRecurrenceLabel(d))} · Prochain envoi : ${next} · Envoyé ${d.sentCount || 0} fois · Dernier envoi : ${last}</div>
+          </div>
+        </div>
+        <div class="admin-row-actions">
+          <button class="btn btn-outline btn-sm" onclick="toggleScheduledBroadcast('${doc.id}', ${!d.active})">${d.active ? '⏸️ Mettre en pause' : '▶️ Réactiver'}</button>
+          <button class="btn btn-outline btn-sm" onclick="deleteScheduledBroadcast('${doc.id}')">🗑️ Supprimer</button>
+        </div>
+      </div>`;
+    }).join('');
+  } catch (e) {
+    el.innerHTML = `<p class="admin-empty">Erreur : ${e.message}</p>`;
+  }
+}
+
+async function toggleScheduledBroadcast(id, active) {
+  try {
+    await db.collection('scheduled_broadcasts').doc(id).update({ active });
+    loadScheduledBroadcastsAdmin();
+  } catch (e) {
+    alert("Erreur : " + e.message);
+  }
+}
+
+async function deleteScheduledBroadcast(id) {
+  if (!confirm("Supprimer ce message programmé ?")) return;
+  try {
+    await db.collection('scheduled_broadcasts').doc(id).delete();
+    loadScheduledBroadcastsAdmin();
   } catch (e) {
     alert("Erreur : " + e.message);
   }

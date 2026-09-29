@@ -391,6 +391,8 @@
     tool_fx_d: ['USD, CDF, FCFA, EUR… taux du jour', 'USD, CDF, XOF, EUR… daily rates', 'USD, CDF, XOF, EUR… tasas del día', 'USD, CDF, XOF, EUR… tassi del giorno', 'USD, CDF, XOF, EUR… taxas do dia'],
     tool_meme: ["Générateur d'affiches", 'Poster generator', 'Generador de carteles', 'Generatore di poster', 'Gerador de cartazes'],
     tool_meme_d: ['Texte stylé sur fond noir ou sur ta photo', 'Styled text on black or on your photo', 'Texto con estilo en negro o en tu foto', 'Testo in stile su nero o sulla tua foto', 'Texto estilizado em preto ou na sua foto'],
+    tool_mockup: ['Mockups produits', 'Product mockups', 'Mockups de producto', 'Mockup di prodotto', 'Mockups de produto'],
+    tool_mockup_d: ['Montre tes produits sur des modèles (t-shirts, emballages)', 'Show your products on models (t-shirts, packaging)', 'Muestra tus productos en modelos (camisetas, empaques)', 'Mostra i tuoi prodotti su modelli (t-shirt, imballaggi)', 'Mostre seus produtos em modelos (camisetas, embalagens)'],
     tool_hash: ['Générateur de hashtags', 'Hashtag generator', 'Generador de hashtags', 'Generatore di hashtag', 'Gerador de hashtags'],
     tool_hash_d: ['Hashtags prêts à copier pour ta niche', 'Ready-to-copy hashtags for your niche', 'Hashtags listos para copiar', 'Hashtag pronti da copiare', 'Hashtags prontas para copiar'],
 
@@ -460,6 +462,15 @@
     meme_empty: ['Écris ton texte pour générer l\'affiche.', 'Type your text to generate the poster.', 'Escribe tu texto para generar el cartel.', 'Scrivi il tuo testo per generare il poster.', 'Escreva seu texto para gerar o cartaz.'],
     meme_photo_required: ['Choisis une photo pour ce mode.', 'Choose a photo for this mode.', 'Elige una foto para este modo.', 'Scegli una foto per questa modalità.', 'Escolha uma foto para este modo.'],
     meme_dl_name: ['affiche', 'poster', 'cartel', 'poster', 'cartaz'],
+
+    mockup_product: ['Produit', 'Product', 'Producto', 'Prodotto', 'Produto'],
+    mockup_tshirt: ['T-shirt', 'T-shirt', 'Camiseta', 'T-shirt', 'Camiseta'],
+    mockup_box: ['Emballage / pochette', 'Packaging / pouch', 'Empaque / bolsa', 'Imballaggio / busta', 'Embalagem / bolsa'],
+    mockup_color: ['Couleur du produit', 'Product color', 'Color del producto', 'Colore del prodotto', 'Cor do produto'],
+    mockup_choose_design: ['Choisir ton design / logo', 'Choose your design / logo', 'Elegir tu diseño / logo', 'Scegli il tuo design / logo', 'Escolher seu design / logo'],
+    mockup_change_design: ['Changer le design', 'Change design', 'Cambiar diseño', 'Cambia design', 'Trocar design'],
+    mockup_empty: ['Choisis un design pour voir le mockup.', 'Choose a design to see the mockup.', 'Elige un diseño para ver el mockup.', 'Scegli un design per vedere il mockup.', 'Escolha um design para ver o mockup.'],
+    mockup_dl_name: ['mockup', 'mockup', 'mockup', 'mockup', 'mockup'],
 
     pl_intro: ['Tout ce qui est essentiel reste gratuit. Passe à un plan payant seulement quand ton activité grandit.', 'Everything essential stays free. Upgrade only when your activity grows.', 'Lo esencial sigue siendo gratis. Mejora solo cuando tu actividad crezca.', "L'essenziale resta gratis. Passa a un piano a pagamento solo quando la tua attività cresce.", 'O essencial continua grátis. Faça upgrade só quando sua atividade crescer.'],
     pl_free: ['Gratuit pour tous', 'Free for everyone', 'Gratis para todos', 'Gratis per tutti', 'Grátis para todos'],
@@ -545,6 +556,7 @@
     help: '<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 2-3 4"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
     chat: '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>',
     meme: '<rect x="3" y="3" width="18" height="18" rx="2.5"/><rect x="6.5" y="7.6" width="11" height="3.1" rx="1" fill="#1a1a1a" stroke="none"/><rect x="6.5" y="13.3" width="7" height="3.1" rx="1" fill="#1a1a1a" stroke="none"/>',
+    mockup: '<path d="M9 3 5 6l2 4 2-1.4V21h6V8.6L17 10l2-4-4-3q-1.6 2-3 2t-3-2Z"/>',
     info: '<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>',
     share: '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>',
     globe2: '<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10Z"/>',
@@ -596,6 +608,7 @@
     { id: 't_font', grp: 'tool', lk: 'tool_font', dk: 'tool_font_d', ic: 'type', c: ['#f06595', '#c2255c'], b: 'new', tool: 'font', kw: 'texte style police bio gras cursif font fancy instagram tiktok' },
     { id: 't_fx', grp: 'tool', lk: 'tool_fx', dk: 'tool_fx_d', ic: 'exchange', c: ['#15aabf', '#0b7285'], b: 'new', tool: 'fx', kw: 'devise change taux dollar franc cdf fcfa euro currency exchange convert' },
     { id: 't_meme', grp: 'tool', lk: 'tool_meme', dk: 'tool_meme_d', ic: 'meme', c: ['#ffd43b', '#f2b600'], b: 'new', tool: 'meme', kw: 'affiche citation texte image meme generateur photo jaune noir poster quote' },
+    { id: 't_mockup', grp: 'tool', lk: 'tool_mockup', dk: 'tool_mockup_d', ic: 'mockup', c: ['#6c5ce7', '#4b3fb0'], b: 'new', tool: 'mockup', kw: 'mockup produit t-shirt tshirt emballage packaging design vetement pochette sachet' },
     { id: 't_hash', grp: 'tool', lk: 'tool_hash', dk: 'tool_hash_d', ic: 'hash', c: ['#7950f2', '#5f3dc4'], b: 'new', tool: 'hash', kw: 'hashtag tags tiktok instagram viral' },
 
     // ---- Accès rapides de l'application ----
@@ -988,7 +1001,7 @@
     else fallback();
   }
 
-  var TOOL_TITLE = { qr: 'tool_qr', wa: 'tool_wa', font: 'tool_font', fx: 'tool_fx', meme: 'tool_meme', hash: 'tool_hash' };
+  var TOOL_TITLE = { qr: 'tool_qr', wa: 'tool_wa', font: 'tool_font', fx: 'tool_fx', meme: 'tool_meme', mockup: 'tool_mockup', hash: 'tool_hash' };
   var pendingQrText = '';
 
   function openTool(id) {
@@ -998,7 +1011,7 @@
     var title = $('mp-tool-title'); if (title) title.textContent = L(TOOL_TITLE[id] || 'tools_title');
     var body = $('mp-tool-body');
     body.innerHTML = '';
-    var builders = { qr: buildQr, wa: buildWa, font: buildFont, fx: buildFx, meme: buildMeme, hash: buildHash };
+    var builders = { qr: buildQr, wa: buildWa, font: buildFont, fx: buildFx, meme: buildMeme, mockup: buildMockup, hash: buildHash };
     try { if (builders[id]) builders[id](body); }
     catch (e) { console.warn('[menu-pro] outil', id, e); body.innerHTML = '<div class="mp-empty">' + esc(L('unavailable')) + '</div>'; }
     var panel = document.querySelector('#main-menu-modal .main-menu-panel');
@@ -1236,6 +1249,24 @@
     return lines;
   }
   function memeWatermark(ctx, W, H) {
+    // Petit filigrane de marque en bas à droite, façon TikTok/Instagram :
+    // le vrai logo Coeurnoh Universe (sans "Multi Services"), discret mais
+    // lisible. Si l'image n'est pas encore chargée (très rare -- elle est
+    // préchargée dès l'ouverture de l'app), on se rabat sur le texte plutôt
+    // que de ne rien afficher du tout.
+    var pad = Math.round(W * 0.025);
+    if (memeLogoImg) {
+      var logoW = Math.max(70, Math.round(W * 0.16));
+      var logoH = Math.round(logoW * (memeLogoImg.naturalHeight / memeLogoImg.naturalWidth || 0.57));
+      var x = W - logoW - pad, y = H - logoH - pad;
+      ctx.save();
+      ctx.globalAlpha = 0.85;
+      ctx.shadowColor = 'rgba(0,0,0,.35)';
+      ctx.shadowBlur = Math.round(W * 0.01);
+      ctx.drawImage(memeLogoImg, x, y, logoW, logoH);
+      ctx.restore();
+      return;
+    }
     var fs = Math.max(14, Math.round(W * 0.022));
     ctx.save();
     ctx.font = '600 ' + fs + 'px Inter, Arial, sans-serif';
@@ -1243,19 +1274,26 @@
     var tw = ctx.measureText(label).width;
     var padX = Math.round(fs * 0.7), padY = Math.round(fs * 0.45);
     var pillW = tw + padX * 2, pillH = fs + padY * 2;
-    var x = W - pillW - Math.round(W * 0.025), y = H - pillH - Math.round(W * 0.025);
+    var x2 = W - pillW - pad, y2 = H - pillH - pad;
     ctx.globalAlpha = 0.32;
     ctx.fillStyle = '#000000';
-    roundRectPath(ctx, x, y, pillW, pillH, pillH / 2);
+    roundRectPath(ctx, x2, y2, pillW, pillH, pillH / 2);
     ctx.fill();
     ctx.globalAlpha = 0.62;
     ctx.fillStyle = '#ffffff';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(label, x + pillW / 2, y + pillH / 2 + fs * 0.02);
+    ctx.fillText(label, x2 + pillW / 2, y2 + pillH / 2 + fs * 0.02);
     ctx.restore();
   }
   var MEME_W = 1080;
+  var MEME_LOGO_SRC = 'logo-mark.png';
+  var memeLogoImg = null;
+  (function preloadMemeLogo() {
+    var img = new Image();
+    img.onload = function () { memeLogoImg = img; };
+    img.src = MEME_LOGO_SRC;
+  })();
   function buildMeme(body) {
     var state = { mode: 'text', bg: '#0b0b0d', hi: '#ffe100', fg: '#111111', photoFile: null, photoImg: null };
     var ready = false;
@@ -1438,6 +1476,173 @@
       if (document.fonts && document.fonts.ready) {
         document.fonts.ready.then(function () { draw(); }).catch(function () {});
       }
+    }
+    render();
+  }
+
+  /* ---------- Mockups produits (t-shirt / emballage) ----------
+     Silhouettes dessinées au vecteur (canvas) -- pas de vraies photos de
+     produits disponibles ici, donc rendu "mockup plat" propre plutôt que
+     photoréaliste : couleur de produit au choix + design de l'utilisateur
+     posé dessus, avec le même filigrane de marque que le générateur
+     d'affiches. */
+  function buildMockup(body) {
+    var state = { product: 'tshirt', color: '#1a2436', designFile: null, designImg: null };
+    var ready = false;
+
+    function drawTshirt(ctx, W, H, color) {
+      var cx = W / 2;
+      // Points normalises (0..1) d'un t-shirt simple, vu de face.
+      var pts = [
+        [0.5, 0.10], [0.585, 0.115], [0.70, 0.145], [0.90, 0.205],
+        [0.845, 0.395], [0.715, 0.315], [0.715, 0.90], [0.285, 0.90],
+        [0.285, 0.315], [0.155, 0.395], [0.10, 0.205], [0.30, 0.145],
+        [0.415, 0.115]
+      ];
+      ctx.beginPath();
+      pts.forEach(function (p, i) {
+        var x = p[0] * W, y = p[1] * H;
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      });
+      ctx.closePath();
+      ctx.fillStyle = color;
+      ctx.fill();
+      // Ombre douce interieure pour un peu de relief (plis simples).
+      var grad = ctx.createLinearGradient(0, H * 0.1, 0, H * 0.95);
+      grad.addColorStop(0, 'rgba(255,255,255,.10)');
+      grad.addColorStop(0.5, 'rgba(0,0,0,0)');
+      grad.addColorStop(1, 'rgba(0,0,0,.12)');
+      ctx.fillStyle = grad;
+      ctx.fill();
+      // Col.
+      ctx.beginPath();
+      ctx.ellipse(cx, H * 0.125, W * 0.085, H * 0.03, 0, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(0,0,0,.16)';
+      ctx.fill();
+      // Zone d'impression (repere pour le design).
+      return { x: W * 0.5, y: H * 0.46, w: W * 0.34, h: H * 0.34 };
+    }
+
+    function drawBox(ctx, W, H, color) {
+      var pad = W * 0.16;
+      var top = H * 0.10, bottom = H * 0.90;
+      var leftTop = pad, rightTop = W - pad;
+      var leftBottom = pad * 0.7, rightBottom = W - pad * 0.7;
+      ctx.beginPath();
+      ctx.moveTo(leftTop, top);
+      ctx.lineTo(rightTop, top);
+      ctx.lineTo(rightBottom, bottom);
+      ctx.lineTo(leftBottom, bottom);
+      ctx.closePath();
+      ctx.fillStyle = color;
+      ctx.fill();
+      var grad = ctx.createLinearGradient(leftTop, 0, rightTop, 0);
+      grad.addColorStop(0, 'rgba(0,0,0,.14)');
+      grad.addColorStop(0.5, 'rgba(255,255,255,.10)');
+      grad.addColorStop(1, 'rgba(0,0,0,.14)');
+      ctx.fillStyle = grad;
+      ctx.fill();
+      // Ligne de fermeture (zip/soudure) en haut de la pochette.
+      ctx.fillStyle = 'rgba(0,0,0,.18)';
+      ctx.fillRect(leftTop + 6, top, (rightTop - leftTop) - 12, H * 0.03);
+      return { x: W * 0.5, y: (top + bottom) / 2 + H * 0.02, w: (rightTop - leftTop) * 0.62, h: (bottom - top) * 0.5 };
+    }
+
+    function draw() {
+      var canvas = $('mp-mockup-canvas'); if (!canvas) return;
+      var ctx = canvas.getContext('2d');
+      var msg = $('mp-mockup-msg');
+      canvas.width = 1080; canvas.height = 1080;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#eef0f4';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      var zone = state.product === 'tshirt'
+        ? drawTshirt(ctx, canvas.width, canvas.height, state.color)
+        : drawBox(ctx, canvas.width, canvas.height, state.color);
+      if (!state.designImg) {
+        if (msg) msg.textContent = L('mockup_empty');
+        ready = true; // le produit seul reste telechargeable
+        memeWatermark(ctx, canvas.width, canvas.height);
+        return;
+      }
+      if (msg) msg.textContent = '';
+      var img = state.designImg;
+      var ratio = Math.min(zone.w / img.naturalWidth, zone.h / img.naturalHeight);
+      var dw = img.naturalWidth * ratio, dh = img.naturalHeight * ratio;
+      ctx.save();
+      ctx.globalAlpha = 0.96;
+      ctx.drawImage(img, zone.x - dw / 2, zone.y - dh / 2, dw, dh);
+      ctx.restore();
+      memeWatermark(ctx, canvas.width, canvas.height);
+      ready = true;
+    }
+
+    function wire() {
+      var productSel = $('mp-mockup-product');
+      if (productSel) productSel.addEventListener('change', function () { state.product = productSel.value; draw(); });
+      var colorInput = $('mp-mockup-color');
+      if (colorInput) colorInput.addEventListener('input', function () { state.color = colorInput.value; draw(); });
+      var fileInput = $('mp-mockup-design');
+      if (fileInput) fileInput.addEventListener('change', function (ev) {
+        var f = ev.target.files && ev.target.files[0];
+        if (!f) return;
+        state.designFile = f;
+        var img = new Image();
+        img.onload = function () { state.designImg = img; draw(); };
+        img.src = URL.createObjectURL(f);
+        var lblTxt = $('mp-mockup-design-text'); if (lblTxt) lblTxt.textContent = '✅ ' + f.name;
+        var lblWrap = $('mp-mockup-design-label'); if (lblWrap) lblWrap.classList.add('has-file');
+      });
+      var dl = $('mp-mockup-dl');
+      if (dl) dl.addEventListener('click', function () {
+        if (!ready) return;
+        var canvas = $('mp-mockup-canvas');
+        canvas.toBlob(function (blob) {
+          if (!blob) return;
+          var a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = 'coeurnoh-universe-' + (L('mockup_dl_name') || 'mockup') + '-' + Date.now() + '.png';
+          document.body.appendChild(a); a.click(); a.remove();
+          setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+        }, 'image/png');
+      });
+      var sh = $('mp-mockup-share');
+      if (sh) sh.addEventListener('click', function () {
+        if (!ready) return;
+        var canvas = $('mp-mockup-canvas');
+        canvas.toBlob(function (blob) {
+          if (!blob) return;
+          var file = null;
+          try { file = new File([blob], 'coeurnoh-universe-mockup.png', { type: 'image/png' }); } catch (e) { /* ignore */ }
+          if (file && navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
+            navigator.share({ files: [file] }).catch(function () { /* annulé */ });
+          } else if (navigator.share) {
+            navigator.share({ title: 'Coeurnoh Universe' }).catch(function () { /* annulé */ });
+          } else toast(L('unavailable'));
+        }, 'image/png');
+      });
+    }
+
+    function render() {
+      body.innerHTML =
+        '<div class="mp-field"><label for="mp-mockup-product">' + esc(L('mockup_product')) + '</label>' +
+        '<select id="mp-mockup-product" class="text-input">' +
+          '<option value="tshirt"' + (state.product === 'tshirt' ? ' selected' : '') + '>' + esc(L('mockup_tshirt')) + '</option>' +
+          '<option value="box"' + (state.product === 'box' ? ' selected' : '') + '>' + esc(L('mockup_box')) + '</option>' +
+        '</select></div>' +
+        '<div class="mp-field"><label class="mp-color"><input type="color" id="mp-mockup-color" value="' + state.color + '"><span>' + esc(L('mockup_color')) + '</span></label></div>' +
+        '<div class="mp-field"><label for="mp-mockup-design">' + esc(L('mockup_choose_design')) + '</label>' +
+          '<input type="file" id="mp-mockup-design" class="file-input-hidden" accept="image/*">' +
+          '<label for="mp-mockup-design" class="file-picker-btn' + (state.designFile ? ' has-file' : '') + '" id="mp-mockup-design-label">' +
+            '<span class="file-picker-icon">🎨</span><span class="file-picker-text" id="mp-mockup-design-text">' + esc(state.designFile ? ('✅ ' + state.designFile.name) : L('mockup_choose_design')) + '</span>' +
+          '</label>' +
+        '</div>' +
+        '<div class="mp-qr-stage mp-meme-stage"><canvas id="mp-mockup-canvas" width="1080" height="1080"></canvas></div>' +
+        '<p class="mp-hint err" id="mp-mockup-msg"></p>' +
+        '<div class="mp-actions"><button type="button" class="btn btn-primary" id="mp-mockup-dl">' + svg('download', 16) + ' ' + esc(L('download')) + '</button>' +
+        '<button type="button" class="btn btn-outline" id="mp-mockup-share">' + svg('share', 16) + ' ' + esc(L('share')) + '</button></div>';
+      wire();
+      draw();
     }
     render();
   }
