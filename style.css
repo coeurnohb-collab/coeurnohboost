@@ -1628,6 +1628,22 @@ a{text-decoration:none;color:inherit}
 /* =====================================================================
    COEURNOH UNIVERSE — REFONTE PRO (typographie, badges, connexion)
    ===================================================================== */
+/* Palette "app" (après connexion) : bleu façon Facebook, comme demandé —
+   la vitrine publique (avant connexion, view-home + modale de connexion)
+   garde elle la palette ardoise/orange ci-dessus, inchangée. body.app-mode
+   est ajoutée/retirée par hideAllViews()/showHome() dans script.js. */
+body.app-mode{
+  --green:#1877f2;
+  --green-dark:#145dbf;
+  --green-light:#e7f0fe;
+  --green-dark-text:#145dbf;
+}
+html[data-theme="dark"] body.app-mode{
+  --green:#4e95ff;
+  --green-dark:#2f7ae0;
+  --green-light:#132840;
+  --green-dark-text:#4e95ff;
+}
 html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
 body{font-feature-settings:"cv11","ss01";text-rendering:optimizeLegibility}
 ::selection{background:rgba(243,156,31,.28)}
@@ -1711,3 +1727,16 @@ html[data-theme="dark"] #nav{background:rgba(27,31,38,.86)}
   .auth-hero{padding-top:70px}
 }
 @media(prefers-reduced-motion:reduce){.auth-modal #auth-submit::after{transition:none}}
+
+/* --- Publication "texte seul" avec arrière-plan coloré (façon Facebook) --- */
+.text-bg-swatches{display:flex;flex-wrap:wrap;gap:10px}
+.text-bg-swatch{width:36px;height:36px;border-radius:50%;border:2px solid var(--line);cursor:pointer;padding:0;box-shadow:0 2px 6px rgba(0,0,0,.12)}
+.text-bg-swatch.active{border-color:var(--ink);box-shadow:0 0 0 3px rgba(243,156,31,.3)}
+.text-bg-swatch-plain{background:var(--cream);color:var(--ink);font-weight:800;font-size:.85rem;display:flex;align-items:center;justify-content:center}
+.text-post-preview,.text-post-box{
+  min-height:150px;border-radius:16px;display:flex;align-items:center;justify-content:center;text-align:center;
+  padding:24px;color:#fff;font-weight:800;font-size:1.35rem;line-height:1.35;word-break:break-word;
+  font-family:var(--font-head);text-shadow:0 1px 3px rgba(0,0,0,.18);
+}
+.text-post-preview{margin-top:12px}
+.text-post-box{margin:10px 0}

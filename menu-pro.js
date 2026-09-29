@@ -389,8 +389,8 @@
     tool_font_d: ['Gras, cursif, bulles… pour TikTok, Instagram', 'Bold, script, bubbles… for TikTok, Instagram', 'Negrita, cursiva, burbujas… para TikTok, Instagram', 'Grassetto, corsivo, bolle… per TikTok, Instagram', 'Negrito, cursivo, bolhas… para TikTok, Instagram'],
     tool_fx: ['Convertisseur de devises', 'Currency converter', 'Conversor de divisas', 'Convertitore di valuta', 'Conversor de moedas'],
     tool_fx_d: ['USD, CDF, FCFA, EUR… taux du jour', 'USD, CDF, XOF, EUR… daily rates', 'USD, CDF, XOF, EUR… tasas del día', 'USD, CDF, XOF, EUR… tassi del giorno', 'USD, CDF, XOF, EUR… taxas do dia'],
-    tool_price: ['Calculateur de prix & marge', 'Price & margin calculator', 'Calculadora de precio y margen', 'Calcolatore di prezzo e margine', 'Calculadora de preço e margem'],
-    tool_price_d: ["Fixe ton prix sans perdre d'argent", 'Set your price without losing money', 'Fija tu precio sin perder dinero', 'Fissa il prezzo senza perdere soldi', 'Defina o preço sem perder dinheiro'],
+    tool_meme: ["Générateur d'affiches", 'Poster generator', 'Generador de carteles', 'Generatore di poster', 'Gerador de cartazes'],
+    tool_meme_d: ['Texte stylé sur fond noir ou sur ta photo', 'Styled text on black or on your photo', 'Texto con estilo en negro o en tu foto', 'Testo in stile su nero o sulla tua foto', 'Texto estilizado em preto ou na sua foto'],
     tool_hash: ['Générateur de hashtags', 'Hashtag generator', 'Generador de hashtags', 'Generatore di hashtag', 'Gerador de hashtags'],
     tool_hash_d: ['Hashtags prêts à copier pour ta niche', 'Ready-to-copy hashtags for your niche', 'Hashtags listos para copiar', 'Hashtag pronti da copiare', 'Hashtags prontas para copiar'],
 
@@ -444,6 +444,22 @@
     n_faith: ['Foi', 'Faith', 'Fe', 'Fede', 'Fé'],
     n_humor: ['Humour', 'Humor', 'Humor', 'Umorismo', 'Humor'],
     n_tech: ['Tech', 'Tech', 'Tecnología', 'Tecnologia', 'Tecnologia'],
+
+    meme_mode: ['Style', 'Style', 'Estilo', 'Stile', 'Estilo'],
+    meme_mode_text: ['Fond coloré', 'Colored background', 'Fondo de color', 'Sfondo colorato', 'Fundo colorido'],
+    meme_mode_photo: ['Sur une photo', 'On a photo', 'Sobre una foto', 'Su una foto', 'Sobre uma foto'],
+    meme_text_label: ['Ton texte — une ligne = un bloc surligné', 'Your text — one line = one highlighted block', 'Tu texto — una línea = un bloque resaltado', 'Il tuo testo — una riga = un blocco evidenziato', 'Seu texto — uma linha = um bloco destacado'],
+    meme_text_ph: ['Des fois je ne\nt\'écris pas\nokanisi sabotage', 'Sometimes I don\'t\nwrite to you\nit\'s not sabotage', 'A veces no\nte escribo\nno es sabotaje', 'A volte non\nti scrivo\nnon è sabotaggio', 'Às vezes eu não\nte escrevo\nnão é sabotagem'],
+    meme_banner_label: ['Texte de la bannière (haut de l\'image)', 'Banner text (top of the image)', 'Texto del banner (arriba de la imagen)', 'Testo del banner (in alto nell\'immagine)', 'Texto do banner (topo da imagem)'],
+    meme_banner_ph: ['Ce que nous traversons après…', 'What we go through after…', 'Lo que pasamos después de…', 'Quello che affrontiamo dopo…', 'O que passamos depois…'],
+    meme_bg_color: ['Fond', 'Background', 'Fondo', 'Sfondo', 'Fundo'],
+    meme_highlight_color: ['Surlignage', 'Highlight', 'Resaltado', 'Evidenziazione', 'Destaque'],
+    meme_text_color: ['Texte', 'Text', 'Texto', 'Testo', 'Texto'],
+    meme_choose_photo: ['Choisir une photo', 'Choose a photo', 'Elegir una foto', 'Scegli una foto', 'Escolher uma foto'],
+    meme_change_photo: ['Changer la photo', 'Change photo', 'Cambiar foto', 'Cambia foto', 'Trocar foto'],
+    meme_empty: ['Écris ton texte pour générer l\'affiche.', 'Type your text to generate the poster.', 'Escribe tu texto para generar el cartel.', 'Scrivi il tuo testo per generare il poster.', 'Escreva seu texto para gerar o cartaz.'],
+    meme_photo_required: ['Choisis une photo pour ce mode.', 'Choose a photo for this mode.', 'Elige una foto para este modo.', 'Scegli una foto per questa modalità.', 'Escolha uma foto para este modo.'],
+    meme_dl_name: ['affiche', 'poster', 'cartel', 'poster', 'cartaz'],
 
     pl_intro: ['Tout ce qui est essentiel reste gratuit. Passe à un plan payant seulement quand ton activité grandit.', 'Everything essential stays free. Upgrade only when your activity grows.', 'Lo esencial sigue siendo gratis. Mejora solo cuando tu actividad crezca.', "L'essenziale resta gratis. Passa a un piano a pagamento solo quando la tua attività cresce.", 'O essencial continua grátis. Faça upgrade só quando sua atividade crescer.'],
     pl_free: ['Gratuit pour tous', 'Free for everyone', 'Gratis para todos', 'Gratis per tutti', 'Grátis para todos'],
@@ -528,6 +544,7 @@
     ban: '<circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>',
     help: '<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 2-3 4"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
     chat: '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>',
+    meme: '<rect x="3" y="3" width="18" height="18" rx="2.5"/><rect x="6.5" y="7.6" width="11" height="3.1" rx="1" fill="#1a1a1a" stroke="none"/><rect x="6.5" y="13.3" width="7" height="3.1" rx="1" fill="#1a1a1a" stroke="none"/>',
     info: '<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>',
     share: '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>',
     globe2: '<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10Z"/>',
@@ -578,7 +595,7 @@
     { id: 't_wa', grp: 'tool', lk: 'tool_wa', dk: 'tool_wa_d', ic: 'chat', c: ['#40c057', '#2b8a3e'], b: 'new', tool: 'wa', kw: 'whatsapp wa.me contact message lien' },
     { id: 't_font', grp: 'tool', lk: 'tool_font', dk: 'tool_font_d', ic: 'type', c: ['#f06595', '#c2255c'], b: 'new', tool: 'font', kw: 'texte style police bio gras cursif font fancy instagram tiktok' },
     { id: 't_fx', grp: 'tool', lk: 'tool_fx', dk: 'tool_fx_d', ic: 'exchange', c: ['#15aabf', '#0b7285'], b: 'new', tool: 'fx', kw: 'devise change taux dollar franc cdf fcfa euro currency exchange convert' },
-    { id: 't_price', grp: 'tool', lk: 'tool_price', dk: 'tool_price_d', ic: 'calc', c: ['#fab005', '#e67700'], b: 'new', tool: 'price', kw: 'prix marge benefice calcul vente price margin profit' },
+    { id: 't_meme', grp: 'tool', lk: 'tool_meme', dk: 'tool_meme_d', ic: 'meme', c: ['#ffd43b', '#f2b600'], b: 'new', tool: 'meme', kw: 'affiche citation texte image meme generateur photo jaune noir poster quote' },
     { id: 't_hash', grp: 'tool', lk: 'tool_hash', dk: 'tool_hash_d', ic: 'hash', c: ['#7950f2', '#5f3dc4'], b: 'new', tool: 'hash', kw: 'hashtag tags tiktok instagram viral' },
 
     // ---- Accès rapides de l'application ----
@@ -971,7 +988,7 @@
     else fallback();
   }
 
-  var TOOL_TITLE = { qr: 'tool_qr', wa: 'tool_wa', font: 'tool_font', fx: 'tool_fx', price: 'tool_price', hash: 'tool_hash' };
+  var TOOL_TITLE = { qr: 'tool_qr', wa: 'tool_wa', font: 'tool_font', fx: 'tool_fx', meme: 'tool_meme', hash: 'tool_hash' };
   var pendingQrText = '';
 
   function openTool(id) {
@@ -981,7 +998,7 @@
     var title = $('mp-tool-title'); if (title) title.textContent = L(TOOL_TITLE[id] || 'tools_title');
     var body = $('mp-tool-body');
     body.innerHTML = '';
-    var builders = { qr: buildQr, wa: buildWa, font: buildFont, fx: buildFx, price: buildPrice, hash: buildHash };
+    var builders = { qr: buildQr, wa: buildWa, font: buildFont, fx: buildFx, meme: buildMeme, hash: buildHash };
     try { if (builders[id]) builders[id](body); }
     catch (e) { console.warn('[menu-pro] outil', id, e); body.innerHTML = '<div class="mp-empty">' + esc(L('unavailable')) + '</div>'; }
     var panel = document.querySelector('#main-menu-modal .main-menu-panel');
@@ -1192,31 +1209,236 @@
     });
   }
 
-  /* ---------- Calculateur de prix ---------- */
-  function buildPrice(body) {
-    body.innerHTML =
-      '<div class="mp-field"><label for="mp-pr-cost">' + esc(L('pr_cost')) + '</label><input type="number" id="mp-pr-cost" class="text-input" inputmode="decimal" min="0" step="any" value="10"></div>' +
-      '<div class="mp-field"><label for="mp-pr-fixed">' + esc(L('pr_fixed')) + '</label><input type="number" id="mp-pr-fixed" class="text-input" inputmode="decimal" min="0" step="any" value="0"></div>' +
-      '<div class="mp-two"><div class="mp-field"><label for="mp-pr-margin">' + esc(L('pr_margin')) + '</label><input type="number" id="mp-pr-margin" class="text-input" inputmode="decimal" min="0" step="any" value="30"></div>' +
-      '<div class="mp-field"><label for="mp-pr-fee">' + esc(L('pr_fee')) + '</label><input type="number" id="mp-pr-fee" class="text-input" inputmode="decimal" min="0" step="any" value="3"></div></div>' +
-      '<div class="mp-field"><label for="mp-pr-qty">' + esc(L('pr_qty')) + '</label><input type="number" id="mp-pr-qty" class="text-input" inputmode="numeric" min="1" step="1" value="1"></div>' +
-      '<p class="mp-hint err" id="mp-pr-err"></p><div id="mp-pr-out"></div>';
-    var ids = ['cost', 'fixed', 'margin', 'fee', 'qty'];
-    function val(k) { var n = parseFloat($('mp-pr-' + k).value); return isNaN(n) ? 0 : n; }
-    function money(n) { try { return n.toLocaleString(curLang(), { minimumFractionDigits: 2, maximumFractionDigits: 2 }); } catch (e) { return n.toFixed(2); } }
-    function render() {
-      var res = calcPrice(val('cost'), val('fixed'), val('margin'), val('fee'), Math.max(1, val('qty')));
-      var out = $('mp-pr-out'), err = $('mp-pr-err');
-      if (!res) { out.innerHTML = ''; err.textContent = L('pr_invalid'); return; }
-      err.textContent = '';
-      out.innerHTML =
-        '<div class="mp-result-card"><div class="mp-result-sub">' + esc(L('pr_price')) + '</div><div class="mp-result-big">' + money(res.price) + '</div></div>' +
-        '<div class="mp-stats">' +
-        '<div class="mp-stat"><b>' + money(res.profitUnit) + '</b><span>' + esc(L('pr_profit_unit')) + '</span></div>' +
-        '<div class="mp-stat"><b>' + money(res.profitTotal) + '</b><span>' + esc(L('pr_profit_total')) + '</span></div>' +
-        '<div class="mp-stat"><b>' + res.markup.toFixed(1) + ' %</b><span>' + esc(L('pr_markup')) + '</span></div></div>';
+  /* ---------- Générateur d'affiches (texte façon "meme" jaune/noir, ou texte
+     sur une photo) — tout est dessiné côté client sur un <canvas>, rien n'est
+     envoyé à un serveur. Un discret filigrane "Coeurnoh Universe" est ajouté
+     automatiquement dans un coin de l'image téléchargée. ---------- */
+  function roundRectPath(ctx, x, y, w, h, r) {
+    r = Math.min(r, w / 2, h / 2);
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+  function memeWrapLine(ctx, text, maxWidth) {
+    var words = String(text || '').split(/\s+/).filter(Boolean);
+    if (!words.length) return [];
+    var lines = [], cur = words[0];
+    for (var i = 1; i < words.length; i++) {
+      var test = cur + ' ' + words[i];
+      if (ctx.measureText(test).width <= maxWidth) cur = test;
+      else { lines.push(cur); cur = words[i]; }
     }
-    ids.forEach(function (k) { $('mp-pr-' + k).addEventListener('input', render); });
+    lines.push(cur);
+    return lines;
+  }
+  function memeWatermark(ctx, W, H) {
+    var fs = Math.max(14, Math.round(W * 0.022));
+    ctx.save();
+    ctx.font = '600 ' + fs + 'px Inter, Arial, sans-serif';
+    var label = 'Coeurnoh Universe';
+    var tw = ctx.measureText(label).width;
+    var padX = Math.round(fs * 0.7), padY = Math.round(fs * 0.45);
+    var pillW = tw + padX * 2, pillH = fs + padY * 2;
+    var x = W - pillW - Math.round(W * 0.025), y = H - pillH - Math.round(W * 0.025);
+    ctx.globalAlpha = 0.32;
+    ctx.fillStyle = '#000000';
+    roundRectPath(ctx, x, y, pillW, pillH, pillH / 2);
+    ctx.fill();
+    ctx.globalAlpha = 0.62;
+    ctx.fillStyle = '#ffffff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(label, x + pillW / 2, y + pillH / 2 + fs * 0.02);
+    ctx.restore();
+  }
+  var MEME_W = 1080;
+  function buildMeme(body) {
+    var state = { mode: 'text', bg: '#0b0b0d', hi: '#ffe100', fg: '#111111', photoFile: null, photoImg: null };
+    var ready = false;
+
+    function drawTextMode(canvas, ctx, rawText) {
+      var padY = Math.round(MEME_W * 0.09);
+      var fontSize = Math.round(MEME_W * 0.062);
+      ctx.font = '800 ' + fontSize + 'px "Sora","Arial Black",Arial,sans-serif';
+      var padInnerX = Math.round(fontSize * 0.34), padInnerY = Math.round(fontSize * 0.24);
+      var maxTextWidth = MEME_W - Math.round(MEME_W * 0.09) * 2 - padInnerX * 2;
+      var rawLines = String(rawText || '').split('\n').map(function (s) { return s.trim(); }).filter(Boolean);
+      var blocks = [];
+      rawLines.forEach(function (line) {
+        memeWrapLine(ctx, line, maxTextWidth).forEach(function (w) {
+          blocks.push({ text: w, width: ctx.measureText(w).width });
+        });
+      });
+      if (!blocks.length) return false;
+      var blockGap = Math.round(fontSize * 0.5);
+      var blockHeight = fontSize + padInnerY * 2;
+      var totalHeight = padY * 2 + blocks.length * blockHeight + (blocks.length - 1) * blockGap;
+      canvas.width = MEME_W;
+      canvas.height = Math.max(360, Math.round(totalHeight));
+      ctx.font = '800 ' + fontSize + 'px "Sora","Arial Black",Arial,sans-serif';
+      ctx.fillStyle = state.bg;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      var y = padY;
+      blocks.forEach(function (b) {
+        var rectW = b.width + padInnerX * 2;
+        var x = (canvas.width - rectW) / 2;
+        ctx.fillStyle = state.hi;
+        roundRectPath(ctx, x, y, rectW, blockHeight, Math.round(fontSize * 0.14));
+        ctx.fill();
+        ctx.fillStyle = state.fg;
+        ctx.fillText(b.text, canvas.width / 2, y + blockHeight / 2 + fontSize * 0.03);
+        y += blockHeight + blockGap;
+      });
+      memeWatermark(ctx, canvas.width, canvas.height);
+      return true;
+    }
+
+    function drawPhotoMode(canvas, ctx, bannerText, img) {
+      if (!img) return false;
+      var fontSize = Math.round(MEME_W * 0.062);
+      ctx.font = '800 ' + fontSize + 'px "Sora","Arial Black",Arial,sans-serif';
+      var padX = Math.round(MEME_W * 0.06), padY = Math.round(MEME_W * 0.05);
+      var lines = [];
+      String(bannerText || '').split('\n').map(function (s) { return s.trim(); }).filter(Boolean).forEach(function (line) {
+        memeWrapLine(ctx, line, MEME_W - padX * 2).forEach(function (w) { lines.push(w); });
+      });
+      var lineHeight = Math.round(fontSize * 1.18);
+      var bannerHeight = lines.length ? (padY * 2 + lines.length * lineHeight) : 0;
+      var photoHeight = Math.round(MEME_W * (img.naturalHeight / img.naturalWidth || 1));
+      canvas.width = MEME_W;
+      canvas.height = bannerHeight + photoHeight;
+      ctx.font = '800 ' + fontSize + 'px "Sora","Arial Black",Arial,sans-serif';
+      if (bannerHeight) {
+        ctx.fillStyle = state.hi;
+        ctx.fillRect(0, 0, MEME_W, bannerHeight);
+        ctx.fillStyle = state.fg;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        var ty = padY + lineHeight / 2;
+        lines.forEach(function (l) { ctx.fillText(l, MEME_W / 2, ty); ty += lineHeight; });
+      }
+      ctx.drawImage(img, 0, bannerHeight, MEME_W, photoHeight);
+      memeWatermark(ctx, canvas.width, canvas.height);
+      return true;
+    }
+
+    function draw() {
+      var canvas = $('mp-meme-canvas'); if (!canvas) return;
+      var ctx = canvas.getContext('2d');
+      var msg = $('mp-meme-msg');
+      var ok = false;
+      if (state.mode === 'text') {
+        var txtEl = $('mp-meme-text');
+        var txt = txtEl ? txtEl.value : '';
+        if (!txt.trim()) {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          if (msg) msg.textContent = L('meme_empty');
+          ready = false; return;
+        }
+        ok = drawTextMode(canvas, ctx, txt);
+      } else {
+        if (!state.photoImg) {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          if (msg) msg.textContent = L('meme_photo_required');
+          ready = false; return;
+        }
+        var bannerEl = $('mp-meme-banner');
+        ok = drawPhotoMode(canvas, ctx, bannerEl ? bannerEl.value : '', state.photoImg);
+      }
+      if (msg) msg.textContent = '';
+      ready = !!ok;
+    }
+
+    function wire() {
+      Array.prototype.forEach.call(body.querySelectorAll('.mp-meme-mode-btn'), function (b) {
+        b.addEventListener('click', function () { state.mode = b.getAttribute('data-mode'); render(); });
+      });
+      var hi = $('mp-meme-hi'), fg = $('mp-meme-fg'), bg = $('mp-meme-bg');
+      if (hi) hi.addEventListener('input', function () { state.hi = hi.value; draw(); });
+      if (fg) fg.addEventListener('input', function () { state.fg = fg.value; draw(); });
+      if (bg) bg.addEventListener('input', function () { state.bg = bg.value; draw(); });
+      var txt = $('mp-meme-text'); if (txt) txt.addEventListener('input', draw);
+      var banner = $('mp-meme-banner'); if (banner) banner.addEventListener('input', draw);
+      var photoInput = $('mp-meme-photo');
+      if (photoInput) photoInput.addEventListener('change', function (ev) {
+        var f = ev.target.files && ev.target.files[0];
+        if (!f) return;
+        state.photoFile = f;
+        var img = new Image();
+        img.onload = function () { state.photoImg = img; draw(); };
+        img.src = URL.createObjectURL(f);
+        var lblTxt = $('mp-meme-photo-text'); if (lblTxt) lblTxt.textContent = '✅ ' + f.name;
+        var lblWrap = $('mp-meme-photo-label'); if (lblWrap) lblWrap.classList.add('has-file');
+      });
+      var dl = $('mp-meme-dl');
+      if (dl) dl.addEventListener('click', function () {
+        if (!ready) return;
+        var canvas = $('mp-meme-canvas');
+        canvas.toBlob(function (blob) {
+          if (!blob) return;
+          var a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = 'coeurnoh-universe-' + (L('meme_dl_name') || 'affiche') + '-' + Date.now() + '.png';
+          document.body.appendChild(a); a.click(); a.remove();
+          setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+        }, 'image/png');
+      });
+      var sh = $('mp-meme-share');
+      if (sh) sh.addEventListener('click', function () {
+        if (!ready) return;
+        var canvas = $('mp-meme-canvas');
+        canvas.toBlob(function (blob) {
+          if (!blob) return;
+          var file = null;
+          try { file = new File([blob], 'coeurnoh-universe-affiche.png', { type: 'image/png' }); } catch (e) { /* ignore */ }
+          if (file && navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
+            navigator.share({ files: [file] }).catch(function () { /* annulé */ });
+          } else if (navigator.share) {
+            navigator.share({ title: 'Coeurnoh Universe' }).catch(function () { /* annulé */ });
+          } else toast(L('unavailable'));
+        }, 'image/png');
+      });
+    }
+
+    function render() {
+      body.innerHTML =
+        '<div class="mp-two mp-meme-modes">' +
+          '<button type="button" class="mp-chip mp-meme-mode-btn' + (state.mode === 'text' ? ' active' : '') + '" data-mode="text">' + esc(L('meme_mode_text')) + '</button>' +
+          '<button type="button" class="mp-chip mp-meme-mode-btn' + (state.mode === 'photo' ? ' active' : '') + '" data-mode="photo">' + esc(L('meme_mode_photo')) + '</button>' +
+        '</div>' +
+        (state.mode === 'text'
+          ? '<div class="mp-field"><label for="mp-meme-text">' + esc(L('meme_text_label')) + '</label>' +
+            '<textarea id="mp-meme-text" class="text-input" rows="4" maxlength="240" placeholder="' + esc(L('meme_text_ph')) + '"></textarea></div>'
+          : '<div class="mp-field"><label for="mp-meme-photo">' + esc(L('meme_choose_photo')) + '</label>' +
+            '<input type="file" id="mp-meme-photo" class="file-input-hidden" accept="image/*">' +
+            '<label for="mp-meme-photo" class="file-picker-btn' + (state.photoFile ? ' has-file' : '') + '" id="mp-meme-photo-label">' +
+              '<span class="file-picker-icon">🖼️</span><span class="file-picker-text" id="mp-meme-photo-text">' + esc(state.photoFile ? ('✅ ' + state.photoFile.name) : L('meme_choose_photo')) + '</span>' +
+            '</label>' +
+            '<div class="mp-field" style="margin-top:12px"><label for="mp-meme-banner">' + esc(L('meme_banner_label')) + '</label>' +
+            '<textarea id="mp-meme-banner" class="text-input" rows="2" maxlength="140" placeholder="' + esc(L('meme_banner_ph')) + '"></textarea></div>') +
+        '<div class="mp-two">' +
+          '<label class="mp-color"><input type="color" id="mp-meme-hi" value="' + state.hi + '"><span>' + esc(L('meme_highlight_color')) + '</span></label>' +
+          '<label class="mp-color"><input type="color" id="mp-meme-fg" value="' + state.fg + '"><span>' + esc(L('meme_text_color')) + '</span></label>' +
+        '</div>' +
+        (state.mode === 'text' ? '<div class="mp-field"><label class="mp-color"><input type="color" id="mp-meme-bg" value="' + state.bg + '"><span>' + esc(L('meme_bg_color')) + '</span></label></div>' : '') +
+        '<div class="mp-qr-stage mp-meme-stage"><canvas id="mp-meme-canvas" width="' + MEME_W + '" height="480"></canvas></div>' +
+        '<p class="mp-hint err" id="mp-meme-msg"></p>' +
+        '<div class="mp-actions"><button type="button" class="btn btn-primary" id="mp-meme-dl">' + svg('download', 16) + ' ' + esc(L('download')) + '</button>' +
+        '<button type="button" class="btn btn-outline" id="mp-meme-share">' + svg('share', 16) + ' ' + esc(L('share')) + '</button></div>';
+      wire();
+      draw();
+      // Repasse une fois les polices web (Sora) chargées, au cas où le canvas
+      // aurait dessiné avant -- évite un rendu avec la police de repli.
+      if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(function () { draw(); }).catch(function () {});
+      }
+    }
     render();
   }
 

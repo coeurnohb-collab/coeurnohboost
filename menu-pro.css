@@ -195,6 +195,13 @@ html[data-theme="dark"] .mp-b-new{background:#12284a;color:#8ec5ff}
   padding:6px 11px;font-size:.82rem;font-weight:700;
 }
 
+/* ---------- Générateur d'affiches ---------- */
+.mp-meme-modes{margin-bottom:14px}
+.mp-meme-mode-btn{flex:1;text-align:center;justify-content:center}
+.mp-meme-mode-btn.active{background:var(--ink);border-color:var(--ink);color:#fff}
+.mp-meme-stage{background:#e9ebef}
+.mp-meme-stage canvas{width:100%;max-width:340px;height:auto;border-radius:10px;image-rendering:auto;box-shadow:0 6px 18px rgba(16,24,40,.16)}
+
 /* ---------- Plans & tarifs ---------- */
 .mp-plan{
   background:var(--white);border:1px solid var(--line);border-radius:18px;

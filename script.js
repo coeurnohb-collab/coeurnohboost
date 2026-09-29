@@ -478,6 +478,9 @@ try {
    NAVIGATION ENTRE VUES
    ========================================================= */
 function hideAllViews() {
+  // Palette "app" façon Facebook (bleu) partout SAUF sur la vitrine publique
+  // (view-home) : showHome() retire cette classe juste après cet appel.
+  document.body.classList.add('app-mode');
   document.getElementById('view-home').classList.add('hidden');
   document.getElementById('view-dashboard').classList.add('hidden');
   document.getElementById('view-services').classList.add('hidden');
@@ -491,6 +494,7 @@ function hideAllViews() {
 }
 function showHome() {
   hideAllViews();
+  document.body.classList.remove('app-mode');
   document.getElementById('view-home').classList.remove('hidden');
 }
 function showDashboard() {
@@ -3224,7 +3228,7 @@ function renderPostCard(item, isLiked, isSaved, hideFollowBtn) {
       <button class="post-more-btn" onclick="openPostOptionsMenu('${item.id}',true)" title="Options" aria-label="Options de la publication">${ICON_DOTS}</button>
       ` : ''}
     </div>
-    ${item.description ? `<p class="post-caption">${escapeHtml(item.description)}</p>` : ''}
+    ${item.mediaType === 'text' && item.textBg && item.description ? `<div class="text-post-box" style="background:${textBgCss(item.textBg) || '#1a2436'}">${escapeHtml(item.description)}</div>` : (item.description ? `<p class="post-caption">${escapeHtml(item.description)}</p>` : '')}
     ${mediaHtml}
     <div class="post-actions">
       <button class="shop-action-btn ${isLiked ? 'liked' : ''}" data-like-btn="${item.id}" onclick="toggleShopLike('${item.id}')"
@@ -3508,12 +3512,59 @@ async function postOptionsDelete() {
    pouvoir encore changer d'avis / de fichier avant l'upload reel. */
 let pendingPostMediaFile = null;
 
+/* Arrière-plans colorés pour les publications "texte seul", comme sur
+   Facebook : l'utilisateur choisit une couleur/dégradé, le texte s'affiche
+   en grand, centré, sur ce fond -- dans le composeur (aperçu en direct)
+   et dans le fil une fois publié (voir renderPostCard). null = pas de
+   fond spécial (texte simple, comportement d'avant). */
+const TEXT_BG_PRESETS = [
+  { id: 'p1', css: 'linear-gradient(135deg,#845ec2,#d65db1)' },
+  { id: 'p2', css: 'linear-gradient(135deg,#0093e9,#80d0c7)' },
+  { id: 'p3', css: 'linear-gradient(135deg,#ff9a44,#e6482e)' },
+  { id: 'p4', css: 'linear-gradient(135deg,#11998e,#38ef7d)' },
+  { id: 'p5', css: 'linear-gradient(135deg,#1a2436,#3a4a68)' },
+  { id: 'p6', css: 'linear-gradient(135deg,#f857a6,#ff5858)' },
+  { id: 'p7', css: 'linear-gradient(135deg,#4e54c8,#8f94fb)' },
+  { id: 'p8', css: '#d7263d' },
+  { id: 'p9', css: '#111318' }
+];
+function textBgCss(id) {
+  const p = TEXT_BG_PRESETS.find(x => x.id === id);
+  return p ? p.css : null;
+}
+let pendingPostTextBg = null;
+
+function renderPostTextBgSwatches() {
+  const el = document.getElementById('post-text-bg-swatches');
+  if (!el) return;
+  const plain = `<button type="button" class="text-bg-swatch text-bg-swatch-plain${!pendingPostTextBg ? ' active' : ''}" onclick="selectPostTextBg(null)" aria-label="Aa">Aa</button>`;
+  const swatches = TEXT_BG_PRESETS.map(p => `<button type="button" class="text-bg-swatch${pendingPostTextBg === p.id ? ' active' : ''}" style="background:${p.css}" onclick="selectPostTextBg('${p.id}')" aria-label="Fond coloré"></button>`).join('');
+  el.innerHTML = plain + swatches;
+}
+function selectPostTextBg(id) {
+  pendingPostTextBg = id;
+  renderPostTextBgSwatches();
+  updatePostTextBgPreview();
+}
+function updatePostTextBgPreview() {
+  const wrap = document.getElementById('post-text-bg-preview');
+  const txt = document.getElementById('post-text-bg-preview-text');
+  const caption = document.getElementById('post-caption');
+  if (!wrap || !txt || !caption) return;
+  const type = document.getElementById('post-media-type').value;
+  if (type !== 'text' || !pendingPostTextBg) { wrap.classList.add('hidden'); return; }
+  wrap.classList.remove('hidden');
+  wrap.style.background = textBgCss(pendingPostTextBg);
+  txt.textContent = caption.value || 'Aa';
+}
+
 function openCreatePostForm() {
   if (!currentUser) { openAuth('register'); return; }
   document.getElementById('create-post-modal').classList.remove('hidden');
   document.getElementById('post-media-preview').innerHTML = '';
   document.getElementById('post-media-file').value = '';
   pendingPostMediaFile = null;
+  pendingPostTextBg = null;
   resetUploadProgress('post-media');
   togglePostMediaField();
 }
@@ -3533,6 +3584,11 @@ function togglePostMediaField() {
   if (icon) icon.textContent = type === 'video' ? '🎥' : '📷';
   if (text) text.textContent = type === 'video' ? 'Choisir une vidéo' : 'Choisir une photo';
   if (label) label.classList.remove('has-file');
+  const hint = document.getElementById('post-caption-optional-hint');
+  if (hint) hint.classList.toggle('hidden', type === 'text');
+  const bgPicker = document.getElementById('post-text-bg-picker');
+  if (bgPicker) bgPicker.classList.toggle('hidden', type !== 'text');
+  if (type === 'text') { renderPostTextBgSwatches(); updatePostTextBgPreview(); }
   updatePostMediaPreview();
 }
 
@@ -3601,6 +3657,7 @@ async function submitCreatePost() {
       mediaType,
       imageUrl,
       videoUrl,
+      textBg: mediaType === 'text' ? (pendingPostTextBg || null) : null,
       description: caption,
       sellerUid: currentUser.uid,
       sellerName: currentUser.username || currentUser.name || 'Utilisateur',
@@ -3623,6 +3680,7 @@ async function submitCreatePost() {
 
     document.getElementById('post-media-file').value = '';
     pendingPostMediaFile = null;
+    pendingPostTextBg = null;
     document.getElementById('post-caption').value = '';
     document.getElementById('post-media-preview').innerHTML = '';
     resetUploadProgress('post-media');
@@ -14065,8 +14123,8 @@ function openBusinessPostForm() {
         <button class="modal-close" onclick="document.getElementById('business-post-form-modal').remove()" aria-label="Fermer">×</button>
         <h3 style="margin-bottom:14px">${t('business_post_form_heading')}</h3>
         <div class="field">
-          <label for="business-post-text">${t('business_post_text_label')}</label>
-          <textarea id="business-post-text" class="text-input" rows="3" style="resize:vertical" maxlength="500"></textarea>
+          <label for="business-post-text">${t('business_post_text_label')} <span class="muted small">(${t('common_optional') || 'facultatif'})</span></label>
+          <textarea id="business-post-text" class="text-input" rows="3" style="resize:vertical" maxlength="500" placeholder="${t('business_post_text_ph') || ''}"></textarea>
         </div>
         <div class="field">
           <label for="business-post-image-file">${t('business_post_image_label')}</label>
@@ -14107,7 +14165,9 @@ async function saveBusinessPost() {
   const btn = document.getElementById('business-post-save-btn');
   const msgEl = document.getElementById('business-post-form-msg');
   const text = document.getElementById('business-post-text').value.trim();
-  if (!text) { msgEl.textContent = t('business_post_text_required'); return; }
+  // Texte optionnel dès qu'une image est jointe -- seul le cas "aucun texte
+  // ET aucune image" est bloqué (publication vide).
+  if (!text && !pendingBusinessPostImageFile) { msgEl.textContent = t('business_post_text_required'); return; }
   if (btn.disabled) return;
   btn.disabled = true;
   btn.textContent = t('business_posting_btn');
