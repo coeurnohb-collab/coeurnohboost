@@ -463,13 +463,14 @@
     meme_photo_required: ['Choisis une photo pour ce mode.', 'Choose a photo for this mode.', 'Elige una foto para este modo.', 'Scegli una foto per questa modalità.', 'Escolha uma foto para este modo.'],
     meme_dl_name: ['affiche', 'poster', 'cartel', 'poster', 'cartaz'],
 
-    mockup_product: ['Produit', 'Product', 'Producto', 'Prodotto', 'Produto'],
-    mockup_tshirt: ['T-shirt', 'T-shirt', 'Camiseta', 'T-shirt', 'Camiseta'],
-    mockup_box: ['Emballage / pochette', 'Packaging / pouch', 'Empaque / bolsa', 'Imballaggio / busta', 'Embalagem / bolsa'],
-    mockup_color: ['Couleur du produit', 'Product color', 'Color del producto', 'Colore del prodotto', 'Cor do produto'],
+    mockup_choose_base: ['Photo de ton produit (sac, boîte, t-shirt...)', 'Photo of your product (bag, box, t-shirt...)', 'Foto de tu producto (bolsa, caja, camiseta...)', 'Foto del tuo prodotto (borsa, scatola, maglietta...)', 'Foto do teu produto (sacola, caixa, camiseta...)'],
     mockup_choose_design: ['Choisir ton design / logo', 'Choose your design / logo', 'Elegir tu diseño / logo', 'Scegli il tuo design / logo', 'Escolher seu design / logo'],
     mockup_change_design: ['Changer le design', 'Change design', 'Cambiar diseño', 'Cambia design', 'Trocar design'],
-    mockup_empty: ['Choisis un design pour voir le mockup.', 'Choose a design to see the mockup.', 'Elige un diseño para ver el mockup.', 'Scegli un design per vedere il mockup.', 'Escolha um design para ver o mockup.'],
+    mockup_scale: ['Taille du design', 'Design size', 'Tamaño del diseño', 'Dimensione del design', 'Tamanho do design'],
+    mockup_rotation: ['Inclinaison', 'Rotation', 'Inclinación', 'Inclinazione', 'Inclinação'],
+    mockup_drag_hint: ['Fais glisser le design avec le doigt pour le positionner sur ta photo.', 'Drag the design with your finger to position it on your photo.', 'Arrastra el diseño con el dedo para colocarlo en tu foto.', 'Trascina il design con il dito per posizionarlo sulla tua foto.', 'Arraste o design com o dedo para posicioná-lo na tua foto.'],
+    mockup_empty_base: ["Ajoute d'abord une photo de ton produit.", 'First add a photo of your product.', 'Añade primero una foto de tu producto.', 'Aggiungi prima una foto del tuo prodotto.', 'Adiciona primeiro uma foto do teu produto.'],
+    mockup_empty_design: ['Ajoute maintenant ton design / logo.', 'Now add your design / logo.', 'Ahora añade tu diseño / logo.', 'Ora aggiungi il tuo design / logo.', 'Agora adiciona o teu design / logo.'],
     mockup_dl_name: ['mockup', 'mockup', 'mockup', 'mockup', 'mockup'],
 
     pl_intro: ['Tout ce qui est essentiel reste gratuit. Passe à un plan payant seulement quand ton activité grandit.', 'Everything essential stays free. Upgrade only when your activity grows.', 'Lo esencial sigue siendo gratis. Mejora solo cuando tu actividad crezca.', "L'essenziale resta gratis. Passa a un piano a pagamento solo quando la tua attività cresce.", 'O essencial continua grátis. Faça upgrade só quando sua atividade crescer.'],
@@ -1249,24 +1250,9 @@
     return lines;
   }
   function memeWatermark(ctx, W, H) {
-    // Petit filigrane de marque en bas à droite, façon TikTok/Instagram :
-    // le vrai logo Coeurnoh Universe (sans "Multi Services"), discret mais
-    // lisible. Si l'image n'est pas encore chargée (très rare -- elle est
-    // préchargée dès l'ouverture de l'app), on se rabat sur le texte plutôt
-    // que de ne rien afficher du tout.
+    // Filigrane texte, discret et petit -- juste le nom "Coeurnoh Universe",
+    // comme demandé (pas de logo graphique ici, ça ne rendait pas bien).
     var pad = Math.round(W * 0.025);
-    if (memeLogoImg) {
-      var logoW = Math.max(70, Math.round(W * 0.16));
-      var logoH = Math.round(logoW * (memeLogoImg.naturalHeight / memeLogoImg.naturalWidth || 0.57));
-      var x = W - logoW - pad, y = H - logoH - pad;
-      ctx.save();
-      ctx.globalAlpha = 0.85;
-      ctx.shadowColor = 'rgba(0,0,0,.35)';
-      ctx.shadowBlur = Math.round(W * 0.01);
-      ctx.drawImage(memeLogoImg, x, y, logoW, logoH);
-      ctx.restore();
-      return;
-    }
     var fs = Math.max(14, Math.round(W * 0.022));
     ctx.save();
     ctx.font = '600 ' + fs + 'px Inter, Arial, sans-serif';
@@ -1274,26 +1260,19 @@
     var tw = ctx.measureText(label).width;
     var padX = Math.round(fs * 0.7), padY = Math.round(fs * 0.45);
     var pillW = tw + padX * 2, pillH = fs + padY * 2;
-    var x2 = W - pillW - pad, y2 = H - pillH - pad;
+    var x = W - pillW - pad, y = H - pillH - pad;
     ctx.globalAlpha = 0.32;
     ctx.fillStyle = '#000000';
-    roundRectPath(ctx, x2, y2, pillW, pillH, pillH / 2);
+    roundRectPath(ctx, x, y, pillW, pillH, pillH / 2);
     ctx.fill();
     ctx.globalAlpha = 0.62;
     ctx.fillStyle = '#ffffff';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(label, x2 + pillW / 2, y2 + pillH / 2 + fs * 0.02);
+    ctx.fillText(label, x + pillW / 2, y + pillH / 2 + fs * 0.02);
     ctx.restore();
   }
   var MEME_W = 1080;
-  var MEME_LOGO_SRC = 'logo-mark.png';
-  var memeLogoImg = null;
-  (function preloadMemeLogo() {
-    var img = new Image();
-    img.onload = function () { memeLogoImg = img; };
-    img.src = MEME_LOGO_SRC;
-  })();
   function buildMeme(body) {
     var state = { mode: 'text', bg: '#0b0b0d', hi: '#ffe100', fg: '#111111', photoFile: null, photoImg: null };
     var ready = false;
@@ -1486,113 +1465,133 @@
      photoréaliste : couleur de produit au choix + design de l'utilisateur
      posé dessus, avec le même filigrane de marque que le générateur
      d'affiches. */
+  /* ---------- Mockups produits (photo réelle + design positionnable) ----------
+     Rendu volontairement réaliste : PAS de silhouette dessinée au vecteur
+     (ça rendait "local"/amateur) -- l'utilisateur upload la VRAIE photo de
+     son produit (sac, boîte, t-shirt...) puis son logo/visuel, qu'il
+     positionne, redimensionne et incline lui-même par-dessus, exactement
+     comme un vrai mockup marketing (ex: visuel posé sur un sac cadeau). */
   function buildMockup(body) {
-    var state = { product: 'tshirt', color: '#1a2436', designFile: null, designImg: null };
+    var state = {
+      baseFile: null, baseImg: null,
+      designFile: null, designImg: null,
+      ox: 0.5, oy: 0.5, scale: 0.34, rot: 0
+    };
     var ready = false;
+    var dragging = false, dragDX = 0, dragDY = 0;
 
-    function drawTshirt(ctx, W, H, color) {
-      var cx = W / 2;
-      // Points normalises (0..1) d'un t-shirt simple, vu de face.
-      var pts = [
-        [0.5, 0.10], [0.585, 0.115], [0.70, 0.145], [0.90, 0.205],
-        [0.845, 0.395], [0.715, 0.315], [0.715, 0.90], [0.285, 0.90],
-        [0.285, 0.315], [0.155, 0.395], [0.10, 0.205], [0.30, 0.145],
-        [0.415, 0.115]
-      ];
-      ctx.beginPath();
-      pts.forEach(function (p, i) {
-        var x = p[0] * W, y = p[1] * H;
-        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-      });
-      ctx.closePath();
-      ctx.fillStyle = color;
-      ctx.fill();
-      // Ombre douce interieure pour un peu de relief (plis simples).
-      var grad = ctx.createLinearGradient(0, H * 0.1, 0, H * 0.95);
-      grad.addColorStop(0, 'rgba(255,255,255,.10)');
-      grad.addColorStop(0.5, 'rgba(0,0,0,0)');
-      grad.addColorStop(1, 'rgba(0,0,0,.12)');
-      ctx.fillStyle = grad;
-      ctx.fill();
-      // Col.
-      ctx.beginPath();
-      ctx.ellipse(cx, H * 0.125, W * 0.085, H * 0.03, 0, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(0,0,0,.16)';
-      ctx.fill();
-      // Zone d'impression (repere pour le design).
-      return { x: W * 0.5, y: H * 0.46, w: W * 0.34, h: H * 0.34 };
+    function canvasPoint(canvas, clientX, clientY) {
+      var rect = canvas.getBoundingClientRect();
+      return {
+        x: (clientX - rect.left) * (canvas.width / rect.width),
+        y: (clientY - rect.top) * (canvas.height / rect.height)
+      };
     }
 
-    function drawBox(ctx, W, H, color) {
-      var pad = W * 0.16;
-      var top = H * 0.10, bottom = H * 0.90;
-      var leftTop = pad, rightTop = W - pad;
-      var leftBottom = pad * 0.7, rightBottom = W - pad * 0.7;
-      ctx.beginPath();
-      ctx.moveTo(leftTop, top);
-      ctx.lineTo(rightTop, top);
-      ctx.lineTo(rightBottom, bottom);
-      ctx.lineTo(leftBottom, bottom);
-      ctx.closePath();
-      ctx.fillStyle = color;
-      ctx.fill();
-      var grad = ctx.createLinearGradient(leftTop, 0, rightTop, 0);
-      grad.addColorStop(0, 'rgba(0,0,0,.14)');
-      grad.addColorStop(0.5, 'rgba(255,255,255,.10)');
-      grad.addColorStop(1, 'rgba(0,0,0,.14)');
-      ctx.fillStyle = grad;
-      ctx.fill();
-      // Ligne de fermeture (zip/soudure) en haut de la pochette.
-      ctx.fillStyle = 'rgba(0,0,0,.18)';
-      ctx.fillRect(leftTop + 6, top, (rightTop - leftTop) - 12, H * 0.03);
-      return { x: W * 0.5, y: (top + bottom) / 2 + H * 0.02, w: (rightTop - leftTop) * 0.62, h: (bottom - top) * 0.5 };
+    function overlayBox(canvas) {
+      var w = canvas.width * state.scale;
+      var h = w * (state.designImg.naturalHeight / state.designImg.naturalWidth);
+      return { cx: state.ox * canvas.width, cy: state.oy * canvas.height, w: w, h: h };
     }
 
     function draw() {
       var canvas = $('mp-mockup-canvas'); if (!canvas) return;
       var ctx = canvas.getContext('2d');
       var msg = $('mp-mockup-msg');
-      canvas.width = 1080; canvas.height = 1080;
+      if (!state.baseImg) {
+        canvas.width = 1080; canvas.height = 1080;
+        ctx.fillStyle = '#e9ebef';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        if (msg) msg.textContent = L('mockup_empty_base');
+        ready = false;
+        return;
+      }
+      var maxSide = 1080;
+      var ratio = Math.min(1, maxSide / Math.max(state.baseImg.naturalWidth, state.baseImg.naturalHeight));
+      canvas.width = Math.round(state.baseImg.naturalWidth * ratio);
+      canvas.height = Math.round(state.baseImg.naturalHeight * ratio);
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = '#eef0f4';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      var zone = state.product === 'tshirt'
-        ? drawTshirt(ctx, canvas.width, canvas.height, state.color)
-        : drawBox(ctx, canvas.width, canvas.height, state.color);
+      ctx.drawImage(state.baseImg, 0, 0, canvas.width, canvas.height);
+
       if (!state.designImg) {
-        if (msg) msg.textContent = L('mockup_empty');
-        ready = true; // le produit seul reste telechargeable
+        if (msg) msg.textContent = L('mockup_empty_design');
         memeWatermark(ctx, canvas.width, canvas.height);
+        ready = true;
         return;
       }
       if (msg) msg.textContent = '';
-      var img = state.designImg;
-      var ratio = Math.min(zone.w / img.naturalWidth, zone.h / img.naturalHeight);
-      var dw = img.naturalWidth * ratio, dh = img.naturalHeight * ratio;
+      var box = overlayBox(canvas);
       ctx.save();
-      ctx.globalAlpha = 0.96;
-      ctx.drawImage(img, zone.x - dw / 2, zone.y - dh / 2, dw, dh);
+      ctx.translate(box.cx, box.cy);
+      ctx.rotate(state.rot * Math.PI / 180);
+      ctx.drawImage(state.designImg, -box.w / 2, -box.h / 2, box.w, box.h);
       ctx.restore();
       memeWatermark(ctx, canvas.width, canvas.height);
       ready = true;
     }
 
+    function startDrag(canvas, clientX, clientY) {
+      if (!state.designImg) return;
+      var p = canvasPoint(canvas, clientX, clientY);
+      var box = overlayBox(canvas);
+      dragDX = p.x - box.cx;
+      dragDY = p.y - box.cy;
+      dragging = true;
+    }
+    function moveDrag(canvas, clientX, clientY) {
+      if (!dragging) return;
+      var p = canvasPoint(canvas, clientX, clientY);
+      state.ox = Math.min(1, Math.max(0, (p.x - dragDX) / canvas.width));
+      state.oy = Math.min(1, Math.max(0, (p.y - dragDY) / canvas.height));
+      draw();
+    }
+
     function wire() {
-      var productSel = $('mp-mockup-product');
-      if (productSel) productSel.addEventListener('change', function () { state.product = productSel.value; draw(); });
-      var colorInput = $('mp-mockup-color');
-      if (colorInput) colorInput.addEventListener('input', function () { state.color = colorInput.value; draw(); });
-      var fileInput = $('mp-mockup-design');
-      if (fileInput) fileInput.addEventListener('change', function (ev) {
+      var baseInput = $('mp-mockup-base');
+      if (baseInput) baseInput.addEventListener('change', function (ev) {
+        var f = ev.target.files && ev.target.files[0];
+        if (!f) return;
+        state.baseFile = f;
+        var img = new Image();
+        img.onload = function () { state.baseImg = img; draw(); };
+        img.src = URL.createObjectURL(f);
+        var lblTxt = $('mp-mockup-base-text'); if (lblTxt) lblTxt.textContent = '✅ ' + f.name;
+        var lblWrap = $('mp-mockup-base-label'); if (lblWrap) lblWrap.classList.add('has-file');
+      });
+      var designInput = $('mp-mockup-design');
+      if (designInput) designInput.addEventListener('change', function (ev) {
         var f = ev.target.files && ev.target.files[0];
         if (!f) return;
         state.designFile = f;
         var img = new Image();
-        img.onload = function () { state.designImg = img; draw(); };
+        img.onload = function () { state.designImg = img; state.ox = 0.5; state.oy = 0.5; draw(); };
         img.src = URL.createObjectURL(f);
         var lblTxt = $('mp-mockup-design-text'); if (lblTxt) lblTxt.textContent = '✅ ' + f.name;
         var lblWrap = $('mp-mockup-design-label'); if (lblWrap) lblWrap.classList.add('has-file');
       });
+
+      var canvas = $('mp-mockup-canvas');
+      if (canvas) {
+        canvas.addEventListener('mousedown', function (e) { startDrag(canvas, e.clientX, e.clientY); });
+        window.addEventListener('mousemove', function (e) { moveDrag(canvas, e.clientX, e.clientY); });
+        window.addEventListener('mouseup', function () { dragging = false; });
+        canvas.addEventListener('touchstart', function (e) {
+          var t = e.touches[0]; startDrag(canvas, t.clientX, t.clientY);
+          if (state.designImg) e.preventDefault();
+        }, { passive: false });
+        canvas.addEventListener('touchmove', function (e) {
+          if (!dragging) return;
+          var t = e.touches[0]; moveDrag(canvas, t.clientX, t.clientY);
+          e.preventDefault();
+        }, { passive: false });
+        canvas.addEventListener('touchend', function () { dragging = false; });
+      }
+
+      var scaleInput = $('mp-mockup-scale');
+      if (scaleInput) scaleInput.addEventListener('input', function () { state.scale = parseInt(scaleInput.value, 10) / 100; draw(); });
+      var rotInput = $('mp-mockup-rot');
+      if (rotInput) rotInput.addEventListener('input', function () { state.rot = parseInt(rotInput.value, 10); draw(); });
+
       var dl = $('mp-mockup-dl');
       if (dl) dl.addEventListener('click', function () {
         if (!ready) return;
@@ -1625,19 +1624,22 @@
 
     function render() {
       body.innerHTML =
-        '<div class="mp-field"><label for="mp-mockup-product">' + esc(L('mockup_product')) + '</label>' +
-        '<select id="mp-mockup-product" class="text-input">' +
-          '<option value="tshirt"' + (state.product === 'tshirt' ? ' selected' : '') + '>' + esc(L('mockup_tshirt')) + '</option>' +
-          '<option value="box"' + (state.product === 'box' ? ' selected' : '') + '>' + esc(L('mockup_box')) + '</option>' +
-        '</select></div>' +
-        '<div class="mp-field"><label class="mp-color"><input type="color" id="mp-mockup-color" value="' + state.color + '"><span>' + esc(L('mockup_color')) + '</span></label></div>' +
+        '<div class="mp-field"><label for="mp-mockup-base">' + esc(L('mockup_choose_base')) + '</label>' +
+          '<input type="file" id="mp-mockup-base" class="file-input-hidden" accept="image/*">' +
+          '<label for="mp-mockup-base" class="file-picker-btn' + (state.baseFile ? ' has-file' : '') + '" id="mp-mockup-base-label">' +
+            '<span class="file-picker-icon">📦</span><span class="file-picker-text" id="mp-mockup-base-text">' + esc(state.baseFile ? ('✅ ' + state.baseFile.name) : L('mockup_choose_base')) + '</span>' +
+          '</label>' +
+        '</div>' +
         '<div class="mp-field"><label for="mp-mockup-design">' + esc(L('mockup_choose_design')) + '</label>' +
           '<input type="file" id="mp-mockup-design" class="file-input-hidden" accept="image/*">' +
           '<label for="mp-mockup-design" class="file-picker-btn' + (state.designFile ? ' has-file' : '') + '" id="mp-mockup-design-label">' +
             '<span class="file-picker-icon">🎨</span><span class="file-picker-text" id="mp-mockup-design-text">' + esc(state.designFile ? ('✅ ' + state.designFile.name) : L('mockup_choose_design')) + '</span>' +
           '</label>' +
         '</div>' +
-        '<div class="mp-qr-stage mp-meme-stage"><canvas id="mp-mockup-canvas" width="1080" height="1080"></canvas></div>' +
+        '<div class="mp-qr-stage mp-meme-stage"><canvas id="mp-mockup-canvas" width="1080" height="1080" class="mp-mockup-canvas"></canvas></div>' +
+        '<p class="mp-hint" id="mp-mockup-drag-hint">' + esc(L('mockup_drag_hint')) + '</p>' +
+        '<div class="mp-field"><label>' + esc(L('mockup_scale')) + '</label><input type="range" id="mp-mockup-scale" min="10" max="80" value="' + Math.round(state.scale * 100) + '"></div>' +
+        '<div class="mp-field"><label>' + esc(L('mockup_rotation')) + '</label><input type="range" id="mp-mockup-rot" min="-45" max="45" value="' + state.rot + '"></div>' +
         '<p class="mp-hint err" id="mp-mockup-msg"></p>' +
         '<div class="mp-actions"><button type="button" class="btn btn-primary" id="mp-mockup-dl">' + svg('download', 16) + ' ' + esc(L('download')) + '</button>' +
         '<button type="button" class="btn btn-outline" id="mp-mockup-share">' + svg('share', 16) + ' ' + esc(L('share')) + '</button></div>';

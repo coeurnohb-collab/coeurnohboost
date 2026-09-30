@@ -201,6 +201,8 @@ html[data-theme="dark"] .mp-b-new{background:#12284a;color:#8ec5ff}
 .mp-meme-mode-btn.active{background:var(--ink);border-color:var(--ink);color:#fff}
 .mp-meme-stage{background:#e9ebef}
 .mp-meme-stage canvas{width:100%;max-width:340px;height:auto;border-radius:10px;image-rendering:auto;box-shadow:0 6px 18px rgba(16,24,40,.16)}
+.mp-mockup-canvas{cursor:grab;touch-action:none}
+.mp-mockup-canvas:active{cursor:grabbing}
 
 /* ---------- Plans & tarifs ---------- */
 .mp-plan{
