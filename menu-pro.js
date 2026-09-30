@@ -487,6 +487,13 @@
     mockup_empty_base: ["Ajoute d'abord une photo de ton produit.", 'First add a photo of your product.', 'Añade primero una foto de tu producto.', 'Aggiungi prima una foto del tuo prodotto.', 'Adiciona primeiro uma foto do teu produto.'],
     mockup_empty_design: ['Ajoute maintenant ton design / logo.', 'Now add your design / logo.', 'Ahora añade tu diseño / logo.', 'Ora aggiungi il tuo design / logo.', 'Agora adiciona o teu design / logo.'],
     mockup_dl_name: ['mockup', 'mockup', 'mockup', 'mockup', 'mockup'],
+    mockup_ai_generate: ['Générer un mockup professionnel (IA)', 'Generate a professional mockup (AI)', 'Generar un mockup profesional (IA)', 'Genera un mockup professionale (IA)', 'Gerar um mockup profissional (IA)'],
+    mockup_ai_loading: ['Génération en cours (10-20 sec)...', 'Generating (10-20 sec)...', 'Generando (10-20 seg)...', 'Generazione in corso (10-20 sec)...', 'Gerando (10-20 seg)...'],
+    mockup_ai_hint: ['Une vraie IA applique ton design avec les bonnes ombres et le bon relief, comme un vrai produit imprimé.', 'A real AI applies your design with proper shadows and depth, like an actual printed product.', 'Una IA real aplica tu diseño con sombras y relieve reales, como un producto realmente impreso.', 'Una vera IA applica il tuo design con ombre e rilievo reali, come un prodotto realmente stampato.', 'Uma IA real aplica o teu design com sombras e relevo reais, como um produto realmente impresso.'],
+    mockup_ai_error: ["La génération a échoué. Réessaie dans un instant.", 'Generation failed. Try again in a moment.', 'La generación falló. Inténtalo de nuevo en un momento.', 'La generazione non è riuscita. Riprova tra un momento.', 'A geração falhou. Tenta novamente daqui a pouco.'],
+    mockup_ai_login_needed: ['Connecte-toi pour utiliser la génération IA.', 'Log in to use AI generation.', 'Inicia sesión para usar la generación IA.', 'Accedi per usare la generazione IA.', 'Inicia sessão para usar a geração IA.'],
+    mockup_ai_result_label: ['Mockup généré par IA', 'AI-generated mockup', 'Mockup generado por IA', 'Mockup generato dall\'IA', 'Mockup gerado por IA'],
+    mockup_ai_redo: ['Repositionner et régénérer', 'Reposition and regenerate', 'Reposicionar y regenerar', 'Riposiziona e rigenera', 'Reposicionar e regerar'],
 
     pl_intro: ['Tout ce qui est essentiel reste gratuit. Passe à un plan payant seulement quand ton activité grandit.', 'Everything essential stays free. Upgrade only when your activity grows.', 'Lo esencial sigue siendo gratis. Mejora solo cuando tu actividad crezca.', "L'essenziale resta gratis. Passa a un piano a pagamento solo quando la tua attività cresce.", 'O essencial continua grátis. Faça upgrade só quando sua atividade crescer.'],
     pl_free: ['Gratuit pour tous', 'Free for everyone', 'Gratis para todos', 'Gratis per tutti', 'Grátis para todos'],
@@ -1481,11 +1488,14 @@
      posé dessus, avec le même filigrane de marque que le générateur
      d'affiches. */
   /* ---------- Mockups produits (photo réelle + design positionnable) ----------
-     Rendu volontairement réaliste : PAS de silhouette dessinée au vecteur
-     (ça rendait "local"/amateur) -- l'utilisateur upload la VRAIE photo de
-     son produit (sac, boîte, t-shirt...) puis son logo/visuel, qu'il
-     positionne, redimensionne et incline lui-même par-dessus, exactement
-     comme un vrai mockup marketing (ex: visuel posé sur un sac cadeau). */
+     Rendu réaliste en 2 temps :
+       1. Un aperçu manuel rapide et gratuit (glisser/redimensionner sur
+          canvas), pour se positionner.
+       2. Un bouton "Générer un mockup professionnel (IA)" qui envoie les
+          deux images à une vraie IA de génération d'image (Gemini / "Nano
+          Banana", via /api/generate-mockup) pour un rendu réellement
+          photoréaliste -- le design appliqué avec les bonnes ombres, plis
+          et perspective, comme s'il sortait tel quel de l'usine. */
   function buildMockup(body) {
     var state = {
       screen: 'pick', templates: [], templatesLoaded: false, templatesLoading: false,
@@ -1493,7 +1503,8 @@
       baseFile: null, baseImg: null,
       designFile: null, designImg: null,
       ox: 0.5, oy: 0.5, scale: 0.34, rot: 0,
-      newName: '', newBaseFile: null, newBaseImg: null, saving: false
+      newName: '', newBaseFile: null, newBaseImg: null, saving: false,
+      aiLoading: false, aiResultImg: null, aiError: ''
     };
     var ready = false;
     var dragging = false, dragDX = 0, dragDY = 0;
@@ -1563,6 +1574,8 @@
           var id = btn.getAttribute('data-tpl');
           if (id === '__own__') {
             state.chosenTemplate = null; state.baseImg = null; state.baseFile = null;
+            state.designImg = null; state.designFile = null;
+            state.aiResultImg = null; state.aiError = '';
             state.ox = 0.5; state.oy = 0.5; state.scale = 0.34; state.rot = 0;
             state.screen = 'design'; render();
           } else if (id === '__admin__') {
@@ -1578,6 +1591,7 @@
             state.scale = tpl.zone ? tpl.zone.scale : 0.34;
             state.rot = tpl.zone ? tpl.zone.rot : 0;
             state.baseImg = null;
+            state.aiResultImg = null; state.aiError = '';
             var img = new Image();
             img.crossOrigin = 'anonymous';
             img.onload = function () { state.baseImg = img; if (state.screen === 'design') draw(); };
@@ -1594,6 +1608,18 @@
       var canvas = $('mp-mockup-canvas'); if (!canvas) return;
       var ctx = canvas.getContext('2d');
       var msg = $('mp-mockup-msg');
+      // Si un résultat IA a été généré, c'est lui qu'on montre et qu'on
+      // télécharge -- plus besoin du montage manuel par-dessus.
+      if (state.aiResultImg) {
+        canvas.width = state.aiResultImg.naturalWidth;
+        canvas.height = state.aiResultImg.naturalHeight;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(state.aiResultImg, 0, 0, canvas.width, canvas.height);
+        memeWatermark(ctx, canvas.width, canvas.height);
+        if (msg) msg.textContent = '';
+        ready = true;
+        return;
+      }
       if (!state.baseImg) {
         canvas.width = 1080; canvas.height = 1080;
         ctx.fillStyle = '#e9ebef';
@@ -1672,6 +1698,56 @@
       canvas.addEventListener('touchend', function () { dragging = false; });
     }
 
+    function positionHintText() {
+      var vert = state.oy < 0.38 ? 'haut' : (state.oy > 0.62 ? 'bas' : 'milieu');
+      var horiz = state.ox < 0.38 ? 'gauche' : (state.ox > 0.62 ? 'droite' : 'centre');
+      return 'Placer le design vers le ' + vert + '-' + horiz + ' du produit, occupant environ ' + Math.round(state.scale * 100) + '% de la largeur, avec une inclinaison de ' + state.rot + ' degrés.';
+    }
+
+    function imgToDataUrl(img, maxSide, mime, quality) {
+      var ratio = Math.min(1, maxSide / Math.max(img.naturalWidth, img.naturalHeight));
+      var c = document.createElement('canvas');
+      c.width = Math.max(1, Math.round(img.naturalWidth * ratio));
+      c.height = Math.max(1, Math.round(img.naturalHeight * ratio));
+      var cctx = c.getContext('2d');
+      if (mime === 'image/jpeg') { cctx.fillStyle = '#fff'; cctx.fillRect(0, 0, c.width, c.height); }
+      cctx.drawImage(img, 0, 0, c.width, c.height);
+      return c.toDataURL(mime, quality);
+    }
+
+    function generateAiMockup() {
+      if (!state.baseImg || !state.designImg || state.aiLoading) return;
+      if (typeof auth === 'undefined' || !auth.currentUser) { toast(L('mockup_ai_login_needed')); return;
+      }
+      state.aiLoading = true;
+      state.aiError = '';
+      render();
+      var baseDataUrl = imgToDataUrl(state.baseImg, 1024, 'image/jpeg', 0.88);
+      var designDataUrl = imgToDataUrl(state.designImg, 1024, 'image/png');
+      auth.currentUser.getIdToken().then(function (idToken) {
+        return fetch('/api/generate-mockup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idToken },
+          body: JSON.stringify({ baseImage: baseDataUrl, designImage: designDataUrl, placementHint: positionHintText() })
+        });
+      }).then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
+        .then(function (res) {
+          state.aiLoading = false;
+          if (!res.ok || !res.data || res.data.success === false || !res.data.imageDataUrl) {
+            state.aiError = (res.data && res.data.error) || L('mockup_ai_error');
+            render();
+            return;
+          }
+          var img = new Image();
+          img.onload = function () { state.aiResultImg = img; render(); };
+          img.src = res.data.imageDataUrl;
+        }).catch(function () {
+          state.aiLoading = false;
+          state.aiError = L('mockup_ai_error');
+          render();
+        });
+    }
+
     function wireDesignScreen() {
       var backBtn = $('mp-mockup-back');
       if (backBtn) backBtn.addEventListener('click', function () { state.screen = 'pick'; render(); });
@@ -1681,6 +1757,7 @@
         var f = ev.target.files && ev.target.files[0];
         if (!f) return;
         state.baseFile = f;
+        state.aiResultImg = null; state.aiError = '';
         var img = new Image();
         img.onload = function () { state.baseImg = img; draw(); };
         img.src = URL.createObjectURL(f);
@@ -1692,6 +1769,7 @@
         var f = ev.target.files && ev.target.files[0];
         if (!f) return;
         state.designFile = f;
+        state.aiResultImg = null; state.aiError = '';
         var img = new Image();
         img.onload = function () { state.designImg = img; draw(); };
         img.src = URL.createObjectURL(f);
@@ -1706,6 +1784,11 @@
       if (scaleInput) scaleInput.addEventListener('input', function () { state.scale = parseInt(scaleInput.value, 10) / 100; draw(); });
       var rotInput = $('mp-mockup-rot');
       if (rotInput) rotInput.addEventListener('input', function () { state.rot = parseInt(rotInput.value, 10); draw(); });
+
+      var aiBtn = $('mp-mockup-ai-generate');
+      if (aiBtn) aiBtn.addEventListener('click', generateAiMockup);
+      var aiRedo = $('mp-mockup-ai-redo');
+      if (aiRedo) aiRedo.addEventListener('click', function () { state.aiResultImg = null; state.aiError = ''; render(); });
 
       var dl = $('mp-mockup-dl');
       if (dl) dl.addEventListener('click', function () {
@@ -1739,6 +1822,7 @@
 
     function renderDesign() {
       var tpl = state.chosenTemplate;
+      var showAiResult = !!state.aiResultImg;
       body.innerHTML =
         '<button type="button" class="mp-back-link" id="mp-mockup-back">← ' + esc(L('mockup_change_tpl')) + '</button>' +
         (tpl
@@ -1755,9 +1839,18 @@
           '</label>' +
         '</div>' +
         '<div class="mp-qr-stage mp-meme-stage"><canvas id="mp-mockup-canvas" width="1080" height="1080" class="mp-mockup-canvas"></canvas></div>' +
-        '<p class="mp-hint" id="mp-mockup-drag-hint">' + esc(L('mockup_drag_hint')) + '</p>' +
-        '<div class="mp-field"><label>' + esc(L('mockup_scale')) + '</label><input type="range" id="mp-mockup-scale" min="10" max="80" value="' + Math.round(state.scale * 100) + '"></div>' +
-        '<div class="mp-field"><label>' + esc(L('mockup_rotation')) + '</label><input type="range" id="mp-mockup-rot" min="-45" max="45" value="' + state.rot + '"></div>' +
+        (showAiResult
+          ? '<p class="mp-hint mockup-ai-badge">✨ ' + esc(L('mockup_ai_result_label')) + '</p>' +
+            '<button type="button" class="mp-back-link" id="mp-mockup-ai-redo">↩ ' + esc(L('mockup_ai_redo')) + '</button>'
+          : '<p class="mp-hint" id="mp-mockup-drag-hint">' + esc(L('mockup_drag_hint')) + '</p>' +
+            '<div class="mp-field"><label>' + esc(L('mockup_scale')) + '</label><input type="range" id="mp-mockup-scale" min="10" max="80" value="' + Math.round(state.scale * 100) + '"></div>' +
+            '<div class="mp-field"><label>' + esc(L('mockup_rotation')) + '</label><input type="range" id="mp-mockup-rot" min="-45" max="45" value="' + state.rot + '"></div>' +
+            '<button type="button" class="btn btn-ai" id="mp-mockup-ai-generate" ' + (state.aiLoading ? 'disabled' : '') + '>' +
+              (state.aiLoading ? ('⏳ ' + esc(L('mockup_ai_loading'))) : ('✨ ' + esc(L('mockup_ai_generate')))) +
+            '</button>' +
+            '<p class="mp-hint small">' + esc(L('mockup_ai_hint')) + '</p>' +
+            (state.aiError ? '<p class="mp-hint err">' + esc(state.aiError) + '</p>' : '')
+        ) +
         '<p class="mp-hint err" id="mp-mockup-msg"></p>' +
         '<div class="mp-actions"><button type="button" class="btn btn-primary" id="mp-mockup-dl">' + svg('download', 16) + ' ' + esc(L('download')) + '</button>' +
         '<button type="button" class="btn btn-outline" id="mp-mockup-share">' + svg('share', 16) + ' ' + esc(L('share')) + '</button></div>';

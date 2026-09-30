@@ -218,6 +218,16 @@ html[data-theme="dark"] .mp-b-new{background:#12284a;color:#8ec5ff}
   background:none;border:none;color:var(--accent-dark);font-weight:700;font-size:.85rem;
   padding:4px 0;margin-bottom:6px;cursor:pointer;
 }
+.btn-ai{
+  width:100%;justify-content:center;margin-top:10px;color:#fff;border:none;
+  background:linear-gradient(135deg,#8b5cf6,#ec4899);box-shadow:0 6px 16px rgba(139,92,246,.35);
+}
+.btn-ai:disabled{opacity:.7}
+.mockup-ai-badge{
+  display:inline-flex;align-items:center;gap:6px;font-weight:700;color:#8b5cf6;
+  background:rgba(139,92,246,.1);border-radius:999px;padding:6px 12px;margin:10px 0 4px;
+}
+.mp-hint.small{font-size:.74rem}
 
 /* ---------- Plans & tarifs ---------- */
 .mp-plan{
