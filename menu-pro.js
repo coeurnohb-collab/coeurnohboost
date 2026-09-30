@@ -464,6 +464,21 @@
     meme_dl_name: ['affiche', 'poster', 'cartel', 'poster', 'cartaz'],
 
     mockup_choose_base: ['Photo de ton produit (sac, boîte, t-shirt...)', 'Photo of your product (bag, box, t-shirt...)', 'Foto de tu producto (bolsa, caja, camiseta...)', 'Foto del tuo prodotto (borsa, scatola, maglietta...)', 'Foto do teu produto (sacola, caixa, camiseta...)'],
+    mockup_loading: ['Chargement des modèles...', 'Loading templates...', 'Cargando modelos...', 'Caricamento modelli...', 'Carregando modelos...'],
+    mockup_pick_hint: ['Choisis un modèle professionnel, ou utilise ta propre photo.', 'Pick a professional template, or use your own photo.', 'Elige una plantilla profesional, o usa tu propia foto.', 'Scegli un modello professionale, oppure usa la tua foto.', 'Escolhe um modelo profissional, ou usa a tua própria foto.'],
+    mockup_own_photo: ['Utiliser ma propre photo', 'Use my own photo', 'Usar mi propia foto', 'Usa la mia foto', 'Usar a minha foto'],
+    mockup_admin_add: ['Ajouter un mockup', 'Add a mockup', 'Añadir un mockup', 'Aggiungi un mockup', 'Adicionar um mockup'],
+    mockup_change_tpl: ['Autre modèle', 'Other template', 'Otra plantilla', 'Altro modello', 'Outro modelo'],
+    mockup_cancel: ['Annuler', 'Cancel', 'Cancelar', 'Annulla', 'Cancelar'],
+    mockup_admin_hint: ['Upload la photo du produit vierge, puis place et redimensionne le cadre à l\'endroit exact où le design devra apparaître (ex: le devant du sac, la poche du t-shirt).', 'Upload the blank product photo, then place and resize the frame exactly where the design should appear (e.g. the front of the bag, the t-shirt pocket).', 'Sube la foto del producto en blanco, luego coloca y ajusta el marco exactamente donde debe aparecer el diseño.', 'Carica la foto del prodotto vuoto, poi posiziona e ridimensiona il riquadro esattamente dove deve apparire il design.', 'Carrega a foto do produto em branco, depois posiciona e redimensiona o quadro exatamente onde o design deve aparecer.'],
+    mockup_admin_name_label: ['Nom du modèle', 'Template name', 'Nombre de la plantilla', 'Nome del modello', 'Nome do modelo'],
+    mockup_admin_name_ph: ['Ex: T-shirt blanc, Sac cadeau...', 'E.g: White t-shirt, Gift bag...', 'Ej: Camiseta blanca, Bolsa regalo...', 'Es: T-shirt bianca, Sacchetto regalo...', 'Ex: Camiseta branca, Saco de presente...'],
+    mockup_admin_zone_hint: ['Fais glisser le cadre orange pour le positionner sur ta photo.', 'Drag the orange frame to position it on your photo.', 'Arrastra el marco naranja para colocarlo en tu foto.', 'Trascina il riquadro arancione per posizionarlo sulla tua foto.', 'Arrasta o quadro laranja para posicioná-lo na tua foto.'],
+    mockup_admin_save: ['Enregistrer ce modèle', 'Save this template', 'Guardar esta plantilla', 'Salva questo modello', 'Guardar este modelo'],
+    mockup_admin_saving: ['Enregistrement...', 'Saving...', 'Guardando...', 'Salvataggio...', 'A guardar...'],
+    mockup_admin_need_photo: ['Ajoute une photo du produit.', 'Add a product photo.', 'Añade una foto del producto.', 'Aggiungi una foto del prodotto.', 'Adiciona uma foto do produto.'],
+    mockup_admin_need_name: ['Donne un nom à ce modèle.', 'Give this template a name.', 'Dale un nombre a esta plantilla.', 'Dai un nome a questo modello.', 'Dá um nome a este modelo.'],
+    mockup_admin_save_error: ['Erreur pendant l\'enregistrement.', 'Error while saving.', 'Error al guardar.', 'Errore durante il salvataggio.', 'Erro ao guardar.'],
     mockup_choose_design: ['Choisir ton design / logo', 'Choose your design / logo', 'Elegir tu diseño / logo', 'Scegli il tuo design / logo', 'Escolher seu design / logo'],
     mockup_change_design: ['Changer le design', 'Change design', 'Cambiar diseño', 'Cambia design', 'Trocar design'],
     mockup_scale: ['Taille du design', 'Design size', 'Tamaño del diseño', 'Dimensione del design', 'Tamanho do design'],
@@ -1473,12 +1488,16 @@
      comme un vrai mockup marketing (ex: visuel posé sur un sac cadeau). */
   function buildMockup(body) {
     var state = {
+      screen: 'pick', templates: [], templatesLoaded: false, templatesLoading: false,
+      chosenTemplate: null,
       baseFile: null, baseImg: null,
       designFile: null, designImg: null,
-      ox: 0.5, oy: 0.5, scale: 0.34, rot: 0
+      ox: 0.5, oy: 0.5, scale: 0.34, rot: 0,
+      newName: '', newBaseFile: null, newBaseImg: null, saving: false
     };
     var ready = false;
     var dragging = false, dragDX = 0, dragDY = 0;
+    var isAdminUser = (typeof currentUser !== 'undefined' && currentUser && typeof ADMIN_UID !== 'undefined' && currentUser.uid === ADMIN_UID);
 
     function canvasPoint(canvas, clientX, clientY) {
       var rect = canvas.getBoundingClientRect();
@@ -1487,13 +1506,90 @@
         y: (clientY - rect.top) * (canvas.height / rect.height)
       };
     }
-
-    function overlayBox(canvas) {
+    function boxOf(canvas, img) {
       var w = canvas.width * state.scale;
-      var h = w * (state.designImg.naturalHeight / state.designImg.naturalWidth);
+      var h = w * (img.naturalHeight / img.naturalWidth);
       return { cx: state.ox * canvas.width, cy: state.oy * canvas.height, w: w, h: h };
     }
+    function clipRotatedBox(ctx, box, rotDeg) {
+      ctx.translate(box.cx, box.cy);
+      ctx.rotate(rotDeg * Math.PI / 180);
+      ctx.beginPath();
+      ctx.rect(-box.w / 2, -box.h / 2, box.w, box.h);
+      ctx.clip();
+      ctx.rotate(-rotDeg * Math.PI / 180);
+      ctx.translate(-box.cx, -box.cy);
+    }
 
+    // ---------- Ecran 1 : choisir un modèle pro ou sa propre photo ----------
+    function loadTemplates(cb) {
+      if (state.templatesLoading) return;
+      state.templatesLoading = true;
+      db.collection('mockup_templates').orderBy('createdAt', 'desc').limit(40).get().then(function (snap) {
+        state.templates = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
+        state.templatesLoaded = true;
+        state.templatesLoading = false;
+        if (cb) cb();
+      }).catch(function () {
+        state.templatesLoaded = true;
+        state.templatesLoading = false;
+        if (cb) cb();
+      });
+    }
+
+    function renderPick() {
+      if (!state.templatesLoaded) {
+        body.innerHTML = '<p class="mp-hint">' + esc(L('mockup_loading')) + '</p>';
+        loadTemplates(renderPick);
+        return;
+      }
+      var cards = state.templates.map(function (t) {
+        return '<button type="button" class="mockup-tpl-card" data-tpl="' + t.id + '">' +
+          '<img src="' + t.imageUrl + '" alt="' + esc(t.name) + '" loading="lazy">' +
+          '<span>' + esc(t.name) + '</span></button>';
+      }).join('');
+      var ownCard = '<button type="button" class="mockup-tpl-card mockup-tpl-own" data-tpl="__own__">' +
+        '<span class="mockup-tpl-own-icon">📷</span><span>' + esc(L('mockup_own_photo')) + '</span></button>';
+      var adminCard = isAdminUser
+        ? '<button type="button" class="mockup-tpl-card mockup-tpl-admin" data-tpl="__admin__">' +
+          '<span class="mockup-tpl-own-icon">➕</span><span>' + esc(L('mockup_admin_add')) + '</span></button>'
+        : '';
+      body.innerHTML =
+        '<p class="mp-hint" style="margin-bottom:10px">' + esc(L('mockup_pick_hint')) + '</p>' +
+        '<div class="mockup-tpl-grid">' + cards + ownCard + adminCard + '</div>';
+
+      Array.prototype.forEach.call(body.querySelectorAll('.mockup-tpl-card'), function (btn) {
+        btn.addEventListener('click', function () {
+          var id = btn.getAttribute('data-tpl');
+          if (id === '__own__') {
+            state.chosenTemplate = null; state.baseImg = null; state.baseFile = null;
+            state.ox = 0.5; state.oy = 0.5; state.scale = 0.34; state.rot = 0;
+            state.screen = 'design'; render();
+          } else if (id === '__admin__') {
+            state.newName = ''; state.newBaseFile = null; state.newBaseImg = null;
+            state.ox = 0.5; state.oy = 0.5; state.scale = 0.34; state.rot = 0;
+            state.screen = 'admin_new'; render();
+          } else {
+            var tpl = state.templates.filter(function (t) { return t.id === id; })[0];
+            if (!tpl) return;
+            state.chosenTemplate = tpl;
+            state.ox = tpl.zone ? tpl.zone.ox : 0.5;
+            state.oy = tpl.zone ? tpl.zone.oy : 0.5;
+            state.scale = tpl.zone ? tpl.zone.scale : 0.34;
+            state.rot = tpl.zone ? tpl.zone.rot : 0;
+            state.baseImg = null;
+            var img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = function () { state.baseImg = img; if (state.screen === 'design') draw(); };
+            img.src = tpl.imageUrl;
+            state.designImg = null; state.designFile = null;
+            state.screen = 'design'; render();
+          }
+        });
+      });
+    }
+
+    // ---------- Ecran 2 : positionner le design sur la base choisie ----------
     function draw() {
       var canvas = $('mp-mockup-canvas'); if (!canvas) return;
       var ctx = canvas.getContext('2d');
@@ -1520,20 +1616,34 @@
         return;
       }
       if (msg) msg.textContent = '';
-      var box = overlayBox(canvas);
+      var box = boxOf(canvas, state.designImg);
       ctx.save();
       ctx.translate(box.cx, box.cy);
       ctx.rotate(state.rot * Math.PI / 180);
       ctx.drawImage(state.designImg, -box.w / 2, -box.h / 2, box.w, box.h);
+      ctx.restore();
+      // Réalisme : on laisse transparaître les ombres/plis/texture du
+      // produit à travers le design (comme un vrai flocage), au lieu
+      // d'un simple collage plat qui "fait local".
+      ctx.save();
+      clipRotatedBox(ctx, box, state.rot);
+      ctx.globalCompositeOperation = 'multiply';
+      ctx.globalAlpha = 0.55;
+      ctx.drawImage(state.baseImg, 0, 0, canvas.width, canvas.height);
+      ctx.globalCompositeOperation = 'soft-light';
+      ctx.globalAlpha = 0.25;
+      ctx.drawImage(state.baseImg, 0, 0, canvas.width, canvas.height);
       ctx.restore();
       memeWatermark(ctx, canvas.width, canvas.height);
       ready = true;
     }
 
     function startDrag(canvas, clientX, clientY) {
-      if (!state.designImg) return;
+      if (!state.designImg && state.screen !== 'admin_new') return;
+      if (state.screen === 'admin_new' && !state.newBaseImg) return;
       var p = canvasPoint(canvas, clientX, clientY);
-      var box = overlayBox(canvas);
+      var refImg = state.screen === 'admin_new' ? state.newBaseImg : state.designImg;
+      var box = boxOf(canvas, refImg);
       dragDX = p.x - box.cx;
       dragDY = p.y - box.cy;
       dragging = true;
@@ -1543,10 +1653,29 @@
       var p = canvasPoint(canvas, clientX, clientY);
       state.ox = Math.min(1, Math.max(0, (p.x - dragDX) / canvas.width));
       state.oy = Math.min(1, Math.max(0, (p.y - dragDY) / canvas.height));
-      draw();
+      if (state.screen === 'admin_new') drawAdminZone(); else draw();
     }
 
-    function wire() {
+    function wireCanvasDrag(canvas) {
+      canvas.addEventListener('mousedown', function (e) { startDrag(canvas, e.clientX, e.clientY); });
+      window.addEventListener('mousemove', function (e) { moveDrag(canvas, e.clientX, e.clientY); });
+      window.addEventListener('mouseup', function () { dragging = false; });
+      canvas.addEventListener('touchstart', function (e) {
+        var t = e.touches[0]; startDrag(canvas, t.clientX, t.clientY);
+        if (state.designImg || state.newBaseImg) e.preventDefault();
+      }, { passive: false });
+      canvas.addEventListener('touchmove', function (e) {
+        if (!dragging) return;
+        var t = e.touches[0]; moveDrag(canvas, t.clientX, t.clientY);
+        e.preventDefault();
+      }, { passive: false });
+      canvas.addEventListener('touchend', function () { dragging = false; });
+    }
+
+    function wireDesignScreen() {
+      var backBtn = $('mp-mockup-back');
+      if (backBtn) backBtn.addEventListener('click', function () { state.screen = 'pick'; render(); });
+
       var baseInput = $('mp-mockup-base');
       if (baseInput) baseInput.addEventListener('change', function (ev) {
         var f = ev.target.files && ev.target.files[0];
@@ -1564,28 +1693,14 @@
         if (!f) return;
         state.designFile = f;
         var img = new Image();
-        img.onload = function () { state.designImg = img; state.ox = 0.5; state.oy = 0.5; draw(); };
+        img.onload = function () { state.designImg = img; draw(); };
         img.src = URL.createObjectURL(f);
         var lblTxt = $('mp-mockup-design-text'); if (lblTxt) lblTxt.textContent = '✅ ' + f.name;
         var lblWrap = $('mp-mockup-design-label'); if (lblWrap) lblWrap.classList.add('has-file');
       });
 
       var canvas = $('mp-mockup-canvas');
-      if (canvas) {
-        canvas.addEventListener('mousedown', function (e) { startDrag(canvas, e.clientX, e.clientY); });
-        window.addEventListener('mousemove', function (e) { moveDrag(canvas, e.clientX, e.clientY); });
-        window.addEventListener('mouseup', function () { dragging = false; });
-        canvas.addEventListener('touchstart', function (e) {
-          var t = e.touches[0]; startDrag(canvas, t.clientX, t.clientY);
-          if (state.designImg) e.preventDefault();
-        }, { passive: false });
-        canvas.addEventListener('touchmove', function (e) {
-          if (!dragging) return;
-          var t = e.touches[0]; moveDrag(canvas, t.clientX, t.clientY);
-          e.preventDefault();
-        }, { passive: false });
-        canvas.addEventListener('touchend', function () { dragging = false; });
-      }
+      if (canvas) wireCanvasDrag(canvas);
 
       var scaleInput = $('mp-mockup-scale');
       if (scaleInput) scaleInput.addEventListener('input', function () { state.scale = parseInt(scaleInput.value, 10) / 100; draw(); });
@@ -1622,14 +1737,17 @@
       });
     }
 
-    function render() {
+    function renderDesign() {
+      var tpl = state.chosenTemplate;
       body.innerHTML =
-        '<div class="mp-field"><label for="mp-mockup-base">' + esc(L('mockup_choose_base')) + '</label>' +
-          '<input type="file" id="mp-mockup-base" class="file-input-hidden" accept="image/*">' +
-          '<label for="mp-mockup-base" class="file-picker-btn' + (state.baseFile ? ' has-file' : '') + '" id="mp-mockup-base-label">' +
-            '<span class="file-picker-icon">📦</span><span class="file-picker-text" id="mp-mockup-base-text">' + esc(state.baseFile ? ('✅ ' + state.baseFile.name) : L('mockup_choose_base')) + '</span>' +
-          '</label>' +
-        '</div>' +
+        '<button type="button" class="mp-back-link" id="mp-mockup-back">← ' + esc(L('mockup_change_tpl')) + '</button>' +
+        (tpl
+          ? '<p class="mp-hint" style="margin:6px 0 12px"><b>' + esc(tpl.name) + '</b></p>'
+          : '<div class="mp-field"><label for="mp-mockup-base">' + esc(L('mockup_choose_base')) + '</label>' +
+            '<input type="file" id="mp-mockup-base" class="file-input-hidden" accept="image/*">' +
+            '<label for="mp-mockup-base" class="file-picker-btn' + (state.baseFile ? ' has-file' : '') + '" id="mp-mockup-base-label">' +
+              '<span class="file-picker-icon">📦</span><span class="file-picker-text" id="mp-mockup-base-text">' + esc(state.baseFile ? ('✅ ' + state.baseFile.name) : L('mockup_choose_base')) + '</span>' +
+            '</label></div>') +
         '<div class="mp-field"><label for="mp-mockup-design">' + esc(L('mockup_choose_design')) + '</label>' +
           '<input type="file" id="mp-mockup-design" class="file-input-hidden" accept="image/*">' +
           '<label for="mp-mockup-design" class="file-picker-btn' + (state.designFile ? ' has-file' : '') + '" id="mp-mockup-design-label">' +
@@ -1643,11 +1761,121 @@
         '<p class="mp-hint err" id="mp-mockup-msg"></p>' +
         '<div class="mp-actions"><button type="button" class="btn btn-primary" id="mp-mockup-dl">' + svg('download', 16) + ' ' + esc(L('download')) + '</button>' +
         '<button type="button" class="btn btn-outline" id="mp-mockup-share">' + svg('share', 16) + ' ' + esc(L('share')) + '</button></div>';
-      wire();
+      wireDesignScreen();
       draw();
+    }
+
+    // ---------- Ecran admin : ajouter un nouveau modèle ----------
+    function drawAdminZone() {
+      var canvas = $('mp-mockup-canvas'); if (!canvas) return;
+      var ctx = canvas.getContext('2d');
+      if (!state.newBaseImg) {
+        canvas.width = 1080; canvas.height = 1080;
+        ctx.fillStyle = '#e9ebef';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        return;
+      }
+      var maxSide = 1080;
+      var ratio = Math.min(1, maxSide / Math.max(state.newBaseImg.naturalWidth, state.newBaseImg.naturalHeight));
+      canvas.width = Math.round(state.newBaseImg.naturalWidth * ratio);
+      canvas.height = Math.round(state.newBaseImg.naturalHeight * ratio);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(state.newBaseImg, 0, 0, canvas.width, canvas.height);
+      var box = boxOf(canvas, state.newBaseImg);
+      ctx.save();
+      ctx.translate(box.cx, box.cy);
+      ctx.rotate(state.rot * Math.PI / 180);
+      ctx.fillStyle = 'rgba(243,156,31,.22)';
+      ctx.fillRect(-box.w / 2, -box.h / 2, box.w, box.h);
+      ctx.strokeStyle = '#f39c1f';
+      ctx.lineWidth = Math.max(2, canvas.width * 0.004);
+      ctx.setLineDash([canvas.width * 0.012, canvas.width * 0.008]);
+      ctx.strokeRect(-box.w / 2, -box.h / 2, box.w, box.h);
+      ctx.restore();
+    }
+
+    function wireAdminScreen() {
+      var backBtn = $('mp-mockup-back');
+      if (backBtn) backBtn.addEventListener('click', function () { state.screen = 'pick'; render(); });
+      var nameInput = $('mp-mockup-new-name');
+      if (nameInput) nameInput.addEventListener('input', function () { state.newName = nameInput.value; });
+      var baseInput = $('mp-mockup-new-base');
+      if (baseInput) baseInput.addEventListener('change', function (ev) {
+        var f = ev.target.files && ev.target.files[0];
+        if (!f) return;
+        state.newBaseFile = f;
+        var img = new Image();
+        img.onload = function () { state.newBaseImg = img; state.ox = 0.5; state.oy = 0.5; state.scale = 0.34; state.rot = 0; drawAdminZone(); };
+        img.src = URL.createObjectURL(f);
+        var lblTxt = $('mp-mockup-new-base-text'); if (lblTxt) lblTxt.textContent = '✅ ' + f.name;
+        var lblWrap = $('mp-mockup-new-base-label'); if (lblWrap) lblWrap.classList.add('has-file');
+      });
+      var canvas = $('mp-mockup-canvas');
+      if (canvas) wireCanvasDrag(canvas);
+      var scaleInput = $('mp-mockup-scale');
+      if (scaleInput) scaleInput.addEventListener('input', function () { state.scale = parseInt(scaleInput.value, 10) / 100; drawAdminZone(); });
+      var rotInput = $('mp-mockup-rot');
+      if (rotInput) rotInput.addEventListener('input', function () { state.rot = parseInt(rotInput.value, 10); drawAdminZone(); });
+
+      var saveBtn = $('mp-mockup-save-tpl');
+      if (saveBtn) saveBtn.addEventListener('click', function () {
+        var msg = $('mp-mockup-new-msg');
+        if (!state.newBaseFile || !state.newBaseImg) { if (msg) msg.textContent = L('mockup_admin_need_photo'); return; }
+        if (!state.newName.trim()) { if (msg) msg.textContent = L('mockup_admin_need_name'); return; }
+        if (state.saving) return;
+        state.saving = true;
+        saveBtn.disabled = true;
+        if (msg) msg.textContent = L('mockup_admin_saving');
+        uploadFileToStorage(state.newBaseFile, 'mockup_templates', { maxSizeMB: 10 }).then(function (res) {
+          return db.collection('mockup_templates').add({
+            name: state.newName.trim(),
+            imageUrl: res.url,
+            zone: { ox: state.ox, oy: state.oy, scale: state.scale, rot: state.rot },
+            createdAt: new Date().toISOString(),
+            createdBy: (typeof currentUser !== 'undefined' && currentUser) ? currentUser.uid : null
+          });
+        }).then(function () {
+          state.saving = false;
+          state.templatesLoaded = false;
+          state.screen = 'pick';
+          render();
+        }).catch(function (e) {
+          state.saving = false;
+          saveBtn.disabled = false;
+          if (msg) msg.textContent = (e && e.message) || L('mockup_admin_save_error');
+        });
+      });
+    }
+
+    function renderAdminNew() {
+      body.innerHTML =
+        '<button type="button" class="mp-back-link" id="mp-mockup-back">← ' + esc(L('mockup_cancel')) + '</button>' +
+        '<p class="mp-hint" style="margin:6px 0 12px">' + esc(L('mockup_admin_hint')) + '</p>' +
+        '<div class="mp-field"><label for="mp-mockup-new-name">' + esc(L('mockup_admin_name_label')) + '</label>' +
+          '<input type="text" id="mp-mockup-new-name" class="text-input" maxlength="60" placeholder="' + esc(L('mockup_admin_name_ph')) + '" value="' + esc(state.newName) + '"></div>' +
+        '<div class="mp-field"><label for="mp-mockup-new-base">' + esc(L('mockup_choose_base')) + '</label>' +
+          '<input type="file" id="mp-mockup-new-base" class="file-input-hidden" accept="image/*">' +
+          '<label for="mp-mockup-new-base" class="file-picker-btn' + (state.newBaseFile ? ' has-file' : '') + '" id="mp-mockup-new-base-label">' +
+            '<span class="file-picker-icon">📦</span><span class="file-picker-text" id="mp-mockup-new-base-text">' + esc(state.newBaseFile ? ('✅ ' + state.newBaseFile.name) : L('mockup_choose_base')) + '</span>' +
+          '</label></div>' +
+        '<div class="mp-qr-stage mp-meme-stage"><canvas id="mp-mockup-canvas" width="1080" height="1080" class="mp-mockup-canvas"></canvas></div>' +
+        '<p class="mp-hint">' + esc(L('mockup_admin_zone_hint')) + '</p>' +
+        '<div class="mp-field"><label>' + esc(L('mockup_scale')) + '</label><input type="range" id="mp-mockup-scale" min="10" max="80" value="' + Math.round(state.scale * 100) + '"></div>' +
+        '<div class="mp-field"><label>' + esc(L('mockup_rotation')) + '</label><input type="range" id="mp-mockup-rot" min="-45" max="45" value="' + state.rot + '"></div>' +
+        '<p class="mp-hint err" id="mp-mockup-new-msg"></p>' +
+        '<div class="mp-actions"><button type="button" class="btn btn-primary" id="mp-mockup-save-tpl">' + svg('check', 16) + ' ' + esc(L('mockup_admin_save')) + '</button></div>';
+      wireAdminScreen();
+      drawAdminZone();
+    }
+
+    function render() {
+      if (state.screen === 'design') renderDesign();
+      else if (state.screen === 'admin_new') renderAdminNew();
+      else renderPick();
     }
     render();
   }
+
 
   /* ---------- Hashtags ---------- */
   function buildHash(body) {

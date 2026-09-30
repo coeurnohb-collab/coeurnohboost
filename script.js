@@ -3337,7 +3337,7 @@ async function downloadMedia(url, type) {
     // c'est plus lent/coûteux) -- elles se téléchargent telles quelles.
     const watermark = type === 'video'
       ? ''
-      : 'l_text:Arial_46_bold:Coeurnoh%2520Universe,co_white,o_70,b_rgb:00000066,g_south_east,x_22,y_22/';
+      : 'l_text:Arial_20_bold:Coeurnoh%2520Universe,co_white,o_80,b_rgb:00000055,g_south_east,x_16,y_14/';
     const attachmentUrl = url.replace('/upload/', `/upload/${watermark}fl_attachment:${safeName}/`);
     const a = document.createElement('a');
     a.href = attachmentUrl;

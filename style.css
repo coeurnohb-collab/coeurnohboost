@@ -70,8 +70,10 @@ a{text-decoration:none;color:inherit}
 /* NAV */
 #nav{position:sticky;top:0;background:var(--white);border-bottom:1px solid var(--line);z-index:100;box-shadow:0 1px 3px rgba(0,0,0,0.03)}
 .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;gap:12px}
-.logo{font-family:var(--font-head);font-weight:800;font-size:1.2rem;cursor:pointer;color:var(--ink);letter-spacing:-0.02em;display:inline-flex;align-items:center;gap:8px}
-.logo span{color:var(--accent-dark)}
+.logo{font-family:var(--font-head);font-weight:800;font-size:1.2rem;cursor:pointer;color:var(--ink);letter-spacing:-0.02em;display:inline-flex;align-items:center;gap:8px;flex:0 1 auto;min-width:0}
+.logo b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:inline-flex;align-items:baseline}
+.logo .logo-o{width:.78em;height:.78em;flex:0 0 auto;display:inline-block;vertical-align:-0.08em;margin:0 .02em}
+.logo span{color:#1877f2}
 .logo .brand-mark{width:30px;height:30px;flex:0 0 auto;box-sizing:border-box;object-fit:contain;border-radius:8px;display:block}
 /* Sur le tableau de bord (après connexion), les boutons Se connecter /
    Créer un compte sont masqués -- il ne reste que le sélecteur de langue
