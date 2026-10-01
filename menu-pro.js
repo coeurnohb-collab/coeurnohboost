@@ -489,7 +489,7 @@
     mockup_dl_name: ['mockup', 'mockup', 'mockup', 'mockup', 'mockup'],
     mockup_ai_generate: ['Générer un mockup professionnel (IA)', 'Generate a professional mockup (AI)', 'Generar un mockup profesional (IA)', 'Genera un mockup professionale (IA)', 'Gerar um mockup profissional (IA)'],
     mockup_ai_loading: ['Génération en cours (10-20 sec)...', 'Generating (10-20 sec)...', 'Generando (10-20 seg)...', 'Generazione in corso (10-20 sec)...', 'Gerando (10-20 seg)...'],
-    mockup_ai_hint: ['Tes 2 premières générations sont gratuites, puis 0,20 $ par mockup (débité de ton portefeuille).', 'Your first 2 generations are free, then $0.20 per mockup (deducted from your wallet).', 'Tus 2 primeras generaciones son gratis, luego 0,20 $ por mockup (de tu billetera).', 'Le tue prime 2 generazioni sono gratuite, poi 0,20 $ per mockup (dal tuo portafoglio).', 'As tuas 2 primeiras gerações são grátis, depois 0,20 $ por mockup (da tua carteira).'],
+    mockup_ai_hint: ['Tes {q} premières générations sont gratuites, puis {p} $ par mockup (débité de ton portefeuille).', 'Your first {q} generations are free, then {p} $ per mockup (deducted from your wallet).', 'Tus {q} primeras generaciones son gratis, luego {p} $ por mockup (de tu billetera).', 'Le tue prime {q} generazioni sono gratuite, poi {p} $ per mockup (dal tuo portafoglio).', 'As tuas {q} primeiras gerações são grátis, depois {p} $ por mockup (da tua carteira).'],
     mockup_ai_error: ["La génération a échoué. Réessaie dans un instant.", 'Generation failed. Try again in a moment.', 'La generación falló. Inténtalo de nuevo en un momento.', 'La generazione non è riuscita. Riprova tra un momento.', 'A geração falhou. Tenta novamente daqui a pouco.'],
     mockup_ai_login_needed: ['Connecte-toi pour utiliser la génération IA.', 'Log in to use AI generation.', 'Inicia sesión para usar la generación IA.', 'Accedi per usare la generazione IA.', 'Inicia sessão para usar a geração IA.'],
     mockup_ai_recharge_btn: ['Recharger mon portefeuille', 'Top up my wallet', 'Recargar mi billetera', 'Ricarica il mio portafoglio', 'Recarregar a minha carteira'],
@@ -1507,8 +1507,16 @@
       designFile: null, designImg: null,
       ox: 0.5, oy: 0.5, scale: 0.34, rot: 0,
       newName: '', newBaseFile: null, newBaseImg: null, saving: false,
-      aiLoading: false, aiResultImg: null, aiError: '', aiErrorIsBalance: false, aiBillingNote: ''
+      aiLoading: false, aiResultImg: null, aiError: '', aiErrorIsBalance: false, aiBillingNote: '',
+      pricingQuota: 3, pricingPrice: 0.30
     };
+    db.collection('app_config').doc('mockup_ai').get().then(function (snap) {
+      if (!snap.exists) return;
+      var d = snap.data();
+      if (Number.isFinite(d.freeQuota)) state.pricingQuota = d.freeQuota;
+      if (Number.isFinite(d.priceUsd)) state.pricingPrice = d.priceUsd;
+      if (state.screen === 'design') render();
+    }).catch(function () { /* tant pis, on garde les valeurs par défaut */ });
     var ready = false;
     var dragging = false, dragDX = 0, dragDY = 0;
     var isAdminUser = (typeof currentUser !== 'undefined' && currentUser && typeof ADMIN_UID !== 'undefined' && currentUser.uid === ADMIN_UID);
@@ -1868,7 +1876,7 @@
             '<button type="button" class="btn btn-ai" id="mp-mockup-ai-generate" ' + (state.aiLoading ? 'disabled' : '') + '>' +
               (state.aiLoading ? ('⏳ ' + esc(L('mockup_ai_loading'))) : ('✨ ' + esc(L('mockup_ai_generate')))) +
             '</button>' +
-            '<p class="mp-hint small">' + esc(L('mockup_ai_hint')) + '</p>' +
+            '<p class="mp-hint small">' + esc(L('mockup_ai_hint').replace('{q}', state.pricingQuota).replace('{p}', state.pricingPrice.toFixed(2))) + '</p>' +
             (state.aiError ? '<p class="mp-hint err">' + esc(state.aiError) + '</p>' : '') +
             (state.aiErrorIsBalance ? '<button type="button" class="btn btn-outline" id="mp-mockup-ai-recharge" style="width:100%;justify-content:center;margin-top:6px">💳 ' + esc(L('mockup_ai_recharge_btn')) + '</button>' : '')
         ) +

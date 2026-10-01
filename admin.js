@@ -250,7 +250,7 @@ function showAdminTab(tab) {
   if (tab === 'profit') loadProfitAdmin();
   if (tab === 'pricing') loadPricingAdmin();
   if (tab === 'packages') loadPackagesAdmin();
-  if (tab === 'monetization') loadMonetizationAdmin();
+  if (tab === 'monetization') { loadMonetizationAdmin(); loadMockupAiPricing(); }
   if (tab === 'shop') loadShopAdmin();
   if (tab === 'withdrawals') loadWithdrawalsAdmin();
   if (tab === 'domains') loadDomainsAdmin();
@@ -751,6 +751,39 @@ async function saveMonetizationPricing() {
     setTimeout(() => msg.classList.add('hidden'), 2500);
   } catch (e) {
     alert("Erreur d'enregistrement : " + e.message);
+  }
+}
+
+/* =========================================================
+   GÉNÉRATION IA DE MOCKUPS — essais gratuits + prix
+   Stocké dans app_config/mockup_ai, relu par api/generate-mockup.js à
+   chaque appel : un changement ici prend effet immédiatement, sans
+   redéploiement.
+   ========================================================= */
+async function loadMockupAiPricing() {
+  const msg = document.getElementById('mockup-ai-pricing-msg');
+  if (msg) msg.textContent = '';
+  try {
+    const snap = await db.collection('app_config').doc('mockup_ai').get();
+    const data = snap.exists ? snap.data() : {};
+    document.getElementById('mockup-ai-free-quota').value = (data.freeQuota != null) ? data.freeQuota : 3;
+    document.getElementById('mockup-ai-price').value = (data.priceUsd != null) ? data.priceUsd : 0.30;
+  } catch (e) {
+    if (msg) msg.textContent = 'Erreur de chargement : ' + e.message;
+  }
+}
+
+async function saveMockupAiPricing() {
+  const msg = document.getElementById('mockup-ai-pricing-msg');
+  const freeQuota = Math.max(0, Math.floor(parseFloat(document.getElementById('mockup-ai-free-quota').value) || 0));
+  const priceUsd = Math.max(0, parseFloat(document.getElementById('mockup-ai-price').value) || 0);
+  try {
+    await db.collection('app_config').doc('mockup_ai').set({
+      freeQuota, priceUsd, updatedAt: new Date().toISOString(), updatedBy: ADMIN_UID
+    }, { merge: true });
+    if (msg) { msg.textContent = '✅ Enregistré — appliqué immédiatement pour tous les utilisateurs.'; setTimeout(() => { msg.textContent = ''; }, 3000); }
+  } catch (e) {
+    if (msg) msg.textContent = 'Erreur : ' + e.message;
   }
 }
 
