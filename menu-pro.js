@@ -489,9 +489,12 @@
     mockup_dl_name: ['mockup', 'mockup', 'mockup', 'mockup', 'mockup'],
     mockup_ai_generate: ['Générer un mockup professionnel (IA)', 'Generate a professional mockup (AI)', 'Generar un mockup profesional (IA)', 'Genera un mockup professionale (IA)', 'Gerar um mockup profissional (IA)'],
     mockup_ai_loading: ['Génération en cours (10-20 sec)...', 'Generating (10-20 sec)...', 'Generando (10-20 seg)...', 'Generazione in corso (10-20 sec)...', 'Gerando (10-20 seg)...'],
-    mockup_ai_hint: ['Une vraie IA applique ton design avec les bonnes ombres et le bon relief, comme un vrai produit imprimé.', 'A real AI applies your design with proper shadows and depth, like an actual printed product.', 'Una IA real aplica tu diseño con sombras y relieve reales, como un producto realmente impreso.', 'Una vera IA applica il tuo design con ombre e rilievo reali, come un prodotto realmente stampato.', 'Uma IA real aplica o teu design com sombras e relevo reais, como um produto realmente impresso.'],
+    mockup_ai_hint: ['Tes 2 premières générations sont gratuites, puis 0,20 $ par mockup (débité de ton portefeuille).', 'Your first 2 generations are free, then $0.20 per mockup (deducted from your wallet).', 'Tus 2 primeras generaciones son gratis, luego 0,20 $ por mockup (de tu billetera).', 'Le tue prime 2 generazioni sono gratuite, poi 0,20 $ per mockup (dal tuo portafoglio).', 'As tuas 2 primeiras gerações são grátis, depois 0,20 $ por mockup (da tua carteira).'],
     mockup_ai_error: ["La génération a échoué. Réessaie dans un instant.", 'Generation failed. Try again in a moment.', 'La generación falló. Inténtalo de nuevo en un momento.', 'La generazione non è riuscita. Riprova tra un momento.', 'A geração falhou. Tenta novamente daqui a pouco.'],
     mockup_ai_login_needed: ['Connecte-toi pour utiliser la génération IA.', 'Log in to use AI generation.', 'Inicia sesión para usar la generación IA.', 'Accedi per usare la generazione IA.', 'Inicia sessão para usar a geração IA.'],
+    mockup_ai_recharge_btn: ['Recharger mon portefeuille', 'Top up my wallet', 'Recargar mi billetera', 'Ricarica il mio portafoglio', 'Recarregar a minha carteira'],
+    mockup_ai_free_left: ['générations gratuites restantes', 'free generations left', 'generaciones gratis restantes', 'generazioni gratuite rimaste', 'gerações grátis restantes'],
+    mockup_ai_charged: ['0,20 $ débités de ton portefeuille pour ce mockup.', '$0.20 deducted from your wallet for this mockup.', 'Se dedujeron 0,20 $ de tu billetera por este mockup.', '0,20 $ addebitati dal tuo portafoglio per questo mockup.', '0,20 $ debitados da tua carteira para este mockup.'],
     mockup_ai_result_label: ['Mockup généré par IA', 'AI-generated mockup', 'Mockup generado por IA', 'Mockup generato dall\'IA', 'Mockup gerado por IA'],
     mockup_ai_redo: ['Repositionner et régénérer', 'Reposition and regenerate', 'Reposicionar y regenerar', 'Riposiziona e rigenera', 'Reposicionar e regerar'],
 
@@ -1504,7 +1507,7 @@
       designFile: null, designImg: null,
       ox: 0.5, oy: 0.5, scale: 0.34, rot: 0,
       newName: '', newBaseFile: null, newBaseImg: null, saving: false,
-      aiLoading: false, aiResultImg: null, aiError: ''
+      aiLoading: false, aiResultImg: null, aiError: '', aiErrorIsBalance: false, aiBillingNote: ''
     };
     var ready = false;
     var dragging = false, dragDX = 0, dragDY = 0;
@@ -1575,7 +1578,7 @@
           if (id === '__own__') {
             state.chosenTemplate = null; state.baseImg = null; state.baseFile = null;
             state.designImg = null; state.designFile = null;
-            state.aiResultImg = null; state.aiError = '';
+            state.aiResultImg = null; state.aiError = ''; state.aiErrorIsBalance = false;
             state.ox = 0.5; state.oy = 0.5; state.scale = 0.34; state.rot = 0;
             state.screen = 'design'; render();
           } else if (id === '__admin__') {
@@ -1591,7 +1594,7 @@
             state.scale = tpl.zone ? tpl.zone.scale : 0.34;
             state.rot = tpl.zone ? tpl.zone.rot : 0;
             state.baseImg = null;
-            state.aiResultImg = null; state.aiError = '';
+            state.aiResultImg = null; state.aiError = ''; state.aiErrorIsBalance = false;
             var img = new Image();
             img.crossOrigin = 'anonymous';
             img.onload = function () { state.baseImg = img; if (state.screen === 'design') draw(); };
@@ -1721,6 +1724,8 @@
       }
       state.aiLoading = true;
       state.aiError = '';
+      state.aiErrorIsBalance = false;
+      state.aiBillingNote = '';
       render();
       var baseDataUrl = imgToDataUrl(state.baseImg, 1024, 'image/jpeg', 0.88);
       var designDataUrl = imgToDataUrl(state.designImg, 1024, 'image/png');
@@ -1734,9 +1739,19 @@
         .then(function (res) {
           state.aiLoading = false;
           if (!res.ok || !res.data || res.data.success === false || !res.data.imageDataUrl) {
-            state.aiError = (res.data && res.data.error) || L('mockup_ai_error');
+            var errMsg = (res.data && res.data.error) || L('mockup_ai_error');
+            state.aiError = errMsg;
+            // Detecte un refus pour solde insuffisant (message renvoyé par
+            // l'API) pour proposer directement le bouton de recharge.
+            state.aiErrorIsBalance = /solde insuffisant|insufficient balance/i.test(errMsg);
             render();
             return;
+          }
+          var billing = res.data.billing;
+          if (billing) {
+            state.aiBillingNote = billing.type === 'free'
+              ? (billing.freeRemaining > 0 ? (billing.freeRemaining + ' ' + L('mockup_ai_free_left')) : L('mockup_ai_charged'))
+              : L('mockup_ai_charged');
           }
           var img = new Image();
           img.onload = function () { state.aiResultImg = img; render(); };
@@ -1757,7 +1772,7 @@
         var f = ev.target.files && ev.target.files[0];
         if (!f) return;
         state.baseFile = f;
-        state.aiResultImg = null; state.aiError = '';
+        state.aiResultImg = null; state.aiError = ''; state.aiErrorIsBalance = false;
         var img = new Image();
         img.onload = function () { state.baseImg = img; draw(); };
         img.src = URL.createObjectURL(f);
@@ -1769,7 +1784,7 @@
         var f = ev.target.files && ev.target.files[0];
         if (!f) return;
         state.designFile = f;
-        state.aiResultImg = null; state.aiError = '';
+        state.aiResultImg = null; state.aiError = ''; state.aiErrorIsBalance = false;
         var img = new Image();
         img.onload = function () { state.designImg = img; draw(); };
         img.src = URL.createObjectURL(f);
@@ -1788,7 +1803,11 @@
       var aiBtn = $('mp-mockup-ai-generate');
       if (aiBtn) aiBtn.addEventListener('click', generateAiMockup);
       var aiRedo = $('mp-mockup-ai-redo');
-      if (aiRedo) aiRedo.addEventListener('click', function () { state.aiResultImg = null; state.aiError = ''; render(); });
+      if (aiRedo) aiRedo.addEventListener('click', function () { state.aiResultImg = null; state.aiError = ''; state.aiErrorIsBalance = false; state.aiBillingNote = ''; render(); });
+      var aiRecharge = $('mp-mockup-ai-recharge');
+      if (aiRecharge) aiRecharge.addEventListener('click', function () {
+        if (typeof showRecharge === 'function') showRecharge();
+      });
 
       var dl = $('mp-mockup-dl');
       if (dl) dl.addEventListener('click', function () {
@@ -1841,6 +1860,7 @@
         '<div class="mp-qr-stage mp-meme-stage"><canvas id="mp-mockup-canvas" width="1080" height="1080" class="mp-mockup-canvas"></canvas></div>' +
         (showAiResult
           ? '<p class="mp-hint mockup-ai-badge">✨ ' + esc(L('mockup_ai_result_label')) + '</p>' +
+            (state.aiBillingNote ? '<p class="mp-hint small">' + esc(state.aiBillingNote) + '</p>' : '') +
             '<button type="button" class="mp-back-link" id="mp-mockup-ai-redo">↩ ' + esc(L('mockup_ai_redo')) + '</button>'
           : '<p class="mp-hint" id="mp-mockup-drag-hint">' + esc(L('mockup_drag_hint')) + '</p>' +
             '<div class="mp-field"><label>' + esc(L('mockup_scale')) + '</label><input type="range" id="mp-mockup-scale" min="10" max="80" value="' + Math.round(state.scale * 100) + '"></div>' +
@@ -1849,7 +1869,8 @@
               (state.aiLoading ? ('⏳ ' + esc(L('mockup_ai_loading'))) : ('✨ ' + esc(L('mockup_ai_generate')))) +
             '</button>' +
             '<p class="mp-hint small">' + esc(L('mockup_ai_hint')) + '</p>' +
-            (state.aiError ? '<p class="mp-hint err">' + esc(state.aiError) + '</p>' : '')
+            (state.aiError ? '<p class="mp-hint err">' + esc(state.aiError) + '</p>' : '') +
+            (state.aiErrorIsBalance ? '<button type="button" class="btn btn-outline" id="mp-mockup-ai-recharge" style="width:100%;justify-content:center;margin-top:6px">💳 ' + esc(L('mockup_ai_recharge_btn')) + '</button>' : '')
         ) +
         '<p class="mp-hint err" id="mp-mockup-msg"></p>' +
         '<div class="mp-actions"><button type="button" class="btn btn-primary" id="mp-mockup-dl">' + svg('download', 16) + ' ' + esc(L('download')) + '</button>' +
