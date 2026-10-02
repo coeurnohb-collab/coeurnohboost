@@ -395,6 +395,8 @@
     tool_mockup_d: ['Montre tes produits sur des modèles (t-shirts, emballages)', 'Show your products on models (t-shirts, packaging)', 'Muestra tus productos en modelos (camisetas, empaques)', 'Mostra i tuoi prodotti su modelli (t-shirt, imballaggi)', 'Mostre seus produtos em modelos (camisetas, embalagens)'],
     tool_hash: ['Générateur de hashtags', 'Hashtag generator', 'Generador de hashtags', 'Generatore di hashtag', 'Gerador de hashtags'],
     tool_hash_d: ['Hashtags prêts à copier pour ta niche', 'Ready-to-copy hashtags for your niche', 'Hashtags listos para copiar', 'Hashtag pronti da copiare', 'Hashtags prontas para copiar'],
+    tool_loc: ['Centre de localisation', 'Location center', 'Centro de ubicación', 'Centro di localizzazione', 'Central de localização'],
+    tool_loc_d: ['Position, partage, SOS, appareil perdu', 'Position, sharing, SOS, lost device', 'Posición, compartir, SOS, dispositivo perdido', 'Posizione, condivisione, SOS, dispositivo smarrito', 'Posição, partilha, SOS, dispositivo perdido'],
 
     qr_text_label: ['Lien ou texte', 'Link or text', 'Enlace o texto', 'Link o testo', 'Link ou texto'],
     qr_my_profile: ['Mon profil', 'My profile', 'Mi perfil', 'Il mio profilo', 'Meu perfil'],
@@ -599,7 +601,8 @@
     download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
     chevronR: '<polyline points="9 18 15 12 9 6"/>',
     chevronL: '<polyline points="15 18 9 12 15 6"/>',
-    swap: '<line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/>'
+    swap: '<line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/>',
+    locate: '<circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8"/><line x1="12" y1="1" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="23"/><line x1="1" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="23" y2="12"/>'
   };
   function svg(name, size) {
     size = size || 22;
@@ -636,6 +639,7 @@
     { id: 't_meme', grp: 'tool', lk: 'tool_meme', dk: 'tool_meme_d', ic: 'meme', c: ['#ffd43b', '#f2b600'], b: 'new', tool: 'meme', kw: 'affiche citation texte image meme generateur photo jaune noir poster quote' },
     { id: 't_mockup', grp: 'tool', lk: 'tool_mockup', dk: 'tool_mockup_d', ic: 'mockup', c: ['#6c5ce7', '#4b3fb0'], b: 'new', tool: 'mockup', kw: 'mockup produit t-shirt tshirt emballage packaging design vetement pochette sachet' },
     { id: 't_hash', grp: 'tool', lk: 'tool_hash', dk: 'tool_hash_d', ic: 'hash', c: ['#7950f2', '#5f3dc4'], b: 'new', tool: 'hash', kw: 'hashtag tags tiktok instagram viral' },
+    { id: 't_loc', grp: 'tool', lk: 'tool_loc', dk: 'tool_loc_d', ic: 'locate', c: ['#f76707', '#c92a2a'], b: 'new', tool: 'loc', kw: 'localisation position gps sos urgence carte partage appareil perdu telephone retrouver location map emergency find phone lost' },
 
     // ---- Accès rapides de l'application ----
     { id: 'wallet', grp: 'core', tk: 'tab_wallet', ic: 'wallet', c: ['#20c997', '#087f5b'], go: function () { call('closeMainMenu'); call('showDashTab', 'wallet'); }, kw: 'portefeuille recharge solde argent mobile money crypto carte wallet balance top up deposit' },
@@ -1027,10 +1031,25 @@
     else fallback();
   }
 
-  var TOOL_TITLE = { qr: 'tool_qr', wa: 'tool_wa', font: 'tool_font', fx: 'tool_fx', meme: 'tool_meme', mockup: 'tool_mockup', hash: 'tool_hash' };
+  var TOOL_TITLE = { qr: 'tool_qr', wa: 'tool_wa', font: 'tool_font', fx: 'tool_fx', meme: 'tool_meme', mockup: 'tool_mockup', hash: 'tool_hash', loc: 'tool_loc' };
   var pendingQrText = '';
 
+  /* ---------- Centre de localisation (module chargé à la demande) ---------- */
+  var locLoading = false;
+  function withLocationModule(cb) {
+    if (root.LocationCenter) { cb(root.LocationCenter); return; }
+    if (locLoading) return;
+    locLoading = true;
+    var s = document.createElement('script');
+    s.src = 'location-center.js';
+    s.onload = function () { locLoading = false; if (root.LocationCenter) cb(root.LocationCenter); };
+    s.onerror = function () { locLoading = false; toast(L('unavailable')); };
+    document.head.appendChild(s);
+  }
+  function openLocationCenter(tab) { withLocationModule(function (lc) { lc.open(tab); }); }
+
   function openTool(id) {
+    if (id === 'loc') { openLocationCenter(); return; }
     if (!enhanced) return;
     ensureMenuOpen();
     call('showMenuScreen', 'tool');
@@ -2059,13 +2078,35 @@
     }, 400);
   }
 
+  // Notification SOS / partage (?loc=sos | share) et reprise discrète d'un suivi,
+  // partage ou SOS déjà actif (drapeau cn_loc_boot posé par location-center.js).
+  var locLink = null, locBoot = false;
+  try { locLink = new URLSearchParams(location.search).get('loc'); } catch (e) { /* ignore */ }
+  try { locBoot = localStorage.getItem('cn_loc_boot') === '1'; } catch (e) { /* ignore */ }
+  function handleLocationStartup() {
+    if (!locLink && !locBoot) return;
+    var tries = 0;
+    var iv = setInterval(function () {
+      tries++;
+      if (getUser()) {
+        clearInterval(iv);
+        if (locLink) {
+          openLocationCenter(locLink === 'sos' ? 'sec' : 'share');
+          try { var u = new URL(location.href); u.searchParams.delete('loc'); history.replaceState({}, '', u.pathname + (u.search || '') + u.hash); } catch (e) { /* ignore */ }
+        }
+        else withLocationModule(function (lc) { lc.boot(); });
+      } else if (tries > 60) clearInterval(iv);
+    }, 500);
+  }
+
   function init() {
     try { enhanceMenu(); refresh(); } catch (e) { console.warn('[menu-pro] init', e); }
     hookOpenMainMenu();
     handleDeepLink();
+    handleLocationStartup();
   }
 
-  root.MenuPro = { openTools: function () { ensureMenuOpen(); openToolsScreen(); }, openPlans: function () { ensureMenuOpen(); openPlansScreen(); }, openTool: openTool, refresh: refresh };
+  root.MenuPro = { openLocation: openLocationCenter, openTools: function () { ensureMenuOpen(); openToolsScreen(); }, openPlans: function () { ensureMenuOpen(); openPlansScreen(); }, openTool: openTool, refresh: refresh };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
