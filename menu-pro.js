@@ -2078,24 +2078,71 @@
     }, 400);
   }
 
-  // Notification SOS / partage (?loc=sos | share) et reprise discrète d'un suivi,
-  // partage ou SOS déjà actif (drapeau cn_loc_boot posé par location-center.js).
-  var locLink = null, locBoot = false;
-  try { locLink = new URLSearchParams(location.search).get('loc'); } catch (e) { /* ignore */ }
+  /* ---------- Liens profonds : on conserve la destination pendant la connexion ----------
+     ?loc=link&t=…  → lien de localisation partagé par un ami
+     ?loc=sos|share → notification du Centre de localisation
+     ?open= / ?profile= / ?openTab= → ouverts par script.js une fois la personne connectée
+     Si la personne n'est pas connectée : on affiche la fenêtre de connexion avec un message
+     clair, on garde la destination (même si la page se recharge), puis on l'ouvre. */
+  var PENDING_KEY = 'cn_pending_link';
+  var qs = null;
+  try { qs = new URLSearchParams(location.search); } catch (e) { qs = null; }
+  var locLink = qs ? qs.get('loc') : null;
+  var locToken = qs ? qs.get('t') : null;
+  var needLoginLink = !!(qs && (locLink || qs.get('open') || qs.get('profile') || qs.get('openTab')));
+  var locBoot = false;
   try { locBoot = localStorage.getItem('cn_loc_boot') === '1'; } catch (e) { /* ignore */ }
-  function handleLocationStartup() {
-    if (!locLink && !locBoot) return;
+  var pending = null;
+  try {
+    if (locLink === 'link' && locToken) { pending = { loc: 'link', t: locToken, at: Date.now() }; localStorage.setItem(PENDING_KEY, JSON.stringify(pending)); }
+    else if (!locLink) {
+      var raw = JSON.parse(localStorage.getItem(PENDING_KEY) || 'null');
+      if (raw && raw.t && Date.now() - raw.at < 30 * 60000) pending = raw; else localStorage.removeItem(PENDING_KEY);
+    }
+  } catch (e) { /* ignore */ }
+  function cleanUrlParams(keys) {
+    try { var u = new URL(location.href); keys.forEach(function (k) { u.searchParams.delete(k); }); history.replaceState({}, '', u.pathname + (u.search || '') + u.hash); } catch (e) { /* ignore */ }
+  }
+  function loadAuthGuard() {
+    if (document.querySelector('script[data-cn-ag]')) return;
+    var s = document.createElement('script');
+    s.src = 'auth-guard.js'; s.async = true; s.setAttribute('data-cn-ag', '1');
+    document.head.appendChild(s);
+  }
+  function promptLoginForLink() {
+    var note = pending ? 'Connecte-toi pour voir la position partagée avec toi.' : 'Connecte-toi pour ouvrir ce contenu.';
     var tries = 0;
+    var t = setInterval(function () {
+      tries++;
+      if (typeof openAuth === 'function' && document.getElementById('google-btn')) {
+        clearInterval(t);
+        try { var m = document.getElementById('auth-modal'); var open = m && !m.classList.contains('hidden'); if (!open) openAuth('login'); } catch (e) { /* ignore */ }
+        setTimeout(function () { try { if (root.CnAuthGuard) root.CnAuthGuard.setContextNote(note); } catch (e) { /* ignore */ } }, 250);
+      } else if (tries > 20) clearInterval(t);
+    }, 400);
+  }
+  function handleLocationStartup() {
+    loadAuthGuard();
+    if (!needLoginLink && !pending && !locBoot) return;
+    var tries = 0, asked = false;
     var iv = setInterval(function () {
       tries++;
       if (getUser()) {
         clearInterval(iv);
-        if (locLink) {
+        try { if (root.CnAuthGuard) root.CnAuthGuard.clearContextNote(); } catch (e) { /* ignore */ }
+        if (pending && pending.loc === 'link') {
+          try { localStorage.removeItem(PENDING_KEY); } catch (e) { /* ignore */ }
+          cleanUrlParams(['loc', 't']);
+          var tk = pending.t;
+          withLocationModule(function (lc) { lc.openLink(tk); });
+        } else if (locLink) {
           openLocationCenter(locLink === 'sos' ? 'sec' : 'share');
-          try { var u = new URL(location.href); u.searchParams.delete('loc'); history.replaceState({}, '', u.pathname + (u.search || '') + u.hash); } catch (e) { /* ignore */ }
-        }
-        else withLocationModule(function (lc) { lc.boot(); });
-      } else if (tries > 60) clearInterval(iv);
+          cleanUrlParams(['loc']);
+        } else withLocationModule(function (lc) { lc.boot(); });
+      } else {
+        if (!asked && tries >= 5 && (pending || needLoginLink)) { asked = true; promptLoginForLink(); }
+        if (tries > 600) clearInterval(iv); // ~5 minutes
+      }
     }, 500);
   }
 

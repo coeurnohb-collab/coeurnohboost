@@ -76,7 +76,7 @@
     err_unsupported: ['Ce navigateur ne gère pas la géolocalisation. Essaie Chrome, Safari ou Firefox à jour.', "This browser doesn't support geolocation. Try an up-to-date Chrome, Safari or Firefox."],
     err_insecure: ['La géolocalisation exige une connexion sécurisée (HTTPS).', 'Geolocation requires a secure (HTTPS) connection.'],
     err_generic: ['Une erreur est survenue. Réessaie.', 'Something went wrong. Please try again.'],
-    err_perm: ['Action refusée par les règles de sécurité.', 'Action refused by the security rules.'],
+    err_perm: ["Action refusée : les règles Firestore du Centre de localisation ne sont pas encore publiées (ou pas à jour). Va dans la section « Vérifier ma configuration » (onglet Confidentialité).", 'Action refused: the Firestore rules for the Location center are not published yet (or outdated). See “Check my setup” (Privacy tab).'],
     err_index: ['Index Firestore manquant : voir la console du navigateur.', 'Missing Firestore index: see the browser console.'],
     btn_start: ['Activer ma position', 'Turn on my position'], btn_stop: ['Arrêter', 'Stop'], btn_refresh: ['Actualiser la position', 'Refresh position'],
     lbl_lat: ['Latitude', 'Latitude'], lbl_lng: ['Longitude', 'Longitude'], lbl_acc: ['Précision', 'Accuracy'],
@@ -281,7 +281,7 @@
     outShares: [], inShares: [], contacts: [], contactsIn: [], devices: [], history: [],
     sosMine: null, sosOthers: [], peers: {}, peerUnsubs: {}, selfDevUnsub: null, handledRefresh: null,
     timer: null, lastW: { t: 0, pos: null }, lastH: { t: 0, pos: null }, lastS: { t: 0, pos: null },
-    perm: 'unknown', booted: false, flash: '', cspBlocked: false,
+    perm: 'unknown', booted: false, flash: '', cspBlocked: false, links: [], fs: false, diag: null, regError: '', lkDur: 60,
     profile: null, profileLoaded: false, priv: null, blocked: {}, dir: { q: '', results: [], loading: false, ready: false }, dirTimer: null, sheetDur: 60
   };
   function devId() { return (myUid() || 'x') + '_' + localDeviceId(); }
@@ -294,7 +294,7 @@
     try { var o = JSON.parse(lsGet(LS_LAST) || 'null'); if (o && validCoords(o.lat, o.lng)) return o; } catch (e) { /* ignore */ }
     return null;
   }
-  function needsWatch() { return !!(cfg.track || activeOut().length || S.sosMine || (cfg.history && S.booted)); }
+  function needsWatch() { return !!(cfg.track || activeOut().length || activeLinks().length || S.sosMine || (cfg.history && S.booted)); }
   function updateBootFlag() { if (needsWatch()) lsSet(LS_TRACK, '1'); else lsDel(LS_TRACK); updatePill(); }
   function col(n) { return getDb().collection(n); }
   function rowData(d) { var o = d.data(); o.id = d.id; return o; }
@@ -373,6 +373,18 @@
       '#lc-pill.on{display:inline-flex}#lc-pill.sos{background:#d7263d}',
       '.lc-av{position:relative;overflow:hidden}.lc-av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}',
       '.lc-lbl{font-size:.74rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--muted,#5d6779);margin-top:2px}',
+      '#lc-root.mapfs .lc-panel{display:none}#lc-root.mapfs .lc-mapwrap{height:auto;flex:1;min-height:0}',
+      '.lc-mapwrap.fb .lc-fsbtn{display:none}',
+      '#lc-root.mapfs #lc-toast{bottom:96px}',
+      '.lc-fsbtn{position:absolute;top:10px;right:10px;z-index:4;width:42px;height:42px;border-radius:12px;border:0;background:#fff;color:#141a26;box-shadow:0 2px 10px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;cursor:pointer}',
+      '#lc-fsbar{position:absolute;left:0;right:0;bottom:0;z-index:4;display:none;gap:8px;overflow-x:auto;padding:24px 12px calc(12px + env(safe-area-inset-bottom));background:linear-gradient(transparent,rgba(0,0,0,.4));scrollbar-width:none}',
+      '#lc-root.mapfs #lc-fsbar{display:flex}',
+      '.lc-fschip{flex:0 0 auto;border:0;border-radius:14px;background:#fff;color:#141a26;padding:9px 13px;text-align:left;font:inherit;box-shadow:0 2px 8px rgba(0,0,0,.28);cursor:pointer;display:flex;flex-direction:column;gap:1px}',
+      '.lc-fschip b{font-size:.88rem}.lc-fschip span{font-size:.72rem;color:#5d6779}.lc-fschip.sos{background:#d7263d;color:#fff}.lc-fschip.sos span{color:#ffd6db}.lc-fschip.off{opacity:.85;cursor:default}',
+      '.lc-ch{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}.lc-ch .lc-btn{padding:10px 6px;font-size:.8rem;text-align:center}',
+      '.lc-linkbox{border:1px dashed var(--line,#cfd6e2);border-radius:12px;padding:10px 12px;margin-top:10px;font-size:.82rem;word-break:break-all;background:var(--green-light,#eef1f6)}',
+      '.lc-dg{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-top:1px solid var(--line,#e2e6ee);font-size:.86rem}.lc-dg i{font-style:normal;font-weight:900;width:20px;flex:0 0 20px;text-align:center}',
+      '.lc-dg.ok i{color:#2f9e44}.lc-dg.ko i{color:#e03131}.lc-dg.na i{color:#f08c00}.lc-dg small{display:block;color:var(--muted,#5d6779);margin-top:2px;line-height:1.4}',
       '.lc-details summary{cursor:pointer;font-weight:800;font-size:.88rem}',
       '.lc-steps{list-style:none;margin:0 0 12px;padding:0;display:flex;flex-direction:column;gap:8px}',
       '.lc-steps li{display:flex;align-items:center;gap:10px;font-size:.86rem;line-height:1.35}',
@@ -495,6 +507,7 @@
       });
       line.forEach(function (q) { pts.push(q); });
     }
+    renderFsBar();
     if (!S.fitted && pts.length) {
       S.fitted = true;
       if (pts.length === 1) S.map.setView(pts[0], 16); else S.map.fitBounds(pts, { padding: [40, 40], maxZoom: 17 });
@@ -601,7 +614,7 @@
     var t = now();
 
     // 1) Appareil + position partagée (même cadence)
-    var wantDev = cfg.track, wantLive = activeOut().length > 0;
+    var wantDev = cfg.track, wantLive = activeOut().length > 0 || activeLinks().length > 0;
     if (wantDev || wantLive) {
       var moved = S.lastW.pos ? haversine(S.lastW.pos, m) : Infinity;
       var el = t - S.lastW.t;
@@ -755,8 +768,8 @@
     var q = S.dir.q; S.dir.loading = true; renderDirResults();
     searchDirectory(q).then(function (res) {
       if (S.dir.q !== q) return;
-      S.dir.results = res; S.dir.loading = false; S.dir.ready = true; renderDirResults();
-    }).catch(function (e) { S.dir.loading = false; S.dir.results = []; S.dir.ready = true; renderDirResults(); toastLC(errText(e), 'error'); });
+      S.dir.results = res; S.dir.loading = false; S.dir.ready = true; S.dir.error = null; renderDirResults();
+    }).catch(function (e) { S.dir.loading = false; S.dir.results = []; S.dir.ready = true; S.dir.error = e || { code: 'unknown' }; renderDirResults(); toastLC(errText(e), 'error'); });
   }
   function dirDebounced() { if (S.dirTimer) clearTimeout(S.dirTimer); S.dirTimer = setTimeout(dirRun, 350); }
   function dirFind(uid) { for (var i = 0; i < S.dir.results.length; i++) if (S.dir.results[i].uid === uid) return S.dir.results[i]; return null; }
@@ -1023,8 +1036,9 @@
   }
   function deleteAllMyData() {
     var uid = myUid();
-    return Promise.all([loadShares(), loadContacts(), loadDevices()]).then(function () {
+    return Promise.all([loadShares(), loadContacts(), loadDevices(), loadLinks()]).then(function () {
       var jobs = [];
+      S.links.forEach(function (l) { jobs.push(col('location_links').doc(l.id).delete().catch(function () { })); });
       S.outShares.concat(S.inShares).forEach(function (s) { jobs.push(col('location_shares').doc(s.id).delete().catch(function () { })); });
       S.contacts.concat(S.contactsIn).forEach(function (c) { jobs.push(col('emergency_contacts').doc(c.id).delete().catch(function () { })); });
       S.devices.forEach(function (d) { jobs.push(col('location_devices').doc(d.id).delete().catch(function () { })); });
@@ -1035,10 +1049,173 @@
       return Promise.all(jobs);
     }).then(function () {
       cfg.track = false; cfg.history = false; saveCfg();
-      S.outShares = []; S.inShares = []; S.contacts = []; S.contactsIn = []; S.devices = []; S.sosMine = null; S.sosOthers = [];
+      S.outShares = []; S.inShares = []; S.links = []; S.contacts = []; S.contactsIn = []; S.devices = []; S.sosMine = null; S.sosOthers = [];
       unwatchSelfDevice(); stopPeerListeners(); lsDel(LS_LAST); lsDel(LS_TRACK);
       if (!S.open) stopWatch();
     });
+  }
+
+
+  /* ------------------------------------------------------------------
+     LIEN DE LOCALISATION PARTAGEABLE (WhatsApp, Messenger, Facebook, TikTok…)
+     Le lien contient un jeton secret. Celui qui l'ouvre doit se connecter,
+     confirme, puis voit la position jusqu'à l'expiration. Le propriétaire
+     peut désactiver le lien à tout moment (accès coupé immédiatement).
+     ------------------------------------------------------------------ */
+  function noop() { /* ignore */ }
+  function randToken() {
+    var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-', a = new Uint8Array(24), s = '', i;
+    (root.crypto || root.msCrypto).getRandomValues(a);
+    for (i = 0; i < 24; i++) s += chars[a[i] & 63];
+    return s;
+  }
+  function linkUrl(token) { return location.origin + '/?loc=link&t=' + encodeURIComponent(token); }
+  function activeLinks() { return S.links.filter(function (l) { return l.status === 'active' && (!l.expiresAtMs || l.expiresAtMs > now()); }); }
+  function loadLinks() {
+    var uid = myUid(); if (!uid) return Promise.resolve();
+    return col('location_links').where('ownerUid', '==', uid).get()
+      .then(function (r) {
+        S.links = r.docs.map(rowData).sort(function (a, b) { return (b.createdAtMs || 0) - (a.createdAtMs || 0); });
+        S.links.filter(function (l) { return l.expiresAtMs && l.expiresAtMs <= now() - 3600000; }).forEach(function (l) { col('location_links').doc(l.id).delete().catch(noop); });
+        updateBootFlag();
+      })
+      .catch(function (e) { console.warn('[loc] liens', e.code); });
+  }
+  function createLink(durMin) {
+    var uid = myUid(), me = getMe() || {};
+    if (activeLinks().length >= 5) return Promise.reject({ code: 'limit' });
+    var token = randToken(), exp = durMin > 0 ? now() + durMin * 60000 : 0;
+    var doc = { ownerUid: uid, ownerName: myName(), ownerPhoto: safePhoto(me.photoURL), status: 'active', expiresAtMs: exp, createdAtMs: now(), updatedAtMs: now() };
+    return col('location_links').doc(token).set(doc).then(function () {
+      doc.id = token; S.links.unshift(doc);
+      lsSet(LS_CONSENT, '1'); startWatch(); updateBootFlag();
+      if (S.me) writeTargets(true);
+      return doc;
+    });
+  }
+  function revokeLink(token) {
+    var jobs = S.outShares.filter(function (s) { return s.linkToken === token && s.status === 'active'; })
+      .map(function (s) { return col('location_shares').doc(s.id).update({ status: 'stopped', updatedAtMs: now() }).catch(noop); });
+    return Promise.all(jobs).then(function () { return col('location_links').doc(token).delete(); })
+      .then(function () { S.links = S.links.filter(function (l) { return l.id !== token; }); return loadShares(); })
+      .then(function () { if (!activeOut().length && !activeLinks().length) dropLive(); updateBootFlag(); });
+  }
+  function fetchLink(token) {
+    if (!/^[A-Za-z0-9_-]{20,40}$/.test(token || '')) return Promise.reject({ code: 'badlink' });
+    return col('location_links').doc(token).get().then(function (s) {
+      if (!s.exists) throw { code: 'badlink' };
+      var l = s.data(); l.id = token;
+      if (l.status !== 'active' || (l.expiresAtMs && l.expiresAtMs <= now())) throw { code: 'expiredlink' };
+      if (l.ownerUid === myUid()) throw { code: 'ownlink' };
+      return l;
+    });
+  }
+  function claimLink(l) {
+    var uid = myUid(), me = getMe() || {};
+    var ref = col('location_shares').doc(l.ownerUid + '_' + uid);
+    return ref.get().then(function (s) {
+      if (s.exists) { if (isActiveShare(s.data())) return 'keep'; return ref.delete().then(function () { return 'new'; }); }
+      return 'new';
+    }).then(function (st) {
+      if (st === 'keep') return null;
+      return ref.set({
+        ownerUid: l.ownerUid, viewerUid: uid, ownerName: l.ownerName || '—', viewerName: myName(), ownerPhoto: safePhoto(l.ownerPhoto), viewerPhoto: safePhoto(me.photoURL),
+        status: 'active', requestedBy: uid, linkToken: l.id, expiresAtMs: l.expiresAtMs || 0, createdAtMs: now(), updatedAtMs: now()
+      }).then(function () { notifyUser(l.ownerUid, 'location', T('lk_n_t'), T('lk_n_b', { name: myName() })); });
+    }).then(loadShares);
+  }
+  function copyText(s) {
+    if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(s).catch(function () { root.prompt('Copier :', s); });
+    root.prompt('Copier :', s); return Promise.resolve();
+  }
+  function shareVia(ch, token) {
+    var url = linkUrl(token), msg = T('lk_msg', { name: myName() }), full = msg + ' ' + url, mobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if (ch === 'copy') { copyText(url).then(function () { toastLC(T('lk_copied')); }); return; }
+    if (ch === 'nat') {
+      if (navigator.share) navigator.share({ title: T('title'), text: msg, url: url }).catch(noop);
+      else copyText(url).then(function () { toastLC(T('lk_copied')); });
+      return;
+    }
+    var fb = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(url);
+    var href = ch === 'wa' ? 'https://wa.me/?text=' + encodeURIComponent(full)
+      : ch === 'fb' ? fb
+      : ch === 'ms' ? (mobile ? 'fb-messenger://share/?link=' + encodeURIComponent(url) : fb)
+      : ch === 'tg' ? 'https://t.me/share/url?url=' + encodeURIComponent(url) + '&text=' + encodeURIComponent(msg)
+      : ch === 'sms' ? 'sms:?&body=' + encodeURIComponent(full) : '';
+    if (!href) return;
+    if (/^(sms|fb-messenger):/.test(href)) root.location.href = href; else root.open(href, '_blank', 'noopener');
+  }
+  function focusPeer(uid) {
+    var n = 0, iv = setInterval(function () {
+      var p = S.peers[uid]; n++;
+      if (p && validCoords(p.lat, p.lng)) { clearInterval(iv); flyTo(p.lat, p.lng); }
+      else if (n > 14 || !S.open) clearInterval(iv);
+    }, 500);
+  }
+
+  /* ---- Carte plein écran ---- */
+  function applyFs() {
+    var r = $('lc-root'); if (!r) return;
+    r.classList.toggle('mapfs', !!S.fs);
+    var b = $('lc-fsbtn'); if (b) { b.setAttribute('aria-pressed', S.fs ? 'true' : 'false'); b.setAttribute('aria-label', T(S.fs ? 'fs_close' : 'fs_open')); b.innerHTML = S.fs ? SVG_FS_OFF : SVG_FS_ON; }
+    renderFsBar();
+    setTimeout(function () { if (S.map) S.map.invalidateSize(); }, 250);
+  }
+  function fsChip(name, sub, lat, lng, cls) {
+    if (!validCoords(lat, lng)) return '<span class="lc-fschip off ' + (cls || '') + '"><b>' + esc(name) + '</b><span>' + esc(sub) + '</span></span>';
+    return '<button type="button" class="lc-fschip ' + (cls || '') + '" data-act="fly" data-lat="' + lat + '" data-lng="' + lng + '"><b>' + esc(name) + '</b><span>' + esc(sub) + '</span></button>';
+  }
+  function renderFsBar() {
+    var h = $('lc-fsbar'); if (!h) return;
+    if (!S.fs) { h.innerHTML = ''; return; }
+    var chips = [], lk = lastKnown();
+    if (lk) chips.push(fsChip(T('fs_me'), S.me ? ago(S.me.ts) : T('last_known', { ago: ago(lk.ts) }), lk.lat, lk.lng, ''));
+    S.sosOthers.forEach(function (s) { chips.push(fsChip('SOS · ' + s.ownerName, ago(s.updatedAtMs), s.lat, s.lng, 'sos')); });
+    activeIn().forEach(function (sh) {
+      var p = S.peers[sh.ownerUid], has = p && validCoords(p.lat, p.lng);
+      chips.push(has ? fsChip(sh.ownerName, ago(p.updatedAtMs) + (typeof p.battery === 'number' ? ' · ' + p.battery + ' %' : ''), p.lat, p.lng, '') : fsChip(sh.ownerName, T('sh_peer_nopos'), null, null, ''));
+    });
+    h.innerHTML = chips.join('') || '<span class="lc-fschip off"><b>' + esc(T('no_pos')) + '</b></span>';
+  }
+
+  /* ---- Diagnostic : « qu'est-ce qui bloque ? » ---- */
+  function repairApp() {
+    var jobs = [];
+    try { if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) jobs.push(navigator.serviceWorker.getRegistrations().then(function (rs) { return Promise.all(rs.map(function (r) { return r.unregister(); })); })); } catch (e) { /* ignore */ }
+    try { if (root.caches && root.caches.keys) jobs.push(root.caches.keys().then(function (ks) { return Promise.all(ks.map(function (k) { return root.caches.delete(k); })); })); } catch (e) { /* ignore */ }
+    return Promise.all(jobs).catch(noop).then(function () { root.location.reload(); });
+  }
+  function runDiagnostics() {
+    var uid = myUid(), items = [], srvOk = null;
+    function add(label, ok, hint) { items.push({ label: label, ok: ok, hint: hint || '' }); }
+    S.diag = { running: true, items: [] }; if (S.open) renderTab();
+    function head() { return fetch(root.location.pathname || '/', { method: 'HEAD', cache: 'no-store' }).catch(function () { return fetch(root.location.pathname || '/', { cache: 'no-store' }); }); }
+    return head().then(function (r) {
+      var pp = r.headers.get('permissions-policy') || '', csp = r.headers.get('content-security-policy') || '';
+      srvOk = /geolocation=\(self\)/.test(pp) && /tile\.openstreetmap\.org/.test(csp) && /cdn\.jsdelivr\.net/.test(csp);
+    }).catch(function () { srvOk = null; }).then(function () {
+      add(T('dg_https'), root.isSecureContext !== false && root.location.protocol === 'https:', '');
+      add(T('dg_server'), srvOk, srvOk === false ? T('dg_server_old') : '');
+      var pageOk = !policyBlocksGeo();
+      add(T('dg_policy'), pageOk, pageOk ? '' : (srvOk ? T('dg_cache') : T('dg_server_old')));
+      if (navigator.permissions && navigator.permissions.query) {
+        return navigator.permissions.query({ name: 'geolocation' }).then(function (r) {
+          add(T('dg_gps'), r.state === 'granted' ? true : (r.state === 'denied' ? false : null), r.state === 'denied' ? T('err_denied') : (r.state === 'prompt' ? T('dg_gps_prompt') : ''));
+        }).catch(noop);
+      }
+    }).then(function () {
+      return ensureLeaflet().then(function () { add(T('dg_map'), true, ''); }, function () { add(T('dg_map'), false, S.cspBlocked ? T('map_blocked') : T('dg_map_ko')); });
+    }).then(function () {
+      return Promise.all([
+        col('location_profiles').limit(1).get(),
+        col('location_private').doc(uid).get(),
+        col('location_shares').where('ownerUid', '==', uid).limit(1).get(),
+        col('location_links').where('ownerUid', '==', uid).limit(1).get()
+      ]).then(function () { add(T('dg_rules'), true, ''); }, function (e) { add(T('dg_rules'), false, e && e.code === 'permission-denied' ? T('dg_rules_ko') : errText(e)); });
+    }).then(function () {
+      var np = (typeof Notification === 'undefined') ? null : Notification.permission;
+      add(T('dg_notif'), np === 'granted' ? true : (np === 'denied' ? false : null), np === 'denied' ? T('dg_notif_ko') : (np === 'default' ? T('dg_notif_ask') : ''));
+    }).then(function () { S.diag = { running: false, items: items }; if (S.open) renderTab(); });
   }
 
   /* ------------------------------------------------------------------
@@ -1106,10 +1283,44 @@
     map_blocked: ["La carte est bloquée par la configuration de sécurité du site. Si tu administres le site, vérifie que vercel.json est bien déployé.", 'The map is blocked by the site security configuration. If you manage the site, check that vercel.json is deployed.'],
     retry: ['Réessayer', 'Retry']
   });
+  Object.assign(N, {
+    lk_title: ['Mon lien de localisation', 'My location link'],
+    lk_intro: ["Crée un lien et envoie-le sur WhatsApp, Messenger, Facebook, TikTok, Instagram… La personne qui l'ouvre se connecte à Coeurnoh Universe, puis voit ta position sur la carte.", 'Create a link and send it on WhatsApp, Messenger, Facebook, TikTok, Instagram… Whoever opens it signs in to Coeurnoh Universe, then sees your position on the map.'],
+    lk_warn: ["Toute personne qui ouvre ce lien et se connecte verra ta position jusqu'à l'expiration. Tu peux le désactiver à tout moment.", 'Anyone who opens this link and signs in will see your position until it expires. You can deactivate it at any time.'],
+    dur_1440: ['24 heures', '24 hours'],
+    lk_create: ['Créer mon lien', 'Create my link'], lk_created: ["Lien créé. Choisis comment l'envoyer.", 'Link created. Choose how to send it.'],
+    lk_active: ['Mes liens actifs', 'My active links'], lk_expires: ['Expire : {t}', 'Expires: {t}'], lk_never: ["Jusqu'à désactivation", 'Until deactivated'],
+    lk_viewers: ['{n} connectée(s)', '{n} connected'], lk_copy: ['Copier le lien', 'Copy link'], lk_copied: ['Lien copié.', 'Link copied.'],
+    lk_off: ['Désactiver', 'Deactivate'], lk_off_done: ['Lien désactivé.', 'Link deactivated.'], lk_via: ['Envoyer par', 'Send via'], lk_other: ['Autres apps', 'Other apps'],
+    lk_social_hint: ["TikTok / Instagram : touche « Autres apps » ou copie le lien, puis colle-le dans ton message ou ta bio.", 'TikTok / Instagram: tap “Other apps” or copy the link, then paste it in your message or bio.'],
+    lk_msg: ['📍 {name} partage sa position avec toi sur Coeurnoh Universe. Ouvre le lien et connecte-toi pour la voir :', '📍 {name} is sharing their position with you on Coeurnoh Universe. Open the link and sign in to see it:'],
+    lk_open_title: ['{name} partage sa position avec toi', '{name} is sharing their position with you'],
+    lk_open_text: ["Tu verras sa position sur la carte jusqu'à {until}. Tu pourras quitter à tout moment.", "You'll see their position on the map until {until}. You can leave at any time."],
+    lk_open_btn: ['Voir sa position', 'See position'], lk_done: ['Position partagée avec toi.', 'Position shared with you.'],
+    lk_bad: ['Lien invalide ou désactivé.', 'Invalid or deactivated link.'], lk_expired: ['Ce lien a expiré.', 'This link has expired.'], lk_own: ["C'est ton propre lien.", "That's your own link."],
+    lk_n_t: ['Lien ouvert', 'Link opened'], lk_n_b: ['{name} a ouvert ton lien et voit ta position.', '{name} opened your link and can see your position.'],
+    fs_open: ['Plein écran', 'Full screen'], fs_close: ['Quitter le plein écran', 'Exit full screen'], fs_me: ['Moi', 'Me'],
+    dir_error: ["L'annuaire est inaccessible. Les règles Firestore du Centre de localisation ne sont probablement pas encore publiées. Ouvre « Vérifier ma configuration » (onglet Confidentialité).", 'The directory is unreachable. The Firestore rules for the Location center are probably not published yet. Open “Check my setup” (Privacy tab).'],
+    dir_solo: ["Tu es l'un des premiers membres ! Invite tes proches, ou crée ton lien de localisation juste en dessous.", "You're one of the first members! Invite your friends, or create your location link just below."],
+    dg_title: ['Vérifier ma configuration', 'Check my setup'], dg_run: ['Lancer la vérification', 'Run the check'], dg_running: ['Vérification…', 'Checking…'],
+    dg_fix: ["Réparer et recharger l'application", 'Repair and reload the app'],
+    dg_https: ['Connexion sécurisée (HTTPS)', 'Secure connection (HTTPS)'], dg_server: ['Configuration du serveur (vercel.json)', 'Server configuration (vercel.json)'],
+    dg_policy: ["Autorisation GPS du site", 'Site GPS permission'], dg_gps: ['Permission GPS du téléphone', 'Phone GPS permission'], dg_map: ['Carte (Leaflet)', 'Map (Leaflet)'],
+    dg_rules: ['Règles Firestore', 'Firestore rules'], dg_notif: ['Notifications', 'Notifications'],
+    dg_server_old: ["Le serveur envoie encore l'ancienne configuration : le fichier vercel.json n'est pas déployé (GitHub → Vercel, attends le statut « Ready »).", 'The server still sends the old configuration: vercel.json is not deployed (GitHub → Vercel, wait for the “Ready” status).'],
+    dg_cache: ["Le serveur est à jour mais cet appareil garde une ancienne version : touche « Réparer et recharger ».", 'The server is up to date but this device keeps an old version: tap “Repair and reload”.'],
+    dg_rules_ko: ["Règles non publiées ou incomplètes : Firebase Console ▸ Firestore ▸ Règles ▸ coller le fichier complet ▸ Publier.", 'Rules not published or incomplete: Firebase Console ▸ Firestore ▸ Rules ▸ paste the full file ▸ Publish.'],
+    dg_map_ko: ['Impossible de charger la carte (réseau ou blocage).', 'Unable to load the map (network or blocking).'],
+    dg_gps_prompt: ["Pas encore demandée : touche « Activer ma position » dans l'onglet Position.", 'Not asked yet: tap “Turn on my position” in the Position tab.'],
+    dg_notif_ko: ['Notifications bloquées : autorise-les dans les réglages du navigateur pour recevoir les alertes.', 'Notifications blocked: allow them in browser settings to receive alerts.'],
+    dg_notif_ask: ["Pas encore autorisées : active-les pour recevoir les alertes même application fermée.", 'Not allowed yet: enable them to receive alerts even when the app is closed.']
+  });
   for (var nk in N) if (Object.prototype.hasOwnProperty.call(N, nk)) X[nk] = N[nk];
   X.back = ['Retour', 'Back'];
   var TABS = ['pos', 'share', 'sec', 'dev', 'hist', 'priv'];
   var SVG_BACK = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>';
+  var SVG_FS_ON = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>';
+  var SVG_FS_OFF = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg>';
   var SVG_LOC = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8"/><line x1="12" y1="1" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="23"/><line x1="1" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="23" y2="12"/></svg>';
 
   function buildDom() {
@@ -1122,7 +1333,8 @@
       '<h2 id="lc-title">' + esc(T('title')) + '</h2>' +
       '<button class="lc-ib" data-act="recenter" aria-label="' + esc(T('recenter')) + '" title="' + esc(T('recenter')) + '">' + SVG_LOC + '</button></div>' +
       '<div id="lc-sosbar"></div>' +
-      '<div class="lc-body"><div class="lc-mapwrap"><div id="lc-map"></div><div class="lc-mapfb" id="lc-mapfb" style="display:none"></div></div>' +
+      '<div class="lc-body"><div class="lc-mapwrap"><div id="lc-map"></div><div class="lc-mapfb" id="lc-mapfb" style="display:none"></div>' +
+      '<button type="button" class="lc-fsbtn" id="lc-fsbtn" data-act="mapfs" aria-label="' + esc(T('fs_open')) + '">' + SVG_FS_ON + '</button><div id="lc-fsbar"></div></div>' +
       '<div class="lc-panel"><nav class="lc-tabs" id="lc-tabs" role="tablist"></nav><div id="lc-tabbody"></div></div></div>' +
       '<div class="lc-sheet" id="lc-sheet"></div><div id="lc-toast"></div>';
     document.body.appendChild(el);
@@ -1227,6 +1439,7 @@
     var em = (S.priv && S.priv.email) || me.email || '', ph = (S.priv && S.priv.phone) || '';
     var steps = ['onb_s1', 'onb_s2', 'onb_s3'].map(function (k, i) { return '<li><span class="lc-step">' + (i + 1) + '</span><span>' + esc(T(k)) + '</span></li>'; }).join('');
     return card(S.profile ? T('onb_edit') : T('onb_title'),
+      (S.regError ? '<div class="lc-err">' + esc(S.regError) + '</div>' : '') +
       '<p>' + esc(T('onb_text')) + '</p><ol class="lc-steps">' + steps + '</ol>' +
       '<div class="lc-form"><label class="lc-lbl" for="lc-onb-phone">' + esc(T('onb_phone')) + '</label>' +
       '<input class="lc-in" id="lc-onb-phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+243 81 234 5678" value="' + esc(ph) + '">' +
@@ -1263,7 +1476,9 @@
   function renderDirResults() {
     var host = $('lc-dir-res'); if (!host) return;
     var ctx = S.tab === 'sec' ? 'ec' : 'share', d = S.dir, h = '';
-    if (d.loading && !d.results.length) h = '<p class="lc-muted">' + esc(T('loading')) + '</p>';
+    if (d.error) h = '<div class="lc-err">' + esc(T('dir_error')) + '</div>';
+    else if (d.loading && !d.results.length) h = '<p class="lc-muted">' + esc(T('loading')) + '</p>';
+    else if (d.ready && !d.results.length && !d.q) h = '<div class="lc-warn" style="margin:0">' + esc(T('dir_solo')) + '</div>';
     else if (d.ready && !d.results.length) h = '<p class="lc-muted">' + esc(T('dir_empty')) + '</p>';
     else {
       if (!d.q) h += '<div class="lc-lbl" style="margin-bottom:8px">' + esc(T('dir_members')) + '</div>';
@@ -1271,9 +1486,30 @@
     }
     host.innerHTML = h;
   }
+
+  function linkRow(l) {
+    var n = S.outShares.filter(function (s) { return s.linkToken === l.id && isActiveShare(s); }).length;
+    return '<div class="lc-person"><div class="top"><div class="grow"><b>' + esc(l.expiresAtMs ? T('lk_expires', { t: fmtTime(l.expiresAtMs) }) : T('lk_never')) + '</b>' +
+      '<span class="lc-muted">' + esc(T('lk_viewers', { n: n })) + '</span></div></div>' +
+      '<div class="lc-linkbox">' + esc(linkUrl(l.id)) + '</div>' +
+      '<div class="lc-ch">' +
+      btn('lkch', 'WhatsApp', 'sm', ' data-ch="wa" data-id="' + esc(l.id) + '"') + btn('lkch', 'Messenger', 'sm', ' data-ch="ms" data-id="' + esc(l.id) + '"') + btn('lkch', 'Facebook', 'sm', ' data-ch="fb" data-id="' + esc(l.id) + '"') +
+      btn('lkch', 'Telegram', 'sec sm', ' data-ch="tg" data-id="' + esc(l.id) + '"') + btn('lkch', 'SMS', 'sec sm', ' data-ch="sms" data-id="' + esc(l.id) + '"') + btn('lkch', T('lk_other'), 'sec sm', ' data-ch="nat" data-id="' + esc(l.id) + '"') + '</div>' +
+      '<div class="lc-diracts">' + btn('lkch', T('lk_copy'), 'sec sm', ' data-ch="copy" data-id="' + esc(l.id) + '"') + btn('lkoff', T('lk_off'), 'red sm', ' data-id="' + esc(l.id) + '"') + '</div></div>';
+  }
+  function linkCard() {
+    var act = activeLinks();
+    var chips = [[60, 'dur_60'], [480, 'dur_480'], [1440, 'dur_1440'], [0, 'dur_0']].map(function (c) {
+      return '<button type="button" class="lc-chip' + (S.lkDur === c[0] ? ' on' : '') + '" data-act="lkdur" data-v="' + c[0] + '">' + esc(T(c[1])) + '</button>';
+    }).join('');
+    return card(T('lk_title'),
+      '<p>' + esc(T('lk_intro')) + '</p><div class="lc-chips">' + chips + '</div>' + btn('lkcreate', T('lk_create'), '') +
+      '<p class="lc-muted" style="margin-top:10px">' + esc(T('lk_warn')) + '</p>' +
+      (act.length ? '<div class="lc-lbl" style="margin:12px 0 6px">' + esc(T('lk_active')) + '</div>' + act.map(linkRow).join('') + '<p class="lc-muted">' + esc(T('lk_social_hint')) + '</p>' : ''));
+  }
   function tabShare() {
     if (!S.profileLoaded) return '<p class="lc-muted">' + esc(T('loading')) + '</p>';
-    if (!S.profile || S.editProfile) return onboardCard();
+    if (!S.profile || S.editProfile) return linkCard() + onboardCard();
     var me = myUid(), h = '', out = activeOut();
     if (out.length) h += '<div class="lc-banner">📍 ' + esc(T('sh_banner', { names: out.map(function (s) { return s.viewerName; }).join(', ') })) + '</div>';
     var reqs = S.outShares.filter(function (s) { return s.status === 'pending' && s.requestedBy !== me; });
@@ -1284,6 +1520,7 @@
       }).join(''));
     }
     h += dirCard('share');
+    h += linkCard();
     h += card(T('sh_out'), out.length
       ? out.map(function (s) {
         return '<div class="lc-row">' + av(s.viewerName) + '<div class="grow"><b>' + esc(s.viewerName) + '</b><span class="lc-muted">' + esc(remaining(s.expiresAtMs)) + '</span></div>' +
@@ -1379,6 +1616,20 @@
   }
 
   /* ---- Onglet Confidentialité ---- */
+  function diagCard() {
+    var d = S.diag, h = '';
+    if (d && d.running) h = '<p class="lc-muted">' + esc(T('dg_running')) + '</p>';
+    else if (d) {
+      var bad = false;
+      h = d.items.map(function (it) {
+        if (it.ok === false) bad = true;
+        var cls = it.ok === true ? 'ok' : (it.ok === false ? 'ko' : 'na');
+        return '<div class="lc-dg ' + cls + '"><i>' + (it.ok === true ? '✓' : (it.ok === false ? '✕' : '!')) + '</i><div><b>' + esc(it.label) + '</b>' + (it.hint ? '<small>' + esc(it.hint) + '</small>' : '') + '</div></div>';
+      }).join('');
+      if (bad) h += '<div style="margin-top:10px">' + btn('repair', T('dg_fix'), 'sec sm') + '</div>';
+    }
+    return card(T('dg_title'), h + '<div style="margin-top:10px">' + btn('diag', T('dg_run'), 'sec sm', (d && d.running) ? ' disabled' : '') + '</div>');
+  }
   function tabPriv() {
     var items = ['pv_1', 'pv_2', 'pv_3', 'pv_4', 'pv_5', 'pv_6', 'pv_7'].map(function (k) { return '<li style="margin-bottom:6px">' + esc(T(k)) + '</li>'; }).join('');
     var h = card(T('pv_title'), '<ul style="margin:0;padding-left:18px;font-size:.86rem;line-height:1.45">' + items + '</ul>');
@@ -1392,6 +1643,7 @@
       h += card(T('pv_dir'), '<p class="lc-muted">' + esc(((S.priv && S.priv.email) || '') + (S.priv && S.priv.email && S.priv.phone ? ' · ' : '') + ((S.priv && S.priv.phone) || '')) + '</p>' +
         '<div style="display:flex;gap:8px;flex-wrap:wrap">' + btn('editprofile', T('onb_edit'), 'sec sm') + btn('leavedir', T('pv_leave'), 'sec sm') + '</div>');
     }
+    h += diagCard();
     h += card('', btn('delall', T('pv_delete_all'), 'red'));
     return h;
   }
@@ -1432,7 +1684,8 @@
     if (!t) return;
     var act = t.getAttribute('data-act'), id = t.getAttribute('data-id');
     switch (act) {
-      case 'close': close(); break;
+      case 'close': if (S.fs) { S.fs = false; applyFs(); } else close(); break;
+      case 'mapfs': S.fs = !S.fs; applyFs(); break;
       case 'recenter': { var lk = lastKnown(); if (lk) flyTo(lk.lat, lk.lng); break; }
       case 'tab': setTab(t.getAttribute('data-tab')); break;
       case 'startpos': lsSet(LS_CONSENT, '1'); S.watchId = null; startWatch(); queryPerm(); renderTab(); break;
@@ -1442,10 +1695,26 @@
       case 'register': {
         var okb = $('lc-onb-ok');
         if (!okb || !okb.checked) { toastLC(T('onb_consent_needed'), 'error'); break; }
-        run(t, function () { return registerProfile(val('lc-onb-phone'), val('lc-onb-email')).then(function () { S.editProfile = false; S.dir.ready = false; }); }, T('onb_done'));
+        run(t, function () {
+          return registerProfile(val('lc-onb-phone'), val('lc-onb-email'))
+            .then(function () { S.regError = ''; S.editProfile = false; S.dir.ready = false; })
+            .catch(function (e) { S.regError = userErr(e); throw e; });
+        }, T('onb_done'));
         break;
       }
       case 'gojoin': setTab('share'); break;
+      case 'lkdur': S.lkDur = parseInt(t.getAttribute('data-v'), 10) || 0; renderTab(); break;
+      case 'lkcreate':
+        if (!lsGet(LS_CONSENT)) {
+          openSheet(T('consent_title'), T('consent_text'), '', T('consent_btn'), function () {
+            lsSet(LS_CONSENT, '1'); closeSheet(); run(null, function () { return createLink(S.lkDur); }, T('lk_created'));
+          });
+        } else run(t, function () { return createLink(S.lkDur); }, T('lk_created'));
+        break;
+      case 'lkch': shareVia(t.getAttribute('data-ch'), id); break;
+      case 'lkoff': run(t, function () { return revokeLink(id); }, T('lk_off_done')); break;
+      case 'diag': runDiagnostics(); break;
+      case 'repair': repairApp(); break;
       case 'retrymap': { S.leafletPromise = null; var fbx = $('lc-mapfb'); if (fbx) fbx.style.display = 'none'; var wr = document.querySelector('.lc-mapwrap'); if (wr) wr.classList.remove('fb'); initMap(); break; }
       case 'editprofile': S.editProfile = true; setTab('share'); break;
       case 'leavedir':
@@ -1554,7 +1823,7 @@
     initMap(); queryPerm();
     if (lsGet(LS_CONSENT)) startWatch();
     S.editProfile = false; S.dir.ready = false;
-    Promise.all([loadProfile(), loadBlocked(), loadShares(), loadContacts(), loadDevices(), loadSosMine()]).then(function () {
+    Promise.all([loadProfile(), loadBlocked(), loadShares(), loadContacts(), loadDevices(), loadSosMine(), loadLinks()]).then(function () {
       if (!S.open) return;
       syncPeers(); refreshSosOthers();
       if (!S.profile && !tab && !lsGet('cn_loc_onb')) { lsSet('cn_loc_onb', '1'); S.tab = 'share'; renderTabs(); }
@@ -1566,7 +1835,7 @@
     geocodeMaybe(false); startTimer(); updatePill();
   }
   function close() {
-    S.open = false; closeSheet();
+    S.open = false; S.fs = false; applyFs(); closeSheet();
     var r = $('lc-root'); if (r) r.classList.remove('open');
     stopTimer(); stopPeerListeners(); destroyMap();
     if (!needsWatch()) stopWatch();
@@ -1578,7 +1847,7 @@
     if (S.booted || !myUid() || !getDb()) return;
     S.booted = true;
     injectCss(); buildPill();
-    Promise.all([loadShares(), loadSosMine()]).then(function () {
+    Promise.all([loadShares(), loadSosMine(), loadLinks()]).then(function () {
       function go() {
         if (cfg.track) ensureDeviceDoc().then(watchSelfDevice);
         if (needsWatch()) startWatch();
@@ -1594,8 +1863,23 @@
     });
   }
 
+  // Ouvre un lien de localisation reçu (?loc=link&t=…) : confirmation, puis carte plein écran
+  function openLink(token) {
+    open('share');
+    fetchLink(token).then(function (l) {
+      var until = l.expiresAtMs ? fmtTime(l.expiresAtMs) : T('sh_manual');
+      openSheet(T('lk_open_title', { name: l.ownerName }), T('lk_open_text', { until: until }), '', T('lk_open_btn'), function () {
+        closeSheet();
+        run(null, function () { return claimLink(l).then(function () { S.fs = true; applyFs(); focusPeer(l.ownerUid); }); }, T('lk_done'));
+      });
+    }).catch(function (e) {
+      var c = e && e.code;
+      toastLC(c === 'badlink' ? T('lk_bad') : c === 'expiredlink' ? T('lk_expired') : c === 'ownlink' ? T('lk_own') : errText(e), 'error');
+    });
+  }
+
   root.LocationCenter = {
-    open: open, close: close, boot: boot,
+    open: open, close: close, boot: boot, openLink: openLink,
     isOpen: function () { return S.open; },
     _test: { haversine: haversine, validCoords: validCoords, remaining: remaining, ago: ago, isActiveShare: isActiveShare }
   };
