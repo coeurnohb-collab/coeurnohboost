@@ -21,8 +21,9 @@
      RÉGLAGES (modifiables ici, sans toucher au reste)
      ------------------------------------------------------------------ */
   var CFG = {
-    LEAFLET_JS: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js',
-    LEAFLET_CSS: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css',
+    // Deux sources : si la première est bloquée ou en panne, la seconde prend le relais.
+    LEAFLET_JS: ['https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js', 'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js'],
+    LEAFLET_CSS: ['https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css', 'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css'],
     TILES: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
     // Écritures Firestore (partage / suivi d'appareil) : au plus 1 écriture
     // par MIN_INTERVAL_MS, et seulement si on a bougé d'au moins
@@ -236,7 +237,8 @@
     });
   }
   function loadCss(href) {
-    if (document.querySelector('link[data-lc]')) return;
+    var all = document.querySelectorAll('link[data-lc]');
+    for (var i = 0; i < all.length; i++) if (all[i].getAttribute('href') === href) return;
     var l = document.createElement('link');
     l.rel = 'stylesheet'; l.href = href; l.setAttribute('data-lc', '1');
     document.head.appendChild(l);
@@ -279,7 +281,8 @@
     outShares: [], inShares: [], contacts: [], contactsIn: [], devices: [], history: [],
     sosMine: null, sosOthers: [], peers: {}, peerUnsubs: {}, selfDevUnsub: null, handledRefresh: null,
     timer: null, lastW: { t: 0, pos: null }, lastH: { t: 0, pos: null }, lastS: { t: 0, pos: null },
-    perm: 'unknown', booted: false, flash: ''
+    perm: 'unknown', booted: false, flash: '', cspBlocked: false,
+    profile: null, profileLoaded: false, priv: null, blocked: {}, dir: { q: '', results: [], loading: false, ready: false }, dirTimer: null, sheetDur: 60
   };
   function devId() { return (myUid() || 'x') + '_' + localDeviceId(); }
   function isActiveShare(sh) { return sh && sh.status === 'active' && (!sh.expiresAtMs || sh.expiresAtMs > now()); }
@@ -314,6 +317,7 @@
       '.lc-body{flex:1;min-height:0;display:flex;flex-direction:column}',
       '.lc-mapwrap{position:relative;height:38vh;min-height:220px;background:var(--green-light,#eef1f6);flex:0 0 auto}',
       '#lc-map{position:absolute;inset:0}',
+      '.lc-mapwrap.fb{height:auto;min-height:0}.lc-mapwrap.fb #lc-map{display:none}.lc-mapwrap.fb .lc-mapfb{position:relative;padding:18px 16px}',
       '.lc-mapfb{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:16px;text-align:center;font-size:.9rem}',
       '.lc-panel{flex:1;min-height:0;display:flex;flex-direction:column}',
       '.lc-tabs{display:flex;gap:6px;overflow-x:auto;padding:10px 12px;border-bottom:1px solid var(--line,#e2e6ee);scrollbar-width:none}',
@@ -367,6 +371,21 @@
       '.lc-toast-item.err{background:#a91a2e}.lc-toast-item.out{opacity:0}',
       '#lc-pill{position:fixed;left:12px;bottom:calc(76px + env(safe-area-inset-bottom));z-index:2000;display:none;align-items:center;gap:8px;border:0;border-radius:999px;padding:9px 14px;font:inherit;font-size:.8rem;font-weight:800;color:#fff;background:#1c7ed6;box-shadow:0 4px 14px rgba(0,0,0,.3);cursor:pointer}',
       '#lc-pill.on{display:inline-flex}#lc-pill.sos{background:#d7263d}',
+      '.lc-av{position:relative;overflow:hidden}.lc-av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}',
+      '.lc-lbl{font-size:.74rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--muted,#5d6779);margin-top:2px}',
+      '.lc-details summary{cursor:pointer;font-weight:800;font-size:.88rem}',
+      '.lc-steps{list-style:none;margin:0 0 12px;padding:0;display:flex;flex-direction:column;gap:8px}',
+      '.lc-steps li{display:flex;align-items:center;gap:10px;font-size:.86rem;line-height:1.35}',
+      '.lc-step{flex:0 0 auto;width:24px;height:24px;border-radius:50%;background:var(--green,#28374f);color:#fff;font-weight:800;font-size:.78rem;display:inline-flex;align-items:center;justify-content:center}',
+      '.lc-person{border:1px solid var(--line,#e2e6ee);border-radius:14px;padding:10px 12px;margin-bottom:8px;background:var(--white,#fff)}',
+      '.lc-person .top{display:flex;align-items:center;gap:10px}.lc-person .grow{flex:1;min-width:0}.lc-person .grow b{display:block;font-size:.95rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.lc-diracts{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.lc-diracts .lc-btn{flex:1 1 auto}',
+      '.lc-chip-s{display:inline-block;margin:4px 6px 0 0;padding:3px 9px;border-radius:999px;background:#e6fcf5;color:#087f5b;font-size:.72rem;font-weight:800}',
+      '.lc-chips{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:4px 0 12px}',
+      '.lc-chip{border:2px solid var(--line,#e2e6ee);background:var(--white,#fff);color:var(--ink,#141a26);border-radius:12px;padding:12px 8px;font:inherit;font-weight:800;font-size:.9rem;cursor:pointer}',
+      '.lc-chip.on{border-color:var(--green,#28374f);background:var(--green-light,#eef1f6)}',
+      '.lc-btn.ok{background:#2f9e44;color:#fff}',
+      '.lc-invite{display:flex;align-items:center;gap:10px;justify-content:space-between;flex-wrap:wrap;margin-top:6px}',
       '@media (min-width:900px){.lc-body{flex-direction:row}.lc-mapwrap{height:auto;min-height:0;flex:1}.lc-panel{flex:0 0 440px;border-left:1px solid var(--line,#e2e6ee)}}'
     ].join('\n');
     document.head.appendChild(st);
@@ -378,11 +397,24 @@
   function ensureLeaflet() {
     if (root.L && root.L.map) return Promise.resolve(root.L);
     if (S.leafletPromise) return S.leafletPromise;
-    loadCss(CFG.LEAFLET_CSS);
-    S.leafletPromise = loadScript(CFG.LEAFLET_JS).then(function () { return root.L; });
+    var i = 0;
+    function tryNext() {
+      if (i >= CFG.LEAFLET_JS.length) return Promise.reject(new Error('leaflet'));
+      var k = i++;
+      loadCss(CFG.LEAFLET_CSS[k]);
+      return loadScript(CFG.LEAFLET_JS[k]).then(function () {
+        if (!(root.L && root.L.map)) throw new Error('leaflet-empty');
+        return root.L;
+      }).catch(tryNext);
+    }
+    S.leafletPromise = tryNext();
     S.leafletPromise.catch(function () { S.leafletPromise = null; });
     return S.leafletPromise;
   }
+  // Détecte un blocage par la politique de sécurité (vercel.json pas à jour)
+  document.addEventListener('securitypolicyviolation', function (e) {
+    if (/cdnjs|jsdelivr|openstreetmap/.test(e.blockedURI || '')) S.cspBlocked = true;
+  });
   function initMap() {
     var el = $('lc-map');
     if (!el || S.map) return;
@@ -390,13 +422,14 @@
       if (!S.open || S.map) return;
       S.L = L; S.mapFailed = false;
       var fb = $('lc-mapfb'); if (fb) fb.style.display = 'none';
+      var wrap = document.querySelector('.lc-mapwrap'); if (wrap) wrap.classList.remove('fb');
       var start = lastKnown();
       S.map = L.map(el, { zoomControl: true }).setView(start ? [start.lat, start.lng] : [2, 20], start ? 16 : 3);
       L.tileLayer(CFG.TILES, { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(S.map);
       S.group = L.layerGroup().addTo(S.map);
       drawMap();
       setTimeout(function () { if (S.map) S.map.invalidateSize(); }, 250);
-    }).catch(function () { S.mapFailed = true; showMapFallback(); });
+    }).catch(function () { setTimeout(function () { S.mapFailed = true; showMapFallback(); }, 60); });
   }
   function destroyMap() {
     if (S.map) { try { S.map.remove(); } catch (e) { /* ignore */ } }
@@ -405,10 +438,12 @@
   function showMapFallback() {
     var fb = $('lc-mapfb'); if (!fb) return;
     var m = lastKnown();
+    var wrap = document.querySelector('.lc-mapwrap'); if (wrap) wrap.classList.add('fb');
     fb.style.display = 'flex';
-    fb.innerHTML = '<div>' + esc(T('map_fallback')) + '</div>' + (m
+    fb.innerHTML = '<div>' + esc(S.cspBlocked ? T('map_blocked') : T('map_fallback')) + '</div>' + (m
       ? '<b>' + fmtCoord(m.lat) + ', ' + fmtCoord(m.lng) + '</b><a target="_blank" rel="noopener" href="https://www.openstreetmap.org/?mlat=' + m.lat + '&mlon=' + m.lng + '#map=17/' + m.lat + '/' + m.lng + '">' + esc(T('open_osm')) + '</a>'
-      : '<span class="lc-muted">' + esc(T('no_pos')) + '</span>');
+      : '<span class="lc-muted">' + esc(T('no_pos')) + '</span>') +
+      '<button type="button" class="lc-btn sec sm" data-act="retrymap">' + esc(T('retry')) + '</button>';
   }
   function icon(cls, html) {
     return S.L.divIcon({ className: '', html: '<div class="lc-mk ' + cls + '">' + (html || '') + '</div>', iconSize: [30, 30], iconAnchor: [15, 15] });
@@ -485,9 +520,16 @@
       }
     } catch (e) { /* ignore */ }
   }
+  function policyBlocksGeo() {
+    try {
+      var pp = document.permissionsPolicy || document.featurePolicy;
+      return !!(pp && typeof pp.allowsFeature === 'function' && !pp.allowsFeature('geolocation'));
+    } catch (e) { return false; }
+  }
   function startWatch() {
     if (!geoSupported()) { setStatus('unsupported'); return; }
     if (root.isSecureContext === false) { setStatus('insecure'); return; }
+    if (policyBlocksGeo()) { setStatus('policy'); return; }
     if (S.watchId != null) return;
     setStatus('locating');
     try {
@@ -519,7 +561,7 @@
   }
   function onPosErr(err) {
     var code = err && err.code;
-    if (code === 1) { setStatus('denied'); S.perm = 'denied'; stopWatch(); setStatus('denied'); }
+    if (code === 1) { var pol = policyBlocksGeo(); if (!pol) S.perm = 'denied'; stopWatch(); setStatus(pol ? 'policy' : 'denied'); }
     else if (code === 3) setStatus('timeout');
     else setStatus('unavailable');
   }
@@ -625,19 +667,102 @@
     try { if (typeof fetchPublicProfile === 'function') return Promise.resolve(fetchPublicProfile(uid)).catch(function () { return null; }); } catch (e) { /* ignore */ }
     return Promise.resolve(null);
   }
-  function resolveUser(raw) {
-    var u = String(raw || '').trim().toLowerCase().replace(/^@/, '').replace(/[^a-z0-9._]/g, '');
-    if (u.length < 3) return Promise.reject({ code: 'notfound' });
-    return col('usernames').doc(u).get().then(function (s) {
-      if (!s.exists || !s.data().uid) throw { code: 'notfound' };
-      var uid = s.data().uid;
-      if (uid === myUid()) throw { code: 'self' };
-      return profileOf(uid).then(function (p) { return { uid: uid, name: (p && p.name) || u }; });
+  /* ------------------------------------------------------------------
+     ANNUAIRE : s'inscrire (email / numéro) et retrouver ses proches
+     Seuls nom + photo + @utilisateur sont publics. L'email et le numéro
+     ne sont JAMAIS stockés en clair côté annuaire : on garde une empreinte
+     SHA-256 qui sert uniquement à retrouver quelqu'un qui tape exactement
+     son email ou son numéro (comparaison sur les 9 derniers chiffres, pour
+     que +243 81 234 5678 et 081 234 5678 soient reconnus pareil).
+     ------------------------------------------------------------------ */
+  function sha(str) {
+    return root.crypto.subtle.digest('SHA-256', new TextEncoder().encode(str)).then(function (buf) {
+      return Array.prototype.map.call(new Uint8Array(buf), function (b) { return ('0' + b.toString(16)).slice(-2); }).join('');
     });
   }
+  function normEmail(v) { v = String(v || '').trim().toLowerCase(); return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v) ? v : ''; }
+  function normPhone(v) { var d = String(v || '').replace(/\D/g, ''); return (d.length < 8 || d.length > 15) ? '' : d.slice(-9); }
+  function lookupId(kind, norm) { return sha('cn-loc-v1|' + kind + '|' + norm).then(function (h) { return kind + '_' + h; }); }
+  function safePhoto(u) { return (typeof u === 'string' && /^https:\/\//.test(u) && u.length < 500) ? u : ''; }
+
+  function loadProfile() {
+    var uid = myUid(); if (!uid) return Promise.resolve();
+    return col('location_profiles').doc(uid).get().then(function (s) {
+      S.profile = s.exists ? s.data() : null; S.profileLoaded = true;
+      if (!S.profile) { S.priv = null; return null; }
+      return col('location_private').doc(uid).get().then(function (ps) { S.priv = ps.exists ? ps.data() : null; });
+    }).catch(function (e) { S.profileLoaded = true; console.warn('[loc] profil', e.code); });
+  }
+  function loadBlocked() {
+    var uid = myUid(); if (!uid) return Promise.resolve();
+    return col('blocks').where('blockerUid', '==', uid).get().then(function (r) {
+      S.blocked = {};
+      r.docs.forEach(function (d) { var b = d.data().blockedUid || d.id.slice(uid.length + 1); S.blocked[b] = true; });
+    }).catch(function () { /* ignore */ });
+  }
+  function registerProfile(phoneRaw, emailRaw) {
+    var uid = myUid(), me = getMe();
+    var em = normEmail(emailRaw), ph = normPhone(phoneRaw);
+    if (!em && !ph) return Promise.reject({ code: 'need_one' });
+    var wants = []; if (em) wants.push(['e', em]); if (ph) wants.push(['p', ph]);
+    return Promise.all(wants.map(function (w) { return lookupId(w[0], w[1]); })).then(function (ids) {
+      return Promise.all([col('location_private').doc(uid).get(), Promise.all(ids.map(function (id) { return col('location_lookup').doc(id).get(); }))]).then(function (r) {
+        var old = (r[0].exists && r[0].data().lookupIds) || [], snaps = r[1];
+        for (var i = 0; i < snaps.length; i++) if (snaps[i].exists && snaps[i].data().uid !== uid) throw { code: 'taken' };
+        var b = getDb().batch();
+        old.filter(function (id) { return ids.indexOf(id) < 0; }).forEach(function (id) { b.delete(col('location_lookup').doc(id)); });
+        ids.forEach(function (id, k) { if (!snaps[k].exists) b.set(col('location_lookup').doc(id), { uid: uid, createdAtMs: now() }); });
+        b.set(col('location_private').doc(uid), { ownerUid: uid, lookupIds: ids, email: em, phone: String(phoneRaw || '').trim().slice(0, 25), updatedAtMs: now() });
+        var name = String(myName()).slice(0, 60), un = String((me && me.username) || '').slice(0, 30);
+        b.set(col('location_profiles').doc(uid), {
+          uid: uid, name: name, nameLower: name.toLowerCase(), username: un, usernameLower: un.toLowerCase(),
+          photoURL: safePhoto(me && me.photoURL), createdAtMs: (S.profile && S.profile.createdAtMs) || now(), updatedAtMs: now()
+        });
+        return b.commit();
+      });
+    }).then(loadProfile);
+  }
+  function leaveDirectory() {
+    var uid = myUid(); if (!uid) return Promise.resolve();
+    var ids = (S.priv && S.priv.lookupIds) || [];
+    return Promise.all(ids.map(function (id) { return col('location_lookup').doc(id).delete().catch(function () { }); }))
+      .then(function () { return col('location_private').doc(uid).delete().catch(function () { }); })
+      .then(function () { return col('location_profiles').doc(uid).delete(); })
+      .then(function () { S.profile = null; S.priv = null; S.dir = { q: '', results: [], loading: false, ready: false }; });
+  }
+  function searchDirectory(q) {
+    var uid = myUid(); q = String(q || '').trim();
+    function clean(arr) { var seen = {}; return arr.filter(function (p) { return p && p.uid && p.uid !== uid && !S.blocked[p.uid] && !seen[p.uid] && (seen[p.uid] = 1); }); }
+    if (!q) return col('location_profiles').orderBy('nameLower').limit(25).get().then(function (r) { return clean(r.docs.map(function (d) { return d.data(); })); });
+    var low = q.toLowerCase().replace(/^@/, ''), tasks = [];
+    var em = normEmail(q), ph = /^[+\d][\d\s().-]{6,}$/.test(q) ? normPhone(q) : '';
+    function byLookup(kind, norm) {
+      return lookupId(kind, norm).then(function (id) { return col('location_lookup').doc(id).get(); })
+        .then(function (s) { return s.exists ? col('location_profiles').doc(s.data().uid).get() : null; })
+        .then(function (s) { return s && s.exists ? [s.data()] : []; }).catch(function () { return []; });
+    }
+    if (em) tasks.push(byLookup('e', em));
+    if (ph) tasks.push(byLookup('p', ph));
+    if (!em && !ph) {
+      ['nameLower', 'usernameLower'].forEach(function (f) {
+        tasks.push(col('location_profiles').where(f, '>=', low).where(f, '<=', low + '\uf8ff').limit(15).get()
+          .then(function (r) { return r.docs.map(function (d) { return d.data(); }); }).catch(function () { return []; }));
+      });
+    }
+    return Promise.all(tasks).then(function (a) { return clean([].concat.apply([], a)); });
+  }
+  function dirRun() {
+    var q = S.dir.q; S.dir.loading = true; renderDirResults();
+    searchDirectory(q).then(function (res) {
+      if (S.dir.q !== q) return;
+      S.dir.results = res; S.dir.loading = false; S.dir.ready = true; renderDirResults();
+    }).catch(function (e) { S.dir.loading = false; S.dir.results = []; S.dir.ready = true; renderDirResults(); toastLC(errText(e), 'error'); });
+  }
+  function dirDebounced() { if (S.dirTimer) clearTimeout(S.dirTimer); S.dirTimer = setTimeout(dirRun, 350); }
+  function dirFind(uid) { for (var i = 0; i < S.dir.results.length; i++) if (S.dir.results[i].uid === uid) return S.dir.results[i]; return null; }
   function userErr(e) {
-    if (e && e.code === 'notfound') return T('user_notfound');
-    if (e && e.code === 'self') return T('user_self');
+    if (e && e.code === 'need_one') return T('onb_need_one');
+    if (e && e.code === 'taken') return T('onb_taken');
     if (e && e.code === 'limit') return T('limit');
     return errText(e);
   }
@@ -685,62 +810,63 @@
     S.peerUnsubs = {}; S.peers = {};
   }
 
-  function shareWith(rawUser, durMin) {
+  function shareWithUid(tg, durMin) {
     var uid = myUid();
-    return resolveUser(rawUser).then(function (tg) {
-      if (activeOut().length >= CFG.MAX_SHARES) throw { code: 'limit' };
-      var id = uid + '_' + tg.uid, ref = col('location_shares').doc(id);
-      var exp = durMin > 0 ? now() + durMin * 60000 : 0;
-      return ref.get().then(function (s) {
-        if (s.exists) return ref.update({ status: 'active', expiresAtMs: exp, updatedAtMs: now() });
-        return ref.set({
-          ownerUid: uid, viewerUid: tg.uid, ownerName: myName(), viewerName: tg.name, status: 'active',
-          requestedBy: uid, expiresAtMs: exp, createdAtMs: now(), updatedAtMs: now()
-        });
-      }).then(function () {
-        notifyUser(tg.uid, 'location', T('sh_notif_title'), T('sh_notif_body', { name: myName() }));
-        return loadShares();
-      }).then(function () { afterShareChange(); });
-    });
-  }
-  function askPosition(rawUser) {
-    var uid = myUid();
-    return resolveUser(rawUser).then(function (tg) {
-      var id = tg.uid + '_' + uid, ref = col('location_shares').doc(id);
-      return ref.get().then(function (s) {
-        if (s.exists) {
-          var st = s.data().status;
-          if (st === 'pending' || st === 'active') return null;
-          return ref.delete();
-        }
-        return null;
-      }).then(function () {
-        return ref.get().then(function (s2) {
-          if (s2.exists) return null;
-          return ref.set({
-            ownerUid: tg.uid, viewerUid: uid, ownerName: tg.name, viewerName: myName(), status: 'pending',
-            requestedBy: uid, expiresAtMs: 0, createdAtMs: now(), updatedAtMs: now()
-          }).then(function () { notifyUser(tg.uid, 'location', T('sh_ask_title'), T('sh_ask_body', { name: myName() })); });
-        });
-      }).then(loadShares);
-    });
-  }
-  function acceptRequest(id, durMin) {
+    if (activeOut().length >= CFG.MAX_SHARES) return Promise.reject({ code: 'limit' });
+    var id = uid + '_' + tg.uid, ref = col('location_shares').doc(id);
     var exp = durMin > 0 ? now() + durMin * 60000 : 0;
+    return ref.get().then(function (s) {
+      if (s.exists) return ref.update({ status: 'active', expiresAtMs: exp, updatedAtMs: now() });
+      return ref.set({
+        ownerUid: uid, viewerUid: tg.uid, ownerName: myName(), viewerName: tg.name, status: 'active',
+        requestedBy: uid, expiresAtMs: exp, createdAtMs: now(), updatedAtMs: now()
+      });
+    }).then(function () {
+      notifyUser(tg.uid, 'location', T('sh_notif_title'), T('sh_notif_body', { name: myName() }));
+      return loadShares();
+    }).then(function () { afterShareChange(); });
+  }
+  function askPositionUid(tg) {
+    var uid = myUid(), id = tg.uid + '_' + uid, ref = col('location_shares').doc(id);
+    return ref.get().then(function (s) {
+      if (s.exists) {
+        var st = s.data().status;
+        if (st === 'pending' || st === 'active') return 'skip';
+        return ref.delete().then(function () { return 'new'; });
+      }
+      return 'new';
+    }).then(function (r) {
+      if (r === 'skip') return null;
+      return ref.set({
+        ownerUid: tg.uid, viewerUid: uid, ownerName: tg.name, viewerName: myName(), status: 'pending',
+        requestedBy: uid, expiresAtMs: 0, createdAtMs: now(), updatedAtMs: now()
+      }).then(function () { notifyUser(tg.uid, 'location', T('sh_ask_title'), T('sh_ask_body', { name: myName() })); });
+    }).then(loadShares);
+  }
+  function findOut(id) { return S.outShares.filter(function (s) { return s.id === id; })[0]; }
+  function acceptRequest(id, durMin) {
+    var sh = findOut(id), exp = durMin > 0 ? now() + durMin * 60000 : 0;
     return col('location_shares').doc(id).update({ status: 'active', expiresAtMs: exp, updatedAtMs: now() })
-      .then(loadShares).then(function () { afterShareChange(); });
+      .then(function () { if (sh) notifyUser(sh.viewerUid, 'location', T('n_acc_t'), T('n_acc_b', { name: myName() })); return loadShares(); })
+      .then(function () { afterShareChange(); });
   }
   function declineRequest(id) {
-    return col('location_shares').doc(id).update({ status: 'declined', updatedAtMs: now() }).then(loadShares);
+    var sh = findOut(id);
+    return col('location_shares').doc(id).delete()
+      .then(function () { if (sh) notifyUser(sh.viewerUid, 'location', T('n_dec_t'), T('n_dec_b', { name: myName() })); return loadShares(); });
   }
   function stopShare(id) {
+    var sh = findOut(id);
     return col('location_shares').doc(id).update({ status: 'stopped', updatedAtMs: now() })
-      .then(loadShares).then(function () { if (!activeOut().length) dropLive(); afterShareChange(); });
+      .then(function () { if (sh) notifyUser(sh.viewerUid, 'location', T('n_stop_t'), T('n_stop_b', { name: myName() })); return loadShares(); })
+      .then(function () { if (!activeOut().length) dropLive(); afterShareChange(); });
   }
   function stopAllShares() {
-    var ids = activeOut().map(function (s) { return s.id; });
-    return Promise.all(ids.map(function (id) { return col('location_shares').doc(id).update({ status: 'stopped', updatedAtMs: now() }); }))
-      .then(function () { dropLive(); return loadShares(); }).then(function () { afterShareChange(); });
+    var list = activeOut();
+    return Promise.all(list.map(function (s) {
+      return col('location_shares').doc(s.id).update({ status: 'stopped', updatedAtMs: now() })
+        .then(function () { notifyUser(s.viewerUid, 'location', T('n_stop_t'), T('n_stop_b', { name: myName() })); });
+    })).then(function () { dropLive(); return loadShares(); }).then(function () { afterShareChange(); });
   }
   function deleteShareDoc(id) { return col('location_shares').doc(id).delete().then(loadShares); }
   function afterShareChange() {
@@ -758,19 +884,22 @@
     ]).then(function (r) { S.contacts = r[0].docs.map(rowData); S.contactsIn = r[1].docs.map(rowData); })
       .catch(function (e) { console.warn('[loc] contacts', e.code); });
   }
-  function inviteContact(rawUser) {
+  function inviteContactUid(tg) {
     var uid = myUid();
     if (S.contacts.length >= CFG.MAX_CONTACTS) return Promise.reject({ code: 'limit' });
-    return resolveUser(rawUser).then(function (tg) {
-      var id = uid + '_' + tg.uid, ref = col('emergency_contacts').doc(id);
-      return ref.get().then(function (s) {
-        if (s.exists) return null;
-        return ref.set({ ownerUid: uid, contactUid: tg.uid, ownerName: myName(), contactName: tg.name, status: 'pending', createdAtMs: now() })
-          .then(function () { notifyUser(tg.uid, 'location', T('ec_notif_title'), T('ec_notif_body', { name: myName() })); });
-      });
+    var id = uid + '_' + tg.uid, ref = col('emergency_contacts').doc(id);
+    return ref.get().then(function (s) {
+      if (s.exists) return null;
+      return ref.set({ ownerUid: uid, contactUid: tg.uid, ownerName: myName(), contactName: tg.name, status: 'pending', createdAtMs: now() })
+        .then(function () { notifyUser(tg.uid, 'location', T('ec_notif_title'), T('ec_notif_body', { name: myName() })); });
     }).then(loadContacts);
   }
-  function acceptContact(id) { return col('emergency_contacts').doc(id).update({ status: 'accepted' }).then(loadContacts).then(refreshSosOthers); }
+  function acceptContact(id) {
+    var c = S.contactsIn.filter(function (x) { return x.id === id; })[0];
+    return col('emergency_contacts').doc(id).update({ status: 'accepted' })
+      .then(function () { if (c) notifyUser(c.ownerUid, 'location', T('n_eca_t'), T('n_eca_b', { name: myName() })); return loadContacts(); })
+      .then(refreshSosOthers);
+  }
   function removeContact(id) { return col('emergency_contacts').doc(id).delete().then(loadContacts).then(refreshSosOthers); }
   function refreshSosOthers() {
     var owners = S.contactsIn.filter(function (c) { return c.status === 'accepted'; }).slice(0, CFG.MAX_SOS_WATCH);
@@ -902,6 +1031,7 @@
       jobs.push(col('location_live').doc(uid).delete().catch(function () { }));
       jobs.push(col('sos_sessions').doc(uid).delete().catch(function () { }));
       jobs.push(clearHistory().catch(function () { }));
+      jobs.push(leaveDirectory().catch(function () { }));
       return Promise.all(jobs);
     }).then(function () {
       cfg.track = false; cfg.history = false; saveCfg();
@@ -912,9 +1042,71 @@
   }
 
   /* ------------------------------------------------------------------
+     SORTIE / RETOUR DE L'APPLICATION
+     ------------------------------------------------------------------ */
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'hidden') {
+      // On enregistre la toute dernière position avant de quitter (au mieux : le navigateur peut couper).
+      if (S.me && needsWatch()) writeTargets(true);
+    } else if (needsWatch() && myUid()) {
+      if (S.watchId == null && lsGet(LS_CONSENT)) startWatch();
+      if (S.me && now() - S.me.ts > 120000) oneShotFix();
+    }
+  });
+  root.addEventListener('pagehide', function () { if (S.me && needsWatch()) writeTargets(true); });
+
+  /* ------------------------------------------------------------------
      INTERFACE
      ------------------------------------------------------------------ */
   X.pill_sos = ['SOS actif', 'SOS active']; X.pill_share = ['Position partagée', 'Position shared']; X.pill_track = ["Suivi de l'appareil", 'Device tracking'];
+
+  var N = {
+    onb_title: ["Rejoins l'annuaire de localisation", 'Join the location directory'],
+    onb_text: ["Pour retrouver tes proches en un clic (et qu'ils te retrouvent), enregistre ton numéro ou ton email. Ils ne sont jamais affichés : ils servent seulement à te retrouver quand quelqu'un les tape.", "To find your loved ones in one tap (and be found), save your number or email. They are never shown: they're only used to find you when someone types them."],
+    onb_s1: ['Cherche un proche par nom, email ou numéro', 'Search a loved one by name, email or number'],
+    onb_s2: ['Touche « Localiser » : il reçoit ta demande', 'Tap “Locate”: they receive your request'],
+    onb_s3: ['Il accepte (ou supprime) et choisit la durée', 'They accept (or delete) and choose the duration'],
+    onb_phone: ['Numéro de téléphone', 'Phone number'], onb_email: ['Email', 'Email'],
+    onb_need_one: ['Renseigne au moins un numéro ou un email valide.', 'Enter at least one valid number or email.'],
+    onb_consent: ["J'accepte d'apparaître dans l'annuaire (nom + photo). Personne ne voit ma position sans mon accord.", 'I agree to appear in the directory (name + photo). Nobody sees my position without my consent.'],
+    onb_consent_needed: ['Coche la case pour continuer.', 'Tick the box to continue.'],
+    onb_save: ['Enregistrer et continuer', 'Save and continue'], onb_edit: ['Modifier mes coordonnées', 'Edit my details'],
+    onb_taken: ['Ce numéro ou cet email est déjà associé à un autre compte.', 'This number or email is already linked to another account.'],
+    onb_done: ["C'est fait, tu es dans l'annuaire.", "Done, you're in the directory."],
+    dir_title: ['Retrouver un proche', 'Find someone'], dir_search_ph: ['Nom, @utilisateur, email ou numéro', 'Name, @username, email or number'],
+    dir_members: ["Membres de l'annuaire", 'Directory members'],
+    dir_empty: ["Personne trouvé. Vérifie l'orthographe, ou invite-le ci-dessous.", 'Nobody found. Check the spelling, or invite them below.'],
+    dir_locate: ['Localiser', 'Locate'], dir_share: ['Partager la mienne', 'Share mine'], dir_add: ['Ajouter', 'Add'],
+    ec_add_title: ["Ajouter un contact d'urgence", 'Add an emergency contact'],
+    ec_how: ["Il doit accepter ton invitation pour recevoir tes alertes SOS.", 'They must accept your invitation to receive your SOS alerts.'],
+    st_sees_you: ['Voit ta position', 'Sees your position'], st_you_see: ['Tu vois sa position', 'You see their position'],
+    st_asked: ['Demande envoyée', 'Request sent'], st_they_asked: ['Veut voir ta position', 'Wants to see your position'],
+    invite_title: ["Il n'est pas encore sur Coeurnoh ?", 'Not on Coeurnoh yet?'], invite_btn: ['Inviter un proche', 'Invite someone'],
+    invite_text: ['Rejoins-moi sur Coeurnoh pour partager notre position en toute sécurité : {url}', 'Join me on Coeurnoh to share our position safely: {url}'],
+    sheet_share_title: ['Partager ma position avec {name}', 'Share my position with {name}'],
+    sheet_accept_title: ['Accepter la demande de {name}', "Accept {name}'s request"],
+    sheet_text: ['Pendant combien de temps {name} peut-il voir ta position ? Tu pourras arrêter à tout moment.', 'For how long can {name} see your position? You can stop anytime.'],
+    sheet_confirm: ['Confirmer', 'Confirm'], req_delete: ['Supprimer', 'Delete'], sh_cancel_req: ['Annuler la demande', 'Cancel request'],
+    pv_dir: ["Mon profil dans l'annuaire", 'My directory profile'], pv_leave: ["Quitter l'annuaire", 'Leave the directory'],
+    pv_leave_confirm: ["Tu ne seras plus retrouvable par nom, email ou numéro. Tes partages en cours ne sont pas modifiés.", "You'll no longer be findable by name, email or number. Your current shares are not changed."],
+    pv_left: ["Tu as quitté l'annuaire.", 'You left the directory.'],
+    pv_7: ["Annuaire : seuls ton nom, ta photo et ton @utilisateur sont visibles par les membres inscrits. Ton email et ton numéro ne sont jamais affichés ; seule une empreinte chiffrée sert à te retrouver.", 'Directory: only your name, photo and @username are visible to registered members. Your email and number are never shown; only an encrypted fingerprint is used to find you.'],
+    pos_join: ["Rejoins l'annuaire pour partager ta position en un clic avec tes proches.", 'Join the directory to share your position in one tap with your loved ones.'],
+    pos_join_btn: ["Rejoindre l'annuaire", 'Join the directory']
+  };
+  Object.assign(N, {
+    n_acc_t: ['Demande acceptée', 'Request accepted'], n_acc_b: ['{name} a accepté ta demande : tu peux voir sa position.', '{name} accepted your request: you can now see their position.'],
+    n_dec_t: ['Demande refusée', 'Request declined'], n_dec_b: ['{name} a refusé ta demande de localisation.', '{name} declined your location request.'],
+    n_stop_t: ['Partage arrêté', 'Sharing stopped'], n_stop_b: ['{name} a arrêté de partager sa position avec toi.', '{name} stopped sharing their position with you.'],
+    n_eca_t: ["Contact d'urgence accepté", 'Emergency contact accepted'], n_eca_b: ["{name} a accepté d'être ton contact d'urgence.", '{name} agreed to be your emergency contact.'],
+    closed_title: ["Et quand l'application est fermée ?", 'What about when the app is closed?'],
+    closed_text: ["Les alertes (demandes, acceptations, SOS) arrivent toujours par notification, même application fermée. En revanche, un navigateur ne peut pas lire le GPS quand l'application est complètement fermée : ta position se met à jour tant que l'application est ouverte ou en arrière-plan, la toute dernière position est enregistrée quand tu la quittes, et le suivi reprend tout seul à la réouverture. Un suivi 100 % continu demanderait une application Android native.", "Alerts (requests, acceptances, SOS) still arrive as notifications even when the app is closed. However, a browser cannot read GPS once the app is fully closed: your position updates while the app is open or in the background, the very last position is saved when you leave, and tracking resumes by itself on reopening. Fully continuous tracking would need a native Android app."],
+    st_policy: ['Bloquée par le site', 'Blocked by the site'],
+    err_policy: ["La localisation est bloquée par la configuration du site. Si tu administres le site, vérifie que vercel.json (Permissions-Policy : geolocation=(self)) est bien déployé.", 'Location is blocked by the site configuration. If you manage the site, check that vercel.json (Permissions-Policy: geolocation=(self)) is deployed.'],
+    map_blocked: ["La carte est bloquée par la configuration de sécurité du site. Si tu administres le site, vérifie que vercel.json est bien déployé.", 'The map is blocked by the site security configuration. If you manage the site, check that vercel.json is deployed.'],
+    retry: ['Réessayer', 'Retry']
+  });
+  for (var nk in N) if (Object.prototype.hasOwnProperty.call(N, nk)) X[nk] = N[nk];
   X.back = ['Retour', 'Back'];
   var TABS = ['pos', 'share', 'sec', 'dev', 'hist', 'priv'];
   var SVG_BACK = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>';
@@ -936,6 +1128,7 @@
     document.body.appendChild(el);
     el.addEventListener('click', onClick);
     el.addEventListener('change', onChange);
+    el.addEventListener('input', function (ev) { if (ev.target && ev.target.id === 'lc-dir-q') { S.dir.q = ev.target.value; dirDebounced(); } });
     document.addEventListener('keydown', function (ev) {
       if (ev.key !== 'Escape' || !S.open) return;
       if ($('lc-sheet').classList.contains('open')) closeSheet(); else close();
@@ -971,22 +1164,28 @@
 
   function renderTab() {
     var body = $('lc-tabbody'); if (!body) return;
-    var keep = {};
+    var keep = {}, keepChk = null;
     Array.prototype.forEach.call(body.querySelectorAll('input.lc-in,select.lc-in'), function (el) { if (el.id) keep[el.id] = el.value; });
+    var okEl = $('lc-onb-ok'); if (okEl) keepChk = okEl.checked;
     var focusId = document.activeElement && document.activeElement.id;
     var sc = body.scrollTop;
     var fns = { pos: tabPos, share: tabShare, sec: tabSec, dev: tabDev, hist: tabHist, priv: tabPriv };
     body.innerHTML = (fns[S.tab] || tabPos)();
     Object.keys(keep).forEach(function (id) { var el = $(id); if (el) el.value = keep[id]; });
+    if (keepChk !== null && $('lc-onb-ok')) $('lc-onb-ok').checked = keepChk;
     body.scrollTop = sc;
-    if (focusId && $(focusId) && /^lc-(sh|ec)-user$/.test(focusId)) $(focusId).focus();
+    if (focusId === 'lc-dir-q' && $('lc-dir-q')) { var q = $('lc-dir-q'); q.focus(); try { q.setSelectionRange(q.value.length, q.value.length); } catch (e) { /* ignore */ } }
+    if ($('lc-dir-res')) { renderDirResults(); if (!S.dir.ready && !S.dir.loading) dirRun(); }
   }
   function card(title, inner) { return '<div class="lc-card">' + (title ? '<h3>' + esc(title) + '</h3>' : '') + inner + '</div>'; }
   function btn(act, label, cls, extra) { return '<button type="button" class="lc-btn ' + (cls || '') + '" data-act="' + act + '"' + (extra || '') + '>' + esc(label) + '</button>'; }
   function durSelect(id) {
     return '<select class="lc-in" id="' + id + '"><option value="15">' + esc(T('dur_15')) + '</option><option value="60" selected>' + esc(T('dur_60')) + '</option><option value="480">' + esc(T('dur_480')) + '</option><option value="0">' + esc(T('dur_0')) + '</option></select>';
   }
-  function av(name) { return '<span class="lc-av">' + initial(name) + '</span>'; }
+  function av(name, photo) {
+    var ph = safePhoto(photo);
+    return '<span class="lc-av">' + initial(name) + (ph ? '<img src="' + esc(ph) + '" alt="" referrerpolicy="no-referrer" onerror="this.remove()">' : '') + '</span>';
+  }
 
   /* ---- Onglet Position ---- */
   function tabPos() {
@@ -1014,54 +1213,100 @@
         : '<p class="lc-muted">' + esc(T('no_pos')) + '</p>';
     }
     if (geoSupported() && S.watchId != null) h += '<div style="margin-top:12px">' + btn('refreshpos', T('btn_refresh'), 'sec sm') + '</div>';
-    return card(T('tab_pos'), h);
+    var out = card(T('tab_pos'), h);
+    if (S.profileLoaded && !S.profile) out += card('', '<p>' + esc(T('pos_join')) + '</p>' + btn('gojoin', T('pos_join_btn')));
+    return out;
   }
 
+  function closedInfo() {
+    return '<details class="lc-card lc-details"><summary>' + esc(T('closed_title')) + '</summary><p class="lc-muted" style="margin-top:8px">' + esc(T('closed_text')) + '</p></details>';
+  }
   /* ---- Onglet Partage ---- */
-  function tabShare() {
-    var me = myUid(), h = '';
-    var out = activeOut();
-    if (out.length) {
-      h += '<div class="lc-banner">📍 ' + esc(T('sh_banner', { names: out.map(function (s) { return s.viewerName; }).join(', ') })) + '</div>';
+  function onboardCard() {
+    var me = getMe() || {};
+    var em = (S.priv && S.priv.email) || me.email || '', ph = (S.priv && S.priv.phone) || '';
+    var steps = ['onb_s1', 'onb_s2', 'onb_s3'].map(function (k, i) { return '<li><span class="lc-step">' + (i + 1) + '</span><span>' + esc(T(k)) + '</span></li>'; }).join('');
+    return card(S.profile ? T('onb_edit') : T('onb_title'),
+      '<p>' + esc(T('onb_text')) + '</p><ol class="lc-steps">' + steps + '</ol>' +
+      '<div class="lc-form"><label class="lc-lbl" for="lc-onb-phone">' + esc(T('onb_phone')) + '</label>' +
+      '<input class="lc-in" id="lc-onb-phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+243 81 234 5678" value="' + esc(ph) + '">' +
+      '<label class="lc-lbl" for="lc-onb-email">' + esc(T('onb_email')) + '</label>' +
+      '<input class="lc-in" id="lc-onb-email" type="email" inputmode="email" autocomplete="email" autocapitalize="none" placeholder="nom@exemple.com" value="' + esc(em) + '">' +
+      '<label class="lc-sw"><span class="lc-muted">' + esc(T('onb_consent')) + '</span><input type="checkbox" id="lc-onb-ok"' + (S.profile ? ' checked' : '') + '></label>' +
+      btn('register', T('onb_save')) + '</div>');
+  }
+  function dirCard(ctx) {
+    return card(ctx === 'ec' ? T('ec_add_title') : T('dir_title'),
+      (ctx === 'ec' ? '<p class="lc-muted">' + esc(T('ec_how')) + '</p>' : '') +
+      '<input class="lc-in" id="lc-dir-q" type="search" autocomplete="off" autocapitalize="none" placeholder="' + esc(T('dir_search_ph')) + '" value="' + esc(S.dir.q) + '">' +
+      '<div id="lc-dir-res" style="margin-top:10px"></div>' +
+      (ctx === 'share' ? '<div class="lc-invite"><span class="lc-muted">' + esc(T('invite_title')) + '</span>' + btn('invite', T('invite_btn'), 'sec sm') + '</div>' : ''));
+  }
+  function dirRow(p, ctx) {
+    var out = S.outShares.filter(function (s) { return s.viewerUid === p.uid; })[0];
+    var inn = S.inShares.filter(function (s) { return s.ownerUid === p.uid; })[0];
+    var chips = [], acts = '', uidAttr = ' data-uid="' + esc(p.uid) + '"';
+    if (ctx === 'share') {
+      if (isActiveShare(out)) chips.push(T('st_sees_you')); else if (out && out.status === 'pending') chips.push(T('st_they_asked'));
+      if (isActiveShare(inn)) chips.push(T('st_you_see')); else if (inn && inn.status === 'pending') chips.push(T('st_asked'));
+      if (!(isActiveShare(inn) || (inn && inn.status === 'pending'))) acts += btn('locate', T('dir_locate'), '', uidAttr);
+      if (!isActiveShare(out)) acts += btn('shareto', T('dir_share'), 'sec', uidAttr);
+    } else {
+      var ec = S.contacts.filter(function (c) { return c.contactUid === p.uid; })[0];
+      if (ec) chips.push(ec.status === 'accepted' ? T('ec_accepted') : T('ec_pending')); else acts += btn('ecadd', T('dir_add'), '', uidAttr);
     }
-    h += card(T('sh_new'),
-      '<div class="lc-form"><input class="lc-in" id="lc-sh-user" maxlength="30" autocapitalize="none" autocomplete="off" placeholder="' + esc(T('sh_user_ph')) + '">' +
-      durSelect('lc-sh-dur') +
-      '<div style="display:flex;gap:8px;flex-wrap:wrap">' + btn('share', T('sh_btn_share')) + btn('ask', T('sh_btn_ask'), 'sec') + '</div>' +
-      '<span class="lc-muted">' + esc(T('sh_info')) + '</span></div>');
-
+    return '<div class="lc-person"><div class="top">' + av(p.name, p.photoURL) + '<div class="grow"><b>' + esc(p.name) + '</b>' +
+      (p.username ? '<span class="lc-muted">@' + esc(p.username) + '</span>' : '') + '</div></div>' +
+      (chips.length ? '<div>' + chips.map(function (c) { return '<span class="lc-chip-s">' + esc(c) + '</span>'; }).join('') + '</div>' : '') +
+      (acts ? '<div class="lc-diracts">' + acts + '</div>' : '') + '</div>';
+  }
+  function renderDirResults() {
+    var host = $('lc-dir-res'); if (!host) return;
+    var ctx = S.tab === 'sec' ? 'ec' : 'share', d = S.dir, h = '';
+    if (d.loading && !d.results.length) h = '<p class="lc-muted">' + esc(T('loading')) + '</p>';
+    else if (d.ready && !d.results.length) h = '<p class="lc-muted">' + esc(T('dir_empty')) + '</p>';
+    else {
+      if (!d.q) h += '<div class="lc-lbl" style="margin-bottom:8px">' + esc(T('dir_members')) + '</div>';
+      h += d.results.map(function (p) { return dirRow(p, ctx); }).join('');
+    }
+    host.innerHTML = h;
+  }
+  function tabShare() {
+    if (!S.profileLoaded) return '<p class="lc-muted">' + esc(T('loading')) + '</p>';
+    if (!S.profile || S.editProfile) return onboardCard();
+    var me = myUid(), h = '', out = activeOut();
+    if (out.length) h += '<div class="lc-banner">📍 ' + esc(T('sh_banner', { names: out.map(function (s) { return s.viewerName; }).join(', ') })) + '</div>';
     var reqs = S.outShares.filter(function (s) { return s.status === 'pending' && s.requestedBy !== me; });
     if (reqs.length) {
-      h += card(T('sh_req_in'), reqs.map(function (s) {
-        return '<div class="lc-row">' + av(s.viewerName) + '<div class="grow"><b>' + esc(s.viewerName) + '</b><span class="lc-muted">' + esc(T('sh_req_in_txt', { name: s.viewerName })) + '</span>' +
-          '<div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">' + durSelect('lc-acc-' + s.id) + btn('accept', T('sh_accept'), 'sm', ' data-id="' + esc(s.id) + '"') + btn('decline', T('sh_decline'), 'sec sm', ' data-id="' + esc(s.id) + '"') + '</div></div></div>';
+      h += card(T('sh_req_in') + ' (' + reqs.length + ')', reqs.map(function (s) {
+        return '<div class="lc-person"><div class="top">' + av(s.viewerName) + '<div class="grow"><b>' + esc(s.viewerName) + '</b><span class="lc-muted">' + esc(T('sh_req_in_txt', { name: s.viewerName })) + '</span></div></div>' +
+          '<div class="lc-diracts">' + btn('accept', T('sh_accept'), 'ok', ' data-id="' + esc(s.id) + '"') + btn('decline', T('req_delete'), 'sec', ' data-id="' + esc(s.id) + '"') + '</div></div>';
       }).join(''));
     }
+    h += dirCard('share');
     h += card(T('sh_out'), out.length
       ? out.map(function (s) {
         return '<div class="lc-row">' + av(s.viewerName) + '<div class="grow"><b>' + esc(s.viewerName) + '</b><span class="lc-muted">' + esc(remaining(s.expiresAtMs)) + '</span></div>' +
           btn('stopshare', T('sh_stop'), 'red sm', ' data-id="' + esc(s.id) + '"') + '</div>';
       }).join('') + '<div style="margin-top:10px">' + btn('stopall', T('sh_stop_all'), 'sec sm') + '</div>'
       : '<p class="lc-muted">' + esc(T('sh_none')) + '</p>');
-
     var inn = activeIn();
     h += card(T('sh_with_me'), inn.length
       ? inn.map(function (s) {
         var p = S.peers[s.ownerUid], has = p && validCoords(p.lat, p.lng);
         return '<div class="lc-row">' + av(s.ownerName) + '<div class="grow"><b>' + esc(s.ownerName) + '</b><span class="lc-muted">' +
           (has ? esc(ago(p.updatedAtMs)) + ' · ' + esc(fmtAcc(p.accuracy)) + ' · ' + esc(remaining(s.expiresAtMs)) : esc(T('sh_peer_nopos'))) + '</span></div>' +
-          (has ? '<button type="button" class="lc-btn sec sm" data-act="fly" data-lat="' + p.lat + '" data-lng="' + p.lng + '">' + esc(T('dv_view')) + '</button>' : '') + '</div>';
+          (has ? '<button type="button" class="lc-btn sm" data-act="fly" data-lat="' + p.lat + '" data-lng="' + p.lng + '">' + esc(T('dv_view')) + '</button>' : '') + '</div>';
       }).join('')
       : '<p class="lc-muted">' + esc(T('sh_with_me_empty')) + '</p>');
-
     var sent = S.inShares.filter(function (s) { return s.status === 'pending' && s.requestedBy === me; });
     if (sent.length) {
       h += card(T('sh_sent'), sent.map(function (s) {
         return '<div class="lc-row">' + av(s.ownerName) + '<div class="grow"><b>' + esc(s.ownerName) + '</b><span class="lc-muted">' + esc(T('sh_waiting')) + '</span></div>' +
-          btn('cancelreq', T('sh_cancel'), 'sec sm', ' data-id="' + esc(s.id) + '"') + '</div>';
+          btn('cancelreq', T('sh_cancel_req'), 'sec sm', ' data-id="' + esc(s.id) + '"') + '</div>';
       }).join(''));
     }
-    return h;
+    return h + '<p class="lc-muted">' + esc(T('sh_info')) + '</p>' + closedInfo();
   }
 
   /* ---- Onglet Sécurité (SOS + contacts d'urgence) ---- */
@@ -1079,14 +1324,12 @@
           btn('acceptcontact', T('sh_accept'), 'sm', ' data-id="' + esc(c.id) + '"') + btn('rmcontact', T('sh_decline'), 'sec sm', ' data-id="' + esc(c.id) + '"') + '</div>';
       }).join(''));
     }
-    h += card(T('ec_title'),
-      (S.contacts.length ? S.contacts.map(function (c) {
-        return '<div class="lc-row">' + av(c.contactName) + '<div class="grow"><b>' + esc(c.contactName) + '</b><span class="lc-muted">' + esc(c.status === 'accepted' ? T('ec_accepted') : T('ec_pending')) + '</span></div>' +
-          btn('rmcontact', T('ec_remove'), 'sec sm', ' data-id="' + esc(c.id) + '"') + '</div>';
-      }).join('') : '<p class="lc-muted">' + esc(T('ec_empty')) + '</p>') +
-      (S.contacts.length < CFG.MAX_CONTACTS
-        ? '<div class="lc-form" style="margin-top:10px"><input class="lc-in" id="lc-ec-user" maxlength="30" autocapitalize="none" autocomplete="off" placeholder="' + esc(T('sh_user_ph')) + '">' + btn('invite', T('ec_add'), 'sec') + '</div>'
-        : '<p class="lc-muted">' + esc(T('ec_limit')) + '</p>'));
+    h += card(T('ec_title'), S.contacts.length ? S.contacts.map(function (c) {
+      return '<div class="lc-row">' + av(c.contactName) + '<div class="grow"><b>' + esc(c.contactName) + '</b><span class="lc-muted">' + esc(c.status === 'accepted' ? T('ec_accepted') : T('ec_pending')) + '</span></div>' +
+        btn('rmcontact', T('ec_remove'), 'sec sm', ' data-id="' + esc(c.id) + '"') + '</div>';
+    }).join('') : '<p class="lc-muted">' + esc(T('ec_empty')) + '</p>');
+    if (S.profileLoaded && (!S.profile || S.editProfile)) h += onboardCard();
+    else if (S.profile) h += S.contacts.length < CFG.MAX_CONTACTS ? dirCard('ec') : '<p class="lc-muted">' + esc(T('ec_limit')) + '</p>';
 
     if (S.contactsIn.some(function (c) { return c.status === 'accepted'; })) {
       h += card(T('sos_others'), S.sosOthers.length ? S.sosOthers.map(function (s) {
@@ -1119,7 +1362,7 @@
         btn('rename', T('dv_rename'), 'sec sm', ' data-id="' + esc(d.id) + '" data-name="' + esc(d.name || '') + '"') +
         btn('rmdev', T('dv_remove'), 'sec sm', ' data-id="' + esc(d.id) + '"') + '</div></div></div>';
     }).join('') : '<p class="lc-muted">' + esc(T('dv_empty')) + '</p>');
-    return h + '<p class="lc-muted">' + esc(T('dv_limits')) + '</p>';
+    return h + '<p class="lc-muted">' + esc(T('dv_limits')) + '</p>' + closedInfo();
   }
 
   /* ---- Onglet Historique ---- */
@@ -1137,7 +1380,7 @@
 
   /* ---- Onglet Confidentialité ---- */
   function tabPriv() {
-    var items = ['pv_1', 'pv_2', 'pv_3', 'pv_4', 'pv_5', 'pv_6'].map(function (k) { return '<li style="margin-bottom:6px">' + esc(T(k)) + '</li>'; }).join('');
+    var items = ['pv_1', 'pv_2', 'pv_3', 'pv_4', 'pv_5', 'pv_6', 'pv_7'].map(function (k) { return '<li style="margin-bottom:6px">' + esc(T(k)) + '</li>'; }).join('');
     var h = card(T('pv_title'), '<ul style="margin:0;padding-left:18px;font-size:.86rem;line-height:1.45">' + items + '</ul>');
     var freq = CFG.HISTORY_INTERVALS_MIN.map(function (n) { return '<option value="' + n + '"' + (cfg.historyMin === n ? ' selected' : '') + '>' + n + ' ' + T('min_unit') + '</option>'; }).join('');
     var keep = CFG.HISTORY_RETENTIONS_DAYS.map(function (n) { return '<option value="' + n + '"' + (cfg.retention === n ? ' selected' : '') + '>' + n + ' ' + T('day_unit') + '</option>'; }).join('');
@@ -1145,6 +1388,10 @@
       '<label class="lc-sw"><span><b>' + esc(T('pv_history')) + '</b></span><input type="checkbox" data-ch="hist"' + (cfg.history ? ' checked' : '') + '></label>' +
       '<div class="lc-grid"><div class="lc-kv"><small>' + esc(T('pv_every')) + '</small><select class="lc-in" data-ch="histfreq">' + freq + '</select></div>' +
       '<div class="lc-kv"><small>' + esc(T('pv_keep')) + '</small><select class="lc-in" data-ch="histkeep">' + keep + '</select></div></div>');
+    if (S.profile) {
+      h += card(T('pv_dir'), '<p class="lc-muted">' + esc(((S.priv && S.priv.email) || '') + (S.priv && S.priv.email && S.priv.phone ? ' · ' : '') + ((S.priv && S.priv.phone) || '')) + '</p>' +
+        '<div style="display:flex;gap:8px;flex-wrap:wrap">' + btn('editprofile', T('onb_edit'), 'sec sm') + btn('leavedir', T('pv_leave'), 'sec sm') + '</div>');
+    }
     h += card('', btn('delall', T('pv_delete_all'), 'red'));
     return h;
   }
@@ -1156,6 +1403,16 @@
     sh.innerHTML = '<div class="lc-sheet-box" role="alertdialog"><h3>' + esc(title) + '</h3><p>' + esc(text) + '</p>' +
       (warn ? '<div class="lc-warn">' + esc(warn) + '</div>' : '') +
       btn('sheetok', okLabel, 'red') + btn('sheetno', T('cancel'), 'sec') + '</div>';
+    sh.classList.add('open');
+  }
+  function openDurSheet(title, text, okLabel, onOk) {
+    var sh = $('lc-sheet'); if (!sh) return;
+    S.sheetDur = 60; S.sheetOk = onOk;
+    var chips = [[15, 'dur_15'], [60, 'dur_60'], [480, 'dur_480'], [0, 'dur_0']].map(function (c) {
+      return '<button type="button" class="lc-chip' + (c[0] === 60 ? ' on' : '') + '" data-act="chipdur" data-v="' + c[0] + '">' + esc(T(c[1])) + '</button>';
+    }).join('');
+    sh.innerHTML = '<div class="lc-sheet-box" role="dialog"><h3>' + esc(title) + '</h3><p>' + esc(text) + '</p><div class="lc-chips">' + chips + '</div>' +
+      btn('durok', okLabel, 'ok') + btn('sheetno', T('cancel'), 'sec') + '</div>';
     sh.classList.add('open');
   }
   function closeSheet() { var sh = $('lc-sheet'); if (sh) { sh.classList.remove('open'); sh.innerHTML = ''; } S.sheetOk = null; }
@@ -1182,9 +1439,42 @@
       case 'stoppos': stopWatch(); renderTab(); break;
       case 'refreshpos': oneShotFix(); geocodeMaybe(true); break;
       case 'fly': flyTo(parseFloat(t.getAttribute('data-lat')), parseFloat(t.getAttribute('data-lng'))); break;
-      case 'share': if (needPos()) break; run(t, function () { return shareWith(val('lc-sh-user'), parseInt(val('lc-sh-dur'), 10) || 0).then(function () { var u = $('lc-sh-user'); if (u) u.value = ''; }); }, T('sh_done')); break;
-      case 'ask': run(t, function () { return askPosition(val('lc-sh-user')).then(function () { var u = $('lc-sh-user'); if (u) u.value = ''; }); }, T('sh_asked')); break;
-      case 'accept': if (needPos()) break; run(t, function () { return acceptRequest(id, parseInt(val('lc-acc-' + id), 10) || 0); }, T('sh_done')); break;
+      case 'register': {
+        var okb = $('lc-onb-ok');
+        if (!okb || !okb.checked) { toastLC(T('onb_consent_needed'), 'error'); break; }
+        run(t, function () { return registerProfile(val('lc-onb-phone'), val('lc-onb-email')).then(function () { S.editProfile = false; S.dir.ready = false; }); }, T('onb_done'));
+        break;
+      }
+      case 'gojoin': setTab('share'); break;
+      case 'retrymap': { S.leafletPromise = null; var fbx = $('lc-mapfb'); if (fbx) fbx.style.display = 'none'; var wr = document.querySelector('.lc-mapwrap'); if (wr) wr.classList.remove('fb'); initMap(); break; }
+      case 'editprofile': S.editProfile = true; setTab('share'); break;
+      case 'leavedir':
+        openSheet(T('pv_leave'), T('pv_leave_confirm'), '', T('pv_leave'), function () {
+          closeSheet(); leaveDirectory().then(function () { toastLC(T('pv_left')); renderTab(); }).catch(function (e) { toastLC(errText(e), 'error'); });
+        });
+        break;
+      case 'locate': { var lp = dirFind(t.getAttribute('data-uid')); if (lp) run(t, function () { return askPositionUid({ uid: lp.uid, name: lp.name }); }, T('sh_asked')); break; }
+      case 'shareto': {
+        var sp = dirFind(t.getAttribute('data-uid')); if (!sp || needPos()) break;
+        openDurSheet(T('sheet_share_title', { name: sp.name }), T('sheet_text', { name: sp.name }), T('sheet_confirm'), function (dur) {
+          closeSheet(); run(null, function () { return shareWithUid({ uid: sp.uid, name: sp.name }, dur); }, T('sh_done'));
+        });
+        break;
+      }
+      case 'accept': {
+        if (needPos()) break;
+        var rq = S.outShares.filter(function (s) { return s.id === id; })[0]; if (!rq) break;
+        openDurSheet(T('sheet_accept_title', { name: rq.viewerName }), T('sheet_text', { name: rq.viewerName }), T('sheet_confirm'), function (dur) {
+          closeSheet(); run(null, function () { return acceptRequest(id, dur); }, T('sh_done'));
+        });
+        break;
+      }
+      case 'chipdur': {
+        S.sheetDur = parseInt(t.getAttribute('data-v'), 10) || 0;
+        Array.prototype.forEach.call(document.querySelectorAll('#lc-sheet .lc-chip'), function (c) { c.classList.toggle('on', c === t); });
+        break;
+      }
+      case 'durok': { var dcb = S.sheetOk; if (dcb) dcb(S.sheetDur); break; }
       case 'decline': run(t, function () { return declineRequest(id); }); break;
       case 'stopshare': run(t, function () { return stopShare(id); }, T('sh_stopped')); break;
       case 'stopall': run(t, stopAllShares, T('sh_stopped')); break;
@@ -1195,7 +1485,13 @@
       case 'sosoff': deactivateSos(); break;
       case 'sheetok': { var cb = S.sheetOk; if (cb) cb(); break; }
       case 'sheetno': closeSheet(); break;
-      case 'invite': run(t, function () { return inviteContact(val('lc-ec-user')).then(function () { var u = $('lc-ec-user'); if (u) u.value = ''; }); }, T('ec_sent')); break;
+      case 'ecadd': { var ep = dirFind(t.getAttribute('data-uid')); if (ep) run(t, function () { return inviteContactUid({ uid: ep.uid, name: ep.name }); }, T('ec_sent')); break; }
+      case 'invite': {
+        var txt = T('invite_text', { url: location.origin });
+        if (navigator.share) { navigator.share({ text: txt }).catch(function () { /* annulé */ }); }
+        else root.open('https://wa.me/?text=' + encodeURIComponent(txt), '_blank', 'noopener');
+        break;
+      }
       case 'acceptcontact': run(t, function () { return acceptContact(id); }); break;
       case 'rmcontact': run(t, function () { return removeContact(id); }); break;
       case 'askdev': run(t, function () { return requestDeviceRefresh(id); }, T('dv_ask_sent')); break;
@@ -1240,7 +1536,9 @@
       if (!S.open) return;
       cleanupExpired();
       if (S.tab === 'sec') refreshSosOthers();
-      if (S.tab === 'share' || S.tab === 'dev' || S.tab === 'pos') renderTab();
+      var ae = document.activeElement;
+      var typing = ae && /^(INPUT|SELECT|TEXTAREA)$/.test(ae.tagName);
+      if (!typing && (S.tab === 'share' || S.tab === 'dev' || S.tab === 'pos')) renderTab();
       renderSosBar(); updatePill();
     }, 30000);
   }
@@ -1255,9 +1553,11 @@
     renderTabs(); renderTab(); renderSosBar();
     initMap(); queryPerm();
     if (lsGet(LS_CONSENT)) startWatch();
-    Promise.all([loadShares(), loadContacts(), loadDevices(), loadSosMine()]).then(function () {
+    S.editProfile = false; S.dir.ready = false;
+    Promise.all([loadProfile(), loadBlocked(), loadShares(), loadContacts(), loadDevices(), loadSosMine()]).then(function () {
       if (!S.open) return;
       syncPeers(); refreshSosOthers();
+      if (!S.profile && !tab && !lsGet('cn_loc_onb')) { lsSet('cn_loc_onb', '1'); S.tab = 'share'; renderTabs(); }
       renderTab(); renderSosBar(); drawMap();
       if (S.tab === 'hist' && cfg.history) loadHistory().then(function () { renderTab(); drawMap(); });
     });
