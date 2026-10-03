@@ -2103,11 +2103,15 @@
   function cleanUrlParams(keys) {
     try { var u = new URL(location.href); keys.forEach(function (k) { u.searchParams.delete(k); }); history.replaceState({}, '', u.pathname + (u.search || '') + u.hash); } catch (e) { /* ignore */ }
   }
-  function loadAuthGuard() {
-    if (document.querySelector('script[data-cn-ag]')) return;
+  function loadHelper(src, mark) {
+    if (document.querySelector('script[' + mark + ']')) return;
     var s = document.createElement('script');
-    s.src = 'auth-guard.js'; s.async = true; s.setAttribute('data-cn-ag', '1');
+    s.src = src; s.async = true; s.setAttribute(mark, '1');
     document.head.appendChild(s);
+  }
+  function loadAuthGuard() {
+    loadHelper('auth-guard.js', 'data-cn-ag');   // connexion plus stable
+    loadHelper('pay-guard.js', 'data-cn-pg');    // message clair quand le Mobile Money ne couvre pas le pays
   }
   function promptLoginForLink() {
     var note = pending ? 'Connecte-toi pour voir la position partagée avec toi.' : 'Connecte-toi pour ouvrir ce contenu.';

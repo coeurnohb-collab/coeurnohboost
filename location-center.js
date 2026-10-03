@@ -281,7 +281,7 @@
     outShares: [], inShares: [], contacts: [], contactsIn: [], devices: [], history: [],
     sosMine: null, sosOthers: [], peers: {}, peerUnsubs: {}, selfDevUnsub: null, handledRefresh: null,
     timer: null, lastW: { t: 0, pos: null }, lastH: { t: 0, pos: null }, lastS: { t: 0, pos: null },
-    perm: 'unknown', booted: false, flash: '', cspBlocked: false, exchange: false, links: [], fs: false, diag: null, regError: '', lkDur: 60,
+    perm: 'unknown', booted: false, flash: '', cspBlocked: false, exchange: false, mp: { base: 'plan', labels: true, acc: true }, sel: null, selTok: 0, layersOpen: false, addrDetail: null, links: [], fs: false, diag: null, regError: '', lkDur: 60,
     profile: null, profileLoaded: false, priv: null, blocked: {}, dir: { q: '', results: [], loading: false, ready: false }, dirTimer: null, sheetDur: 60
   };
   function devId() { return (myUid() || 'x') + '_' + localDeviceId(); }
@@ -385,6 +385,30 @@
       '.lc-linkbox{border:1px dashed var(--line,#cfd6e2);border-radius:12px;padding:10px 12px;margin-top:10px;font-size:.82rem;word-break:break-all;background:var(--green-light,#eef1f6)}',
       '.lc-dg{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-top:1px solid var(--line,#e2e6ee);font-size:.86rem}.lc-dg i{font-style:normal;font-weight:900;width:20px;flex:0 0 20px;text-align:center}',
       '.lc-dg.ok i{color:#2f9e44}.lc-dg.ko i{color:#e03131}.lc-dg.na i{color:#f08c00}.lc-dg small{display:block;color:var(--muted,#5d6779);margin-top:2px;line-height:1.4}',
+      '#lc-root.mapfs .lc-head{display:none}',
+      '.lc-lyrbtn{position:absolute;top:60px;right:10px;z-index:4;width:42px;height:42px;border-radius:12px;border:0;background:#fff;color:#141a26;box-shadow:0 2px 10px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;cursor:pointer}',
+      '#lc-root.mapfs .lc-lyrbtn,#lc-root.mapfs .lc-fsbtn,#lc-root.mapfs .leaflet-control-zoom,#lc-root.mapfs .leaflet-control-scale{display:none!important}',
+      '#lc-fstop{display:none}',
+      '#lc-root.mapfs #lc-fstop{display:flex;position:absolute;z-index:6;left:10px;right:10px;top:max(10px,env(safe-area-inset-top));gap:8px;align-items:center}',
+      '.lc-fsround{flex:0 0 46px;width:46px;height:46px;border-radius:50%;border:0;background:#fff;color:#141a26;box-shadow:0 2px 10px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;cursor:pointer}',
+      '.lc-fspill{flex:1;min-width:0;background:#fff;border-radius:23px;min-height:46px;box-shadow:0 2px 10px rgba(0,0,0,.3);padding:6px 16px;display:flex;flex-direction:column;justify-content:center}',
+      '.lc-fspill b{font-size:.92rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lc-fspill span{font-size:.74rem;color:#5d6779;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+      '.lc-fsloc{display:none}',
+      '#lc-root.mapfs .lc-fsloc{display:flex;position:absolute;z-index:5;right:12px;bottom:calc(96px + env(safe-area-inset-bottom));width:50px;height:50px;border-radius:50%;border:0;background:#fff;color:#0b7a8a;box-shadow:0 2px 10px rgba(0,0,0,.3);align-items:center;justify-content:center;cursor:pointer}',
+      '#lc-root.mapfs.hasplace .lc-fsloc{bottom:calc(var(--lc-place-h,0px) + 14px)}#lc-root.mapfs.hasplace #lc-fsbar{display:none}',
+      '#lc-layers{display:none;position:absolute;inset:0;z-index:12;background:rgba(10,14,22,.45);align-items:flex-end;justify-content:center}#lc-layers.open{display:flex}',
+      '.lc-lbox{background:#fff;width:100%;max-width:520px;border-radius:20px 20px 0 0;padding:18px 18px calc(20px + env(safe-area-inset-bottom));max-height:82vh;overflow:auto;color:#141a26}',
+      '.lc-lhead{display:flex;align-items:center;justify-content:space-between}.lc-lhead h3{margin:0 0 10px;font-size:1.05rem;font-weight:700}',
+      '.lc-opts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:6px}',
+      '.lc-opt{border:0;background:none;padding:0;font:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;color:#141a26}',
+      '.lc-opt .th{width:74px;height:74px;border-radius:14px;overflow:hidden;border:3px solid transparent;display:flex;align-items:center;justify-content:center;background:#eef1f6}',
+      '.lc-opt .th svg{width:100%;height:100%;display:block}.lc-opt.on .th{border-color:#0b7a8a}.lc-opt.on b{color:#0b7a8a}.lc-opt b{font-size:.84rem;font-weight:600;text-align:center}',
+      '.lc-lsep{height:1px;background:#e2e6ee;margin:12px 0}',
+      '#lc-place{display:none;position:absolute;left:0;right:0;bottom:0;z-index:8;background:#fff;color:#141a26;border-radius:20px 20px 0 0;padding:16px 16px calc(14px + env(safe-area-inset-bottom));box-shadow:0 -4px 20px rgba(0,0,0,.25);max-height:58%;overflow:auto}#lc-place.open{display:block}',
+      '.lc-phead{display:flex;align-items:flex-start;gap:10px}.lc-phead .grow{flex:1;min-width:0}.lc-phead h3{margin:0;font-size:1.15rem;font-weight:700;line-height:1.25}',
+      '.lc-arows{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;margin:12px 0 8px}.lc-arows small{display:block;font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;color:#5d6779;font-weight:700}.lc-arows b{font-size:.92rem;font-weight:600;word-break:break-word}',
+      '.lc-pmeta{font-size:.78rem;color:#5d6779;margin:6px 0 12px;word-break:break-word}.lc-pacts{display:flex;gap:8px;flex-wrap:wrap}.lc-pacts a{text-decoration:none;display:inline-flex;align-items:center}',
+      '.lc-pin{width:30px;height:30px;border-radius:50% 50% 50% 0;background:#d93025;transform:rotate(-45deg);margin:0 auto;box-shadow:0 2px 8px rgba(0,0,0,.4);position:relative}.lc-pin::after{content:"";position:absolute;left:9px;top:9px;width:12px;height:12px;border-radius:50%;background:#fff}',
       '.lc-details summary{cursor:pointer;font-weight:800;font-size:.88rem}',
       '.lc-steps{list-style:none;margin:0 0 12px;padding:0;display:flex;flex-direction:column;gap:8px}',
       '.lc-steps li{display:flex;align-items:center;gap:10px;font-size:.86rem;line-height:1.35}',
@@ -436,16 +460,27 @@
       var fb = $('lc-mapfb'); if (fb) fb.style.display = 'none';
       var wrap = document.querySelector('.lc-mapwrap'); if (wrap) wrap.classList.remove('fb');
       var start = lastKnown();
-      S.map = L.map(el, { zoomControl: true }).setView(start ? [start.lat, start.lng] : [2, 20], start ? 16 : 3);
-      L.tileLayer(CFG.TILES, { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(S.map);
+      loadMapPrefs();
+      S.map = L.map(el, { zoomControl: false }).setView(start ? [start.lat, start.lng] : [2, 20], start ? 16 : 3);
+      L.control.zoom({ position: 'bottomright' }).addTo(S.map);
+      L.control.scale({ metric: true, imperial: false, position: 'bottomleft' }).addTo(S.map);
+      S.map.attributionControl.setPrefix(false);
+      applyBase();
       S.group = L.layerGroup().addTo(S.map);
+      // Toucher la petite carte l'ouvre en plein écran ; en plein écran, toucher un point donne son adresse précise.
+      S.map.on('click', function (e) {
+        if (S.layersOpen) { S.layersOpen = false; renderLayersSheet(); return; }
+        if (!S.fs) { S.fs = true; applyFs(); return; }
+        selectPlace({ lat: e.latlng.lat, lng: e.latlng.lng, label: '' }, false);
+      });
+      drawSel();
       drawMap();
       setTimeout(function () { if (S.map) S.map.invalidateSize(); }, 250);
     }).catch(function () { setTimeout(function () { S.mapFailed = true; showMapFallback(); }, 60); });
   }
   function destroyMap() {
     if (S.map) { try { S.map.remove(); } catch (e) { /* ignore */ } }
-    S.map = null; S.group = null; S.fitted = false;
+    S.map = null; S.group = null; S.fitted = false; S.baseLayer = null; S.ovLabels = null; S.ovRoads = null; S.selMarker = null;
   }
   function showMapFallback() {
     var fb = $('lc-mapfb'); if (!fb) return;
@@ -469,34 +504,32 @@
     g.clearLayers();
     var m = S.me, lk = lastKnown();
     if (m) {
-      L.circle([m.lat, m.lng], { radius: Math.max(m.acc || 0, 3), color: '#1c7ed6', weight: 1, fillColor: '#1c7ed6', fillOpacity: .12 }).addTo(g);
-      L.marker([m.lat, m.lng], { icon: icon('lc-mk-me'), zIndexOffset: 500 }).addTo(g);
+      if (S.mp.acc) L.circle([m.lat, m.lng], { radius: Math.max(m.acc || 0, 3), color: '#1c7ed6', weight: 1, fillColor: '#1c7ed6', fillOpacity: .12, interactive: false }).addTo(g);
+      pick(L.marker([m.lat, m.lng], { icon: icon('lc-mk-me'), zIndexOffset: 500 }).addTo(g), { lat: m.lat, lng: m.lng, label: T('fs_me'), ts: m.ts, acc: m.acc });
       pts.push([m.lat, m.lng]);
     } else if (lk) {
-      L.circle([lk.lat, lk.lng], { radius: Math.max(lk.acc || 0, 3), color: '#868e96', weight: 1, dashArray: '4 4', fillOpacity: .06 }).addTo(g);
-      L.marker([lk.lat, lk.lng], { icon: icon('lc-mk-last') }).bindPopup(esc(T('last_known', { ago: ago(lk.ts) }))).addTo(g);
+      if (S.mp.acc) L.circle([lk.lat, lk.lng], { radius: Math.max(lk.acc || 0, 3), color: '#868e96', weight: 1, dashArray: '4 4', fillOpacity: .06, interactive: false }).addTo(g);
+      pick(L.marker([lk.lat, lk.lng], { icon: icon('lc-mk-last') }).addTo(g), { lat: lk.lat, lng: lk.lng, label: T('last_known', { ago: ago(lk.ts) }), ts: lk.ts, acc: lk.acc });
       pts.push([lk.lat, lk.lng]);
     }
     activeIn().forEach(function (sh) {
       var p = S.peers[sh.ownerUid];
       if (p && validCoords(p.lat, p.lng)) {
-        L.marker([p.lat, p.lng], { icon: icon('lc-mk-peer', initial(sh.ownerName)) })
-          .bindPopup('<b>' + esc(sh.ownerName) + '</b><br>' + esc(ago(p.updatedAtMs)) + ' · ' + esc(fmtAcc(p.accuracy))).addTo(g);
+        pick(L.marker([p.lat, p.lng], { icon: icon('lc-mk-peer', initial(sh.ownerName)) }).addTo(g), { lat: p.lat, lng: p.lng, label: sh.ownerName, ts: p.updatedAtMs, acc: p.accuracy });
         pts.push([p.lat, p.lng]);
       }
     });
     S.sosOthers.forEach(function (s) {
       if (s.status === 'active' && validCoords(s.lat, s.lng)) {
-        L.marker([s.lat, s.lng], { icon: icon('lc-mk-sos', 'SOS'), zIndexOffset: 900 })
-          .bindPopup('<b>SOS · ' + esc(s.ownerName) + '</b><br>' + esc(ago(s.updatedAtMs))).addTo(g);
+        pick(L.marker([s.lat, s.lng], { icon: icon('lc-mk-sos', 'SOS'), zIndexOffset: 900 }).addTo(g), { lat: s.lat, lng: s.lng, label: 'SOS · ' + s.ownerName, ts: s.updatedAtMs, acc: s.accuracy });
         pts.push([s.lat, s.lng]);
       }
     });
     if (S.tab === 'dev') {
       S.devices.forEach(function (d) {
         if (validCoords(d.lat, d.lng) && d.id !== devId()) {
-          L.marker([d.lat, d.lng], { icon: icon('lc-mk-dev', '▣') }).bindPopup('<b>' + esc(d.name) + '</b><br>' + esc(T('dv_lastpos', { ago: ago(d.lastPosMs) }))).addTo(g);
-          L.circle([d.lat, d.lng], { radius: Math.max(d.accuracy || 0, 3), color: '#495057', weight: 1, fillOpacity: .06 }).addTo(g);
+          pick(L.marker([d.lat, d.lng], { icon: icon('lc-mk-dev', '▣') }).addTo(g), { lat: d.lat, lng: d.lng, label: d.name, ts: d.lastPosMs, acc: d.accuracy });
+          if (S.mp.acc) L.circle([d.lat, d.lng], { radius: Math.max(d.accuracy || 0, 3), color: '#495057', weight: 1, fillOpacity: .06, interactive: false }).addTo(g);
           pts.push([d.lat, d.lng]);
         }
       });
@@ -505,11 +538,11 @@
       var line = S.history.filter(function (h) { return validCoords(h.lat, h.lng); }).map(function (h) { return [h.lat, h.lng]; });
       if (line.length > 1) L.polyline(line, { color: '#7048e8', weight: 3, opacity: .7 }).addTo(g);
       S.history.forEach(function (h) {
-        if (validCoords(h.lat, h.lng)) L.circleMarker([h.lat, h.lng], { radius: 4, color: '#7048e8', fillOpacity: .9 }).bindPopup(esc(fmtTime(h.tsMs))).addTo(g);
+        if (validCoords(h.lat, h.lng)) pick(L.circleMarker([h.lat, h.lng], { radius: 5, color: '#7048e8', fillOpacity: .9 }).addTo(g), { lat: h.lat, lng: h.lng, label: fmtTime(h.tsMs), ts: h.tsMs, acc: h.accuracy });
       });
       line.forEach(function (q) { pts.push(q); });
     }
-    renderFsBar();
+    renderFsBar(); renderFsTop();
     if (!S.fitted && pts.length) {
       S.fitted = true;
       if (pts.length === 1) S.map.setView(pts[0], 16); else S.map.fitBounds(pts, { padding: [40, 40], maxZoom: 17 });
@@ -625,11 +658,13 @@
     if (!force && S.lastGeo && haversine(S.lastGeo, m) < CFG.GEOCODE_MIN_MOVE_M) return;
     if (S.geoBusy || (!force && now() - S.geoAt < 10000)) return;
     S.geoBusy = true; S.geoAt = now();
-    var url = CFG.GEOCODE_URL + '?format=jsonv2&zoom=18&lat=' + m.lat + '&lon=' + m.lng + '&accept-language=' + (langIdx() === 0 ? 'fr' : 'en');
-    fetch(url, { headers: { 'Accept': 'application/json' } })
-      .then(function (r) { return r.ok ? r.json() : null; })
-      .then(function (j) { S.lastGeo = { lat: m.lat, lng: m.lng }; S.address = j && j.display_name ? j.display_name : null; S.addrFailed = !S.address; renderPosBits(); })
-      .catch(function () { S.addrFailed = true; renderPosBits(); })
+    reverseDetail(m.lat, m.lng).then(function (d) {
+      S.lastGeo = { lat: m.lat, lng: m.lng };
+      S.addrDetail = d && d.ok ? d : null;
+      S.address = d && d.full ? d.full : null;
+      S.addrFailed = !(d && d.ok);
+      renderPosBits();
+    }).catch(function () { S.addrFailed = true; renderPosBits(); })
       .then(function () { S.geoBusy = false; });
   }
   function getBattery() {
@@ -1189,29 +1224,218 @@
     }, 500);
   }
 
-  /* ---- Carte plein écran ---- */
+  /* ---- Fonds de carte : Plan, Satellite, Relief (gratuits, sans clé) ---- */
+  var LS_MAP = 'cn_loc_map';
+  var MAP_BASES = {
+    plan: { url: CFG.TILES, attr: '© OpenStreetMap', native: 19, max: 20 },
+    sat: { url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', attr: 'Imagery © Esri, Maxar, Earthstar Geographics', native: 18, max: 20 },
+    relief: { url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', attr: '© OpenStreetMap · SRTM · © OpenTopoMap', native: 17, max: 17, sub: 'abc' }
+  };
+  var MAP_LABELS = 'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}';
+  var MAP_ROADS = 'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}';
+  function loadMapPrefs() {
+    try {
+      var o = JSON.parse(lsGet(LS_MAP) || '{}');
+      if (MAP_BASES[o.base]) S.mp.base = o.base;
+      if (typeof o.labels === 'boolean') S.mp.labels = o.labels;
+      if (typeof o.acc === 'boolean') S.mp.acc = o.acc;
+    } catch (e) { /* ignore */ }
+  }
+  function saveMapPrefs() { lsSet(LS_MAP, JSON.stringify(S.mp)); }
+  function applyBase() {
+    if (!S.map || !S.L) return;
+    var L = S.L, b = MAP_BASES[S.mp.base] || MAP_BASES.plan;
+    ['baseLayer', 'ovRoads', 'ovLabels'].forEach(function (k) { if (S[k]) { try { S.map.removeLayer(S[k]); } catch (e) { /* ignore */ } S[k] = null; } });
+    S.tileErr = 0;
+    var o = { maxZoom: b.max, maxNativeZoom: b.native, attribution: b.attr };
+    if (b.sub) o.subdomains = b.sub;
+    var layer = S.baseLayer = L.tileLayer(b.url, o).addTo(S.map);
+    // Fond bloqué ou injoignable (réseau, configuration) : retour automatique au plan, sans casser la carte.
+    layer.on('tileerror', function () {
+      S.tileErr = (S.tileErr || 0) + 1;
+      if (S.tileErr === 6 && S.mp.base !== 'plan' && S.baseLayer === layer) { S.mp.base = 'plan'; applyBase(); toastLC(T('mt_ko')); renderLayersSheet(); }
+    });
+    layer.on('tileload', function () { S.tileErr = 0; });
+    if (S.mp.base === 'sat' && S.mp.labels) {
+      S.ovRoads = L.tileLayer(MAP_ROADS, { maxZoom: 20, maxNativeZoom: 18, opacity: .9 }).addTo(S.map);
+      S.ovLabels = L.tileLayer(MAP_LABELS, { maxZoom: 20, maxNativeZoom: 18 }).addTo(S.map);
+    }
+  }
+  function thumb(kind) {
+    if (kind === 'plan') return '<svg viewBox="0 0 64 64"><rect width="64" height="64" fill="#e9f2ec"/><path d="M0 42 C20 32 40 52 64 38 L64 64 L0 64Z" fill="#cfe8f6"/><path d="M10 0 L32 64" stroke="#fff" stroke-width="5"/><path d="M0 24 L64 12" stroke="#f6d98c" stroke-width="4"/><path d="M42 0 L54 64" stroke="#fff" stroke-width="3"/></svg>';
+    if (kind === 'sat') return '<svg viewBox="0 0 64 64"><rect width="64" height="64" fill="#3b4a33"/><circle cx="14" cy="16" r="14" fill="#566b45"/><circle cx="50" cy="50" r="16" fill="#2c3727"/><path d="M0 44 L64 20" stroke="#b9ad92" stroke-width="7"/><rect x="38" y="6" width="12" height="9" fill="#8a7f6a"/><rect x="8" y="46" width="10" height="8" fill="#a3978a"/></svg>';
+    return '<svg viewBox="0 0 64 64"><rect width="64" height="64" fill="#dde3cd"/><path d="M0 52 C16 40 28 44 40 30 S56 14 64 10" fill="none" stroke="#a9b58f" stroke-width="2"/><path d="M0 40 C14 30 26 34 38 22 S54 8 64 4" fill="none" stroke="#a9b58f" stroke-width="2"/><path d="M0 28 C12 18 22 22 34 12" fill="none" stroke="#a9b58f" stroke-width="2"/><path d="M6 64 C20 50 36 54 64 30" fill="none" stroke="#fff" stroke-width="4"/></svg>';
+  }
+  var SVG_TAG = '<svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#0b7a8a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V4h9l8.6 8.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="8.5" r="1.4"/></svg>';
+  var SVG_TGT = '<svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#0b7a8a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8"/></svg>';
+  function detTile(key, label, on, svg) {
+    return '<button type="button" class="lc-opt' + (on ? ' on' : '') + '" data-act="mdet" data-v="' + key + '"><span class="th det">' + svg + '</span><b>' + esc(T(label)) + '</b></button>';
+  }
+  function renderLayersSheet() {
+    var h = $('lc-layers'); if (!h) return;
+    if (!S.layersOpen) { h.classList.remove('open'); h.innerHTML = ''; return; }
+    var bases = ['plan', 'sat', 'relief'].map(function (k) {
+      return '<button type="button" class="lc-opt' + (S.mp.base === k ? ' on' : '') + '" data-act="mbase" data-v="' + k + '"><span class="th">' + thumb(k) + '</span><b>' + esc(T('mt_' + k)) + '</b></button>';
+    }).join('');
+    var det = (S.mp.base === 'sat' ? detTile('labels', 'mt_labels', S.mp.labels, SVG_TAG) : '') + detTile('acc', 'mt_acc', S.mp.acc, SVG_TGT);
+    h.innerHTML = '<div class="lc-lbox" role="dialog" aria-label="' + esc(T('mt_title')) + '"><div class="lc-lhead"><h3>' + esc(T('mt_title')) + '</h3><button type="button" class="lc-ib" data-act="layersx" aria-label="' + esc(T('close')) + '">✕</button></div>' +
+      '<div class="lc-opts">' + bases + '</div><div class="lc-lsep"></div><div class="lc-lhead"><h3>' + esc(T('mt_details')) + '</h3></div><div class="lc-opts">' + det + '</div></div>';
+    h.classList.add('open');
+  }
+  function openLayers() { S.layersOpen = true; renderLayersSheet(); }
+  function closeLayers() { S.layersOpen = false; renderLayersSheet(); }
+
+  /* ---- Adresse précise : rue / avenue, quartier, commune, ville, territoire, province, pays ---- */
+  var geoCache = {}, geoChain = Promise.resolve(), geoLast = 0;
+  function buildAddress(j) {
+    var a = j && j.address;
+    if (!a) return { ok: false, title: '', sub: '', rows: [], full: (j && j.display_name) || '' };
+    var rows = [], seen = {};
+    function add(key, val) {
+      val = String(val || '').trim();
+      if (!val || seen[val.toLowerCase()]) return;
+      seen[val.toLowerCase()] = 1; rows.push([key, val]);
+    }
+    var road = a.road || a.pedestrian || a.footway || a.path || a.cycleway || a.residential || '';
+    if (road && a.house_number) road = a.house_number + ', ' + road;
+    add('ad_road', road);
+    add('ad_quarter', a.neighbourhood || a.quarter || a.hamlet || a.suburb);
+    add('ad_commune', a.city_district || a.borough || a.municipality || a.suburb);
+    add('ad_city', a.city || a.town || a.village || a.locality);
+    add('ad_county', a.county || a.state_district);
+    add('ad_state', a.state || a.region);
+    add('ad_country', a.country);
+    add('ad_postcode', a.postcode);
+    var title = (j.name && j.name !== road ? j.name : '') || road || (rows[0] ? rows[0][1] : '');
+    var sub = rows.filter(function (r) { return r[1] !== title && r[0] !== 'ad_country' && r[0] !== 'ad_postcode'; }).slice(0, 3).map(function (r) { return r[1]; }).join(' · ');
+    return { ok: rows.length > 0, title: title, sub: sub, rows: rows, full: j.display_name || '' };
+  }
+  function reverseDetail(lat, lng) {
+    var key = lat.toFixed(5) + ',' + lng.toFixed(5) + ',' + langIdx();
+    if (geoCache[key]) return Promise.resolve(geoCache[key]);
+    // Nominatim demande au plus 1 requête par seconde : on met les demandes en file.
+    var job = geoChain.then(function () {
+      return new Promise(function (r) { setTimeout(r, Math.max(0, 1100 - (now() - geoLast))); });
+    }).then(function () {
+      geoLast = now();
+      var url = CFG.GEOCODE_URL + '?format=jsonv2&zoom=18&addressdetails=1&lat=' + lat + '&lon=' + lng + '&accept-language=' + (langIdx() === 0 ? 'fr' : 'en');
+      return fetch(url, { headers: { 'Accept': 'application/json' } }).then(function (r) { return r.ok ? r.json() : null; });
+    }).then(buildAddress).catch(function () { return buildAddress(null); });
+    geoChain = job.then(noop, noop);
+    return job.then(function (d) { if (d && d.ok) geoCache[key] = d; return d; });
+  }
+
+  /* ---- Lieu choisi : repère rouge + fiche détaillée ---- */
+  function pick(marker, info) {
+    marker.on('click', function () {
+      if (!S.fs) { S.fs = true; applyFs(); }
+      selectPlace(info, true);
+    });
+    return marker;
+  }
+  function drawSel() {
+    if (!S.map || !S.L) return;
+    if (S.selMarker) { try { S.map.removeLayer(S.selMarker); } catch (e) { /* ignore */ } S.selMarker = null; }
+    if (!S.sel) return;
+    S.selMarker = S.L.marker([S.sel.lat, S.sel.lng], {
+      icon: S.L.divIcon({ className: '', html: '<div class="lc-pin"></div>', iconSize: [30, 40], iconAnchor: [15, 38] }), zIndexOffset: 1200, interactive: false
+    }).addTo(S.map);
+  }
+  function selectPlace(p, fly) {
+    if (!validCoords(p.lat, p.lng)) return;
+    S.sel = { lat: p.lat, lng: p.lng, label: p.label || '', ts: p.ts || 0, acc: (typeof p.acc === 'number') ? p.acc : null, addr: null, loading: true };
+    if (fly && S.map) S.map.flyTo([p.lat, p.lng], Math.max(S.map.getZoom(), 17));
+    drawSel(); renderPlaceCard(); renderFsTop();
+    var tok = ++S.selTok;
+    reverseDetail(p.lat, p.lng).then(function (d) {
+      if (!S.sel || tok !== S.selTok) return;
+      S.sel.addr = d; S.sel.loading = false; renderPlaceCard(); renderFsTop();
+    });
+  }
+  function clearSel() { S.sel = null; S.selTok++; drawSel(); renderPlaceCard(); renderFsTop(); }
+  function selText() {
+    var s = S.sel; if (!s) return '';
+    var a = s.addr, parts = [];
+    if (s.label) parts.push(s.label);
+    if (a && a.ok) parts.push(a.rows.map(function (r) { return r[1]; }).join(', '));
+    parts.push(fmtCoord(s.lat) + ', ' + fmtCoord(s.lng));
+    return parts.join('\n');
+  }
+  function osmUrl(lat, lng) { return 'https://www.openstreetmap.org/?mlat=' + lat + '&mlon=' + lng + '#map=18/' + lat + '/' + lng; }
+  function renderPlaceCard() {
+    var h = $('lc-place'), r = $('lc-root'); if (!h || !r) return;
+    if (!S.sel || !S.fs) { h.classList.remove('open'); h.innerHTML = ''; r.classList.remove('hasplace'); r.style.removeProperty('--lc-place-h'); return; }
+    var s = S.sel, a = s.addr, title, sub, rows = '';
+    if (s.label) { title = s.label; sub = a && a.ok ? [a.title, a.sub].filter(Boolean).join(' · ') : ''; }
+    else { title = (a && a.ok && a.title) || T('pl_selected'); sub = a && a.ok ? a.sub : ''; }
+    if (s.loading) rows = '<p class="lc-muted">' + esc(T('addr_wait')) + '</p>';
+    else if (a && a.ok) rows = '<div class="lc-arows">' + a.rows.map(function (x) { return '<div><small>' + esc(T(x[0])) + '</small><b>' + esc(x[1]) + '</b></div>'; }).join('') + '</div>';
+    else rows = '<p class="lc-muted">' + esc(T('addr_none')) + '</p>';
+    var meta = fmtCoord(s.lat) + ', ' + fmtCoord(s.lng) + (s.acc != null ? ' · ' + fmtAcc(s.acc) : '') + (s.ts ? ' · ' + ago(s.ts) : '');
+    h.innerHTML = '<div class="lc-phead"><div class="grow"><h3>' + esc(title) + '</h3>' + (sub ? '<span class="lc-muted">' + esc(sub) + '</span>' : '') + '</div>' +
+      '<button type="button" class="lc-ib" data-act="placex" aria-label="' + esc(T('close')) + '">✕</button></div>' + rows +
+      '<div class="lc-pmeta">' + esc(meta) + '</div>' +
+      '<div class="lc-pacts"><button type="button" class="lc-btn sm" data-act="plcopy">' + esc(T('pl_copy')) + '</button>' +
+      '<a class="lc-btn sec sm" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=' + s.lat + ',' + s.lng + '">' + esc(T('pl_route')) + '</a>' +
+      '<button type="button" class="lc-btn sec sm" data-act="plshare">' + esc(T('pl_share')) + '</button></div>';
+    h.classList.add('open'); r.classList.add('hasplace');
+    r.style.setProperty('--lc-place-h', h.offsetHeight + 'px');
+  }
+  function placeCopy() { var t = selText(); if (t) copyText(t).then(function () { toastLC(T('pl_copied')); }); }
+  function placeShare() {
+    var s = S.sel; if (!s) return;
+    var text = selText() + '\n' + osmUrl(s.lat, s.lng);
+    if (navigator.share) navigator.share({ title: s.label || T('pl_selected'), text: text }).catch(noop);
+    else copyText(text).then(function () { toastLC(T('pl_copied')); });
+  }
+
+  /* ---- Carte plein écran (barre du haut, bouton retour, fiche du lieu) ---- */
+  function renderFsTop() {
+    var h = $('lc-fstop'); if (!h) return;
+    if (!S.fs) { h.innerHTML = ''; return; }
+    var title, sub = '';
+    if (S.sel) { title = S.sel.label || (S.sel.addr && S.sel.addr.ok && S.sel.addr.title) || T('pl_selected'); sub = S.sel.addr && S.sel.addr.ok ? S.sel.addr.sub : ''; }
+    else { title = T('fs_title'); sub = S.me ? T('lbl_acc') + ' ' + fmtAcc(S.me.acc) : (lastKnown() ? T('last_known', { ago: ago(lastKnown().ts) }) : T('no_pos')); }
+    h.innerHTML = '<button type="button" class="lc-fsround" data-act="mapback" aria-label="' + esc(T('back')) + '">' + SVG_BACK + '</button>' +
+      '<div class="lc-fspill"><b>' + esc(title) + '</b>' + (sub ? '<span>' + esc(sub) + '</span>' : '') + '</div>' +
+      '<button type="button" class="lc-fsround" data-act="layers" aria-label="' + esc(T('mt_title')) + '">' + SVG_LAYERS + '</button>';
+  }
   function applyFs() {
     var r = $('lc-root'); if (!r) return;
     r.classList.toggle('mapfs', !!S.fs);
-    var b = $('lc-fsbtn'); if (b) { b.setAttribute('aria-pressed', S.fs ? 'true' : 'false'); b.setAttribute('aria-label', T(S.fs ? 'fs_close' : 'fs_open')); b.innerHTML = S.fs ? SVG_FS_OFF : SVG_FS_ON; }
-    renderFsBar();
+    var b = $('lc-fsbtn'); if (b) { b.setAttribute('aria-label', T(S.fs ? 'fs_close' : 'fs_open')); b.innerHTML = S.fs ? SVG_FS_OFF : SVG_FS_ON; }
+    if (!S.fs) { S.layersOpen = false; renderLayersSheet(); if (S.sel) { S.sel = null; S.selTok++; drawSel(); } }
+    renderFsBar(); renderFsTop(); renderPlaceCard();
     setTimeout(function () { if (S.map) S.map.invalidateSize(); }, 250);
   }
-  function fsChip(name, sub, lat, lng, cls) {
+  // Bouton « retour » : ferme d'abord le menu des fonds, puis la fiche du lieu, puis quitte le plein écran.
+  function mapBack() {
+    if (S.layersOpen) { closeLayers(); return; }
+    if (S.sel) { clearSel(); return; }
+    S.fs = false; applyFs();
+  }
+  function fsChip(name, sub, lat, lng, cls, ts, acc) {
     if (!validCoords(lat, lng)) return '<span class="lc-fschip off ' + (cls || '') + '"><b>' + esc(name) + '</b><span>' + esc(sub) + '</span></span>';
-    return '<button type="button" class="lc-fschip ' + (cls || '') + '" data-act="fly" data-lat="' + lat + '" data-lng="' + lng + '"><b>' + esc(name) + '</b><span>' + esc(sub) + '</span></button>';
+    return '<button type="button" class="lc-fschip ' + (cls || '') + '" data-act="selplace" data-lat="' + lat + '" data-lng="' + lng + '" data-name="' + esc(name) + '" data-ts="' + (ts || 0) + '" data-acc="' + (typeof acc === 'number' ? acc : '') + '"><b>' + esc(name) + '</b><span>' + esc(sub) + '</span></button>';
   }
   function renderFsBar() {
     var h = $('lc-fsbar'); if (!h) return;
     if (!S.fs) { h.innerHTML = ''; return; }
     var chips = [], lk = lastKnown();
-    if (lk) chips.push(fsChip(T('fs_me'), S.me ? ago(S.me.ts) : T('last_known', { ago: ago(lk.ts) }), lk.lat, lk.lng, ''));
-    S.sosOthers.forEach(function (s) { chips.push(fsChip('SOS · ' + s.ownerName, ago(s.updatedAtMs), s.lat, s.lng, 'sos')); });
+    if (lk) chips.push(fsChip(T('fs_me'), S.me ? ago(S.me.ts) : T('last_known', { ago: ago(lk.ts) }), lk.lat, lk.lng, '', lk.ts, lk.acc));
+    S.sosOthers.forEach(function (s) { chips.push(fsChip('SOS · ' + s.ownerName, ago(s.updatedAtMs), s.lat, s.lng, 'sos', s.updatedAtMs, s.accuracy)); });
     activeIn().forEach(function (sh) {
       var p = S.peers[sh.ownerUid], has = p && validCoords(p.lat, p.lng);
-      chips.push(has ? fsChip(sh.ownerName, ago(p.updatedAtMs) + (typeof p.battery === 'number' ? ' · ' + p.battery + ' %' : ''), p.lat, p.lng, '') : fsChip(sh.ownerName, T('sh_peer_nopos'), null, null, ''));
+      chips.push(has ? fsChip(sh.ownerName, ago(p.updatedAtMs) + (typeof p.battery === 'number' ? ' · ' + p.battery + ' %' : ''), p.lat, p.lng, '', p.updatedAtMs, p.accuracy) : fsChip(sh.ownerName, T('sh_peer_nopos'), null, null, ''));
     });
     h.innerHTML = chips.join('') || '<span class="lc-fschip off"><b>' + esc(T('no_pos')) + '</b></span>';
+  }
+  // Depuis les listes (« Voir sur la carte ») : ouvre le plein écran directement sur ce lieu, avec l'adresse précise.
+  function showOnMap(lat, lng, label, ts, acc) {
+    if (!validCoords(lat, lng)) return;
+    S.fs = true; applyFs();
+    var go = function () { selectPlace({ lat: lat, lng: lng, label: label || '', ts: ts || 0, acc: acc }, true); };
+    if (S.map) setTimeout(go, 280); else go();
   }
 
   /* ---- Diagnostic : « qu'est-ce qui bloque ? » ---- */
@@ -1376,12 +1600,22 @@
     ex_done: ['Demande envoyée et position partagée.', 'Request sent and position shared.'],
     join_hint: ["Enregistre ton numéro ou ton email pour apparaître dans la liste et être retrouvé. Tu peux déjà chercher et envoyer des demandes ci-dessous.", 'Save your number or email to appear in the list and be found. You can already search and send requests below.']
   });
+  Object.assign(N, {
+    mt_title: ['Type de carte', 'Map type'], mt_plan: ['Par défaut', 'Default'], mt_sat: ['Satellite', 'Satellite'], mt_relief: ['Relief', 'Terrain'],
+    mt_details: ['Détails de la carte', 'Map details'], mt_labels: ['Noms des lieux', 'Place names'], mt_acc: ['Précision GPS', 'GPS accuracy'],
+    mt_ko: ['Ce fond de carte est indisponible pour le moment. Retour à la carte par défaut.', 'This map style is unavailable right now. Back to the default map.'],
+    ad_road: ['Rue / avenue', 'Street / avenue'], ad_quarter: ['Quartier', 'Neighbourhood'], ad_commune: ['Commune', 'District'], ad_city: ['Ville', 'City'],
+    ad_county: ['Territoire / district', 'County / district'], ad_state: ['Province / région', 'Province / region'], ad_country: ['Pays', 'Country'], ad_postcode: ['Code postal', 'Postcode'],
+    pl_selected: ['Lieu sélectionné', 'Selected place'], pl_copy: ["Copier l'adresse", 'Copy address'], pl_route: ['Itinéraire', 'Directions'], pl_share: ['Partager', 'Share'],
+    pl_copied: ['Adresse copiée.', 'Address copied.'], pl_open: ['Ouvrir la carte en plein écran', 'Open the map full screen'], fs_title: ['Carte', 'Map']
+  });
   for (var nk in N) if (Object.prototype.hasOwnProperty.call(N, nk)) X[nk] = N[nk];
   X.back = ['Retour', 'Back'];
   var TABS = ['pos', 'share', 'sec', 'dev', 'hist', 'priv'];
   var SVG_BACK = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>';
   var SVG_FS_ON = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>';
   var SVG_FS_OFF = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg>';
+  var SVG_LAYERS = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>';
   var SVG_LOC = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8"/><line x1="12" y1="1" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="23"/><line x1="1" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="23" y2="12"/></svg>';
 
   function buildDom() {
@@ -1395,16 +1629,19 @@
       '<button class="lc-ib" data-act="recenter" aria-label="' + esc(T('recenter')) + '" title="' + esc(T('recenter')) + '">' + SVG_LOC + '</button></div>' +
       '<div id="lc-sosbar"></div>' +
       '<div class="lc-body"><div class="lc-mapwrap"><div id="lc-map"></div><div class="lc-mapfb" id="lc-mapfb" style="display:none"></div>' +
-      '<button type="button" class="lc-fsbtn" id="lc-fsbtn" data-act="mapfs" aria-label="' + esc(T('fs_open')) + '">' + SVG_FS_ON + '</button><div id="lc-fsbar"></div></div>' +
+      '<button type="button" class="lc-fsbtn" id="lc-fsbtn" data-act="mapfs" aria-label="' + esc(T('fs_open')) + '">' + SVG_FS_ON + '</button>' +
+      '<button type="button" class="lc-lyrbtn" data-act="layers" aria-label="' + esc(T('mt_title')) + '">' + SVG_LAYERS + '</button>' +
+      '<div id="lc-fstop"></div><button type="button" class="lc-fsloc" data-act="recenter" aria-label="' + esc(T('recenter')) + '">' + SVG_LOC + '</button>' +
+      '<div id="lc-fsbar"></div><div id="lc-place"></div></div>' +
       '<div class="lc-panel"><nav class="lc-tabs" id="lc-tabs" role="tablist"></nav><div id="lc-tabbody"></div></div></div>' +
-      '<div class="lc-sheet" id="lc-sheet"></div><div id="lc-toast"></div>';
+      '<div class="lc-sheet" id="lc-sheet"></div><div id="lc-layers"></div><div id="lc-toast"></div>';
     document.body.appendChild(el);
     el.addEventListener('click', onClick);
     el.addEventListener('change', onChange);
     el.addEventListener('input', function (ev) { if (ev.target && ev.target.id === 'lc-dir-q') { S.dir.q = ev.target.value; dirDebounced(); } });
     document.addEventListener('keydown', function (ev) {
       if (ev.key !== 'Escape' || !S.open) return;
-      if ($('lc-sheet').classList.contains('open')) closeSheet(); else close();
+      if ($('lc-sheet').classList.contains('open')) closeSheet(); else if (S.fs) mapBack(); else close();
     });
   }
   function buildPill() {
@@ -1477,20 +1714,30 @@
         '<div class="lc-kv"><small>' + esc(T('lbl_lng')) + '</small><b>' + fmtCoord(m.lng) + '</b></div>' +
         '<div class="lc-kv"><small>' + esc(T('lbl_acc')) + '</small><b>' + esc(fmtAcc(m.acc)) + '</b></div>' +
         '<div class="lc-kv"><small>' + esc(T('lbl_upd')) + '</small><b>' + esc(ago(m.ts)) + '</b></div></div>';
-      h += '<div class="lc-kv" style="margin-top:10px"><small>' + esc(T('lbl_addr')) + '</small><b>' +
-        esc(S.address ? S.address : (S.addrFailed ? T('addr_none') : T('addr_wait'))) + '</b></div>';
+      h += addrBlock();
       if (m.acc != null && m.acc > 100) h += '<div class="lc-warn" style="margin-top:10px">' + esc(T('acc_low')) + '</div>';
     } else {
       var lk = lastKnown();
       h += lk ? '<p class="lc-muted">' + esc(T('last_known', { ago: ago(lk.ts) })) + ' · ' + fmtCoord(lk.lat) + ', ' + fmtCoord(lk.lng) + ' (' + esc(fmtAcc(lk.acc)) + ')</p>'
         : '<p class="lc-muted">' + esc(T('no_pos')) + '</p>';
     }
-    if (geoSupported() && S.watchId != null) h += '<div style="margin-top:12px">' + btn('refreshpos', T('btn_refresh'), 'sec sm') + '</div>';
+    if (m) h += '<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="lc-btn sm" data-act="fly" data-lat="' + m.lat + '" data-lng="' + m.lng + '" data-name="' + esc(T('fs_me')) + '" data-ts="' + m.ts + '" data-acc="' + (typeof m.acc === 'number' ? m.acc : '') + '">' + esc(T('pl_open')) + '</button>' +
+      (geoSupported() && S.watchId != null ? btn('refreshpos', T('btn_refresh'), 'sec sm') : '') + '</div>';
+    else if (geoSupported() && S.watchId != null) h += '<div style="margin-top:12px">' + btn('refreshpos', T('btn_refresh'), 'sec sm') + '</div>';
     var out = card(T('tab_pos'), h);
     if (S.profileLoaded && !S.profile) out += card('', '<p>' + esc(T('pos_join')) + '</p>' + btn('gojoin', T('pos_join_btn')));
     return out;
   }
 
+  function addrBlock() {
+    var d = S.addrDetail;
+    if (d && d.ok) {
+      return '<div class="lc-arows" style="margin-top:12px">' + d.rows.map(function (r) {
+        return '<div><small>' + esc(T(r[0])) + '</small><b>' + esc(r[1]) + '</b></div>';
+      }).join('') + '</div>';
+    }
+    return '<div class="lc-kv" style="margin-top:10px"><small>' + esc(T('lbl_addr')) + '</small><b>' + esc(S.address ? S.address : (S.addrFailed ? T('addr_none') : T('addr_wait'))) + '</b></div>';
+  }
   function closedInfo() {
     return '<details class="lc-card lc-details"><summary>' + esc(T('closed_title')) + '</summary><p class="lc-muted" style="margin-top:8px">' + esc(T('closed_text')) + '</p></details>';
   }
@@ -1596,7 +1843,7 @@
         var p = S.peers[s.ownerUid], has = p && validCoords(p.lat, p.lng);
         return '<div class="lc-row">' + av(s.ownerName) + '<div class="grow"><b>' + esc(s.ownerName) + '</b><span class="lc-muted">' +
           (has ? esc(ago(p.updatedAtMs)) + ' · ' + esc(fmtAcc(p.accuracy)) + ' · ' + esc(remaining(s.expiresAtMs)) : esc(T('sh_peer_nopos'))) + '</span></div>' +
-          (has ? '<button type="button" class="lc-btn sm" data-act="fly" data-lat="' + p.lat + '" data-lng="' + p.lng + '">' + esc(T('dv_view')) + '</button>' : '') + '</div>';
+          (has ? '<button type="button" class="lc-btn sm" data-act="fly" data-lat="' + p.lat + '" data-lng="' + p.lng + '" data-name="' + esc(s.ownerName) + '" data-ts="' + (p.updatedAtMs || 0) + '" data-acc="' + (typeof p.accuracy === 'number' ? p.accuracy : '') + '">' + esc(T('dv_view')) + '</button>' : '') + '</div>';
       }).join('')
       : '<p class="lc-muted">' + esc(T('sh_with_me_empty')) + '</p>');
     var sent = S.inShares.filter(function (s) { return s.status === 'pending' && s.requestedBy === me; });
@@ -1636,7 +1883,7 @@
         var has = validCoords(s.lat, s.lng);
         return '<div class="lc-row"><span class="lc-av" style="background:#d7263d">SOS</span><div class="grow"><b>' + esc(s.ownerName) + '</b><span class="lc-muted">' +
           esc(T('sos_since', { ago: ago(s.startedAtMs) })) + ' · ' + (has ? esc(ago(s.updatedAtMs)) + ' · ' + esc(fmtAcc(s.accuracy)) : esc(T('sh_peer_nopos'))) + '</span></div>' +
-          (has ? '<button type="button" class="lc-btn red sm" data-act="fly" data-lat="' + s.lat + '" data-lng="' + s.lng + '">' + esc(T('dv_view')) + '</button>' : '') + '</div>';
+          (has ? '<button type="button" class="lc-btn red sm" data-act="fly" data-lat="' + s.lat + '" data-lng="' + s.lng + '" data-name="SOS · ' + esc(s.ownerName) + '" data-ts="' + (s.updatedAtMs || 0) + '" data-acc="' + (typeof s.accuracy === 'number' ? s.accuracy : '') + '">' + esc(T('dv_view')) + '</button>' : '') + '</div>';
       }).join('') : '<p class="lc-muted">' + esc(T('sos_others_none')) + '</p>');
     }
     return h;
@@ -1657,7 +1904,7 @@
         (typeof d.battery === 'number' ? ' · ' + esc(T('dv_battery', { n: d.battery })) : '') + '</span><br>' +
         '<span class="lc-muted">' + esc(T('dv_lastseen', { ago: ago(d.lastSeenMs) })) + '</span>' +
         '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">' +
-        (has ? '<button type="button" class="lc-btn sm" data-act="fly" data-lat="' + d.lat + '" data-lng="' + d.lng + '">' + esc(T('dv_view')) + '</button>' : '') +
+        (has ? '<button type="button" class="lc-btn sm" data-act="fly" data-lat="' + d.lat + '" data-lng="' + d.lng + '" data-name="' + esc(d.name || '') + '" data-ts="' + (d.lastPosMs || 0) + '" data-acc="' + (typeof d.accuracy === 'number' ? d.accuracy : '') + '">' + esc(T('dv_view')) + '</button>' : '') +
         (mine ? '' : btn('askdev', T('dv_ask'), 'sec sm', ' data-id="' + esc(d.id) + '"')) +
         btn('rename', T('dv_rename'), 'sec sm', ' data-id="' + esc(d.id) + '" data-name="' + esc(d.name || '') + '"') +
         btn('rmdev', T('dv_remove'), 'sec sm', ' data-id="' + esc(d.id) + '"') + '</div></div></div>';
@@ -1672,7 +1919,7 @@
     if (S.histErr) h += '<div class="lc-err">' + esc(errText(S.histErr)) + '</div>';
     h += S.history.length ? S.history.map(function (p) {
       return '<div class="lc-row"><div class="grow"><b>' + esc(fmtTime(p.tsMs)) + '</b><span class="lc-muted">' + fmtCoord(p.lat) + ', ' + fmtCoord(p.lng) + ' · ' + esc(fmtAcc(p.accuracy)) + '</span></div>' +
-        '<button type="button" class="lc-btn sec sm" data-act="fly" data-lat="' + p.lat + '" data-lng="' + p.lng + '">' + esc(T('dv_view')) + '</button></div>';
+        '<button type="button" class="lc-btn sec sm" data-act="fly" data-lat="' + p.lat + '" data-lng="' + p.lng + '" data-ts="' + (p.tsMs || 0) + '" data-acc="' + (typeof p.accuracy === 'number' ? p.accuracy : '') + '">' + esc(T('dv_view')) + '</button></div>';
     }).join('') : (S.histErr ? '' : '<p class="lc-muted">' + esc(T('hi_empty')) + '</p>');
     if (S.history.length) h += '<div style="margin-top:10px">' + btn('clearhist', T('hi_clear'), 'sec sm') + '</div>';
     return card(T('hi_title'), h);
@@ -1756,14 +2003,23 @@
     if (!t) return;
     var act = t.getAttribute('data-act'), id = t.getAttribute('data-id');
     switch (act) {
-      case 'close': if (S.fs) { S.fs = false; applyFs(); } else close(); break;
+      case 'close': if (S.fs) mapBack(); else close(); break;
       case 'mapfs': S.fs = !S.fs; applyFs(); break;
-      case 'recenter': { var lk = lastKnown(); if (lk) flyTo(lk.lat, lk.lng); break; }
+      case 'mapback': mapBack(); break;
+      case 'layers': openLayers(); break;
+      case 'layersx': closeLayers(); break;
+      case 'mbase': if (MAP_BASES[t.getAttribute('data-v')]) { S.mp.base = t.getAttribute('data-v'); saveMapPrefs(); applyBase(); renderLayersSheet(); } break;
+      case 'mdet': { var dk = t.getAttribute('data-v'); if (dk === 'labels' || dk === 'acc') { S.mp[dk] = !S.mp[dk]; saveMapPrefs(); applyBase(); drawMap(); renderLayersSheet(); } break; }
+      case 'placex': clearSel(); break;
+      case 'plcopy': placeCopy(); break;
+      case 'plshare': placeShare(); break;
+      case 'selplace': selectPlace({ lat: parseFloat(t.getAttribute('data-lat')), lng: parseFloat(t.getAttribute('data-lng')), label: t.getAttribute('data-name') || '', ts: parseInt(t.getAttribute('data-ts'), 10) || 0, acc: t.getAttribute('data-acc') === '' ? null : parseFloat(t.getAttribute('data-acc')) }, true); break;
+      case 'recenter': { var lk = lastKnown(); if (lk) { if (S.sel) clearSel(); flyTo(lk.lat, lk.lng); } break; }
       case 'tab': setTab(t.getAttribute('data-tab')); break;
       case 'startpos': lsSet(LS_CONSENT, '1'); S.watchId = null; startWatch(); queryPerm(); renderTab(); break;
       case 'stoppos': stopWatch(); renderTab(); break;
       case 'refreshpos': oneShotFix(); geocodeMaybe(true); break;
-      case 'fly': flyTo(parseFloat(t.getAttribute('data-lat')), parseFloat(t.getAttribute('data-lng'))); break;
+      case 'fly': showOnMap(parseFloat(t.getAttribute('data-lat')), parseFloat(t.getAttribute('data-lng')), t.getAttribute('data-name') || '', parseInt(t.getAttribute('data-ts'), 10) || 0, t.getAttribute('data-acc') === null || t.getAttribute('data-acc') === '' ? null : parseFloat(t.getAttribute('data-acc'))); break;
       case 'register': {
         var okb = $('lc-onb-ok');
         if (!okb || !okb.checked) { toastLC(T('onb_consent_needed'), 'error'); break; }
