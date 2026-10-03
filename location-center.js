@@ -281,7 +281,7 @@
     outShares: [], inShares: [], contacts: [], contactsIn: [], devices: [], history: [],
     sosMine: null, sosOthers: [], peers: {}, peerUnsubs: {}, selfDevUnsub: null, handledRefresh: null,
     timer: null, lastW: { t: 0, pos: null }, lastH: { t: 0, pos: null }, lastS: { t: 0, pos: null },
-    perm: 'unknown', booted: false, flash: '', cspBlocked: false, links: [], fs: false, diag: null, regError: '', lkDur: 60,
+    perm: 'unknown', booted: false, flash: '', cspBlocked: false, exchange: false, links: [], fs: false, diag: null, regError: '', lkDur: 60,
     profile: null, profileLoaded: false, priv: null, blocked: {}, dir: { q: '', results: [], loading: false, ready: false }, dirTimer: null, sheetDur: 60
   };
   function devId() { return (myUid() || 'x') + '_' + localDeviceId(); }
@@ -455,7 +455,9 @@
     fb.innerHTML = '<div>' + esc(S.cspBlocked ? T('map_blocked') : T('map_fallback')) + '</div>' + (m
       ? '<b>' + fmtCoord(m.lat) + ', ' + fmtCoord(m.lng) + '</b><a target="_blank" rel="noopener" href="https://www.openstreetmap.org/?mlat=' + m.lat + '&mlon=' + m.lng + '#map=17/' + m.lat + '/' + m.lng + '">' + esc(T('open_osm')) + '</a>'
       : '<span class="lc-muted">' + esc(T('no_pos')) + '</span>') +
-      '<button type="button" class="lc-btn sec sm" data-act="retrymap">' + esc(T('retry')) + '</button>';
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center"><button type="button" class="lc-btn sec sm" data-act="retrymap">' + esc(T('retry')) + '</button>' +
+      (S.cspBlocked ? '<button type="button" class="lc-btn sm" data-act="repair">' + esc(T('dg_fix')) + '</button>' : '') + '</div>';
+    if (S.cspBlocked) autoHeal();
   }
   function icon(cls, html) {
     return S.L.divIcon({ className: '', html: '<div class="lc-mk ' + cls + '">' + (html || '') + '</div>', iconSize: [30, 30], iconAnchor: [15, 15] });
@@ -520,7 +522,24 @@
   /* ------------------------------------------------------------------
      GÉOLOCALISATION (API native du navigateur)
      ------------------------------------------------------------------ */
-  function setStatus(st) { S.status = st; renderStatusBits(); updatePill(); }
+  // Page ouverte AVANT le déploiement de vercel.json : le navigateur garde les anciens en-têtes
+  // (GPS et carte bloqués) jusqu'au prochain chargement. Si le serveur envoie déjà la bonne
+  // configuration, on recharge une seule fois (au plus toutes les 10 min) pour la récupérer.
+  function autoHeal() {
+    try {
+      var last = parseInt(sessionStorage.getItem('cn_lc_heal') || '0', 10);
+      if (now() - last < 600000) return;
+      sessionStorage.setItem('cn_lc_heal', String(now()));
+    } catch (e) { return; }
+    fetch(root.location.pathname || '/', { method: 'HEAD', cache: 'no-store' }).then(function (r) {
+      var pp = r.headers.get('permissions-policy') || '', csp = r.headers.get('content-security-policy') || '';
+      if (/geolocation=\(self\)/.test(pp) && /cdn\.jsdelivr\.net/.test(csp)) {
+        toastLC(T('heal_msg'));
+        setTimeout(function () { root.location.reload(); }, 1400);
+      }
+    }).catch(noop);
+  }
+  function setStatus(st) { S.status = st; if (st === 'policy') autoHeal(); renderStatusBits(); updatePill(); }
   function geoSupported() { return !!(navigator && navigator.geolocation); }
   function queryPerm() {
     try {
@@ -1200,7 +1219,8 @@
       add(T('dg_policy'), pageOk, pageOk ? '' : (srvOk ? T('dg_cache') : T('dg_server_old')));
       if (navigator.permissions && navigator.permissions.query) {
         return navigator.permissions.query({ name: 'geolocation' }).then(function (r) {
-          add(T('dg_gps'), r.state === 'granted' ? true : (r.state === 'denied' ? false : null), r.state === 'denied' ? T('err_denied') : (r.state === 'prompt' ? T('dg_gps_prompt') : ''));
+          if (policyBlocksGeo()) add(T('dg_gps'), null, T('dg_gps_dep'));
+          else add(T('dg_gps'), r.state === 'granted' ? true : (r.state === 'denied' ? false : null), r.state === 'denied' ? T('err_denied') : (r.state === 'prompt' ? T('dg_gps_prompt') : ''));
         }).catch(noop);
       }
     }).then(function () {
@@ -1315,6 +1335,16 @@
     dg_notif_ko: ['Notifications bloquées : autorise-les dans les réglages du navigateur pour recevoir les alertes.', 'Notifications blocked: allow them in browser settings to receive alerts.'],
     dg_notif_ask: ["Pas encore autorisées : active-les pour recevoir les alertes même application fermée.", 'Not allowed yet: enable them to receive alerts even when the app is closed.']
   });
+  Object.assign(N, {
+    heal_msg: ["Mise à jour de l'application…", 'Updating the app…'],
+    dg_gps_dep: ["Dépend de l'étape « Autorisation GPS du site » : corrige-la d'abord (bouton Réparer), puis relance la vérification.", 'Depends on the “Site GPS permission” step: fix it first (Repair button), then run the check again.'],
+    ex_label: ['Échange mutuel : partager aussi ma position', 'Mutual exchange: also share my position'],
+    ex_help: ["Quand je touche « Localiser », je partage aussi ma position avec cette personne (durée au choix) : vous vous voyez chacun sur la carte.", 'When I tap “Locate”, I also share my position with that person (duration of your choice): you both see each other on the map.'],
+    ex_title: ['Échanger nos positions avec {name}', 'Exchange positions with {name}'],
+    ex_text: ["Tu envoies une demande à {name} ET tu partages ta position avec elle/lui pendant la durée choisie. Dès qu'elle/il accepte, vous vous voyez mutuellement.", 'You send {name} a request AND share your position with them for the chosen duration. Once they accept, you can see each other.'],
+    ex_done: ['Demande envoyée et position partagée.', 'Request sent and position shared.'],
+    join_hint: ["Enregistre ton numéro ou ton email pour apparaître dans la liste et être retrouvé. Tu peux déjà chercher et envoyer des demandes ci-dessous.", 'Save your number or email to appear in the list and be found. You can already search and send requests below.']
+  });
   for (var nk in N) if (Object.prototype.hasOwnProperty.call(N, nk)) X[nk] = N[nk];
   X.back = ['Retour', 'Back'];
   var TABS = ['pos', 'share', 'sec', 'dev', 'hist', 'priv'];
@@ -1409,7 +1439,7 @@
     var h = '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">' +
       '<span class="lc-pillst ' + cls + '"><i></i>' + esc(T('st_' + st)) + '</span>' +
       (S.watchId != null ? (needsWatch() ? '' : btn('stoppos', T('btn_stop'), 'sec sm')) : btn('startpos', T('btn_start'), 'sm')) + '</div>';
-    if (X['err_' + st]) h += '<div class="lc-err">' + esc(T('err_' + st)) + '</div>';
+    if (X['err_' + st]) h += '<div class="lc-err">' + esc(T('err_' + st)) + '</div>' + (st === 'policy' ? '<div style="margin-bottom:10px">' + btn('repair', T('dg_fix'), '') + '</div>' : '');
     var m = S.me;
     if (m) {
       h += '<div class="lc-grid"><div class="lc-kv"><small>' + esc(T('lbl_lat')) + '</small><b>' + fmtCoord(m.lat) + '</b></div>' +
@@ -1451,6 +1481,7 @@
   function dirCard(ctx) {
     return card(ctx === 'ec' ? T('ec_add_title') : T('dir_title'),
       (ctx === 'ec' ? '<p class="lc-muted">' + esc(T('ec_how')) + '</p>' : '') +
+      (ctx === 'share' ? '<label class="lc-sw"><span><b>' + esc(T('ex_label')) + '</b><br><span class="lc-muted">' + esc(T('ex_help')) + '</span></span><input type="checkbox" data-ch="exch"' + (S.exchange ? ' checked' : '') + '></label>' : '') +
       '<input class="lc-in" id="lc-dir-q" type="search" autocomplete="off" autocapitalize="none" placeholder="' + esc(T('dir_search_ph')) + '" value="' + esc(S.dir.q) + '">' +
       '<div id="lc-dir-res" style="margin-top:10px"></div>' +
       (ctx === 'share' ? '<div class="lc-invite"><span class="lc-muted">' + esc(T('invite_title')) + '</span>' + btn('invite', T('invite_btn'), 'sec sm') + '</div>' : ''));
@@ -1509,8 +1540,9 @@
   }
   function tabShare() {
     if (!S.profileLoaded) return '<p class="lc-muted">' + esc(T('loading')) + '</p>';
-    if (!S.profile || S.editProfile) return linkCard() + onboardCard();
+    if (S.editProfile) return onboardCard();
     var me = myUid(), h = '', out = activeOut();
+    if (!S.profile) h += onboardCard();
     if (out.length) h += '<div class="lc-banner">📍 ' + esc(T('sh_banner', { names: out.map(function (s) { return s.viewerName; }).join(', ') })) + '</div>';
     var reqs = S.outShares.filter(function (s) { return s.status === 'pending' && s.requestedBy !== me; });
     if (reqs.length) {
@@ -1626,7 +1658,7 @@
         var cls = it.ok === true ? 'ok' : (it.ok === false ? 'ko' : 'na');
         return '<div class="lc-dg ' + cls + '"><i>' + (it.ok === true ? '✓' : (it.ok === false ? '✕' : '!')) + '</i><div><b>' + esc(it.label) + '</b>' + (it.hint ? '<small>' + esc(it.hint) + '</small>' : '') + '</div></div>';
       }).join('');
-      if (bad) h += '<div style="margin-top:10px">' + btn('repair', T('dg_fix'), 'sec sm') + '</div>';
+      if (bad) h = '<div style="margin-bottom:6px">' + btn('repair', T('dg_fix'), '') + '</div>' + h;
     }
     return card(T('dg_title'), h + '<div style="margin-top:10px">' + btn('diag', T('dg_run'), 'sec sm', (d && d.running) ? ' disabled' : '') + '</div>');
   }
@@ -1722,7 +1754,17 @@
           closeSheet(); leaveDirectory().then(function () { toastLC(T('pv_left')); renderTab(); }).catch(function (e) { toastLC(errText(e), 'error'); });
         });
         break;
-      case 'locate': { var lp = dirFind(t.getAttribute('data-uid')); if (lp) run(t, function () { return askPositionUid({ uid: lp.uid, name: lp.name }); }, T('sh_asked')); break; }
+      case 'locate': {
+        var lp = dirFind(t.getAttribute('data-uid')); if (!lp) break;
+        if (S.exchange) {
+          if (needPos()) break;
+          openDurSheet(T('ex_title', { name: lp.name }), T('ex_text', { name: lp.name }), T('sheet_confirm'), function (dur) {
+            closeSheet();
+            run(null, function () { return askPositionUid({ uid: lp.uid, name: lp.name }).then(function () { return shareWithUid({ uid: lp.uid, name: lp.name }, dur); }); }, T('ex_done'));
+          });
+        } else run(t, function () { return askPositionUid({ uid: lp.uid, name: lp.name }); }, T('sh_asked'));
+        break;
+      }
       case 'shareto': {
         var sp = dirFind(t.getAttribute('data-uid')); if (!sp || needPos()) break;
         openDurSheet(T('sheet_share_title', { name: sp.name }), T('sheet_text', { name: sp.name }), T('sheet_confirm'), function (dur) {
@@ -1778,7 +1820,8 @@
   function onChange(ev) {
     var t = ev.target; var ch = t && t.getAttribute ? t.getAttribute('data-ch') : null;
     if (!ch) return;
-    if (ch === 'track') { setTrack(!!t.checked); }
+    if (ch === 'exch') { S.exchange = !!t.checked; }
+    else if (ch === 'track') { setTrack(!!t.checked); }
     else if (ch === 'hist') {
       cfg.history = !!t.checked; saveCfg(); S.lastH = { t: 0, pos: null };
       if (cfg.history) { lsSet(LS_CONSENT, '1'); startWatch(); if (S.me) writeTargets(false); }
