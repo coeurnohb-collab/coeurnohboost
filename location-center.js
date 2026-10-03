@@ -525,6 +525,23 @@
   // Page ouverte AVANT le déploiement de vercel.json : le navigateur garde les anciens en-têtes
   // (GPS et carte bloqués) jusqu'au prochain chargement. Si le serveur envoie déjà la bonne
   // configuration, on recharge une seule fois (au plus toutes les 10 min) pour la récupérer.
+  // CAUSE RÉELLE du « bloqué par le site » : le navigateur garde en cache HTTP l'ancienne page
+  // avec ses anciens en-têtes de sécurité. Un simple rechargement envoie une requête « conditionnelle »,
+  // le serveur répond « 304 inchangé » (le fichier HTML n'a pas bougé) et l'ancienne configuration
+  // reste. On force donc : (1) un téléchargement complet qui REMPLACE l'entrée du cache, puis
+  // (2) l'ouverture de la page sous une adresse neuve (?_cb=…) qui ne peut pas être en cache.
+  function freshUrl() {
+    var u = new URL(root.location.href);
+    u.searchParams.set('_cb', String(now()));
+    return u.pathname + (u.search || '') + (u.hash || '');
+  }
+  function refreshHttpCache() {
+    var urls = ['/', root.location.pathname + root.location.search.replace(/[?&]_cb=\d+/, '')];
+    return Promise.all(urls.map(function (u) { return fetch(u, { cache: 'reload', credentials: 'same-origin' }).catch(noop); }));
+  }
+  function hardReload() {
+    return refreshHttpCache().then(function () { root.location.replace(freshUrl()); });
+  }
   function autoHeal() {
     try {
       var last = parseInt(sessionStorage.getItem('cn_lc_heal') || '0', 10);
@@ -535,7 +552,7 @@
       var pp = r.headers.get('permissions-policy') || '', csp = r.headers.get('content-security-policy') || '';
       if (/geolocation=\(self\)/.test(pp) && /cdn\.jsdelivr\.net/.test(csp)) {
         toastLC(T('heal_msg'));
-        setTimeout(function () { root.location.reload(); }, 1400);
+        setTimeout(hardReload, 1200);
       }
     }).catch(noop);
   }
@@ -1202,7 +1219,7 @@
     var jobs = [];
     try { if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) jobs.push(navigator.serviceWorker.getRegistrations().then(function (rs) { return Promise.all(rs.map(function (r) { return r.unregister(); })); })); } catch (e) { /* ignore */ }
     try { if (root.caches && root.caches.keys) jobs.push(root.caches.keys().then(function (ks) { return Promise.all(ks.map(function (k) { return root.caches.delete(k); })); })); } catch (e) { /* ignore */ }
-    return Promise.all(jobs).catch(noop).then(function () { root.location.reload(); });
+    return Promise.all(jobs).catch(noop).then(hardReload);
   }
   function runDiagnostics() {
     var uid = myUid(), items = [], srvOk = null;
@@ -1211,9 +1228,15 @@
     function head() { return fetch(root.location.pathname || '/', { method: 'HEAD', cache: 'no-store' }).catch(function () { return fetch(root.location.pathname || '/', { cache: 'no-store' }); }); }
     return head().then(function (r) {
       var pp = r.headers.get('permissions-policy') || '', csp = r.headers.get('content-security-policy') || '';
+      S.techServerPP = (pp.split(',')[0] || '').trim();
       srvOk = /geolocation=\(self\)/.test(pp) && /tile\.openstreetmap\.org/.test(csp) && /cdn\.jsdelivr\.net/.test(csp);
     }).catch(function () { srvOk = null; }).then(function () {
       add(T('dg_https'), root.isSecureContext !== false && root.location.protocol === 'https:', '');
+      S.techInfo = {
+        serverPP: S.techServerPP || '', pageGeo: !policyBlocksGeo(), top: root.top === root.self,
+        standalone: !!(root.matchMedia && root.matchMedia('(display-mode: standalone)').matches), wv: /; wv\)/.test(navigator.userAgent || ''),
+        cspSeen: !!S.cspBlocked
+      };
       add(T('dg_server'), srvOk, srvOk === false ? T('dg_server_old') : '');
       var pageOk = !policyBlocksGeo();
       add(T('dg_policy'), pageOk, pageOk ? '' : (srvOk ? T('dg_cache') : T('dg_server_old')));
@@ -1251,6 +1274,13 @@
     }
   });
   root.addEventListener('pagehide', function () { if (S.me && needsWatch()) writeTargets(true); });
+
+  try {
+    if (/[?&]_cb=/.test(root.location.search)) {
+      var cbu = new URL(root.location.href); cbu.searchParams.delete('_cb');
+      root.history.replaceState({}, '', cbu.pathname + (cbu.search || '') + (cbu.hash || ''));
+    }
+  } catch (e) { /* ignore */ }
 
   /* ------------------------------------------------------------------
      INTERFACE
@@ -1337,6 +1367,7 @@
   });
   Object.assign(N, {
     heal_msg: ["Mise à jour de l'application…", 'Updating the app…'],
+    dg_tech: ['Infos techniques', 'Technical info'],
     dg_gps_dep: ["Dépend de l'étape « Autorisation GPS du site » : corrige-la d'abord (bouton Réparer), puis relance la vérification.", 'Depends on the “Site GPS permission” step: fix it first (Repair button), then run the check again.'],
     ex_label: ['Échange mutuel : partager aussi ma position', 'Mutual exchange: also share my position'],
     ex_help: ["Quand je touche « Localiser », je partage aussi ma position avec cette personne (durée au choix) : vous vous voyez chacun sur la carte.", 'When I tap “Locate”, I also share my position with that person (duration of your choice): you both see each other on the map.'],
@@ -1660,7 +1691,16 @@
       }).join('');
       if (bad) h = '<div style="margin-bottom:6px">' + btn('repair', T('dg_fix'), '') + '</div>' + h;
     }
-    return card(T('dg_title'), h + '<div style="margin-top:10px">' + btn('diag', T('dg_run'), 'sec sm', (d && d.running) ? ' disabled' : '') + '</div>');
+    var ti = S.techInfo, tech = '';
+    if (ti && d && !d.running) {
+      tech = '<details class="lc-details" style="margin-top:10px"><summary>' + esc(T('dg_tech')) + '</summary><p class="lc-muted" style="margin-top:6px;word-break:break-word">' +
+        'Permissions-Policy (serveur) : <b>' + esc(ti.serverPP || '—') + '</b><br>' +
+        'GPS autorisé par la page : <b>' + (ti.pageGeo ? 'oui' : 'non') + '</b><br>' +
+        'Carte bloquée (CSP) : <b>' + (ti.cspSeen ? 'oui' : 'non') + '</b><br>' +
+        'Fenêtre principale : <b>' + (ti.top ? 'oui' : 'non (intégrée dans un cadre)') + '</b><br>' +
+        'Application installée : <b>' + (ti.standalone ? 'oui' : 'non') + '</b> · WebView : <b>' + (ti.wv ? 'oui' : 'non') + '</b></p></details>';
+    }
+    return card(T('dg_title'), h + '<div style="margin-top:10px">' + btn('diag', T('dg_run'), 'sec sm', (d && d.running) ? ' disabled' : '') + '</div>' + tech);
   }
   function tabPriv() {
     var items = ['pv_1', 'pv_2', 'pv_3', 'pv_4', 'pv_5', 'pv_6', 'pv_7'].map(function (k) { return '<li style="margin-bottom:6px">' + esc(T(k)) + '</li>'; }).join('');
