@@ -281,7 +281,7 @@
     outShares: [], inShares: [], contacts: [], contactsIn: [], devices: [], history: [],
     sosMine: null, sosOthers: [], peers: {}, peerUnsubs: {}, selfDevUnsub: null, handledRefresh: null,
     timer: null, lastW: { t: 0, pos: null }, lastH: { t: 0, pos: null }, lastS: { t: 0, pos: null },
-    perm: 'unknown', booted: false, flash: '', cspBlocked: false, exchange: false, mp: { base: 'plan', labels: true, acc: true }, sel: null, selTok: 0, layersOpen: false, addrDetail: null, links: [], fs: false, diag: null, regError: '', lkDur: 60,
+    perm: 'unknown', booted: false, flash: '', cspBlocked: false, exchange: false, badBases: {}, tileOk: false, mp: { base: 'plan', labels: true, acc: true }, sel: null, selTok: 0, layersOpen: false, addrDetail: null, links: [], fs: false, diag: null, regError: '', lkDur: 60,
     profile: null, profileLoaded: false, priv: null, blocked: {}, dir: { q: '', results: [], loading: false, ready: false }, dirTimer: null, sheetDur: 60
   };
   function devId() { return (myUid() || 'x') + '_' + localDeviceId(); }
@@ -315,17 +315,36 @@
       '.lc-ib{width:40px;height:40px;border-radius:50%;border:1px solid var(--line,#e2e6ee);background:var(--green-light,#eef1f6);color:var(--ink,#141a26);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font:inherit}',
       '.lc-ib:active{transform:scale(.95)}',
       '.lc-body{flex:1;min-height:0;display:flex;flex-direction:column}',
+      '.lc-panel{background:#f4f6fb;border-radius:22px 22px 0 0;margin-top:-18px;position:relative;z-index:2;box-shadow:0 -8px 24px rgba(20,26,38,.12)}',
+      '#lc-root.mapfs .lc-panel{margin-top:0}',
       '.lc-mapwrap{position:relative;height:38vh;min-height:220px;background:var(--green-light,#eef1f6);flex:0 0 auto}',
-      '#lc-map{position:absolute;inset:0}',
+      '#lc-map{position:absolute;inset:0;z-index:0;isolation:isolate}',
       '.lc-mapwrap.fb{height:auto;min-height:0}.lc-mapwrap.fb #lc-map{display:none}.lc-mapwrap.fb .lc-mapfb{position:relative;padding:18px 16px}',
       '.lc-mapfb{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:16px;text-align:center;font-size:.9rem}',
       '.lc-panel{flex:1;min-height:0;display:flex;flex-direction:column}',
-      '.lc-tabs{display:flex;gap:6px;overflow-x:auto;padding:10px 12px;border-bottom:1px solid var(--line,#e2e6ee);scrollbar-width:none}',
-      '.lc-tabs::-webkit-scrollbar{display:none}',
-      '.lc-tab{flex:0 0 auto;border:1px solid var(--line,#e2e6ee);background:var(--white,#fff);color:var(--muted,#5d6779);border-radius:999px;padding:8px 14px;font:inherit;font-size:.85rem;font-weight:700;cursor:pointer;white-space:nowrap}',
-      '.lc-tab.on{background:var(--green,#28374f);color:#fff;border-color:var(--green,#28374f)}',
-      '#lc-tabbody{flex:1;min-height:0;overflow-y:auto;padding:14px 14px calc(28px + env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch}',
-      '.lc-card{border:1px solid var(--line,#e2e6ee);border-radius:16px;padding:14px;margin-bottom:12px;background:var(--white,#fff);box-shadow:0 2px 8px rgba(20,26,38,.05)}',
+      '.lc-nav{flex:0 0 auto;display:grid;grid-template-columns:repeat(6,1fr);background:#fff;border-top:1px solid var(--line,#e2e6ee);box-shadow:0 -6px 20px rgba(20,26,38,.06);padding:6px 4px calc(6px + env(safe-area-inset-bottom));z-index:3}',
+      '#lc-root.mapfs .lc-nav{display:none}',
+      '.lc-navb{border:0;background:none;font:inherit;color:#6b7686;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;border-radius:14px;cursor:pointer;min-width:0}',
+      '.lc-navb svg{width:23px;height:23px;display:block}.lc-navb span{font-size:.64rem;font-weight:700;letter-spacing:.01em;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.lc-navb.on{color:#1b4fd8}.lc-navb.on .ic{background:#e6edff}.lc-navb .ic{display:flex;align-items:center;justify-content:center;width:46px;height:28px;border-radius:14px}',
+      '.lc-navb .dot{position:absolute;top:2px;right:8px;width:9px;height:9px;border-radius:50%;background:#d7263d;border:2px solid #fff}.lc-navb .ic{position:relative}',
+      '.lc-hero{border-radius:22px;padding:16px;margin-bottom:14px;background:linear-gradient(135deg,#15305f,#1b4fd8 70%,#3b82f6);color:#fff;box-shadow:0 10px 28px rgba(27,79,216,.28)}',
+      '.lc-hero .st{display:inline-flex;align-items:center;gap:6px;font-size:.74rem;font-weight:800;background:rgba(255,255,255,.18);border-radius:999px;padding:5px 11px}.lc-hero .st i{width:8px;height:8px;border-radius:50%;background:#9aa6b8}.lc-hero .st.ok i{background:#55e08a}.lc-hero .st.wait i{background:#ffd166}.lc-hero .st.bad i{background:#ff7b7b}',
+      '.lc-hero h2{margin:12px 0 2px;font-size:1.25rem;line-height:1.25;font-weight:800}.lc-hero p{margin:0;font-size:.84rem;opacity:.85}',
+      '.lc-hero .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.lc-hero .lc-btn{background:#fff;color:#15305f}.lc-hero .lc-btn.sec{background:rgba(255,255,255,.16);color:#fff;border:0}',
+      '.lc-sec{margin:18px 2px 10px;font-size:.95rem;font-weight:800}',
+      '.lc-tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}',
+      '.lc-tile{position:relative;text-align:left;border:0;border-radius:20px;padding:14px;background:#fff;box-shadow:0 4px 18px rgba(20,26,38,.08);font:inherit;color:inherit;cursor:pointer;display:flex;flex-direction:column;gap:6px;min-height:118px}',
+      '.lc-tile:active{transform:scale(.98)}.lc-tile .ti{width:42px;height:42px;border-radius:14px;display:flex;align-items:center;justify-content:center;color:#fff}.lc-tile .ti svg{width:23px;height:23px}',
+      '.lc-tile b{font-size:.95rem;font-weight:800;line-height:1.2}.lc-tile span.d{font-size:.78rem;color:#5d6779;line-height:1.35}',
+      '.lc-tile .bd{position:absolute;top:12px;right:12px;font-size:.66rem;font-weight:800;border-radius:999px;padding:3px 8px;background:#e6f6ec;color:#1b7a3d}.lc-tile .bd.off{background:#eef1f6;color:#6b7686}.lc-tile .bd.red{background:#fde8ea;color:#d7263d}',
+      '.lc-mapnote{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:4;display:none;align-items:center;gap:8px;background:rgba(255,255,255,.96);border-radius:999px;padding:7px 14px;font-size:.78rem;font-weight:700;box-shadow:0 2px 10px rgba(0,0,0,.2);pointer-events:none;white-space:nowrap}',
+      '.lc-mapnote.on{display:flex}.lc-mapnote i{width:14px;height:14px;border-radius:50%;border:2px solid #cfd6e2;border-top-color:#1b4fd8;animation:lcspin .8s linear infinite}@keyframes lcspin{to{transform:rotate(360deg)}}',
+      '#lc-root.mapfs .lc-mapnote{top:calc(max(10px,env(safe-area-inset-top)) + 58px)}',
+      '.lc-lnote{background:#fff4e6;color:#8a4b00;border-radius:12px;padding:10px 12px;font-size:.8rem;margin-bottom:12px;line-height:1.4}.lc-lnote button{margin-top:8px}',
+      '.lc-opt .bad{display:block;font-size:.66rem;color:#d7263d;font-weight:700;margin-top:-4px}',
+      '#lc-tabbody{flex:1;min-height:0;overflow-y:auto;padding:14px 14px 24px;-webkit-overflow-scrolling:touch;background:#f4f6fb}',
+      '.lc-card{border:0;border-radius:20px;padding:16px;margin-bottom:14px;background:var(--white,#fff);box-shadow:0 4px 18px rgba(20,26,38,.08)}',
       '.lc-card h3{margin:0 0 8px;font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted,#5d6779);font-weight:800}',
       '.lc-card p{margin:0 0 8px;font-size:.88rem;line-height:1.45}',
       '.lc-muted{color:var(--muted,#5d6779);font-size:.82rem}',
@@ -406,6 +425,7 @@
       '.lc-lsep{height:1px;background:#e2e6ee;margin:12px 0}',
       '#lc-place{display:none;position:absolute;left:0;right:0;bottom:0;z-index:8;background:#fff;color:#141a26;border-radius:20px 20px 0 0;padding:16px 16px calc(14px + env(safe-area-inset-bottom));box-shadow:0 -4px 20px rgba(0,0,0,.25);max-height:58%;overflow:auto}#lc-place.open{display:block}',
       '.lc-phead{display:flex;align-items:flex-start;gap:10px}.lc-phead .grow{flex:1;min-width:0}.lc-phead h3{margin:0;font-size:1.15rem;font-weight:700;line-height:1.25}',
+      '.lc-arows .wide{grid-column:1/-1}',
       '.lc-arows{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;margin:12px 0 8px}.lc-arows small{display:block;font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;color:#5d6779;font-weight:700}.lc-arows b{font-size:.92rem;font-weight:600;word-break:break-word}',
       '.lc-pmeta{font-size:.78rem;color:#5d6779;margin:6px 0 12px;word-break:break-word}.lc-pacts{display:flex;gap:8px;flex-wrap:wrap}.lc-pacts a{text-decoration:none;display:inline-flex;align-items:center}',
       '.lc-pin{width:30px;height:30px;border-radius:50% 50% 50% 0;background:#d93025;transform:rotate(-45deg);margin:0 auto;box-shadow:0 2px 8px rgba(0,0,0,.4);position:relative}.lc-pin::after{content:"";position:absolute;left:9px;top:9px;width:12px;height:12px;border-radius:50%;background:#fff}',
@@ -422,7 +442,7 @@
       '.lc-chip.on{border-color:var(--green,#28374f);background:var(--green-light,#eef1f6)}',
       '.lc-btn.ok{background:#2f9e44;color:#fff}',
       '.lc-invite{display:flex;align-items:center;gap:10px;justify-content:space-between;flex-wrap:wrap;margin-top:6px}',
-      '@media (min-width:900px){.lc-body{flex-direction:row}.lc-mapwrap{height:auto;min-height:0;flex:1}.lc-panel{flex:0 0 440px;border-left:1px solid var(--line,#e2e6ee)}}'
+      '@media (min-width:900px){.lc-body{flex-direction:row}.lc-mapwrap{height:auto;min-height:0;flex:1}.lc-panel{flex:0 0 440px;border-left:1px solid var(--line,#e2e6ee);margin-top:0;border-radius:0}}'
     ].join('\n');
     document.head.appendChild(st);
   }
@@ -449,7 +469,7 @@
   }
   // Détecte un blocage par la politique de sécurité (vercel.json pas à jour)
   document.addEventListener('securitypolicyviolation', function (e) {
-    if (/cdnjs|jsdelivr|openstreetmap/.test(e.blockedURI || '')) S.cspBlocked = true;
+    if (/cdnjs|jsdelivr|openstreetmap|arcgisonline|opentopomap/.test(e.blockedURI || '')) S.cspBlocked = true;
   });
   function initMap() {
     var el = $('lc-map');
@@ -480,6 +500,7 @@
   }
   function destroyMap() {
     if (S.map) { try { S.map.remove(); } catch (e) { /* ignore */ } }
+    clearTimeout(S.baseTimer); setMapBusy(false);
     S.map = null; S.group = null; S.fitted = false; S.baseLayer = null; S.ovLabels = null; S.ovRoads = null; S.selMarker = null;
   }
   function showMapFallback() {
@@ -583,7 +604,7 @@
     } catch (e) { return; }
     fetch(root.location.pathname || '/', { method: 'HEAD', cache: 'no-store' }).then(function (r) {
       var pp = r.headers.get('permissions-policy') || '', csp = r.headers.get('content-security-policy') || '';
-      if (/geolocation=\(self\)/.test(pp) && /cdn\.jsdelivr\.net/.test(csp)) {
+      if (/geolocation=\(self\)/.test(pp) && /cdn\.jsdelivr\.net/.test(csp) && /tile\.openstreetmap\.fr/.test(csp)) {
         toastLC(T('heal_msg'));
         setTimeout(hardReload, 1200);
       }
@@ -1226,13 +1247,19 @@
 
   /* ---- Fonds de carte : Plan, Satellite, Relief (gratuits, sans clé) ---- */
   var LS_MAP = 'cn_loc_map';
+  var ESRI = 'https://server.arcgisonline.com/ArcGIS/rest/services/';
   var MAP_BASES = {
-    plan: { url: CFG.TILES, attr: '© OpenStreetMap', native: 19, max: 20 },
-    sat: { url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', attr: 'Imagery © Esri, Maxar, Earthstar Geographics', native: 18, max: 20 },
-    relief: { url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', attr: '© OpenStreetMap · SRTM · © OpenTopoMap', native: 17, max: 17, sub: 'abc' }
+    plan:   { url: CFG.TILES, attr: '© OpenStreetMap', native: 19, max: 20 },
+    rues:   { url: ESRI + 'World_Street_Map/MapServer/tile/{z}/{y}/{x}', attr: 'Tiles © Esri', native: 19, max: 20 },
+    sat:    { url: ESRI + 'World_Imagery/MapServer/tile/{z}/{y}/{x}', attr: 'Imagery © Esri, Maxar, Earthstar Geographics', native: 17, max: 20 },
+    relief: { url: ESRI + 'World_Topo_Map/MapServer/tile/{z}/{y}/{x}', attr: 'Tiles © Esri, USGS, NOAA', native: 17, max: 20 },
+    clair:  { url: ESRI + 'Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', attr: 'Tiles © Esri', native: 16, max: 20, ref: ESRI + 'Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}' },
+    sombre: { url: ESRI + 'Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', attr: 'Tiles © Esri', native: 16, max: 20, ref: ESRI + 'Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}' },
+    humain: { url: 'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', attr: '© OpenStreetMap · Humanitarian OSM Team', native: 19, max: 20, sub: 'abc' }
   };
-  var MAP_LABELS = 'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}';
-  var MAP_ROADS = 'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}';
+  var MAP_ORDER = ['plan', 'rues', 'sat', 'relief', 'clair', 'sombre', 'humain'];
+  var MAP_LABELS = ESRI + 'Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}';
+  var MAP_ROADS = ESRI + 'Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}';
   function loadMapPrefs() {
     try {
       var o = JSON.parse(lsGet(LS_MAP) || '{}');
@@ -1242,29 +1269,62 @@
     } catch (e) { /* ignore */ }
   }
   function saveMapPrefs() { lsSet(LS_MAP, JSON.stringify(S.mp)); }
+  function setMapBusy(on) {
+    var n = $('lc-mapnote'); if (!n) return;
+    n.classList.toggle('on', !!on);
+    n.innerHTML = on ? '<i></i>' + esc(T('mt_loading')) : '';
+  }
+  // Un fond qui ne répond pas (bloqué par la configuration, réseau, serveur) ne doit JAMAIS laisser une carte vide :
+  // après quelques erreurs ou 9 secondes sans aucune tuile, on repasse au plan par défaut en le disant clairement.
+  function failBase(layer) {
+    if (S.baseLayer !== layer) return;
+    var bad = S.mp.base;
+    clearTimeout(S.baseTimer);
+    S.badBases[bad] = true;
+    if (bad !== 'plan') {
+      S.mp.base = 'plan'; applyBase();
+      toastLC(T('mt_ko', { name: T('mt_' + bad) }), 'error');
+      if (S.cspBlocked) autoHeal();
+      if (S.layersOpen) renderLayersSheet();
+    } else {
+      setMapBusy(false);
+      toastLC(T('mt_ko', { name: T('mt_plan') }), 'error');
+    }
+  }
   function applyBase() {
     if (!S.map || !S.L) return;
     var L = S.L, b = MAP_BASES[S.mp.base] || MAP_BASES.plan;
     ['baseLayer', 'ovRoads', 'ovLabels'].forEach(function (k) { if (S[k]) { try { S.map.removeLayer(S[k]); } catch (e) { /* ignore */ } S[k] = null; } });
-    S.tileErr = 0;
+    S.tileErr = 0; S.tileOk = false;
     var o = { maxZoom: b.max, maxNativeZoom: b.native, attribution: b.attr };
     if (b.sub) o.subdomains = b.sub;
     var layer = S.baseLayer = L.tileLayer(b.url, o).addTo(S.map);
-    // Fond bloqué ou injoignable (réseau, configuration) : retour automatique au plan, sans casser la carte.
     layer.on('tileerror', function () {
       S.tileErr = (S.tileErr || 0) + 1;
-      if (S.tileErr === 6 && S.mp.base !== 'plan' && S.baseLayer === layer) { S.mp.base = 'plan'; applyBase(); toastLC(T('mt_ko')); renderLayersSheet(); }
+      if (!S.tileOk && S.tileErr >= 4) failBase(layer);
     });
-    layer.on('tileload', function () { S.tileErr = 0; });
+    layer.on('tileload', function () { if (S.baseLayer !== layer) return; S.tileOk = true; S.tileErr = 0; clearTimeout(S.baseTimer); setMapBusy(false); delete S.badBases[S.mp.base]; });
+    setMapBusy(true);
+    clearTimeout(S.baseTimer);
+    S.baseTimer = setTimeout(function () { if (!S.tileOk) failBase(layer); }, 9000);
     if (S.mp.base === 'sat' && S.mp.labels) {
-      S.ovRoads = L.tileLayer(MAP_ROADS, { maxZoom: 20, maxNativeZoom: 18, opacity: .9 }).addTo(S.map);
-      S.ovLabels = L.tileLayer(MAP_LABELS, { maxZoom: 20, maxNativeZoom: 18 }).addTo(S.map);
+      S.ovRoads = L.tileLayer(MAP_ROADS, { maxZoom: 20, maxNativeZoom: 17, opacity: .9 }).addTo(S.map);
+      S.ovLabels = L.tileLayer(MAP_LABELS, { maxZoom: 20, maxNativeZoom: 17 }).addTo(S.map);
+    } else if (b.ref && S.mp.labels) {
+      S.ovLabels = L.tileLayer(b.ref, { maxZoom: 20, maxNativeZoom: b.native }).addTo(S.map);
     }
   }
   function thumb(kind) {
-    if (kind === 'plan') return '<svg viewBox="0 0 64 64"><rect width="64" height="64" fill="#e9f2ec"/><path d="M0 42 C20 32 40 52 64 38 L64 64 L0 64Z" fill="#cfe8f6"/><path d="M10 0 L32 64" stroke="#fff" stroke-width="5"/><path d="M0 24 L64 12" stroke="#f6d98c" stroke-width="4"/><path d="M42 0 L54 64" stroke="#fff" stroke-width="3"/></svg>';
-    if (kind === 'sat') return '<svg viewBox="0 0 64 64"><rect width="64" height="64" fill="#3b4a33"/><circle cx="14" cy="16" r="14" fill="#566b45"/><circle cx="50" cy="50" r="16" fill="#2c3727"/><path d="M0 44 L64 20" stroke="#b9ad92" stroke-width="7"/><rect x="38" y="6" width="12" height="9" fill="#8a7f6a"/><rect x="8" y="46" width="10" height="8" fill="#a3978a"/></svg>';
-    return '<svg viewBox="0 0 64 64"><rect width="64" height="64" fill="#dde3cd"/><path d="M0 52 C16 40 28 44 40 30 S56 14 64 10" fill="none" stroke="#a9b58f" stroke-width="2"/><path d="M0 40 C14 30 26 34 38 22 S54 8 64 4" fill="none" stroke="#a9b58f" stroke-width="2"/><path d="M0 28 C12 18 22 22 34 12" fill="none" stroke="#a9b58f" stroke-width="2"/><path d="M6 64 C20 50 36 54 64 30" fill="none" stroke="#fff" stroke-width="4"/></svg>';
+    var T_ = {
+      plan: '<rect width="64" height="64" fill="#ebf1e4"/><path d="M0 42 C20 32 40 52 64 38 L64 64 L0 64Z" fill="#bfe0f5"/><path d="M10 0 L32 64" stroke="#fff" stroke-width="5"/><path d="M0 24 L64 12" stroke="#f6d98c" stroke-width="4"/><path d="M42 0 L54 64" stroke="#fff" stroke-width="3"/>',
+      rues: '<rect width="64" height="64" fill="#f3efe6"/><path d="M0 16 L64 24" stroke="#fff" stroke-width="6"/><path d="M0 44 L64 36" stroke="#fff" stroke-width="6"/><path d="M20 0 L26 64" stroke="#ffd45c" stroke-width="7"/><path d="M48 0 L44 64" stroke="#fff" stroke-width="4"/><rect x="30" y="4" width="12" height="9" fill="#e5dfd0"/><rect x="4" y="48" width="14" height="10" fill="#e5dfd0"/>',
+      sat: '<rect width="64" height="64" fill="#3b4a33"/><circle cx="14" cy="16" r="14" fill="#566b45"/><circle cx="50" cy="50" r="16" fill="#2c3727"/><path d="M0 44 L64 20" stroke="#b9ad92" stroke-width="7"/><rect x="38" y="6" width="12" height="9" fill="#8a7f6a"/><rect x="8" y="46" width="10" height="8" fill="#a3978a"/>',
+      relief: '<rect width="64" height="64" fill="#dfe6cd"/><path d="M0 52 C16 40 28 44 40 30 S56 14 64 10" fill="none" stroke="#a9b58f" stroke-width="2"/><path d="M0 40 C14 30 26 34 38 22 S54 8 64 4" fill="none" stroke="#a9b58f" stroke-width="2"/><path d="M0 28 C12 18 22 22 34 12" fill="none" stroke="#a9b58f" stroke-width="2"/><path d="M6 64 C20 50 36 54 64 30" fill="none" stroke="#fff" stroke-width="4"/>',
+      clair: '<rect width="64" height="64" fill="#eceff3"/><path d="M0 20 L64 28" stroke="#fff" stroke-width="5"/><path d="M0 46 L64 38" stroke="#fff" stroke-width="5"/><path d="M22 0 L28 64" stroke="#fff" stroke-width="5"/><path d="M48 0 L44 64" stroke="#fff" stroke-width="3"/>',
+      sombre: '<rect width="64" height="64" fill="#262b33"/><path d="M0 20 L64 28" stroke="#3d4551" stroke-width="5"/><path d="M0 46 L64 38" stroke="#3d4551" stroke-width="5"/><path d="M22 0 L28 64" stroke="#4b5563" stroke-width="5"/><path d="M48 0 L44 64" stroke="#3d4551" stroke-width="3"/>',
+      humain: '<rect width="64" height="64" fill="#f4e9d8"/><path d="M0 50 C18 44 34 56 64 44 L64 64 L0 64Z" fill="#a5cfe6"/><path d="M8 0 L30 64" stroke="#e8836b" stroke-width="5"/><path d="M0 22 L64 14" stroke="#f7c88a" stroke-width="4"/><rect x="40" y="26" width="10" height="8" fill="#d9b99b"/>'
+    };
+    return '<svg viewBox="0 0 64 64">' + (T_[kind] || T_.plan) + '</svg>';
   }
   var SVG_TAG = '<svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#0b7a8a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V4h9l8.6 8.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="8.5" r="1.4"/></svg>';
   var SVG_TGT = '<svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#0b7a8a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8"/></svg>';
@@ -1274,12 +1334,14 @@
   function renderLayersSheet() {
     var h = $('lc-layers'); if (!h) return;
     if (!S.layersOpen) { h.classList.remove('open'); h.innerHTML = ''; return; }
-    var bases = ['plan', 'sat', 'relief'].map(function (k) {
-      return '<button type="button" class="lc-opt' + (S.mp.base === k ? ' on' : '') + '" data-act="mbase" data-v="' + k + '"><span class="th">' + thumb(k) + '</span><b>' + esc(T('mt_' + k)) + '</b></button>';
+    var bases = MAP_ORDER.map(function (k) {
+      return '<button type="button" class="lc-opt' + (S.mp.base === k ? ' on' : '') + '" data-act="mbase" data-v="' + k + '"><span class="th">' + thumb(k) + '</span><b>' + esc(T('mt_' + k)) + '</b>' + (S.badBases[k] ? '<em class="bad">' + esc(T('mt_off')) + '</em>' : '') + '</button>';
     }).join('');
-    var det = (S.mp.base === 'sat' ? detTile('labels', 'mt_labels', S.mp.labels, SVG_TAG) : '') + detTile('acc', 'mt_acc', S.mp.acc, SVG_TGT);
+    var hasRef = S.mp.base === 'sat' || (MAP_BASES[S.mp.base] && MAP_BASES[S.mp.base].ref);
+    var det = (hasRef ? detTile('labels', 'mt_labels', S.mp.labels, SVG_TAG) : '') + detTile('acc', 'mt_acc', S.mp.acc, SVG_TGT);
+    var warn = (S.cspBlocked || Object.keys(S.badBases).length) ? '<div class="lc-lnote">' + esc(T('mt_blocked')) + '<br><button type="button" class="lc-btn sm" data-act="repair">' + esc(T('dg_fix')) + '</button></div>' : '';
     h.innerHTML = '<div class="lc-lbox" role="dialog" aria-label="' + esc(T('mt_title')) + '"><div class="lc-lhead"><h3>' + esc(T('mt_title')) + '</h3><button type="button" class="lc-ib" data-act="layersx" aria-label="' + esc(T('close')) + '">✕</button></div>' +
-      '<div class="lc-opts">' + bases + '</div><div class="lc-lsep"></div><div class="lc-lhead"><h3>' + esc(T('mt_details')) + '</h3></div><div class="lc-opts">' + det + '</div></div>';
+      warn + '<div class="lc-opts">' + bases + '</div><div class="lc-lsep"></div><div class="lc-lhead"><h3>' + esc(T('mt_details')) + '</h3></div><div class="lc-opts">' + det + '</div></div>';
     h.classList.add('open');
   }
   function openLayers() { S.layersOpen = true; renderLayersSheet(); }
@@ -1308,7 +1370,7 @@
     add('ad_postcode', a.postcode);
     var title = (j.name && j.name !== road ? j.name : '') || road || (rows[0] ? rows[0][1] : '');
     var sub = rows.filter(function (r) { return r[1] !== title && r[0] !== 'ad_country' && r[0] !== 'ad_postcode'; }).slice(0, 3).map(function (r) { return r[1]; }).join(' · ');
-    return { ok: rows.length > 0, title: title, sub: sub, rows: rows, full: j.display_name || '' };
+    return { ok: rows.length > 0, title: title, sub: sub, rows: rows, full: j.display_name || '', sparse: rows.length < 4 };
   }
   function reverseDetail(lat, lng) {
     var key = lat.toFixed(5) + ',' + lng.toFixed(5) + ',' + langIdx();
@@ -1369,7 +1431,7 @@
     if (s.label) { title = s.label; sub = a && a.ok ? [a.title, a.sub].filter(Boolean).join(' · ') : ''; }
     else { title = (a && a.ok && a.title) || T('pl_selected'); sub = a && a.ok ? a.sub : ''; }
     if (s.loading) rows = '<p class="lc-muted">' + esc(T('addr_wait')) + '</p>';
-    else if (a && a.ok) rows = '<div class="lc-arows">' + a.rows.map(function (x) { return '<div><small>' + esc(T(x[0])) + '</small><b>' + esc(x[1]) + '</b></div>'; }).join('') + '</div>';
+    else if (a && a.ok) rows = '<div class="lc-arows">' + a.rows.map(function (x) { return '<div><small>' + esc(T(x[0])) + '</small><b>' + esc(x[1]) + '</b></div>'; }).join('') + (a.full ? '<div class="wide"><small>' + esc(T('ad_full')) + '</small><b>' + esc(a.full) + '</b></div>' : '') + '</div>' + (a.sparse ? '<p class="lc-muted" style="margin:0 0 6px">' + esc(T('ad_hint')) + '</p>' : '');
     else rows = '<p class="lc-muted">' + esc(T('addr_none')) + '</p>';
     var meta = fmtCoord(s.lat) + ', ' + fmtCoord(s.lng) + (s.acc != null ? ' · ' + fmtAcc(s.acc) : '') + (s.ts ? ' · ' + ago(s.ts) : '');
     h.innerHTML = '<div class="lc-phead"><div class="grow"><h3>' + esc(title) + '</h3>' + (sub ? '<span class="lc-muted">' + esc(sub) + '</span>' : '') + '</div>' +
@@ -1453,7 +1515,7 @@
     return head().then(function (r) {
       var pp = r.headers.get('permissions-policy') || '', csp = r.headers.get('content-security-policy') || '';
       S.techServerPP = (pp.split(',')[0] || '').trim();
-      srvOk = /geolocation=\(self\)/.test(pp) && /tile\.openstreetmap\.org/.test(csp) && /cdn\.jsdelivr\.net/.test(csp);
+      srvOk = /geolocation=\(self\)/.test(pp) && /tile\.openstreetmap\.org/.test(csp) && /cdn\.jsdelivr\.net/.test(csp) && /tile\.openstreetmap\.fr/.test(csp) && /server\.arcgisonline\.com/.test(csp);
     }).catch(function () { srvOk = null; }).then(function () {
       add(T('dg_https'), root.isSecureContext !== false && root.location.protocol === 'https:', '');
       S.techInfo = {
@@ -1609,9 +1671,41 @@
     pl_selected: ['Lieu sélectionné', 'Selected place'], pl_copy: ["Copier l'adresse", 'Copy address'], pl_route: ['Itinéraire', 'Directions'], pl_share: ['Partager', 'Share'],
     pl_copied: ['Adresse copiée.', 'Address copied.'], pl_open: ['Ouvrir la carte en plein écran', 'Open the map full screen'], fs_title: ['Carte', 'Map']
   });
+  Object.assign(N, {
+    mt_rues: ['Rues', 'Streets'], mt_clair: ['Clair', 'Light'], mt_sombre: ['Sombre', 'Dark'], mt_humain: ['Humanitaire', 'Humanitarian'],
+    mt_off: ['Indisponible', 'Unavailable'], mt_loading: ['Chargement de la carte…', 'Loading map…'],
+    mt_ko: ["Le fond « {name} » est indisponible pour le moment. Retour à la carte par défaut.", 'The “{name}” map style is unavailable right now. Back to the default map.'],
+    mt_blocked: ["Certains fonds de carte sont bloqués par la configuration du site. Touche « Réparer » pour charger la dernière version.", 'Some map styles are blocked by the site configuration. Tap “Repair” to load the latest version.'],
+    nav_pos: ['Accueil', 'Home'], nav_share: ['Partage', 'Share'], nav_sec: ['Sécurité', 'Safety'], nav_dev: ['Appareils', 'Devices'], nav_hist: ['Historique', 'History'], nav_priv: ['Réglages', 'Settings'],
+    hm_title: ['Que veux-tu faire ?', 'What would you like to do?'],
+    hm_share_t: ['Partager ma position', 'Share my position'], hm_share_d: ['Un lien à envoyer, ou invite un proche', 'A link to send, or invite someone'],
+    hm_find_t: ['Trouver un proche', 'Find someone'], hm_find_d: ['Demande sa position en un clic', 'Ask for their position in one tap'],
+    hm_sos_t: ['Alerte SOS', 'SOS alert'], hm_sos_d: ["Préviens tes contacts d'urgence", 'Alert your emergency contacts'],
+    hm_dev_t: ['Retrouver mon appareil', 'Find my device'], hm_dev_d: ['Sa dernière position connue', 'Its last known position'],
+    hm_hist_t: ['Mes déplacements', 'My movements'], hm_hist_d: ['Historique de mes positions', 'History of my positions'],
+    hm_priv_t: ['Réglages et aide', 'Settings and help'], hm_priv_d: ['Confidentialité, vérification', 'Privacy, checks'],
+    hm_map_t: ['Carte en grand', 'Big map'], hm_map_d: ['Satellite, relief, adresses', 'Satellite, terrain, addresses'],
+    hm_on: ['Activé', 'On'], hm_off: ['Désactivé', 'Off'], hm_active: ['{n} en cours', '{n} active'], hm_sos_on: ['SOS ACTIF', 'SOS ON'],
+    hm_now: ['Ma position', 'My position'],
+    ad_full: ['Adresse complète', 'Full address'], ad_hint: ['Données OpenStreetMap : certaines zones sont moins détaillées.', 'OpenStreetMap data: some areas are less detailed.']
+  });
   for (var nk in N) if (Object.prototype.hasOwnProperty.call(N, nk)) X[nk] = N[nk];
   X.back = ['Retour', 'Back'];
   var TABS = ['pos', 'share', 'sec', 'dev', 'hist', 'priv'];
+  var IC = {
+    home: '<path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/>',
+    share: '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/>',
+    users: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18.5 14.3c2 .8 3 2.5 3 5.2"/>',
+    shield: '<path d="M12 3 4 6v6c0 4.5 3.2 8 8 9 4.8-1 8-4.5 8-9V6l-8-3z"/><path d="M12 8v5M12 16.2v.1"/>',
+    phone: '<rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/>',
+    clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/>',
+    gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
+    sos: '<path d="M12 3 2.5 20h19L12 3z"/><path d="M12 10v5M12 17.6v.1"/>',
+    map: '<path d="M9 4 3 6.5v13L9 17l6 3 6-2.5v-13L15 7 9 4z"/><path d="M9 4v13M15 7v13"/>'
+  };
+  function ico(name) { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">' + IC[name] + '</svg>'; }
+  var NAV_ICON = { pos: 'home', share: 'share', sec: 'shield', dev: 'phone', hist: 'clock', priv: 'gear' };
+
   var SVG_BACK = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>';
   var SVG_FS_ON = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>';
   var SVG_FS_OFF = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg>';
@@ -1628,12 +1722,13 @@
       '<h2 id="lc-title">' + esc(T('title')) + '</h2>' +
       '<button class="lc-ib" data-act="recenter" aria-label="' + esc(T('recenter')) + '" title="' + esc(T('recenter')) + '">' + SVG_LOC + '</button></div>' +
       '<div id="lc-sosbar"></div>' +
-      '<div class="lc-body"><div class="lc-mapwrap"><div id="lc-map"></div><div class="lc-mapfb" id="lc-mapfb" style="display:none"></div>' +
+      '<div class="lc-body"><div class="lc-mapwrap"><div id="lc-map"></div><div class="lc-mapfb" id="lc-mapfb" style="display:none"></div><div class="lc-mapnote" id="lc-mapnote"></div>' +
       '<button type="button" class="lc-fsbtn" id="lc-fsbtn" data-act="mapfs" aria-label="' + esc(T('fs_open')) + '">' + SVG_FS_ON + '</button>' +
       '<button type="button" class="lc-lyrbtn" data-act="layers" aria-label="' + esc(T('mt_title')) + '">' + SVG_LAYERS + '</button>' +
       '<div id="lc-fstop"></div><button type="button" class="lc-fsloc" data-act="recenter" aria-label="' + esc(T('recenter')) + '">' + SVG_LOC + '</button>' +
       '<div id="lc-fsbar"></div><div id="lc-place"></div></div>' +
-      '<div class="lc-panel"><nav class="lc-tabs" id="lc-tabs" role="tablist"></nav><div id="lc-tabbody"></div></div></div>' +
+      '<div class="lc-panel"><div id="lc-tabbody"></div></div></div>' +
+      '<nav class="lc-nav" id="lc-tabs" role="tablist"></nav>' +
       '<div class="lc-sheet" id="lc-sheet"></div><div id="lc-layers"></div><div id="lc-toast"></div>';
     document.body.appendChild(el);
     el.addEventListener('click', onClick);
@@ -1661,7 +1756,8 @@
   function renderTabs() {
     var nav = $('lc-tabs'); if (!nav) return;
     nav.innerHTML = TABS.map(function (k) {
-      return '<button class="lc-tab' + (S.tab === k ? ' on' : '') + '" role="tab" aria-selected="' + (S.tab === k) + '" data-act="tab" data-tab="' + k + '">' + esc(T('tab_' + k)) + '</button>';
+      var dot = (k === 'sec' && S.sosMine) ? '<i class="dot"></i>' : (k === 'share' && S.outShares.some(function (s) { return s.status === 'pending'; }) ? '<i class="dot"></i>' : '');
+      return '<button class="lc-navb' + (S.tab === k ? ' on' : '') + '" role="tab" aria-selected="' + (S.tab === k) + '" data-act="tab" data-tab="' + k + '"><span class="ic">' + ico(NAV_ICON[k]) + dot + '</span><span>' + esc(T('nav_' + k)) + '</span></button>';
     }).join('');
   }
   function renderSosBar() {
@@ -1698,35 +1794,45 @@
   }
 
   /* ---- Onglet Position ---- */
+  function tile(tab, act, icon, color, title, desc, badge, badgeCls) {
+    return '<button type="button" class="lc-tile" data-act="' + act + '"' + (tab ? ' data-tab="' + tab + '"' : '') + '>' +
+      (badge ? '<span class="bd ' + (badgeCls || '') + '">' + esc(badge) + '</span>' : '') +
+      '<span class="ti" style="background:' + color + '">' + ico(icon) + '</span><b>' + esc(title) + '</b><span class="d">' + esc(desc) + '</span></button>';
+  }
   function tabPos() {
     var st = S.status;
     if (!lsGet(LS_CONSENT) && S.watchId == null && !S.me) {
-      return card(T('consent_title'), '<p>' + esc(T('consent_text')) + '</p>' + btn('startpos', T('consent_btn')));
+      return '<div class="lc-hero"><span class="st"><i></i>' + esc(T('st_idle')) + '</span><h2>' + esc(T('consent_title')) + '</h2><p>' + esc(T('consent_text')) + '</p>' +
+        '<div class="acts">' + btn('startpos', T('consent_btn')) + '</div></div>' + homeTiles();
     }
     var cls = st === 'active' ? 'ok' : st === 'locating' ? 'wait' : st === 'idle' ? '' : 'bad';
-    var h = '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">' +
-      '<span class="lc-pillst ' + cls + '"><i></i>' + esc(T('st_' + st)) + '</span>' +
-      (S.watchId != null ? (needsWatch() ? '' : btn('stoppos', T('btn_stop'), 'sec sm')) : btn('startpos', T('btn_start'), 'sm')) + '</div>';
-    if (X['err_' + st]) h += '<div class="lc-err">' + esc(T('err_' + st)) + '</div>' + (st === 'policy' ? '<div style="margin-bottom:10px">' + btn('repair', T('dg_fix'), '') + '</div>' : '');
-    var m = S.me;
-    if (m) {
-      h += '<div class="lc-grid"><div class="lc-kv"><small>' + esc(T('lbl_lat')) + '</small><b>' + fmtCoord(m.lat) + '</b></div>' +
-        '<div class="lc-kv"><small>' + esc(T('lbl_lng')) + '</small><b>' + fmtCoord(m.lng) + '</b></div>' +
-        '<div class="lc-kv"><small>' + esc(T('lbl_acc')) + '</small><b>' + esc(fmtAcc(m.acc)) + '</b></div>' +
-        '<div class="lc-kv"><small>' + esc(T('lbl_upd')) + '</small><b>' + esc(ago(m.ts)) + '</b></div></div>';
-      h += addrBlock();
-      if (m.acc != null && m.acc > 100) h += '<div class="lc-warn" style="margin-top:10px">' + esc(T('acc_low')) + '</div>';
-    } else {
-      var lk = lastKnown();
-      h += lk ? '<p class="lc-muted">' + esc(T('last_known', { ago: ago(lk.ts) })) + ' · ' + fmtCoord(lk.lat) + ', ' + fmtCoord(lk.lng) + ' (' + esc(fmtAcc(lk.acc)) + ')</p>'
-        : '<p class="lc-muted">' + esc(T('no_pos')) + '</p>';
-    }
-    if (m) h += '<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="lc-btn sm" data-act="fly" data-lat="' + m.lat + '" data-lng="' + m.lng + '" data-name="' + esc(T('fs_me')) + '" data-ts="' + m.ts + '" data-acc="' + (typeof m.acc === 'number' ? m.acc : '') + '">' + esc(T('pl_open')) + '</button>' +
-      (geoSupported() && S.watchId != null ? btn('refreshpos', T('btn_refresh'), 'sec sm') : '') + '</div>';
-    else if (geoSupported() && S.watchId != null) h += '<div style="margin-top:12px">' + btn('refreshpos', T('btn_refresh'), 'sec sm') + '</div>';
-    var out = card(T('tab_pos'), h);
-    if (S.profileLoaded && !S.profile) out += card('', '<p>' + esc(T('pos_join')) + '</p>' + btn('gojoin', T('pos_join_btn')));
-    return out;
+    var m = S.me, lk = lastKnown(), d = S.addrDetail;
+    var title = m ? ((d && d.ok && d.title) || (fmtCoord(m.lat) + ', ' + fmtCoord(m.lng))) : T('hm_now');
+    var sub = m ? ((d && d.ok && d.sub) || '') : (lk ? T('last_known', { ago: ago(lk.ts) }) : T('no_pos'));
+    var hero = '<div class="lc-hero"><span class="st ' + cls + '"><i></i>' + esc(T('st_' + st)) + '</span><h2>' + esc(title) + '</h2><p>' + esc(sub) + (m ? (sub ? ' · ' : '') + esc(fmtAcc(m.acc)) + ' · ' + esc(ago(m.ts)) : '') + '</p><div class="acts">';
+    if (m) hero += '<button type="button" class="lc-btn sm" data-act="fly" data-lat="' + m.lat + '" data-lng="' + m.lng + '" data-name="' + esc(T('fs_me')) + '" data-ts="' + m.ts + '" data-acc="' + (typeof m.acc === 'number' ? m.acc : '') + '">' + esc(T('pl_open')) + '</button>';
+    if (S.watchId != null) hero += '<button type="button" class="lc-btn sm sec" data-act="refreshpos">' + esc(T('btn_refresh')) + '</button>';
+    else hero += '<button type="button" class="lc-btn sm" data-act="startpos">' + esc(T('btn_start')) + '</button>';
+    hero += '</div></div>';
+    var h = hero;
+    if (X['err_' + st]) h += '<div class="lc-err">' + esc(T('err_' + st)) + '</div>' + (st === 'policy' ? '<div style="margin-bottom:12px">' + btn('repair', T('dg_fix'), '') + '</div>' : '');
+    if (m && m.acc != null && m.acc > 100) h += '<div class="lc-warn">' + esc(T('acc_low')) + '</div>';
+    if (m) h += card(T('lbl_addr'), '<div class="lc-grid"><div class="lc-kv"><small>' + esc(T('lbl_lat')) + '</small><b>' + fmtCoord(m.lat) + '</b></div>' +
+      '<div class="lc-kv"><small>' + esc(T('lbl_lng')) + '</small><b>' + fmtCoord(m.lng) + '</b></div></div>' + addrBlock());
+    if (S.profileLoaded && !S.profile) h += card('', '<p>' + esc(T('pos_join')) + '</p>' + btn('gojoin', T('pos_join_btn')));
+    return h + homeTiles();
+  }
+  function homeTiles() {
+    var nOut = activeOut().length + activeLinks().length, nIn = activeIn().length, nReq = S.outShares.filter(function (s) { return s.status === 'pending'; }).length;
+    var shareBadge = (nOut + nIn) ? T('hm_active', { n: nOut + nIn }) : (nReq ? String(nReq) : '');
+    return '<div class="lc-sec">' + esc(T('hm_title')) + '</div><div class="lc-tiles">' +
+      tile('share', 'tab', 'share', '#1b4fd8', T('hm_share_t'), T('hm_share_d'), shareBadge, nReq && !(nOut + nIn) ? 'red' : '') +
+      tile('share', 'tab', 'users', '#0b9a6a', T('hm_find_t'), T('hm_find_d')) +
+      tile('sec', 'tab', 'sos', '#d7263d', T('hm_sos_t'), T('hm_sos_d'), S.sosMine ? T('hm_sos_on') : '', 'red') +
+      tile('dev', 'tab', 'phone', '#7048e8', T('hm_dev_t'), T('hm_dev_d'), cfg.track ? T('hm_on') : T('hm_off'), cfg.track ? '' : 'off') +
+      tile('hist', 'tab', 'clock', '#e8590c', T('hm_hist_t'), T('hm_hist_d'), cfg.history ? T('hm_on') : T('hm_off'), cfg.history ? '' : 'off') +
+      tile('', 'mapfs', 'map', '#0b7a8a', T('hm_map_t'), T('hm_map_d')) +
+      '</div>' + tile('priv', 'tab', 'gear', '#495057', T('hm_priv_t'), T('hm_priv_d')).replace('class="lc-tile"', 'class="lc-tile" style="width:100%;min-height:0;flex-direction:row;align-items:center"');
   }
 
   function addrBlock() {
@@ -2165,7 +2271,6 @@
     Promise.all([loadProfile(), loadBlocked(), loadShares(), loadContacts(), loadDevices(), loadSosMine(), loadLinks()]).then(function () {
       if (!S.open) return;
       syncPeers(); refreshSosOthers();
-      if (!S.profile && !tab && !lsGet('cn_loc_onb')) { lsSet('cn_loc_onb', '1'); S.tab = 'share'; renderTabs(); }
       renderTab(); renderSosBar(); drawMap();
       if (S.tab === 'hist' && cfg.history) loadHistory().then(function () { renderTab(); drawMap(); });
     });
