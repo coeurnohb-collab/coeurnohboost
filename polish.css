@@ -1,0 +1,163 @@
+/* =====================================================================
+   polish.css — finitions de l'interface (Coeurnoh Universe)
+   Chargé APRÈS style.css : il ne remplace rien, il affine.
+   Respecte le thème sombre et « réduire les animations ».
+   ===================================================================== */
+
+/* ---------- 1. Typographie et confort de lecture ---------- */
+html { -webkit-text-size-adjust: 100%; text-rendering: optimizeLegibility; }
+body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; font-feature-settings: "kern" 1, "liga" 1; }
+h1, h2, h3, .hero h1, .modal h2, .section-title { text-wrap: balance; }
+p, .lead, .sub { text-wrap: pretty; }
+input[type="number"], .tabular, [data-tabular], .amount, .price, .balance { font-variant-numeric: tabular-nums; }
+::selection { background: rgba(243, 156, 31, .28); }
+* { scrollbar-width: thin; scrollbar-color: rgba(93, 103, 121, .35) transparent; }
+button, a, select, label, .btn { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+:focus-visible { outline: 3px solid rgba(243, 156, 31, .55); outline-offset: 2px; border-radius: 8px; }
+input:focus-visible, textarea:focus-visible, select:focus-visible { outline-offset: 0; }
+
+/* ---------- 2. Retour tactile : la moindre action répond ---------- */
+.btn { transition: transform .12s ease, box-shadow .2s ease, background-color .2s ease, border-color .2s ease, opacity .2s ease; }
+.btn:active:not(:disabled) { transform: scale(.975); }
+.btn:disabled, .btn[aria-disabled="true"] { opacity: .55; cursor: not-allowed; }
+.btn-primary:hover:not(:disabled) { box-shadow: 0 10px 26px rgba(40, 55, 79, .28); }
+
+/* ---------- 3. En-tête de la vitrine sur téléphone ----------
+   Avant : le logo était tronqué (« Ceurno ») et les boutons passaient sur 2 lignes.
+   Maintenant : une seule ligne nette ; « Créer un compte » reste proposé en grand dans la page. */
+@media (max-width: 560px) {
+  body:not(.app-mode) .nav-inner { flex-wrap: nowrap; padding: 10px 12px; gap: 8px; }
+  body:not(.app-mode) .logo { flex: 1 1 0; min-width: 0; font-size: 1.02rem; gap: 6px; }
+  body:not(.app-mode) .logo .brand-mark { width: 30px; height: 30px; }
+  body:not(.app-mode) .logo b { overflow: hidden; text-overflow: clip; }
+  body:not(.app-mode) .nav-right { flex: 0 0 auto; flex-wrap: nowrap; gap: 6px; }
+  body:not(.app-mode) #nav-register-btn { display: none; }
+  body:not(.app-mode) #nav-login-btn { padding: 8px 12px; font-size: .84rem; font-weight: 700; white-space: nowrap; }
+  body:not(.app-mode) .lang-select, body:not(.app-mode) .nav-right select { padding: 7px 4px 7px 8px; font-size: .78rem; width: auto; min-width: 0; }
+  body:not(.app-mode) #help-shortcut-btn { width: 36px; height: 36px; flex: 0 0 auto; }
+}
+@media (max-width: 350px) {
+  body:not(.app-mode) #nav-login-btn { padding: 7px 10px; font-size: .8rem; }
+}
+.logo.cn-no-mark .brand-mark { display: none; }
+.logo.cn-icon-only b { display: none; }
+.logo.cn-icon-only .brand-mark { display: block; width: 42px; height: 42px; }
+#nav { transition: box-shadow .25s ease, background-color .25s ease; }
+#nav.cn-scrolled { box-shadow: 0 6px 24px rgba(20, 26, 38, .08); }
+
+/* ---------- 4. Ouverture animée (écran de démarrage) ---------- */
+#app-splash { background: radial-gradient(120% 90% at 50% 0%, #ffffff 0%, #eef1f6 58%, #e4e9f2 100%); overflow: hidden; }
+html[data-theme="dark"] #app-splash { background: radial-gradient(120% 90% at 50% 0%, #232a36 0%, #171b22 70%); }
+#app-splash::before {
+  content: ""; position: absolute; inset: -30%;
+  background: conic-gradient(from 0deg at 50% 50%, rgba(243,156,31,.20), rgba(40,55,79,.14), rgba(215,38,61,.14), rgba(243,156,31,.20));
+  filter: blur(70px); animation: cnSplashSpin 16s linear infinite;
+}
+#app-splash::after {
+  content: ""; position: absolute; left: 50%; top: 50%; width: 220px; height: 220px; margin: -150px 0 0 -110px; border-radius: 50%;
+  border: 2px solid rgba(243,156,31,.35); animation: cnSplashPulse 2.2s ease-out infinite;
+}
+#app-splash-inner { position: relative; z-index: 1; }
+#app-splash-spinner {
+  width: 132px; height: 4px; border: 0; border-radius: 99px; background: rgba(20,26,38,.09);
+  position: relative; overflow: hidden; animation: none;
+}
+#app-splash-spinner::after {
+  content: ""; position: absolute; inset: 0; width: 42%; border-radius: 99px;
+  background: linear-gradient(90deg, #f39c1f, #d7263d); animation: cnSplashBar 1.25s ease-in-out infinite;
+}
+@keyframes cnSplashSpin { to { transform: rotate(360deg); } }
+@keyframes cnSplashPulse { 0% { transform: scale(.7); opacity: .9; } 100% { transform: scale(1.9); opacity: 0; } }
+@keyframes cnSplashBar { 0% { transform: translateX(-110%); } 100% { transform: translateX(260%); } }
+
+/* ---------- 5. Page d'accueil : entrée en douceur ---------- */
+@keyframes cnFadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+.hero .eyebrow, .hero h1, .hero .lead, .hero .hero-actions, #hero-pay-icons { opacity: 0; animation: cnFadeUp .7s cubic-bezier(.2,.7,.2,1) forwards; }
+.hero .eyebrow { animation-delay: .05s; }
+.hero h1 { animation-delay: .14s; }
+.hero .lead { animation-delay: .24s; }
+.hero .hero-actions { animation-delay: .34s; }
+#hero-pay-icons { animation-delay: .46s; }
+.hero::before {
+  content: ""; position: absolute; width: 340px; height: 340px; right: -120px; top: -140px; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle, rgba(243,156,31,.22), transparent 65%); animation: cnFloat 9s ease-in-out infinite;
+}
+@keyframes cnFloat { 0%,100% { transform: translate3d(0,0,0); } 50% { transform: translate3d(-24px,18px,0); } }
+
+/* ---------- 6. Connexion : fond vivant, formulaire qui apparaît en cascade ---------- */
+.auth-hero { background-size: 100% 100%, 100% 100%, 100% 100%; }
+.auth-hero::before {
+  content: ""; position: absolute; inset: -40%; pointer-events: none;
+  background: conic-gradient(from 90deg at 70% 30%, rgba(243,156,31,.20), transparent 30%, rgba(215,38,61,.16) 60%, transparent 80%, rgba(243,156,31,.20));
+  filter: blur(40px); animation: cnSplashSpin 22s linear infinite;
+}
+.auth-brand, .auth-hero-line, .auth-trust { animation: cnFadeUp .6s cubic-bezier(.2,.7,.2,1) both; }
+.auth-hero-line { animation-delay: .08s; } .auth-trust { animation-delay: .16s; }
+.auth-body > * { animation: cnFadeUp .55s cubic-bezier(.2,.7,.2,1) both; }
+.auth-body > *:nth-child(1) { animation-delay: .10s; } .auth-body > *:nth-child(2) { animation-delay: .16s; }
+.auth-body > *:nth-child(3) { animation-delay: .22s; } .auth-body > *:nth-child(4) { animation-delay: .28s; }
+.auth-body > *:nth-child(5) { animation-delay: .34s; } .auth-body > *:nth-child(n+6) { animation-delay: .40s; }
+.auth-modal #auth-submit { box-shadow: 0 10px 24px rgba(40,55,79,.26); }
+
+/* ---------- 7. Notifications (bulles) : plus lisibles, plus rassurantes ---------- */
+#toast-container { top: max(12px, env(safe-area-inset-top)); gap: 10px; }
+.toast.cn-toast {
+  pointer-events: auto; display: flex; align-items: center; gap: 12px; text-align: left; position: relative; overflow: hidden;
+  width: min(100%, 440px); max-width: 440px; padding: 13px 16px 13px 14px; border-radius: 18px; font-weight: 600; line-height: 1.35;
+  background: rgba(20, 26, 38, .94); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 14px 38px rgba(10, 14, 22, .32); border: 1px solid rgba(255,255,255,.08);
+  transform: translateY(-14px) scale(.98); transition: opacity .28s ease, transform .28s cubic-bezier(.2,.7,.2,1);
+}
+.toast.cn-toast.show { transform: none; }
+.toast.cn-toast.toast-success { background: rgba(21, 111, 66, .95); }
+.toast.cn-toast.toast-error { background: rgba(176, 28, 50, .96); }
+.toast.cn-toast .ti { flex: 0 0 auto; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,.16); }
+.toast.cn-toast .ti svg { width: 17px; height: 17px; }
+.toast.cn-toast .tx { flex: 1; min-width: 0; word-break: break-word; font-size: .9rem; }
+.toast.cn-toast .tb { position: absolute; left: 0; bottom: 0; height: 3px; width: 100%; background: rgba(255,255,255,.55); transform-origin: left; animation: cnToastBar linear forwards; }
+@keyframes cnToastBar { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+
+/* Bandeau « nouvelle notification » quand l'application est ouverte */
+#cn-inapp-notif {
+  position: fixed; left: 50%; top: max(12px, env(safe-area-inset-top)); transform: translate(-50%, -140%); z-index: 10001;
+  width: min(calc(100% - 24px), 440px); display: flex; gap: 12px; align-items: flex-start; text-align: left; cursor: pointer;
+  background: #fff; color: var(--ink, #141a26); border: 0; border-radius: 20px; padding: 14px 16px; font: inherit;
+  box-shadow: 0 18px 50px rgba(10, 14, 22, .28); transition: transform .45s cubic-bezier(.2,.9,.2,1);
+}
+html[data-theme="dark"] #cn-inapp-notif { background: #232a36; color: #f2f4f8; }
+#cn-inapp-notif.on { transform: translate(-50%, 0); }
+#cn-inapp-notif .ni { flex: 0 0 auto; width: 40px; height: 40px; border-radius: 13px; display: flex; align-items: center; justify-content: center; color: #fff; background: linear-gradient(135deg, #f39c1f, #d7263d); }
+#cn-inapp-notif .ni svg { width: 21px; height: 21px; }
+#cn-inapp-notif b { display: block; font-size: .92rem; margin-bottom: 2px; }
+#cn-inapp-notif span.nb { display: block; font-size: .84rem; color: var(--muted, #5d6779); line-height: 1.4; }
+#cn-inapp-notif .nx { flex: 0 0 auto; margin-left: auto; width: 28px; height: 28px; border-radius: 50%; border: 0; background: rgba(93,103,121,.14); color: inherit; font-size: 1rem; cursor: pointer; }
+
+/* ---------- 8. Premier accueil (remplace le tutoriel de 17 étapes imposé) ---------- */
+#cn-welcome { position: fixed; inset: 0; z-index: 10002; display: flex; align-items: flex-end; justify-content: center; background: rgba(10,14,22,.5); opacity: 0; pointer-events: none; transition: opacity .3s ease; }
+#cn-welcome.on { opacity: 1; pointer-events: auto; }
+#cn-welcome .cw { width: 100%; max-width: 480px; background: var(--white, #fff); color: var(--ink, #141a26); border-radius: 26px 26px 0 0; padding: 22px 22px calc(22px + env(safe-area-inset-bottom)); transform: translateY(100%); transition: transform .45s cubic-bezier(.2,.9,.2,1); box-shadow: 0 -18px 50px rgba(0,0,0,.25); }
+html[data-theme="dark"] #cn-welcome .cw { background: #1f242d; color: #f2f4f8; }
+#cn-welcome.on .cw { transform: none; }
+#cn-welcome .cw-top { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+#cn-welcome .cw-top img { width: 50px; height: 50px; border-radius: 14px; box-shadow: 0 8px 20px rgba(0,0,0,.18); background: #fff; padding: 4px; box-sizing: border-box; }
+#cn-welcome h2 { margin: 0; font-size: 1.25rem; line-height: 1.2; }
+#cn-welcome ul { list-style: none; margin: 12px 0 18px; padding: 0; display: grid; gap: 10px; }
+#cn-welcome li { display: flex; gap: 12px; align-items: center; font-size: .92rem; line-height: 1.35; }
+#cn-welcome li i { font-style: normal; width: 34px; height: 34px; border-radius: 11px; display: flex; align-items: center; justify-content: center; background: rgba(243,156,31,.16); flex: 0 0 auto; font-size: 1.05rem; }
+#cn-welcome .cw-acts { display: grid; gap: 8px; }
+#cn-welcome .cw-acts button { font: inherit; font-weight: 800; border: 0; border-radius: 14px; padding: 14px; cursor: pointer; }
+#cn-welcome .cw-go { background: var(--green, #28374f); color: #fff; box-shadow: 0 10px 24px rgba(40,55,79,.28); }
+#cn-welcome .cw-later { background: transparent; color: var(--muted, #5d6779); }
+
+/* ---------- 9. Images en échec : jamais d'icône « cassée » ---------- */
+img.cn-img-fail { background: linear-gradient(135deg, #eef1f6, #dde3ed); color: transparent; font-size: 0; object-fit: cover; }
+html[data-theme="dark"] img.cn-img-fail { background: linear-gradient(135deg, #2a313c, #232933); }
+
+/* ---------- 10. Accessibilité : respect de « réduire les animations » ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; scroll-behavior: auto !important; }
+  .hero .eyebrow, .hero h1, .hero .lead, .hero .hero-actions, #hero-pay-icons { opacity: 1; }
+}
+
+/* Quand le bandeau de notification est affiché, les bulles descendent dessous (jamais l'une sur l'autre) */
+body.cn-banner-on #toast-container { top: calc(max(12px, env(safe-area-inset-top)) + 96px); }
