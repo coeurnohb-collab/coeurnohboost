@@ -54,7 +54,7 @@ test('index.html : pas d\'identifiant en double, fichiers référencés présent
 
 test('index.html : chaque bouton (onclick…) appelle une fonction qui existe', () => {
   const html = read('index.html');
-  const code = ['script.js', 'menu-pro.js', 'translations.js', 'polish.js', 'auth-guard.js', 'pay-guard.js'].filter(exists).map(read).join('\n');
+  const code = ['script.js', 'menu-pro.js', 'translations.js', 'polish.js', 'auth-guard.js', 'pay-guard.js', 'push-center.js'].filter(exists).map(read).join('\n');
   const used = new Set([...html.matchAll(/on(?:click|change|input|submit|keydown|keyup|focus|blur)="\s*(?:return\s+)?([A-Za-z_$][\w$]*)\s*\(/g)].map((m) => m[1]));
   const defined = new Set([...code.matchAll(/(?:^|\s)function\s+([A-Za-z_$][\w$]*)\s*\(/g)].map((m) => m[1]));
   for (const m of code.matchAll(/window\.([A-Za-z_$][\w$]*)\s*=/g)) defined.add(m[1]);
@@ -124,4 +124,56 @@ test('vidéos d\'ambiance : légères (< 400 Ko chacune) et accompagnées de leu
     for (const f of [`intro-${t}.mp4`, `intro-${t}.webm`, `intro-${t}-poster.jpg`]) assert.ok(exists(f), `${f} manquant`);
     assert.ok(fs.statSync(path.join(root, `intro-${t}.mp4`)).size < 400 * 1024, `intro-${t}.mp4 trop lourde`);
   }
+});
+
+/* ---------- Notifications push « comme une vraie application » ---------- */
+test('notifications : push-center.js est chargé par index.html et remplace l\'enregistrement automatique', () => {
+  assert.match(read('index.html'), /<script src="push-center\.js"><\/script>/);
+  const pc = read('push-center.js');
+  assert.match(pc, /window\.registerPushNotifications\s*=/);
+  // La permission ne se demande qu'à un seul endroit (la fonction enable, déclenchée par un toucher)
+  assert.strictEqual((pc.match(/Notification\.requestPermission\(/g) || []).length, 1, 'une seule demande de permission autorisée');
+  assert.ok(exists('badge-96.png'), 'badge-96.png manquant (icône de la barre d\'état)');
+});
+
+test('notifications : le serveur envoie des messages « données seules » (sans champ notification)', () => {
+  const src = read('api/_lib/push.js');
+  const mod = { exports: {} };
+  const stubRequire = (n) => n === './security' ? { initFirebaseAdmin() {}, safeInternalPath: (u) => u } : { firestore: () => ({}), messaging: () => ({}) };
+  new Function('require', 'module', 'exports', src)(stubRequire, mod, mod.exports);
+  const m = mod.exports.buildMessage({ tokens: ['a'], title: 'T', body: 'B', url: '/?open=abc123', category: 'activity', badgeCount: 3 });
+  assert.strictEqual(m.notification, undefined, 'un champ notification provoquerait des doublons');
+  assert.strictEqual(m.webpush.notification, undefined);
+  assert.strictEqual(m.data.title, 'T');
+  assert.strictEqual(m.data.badgeCount, '3');
+  assert.ok(Object.values(m.data).every((v) => typeof v === 'string'), 'FCM exige des valeurs texte');
+  assert.match(m.data.tag, /^cn-activity-/);
+  assert.strictEqual(m.webpush.headers.Urgency, 'high');
+});
+
+test('notifications : sw.js affiche lui-même la notification (tag toujours défini, boutons, clic)', () => {
+  const sw = read('sw.js');
+  assert.match(sw, /onBackgroundMessage/);
+  assert.match(sw, /renotify:\s*true/);
+  assert.match(sw, /const tag = d\.tag \|\| \(/, 'renotify sans tag fait planter showNotification');
+  assert.match(sw, /action: 'open'/);
+  assert.match(sw, /action: 'later'/);
+  assert.match(sw, /type: 'cn-open'/);
+  assert.ok(exists('badge-96.png'));
+  assert.doesNotMatch(sw, /icon-192\.png/, 'icon-192.png n\'existe pas (c\'est icon-192-v2.png)');
+});
+
+test('notifications : plus d\'e-mail pour les likes/commentaires, et action test-push présente', () => {
+  const n = read('api/notify-user.js');
+  assert.match(n, /action === 'test-push'/);
+  assert.match(n, /cat === 'orders' \|\| cat === 'sos'/);
+  assert.doesNotMatch(read('api/_lib/push.js'), /resend\.com/, 'la diffusion ne doit plus envoyer d\'e-mails');
+});
+
+test('notifications : tous les liens ?tab=… envoyés par le serveur sont compris par l\'application', () => {
+  const sent = new Set();
+  for (const f of listJs('api')) for (const m of read(f).matchAll(/\/\?tab=([a-z]+)/g)) sent.add(m[1]);
+  const pc = read('push-center.js');
+  for (const tab of sent) assert.ok(tab === 'sales' ? /sales/.test(pc) : exists('index.html') && read('index.html').includes('dash-tab-' + tab), 'lien ?tab=' + tab + ' non géré');
+  assert.match(pc, /notifs/, 'le lien ?openTab=notifs (messages programmés) doit ouvrir le centre de notifications');
 });
