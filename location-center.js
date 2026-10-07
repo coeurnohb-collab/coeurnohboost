@@ -1569,6 +1569,28 @@
   } catch (e) { /* ignore */ }
 
   /* ------------------------------------------------------------------
+     FIN DE SESSION : déconnexion ou changement de compte
+     Le suivi GPS, les écoutes et les réglages de suivi ne doivent JAMAIS survivre à la session
+     qui les a demandés (confidentialité : le prochain utilisateur de l'appareil part de zéro).
+     ------------------------------------------------------------------ */
+  var sessUid = myUid();
+  function sessionGuard() {
+    var u = myUid();
+    if (u === sessUid) return;
+    var prev = sessUid; sessUid = u;
+    if (prev === null && u) return; // première connexion : rien à nettoyer
+    try { stopWatch(); unwatchSelfDevice(); stopPeerListeners(); } catch (e) { /* ignore */ }
+    clearTimeout(S.baseTimer);
+    S.me = null; S.outShares = []; S.inShares = []; S.links = []; S.contacts = []; S.contactsIn = []; S.devices = []; S.history = [];
+    S.sosMine = null; S.sosOthers = []; S.peers = {}; S.profile = null; S.profileLoaded = false; S.addrDetail = null; S.address = null;
+    S.booted = false; S.sel = null;
+    cfg.track = false; cfg.history = false; saveCfg(); lsDel(LS_TRACK); lsDel(LS_LAST);
+    if (S.open) { try { if (u) open(S.tab); else close(); } catch (e) { /* ignore */ } }
+    updatePill();
+  }
+  setInterval(sessionGuard, 3000);
+
+  /* ------------------------------------------------------------------
      INTERFACE
      ------------------------------------------------------------------ */
   X.pill_sos = ['SOS actif', 'SOS active']; X.pill_share = ['Position partagée', 'Position shared']; X.pill_track = ["Suivi de l'appareil", 'Device tracking'];
@@ -1748,6 +1770,7 @@
   }
   function updatePill() {
     var b = $('lc-pill'); if (!b) return;
+    if (!myUid()) { b.className = ''; return; }
     var sos = !!S.sosMine, sh = activeOut().length > 0, tr = cfg.track;
     var on = !S.open && S.watchId != null && (sos || sh || tr);
     b.className = on ? (sos ? 'on sos' : 'on') : '';

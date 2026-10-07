@@ -70,7 +70,7 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
-const CACHE_NAME = 'coeurnohboost-v10';
+const CACHE_NAME = 'coeurnohboost-v11';
 const APP_SHELL = [
   '/',
   '/index.html',
@@ -116,6 +116,10 @@ self.addEventListener('fetch', (event) => {
   // le cache : en cas de coupure, l'appli recoit une vraie erreur reseau
   // qu'elle sait deja afficher proprement.
   if (event.request.method !== 'GET' || url.origin !== self.location.origin || url.pathname.startsWith('/api/')) {
+    return;
+  }
+  // Vidéos d'ambiance et requêtes partielles (Range) : le navigateur les gère seul (lecture fluide, pas de cache saturé).
+  if (event.request.headers.has('range') || /\.(mp4|webm)$/i.test(url.pathname)) {
     return;
   }
 

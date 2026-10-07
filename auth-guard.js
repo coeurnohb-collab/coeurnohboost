@@ -48,6 +48,7 @@
     'auth/operation-not-allowed': "Ce mode de connexion n'est pas activé (contacte l'admin).",
     'auth/missing-password': "Entre ton mot de passe.",
     'auth/missing-email': "Entre ton email.",
+    'auth/too-many-requests': "Trop de tentatives. Par sécurité, patiente quelques minutes puis réessaie, ou utilise « Mot de passe oublié ».",
     'auth/network-request-failed': "Pas de connexion internet stable. Vérifie ton réseau puis réessaie."
   };
   var origTranslate = window.translateAuthError;
@@ -57,6 +58,66 @@
     if (typeof origTranslate === 'function') return origTranslate(e);
     return (e && e.message) || 'Une erreur est survenue.';
   };
+
+  /* ---------- 1 bis. Mot de passe solide à l'inscription (invisible pour la connexion) ----------
+     8 caractères minimum, pas un mot de passe « classique », pas l'email. Aucune étape supplémentaire. */
+  var COMMON = ['12345678', '123456789', '1234567890', 'password', 'password1', 'azerty123', 'azertyuiop', 'qwerty123', 'qwertyuiop', 'motdepasse', 'motdepasse1', '11111111', '00000000', 'abc12345', 'iloveyou', 'coeurnoh', 'coeurnoh1', 'coeurnoh123', 'admin123', 'welcome1', 'azerty12', '87654321', 'football', 'whatsapp'];
+  var PW = {
+    fr: { short: 'Choisis un mot de passe d\'au moins 8 caractères.', common: 'Ce mot de passe est trop courant. Choisis-en un plus personnel (lettres + chiffres).', email: 'Le mot de passe ne doit pas ressembler à ton email.', weak: 'Faible', ok: 'Correct', strong: 'Solide' },
+    en: { short: 'Choose a password with at least 8 characters.', common: 'This password is too common. Pick a more personal one (letters + numbers).', email: 'The password should not look like your email.', weak: 'Weak', ok: 'Fair', strong: 'Strong' },
+    es: { short: 'Elige una contraseña de al menos 8 caracteres.', common: 'Esta contraseña es demasiado común. Elige una más personal (letras + números).', email: 'La contraseña no debe parecerse a tu correo.', weak: 'Débil', ok: 'Correcta', strong: 'Sólida' },
+    it: { short: 'Scegli una password di almeno 8 caratteri.', common: 'Questa password è troppo comune. Scegline una più personale (lettere + numeri).', email: 'La password non deve somigliare alla tua email.', weak: 'Debole', ok: 'Discreta', strong: 'Solida' },
+    pt: { short: 'Escolha uma senha com pelo menos 8 caracteres.', common: 'Esta senha é muito comum. Escolha uma mais pessoal (letras + números).', email: 'A senha não deve parecer o seu email.', weak: 'Fraca', ok: 'Razoável', strong: 'Sólida' }
+  };
+  function pwL() { try { if (typeof currentLang !== 'undefined' && PW[currentLang]) return PW[currentLang]; } catch (e) { /* ignore */ } return PW.fr; }
+  function pwProblem(pw, email) {
+    var L = pwL(), p = String(pw || ''), local = String(email || '').split('@')[0].toLowerCase();
+    if (p.length < 8) return L.short;
+    if (COMMON.indexOf(p.toLowerCase()) >= 0 || /^(.)\1+$/.test(p) || /^\d+$/.test(p)) return L.common;
+    if (local.length >= 4 && p.toLowerCase().indexOf(local) >= 0) return L.email;
+    return '';
+  }
+  function pwScore(p) {
+    var s = 0; if (p.length >= 8) s++; if (p.length >= 12) s++; if (/[a-z]/.test(p) && /[A-Z]/.test(p)) s++; if (/\d/.test(p)) s++; if (/[^A-Za-z0-9]/.test(p)) s++;
+    return s;
+  }
+  function renderMeter() {
+    var input = document.getElementById('auth-password'); if (!input) return;
+    var reg = false; try { reg = (typeof authMode !== 'undefined' && authMode === 'register'); } catch (e) { /* ignore */ }
+    var m = document.getElementById('cn-pw-meter');
+    if (!reg || !input.value) { if (m) m.style.display = 'none'; return; }
+    if (!m) {
+      m = document.createElement('div'); m.id = 'cn-pw-meter'; m.setAttribute('aria-live', 'polite');
+      m.style.cssText = 'margin:6px 2px 0;font-size:.78rem;font-weight:700;display:flex;align-items:center;gap:8px';
+      var wrap = input.closest('.auth-input') || input.parentNode; wrap.parentNode.insertBefore(m, wrap.nextSibling);
+    }
+    var L = pwL(), sc = pwScore(input.value), lvl = sc <= 2 ? 0 : sc <= 3 ? 1 : 2, col = ['#e03131', '#f08c00', '#2f9e44'][lvl];
+    m.style.display = 'flex';
+    m.innerHTML = '<span style="flex:1;height:5px;border-radius:99px;background:#e6e9f0;overflow:hidden"><i style="display:block;height:100%;width:' + ((lvl + 1) * 33.3) + '%;background:' + col + ';transition:width .25s ease"></i></span><span style="color:' + col + '">' + [L.weak, L.ok, L.strong][lvl] + '</span>';
+  }
+  document.addEventListener('input', function (ev) { if (ev.target && ev.target.id === 'auth-password') renderMeter(); });
+  // Le texte d'aide du champ annonce « 6 caractères min. » : à l'inscription on affiche la vraie règle (8).
+  function syncPlaceholder() {
+    var input = document.getElementById('auth-password'); if (!input) return;
+    var reg = false; try { reg = (typeof authMode !== 'undefined' && authMode === 'register'); } catch (e) { /* ignore */ }
+    if (!input.hasAttribute('data-ph0')) input.setAttribute('data-ph0', input.getAttribute('placeholder') || '');
+    var base = input.getAttribute('data-ph0');
+    input.setAttribute('placeholder', reg ? base.replace(/\b6\b/, '8') : base);
+  }
+  document.addEventListener('click', function (ev) { if (ev.target && ev.target.closest && ev.target.closest('#auth-modal')) setTimeout(function () { syncPlaceholder(); renderMeter(); }, 40); });
+  var origSubmitAuth = window.submitAuth;
+  if (typeof origSubmitAuth === 'function') {
+    window.submitAuth = function () {
+      try {
+        var reg = (typeof authMode !== 'undefined' && authMode === 'register');
+        if (reg) {
+          var bad = pwProblem((document.getElementById('auth-password') || {}).value, (document.getElementById('auth-email') || {}).value);
+          if (bad) { try { showAuthError(bad); } catch (e) { /* ignore */ } return undefined; }
+        }
+      } catch (e) { /* on laisse la fonction d'origine faire son travail */ }
+      return origSubmitAuth.apply(this, arguments);
+    };
+  }
 
   /* ---------- 2. Google : un seul essai à la fois, hors-ligne détecté ---------- */
   var busy = false, busyTimer = null;
@@ -125,6 +186,7 @@
     window.openAuth = function () {
       var r = origOpenAuth.apply(this, arguments);
       try { renderNotice(); } catch (e) { /* ignore */ }
+      try { setTimeout(syncPlaceholder, 40); } catch (e) { /* ignore */ }
       return r;
     };
   }

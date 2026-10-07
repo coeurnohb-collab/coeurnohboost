@@ -70,27 +70,10 @@ html[data-theme="dark"] #app-splash { background: radial-gradient(120% 90% at 50
 @keyframes cnSplashPulse { 0% { transform: scale(.7); opacity: .9; } 100% { transform: scale(1.9); opacity: 0; } }
 @keyframes cnSplashBar { 0% { transform: translateX(-110%); } 100% { transform: translateX(260%); } }
 
-/* ---------- 5. Page d'accueil : entrée en douceur ---------- */
+/* ---------- 5. Page d'accueil : l'entrée en douceur existe déjà (heroFadeUp), on ne la double pas ---------- */
 @keyframes cnFadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
-.hero .eyebrow, .hero h1, .hero .lead, .hero .hero-actions, #hero-pay-icons { opacity: 0; animation: cnFadeUp .7s cubic-bezier(.2,.7,.2,1) forwards; }
-.hero .eyebrow { animation-delay: .05s; }
-.hero h1 { animation-delay: .14s; }
-.hero .lead { animation-delay: .24s; }
-.hero .hero-actions { animation-delay: .34s; }
-#hero-pay-icons { animation-delay: .46s; }
-.hero::before {
-  content: ""; position: absolute; width: 340px; height: 340px; right: -120px; top: -140px; border-radius: 50%; pointer-events: none;
-  background: radial-gradient(circle, rgba(243,156,31,.22), transparent 65%); animation: cnFloat 9s ease-in-out infinite;
-}
-@keyframes cnFloat { 0%,100% { transform: translate3d(0,0,0); } 50% { transform: translate3d(-24px,18px,0); } }
 
 /* ---------- 6. Connexion : fond vivant, formulaire qui apparaît en cascade ---------- */
-.auth-hero { background-size: 100% 100%, 100% 100%, 100% 100%; }
-.auth-hero::before {
-  content: ""; position: absolute; inset: -40%; pointer-events: none;
-  background: conic-gradient(from 90deg at 70% 30%, rgba(243,156,31,.20), transparent 30%, rgba(215,38,61,.16) 60%, transparent 80%, rgba(243,156,31,.20));
-  filter: blur(40px); animation: cnSplashSpin 22s linear infinite;
-}
 .auth-brand, .auth-hero-line, .auth-trust { animation: cnFadeUp .6s cubic-bezier(.2,.7,.2,1) both; }
 .auth-hero-line { animation-delay: .08s; } .auth-trust { animation-delay: .16s; }
 .auth-body > * { animation: cnFadeUp .55s cubic-bezier(.2,.7,.2,1) both; }
@@ -156,8 +139,36 @@ html[data-theme="dark"] img.cn-img-fail { background: linear-gradient(135deg, #2
 /* ---------- 10. Accessibilité : respect de « réduire les animations » ---------- */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; scroll-behavior: auto !important; }
-  .hero .eyebrow, .hero h1, .hero .lead, .hero .hero-actions, #hero-pay-icons { opacity: 1; }
 }
 
 /* Quand le bandeau de notification est affiché, les bulles descendent dessous (jamais l'une sur l'autre) */
 body.cn-banner-on #toast-container { top: calc(max(12px, env(safe-area-inset-top)) + 96px); }
+
+/* ---------- 11. Ambiance « vidéo » de la page d'accueil et de la connexion ----------
+   Deux petites vidéos en boucle parfaite (≈ 125 Ko et ≈ 205 Ko), un voile pour garder le texte lisible,
+   et le logo de l'application en filigrane derrière le contenu. Sans vidéo (économie de données,
+   « réduire les animations »), l'image fixe prend le relais. */
+.hero { position: relative; isolation: isolate; overflow: hidden; background-image: url(intro-light-poster.jpg); background-size: cover; background-position: center; }
+.hero::after { content: ""; position: absolute; inset: 0; z-index: -2; pointer-events: none;
+  background: linear-gradient(180deg, rgba(255,255,255,.50), rgba(255,255,255,.22) 55%, rgba(255,255,255,.58)); }
+.cn-bgvideo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -3; opacity: 0; transition: opacity 1.4s ease; pointer-events: none; }
+.cn-bgvideo.on { opacity: 1; }
+.cn-watermark { position: absolute; left: 50%; top: 50%; width: min(78vw, 420px); aspect-ratio: 720 / 335; transform: translate(-50%, -50%); z-index: -1; pointer-events: none;
+  background: url(logo-mark.png) center / contain no-repeat; opacity: .058; animation: cnMark 9s ease-in-out infinite; }
+@keyframes cnMark { 0%, 100% { transform: translate(-50%, -50%) scale(1) rotate(-2deg); } 50% { transform: translate(-50%, -53%) scale(1.045) rotate(2deg); } }
+.auth-hero { isolation: isolate; background-image: url(intro-dark-poster.jpg); background-size: cover; background-position: center; }
+.auth-hero .cn-bgvideo { z-index: -3; }
+.auth-hero::after { content: ""; position: absolute; inset: 0; z-index: -2; pointer-events: none; background: linear-gradient(180deg, rgba(12,16,24,.30), rgba(12,16,24,.45)); }
+.auth-hero .cn-watermark { background-image: url(logo-mark-white.png); left: auto; right: -40px; top: auto; bottom: 16px; width: 310px; opacity: .09; transform: none; animation-name: cnMarkR; }
+@keyframes cnMarkR { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-10px) rotate(2deg); } }
+@media (prefers-reduced-motion: reduce) { .cn-bgvideo { display: none; } .cn-watermark { animation: none; } }
+
+/* ---------- 12. Ouverture : logo qui apparaît avec un halo, nom qui scintille ---------- */
+#app-splash-logo-img { animation: cnLogoIn .95s cubic-bezier(.2,.9,.2,1) both, cnLogoGlow 3.4s ease-in-out .95s infinite; }
+@keyframes cnLogoIn { from { opacity: 0; transform: scale(.68) translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes cnLogoGlow { 0%, 100% { filter: drop-shadow(0 8px 18px rgba(243,156,31,0)); } 50% { filter: drop-shadow(0 12px 34px rgba(243,156,31,.5)); } }
+#app-splash-name { background: linear-gradient(100deg, currentColor 35%, rgba(243,156,31,1) 50%, currentColor 65%); background-size: 250% 100%; -webkit-background-clip: text; background-clip: text; animation: cnShine 2.6s ease-in-out .6s infinite; }
+#app-splash-name .app-splash-name-red, #app-splash-name .app-splash-name-green { -webkit-text-fill-color: initial; }
+@keyframes cnShine { 0% { background-position: 120% 0; } 100% { background-position: -120% 0; } }
+#app-splash-tagline { letter-spacing: .42em; animation: cnTag 1.2s ease .5s both; }
+@keyframes cnTag { from { opacity: 0; letter-spacing: .8em; } to { opacity: 1; letter-spacing: .42em; } }
