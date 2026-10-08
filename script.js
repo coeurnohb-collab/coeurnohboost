@@ -186,6 +186,18 @@ function escapeHtml(str) {
     .replace(/'/g, '&#39;');
 }
 
+// Adresse de lien sûre : refuse javascript:, data:, vbscript: ... (escapeHtml seul ne l'empêche pas).
+// À utiliser pour TOUT href construit à partir d'une donnée saisie par une personne.
+function safeHref(url) {
+  const u = String(url == null ? '' : url).trim();
+  return /^(https?:\/\/|mailto:|tel:|\/|#)/i.test(u) ? escapeHtml(u) : '#';
+}
+
+// Valeur sûre à placer comme ARGUMENT dans un onclick='...' (texte, nombre, booléen).
+function jsArg(v) {
+  return JSON.stringify(v == null ? '' : v).replace(/[&'<>\u2028\u2029]/g, (c) => '\\u' + c.charCodeAt(0).toString(16).padStart(4, '0'));
+}
+
 /* ================= UPLOAD DE FICHIER DIRECT (Cloudinary) =================
    Envoie un vrai fichier choisi sur le telephone (photo, video, PDF) vers
    Cloudinary (pas besoin de carte bancaire, contrairement a Firebase
@@ -3175,7 +3187,7 @@ async function loadHomeFeed(append = false) {
     }
   } catch (e) {
     if (!append) {
-      feedEl.innerHTML = `<p class="muted"><span data-i18n="shop_load_error_prefix">Erreur de chargement :</span> ${e.message}</p>`;
+      feedEl.innerHTML = `<p class="muted"><span data-i18n="shop_load_error_prefix">Erreur de chargement :</span> ${escapeHtml(e.message)}</p>`;
     } else {
       showToast(friendlyErrorMessage(e), 'error');
     }
@@ -4004,13 +4016,13 @@ async function loadSellerWithdrawals() {
       return `
       <div class="seller-sale-row">
         <div>
-          <strong>${w.amountUSD.toFixed(2)}$</strong> — ${w.method}
-          <div class="muted small">${new Date(w.createdAt).toLocaleDateString('fr-FR')} · ${statusLabels[w.status] || w.status}</div>
+          <strong>${w.amountUSD.toFixed(2)}$</strong> — ${escapeHtml(w.method)}
+          <div class="muted small">${new Date(w.createdAt).toLocaleDateString('fr-FR')} · ${escapeHtml(statusLabels[w.status] || w.status)}</div>
         </div>
       </div>`;
     }).join('');
   } catch (e) {
-    el.innerHTML = `<p class="muted">Erreur de chargement : ${e.message}</p>`;
+    el.innerHTML = `<p class="muted">Erreur de chargement : ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -4070,7 +4082,7 @@ async function loadSellerStats() {
       salesEl.innerHTML = sales.slice(0, 20).map(s => `
         <div class="seller-sale-row">
           <div>
-            <strong>${s.itemTitle}</strong>
+            <strong>${escapeHtml(s.itemTitle)}</strong>
             <div class="muted small">${new Date(s.createdAt).toLocaleDateString('fr-FR')}</div>
           </div>
           <div class="seller-sale-amount">+${(s.sellerPayoutUSD || 0).toFixed(2)}$</div>
@@ -4078,7 +4090,7 @@ async function loadSellerStats() {
       `).join('');
     }
   } catch (e) {
-    badgeEl.innerHTML = `<p class="muted">Erreur de chargement : ${e.message}</p>`;
+    badgeEl.innerHTML = `<p class="muted">Erreur de chargement : ${escapeHtml(e.message)}</p>`;
     statsEl.innerHTML = '';
     salesEl.innerHTML = '';
   }
@@ -4107,12 +4119,12 @@ async function loadMyPublications() {
           <strong>${typeLabel} ${escapeHtml(d.title)}</strong>
           <div class="muted small">${(d.price || 0).toFixed(2)}$ · ${ICON_HEART_FILLED} ${formatCompactCount(safeCount(d.likesCount))}</div>
         </div>
-        <button class="shop-action-btn" onclick="openEditPubForm('${doc.id}','${d.type}','${escapeForJs(d.title || '')}','${escapeForJs(d.description || '')}',${d.price || 0})" aria-label="Modifier cette publication">${ICON_EDIT}</button>
+        <button class="shop-action-btn" onclick="openEditPubForm('${doc.id}','${escapeForJs(d.type)}','${escapeForJs(d.title || '')}','${escapeForJs(d.description || '')}',${d.price || 0})" aria-label="Modifier cette publication">${ICON_EDIT}</button>
         <button class="shop-action-btn" onclick="deleteMyPublication('${doc.id}')" aria-label="Supprimer cette publication">${ICON_TRASH}</button>
       </div>`;
     }).join('');
   } catch (e) {
-    el.innerHTML = `<p class="muted">Erreur de chargement : ${e.message}</p>`;
+    el.innerHTML = `<p class="muted">Erreur de chargement : ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -4312,7 +4324,7 @@ async function loadShopFeed() {
 
     renderShopFeed();
   } catch (e) {
-    feedEl.innerHTML = `<p class="muted"><span data-i18n="shop_load_error_prefix">Erreur de chargement :</span> ${e.message}</p>`;
+    feedEl.innerHTML = `<p class="muted"><span data-i18n="shop_load_error_prefix">Erreur de chargement :</span> ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -4379,9 +4391,9 @@ function renderShopCard(item, isLiked, isPurchased) {
 
   let buyButtonHtml;
   if (alreadyOwned) {
-    buyButtonHtml = `<a class="btn btn-primary btn-sm btn-buy-full" href="${escapeHtml(item.fileUrl)}" target="_blank">📖 Télécharger</a>`;
+    buyButtonHtml = `<a class="btn btn-primary btn-sm btn-buy-full" href="${safeHref(item.fileUrl)}" target="_blank">📖 Télécharger</a>`;
   } else if (item.type === 'book') {
-    buyButtonHtml = `<button class="btn btn-primary btn-sm btn-buy-full" onclick="buyShopItem('${item.id}','${escapeForJs(item.title)}',${effectivePrice},'${item.type}')" data-i18n="shop_buy">Commander</button>`;
+    buyButtonHtml = `<button class="btn btn-primary btn-sm btn-buy-full" onclick="buyShopItem('${item.id}','${escapeForJs(item.title)}',${effectivePrice},'${escapeForJs(item.type)}')" data-i18n="shop_buy">Commander</button>`;
   } else {
     const inCart = cartItems.some(c => c.id === item.id);
     buyButtonHtml = `<button class="btn ${inCart ? 'btn-outline' : 'btn-primary'} btn-sm btn-buy-full" onclick="toggleCartItem('${item.id}','${escapeForJs(item.title)}',${effectivePrice},'${escapeForJs(item.imageUrl)}')">${inCart ? ICON_CHECK + ' Dans le panier' : ICON_CART + ' Ajouter'}</button>`;
@@ -4410,7 +4422,7 @@ function renderShopCard(item, isLiked, isPurchased) {
     electronique: '🔌 Électronique', maison: '🏠 Maison & Déco', autres: '📦 Autres'
   };
   const categoryLine = item.category && categoryLabels[item.category]
-    ? `<span class="shop-card-category">${categoryLabels[item.category]}</span>`
+    ? `<span class="shop-card-category">${escapeHtml(categoryLabels[item.category])}</span>`
     : '';
 
   return `
@@ -4476,9 +4488,9 @@ function renderContactLinksHtml(contact, layout) {
   if (tt) items.push({ href: tt, icon: ICON_TIKTOK, label: 'TikTok' });
   if (!items.length) return '';
   if (layout === 'row') {
-    return `<div class="contact-links-row">${items.map(it => `<a class="shop-action-btn" href="${escapeHtml(it.href)}" target="_blank" title="${it.label}">${it.icon}</a>`).join('')}</div>`;
+    return `<div class="contact-links-row">${items.map(it => `<a class="shop-action-btn" href="${safeHref(it.href)}" target="_blank" title="${it.label}">${it.icon}</a>`).join('')}</div>`;
   }
-  return `<div class="contact-links-block">${items.map(it => `<a class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" href="${escapeHtml(it.href)}" target="_blank">${it.icon} ${it.label}</a>`).join('')}</div>`;
+  return `<div class="contact-links-block">${items.map(it => `<a class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" href="${safeHref(it.href)}" target="_blank">${it.icon} ${it.label}</a>`).join('')}</div>`;
 }
 /* Bloc de champs de formulaire reutilisable (email/Facebook/TikTok facultatifs)
    -- le WhatsApp reste son propre champ deja existant dans chaque formulaire
@@ -4619,12 +4631,17 @@ async function setReaction(pubId, type) {
     // par securite) et non comme une "create" -- d'ou l'erreur de permission
     // au changement de reaction. On supprime donc d'abord si besoin, puis on
     // recree, exactement comme le fait deja le like classique (toggleShopLike).
+    // Le like et son compteur partent DANS LA MEME OPERATION (batch) : les regles Firestore
+    // n'acceptent le +1 que si le document « like » est créé en même temps (plus de gonflage).
+    // Changer de réaction = simple mise à jour du document existant (compteur inchangé).
+    const likeData = { pubId, uid: currentUser.uid, type, createdAt: new Date().toISOString() };
     if (wasLiked) {
-      await likeRef.delete();
-    }
-    await likeRef.set({ pubId, uid: currentUser.uid, type, createdAt: new Date().toISOString() });
-    if (!wasLiked) {
-      await pubRef.update({ likesCount: firebase.firestore.FieldValue.increment(1) });
+      await likeRef.set(likeData);
+    } else {
+      const likeBatch = db.batch();
+      likeBatch.set(likeRef, likeData);
+      likeBatch.update(pubRef, { likesCount: firebase.firestore.FieldValue.increment(1) });
+      await likeBatch.commit();
     }
     iconEls.forEach(el => {
       el.innerHTML = reactionIconHtml(type);
@@ -4934,8 +4951,11 @@ async function shareShopItem(pubId, title) {
   notifyPublicationShared(pubId);
 }
 
+// Texte sûr à placer entre apostrophes dans un onclick="fn('...')".
+// Chaque caractère dangereux (\\ ' " & < > retour-ligne) devient une séquence \\uXXXX :
+// la valeur reçue par la fonction reste identique, mais rien ne peut sortir de la chaîne.
 function escapeForJs(str) {
-  return (str || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+  return String(str == null ? '' : str).replace(/[\\'"&<>\r\n\u2028\u2029]/g, (c) => '\\u' + c.charCodeAt(0).toString(16).padStart(4, '0'));
 }
 
 // Empeche un clic rapide et repete (ou un double-tap) de declencher
@@ -4968,13 +4988,17 @@ async function toggleShopLike(pubId) {
   try {
     const likeDoc = await likeRef.get();
     if (likeDoc.exists) {
-      await likeRef.delete();
-      await pubRef.update({ likesCount: firebase.firestore.FieldValue.increment(-1) });
+      const unlikeBatch = db.batch();
+      unlikeBatch.delete(likeRef);
+      unlikeBatch.update(pubRef, { likesCount: firebase.firestore.FieldValue.increment(-1) });
+      await unlikeBatch.commit();
       iconEls.forEach(el => el.innerHTML = ICON_HEART_OUTLINE);
       btnEls.forEach(el => el.classList.remove('liked'));
     } else {
-      await likeRef.set({ pubId, uid: currentUser.uid, type: 'heart', createdAt: new Date().toISOString() });
-      await pubRef.update({ likesCount: firebase.firestore.FieldValue.increment(1) });
+      const likeBatch2 = db.batch();
+      likeBatch2.set(likeRef, { pubId, uid: currentUser.uid, type: 'heart', createdAt: new Date().toISOString() });
+      likeBatch2.update(pubRef, { likesCount: firebase.firestore.FieldValue.increment(1) });
+      await likeBatch2.commit();
       iconEls.forEach(el => {
         el.innerHTML = reactionIconHtml('heart');
         el.classList.remove('like-pop');
@@ -5826,7 +5850,7 @@ async function openProfileModal(sellerUid, sellerName, sellerVerified) {
     watchPostsCounts(posts.map(p => p.id));
     watchProfileTotalLikes();
   } catch (e) {
-    body.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+    body.innerHTML = `<p class="muted small">Erreur de chargement : ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -5928,7 +5952,7 @@ async function loadProfileFavoritesGrid(uid, container) {
     container.innerHTML = `<div class="profile-grid">${items.map(p => renderProfileGridItem(p)).join('')}</div>`;
     watchPostsCounts(items.map(p => p.id));
   } catch (e) {
-    container.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+    container.innerHTML = `<p class="muted small">Erreur de chargement : ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -6559,7 +6583,7 @@ function openInvoiceForm(invoiceId) {
               <option value="percent" ${existing && existing.discountType === 'percent' ? 'selected' : ''}>${t('invoice_discount_percent')}</option>
               <option value="amount" ${existing && existing.discountType === 'amount' ? 'selected' : ''}>${t('invoice_discount_amount')}</option>
             </select>
-            <input type="number" id="inv-discount-value" class="text-input" style="flex:1" placeholder="0" min="0" step="0.01" value="${existing ? (existing.discountValue || '') : ''}" oninput="recalcInvoiceTotals()">
+            <input type="number" id="inv-discount-value" class="text-input" style="flex:1" placeholder="0" min="0" step="0.01" value="${escapeHtml(existing ? (existing.discountValue || '') : '')}" oninput="recalcInvoiceTotals()">
           </div>
         </div>
 
@@ -7039,36 +7063,17 @@ async function deleteAlertConfirm(alertId) {
   }
 }
 
-// Verifie les alertes actives de tous les utilisateurs contre un nouveau
-// produit, et notifie (Firestore + push) chaque proprietaire concerne.
-// Plafonne a 500 alertes actives par appel : largement suffisant pour le
-// volume actuel, a revoir seulement si l'app grossit enormement.
+// Les alertes de tous les utilisateurs sont maintenant verifiees COTE SERVEUR (/api/notify-user,
+// action « check-alerts ») : un telephone ne peut plus lire les alertes des autres personnes.
+// Le serveur compare le produit aux alertes, cree les notifications et envoie les push.
 async function checkAlertsForNewProduct(product) {
-  const snap = await db.collection('alerts').where('active', '==', true).limit(500).get();
-  if (snap.empty) return;
-
-  const haystack = `${product.title || ''} ${product.description || ''}`.toLowerCase();
-  const matches = snap.docs
-    .map(d => ({ id: d.id, ...d.data() }))
-    .filter(a => {
-      if (a.ownerUid === currentUser.uid) return false; // pas de notif a soi-meme
-      if (!haystack.includes((a.keywordLower || a.keyword || '').toLowerCase())) return false;
-      if (a.maxPrice && product.price > a.maxPrice) return false;
-      if (a.category && a.category !== product.category) return false;
-      return true;
-    });
-
-  for (const alert of matches) {
-    const title = t('alert_match_title');
-    const body = `« ${alert.keyword} » — ${product.title} ${t('alert_match_at')} ${(product.price || 0).toFixed(2)}$`;
-    try {
-      await db.collection('notifications').add({
-        uid: alert.ownerUid, title, body, type: 'alert_match',
-        url: '/?open=' + product.id, read: false, createdAt: new Date().toISOString()
-      });
-      notifyUserPush(alert.ownerUid, title, body, 'activity', '/?open=' + product.id);
-    } catch (e) { /* une alerte en echec ne doit pas bloquer les autres */ }
-  }
+  if (!auth.currentUser) return;
+  const idToken = await auth.currentUser.getIdToken();
+  await fetch('/api/notify-user', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ idToken, action: 'check-alerts', pubId: product.id })
+  });
 }
 
 /* ================= PRES DE CHEZ VOUS =================
@@ -7101,7 +7106,7 @@ async function loadNearbyListings() {
     await fetchAllListings(true);
     runNearbyFilter();
   } catch (e) {
-    resultsEl.innerHTML = `<p class="muted small">${t('alerts_load_error_prefix')} ${e.message}</p>`;
+    resultsEl.innerHTML = `<p class="muted small">${t('alerts_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -7264,7 +7269,7 @@ function renderContestsList() {
       contestStatusFilter === 'active' ? t('contest_empty_active') :
       contestStatusFilter === 'upcoming' ? t('contest_empty_upcoming') :
       t('contest_empty_ended');
-    listEl.innerHTML = `<p class="muted small" style="text-align:center;padding:20px 0">${msg}</p>`;
+    listEl.innerHTML = `<p class="muted small" style="text-align:center;padding:20px 0">${escapeHtml(msg)}</p>`;
     return;
   }
 
@@ -7693,7 +7698,7 @@ function renderContestEntryMedia(e) {
       <span class="post-media-play-overlay">${ICON_PLAY}</span>
     </div>`;
   }
-  return `<a href="${url}" target="_blank" class="btn btn-outline btn-sm" style="margin-top:8px">${t('contest_view_entry_btn')}</a>`;
+  return `<a href="${safeHref(e.submissionUrl)}" target="_blank" rel="noopener" class="btn btn-outline btn-sm" style="margin-top:8px">${t('contest_view_entry_btn')}</a>`;
 }
 
 function openContestEntryForm(contestId, isPaid, entryFee) {
@@ -7900,7 +7905,7 @@ async function loadFollowingList() {
       </div>`;
     }).join('');
   } catch (e) {
-    el.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+    el.innerHTML = `<p class="muted small">Erreur de chargement : ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -8006,7 +8011,7 @@ async function loadFollowersList() {
       </div>`;
     }).join('');
   } catch (e) {
-    el.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+    el.innerHTML = `<p class="muted small">Erreur de chargement : ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -8029,7 +8034,7 @@ async function loadBlockedList() {
       </div>`;
     }).join('');
   } catch (e) {
-    el.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+    el.innerHTML = `<p class="muted small">Erreur de chargement : ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -8094,7 +8099,7 @@ async function loadSavedFeed() {
     // le compteur ne bougerait plus jamais sur cet ecran.
     watchPostsCounts(items.map(item => item.id));
   } catch (e) {
-    feedEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+    feedEl.innerHTML = `<p class="muted small">Erreur de chargement : ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -8162,7 +8167,7 @@ async function loadJobOffers() {
     jobsCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     runJobsFilter();
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -8212,7 +8217,7 @@ function renderJobsBrowseList(list) {
     <div class="order-box" style="margin-bottom:12px${o.featured ? ';border-color:#f5a623' : ''}">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
         <strong style="font-size:1.02rem">${escapeHtml(o.title || t('job_default_title'))}</strong>
-        <span class="shop-card-category">${t(JOB_TYPE_LABELS[o.type]) || o.type}</span>
+        <span class="shop-card-category">${t(JOB_TYPE_LABELS[o.type]) || escapeHtml(o.type)}</span>
       </div>
       ${o.featured ? `<span class="shop-card-category" style="background:#fff4e0;color:#b5720b;margin-top:4px;display:inline-block">${t('job_featured_badge')}</span>` : ''}
       <div class="muted small" style="margin:4px 0">${escapeHtml(o.location || '—')} · ${t(JOB_CONTRACT_LABELS[o.contractType]) || ''}</div>
@@ -8254,7 +8259,7 @@ async function openJobDetail(offerId) {
     bodyEl.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px">
         <h3 style="margin:0">${escapeHtml(o.title || t('job_default_title'))}</h3>
-        <span class="shop-card-category">${t(JOB_TYPE_LABELS[o.type]) || o.type}</span>
+        <span class="shop-card-category">${t(JOB_TYPE_LABELS[o.type]) || escapeHtml(o.type)}</span>
       </div>
       <div class="muted small" style="margin-bottom:10px">${escapeHtml(o.location || '—')} · ${t(JOB_CONTRACT_LABELS[o.contractType]) || ''}${o.category ? ' · ' + escapeHtml(o.category) : ''}</div>
       <p style="white-space:pre-wrap;margin-bottom:10px">${escapeHtml(o.description || '')}</p>
@@ -8271,13 +8276,13 @@ async function openJobDetail(offerId) {
       if (!slot) return; // la fiche a ete fermee entre-temps
       if (appSnap.exists) {
         const status = appSnap.data().status || 'envoyee';
-        slot.outerHTML = `<p class="muted small" style="text-align:center">${t('job_already_applied_prefix')} <strong>${t(JOB_APP_STATUS_LABELS[status]) || status}</strong></p>`;
+        slot.outerHTML = `<p class="muted small" style="text-align:center">${t('job_already_applied_prefix')} <strong>${t(JOB_APP_STATUS_LABELS[status]) || escapeHtml(status)}</strong></p>`;
       } else {
         slot.outerHTML = `<button class="btn btn-primary" style="width:100%;justify-content:center" onclick="openJobApplyForm('${o.id}', '${escapeHtml(o.title || '')}')">${t('job_apply_btn')}</button>`;
       }
     }
   } catch (e) {
-    bodyEl.innerHTML = `<p class="muted small">${t('alerts_load_error_prefix')} ${e.message}</p>`;
+    bodyEl.innerHTML = `<p class="muted small">${t('alerts_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -8477,17 +8482,18 @@ async function submitJobApplication() {
     if (!offerSnap.exists) throw new Error('OFFER_GONE');
     const offer = offerSnap.data();
 
-    await db.collection('job_applications').doc(`${offerId}_${currentUser.uid}`).set({
+    // Candidature + compteur dans la MEME operation (batch) : les regles Firestore
+    // n'acceptent le +1 que si la candidature est créée en même temps.
+    const appBatch = db.batch();
+    appBatch.set(db.collection('job_applications').doc(`${offerId}_${currentUser.uid}`), {
       offerId, offerOwnerUid: offer.ownerUid, offerTitle: offer.title || '',
       applicantUid: currentUser.uid, applicantName: currentUser.name || t('common_user_fallback'),
       message, cvUrl: cvUrl || null, status: 'envoyee', createdAt: new Date().toISOString()
     });
-
-    // Compteur best-effort : une candidature reussie mais un compteur qui
-    // echoue a s'incrementer ne doit jamais bloquer l'envoi lui-meme.
-    db.collection('job_offers').doc(offerId).update({
+    appBatch.update(db.collection('job_offers').doc(offerId), {
       applicationsCount: firebase.firestore.FieldValue.increment(1)
-    }).catch(() => {});
+    });
+    await appBatch.commit();
 
     const title = t('job_new_application_notif_title');
     const body = `${currentUser.name || t('job_someone_fallback')} ${t('job_app_notif_verb')} "${offer.title || ''}".`;
@@ -8531,11 +8537,11 @@ async function loadMyJobApplications() {
     listEl.innerHTML = apps.map(a => `
       <div class="order-box" style="margin-bottom:12px">
         <strong>${escapeHtml(a.offerTitle || t('job_default_title'))}</strong>
-        <div class="muted small" style="margin:4px 0">${t('job_status_label_prefix')} ${t(JOB_APP_STATUS_LABELS[a.status]) || a.status}</div>
+        <div class="muted small" style="margin:4px 0">${t('job_status_label_prefix')} ${t(JOB_APP_STATUS_LABELS[a.status]) || escapeHtml(a.status)}</div>
         <button class="btn btn-outline btn-sm" onclick="openJobDetail('${a.offerId}')">${t('job_view_offer_btn')}</button>
       </div>`).join('');
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">${t('alerts_load_error_prefix')} ${e.message}</p>`;
+    listEl.innerHTML = `<p class="muted small">${t('alerts_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -8562,7 +8568,7 @@ async function loadMyJobOffers() {
         <button class="btn btn-outline btn-sm" onclick="openJobDetail('${o.id}')">${t('job_manage_btn')}</button>
       </div>`).join('');
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">${t('alerts_load_error_prefix')} ${e.message}</p>`;
+    listEl.innerHTML = `<p class="muted small">${t('alerts_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -8589,8 +8595,8 @@ async function openJobCandidates(offerId) {
       <div class="order-box" style="margin-bottom:12px">
         <strong>${escapeHtml(a.applicantName || t('job_default_candidate'))}</strong>
         <div class="muted small" style="margin:6px 0;white-space:pre-wrap">${escapeHtml(a.message || '')}</div>
-        ${a.cvUrl ? `<a class="btn btn-outline btn-sm" href="${escapeHtml(a.cvUrl)}" target="_blank" style="margin-bottom:8px">${t('job_view_cv_btn')}</a>` : ''}
-        <div class="muted small" style="margin-bottom:8px">${t('job_status_label_prefix')} ${t(JOB_APP_STATUS_LABELS[a.status]) || a.status}</div>
+        ${a.cvUrl ? `<a class="btn btn-outline btn-sm" href="${safeHref(a.cvUrl)}" target="_blank" style="margin-bottom:8px">${t('job_view_cv_btn')}</a>` : ''}
+        <div class="muted small" style="margin-bottom:8px">${t('job_status_label_prefix')} ${t(JOB_APP_STATUS_LABELS[a.status]) || escapeHtml(a.status)}</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button class="btn btn-outline btn-sm" onclick="setJobApplicationStatus('${a.id}', 'vue', '${offerId}')">${t('job_mark_seen_btn')}</button>
           <button class="btn btn-primary btn-sm" onclick="setJobApplicationStatus('${a.id}', 'acceptee', '${offerId}')">${t('job_accept_btn')}</button>
@@ -8598,7 +8604,7 @@ async function openJobCandidates(offerId) {
         </div>
       </div>`).join('');
   } catch (e) {
-    document.getElementById('job-candidates-list').innerHTML = `<p class="muted small">${t('alerts_load_error_prefix')} ${e.message}</p>`;
+    document.getElementById('job-candidates-list').innerHTML = `<p class="muted small">${t('alerts_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -8610,7 +8616,7 @@ async function setJobApplicationStatus(appId, status, offerId) {
     await db.collection('job_applications').doc(appId).update({ status });
 
     const title = t('job_status_updated_notif_title');
-    const body = `${t('job_status_notif_prefix')} "${app.offerTitle || t('job_default_title')}" ${t('job_status_notif_middle')} ${t(JOB_APP_STATUS_LABELS[status]) || status}.`;
+    const body = `${t('job_status_notif_prefix')} "${app.offerTitle || t('job_default_title')}" ${t('job_status_notif_middle')} ${t(JOB_APP_STATUS_LABELS[status]) || escapeHtml(status)}.`;
     db.collection('notifications').add({
       uid: app.applicantUid, title, body, type: 'job_application_status', read: false,
       url: '/?open=' + offerId, createdAt: new Date().toISOString()
@@ -8668,7 +8674,7 @@ async function loadJobSeekers() {
     jobSeekersCache = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(p => !currentUser || p.ownerUid !== currentUser.uid);
     runJobSeekersFilter();
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">${t('alerts_load_error_prefix')} ${e.message}</p>`;
+    listEl.innerHTML = `<p class="muted small">${t('alerts_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -8703,7 +8709,7 @@ function renderJobSeekersBrowseList(list) {
     <div class="order-box" style="margin-bottom:12px${p.featured ? ';border-color:#f5a623' : ''}">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
         <strong style="font-size:1.02rem">${escapeHtml(p.title || t('jobseeker_default_title'))}</strong>
-        <span class="shop-card-category">${t(JOB_TYPE_LABELS[p.type]) || p.type}</span>
+        <span class="shop-card-category">${t(JOB_TYPE_LABELS[p.type]) || escapeHtml(p.type)}</span>
       </div>
       ${p.featured ? `<span class="shop-card-category" style="background:#fff4e0;color:#b5720b;margin-top:4px;display:inline-block">${t('job_featured_badge')}</span>` : ''}
       <div class="muted small" style="margin:4px 0">${escapeHtml(p.location || '—')}${p.category ? ' · ' + escapeHtml(p.category) : ''}</div>
@@ -8730,12 +8736,12 @@ async function openJobSeekerDetail(profileId) {
     bodyEl.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px">
         <h3 style="margin:0">${escapeHtml(p.title || t('jobseeker_default_title'))}</h3>
-        <span class="shop-card-category">${t(JOB_TYPE_LABELS[p.type]) || p.type}</span>
+        <span class="shop-card-category">${t(JOB_TYPE_LABELS[p.type]) || escapeHtml(p.type)}</span>
       </div>
       <div class="muted small" style="margin-bottom:10px">${escapeHtml(p.location || '—')}${p.category ? ' · ' + escapeHtml(p.category) : ''}${p.experience ? ' · ' + escapeHtml(p.experience) : ''}</div>
       <p style="white-space:pre-wrap;margin-bottom:10px">${escapeHtml(p.description || '')}</p>
       <p class="muted small" style="margin-bottom:16px"><strong>${escapeHtml(jobSeekerSalaryLabel(p))}</strong></p>
-      ${p.cvUrl ? `<a class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" href="${escapeHtml(p.cvUrl)}" target="_blank">${t('job_view_cv_btn')}</a>` : ''}
+      ${p.cvUrl ? `<a class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" href="${safeHref(p.cvUrl)}" target="_blank">${t('job_view_cv_btn')}</a>` : ''}
       ${!isOwner ? `
         <div id="jobseeker-detail-actions">
           ${renderContactLinksHtml(p, 'block')}
@@ -8745,7 +8751,7 @@ async function openJobSeekerDetail(profileId) {
       ` : `<p class="muted small" style="text-align:center">${t('jobseeker_own_profile_notice')}</p>`}
     `;
   } catch (e) {
-    bodyEl.innerHTML = `<p class="muted small">${t('alerts_load_error_prefix')} ${e.message}</p>`;
+    bodyEl.innerHTML = `<p class="muted small">${t('alerts_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -8767,7 +8773,7 @@ async function loadMyJobSeekerProfile() {
     myJobSeekerProfile = snap.exists ? { id: snap.id, ...snap.data() } : null;
     renderMyJobSeekerProfile();
   } catch (e) {
-    statusEl.innerHTML = `<p class="muted small">${t('alerts_load_error_prefix')} ${e.message}</p>`;
+    statusEl.innerHTML = `<p class="muted small">${t('alerts_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -8996,7 +9002,7 @@ async function loadEvents() {
     eventsCache.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
     runEventsFilter();
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">${t('event_load_error_prefix')} ${e.message}</p>`;
+    listEl.innerHTML = `<p class="muted small">${t('event_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -9078,7 +9084,7 @@ async function openEventDetail(eventId) {
       } else if (!currentUser) {
         btnHtml = `<button class="btn btn-outline btn-sm" onclick="openAuth('register')">${t('event_login_to_reserve_btn')}</button>`;
       } else {
-        btnHtml = `<button class="btn btn-primary btn-sm" onclick='openEventReserveForm(${JSON.stringify(eventId)}, ${JSON.stringify(tk.id)}, ${JSON.stringify(tk.name || t('event_default_ticket_name'))}, ${tk.price || 0}, ${left})'>${t('event_reserve_btn')}</button>`;
+        btnHtml = `<button class="btn btn-primary btn-sm" onclick='openEventReserveForm(${jsArg(eventId)}, ${jsArg(tk.id)}, ${jsArg(tk.name || t('event_default_ticket_name'))}, ${tk.price || 0}, ${left})'>${t('event_reserve_btn')}</button>`;
       }
       return `<div class="order-box" style="margin-bottom:8px">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
@@ -9113,7 +9119,7 @@ async function openEventDetail(eventId) {
       ${!isOwner && currentUser ? `<button class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin-top:8px" onclick="openReportModal('${e.id}', '${e.ownerUid}', 'event')">${t('event_report_btn')}</button>` : ''}
     `;
   } catch (e) {
-    bodyEl.innerHTML = `<p class="muted small">${t('event_load_error_prefix')} ${e.message}</p>`;
+    bodyEl.innerHTML = `<p class="muted small">${t('event_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -9218,8 +9224,8 @@ function addEventTicketTypeRow(existing = null) {
   row.style.cssText = 'display:flex;gap:6px;margin-bottom:8px;align-items:center';
   row.innerHTML = `
     <input type="text" class="text-input event-tt-name" placeholder="${t('event_tt_name_ph')}" style="flex:2" value="${existing ? escapeHtml(existing.name || '') : ''}">
-    <input type="number" class="text-input event-tt-price" placeholder="${t('event_tt_price_ph')}" min="0" step="0.01" style="flex:1" value="${existing ? (existing.price || 0) : 0}">
-    <input type="number" class="text-input event-tt-quantity" placeholder="${t('event_tt_quantity_ph')}" min="${soldSoFar}" step="1" style="flex:1" value="${existing ? (existing.quantityTotal || 0) : ''}">
+    <input type="number" class="text-input event-tt-price" placeholder="${t('event_tt_price_ph')}" min="0" step="0.01" style="flex:1" value="${escapeHtml(existing ? (existing.price || 0) : 0)}">
+    <input type="number" class="text-input event-tt-quantity" placeholder="${t('event_tt_quantity_ph')}" min="${soldSoFar}" step="1" style="flex:1" value="${escapeHtml(existing ? (existing.quantityTotal || 0) : '')}">
     <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('${rowId}').remove()" aria-label="Retirer">×</button>`;
   document.getElementById('event-ticket-types-list').appendChild(row);
 }
@@ -9446,7 +9452,7 @@ async function loadMyEventTickets() {
       </div>`;
     }).join('');
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">${t('event_load_error_prefix')} ${e.message}</p>`;
+    listEl.innerHTML = `<p class="muted small">${t('event_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -9500,7 +9506,7 @@ async function loadMyOrganizedEvents() {
       </div>`;
     }).join('');
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">${t('event_load_error_prefix')} ${e.message}</p>`;
+    listEl.innerHTML = `<p class="muted small">${t('event_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -9530,7 +9536,7 @@ async function openEventAttendees(eventId) {
         <div class="muted small">${t('event_status_prefix')} ${tk.status === 'cancelled' ? t('event_ticket_status_cancelled') : t('event_ticket_status_confirmed')}</div>
       </div>`).join('');
   } catch (e) {
-    document.getElementById('event-attendees-list').innerHTML = `<p class="muted small">${t('event_load_error_prefix')} ${e.message}</p>`;
+    document.getElementById('event-attendees-list').innerHTML = `<p class="muted small">${t('event_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -9587,7 +9593,7 @@ async function loadTravelSpots() {
     travelCache.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
     runTravelFilter();
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">${t('travel_load_error_prefix')} ${e.message}</p>`;
+    listEl.innerHTML = `<p class="muted small">${t('travel_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -9635,7 +9641,7 @@ function renderTravelCards(list, targetId, emptyMessage) {
     <div class="order-box" style="margin-bottom:12px">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
         <strong style="font-size:1.02rem">${escapeHtml(s.title || t('travel_default_title'))}</strong>
-        <span class="shop-card-category" style="white-space:nowrap">${t(TRAVEL_CATEGORY_LABELS[s.category]) || s.category || '—'}</span>
+        <span class="shop-card-category" style="white-space:nowrap">${t(TRAVEL_CATEGORY_LABELS[s.category]) || escapeHtml(s.category) || '—'}</span>
       </div>
       <div class="muted small" style="margin:4px 0">${escapeHtml([s.city, s.country].filter(Boolean).join(', ') || '—')}</div>
       ${s.priceIndication ? `<div class="muted small" style="margin-bottom:8px">${escapeHtml(s.priceIndication)}</div>` : ''}
@@ -9671,16 +9677,16 @@ async function openTravelDetail(spotId) {
     <div class="modal-overlay" id="travel-detail-modal">
       <div class="modal" style="max-width:480px">
         <button class="modal-close" onclick="document.getElementById('travel-detail-modal').remove()" aria-label="Fermer">×</button>
-        <div class="muted small" style="margin-bottom:4px">${t(TRAVEL_CATEGORY_LABELS[spot.category]) || spot.category || '—'}</div>
+        <div class="muted small" style="margin-bottom:4px">${t(TRAVEL_CATEGORY_LABELS[spot.category]) || escapeHtml(spot.category) || '—'}</div>
         <h3 style="margin-bottom:4px">${escapeHtml(spot.title || t('travel_default_title'))}</h3>
         <p class="muted small" style="margin-bottom:12px">${escapeHtml([spot.city, spot.country].filter(Boolean).join(', '))}</p>
         ${spot.priceIndication ? `<p class="small" style="margin-bottom:10px"><strong>${escapeHtml(spot.priceIndication)}</strong></p>` : ''}
         ${spot.description ? `<p class="small" style="margin-bottom:14px">${escapeHtml(spot.description)}</p>` : ''}
-        ${photos.length > 0 ? `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">${photos.map((p, i) => `<a href="${escapeHtml(p)}" target="_blank" class="muted small" style="display:inline-flex;align-items:center;gap:4px">${ICON_LINK} ${t('travel_photo_label')} ${i + 1}</a>`).join('')}</div>` : ''}
+        ${photos.length > 0 ? `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">${photos.map((p, i) => `<a href="${safeHref(p)}" target="_blank" class="muted small" style="display:inline-flex;align-items:center;gap:4px">${ICON_LINK} ${t('travel_photo_label')} ${i + 1}</a>`).join('')}</div>` : ''}
 
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
           ${renderContactLinksHtml(spot, 'row')}
-          ${spot.website ? `<a class="btn btn-outline btn-sm" href="${escapeHtml(spot.website)}" target="_blank">${ICON_LINK} ${t('travel_website_btn')}</a>` : ''}
+          ${spot.website ? `<a class="btn btn-outline btn-sm" href="${safeHref(spot.website)}" target="_blank">${ICON_LINK} ${t('travel_website_btn')}</a>` : ''}
         </div>
 
         <button class="btn ${isFavorited ? 'btn-outline' : 'btn-primary'}" id="travel-fav-btn" style="width:100%;justify-content:center" onclick="toggleTravelFavorite('${spot.id}')">${isFavorited ? t('travel_remove_favorite_btn') : t('travel_add_favorite_btn')}</button>
@@ -9737,7 +9743,7 @@ async function loadTravelFavorites() {
     const spots = spotDocs.filter(d => d.exists).map(d => ({ id: d.id, ...d.data() }));
     renderTravelCards(spots, 'travel-favorites-list', t('travel_no_favorites'));
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">${t('travel_load_error_prefix')} ${e.message}</p>`;
+    listEl.innerHTML = `<p class="muted small">${t('travel_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -9764,7 +9770,7 @@ async function loadMyTravelSpots() {
           <strong style="font-size:1.02rem">${escapeHtml(s.title)}</strong>
           <span class="shop-card-category">${s.status === 'active' ? t('travel_status_visible') : t('travel_status_hidden')}</span>
         </div>
-        <div class="muted small" style="margin:4px 0">${t(TRAVEL_CATEGORY_LABELS[s.category]) || s.category || '—'} · ${escapeHtml([s.city, s.country].filter(Boolean).join(', '))}</div>
+        <div class="muted small" style="margin:4px 0">${t(TRAVEL_CATEGORY_LABELS[s.category]) || escapeHtml(s.category) || '—'} · ${escapeHtml([s.city, s.country].filter(Boolean).join(', '))}</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
           <button class="btn btn-outline btn-sm" onclick="openTravelForm('${s.id}')">${t('travel_edit_btn')}</button>
           <button class="btn btn-outline btn-sm" onclick="toggleTravelSpotStatus('${s.id}', '${s.status === 'active' ? 'inactive' : 'active'}')">${s.status === 'active' ? t('travel_hide_btn') : t('travel_reactivate_btn')}</button>
@@ -9772,7 +9778,7 @@ async function loadMyTravelSpots() {
         </div>
       </div>`).join('');
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">${t('travel_load_error_prefix')} ${e.message}</p>`;
+    listEl.innerHTML = `<p class="muted small">${t('travel_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -9963,7 +9969,7 @@ async function loadBookableProfessionals() {
     bookingProsCache = (directoryCache || []).filter(f => f.bookingEnabled);
     runBookingSearch();
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">${t('booking_load_error_prefix')} ${e.message}</p>`;
+    listEl.innerHTML = `<p class="muted small">${t('booking_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -10117,7 +10123,7 @@ async function loadAvailableSlots(proUid) {
         ${available.map(t => `<button type="button" class="btn btn-outline btn-sm" data-slot="${t}" onclick="selectBookingSlot('${t}', ${duration})">${t}</button>`).join('')}
       </div>`;
   } catch (e) {
-    containerEl.innerHTML = `<p class="muted small">${t('booking_load_error_prefix')} ${e.message}</p>`;
+    containerEl.innerHTML = `<p class="muted small">${t('booking_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -10215,7 +10221,7 @@ async function loadMyBookings() {
       .sort((a, b) => `${b.date}${b.startTime}`.localeCompare(`${a.date}${a.startTime}`));
     renderBookingsList(bookings, 'booking-mine-list', t('booking_no_bookings_mine'), false);
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">${t('booking_load_error_prefix')} ${e.message}</p>`;
+    listEl.innerHTML = `<p class="muted small">${t('booking_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -10229,7 +10235,7 @@ async function loadReceivedBookings() {
       .sort((a, b) => `${b.date}${b.startTime}`.localeCompare(`${a.date}${a.startTime}`));
     renderBookingsList(bookings, 'booking-received-list', t('booking_no_bookings_received'), true);
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">${t('booking_load_error_prefix')} ${e.message}</p>`;
+    listEl.innerHTML = `<p class="muted small">${t('booking_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -10298,7 +10304,7 @@ async function loadCourses() {
     academyCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     runAcademyFilter();
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">${t('course_load_error_prefix')} ${e.message}</p>`;
+    listEl.innerHTML = `<p class="muted small">${t('course_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -10377,7 +10383,7 @@ async function openCourseDetail(courseId) {
       chaptersHtml = chapters.map((ch, i) => {
         const done = completed.includes(ch.id);
         const contentHtml = ch.contentType === 'video' || ch.contentType === 'document'
-          ? `<a href="${escapeHtml(ch.content || '')}" target="_blank" class="btn btn-outline btn-sm" style="margin:6px 0">${ch.contentType === 'video' ? t('course_view_video_btn') : t('course_view_document_btn')}</a>`
+          ? `<a href="${safeHref(ch.content || '')}" target="_blank" class="btn btn-outline btn-sm" style="margin:6px 0">${ch.contentType === 'video' ? t('course_view_video_btn') : t('course_view_document_btn')}</a>`
           : `<p style="white-space:pre-wrap;margin:6px 0">${escapeHtml(ch.content || '')}</p>`;
         return `<div class="order-box" style="margin-bottom:8px">
           <strong>${i + 1}. ${escapeHtml(ch.title || t('course_default_chapter_title'))}</strong>
@@ -10426,7 +10432,7 @@ async function openCourseDetail(courseId) {
     loadPublicReviews('course', c.id, 'course-detail-reviews', c.title);
     loadRatingBadgeInline('course', c.id, `course-rating-badge-${c.id}`);
   } catch (e) {
-    bodyEl.innerHTML = `<p class="muted small">${t('course_load_error_prefix')} ${e.message}</p>`;
+    bodyEl.innerHTML = `<p class="muted small">${t('course_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -10575,11 +10581,11 @@ async function openBookDetail(bookId) {
   let actionHtml;
   if (isOwner) {
     actionHtml = `
-      <a class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:8px" href="${escapeHtml(b.fileUrl || '#')}" target="_blank">${t('book_download_btn')}</a>
+      <a class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:8px" href="${safeHref(b.fileUrl || '#')}" target="_blank">${t('book_download_btn')}</a>
       <button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="document.getElementById('book-detail-modal').remove();openBookForm('${b.id}')">${t('book_edit_btn')}</button>
       <button class="btn btn-outline" style="width:100%;justify-content:center;color:var(--red-text)" onclick="deleteBook('${b.id}')">${t('book_delete_btn')}</button>`;
   } else if (purchase) {
-    actionHtml = `<a class="btn btn-primary" style="width:100%;justify-content:center" href="${escapeHtml(purchase.fileUrl || b.fileUrl || '#')}" target="_blank">${t('book_download_btn')}</a>`;
+    actionHtml = `<a class="btn btn-primary" style="width:100%;justify-content:center" href="${safeHref(purchase.fileUrl || b.fileUrl || '#')}" target="_blank">${t('book_download_btn')}</a>`;
   } else if (!currentUser) {
     actionHtml = `<button class="btn btn-primary" style="width:100%;justify-content:center" onclick="openAuth('register')">${t('book_login_to_buy_btn')}</button>`;
   } else if (b.status !== 'active') {
@@ -10791,7 +10797,7 @@ async function loadMyPurchasedBooks() {
         <strong>${escapeHtml(p.bookTitle || '')}</strong>
         <div class="muted small" style="margin:4px 0 10px">${(p.amountPaid || 0).toFixed(2)}$ · ${new Date(p.createdAt).toLocaleDateString('fr-FR')}</div>
         <div style="display:flex;gap:8px">
-          <a class="btn btn-primary btn-sm" style="flex:1;justify-content:center" href="${escapeHtml(p.fileUrl || '#')}" target="_blank">${t('book_download_btn')}</a>
+          <a class="btn btn-primary btn-sm" style="flex:1;justify-content:center" href="${safeHref(p.fileUrl || '#')}" target="_blank">${t('book_download_btn')}</a>
           <button class="btn btn-outline btn-sm" onclick="openBookDetail('${p.bookId}')">${t('book_view_btn')}</button>
         </div>
       </div>`).join('');
@@ -11084,14 +11090,17 @@ async function submitCourseEnrollment() {
       if (!courseSnap.exists) throw new Error('OFFER_GONE');
       const course = courseSnap.data();
 
-      await db.collection('course_enrollments').doc(`${courseId}_${currentUser.uid}`).set({
+      // Inscription + compteur dans la MEME operation (batch) : exigé par les règles Firestore.
+      const enrollBatch = db.batch();
+      enrollBatch.set(db.collection('course_enrollments').doc(`${courseId}_${currentUser.uid}`), {
         courseId, courseTitle: course.title || '', courseOwnerUid: course.ownerUid,
         studentUid: currentUser.uid, studentName: currentUser.name || t('common_user_fallback'),
         completedChapters: [], amountPaid: 0, createdAt: new Date().toISOString()
       });
-      db.collection('courses').doc(courseId).update({
+      enrollBatch.update(db.collection('courses').doc(courseId), {
         studentsCount: firebase.firestore.FieldValue.increment(1)
-      }).catch(() => {});
+      });
+      await enrollBatch.commit();
 
       const title = t('course_new_student_notif_title');
       const body = `${currentUser.name || t('course_someone_fallback')} ${t('course_enrollment_notif_verb')} "${course.title || ''}".`;
@@ -11155,7 +11164,7 @@ async function loadMyEnrolledCourses() {
         <button class="btn btn-outline btn-sm" onclick="openCourseDetail('${en.courseId}')">${t('course_continue_btn')}</button>
       </div>`).join('');
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">${t('course_load_error_prefix')} ${e.message}</p>`;
+    listEl.innerHTML = `<p class="muted small">${t('course_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -11182,7 +11191,7 @@ async function loadMyTaughtCourses() {
         <button class="btn btn-outline btn-sm" onclick="openCourseDetail('${c.id}')">${t('course_manage_btn')}</button>
       </div>`).join('');
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">${t('course_load_error_prefix')} ${e.message}</p>`;
+    listEl.innerHTML = `<p class="muted small">${t('course_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -11215,7 +11224,7 @@ async function openCourseStudents(courseId) {
       </div>`;
     }).join('');
   } catch (e) {
-    document.getElementById('course-students-list').innerHTML = `<p class="muted small">${t('course_load_error_prefix')} ${e.message}</p>`;
+    document.getElementById('course-students-list').innerHTML = `<p class="muted small">${t('course_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -11272,7 +11281,7 @@ async function loadImmoProperties() {
     immoCache.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
     runImmoFilter();
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">${t('immo_load_error_prefix')} ${e.message}</p>`;
+    listEl.innerHTML = `<p class="muted small">${t('immo_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -11314,8 +11323,8 @@ function renderImmoCards(list, targetId, emptyMessage) {
 
   listEl.innerHTML = visible.map(p => {
     const details = [];
-    if (p.bedrooms) details.push(`${p.bedrooms} ${t('immo_card_bedroom_abbr')}`);
-    if (p.bathrooms) details.push(`${p.bathrooms} ${t('immo_card_bathroom_abbr')}`);
+    if (p.bedrooms) details.push(`${escapeHtml(p.bedrooms)} ${t('immo_card_bedroom_abbr')}`);
+    if (p.bathrooms) details.push(`${escapeHtml(p.bathrooms)} ${t('immo_card_bathroom_abbr')}`);
     if (p.surfaceArea) details.push(escapeHtml(p.surfaceArea));
     return `
     <div class="order-box" style="margin-bottom:12px">
@@ -11323,7 +11332,7 @@ function renderImmoCards(list, targetId, emptyMessage) {
         <strong style="font-size:1.02rem">${escapeHtml(p.title || t('immo_default_title'))}</strong>
         <span class="shop-card-category" style="white-space:nowrap">${t(IMMO_TRANSACTION_LABELS[p.transactionType]) || ''}</span>
       </div>
-      <div class="muted small" style="margin:4px 0">${t(IMMO_TYPE_LABELS[p.propertyType]) || p.propertyType || '—'} · ${escapeHtml(p.city || '—')}</div>
+      <div class="muted small" style="margin:4px 0">${t(IMMO_TYPE_LABELS[p.propertyType]) || escapeHtml(p.propertyType) || '—'} · ${escapeHtml(p.city || '—')}</div>
       ${details.length ? `<div class="muted small" style="margin-bottom:6px">${details.join(' · ')}</div>` : ''}
       <strong style="display:block;margin-bottom:8px">${(p.price || 0).toLocaleString('fr-FR')} ${escapeHtml(p.currency || 'USD')}${p.transactionType === 'location' ? ' ' + t('immo_per_month_suffix') : ''}</strong>
       <button class="btn btn-outline btn-sm" onclick="openImmoDetail('${p.id}')">${t('immo_view_details_btn')}</button>
@@ -11355,8 +11364,8 @@ async function openImmoDetail(propertyId) {
 
   const photos = Array.isArray(p.photos) ? p.photos.filter(Boolean) : [];
   const details = [];
-  if (p.bedrooms) details.push(`${p.bedrooms} ${t(p.bedrooms > 1 ? 'immo_detail_bedroom_other' : 'immo_detail_bedroom_one')}`);
-  if (p.bathrooms) details.push(`${p.bathrooms} ${t(p.bathrooms > 1 ? 'immo_detail_bathroom_other' : 'immo_detail_bathroom_one')}`);
+  if (p.bedrooms) details.push(`${escapeHtml(p.bedrooms)} ${t(p.bedrooms > 1 ? 'immo_detail_bedroom_other' : 'immo_detail_bedroom_one')}`);
+  if (p.bathrooms) details.push(`${escapeHtml(p.bathrooms)} ${t(p.bathrooms > 1 ? 'immo_detail_bathroom_other' : 'immo_detail_bathroom_one')}`);
   if (p.surfaceArea) details.push(escapeHtml(p.surfaceArea));
 
   const html = `
@@ -11369,7 +11378,7 @@ async function openImmoDetail(propertyId) {
         <strong style="display:block;font-size:1.15rem;margin-bottom:10px">${(p.price || 0).toLocaleString('fr-FR')} ${escapeHtml(p.currency || 'USD')}${p.transactionType === 'location' ? ' ' + t('immo_per_month_suffix') : ''}</strong>
         ${details.length ? `<p class="small" style="margin-bottom:10px">${details.join(' · ')}</p>` : ''}
         ${p.description ? `<p class="small" style="margin-bottom:14px">${escapeHtml(p.description)}</p>` : ''}
-        ${photos.length > 0 ? `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">${photos.map((ph, i) => `<a href="${escapeHtml(ph)}" target="_blank" class="muted small" style="display:inline-flex;align-items:center;gap:4px">${ICON_LINK} ${t('immo_photo_label')} ${i + 1}</a>`).join('')}</div>` : ''}
+        ${photos.length > 0 ? `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">${photos.map((ph, i) => `<a href="${safeHref(ph)}" target="_blank" class="muted small" style="display:inline-flex;align-items:center;gap:4px">${ICON_LINK} ${t('immo_photo_label')} ${i + 1}</a>`).join('')}</div>` : ''}
 
         <div style="margin-bottom:10px">${renderContactLinksHtml(p, 'block')}</div>
         <button class="btn ${isFavorited ? 'btn-outline' : 'btn-primary'}" id="immo-fav-btn" style="width:100%;justify-content:center" onclick="toggleImmoFavorite('${p.id}')">${isFavorited ? t('immo_remove_favorite_btn') : t('immo_add_favorite_btn')}</button>
@@ -11424,7 +11433,7 @@ async function loadImmoFavorites() {
     const properties = propDocs.filter(d => d.exists).map(d => ({ id: d.id, ...d.data() }));
     renderImmoCards(properties, 'immo-favorites-list', t('immo_no_favorites'));
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">${t('immo_load_error_prefix')} ${e.message}</p>`;
+    listEl.innerHTML = `<p class="muted small">${t('immo_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -11452,7 +11461,7 @@ async function loadMyImmoProperties() {
       <div class="order-box" style="margin-bottom:12px">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
           <strong style="font-size:1.02rem">${escapeHtml(p.title)}</strong>
-          <span class="shop-card-category">${t(IMMO_STATUS_LABELS[p.status]) || p.status}</span>
+          <span class="shop-card-category">${t(IMMO_STATUS_LABELS[p.status]) || escapeHtml(p.status)}</span>
         </div>
         <div class="muted small" style="margin:4px 0">${t(IMMO_TYPE_LABELS[p.propertyType]) || ''} · ${escapeHtml(p.city || '')}</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
@@ -11463,7 +11472,7 @@ async function loadMyImmoProperties() {
       </div>`;
     }).join('');
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">${t('immo_load_error_prefix')} ${e.message}</p>`;
+    listEl.innerHTML = `<p class="muted small">${t('immo_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -11504,16 +11513,16 @@ function openImmoForm(propertyId) {
         </div>
         <div class="field">
           <label for="immo-price">${t('immo_field_price_label')} ${existing && existing.transactionType === 'location' ? t('immo_field_price_permonth') : ''}</label>
-          <input type="number" id="immo-price" class="text-input" min="0" step="1" value="${existing ? (existing.price || '') : ''}">
+          <input type="number" id="immo-price" class="text-input" min="0" step="1" value="${escapeHtml(existing ? (existing.price || '') : '')}">
         </div>
         <div style="display:flex;gap:8px">
           <div class="field" style="flex:1">
             <label for="immo-bedrooms">${t('immo_field_bedrooms')}</label>
-            <input type="number" id="immo-bedrooms" class="text-input" min="0" value="${existing && existing.bedrooms ? existing.bedrooms : ''}">
+            <input type="number" id="immo-bedrooms" class="text-input" min="0" value="${escapeHtml(existing && existing.bedrooms ? existing.bedrooms : '')}">
           </div>
           <div class="field" style="flex:1">
             <label for="immo-bathrooms">${t('immo_field_bathrooms')}</label>
-            <input type="number" id="immo-bathrooms" class="text-input" min="0" value="${existing && existing.bathrooms ? existing.bathrooms : ''}">
+            <input type="number" id="immo-bathrooms" class="text-input" min="0" value="${escapeHtml(existing && existing.bathrooms ? existing.bathrooms : '')}">
           </div>
         </div>
         <div class="field">
@@ -11797,7 +11806,7 @@ async function loadMySRequests() {
         </div>
       </div>`).join('');
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -11872,7 +11881,7 @@ async function viewSRequestQuotes(requestId) {
       </div>`;
     }).join('');
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -12002,7 +12011,7 @@ async function loadAvailableSRequests() {
     srequestMyQuotedIds = new Set(myQuotesSnap ? myQuotesSnap.docs.map(d => d.data().requestId) : []);
     runSRequestFilter();
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -12171,7 +12180,7 @@ async function loadMyQuotes() {
         ${q.message ? `<p class="muted small" style="margin-top:4px">${escapeHtml(q.message)}</p>` : ''}
       </div>`).join('');
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -12241,7 +12250,7 @@ async function loadMySite() {
     mySiteCache = snap.exists ? snap.data() : null;
     renderSiteStatusView();
   } catch (e) {
-    statusEl.innerHTML = `<p class="muted small">${t('site_load_error_prefix')} ${e.message}</p>`;
+    statusEl.innerHTML = `<p class="muted small">${t('site_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -12303,7 +12312,7 @@ function renderSiteStatusView() {
       <p class="muted small" id="site-link-text" style="margin:8px 0;word-break:break-all">${escapeHtml(link)}</p>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn btn-outline btn-sm" onclick="copySiteLink()">${t('site_copy_link_btn')}</button>
-        <a class="btn btn-outline btn-sm" href="${escapeHtml(link)}" target="_blank">${t('site_preview_btn')}</a>
+        <a class="btn btn-outline btn-sm" href="${safeHref(link)}" target="_blank">${t('site_preview_btn')}</a>
         <button class="btn btn-outline btn-sm" onclick="verifyPublicSiteLink()">${t('site_check_link_btn')}</button>
       </div>
       <p class="muted small" id="site-check-link-result" style="margin-top:8px"></p>
@@ -13309,24 +13318,24 @@ function renderPublicSiteHtml(site, overlay) {
       <div class="biz-section" id="site-sec-contact">
         ${site.address ? `<p class="biz-meta-row">${ICON_LOCATION} ${escapeHtml(site.address)}</p>` : ''}
         <div class="biz-actions-row" style="margin-left:0;margin-right:0">
-          ${waLink ? `<a class="btn btn-primary" href="${escapeHtml(waLink)}" target="_blank">${ICON_WHATSAPP} ${t('site_whatsapp_contact_btn')}</a>` : ''}
+          ${waLink ? `<a class="btn btn-primary" href="${safeHref(waLink)}" target="_blank">${ICON_WHATSAPP} ${t('site_whatsapp_contact_btn')}</a>` : ''}
           ${site.contactPhone ? `<a class="btn btn-outline" href="tel:${escapeHtml(site.contactPhone)}">${ICON_PHONE} ${t('site_call_btn')}</a>` : ''}
           ${site.contactEmail ? `<a class="btn btn-outline" href="mailto:${escapeHtml(site.contactEmail)}">${ICON_MAIL} ${t('site_email_btn')}</a>` : ''}
-          ${site.socialLinks && site.socialLinks.facebook ? `<a class="btn btn-outline" href="${escapeHtml(site.socialLinks.facebook)}" target="_blank">${ICON_FACEBOOK} Facebook</a>` : ''}
-          ${site.socialLinks && site.socialLinks.instagram ? `<a class="btn btn-outline" href="${escapeHtml(site.socialLinks.instagram)}" target="_blank">${ICON_INSTAGRAM} Instagram</a>` : ''}
-          ${site.socialLinks && site.socialLinks.tiktok ? `<a class="btn btn-outline" href="${escapeHtml(site.socialLinks.tiktok)}" target="_blank">${ICON_TIKTOK} TikTok</a>` : ''}
+          ${site.socialLinks && site.socialLinks.facebook ? `<a class="btn btn-outline" href="${safeHref(site.socialLinks.facebook)}" target="_blank">${ICON_FACEBOOK} Facebook</a>` : ''}
+          ${site.socialLinks && site.socialLinks.instagram ? `<a class="btn btn-outline" href="${safeHref(site.socialLinks.instagram)}" target="_blank">${ICON_INSTAGRAM} Instagram</a>` : ''}
+          ${site.socialLinks && site.socialLinks.tiktok ? `<a class="btn btn-outline" href="${safeHref(site.socialLinks.tiktok)}" target="_blank">${ICON_TIKTOK} TikTok</a>` : ''}
         </div>
       </div>
 
       ${(isPremium && site.hideBranding) ? '' : `
         <div style="margin:24px 18px 0;padding:18px;border-radius:14px;background:linear-gradient(135deg,var(--green-light),var(--cream));text-align:center;border:1px solid var(--line)">
           <p style="margin:0 0 10px;font-weight:700">${t('site_made_with_prefix')} <span style="color:${accent}">Coeurnoh Universe</span></p>
-          <a class="btn btn-primary btn-sm" href="${escapeHtml(window.location.origin)}">${t('site_cta_create_yours')}</a>
+          <a class="btn btn-primary btn-sm" href="${safeHref(window.location.origin)}">${t('site_cta_create_yours')}</a>
         </div>`}
     </div>
     ${waLink ? `
     <div style="position:fixed;left:0;right:0;bottom:0;padding:10px 14px;background:var(--cream);border-top:1px solid var(--line);z-index:2">
-      <a class="btn btn-primary" style="width:100%;justify-content:center;max-width:640px;margin:0 auto;display:flex" href="${escapeHtml(waLink)}" target="_blank">${ICON_WHATSAPP} ${t('site_whatsapp_contact_btn')}</a>
+      <a class="btn btn-primary" style="width:100%;justify-content:center;max-width:640px;margin:0 auto;display:flex" href="${safeHref(waLink)}" target="_blank">${ICON_WHATSAPP} ${t('site_whatsapp_contact_btn')}</a>
     </div>` : ''}`;
   loadPublicReviews('site', site.ownerUid, 'site-sec-reviews-list', site.businessName);
 }
@@ -13408,7 +13417,7 @@ async function loadBusinesses() {
     businessCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     runBusinessFilter();
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">${t('business_load_error_prefix')} ${e.message}</p>`;
+    listEl.innerHTML = `<p class="muted small">${t('business_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -13534,11 +13543,11 @@ async function openBusinessDetail(ownerUid) {
           ${followBtnHtml ? `<div style="margin-top:14px">${followBtnHtml}</div>` : ''}
         </div>
         <div class="biz-actions-row">
-          ${waLink ? `<a class="btn btn-primary" href="${escapeHtml(waLink)}" target="_blank">${ICON_WHATSAPP} ${t('business_whatsapp_btn')}</a>` : ''}
+          ${waLink ? `<a class="btn btn-primary" href="${safeHref(waLink)}" target="_blank">${ICON_WHATSAPP} ${t('business_whatsapp_btn')}</a>` : ''}
           ${b.phone ? `<a class="btn btn-outline" href="tel:${escapeHtml(b.phone)}">${ICON_PHONE} ${t('business_call_btn')}</a>` : ''}
           ${b.email ? `<a class="btn btn-outline" href="mailto:${escapeHtml(b.email)}">${ICON_MAIL} ${t('business_email_btn')}</a>` : ''}
-          ${b.facebookUrl ? `<a class="btn btn-outline" href="${escapeHtml(b.facebookUrl)}" target="_blank">${ICON_FACEBOOK} Facebook</a>` : ''}
-          ${b.tiktokUrl ? `<a class="btn btn-outline" href="${escapeHtml(b.tiktokUrl)}" target="_blank">${ICON_TIKTOK} TikTok</a>` : ''}
+          ${b.facebookUrl ? `<a class="btn btn-outline" href="${safeHref(b.facebookUrl)}" target="_blank">${ICON_FACEBOOK} Facebook</a>` : ''}
+          ${b.tiktokUrl ? `<a class="btn btn-outline" href="${safeHref(b.tiktokUrl)}" target="_blank">${ICON_TIKTOK} TikTok</a>` : ''}
         </div>
         ${navTabsHtml ? `<nav class="biz-nav-tabs">${navTabsHtml}</nav>` : ''}
         ${b.description ? `<div class="biz-desc-card">${escapeHtml(b.description)}</div>` : ''}
@@ -13638,7 +13647,7 @@ async function loadBusinessPostsFeed(ownerUid, targetId) {
         </div>
       </div>`).join('');
   } catch (e) {
-    el.innerHTML = `<p class="muted small">${t('business_load_error_prefix')} ${e.message}</p>`;
+    el.innerHTML = `<p class="muted small">${t('business_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -13652,7 +13661,7 @@ async function loadMyBusiness() {
     businessMyProfile = snap.exists ? snap.data() : null;
     renderMyBusinessStatus();
   } catch (e) {
-    statusEl.innerHTML = `<p class="muted small">${t('business_load_error_prefix')} ${e.message}</p>`;
+    statusEl.innerHTML = `<p class="muted small">${t('business_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -13933,7 +13942,7 @@ async function loadBusinessClients() {
         ${c.notes ? `<p class="muted small" style="margin-top:4px">${escapeHtml(c.notes)}</p>` : ''}
       </div>`).join('');
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">${t('business_load_error_prefix')} ${e.message}</p>`;
+    listEl.innerHTML = `<p class="muted small">${t('business_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -14619,13 +14628,21 @@ async function setCommentReaction(pubId, commentId, type) {
     const likeDoc = await likeRef.get();
     const wasLiked = likeDoc.exists;
     const wasSameType = wasLiked && likeDoc.data().type === type;
-    if (wasLiked) await likeRef.delete();
+    // Like + compteur dans la MEME operation (batch) : exigé par les règles Firestore.
     if (wasSameType) {
       // Deuxieme tap sur la MEME reaction = on la retire (comme "un-like")
-      await commentRef.update({ likesCount: firebase.firestore.FieldValue.increment(-1) });
-    } else {
+      const cb = db.batch();
+      cb.delete(likeRef);
+      cb.update(commentRef, { likesCount: firebase.firestore.FieldValue.increment(-1) });
+      await cb.commit();
+    } else if (wasLiked) {
+      // Changement de réaction : simple mise à jour du document existant (compteur inchangé)
       await likeRef.set({ commentId, pubId, uid: currentUser.uid, type, createdAt: new Date().toISOString() });
-      if (!wasLiked) await commentRef.update({ likesCount: firebase.firestore.FieldValue.increment(1) });
+    } else {
+      const cb = db.batch();
+      cb.set(likeRef, { commentId, pubId, uid: currentUser.uid, type, createdAt: new Date().toISOString() });
+      cb.update(commentRef, { likesCount: firebase.firestore.FieldValue.increment(1) });
+      await cb.commit();
     }
     await loadShopComments(pubId);
   } catch (e) {
@@ -14743,7 +14760,7 @@ async function loadShopComments(pubId) {
     // une seule fois pour toute l'application (delegation d'evenements).
     bindCommentLongPress();
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${e.message}</p>`;
+    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -15036,7 +15053,7 @@ function buyShopItem(pubId, title, price, itemType) {
     <div class="modal-overlay" id="shop-checkout-modal">
       <div class="modal">
         <button class="modal-close" onclick="closeShopCheckout()" aria-label="Fermer">×</button>
-        <h2>🛍️ ${title}</h2>
+        <h2>🛍️ ${escapeHtml(title)}</h2>
         <p class="sub">Prix : <strong>${price.toFixed(2)}$</strong> — Ton solde : <strong>${(currentUser.balance || 0).toFixed(2)}$</strong></p>
         <div class="modal-error hidden" id="shop-checkout-error"></div>
         <div class="hidden" id="shop-checkout-success">
@@ -15044,7 +15061,7 @@ function buyShopItem(pubId, title, price, itemType) {
           <p class="sub" style="text-align:center;font-weight:700;color:var(--green)">Achat confirmé !</p>
           <div id="shop-checkout-download"></div>
         </div>
-        <button class="btn btn-primary" style="width:100%;margin-top:14px" id="shop-checkout-submit" onclick="confirmShopPurchase('${pubId}','${escapeForJs(title)}',${price},'${itemType}')">Confirmer l'achat (${price.toFixed(2)}$)</button>
+        <button class="btn btn-primary" style="width:100%;margin-top:14px" id="shop-checkout-submit" onclick="confirmShopPurchase('${pubId}','${escapeForJs(title)}',${price},'${escapeForJs(itemType)}')">Confirmer l'achat (${price.toFixed(2)}$)</button>
       </div>
     </div>`;
   document.body.insertAdjacentHTML('beforeend', modalHtml);
@@ -15087,7 +15104,7 @@ async function confirmShopPurchase(pubId, title, price, itemType) {
       shopPurchasedSet.add(pubId);
       if (data.fileUrl) {
         document.getElementById('shop-checkout-download').innerHTML =
-          `<a class="btn btn-primary" style="width:100%;justify-content:center;margin-top:10px" href="${escapeHtml(data.fileUrl)}" target="_blank">📖 Télécharger le livre</a>`;
+          `<a class="btn btn-primary" style="width:100%;justify-content:center;margin-top:10px" href="${safeHref(data.fileUrl)}" target="_blank">📖 Télécharger le livre</a>`;
       }
       renderShopFeed(); // le bouton "Commander" de la carte devient "Télécharger"
     } else {

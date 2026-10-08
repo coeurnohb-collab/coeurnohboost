@@ -56,6 +56,20 @@
       testok: 'Teste enviado! Veja a barra de notificações.', testfail: 'O teste não chegou', nodev: 'Nenhum aparelho registrado: toque em "Ativar notificações".',
       f_all: 'Tudo', f_unread: 'Não lidas', f_activity: 'Atividade', f_orders: 'Pedidos', f_ann: 'Novidades', markall: 'Marcar tudo como lido', allread: 'Tudo lido ✓', nonehere: 'Nada nesta categoria.' }
   };
+  var L10N2 = {
+    fr: { notreg: 'Autorisées, mais cet appareil n\'est pas encore enregistré', fix: 'Réparer', fixok: 'Appareil enregistré ✅', fixfail: 'Enregistrement impossible', netblock: 'La connexion au service de notifications a échoué. Vérifie ta connexion internet et réessaie.' },
+    en: { notreg: 'Allowed, but this device is not registered yet', fix: 'Repair', fixok: 'Device registered ✅', fixfail: 'Registration failed', netblock: 'Could not reach the notification service. Check your connection and try again.' },
+    es: { notreg: 'Permitidas, pero este dispositivo aún no está registrado', fix: 'Reparar', fixok: 'Dispositivo registrado ✅', fixfail: 'No se pudo registrar', netblock: 'No se pudo conectar con el servicio de notificaciones. Revisa tu conexión e inténtalo de nuevo.' },
+    it: { notreg: 'Consentite, ma questo dispositivo non è ancora registrato', fix: 'Ripara', fixok: 'Dispositivo registrato ✅', fixfail: 'Registrazione non riuscita', netblock: 'Impossibile raggiungere il servizio di notifiche. Controlla la connessione e riprova.' },
+    pt: { notreg: 'Permitidas, mas este aparelho ainda não está registrado', fix: 'Reparar', fixok: 'Aparelho registrado ✅', fixfail: 'Falha no registro', netblock: 'Não foi possível acessar o serviço de notificações. Verifique a conexão e tente de novo.' }
+  };
+  function tx2(k) { return (L10N2[lang()] || L10N2.fr)[k]; }
+  // Message humain pour les erreurs Firebase les plus fréquentes
+  function humanErr(e) {
+    var m = String((e && (e.code || e.message)) || e || '');
+    if (/token-subscribe-failed|Failed to fetch|network/i.test(m)) return tx2('netblock') + ' (' + (/token-subscribe-failed/.test(m) ? 'token-subscribe-failed' : 'réseau') + ')';
+    return m.slice(0, 160);
+  }
   function lang() { try { if (typeof currentLang !== 'undefined' && L10N[currentLang]) return currentLang; } catch (e) { /* ignore */ } var n = (navigator.language || 'fr').slice(0, 2); return L10N[n] ? n : 'fr'; }
   function tx(k) { return (L10N[lang()] || L10N.fr)[k] || L10N.fr[k] || k; }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
@@ -177,7 +191,7 @@
         toast(tx('on'), 'success');
         try { var reg = await navigator.serviceWorker.ready; await reg.showNotification(tx('on'), { body: tx('ptext'), icon: '/icon-192-v2.png', badge: '/badge-96.png', tag: 'cn-welcome', data: { url: '/?openTab=notifs' } }); } catch (e) { /* ignore */ }
       }
-    } catch (e) { console.log('[push] activation :', e && e.message); toast(String((e && e.message) || e), 'error'); }
+    } catch (e) { console.log('[push] activation :', e && e.message); toast(tx2('fixfail') + ' — ' + humanErr(e), 'error'); }
     refreshCard();
     return 'granted';
   }
@@ -186,7 +200,7 @@
     var u = cu(); if (!u) return;
     var btn = document.getElementById('cn-push-test'); if (btn) btn.disabled = true;
     try {
-      await syncToken();
+      try { await syncToken(); } catch (e0) { toast(tx2('fixfail') + ' — ' + humanErr(e0), 'error'); if (btn) btn.disabled = false; refreshCard(); return; }
       var idToken = await auth.currentUser.getIdToken();
       var r = await fetch('/api/notify-user', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ idToken: idToken, action: 'test-push' }) });
       var j = await r.json();
@@ -239,10 +253,13 @@
       card.addEventListener('click', function (e) {
         var b = e.target.closest('button'); if (!b) return;
         if (b.id === 'cn-push-enable') enable(); else if (b.id === 'cn-push-test') sendTest(); else if (b.id === 'cn-push-retry') { syncToken().catch(function () {}).then(refreshCard); }
+        else if (b.id === 'cn-push-fix') { b.disabled = true; syncToken().then(function (ok) { toast(ok ? tx2('fixok') : tx2('fixfail'), ok ? 'success' : 'error'); }).catch(function (e) { toast(tx2('fixfail') + ' — ' + humanErr(e), 'error'); }).then(function () { refreshCard(); }); }
       });
     }
     var st = deviceState(), h = '';
-    if (st === 'granted') h = '<div class="st">🔔 ' + esc(tx('cardon')) + '</div><div class="row"><button type="button" class="btn btn-outline btn-sm" id="cn-push-test">' + esc(tx('test')) + '</button></div>';
+    var u0 = cu(), registered = !!(u0 && ls(tkKey(u0.uid)));
+    if (st === 'granted' && registered) h = '<div class="st">🔔 ' + esc(tx('cardon')) + '</div><div class="row"><button type="button" class="btn btn-outline btn-sm" id="cn-push-test">' + esc(tx('test')) + '</button></div>';
+    else if (st === 'granted') h = '<div class="st">⚠️ ' + esc(tx2('notreg')) + '</div><div class="row"><button type="button" class="btn btn-primary btn-sm" id="cn-push-fix">' + esc(tx2('fix')) + '</button></div>';
     else if (st === 'default') h = '<div class="st">🔕 ' + esc(tx('cardoff')) + '</div><div class="row"><button type="button" class="btn btn-primary btn-sm" id="cn-push-enable">' + esc(tx('enable')) + '</button></div>';
     else if (st === 'denied') h = '<div class="st">🚫 ' + esc(tx('cardden')) + '</div><div class="hp">' + esc(tx('denhelp')) + '</div><div class="row"><button type="button" class="btn btn-outline btn-sm" id="cn-push-retry">' + esc(tx('retry')) + '</button></div>';
     else if (st === 'ios-install') h = '<div class="st">🔕 ' + esc(tx('iostitle')) + '</div><div class="hp">' + esc(tx('iostext')) + '</div>';

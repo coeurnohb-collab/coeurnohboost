@@ -1586,7 +1586,7 @@
       }
       var cards = state.templates.map(function (t) {
         return '<button type="button" class="mockup-tpl-card" data-tpl="' + t.id + '">' +
-          '<img src="' + t.imageUrl + '" alt="' + esc(t.name) + '" loading="lazy">' +
+          '<img src="' + esc(t.imageUrl) + '" alt="' + esc(t.name) + '" loading="lazy">' +
           '<span>' + esc(t.name) + '</span></button>';
       }).join('');
       var ownCard = '<button type="button" class="mockup-tpl-card mockup-tpl-own" data-tpl="__own__">' +

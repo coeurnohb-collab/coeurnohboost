@@ -35,7 +35,9 @@ function escapeHtml(str) {
 // n'etait pas nettoye avant ce correctif. Meme fonction que escapeForJs()
 // dans script.js, dupliquee ici car admin.js est un fichier independant.
 function escapeForJs(str) {
-  return (str || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+  // Chaque caractère dangereux (\ ' " & < > retour-ligne) devient \uXXXX : la valeur reste
+  // identique pour la fonction appelée, mais rien ne peut sortir de la chaîne JavaScript.
+  return String(str == null ? '' : str).replace(/[\\'"&<>\r\n\u2028\u2029]/g, (c) => '\\u' + c.charCodeAt(0).toString(16).padStart(4, '0'));
 }
 
 // Convertit un lien Google Drive "partage" en lien d'affichage direct --
@@ -286,7 +288,7 @@ async function loadStats() {
       <div class="stat-card"><span class="stat-value">${depositsSnap.size}</span><span class="stat-label">Dépôts à valider</span></div>
     `;
   } catch (e) {
-    el.innerHTML = `<p class="admin-empty">Erreur de chargement : ${e.message}</p>`;
+    el.innerHTML = `<p class="admin-empty">Erreur de chargement : ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -366,7 +368,7 @@ async function loadOrdersAdmin() {
       </div>`;
     }).join('');
   } catch (e) {
-    el.innerHTML = `<p class="admin-empty">Erreur : ${e.message}</p>`;
+    el.innerHTML = `<p class="admin-empty">Erreur : ${escapeHtml(e.message)}</p>`;
   }
 }
 async function updateOrderStatus(orderId, status) {
@@ -471,7 +473,7 @@ async function loadDepositsAdmin() {
       }
     }).join('');
   } catch (e) {
-    el.innerHTML = `<p class="admin-empty">Erreur : ${e.message}</p>`;
+    el.innerHTML = `<p class="admin-empty">Erreur : ${escapeHtml(e.message)}</p>`;
   }
 }
 async function approveDeposit(depositId, uid, amount) {
@@ -559,7 +561,7 @@ async function loadProfitAdmin() {
         </p>`;
     }
   } catch (e) {
-    el.innerHTML = `<p class="admin-empty">Erreur : ${e.message}</p>`;
+    el.innerHTML = `<p class="admin-empty">Erreur : ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -712,7 +714,7 @@ function renderMonetizationEditor() {
       ${MONETIZATION_SERVICES.map((s, i) => `
         <div class="pricing-service-block">
           <label class="pricing-service-label">${(PLATFORMS.find(p => p.id === s.platformId) || {}).name || s.platformId} — ${s.label}</label>
-          <p class="muted small" style="margin:-4px 0 8px">${s.description}</p>
+          <p class="muted small" style="margin:-4px 0 8px">${escapeHtml(s.description)}</p>
           <div class="pricing-tier-row">
             <div class="pricing-tier-field">
               <span>Standard</span>
@@ -816,7 +818,7 @@ async function loadUsersAdmin() {
       </div>`;
     }).join('');
   } catch (e) {
-    el.innerHTML = `<p class="admin-empty">Erreur : ${e.message}</p>`;
+    el.innerHTML = `<p class="admin-empty">Erreur : ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -846,7 +848,7 @@ async function diagnoseUserNotifs(uid) {
       </div>`;
     }).join('') + `</div>`;
   } catch (e) {
-    el.innerHTML = `<p class="admin-empty">Erreur : ${e.message}</p>`;
+    el.innerHTML = `<p class="admin-empty">Erreur : ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -882,10 +884,10 @@ async function loadAutomationStatus() {
     if (res.ok) {
       el.innerHTML = `🟢 Connecté à MoreThanPanel — solde fournisseur : ${data.balance || '—'} ${data.currency || ''}`;
     } else {
-      el.innerHTML = `🔴 Pas encore connecté.<br><span style="color:#a3241f;font-size:0.78rem">Détail de l'erreur : ${data.error || 'inconnue'} (code ${res.status})</span><br>Les commandes restent en attente de traitement manuel en attendant.`;
+      el.innerHTML = `🔴 Pas encore connecté.<br><span style="color:#a3241f;font-size:0.78rem">Détail de l'erreur : ${escapeHtml(data.error || 'inconnue')} (code ${res.status})</span><br>Les commandes restent en attente de traitement manuel en attendant.`;
     }
   } catch (e) {
-    el.innerHTML = `🔴 Erreur de connexion au serveur.<br><span style="color:#a3241f;font-size:0.78rem">Détail : ${e.message}</span>`;
+    el.innerHTML = `🔴 Erreur de connexion au serveur.<br><span style="color:#a3241f;font-size:0.78rem">Détail : ${escapeHtml(e.message)}</span>`;
   }
 }
 
@@ -916,7 +918,7 @@ async function loadServiceMapAdmin() {
     }
     renderServiceMapAdmin();
   } catch (e) {
-    el.innerHTML = `<p class="admin-empty">Erreur : ${e.message}</p>`;
+    el.innerHTML = `<p class="admin-empty">Erreur : ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -1356,8 +1358,8 @@ async function loadShopAdmin() {
       const isVideo = d.mediaType === 'video' && d.videoUrl;
       const thumbHtml = mediaUrl
         ? (isVideo
-            ? `<div class="admin-thumb-wrap" onclick="openMediaViewer('${escapeHtml(mediaUrl)}','video')"><video src="${escapeHtml(mediaUrl)}" muted class="admin-thumb"></video><span class="admin-thumb-play">${ICON_PLAY}</span></div>`
-            : `<img src="${escapeHtml(mediaUrl)}" alt="" class="admin-thumb" onclick="openMediaViewer('${escapeHtml(mediaUrl)}','photo')">`)
+            ? `<div class="admin-thumb-wrap" onclick="openMediaViewer('${escapeForJs(mediaUrl)}','video')"><video src="${escapeHtml(mediaUrl)}" muted class="admin-thumb"></video><span class="admin-thumb-play">${ICON_PLAY}</span></div>`
+            : `<img src="${escapeHtml(mediaUrl)}" alt="" class="admin-thumb" onclick="openMediaViewer('${escapeForJs(mediaUrl)}','photo')">`)
         : `<div class="admin-thumb" style="display:flex;align-items:center;justify-content:center;background:var(--cream);font-size:1.4rem">📄</div>`;
 
       return `
@@ -1379,7 +1381,7 @@ async function loadShopAdmin() {
       </div>`;
     }).join('');
   } catch (e) {
-    el.innerHTML = `<p class="admin-empty">Erreur : ${e.message}</p>`;
+    el.innerHTML = `<p class="admin-empty">Erreur : ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -1429,12 +1431,12 @@ async function loadWithdrawalsAdmin() {
         ${w.status === 'pending' ? `
         <div class="admin-row-actions">
           <button class="btn btn-outline btn-sm" onclick="markWithdrawalPaid('${doc.id}')">✅ Marquer comme payé</button>
-          <button class="btn btn-outline btn-sm" onclick="rejectWithdrawal('${doc.id}','${w.uid}',${w.amountUSD})">❌ Rejeter (rembourse)</button>
+          <button class="btn btn-outline btn-sm" onclick="rejectWithdrawal('${escapeForJs(doc.id)}','${escapeForJs(w.uid)}',${Number(w.amountUSD) || 0})">❌ Rejeter (rembourse)</button>
         </div>` : ''}
       </div>`;
     }).join('');
   } catch (e) {
-    el.innerHTML = `<p class="admin-empty">Erreur : ${e.message}</p>`;
+    el.innerHTML = `<p class="admin-empty">Erreur : ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -1476,7 +1478,7 @@ async function loadReportsAdmin() {
       </div>`;
     }).join('');
   } catch (e) {
-    el.innerHTML = `<p class="admin-empty">Erreur : ${e.message}</p>`;
+    el.innerHTML = `<p class="admin-empty">Erreur : ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -1561,7 +1563,7 @@ async function loadSitePricingEditor() {
     const domainPriceMonth = (typeof data.domainPriceMonth === 'number' && data.domainPriceMonth > 0) ? data.domainPriceMonth : 4;
     renderSitePricingEditor(premiumPriceMonth, domainPriceMonth);
   } catch (e) {
-    el.innerHTML = `<p class="admin-empty">Erreur de chargement des tarifs : ${e.message}</p>`;
+    el.innerHTML = `<p class="admin-empty">Erreur de chargement des tarifs : ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -1662,13 +1664,13 @@ async function loadDomainRequestsList() {
         </div>
         ${status === 'pending' ? `
         <div class="admin-row-actions">
-          <button class="btn btn-outline btn-sm" onclick="activateDomain('${doc.id}','${escapeHtml(r.desiredDomain || '')}',${months})">✅ Marquer comme actif (${months} mois)</button>
+          <button class="btn btn-outline btn-sm" onclick="activateDomain('${escapeForJs(doc.id)}','${escapeForJs(r.desiredDomain || '')}',${months})">✅ Marquer comme actif (${months} mois)</button>
           <button class="btn btn-outline btn-sm" onclick="rejectDomain('${doc.id}','${r.uid || doc.id}',${r.pricePaid || 0})">❌ Rejeter (rembourse)</button>
         </div>` : ''}
       </div>`;
     }).join('');
   } catch (e) {
-    el.innerHTML = `<p class="admin-empty">Erreur : ${e.message}</p>`;
+    el.innerHTML = `<p class="admin-empty">Erreur : ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -1774,7 +1776,7 @@ async function loadAnnouncementsAdmin() {
       </div>`;
     }).join('');
   } catch (e) {
-    el.innerHTML = `<p class="admin-empty">Erreur : ${e.message}</p>`;
+    el.innerHTML = `<p class="admin-empty">Erreur : ${escapeHtml(e.message)}</p>`;
   }
 }
 
@@ -1891,7 +1893,7 @@ async function loadScheduledBroadcastsAdmin() {
       </div>`;
     }).join('');
   } catch (e) {
-    el.innerHTML = `<p class="admin-empty">Erreur : ${e.message}</p>`;
+    el.innerHTML = `<p class="admin-empty">Erreur : ${escapeHtml(e.message)}</p>`;
   }
 }
 
