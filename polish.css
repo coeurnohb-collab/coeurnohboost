@@ -172,3 +172,10 @@ body.cn-banner-on #toast-container { top: calc(max(12px, env(safe-area-inset-top
 @keyframes cnShine { 0% { background-position: 120% 0; } 100% { background-position: -120% 0; } }
 #app-splash-tagline { letter-spacing: .42em; animation: cnTag 1.2s ease .5s both; }
 @keyframes cnTag { from { opacity: 0; letter-spacing: .8em; } to { opacity: 1; letter-spacing: .42em; } }
+
+
+/* ===== Icônes vectorielles (remplacent les emoji décoratifs) ===== */
+.ico { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-width: 2;
+  stroke-linecap: round; stroke-linejoin: round; vertical-align: -.2em; flex: none; }
+.file-picker-icon .ico { width: 1.5em; height: 1.5em; vertical-align: middle; }
+.contact-icon .ico { width: 1.2em; height: 1.2em; color: #fff; }

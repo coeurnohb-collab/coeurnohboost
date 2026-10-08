@@ -132,6 +132,41 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"></script>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+<symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></symbol>
+<symbol id="i-cart" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></symbol>
+<symbol id="i-bulb" viewBox="0 0 24 24"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/></symbol>
+<symbol id="i-gift" viewBox="0 0 24 24"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></symbol>
+<symbol id="i-lock" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+<symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></symbol>
+<symbol id="i-message" viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></symbol>
+<symbol id="i-mail" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></symbol>
+<symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
+<symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></symbol>
+<symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
+<symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></symbol>
+<symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></symbol>
+<symbol id="i-monitor" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></symbol>
+<symbol id="i-briefcase" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></symbol>
+<symbol id="i-book" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></symbol>
+<symbol id="i-bookopen" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></symbol>
+<symbol id="i-bag" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></symbol>
+<symbol id="i-card" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></symbol>
+<symbol id="i-package" viewBox="0 0 24 24"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></symbol>
+<symbol id="i-file" viewBox="0 0 24 24"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></symbol>
+<symbol id="i-filetext" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></symbol>
+<symbol id="i-camera" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></symbol>
+<symbol id="i-grad" viewBox="0 0 24 24"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></symbol>
+<symbol id="i-video" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></symbol>
+<symbol id="i-pen" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></symbol>
+<symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></symbol>
+<symbol id="i-paperclip" viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></symbol>
+<symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></symbol>
+<symbol id="i-bellOff" viewBox="0 0 24 24"><path d="M13.73 21a2 2 0 0 1-3.46 0"/><path d="M18.63 13A17.89 17.89 0 0 1 18 8"/><path d="M6.26 6.26A5.86 5.86 0 0 0 6 8c0 7-3 9-3 9h14"/><path d="M18 8a6 6 0 0 0-9.33-5"/><line x1="1" y1="1" x2="23" y2="23"/></symbol>
+<symbol id="i-ban" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></symbol>
+</defs></svg>
 <noscript>
   <div style="max-width:720px;margin:0 auto;padding:24px;font-family:system-ui,sans-serif;line-height:1.6">
     <h1>Coeurnoh Universe — Réseaux sociaux, boutique &amp; services multiples</h1>
@@ -170,7 +205,7 @@
         <a href="admin.html" class="btn admin-shortcut hidden" id="admin-shortcut-btn" aria-label="Administration"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></a>
         <button class="btn help-shortcut" id="help-shortcut-btn" onclick="openTutorial()" aria-label="Aide / Tutoriel" title="Comment ça marche ?"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 2-3 4"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></button>
       </div>
-      <button class="btn btn-primary hidden" id="install-app-btn" onclick="installApp()">📲 <span data-i18n="install_app_btn">Installer l'app</span></button>
+      <button class="btn btn-primary hidden" id="install-app-btn" onclick="installApp()"><svg class="ico" aria-hidden="true"><use href="#i-download"/></svg> <span data-i18n="install_app_btn">Installer l'app</span></button>
     </div>
   </div>
   <div class="nav-accent-line"></div>
@@ -267,7 +302,7 @@
     <h2 class="page-title" data-i18n="services_title">Services populaires</h2>
     <p class="muted" style="text-align:center;margin-bottom:20px" data-i18n="catalog_public_sub">Découvre nos tarifs — crée ton compte pour commander.</p>
 
-    <input type="text" id="home-platform-search" class="text-input" data-i18n-placeholder="search_placeholder" placeholder="🔍 Rechercher un réseau..." style="margin-bottom:16px" oninput="filterPlatformGrid('home-platform-grid', this.value)">
+    <input type="text" id="home-platform-search" class="text-input" data-i18n-placeholder="search_placeholder" placeholder="Rechercher un réseau..." style="margin-bottom:16px" oninput="filterPlatformGrid('home-platform-grid', this.value)">
     <div class="platform-grid" id="home-platform-grid"></div>
   </section>
 
@@ -324,7 +359,7 @@
       <input type="file" id="story-upload-file" class="file-input-hidden" accept="image/*,video/*" onchange="handleStoryFileChange(event)">
 
       <div style="position:relative;margin-bottom:14px">
-        <input type="text" id="account-search-input" class="text-input" placeholder="🔍 Rechercher un compte..." oninput="searchAccounts(this.value)" onfocus="if(this.value) searchAccounts(this.value)" onblur="closeAccountSearchOnBlur()">
+        <input type="text" id="account-search-input" class="text-input" placeholder="Rechercher un compte..." oninput="searchAccounts(this.value)" onfocus="if(this.value) searchAccounts(this.value)" onblur="closeAccountSearchOnBlur()">
         <div id="account-search-results" class="account-search-results hidden"></div>
       </div>
 
@@ -336,12 +371,12 @@
       <h2 class="page-title" style="margin-bottom:14px" data-i18n="tab_network">Réseau</h2>
 
       <div class="order-box">
-        <h3>🛒 <span data-i18n="dash_orders_title">Nouvelle commande</span></h3>
+        <h3><svg class="ico" aria-hidden="true"><use href="#i-cart"/></svg> <span data-i18n="dash_orders_title">Nouvelle commande</span></h3>
         <p class="muted" style="margin-bottom:12px" data-i18n="dash_orders_sub">Découvre nos services par plateforme et leurs prix.</p>
         <button class="btn btn-primary" data-i18n="dash_orders_cta" onclick="showServices()">Voir les services →</button>
       </div>
 
-      <button class="quick-link" style="width:100%;margin-bottom:16px" onclick="showMonetization()">💡 <span data-i18n="monetization_title">Monétisation</span></button>
+      <button class="quick-link" style="width:100%;margin-bottom:16px" onclick="showMonetization()"><svg class="ico" aria-hidden="true"><use href="#i-bulb"/></svg> <span data-i18n="monetization_title">Monétisation</span></button>
 
       <div class="order-box">
         <p class="muted" data-i18n="orders_empty">Tu n'as pas encore passé de commande.</p>
@@ -366,7 +401,7 @@
          sont deplacees une par une dans le menu ☰ quand on les consulte. -->
     <div class="dash-tab hidden" id="dash-tab-account">
       <div class="order-box" id="section-referral" data-menu-title="Parrainage">
-        <h3>🎁 <span data-i18n="referral_title">Parrainage</span></h3>
+        <h3><svg class="ico" aria-hidden="true"><use href="#i-gift"/></svg> <span data-i18n="referral_title">Parrainage</span></h3>
         <p class="muted" style="margin-bottom:12px" data-i18n="referral_sub">Invite tes amis et gagne 5% sur chacune de leurs recharges.</p>
         <div class="referral-box">
           <span id="referral-link-text" class="referral-link-text">—</span>
@@ -397,12 +432,12 @@
         <h3><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:6px"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>Comptes bloqués</h3>
         <p class="muted small" style="margin-bottom:12px">Ces comptes n'apparaissent plus dans ton fil ni dans la recherche.</p>
         <div id="blocked-list"><p class="muted small">Chargement...</p></div>
-        <p class="muted small" style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line)">🔒 Tes données (nom, e-mail, publications) sont stockées de façon sécurisée et ne sont jamais partagées avec des tiers.</p>
+        <p class="muted small" style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line)"><svg class="ico" aria-hidden="true"><use href="#i-lock"/></svg> Tes données (nom, e-mail, publications) sont stockées de façon sécurisée et ne sont jamais partagées avec des tiers.</p>
       </div>
 
       <div class="order-box" id="section-profile" data-menu-title="Mon profil">
         <h3 data-i18n="dash_profile_title">Mon profil</h3>
-        <button class="btn btn-outline btn-sm" style="margin-bottom:14px" onclick="shareMyProfile()">🔗 Partager mon profil</button>
+        <button class="btn btn-outline btn-sm" style="margin-bottom:14px" onclick="shareMyProfile()"><svg class="ico" aria-hidden="true"><use href="#i-link"/></svg> Partager mon profil</button>
         <div class="profile-row"><span data-i18n="dash_profile_name">Nom</span><span id="profile-name">—</span></div>
         <div class="profile-row"><span data-i18n="dash_profile_email">Email</span><span id="profile-email">—</span></div>
         <div class="profile-row"><span data-i18n="dash_profile_since">Membre depuis</span><span id="profile-since">—</span></div>
@@ -410,18 +445,18 @@
       </div>
 
       <div class="order-box" id="section-contact" data-menu-title="Assistance">
-        <h3>💬 <span data-i18n="contact_title">Besoin d'aide ?</span></h3>
+        <h3><svg class="ico" aria-hidden="true"><use href="#i-message"/></svg> <span data-i18n="contact_title">Besoin d'aide ?</span></h3>
         <p class="muted" style="margin-bottom:12px" data-i18n="contact_sub">Contacte-nous directement, on te répond vite.</p>
         <div class="contact-grid">
           <a class="contact-btn" href="https://wa.me/243825001290" target="_blank"><span class="contact-icon" style="background:#25D366"><svg viewBox="0 0 24 24" fill="#fff"><path d="M12 3a9 9 0 0 0-7.7 13.6L3 21l4.5-1.3A9 9 0 1 0 12 3zm0 1.8a7.2 7.2 0 0 1 6.1 11l-.2.3.3 3.4-3.4-1-.3.1a7.2 7.2 0 1 1-2.5-13.8zm-3.5 3.9c-.2 0-.5 0-.7.3-.3.3-1 1-1 2.3s1 2.7 1.2 2.9c.15.2 2 3.1 4.9 4.2 2.4.9 2.9.7 3.4.7.5 0 1.7-.7 1.9-1.4.2-.7.2-1.2.15-1.4-.05-.1-.2-.2-.4-.35-.2-.1-1.3-.6-1.5-.7-.2-.1-.35-.15-.5.15-.15.3-.6.7-.7.85-.15.15-.25.15-.45.05-.2-.1-.9-.35-1.7-1.1-.6-.55-1.05-1.25-1.15-1.45-.15-.25 0-.35.1-.5.1-.1.2-.25.3-.4.1-.15.15-.25.2-.4.05-.15.05-.3 0-.4-.05-.1-.5-1.3-.7-1.75-.2-.45-.35-.4-.5-.4z"/></svg></span>WhatsApp<br><small>+243 825 001 290</small></a>
           <a class="contact-btn" href="https://wa.me/243999082973" target="_blank"><span class="contact-icon" style="background:#25D366"><svg viewBox="0 0 24 24" fill="#fff"><path d="M12 3a9 9 0 0 0-7.7 13.6L3 21l4.5-1.3A9 9 0 1 0 12 3zm0 1.8a7.2 7.2 0 0 1 6.1 11l-.2.3.3 3.4-3.4-1-.3.1a7.2 7.2 0 1 1-2.5-13.8zm-3.5 3.9c-.2 0-.5 0-.7.3-.3.3-1 1-1 2.3s1 2.7 1.2 2.9c.15.2 2 3.1 4.9 4.2 2.4.9 2.9.7 3.4.7.5 0 1.7-.7 1.9-1.4.2-.7.2-1.2.15-1.4-.05-.1-.2-.2-.4-.35-.2-.1-1.3-.6-1.5-.7-.2-.1-.35-.15-.5.15-.15.3-.6.7-.7.85-.15.15-.25.15-.45.05-.2-.1-.9-.35-1.7-1.1-.6-.55-1.05-1.25-1.15-1.45-.15-.25 0-.35.1-.5.1-.1.2-.25.3-.4.1-.15.15-.25.2-.4.05-.15.05-.3 0-.4-.05-.1-.5-1.3-.7-1.75-.2-.45-.35-.4-.5-.4z"/></svg></span>WhatsApp<br><small>+243 999 082 973</small></a>
           <a class="contact-btn" href="https://t.me/243825001290" target="_blank"><span class="contact-icon" style="background:#26A5E4"><svg viewBox="0 0 24 24" fill="#fff"><path d="M21 4.3 3.4 11.2c-.9.35-.87 1.65.04 1.94l4.4 1.4 1.7 5.35c.25.78 1.24.95 1.75.3l2.5-3.1 4.55 3.36c.7.5 1.7.13 1.9-.72L23 5.4c.2-.9-.7-1.6-1.5-1.1zM8.8 13.7l8.6-6c.2-.14.4.1.2.3l-7 6.7-.3 3.3-1.5-4.3z"/></svg></span>Telegram<br><small>@coeurnoh</small></a>
-          <a class="contact-btn" href="mailto:coeurnohb@gmail.com" target="_blank"><span class="contact-icon" style="background:#6b7280">✉️</span>Email<br><small>coeurnohb@gmail.com</small></a>
+          <a class="contact-btn" href="mailto:coeurnohb@gmail.com" target="_blank"><span class="contact-icon" style="background:#6b7280"><svg class="ico" aria-hidden="true"><use href="#i-mail"/></svg> </span>Email<br><small>coeurnohb@gmail.com</small></a>
         </div>
       </div>
 
       <div class="order-box" id="section-faq" data-menu-title="Questions fréquentes">
-        <h3>❓ <span data-i18n="faq_title">Questions fréquentes</span></h3>
+        <h3><svg class="ico" aria-hidden="true"><use href="#i-help"/></svg> <span data-i18n="faq_title">Questions fréquentes</span></h3>
         <div id="faq-list"></div>
       </div>
 
@@ -434,7 +469,7 @@
           <div style="display:flex;align-items:center;gap:12px;margin-top:6px">
             <span id="account-photo-preview-wrap"></span>
             <label for="account-photo-file" class="file-picker-btn" id="account-photo-file-label" style="flex:1">
-              <span class="file-picker-icon">🖼️</span>
+              <span class="file-picker-icon"><svg class="ico" aria-hidden="true"><use href="#i-image"/></svg></span>
               <span class="file-picker-text" id="account-photo-file-text">Choisir une photo</span>
             </label>
           </div>
@@ -477,9 +512,9 @@
         <button class="btn btn-outline" onclick="saveAccountPassword()">Changer le mot de passe</button>
         <p class="muted small" id="account-pass-msg" style="margin-top:6px"></p>
 
-        <button class="btn btn-outline" style="margin-top:18px;color:var(--red);border-color:var(--red)" onclick="logoutAllDevices()">🔒 Se déconnecter de tous les appareils</button>
+        <button class="btn btn-outline" style="margin-top:18px;color:var(--red);border-color:var(--red)" onclick="logoutAllDevices()"><svg class="ico" aria-hidden="true"><use href="#i-lock"/></svg> Se déconnecter de tous les appareils</button>
 
-        <p class="muted small" style="margin:18px 0 10px">⚠️ Supprimer ton compte est <strong>définitif</strong> : tu perdras ton solde restant et tes publications.</p>
+        <p class="muted small" style="margin:18px 0 10px"><svg class="ico" aria-hidden="true"><use href="#i-alert"/></svg> Supprimer ton compte est <strong>définitif</strong> : tu perdras ton solde restant et tes publications.</p>
         <div class="field">
           <label for="delete-account-pass">Mot de passe actuel (pour confirmer la suppression)</label>
           <input type="password" id="delete-account-pass">
@@ -492,9 +527,9 @@
         <h3><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:6px"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2a10 10 0 1 0 10 10c0-1-1-2-2-2h-2.5a2.5 2.5 0 0 1 0-5H19a2 2 0 0 0 2-2c0-2-4-3-9-3Z"/></svg>Apparence</h3>
         <p class="muted small" style="margin-bottom:8px">Thème</p>
         <div class="shop-filter-tabs">
-          <button class="theme-choice" data-theme="light" onclick="setTheme('light')">☀️ Clair</button>
-          <button class="theme-choice" data-theme="dark" onclick="setTheme('dark')">🌙 Sombre</button>
-          <button class="theme-choice" data-theme="auto" onclick="setTheme('auto')">⚙️ Auto</button>
+          <button class="theme-choice" data-theme="light" onclick="setTheme('light')"><svg class="ico" aria-hidden="true"><use href="#i-sun"/></svg> Clair</button>
+          <button class="theme-choice" data-theme="dark" onclick="setTheme('dark')"><svg class="ico" aria-hidden="true"><use href="#i-moon"/></svg> Sombre</button>
+          <button class="theme-choice" data-theme="auto" onclick="setTheme('auto')"><svg class="ico" aria-hidden="true"><use href="#i-monitor"/></svg> Auto</button>
         </div>
         <p class="muted small" style="margin:14px 0 8px">Taille du texte</p>
         <div class="shop-filter-tabs">
@@ -534,7 +569,7 @@
         <div class="profile-row" style="border-bottom:none"><span>Commandes &amp; achats</span>
           <label class="switch"><input type="checkbox" id="notifpref-orders" onchange="saveNotifPrefs()"><span class="slider"></span></label>
         </div>
-        <p class="muted small" style="margin-top:10px">🔒 Les annonces administratives importantes restent toujours actives, pour ta sécurité.</p>
+        <p class="muted small" style="margin-top:10px"><svg class="ico" aria-hidden="true"><use href="#i-lock"/></svg> Les annonces administratives importantes restent toujours actives, pour ta sécurité.</p>
       </div>
 
 
@@ -583,7 +618,7 @@
     <h2 class="page-title" style="margin-bottom:4px" data-i18n="services_available">Services disponibles</h2>
     <p class="muted" style="margin-bottom:18px" data-i18n="platforms_pick_sub">Choisis un réseau pour voir les services disponibles.</p>
 
-    <input type="text" id="platform-search" class="text-input" data-i18n-placeholder="search_placeholder" placeholder="🔍 Rechercher un réseau..." style="margin-bottom:14px" oninput="filterPlatformGrid('platform-grid', this.value)">
+    <input type="text" id="platform-search" class="text-input" data-i18n-placeholder="search_placeholder" placeholder="Rechercher un réseau..." style="margin-bottom:14px" oninput="filterPlatformGrid('platform-grid', this.value)">
     <div class="platform-grid" id="platform-grid"></div>
   </div>
 </div>
@@ -702,34 +737,34 @@
     <h2 class="page-title" style="margin-bottom:4px" data-i18n="shop_title">Boutique</h2>
     <p class="muted" style="margin-bottom:18px" data-i18n="shop_sub">Livres et produits Coeurnoh — like, commente et commande.</p>
 
-    <input type="text" id="shop-search-input" class="text-input" style="margin-bottom:12px" data-i18n-placeholder="shop_search_ph" placeholder="🔎 Rechercher un livre ou un produit..." oninput="renderShopFeed()">
+    <input type="text" id="shop-search-input" class="text-input" style="margin-bottom:12px" data-i18n-placeholder="shop_search_ph" placeholder="Rechercher un livre ou un produit..." oninput="renderShopFeed()">
 
     <div style="display:flex;gap:10px;margin-bottom:14px">
-      <button class="btn btn-outline" style="flex:1;justify-content:center" onclick="openSellForm()"><span data-i18n="shop_sell_btn">➕ Vendre</span></button>
-      <button class="btn btn-outline" style="flex:1;justify-content:center" onclick="showSellerPage()"><span data-i18n="shop_seller_btn">💼 Vendeur</span></button>
-      <button class="btn btn-outline" style="position:relative" onclick="openCart()" aria-label="Panier">🛒<span class="cart-badge hidden" id="cart-badge">0</span></button>
+      <button class="btn btn-outline" style="flex:1;justify-content:center" onclick="openSellForm()"><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg> <span data-i18n="shop_sell_btn">Vendre</span></button>
+      <button class="btn btn-outline" style="flex:1;justify-content:center" onclick="showSellerPage()"><svg class="ico" aria-hidden="true"><use href="#i-briefcase"/></svg> <span data-i18n="shop_seller_btn">Vendeur</span></button>
+      <button class="btn btn-outline" style="position:relative" onclick="openCart()" aria-label="Panier"><svg class="ico" aria-hidden="true"><use href="#i-cart"/></svg> <span class="cart-badge hidden" id="cart-badge">0</span></button>
     </div>
 
-    <button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:14px" onclick="showLibrary()"><span data-i18n="shop_goto_library">📚 Aller à la Bibliothèque (livres uniquement)</span></button>
+    <button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:14px" onclick="showLibrary()"><svg class="ico" aria-hidden="true"><use href="#i-book"/></svg> <span data-i18n="shop_goto_library">Aller à la Bibliothèque (livres uniquement)</span></button>
 
     <div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap">
       <div class="shop-filter-tabs" id="shop-filter-tabs" style="margin-bottom:0;flex:1">
         <button class="active" data-filter="all" onclick="setShopFilter('all')" data-i18n="shop_filter_all">Tous</button>
-        <button data-filter="book" onclick="setShopFilter('book')" data-i18n="shop_filter_books">📖 Livres</button>
-        <button data-filter="product" onclick="setShopFilter('product')" data-i18n="shop_filter_products">🛍️ Produits</button>
+        <button data-filter="book" onclick="setShopFilter('book')" data-i18n="shop_filter_books">Livres</button>
+        <button data-filter="product" onclick="setShopFilter('product')" data-i18n="shop_filter_products">Produits</button>
       </div>
       <select id="shop-sort-select" class="select-input" style="width:auto" onchange="setShopSort(this.value)">
         <option value="recent" data-i18n="shop_sort_recent">🆕 Plus récents</option>
-        <option value="popular" data-i18n="shop_sort_popular">🔥 Plus populaires</option>
+        <option value="popular" data-i18n="shop_sort_popular">Plus populaires</option>
       </select>
       <select id="shop-category-select" class="select-input" style="width:auto" onchange="setShopCategory(this.value)">
         <option value="all" data-i18n="shop_cat_all">Toutes catégories</option>
-        <option value="ebooks" data-i18n="shop_cat_ebooks">📚 Livres & Ebooks</option>
-        <option value="beaute" data-i18n="shop_cat_beaute">💄 Beauté & Bien-être</option>
-        <option value="mode" data-i18n="shop_cat_mode">👗 Mode & Accessoires</option>
-        <option value="electronique" data-i18n="shop_cat_electronique">🔌 Électronique</option>
-        <option value="maison" data-i18n="shop_cat_maison">🏠 Maison & Déco</option>
-        <option value="autres" data-i18n="shop_cat_autres">📦 Autres</option>
+        <option value="ebooks" data-i18n="shop_cat_ebooks">Livres & Ebooks</option>
+        <option value="beaute" data-i18n="shop_cat_beaute">Beauté & Bien-être</option>
+        <option value="mode" data-i18n="shop_cat_mode">Mode & Accessoires</option>
+        <option value="electronique" data-i18n="shop_cat_electronique">Électronique</option>
+        <option value="maison" data-i18n="shop_cat_maison">Maison & Déco</option>
+        <option value="autres" data-i18n="shop_cat_autres">Autres</option>
       </select>
     </div>
 
@@ -744,12 +779,12 @@
 <div id="view-library" class="hidden">
   <div class="wrap dash-wrap">
     <button class="btn btn-outline" style="margin-bottom:16px" onclick="showShop()" data-i18n="library_back">← Retour à la Boutique</button>
-    <h2 class="page-title" style="margin-bottom:4px" data-i18n="library_title">📚 Bibliothèque</h2>
+    <h2 class="page-title" style="margin-bottom:4px" data-i18n="library_title">Bibliothèque</h2>
     <p class="muted" style="margin-bottom:18px" data-i18n="library_sub">Tous les livres et ebooks disponibles — cherche, like, commente et achète. Le téléchargement est débloqué automatiquement après l'achat.</p>
 
-    <input type="text" id="library-search-input" class="text-input" style="margin-bottom:14px" data-i18n-placeholder="library_search_ph" placeholder="🔎 Rechercher un livre par titre ou description..." oninput="renderLibraryFeed()">
+    <input type="text" id="library-search-input" class="text-input" style="margin-bottom:14px" data-i18n-placeholder="library_search_ph" placeholder="Rechercher un livre par titre ou description..." oninput="renderLibraryFeed()">
 
-    <button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:14px" onclick="openSellForm()"><span data-i18n="library_publish_btn">➕ Publier un livre à vendre</span></button>
+    <button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:14px" onclick="openSellForm()"><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg> <span data-i18n="library_publish_btn">Publier un livre à vendre</span></button>
 
     <div id="library-feed"><p class="muted" data-i18n="shop_loading">Chargement...</p></div>
   </div>
@@ -759,22 +794,22 @@
 <div id="view-seller" class="hidden">
   <div class="wrap dash-wrap">
     <button class="btn btn-outline" style="margin-bottom:16px" onclick="showShop()">← Retour à la Boutique</button>
-    <h2 class="page-title" style="margin-bottom:4px">💼 Mon espace vendeur</h2>
+    <h2 class="page-title" style="margin-bottom:4px"><svg class="ico" aria-hidden="true"><use href="#i-briefcase"/></svg> Mon espace vendeur</h2>
     <p class="muted" style="margin-bottom:18px">Tes ventes, tes revenus, ton niveau.</p>
 
     <div id="seller-badge-card"><p class="muted">Chargement...</p></div>
 
     <div class="seller-stats-grid" id="seller-stats-grid"></div>
 
-    <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:14px" onclick="openWithdrawForm()">💸 Demander un retrait</button>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:14px" onclick="openWithdrawForm()"><svg class="ico" aria-hidden="true"><use href="#i-card"/></svg> Demander un retrait</button>
 
-    <h3 style="margin:20px 0 10px 0">💸 Mes demandes de retrait</h3>
+    <h3 style="margin:20px 0 10px 0"><svg class="ico" aria-hidden="true"><use href="#i-card"/></svg> Mes demandes de retrait</h3>
     <div id="seller-withdrawals-list"><p class="muted">Chargement...</p></div>
 
-    <h3 style="margin:20px 0 10px 0">📦 Mes publications</h3>
+    <h3 style="margin:20px 0 10px 0"><svg class="ico" aria-hidden="true"><use href="#i-package"/></svg> Mes publications</h3>
     <div id="seller-publications-list"><p class="muted">Chargement...</p></div>
 
-    <h3 style="margin:20px 0 10px 0">🧾 Ventes récentes</h3>
+    <h3 style="margin:20px 0 10px 0"><svg class="ico" aria-hidden="true"><use href="#i-filetext"/></svg> Ventes récentes</h3>
     <div id="seller-recent-sales"><p class="muted">Chargement...</p></div>
   </div>
 </div>
@@ -1749,8 +1784,8 @@
       </div>
 
       <div class="shop-filter-tabs" id="academy-content-type-tabs" style="margin-bottom:14px">
-        <button class="active" data-content-type="courses" onclick="setAcademyContentType('courses')" data-i18n="academy_type_courses_tab">🎓 Cours</button>
-        <button data-content-type="books" onclick="setAcademyContentType('books')" data-i18n="academy_type_books_tab">📚 Livres</button>
+        <button class="active" data-content-type="courses" onclick="setAcademyContentType('courses')" data-i18n="academy_type_courses_tab">Cours</button>
+        <button data-content-type="books" onclick="setAcademyContentType('books')" data-i18n="academy_type_books_tab">Livres</button>
       </div>
 
       <div id="academy-courses-section">
@@ -1832,7 +1867,7 @@
           <label for="book-cover-file" data-i18n="book_cover_label">Couverture (facultatif)</label>
           <input type="file" id="book-cover-file" class="file-input-hidden" accept="image/*" onchange="handleBookCoverFileChange(event)">
           <label for="book-cover-file" class="file-picker-btn" id="book-cover-file-label">
-            <span class="file-picker-icon">🖼️</span>
+            <span class="file-picker-icon"><svg class="ico" aria-hidden="true"><use href="#i-image"/></svg></span>
             <span class="file-picker-text" id="book-cover-file-text" data-i18n="common_choose_image">Choisir une image</span>
           </label>
           <div class="upload-progress-wrap hidden" id="book-cover-progress-wrap">
@@ -1845,7 +1880,7 @@
           <label for="book-file-input" data-i18n="book_file_label">Fichier du livre (PDF)</label>
           <input type="file" id="book-file-input" class="file-input-hidden" accept="application/pdf" onchange="handleBookFileChange(event)">
           <label for="book-file-input" class="file-picker-btn" id="book-file-label">
-            <span class="file-picker-icon">📄</span>
+            <span class="file-picker-icon"><svg class="ico" aria-hidden="true"><use href="#i-file"/></svg></span>
             <span class="file-picker-text" id="book-file-text" data-i18n="book_choose_pdf">Choisir un fichier PDF</span>
           </label>
           <div class="upload-progress-wrap hidden" id="book-file-progress-wrap">
@@ -2050,7 +2085,7 @@
       <label for="job-apply-cv-file" data-i18n="job_apply_cv_label">CV / portfolio (facultatif)</label>
       <input type="file" id="job-apply-cv-file" class="file-input-hidden" accept=".pdf,.doc,.docx,image/*" onchange="handleJobApplyCvFileChange(event)">
       <label for="job-apply-cv-file" class="file-picker-btn" id="job-apply-cv-file-label">
-        <span class="file-picker-icon" id="job-apply-cv-file-icon">📄</span>
+        <span class="file-picker-icon" id="job-apply-cv-file-icon"><svg class="ico" aria-hidden="true"><use href="#i-file"/></svg></span>
         <span class="file-picker-text" id="job-apply-cv-file-text" data-i18n="common_choose_file">Choisir un fichier</span>
       </label>
       <div class="upload-progress-wrap hidden" id="job-apply-cv-progress-wrap">
@@ -2118,7 +2153,7 @@
       <label for="jobseeker-cv-file" data-i18n="job_apply_cv_label">CV / portfolio (facultatif)</label>
       <input type="file" id="jobseeker-cv-file" class="file-input-hidden" accept=".pdf,.doc,.docx,image/*" onchange="handleJobSeekerCvFileChange(event)">
       <label for="jobseeker-cv-file" class="file-picker-btn" id="jobseeker-cv-file-label">
-        <span class="file-picker-icon" id="jobseeker-cv-file-icon">📄</span>
+        <span class="file-picker-icon" id="jobseeker-cv-file-icon"><svg class="ico" aria-hidden="true"><use href="#i-file"/></svg></span>
         <span class="file-picker-text" id="jobseeker-cv-file-text" data-i18n="common_choose_file">Choisir un fichier</span>
       </label>
       <div class="upload-progress-wrap hidden" id="jobseeker-cv-progress-wrap">
@@ -2191,7 +2226,7 @@
       <label for="event-cover-file" data-i18n="event_field_cover_label">Image de couverture (facultatif)</label>
       <input type="file" id="event-cover-file" class="file-input-hidden" accept="image/*" onchange="handleEventCoverFileChange(event)">
       <label for="event-cover-file" class="file-picker-btn" id="event-cover-file-label">
-        <span class="file-picker-icon" id="event-cover-file-icon">🖼️</span>
+        <span class="file-picker-icon" id="event-cover-file-icon"><svg class="ico" aria-hidden="true"><use href="#i-image"/></svg></span>
         <span class="file-picker-text" id="event-cover-file-text" data-i18n="common_choose_image">Choisir une image</span>
       </label>
       <div class="upload-progress-wrap hidden" id="event-cover-progress-wrap">
@@ -2263,7 +2298,7 @@
       <label for="course-cover-file" data-i18n="course_field_cover_label">Image de couverture (facultatif)</label>
       <input type="file" id="course-cover-file" class="file-input-hidden" accept="image/*" onchange="handleCourseCoverFileChange(event)">
       <label for="course-cover-file" class="file-picker-btn" id="course-cover-file-label">
-        <span class="file-picker-icon" id="course-cover-file-icon">🖼️</span>
+        <span class="file-picker-icon" id="course-cover-file-icon"><svg class="ico" aria-hidden="true"><use href="#i-image"/></svg></span>
         <span class="file-picker-text" id="course-cover-file-text" data-i18n="common_choose_image">Choisir une image</span>
       </label>
       <div class="upload-progress-wrap hidden" id="course-cover-progress-wrap">
@@ -2324,22 +2359,22 @@
 <div class="modal-overlay hidden" id="create-post-modal">
   <div class="modal">
     <button class="modal-close" onclick="closeCreatePostForm()" aria-label="Fermer">×</button>
-    <h2>➕ Nouvelle publication</h2>
+    <h2><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg> Nouvelle publication</h2>
     <div class="modal-error hidden" id="post-form-error"></div>
 
     <div class="field">
       <label for="post-media-type">Type</label>
       <select id="post-media-type" class="text-input" onchange="togglePostMediaField()">
-        <option value="photo">📷 Photo</option>
-        <option value="video">🎥 Vidéo</option>
-        <option value="text">✍️ Texte seul</option>
+        <option value="photo">Photo</option>
+        <option value="video">Vidéo</option>
+        <option value="text">Texte seul</option>
       </select>
     </div>
     <div class="field" id="post-media-url-field">
       <label>Photo ou vidéo</label>
       <input type="file" id="post-media-file" class="file-input-hidden" accept="image/*" onchange="handlePostMediaFileChange(event)">
       <label for="post-media-file" class="file-picker-btn" id="post-media-file-label">
-        <span class="file-picker-icon" id="post-media-file-icon">📷</span>
+        <span class="file-picker-icon" id="post-media-file-icon"><svg class="ico" aria-hidden="true"><use href="#i-camera"/></svg></span>
         <span class="file-picker-text" id="post-media-file-text">Choisir une photo</span>
       </label>
       <p class="muted small" style="margin-top:4px">Choisis directement le fichier sur ton téléphone — photo (max 10 Mo) ou vidéo (max 100 Mo).</p>

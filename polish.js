@@ -253,3 +253,43 @@
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', onReady); else onReady();
 })();
+
+
+/* ===== Interface sans emoji décoratifs =====
+   1) Les messages courts (toasts) perdent les emoji décoratifs en début/fin de texte.
+   2) Les pastilles des champs « fichier » deviennent de vraies icônes vectorielles,
+      y compris celles créées plus tard par les formulaires. */
+(function () {
+  'use strict';
+  var DECOR = '\\u2705\\u2713\\u2714\\u26A0\\u274C\\u2728\\u2139\\u2795\\u{1F389}\\u{1F525}\\u{1F680}\\u{1F44B}\\u{1F4A1}\\u{1F4E9}\\u{1F4DA}\\u{1F4B3}\\u{1F381}\\u{1F514}\\u{1F4C5}\\u{1F6CD}\\u{1F4D6}\\u{1F5BC}\\u{1F4F7}\\u{1F4C4}\\u{1F4CE}\\u{1F50E}\\u{1F50D}\\u{1F4BC}\\u{1F393}\\u{1F4E6}';
+  var LEAD = new RegExp('^[\\s\\uFE0F]*[' + DECOR + ']+[\\uFE0F\\s]*', 'u');
+  var TRAIL = new RegExp('[\\s\\uFE0F]*[' + DECOR + ']+[\\uFE0F\\s]*$', 'u');
+  function clean(m) {
+    if (typeof m !== 'string') return m;
+    var r = m.replace(LEAD, '').replace(TRAIL, '');
+    return r || m;
+  }
+  var orig = window.showToast;
+  if (typeof orig === 'function' && !orig.__cnClean) {
+    var wrapped = function (m, t) { return orig.call(this, clean(m), t); };
+    wrapped.__cnClean = true;
+    window.showToast = wrapped;
+  }
+
+  var MAP = { '\u2705': 'check', '\u2713': 'check', '\u2714': 'check', '\u{1F5BC}': 'image', '\u{1F4C4}': 'file', '\u{1F4F7}': 'camera', '\u{1F4CE}': 'paperclip' };
+  function icon(name) { return '<svg class="ico" aria-hidden="true"><use href="#i-' + name + '"/></svg>'; }
+  var queued = false;
+  function fix() {
+    queued = false;
+    var list = document.querySelectorAll('.file-picker-icon');
+    for (var i = 0; i < list.length; i++) {
+      var el = list[i];
+      if (el.firstElementChild) continue;
+      var t = (el.textContent || '').replace(/\uFE0F/g, '').trim();
+      if (MAP[t]) el.innerHTML = icon(MAP[t]);
+    }
+  }
+  function queue() { if (!queued) { queued = true; (window.requestAnimationFrame || setTimeout)(fix); } }
+  try { new MutationObserver(queue).observe(document.body, { childList: true, subtree: true, characterData: true }); } catch (e) { /* ignore */ }
+  queue();
+})();

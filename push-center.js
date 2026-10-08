@@ -24,47 +24,48 @@
       iostitle: 'Notifications sur iPhone', iostext: 'Touche Partager, puis « Sur l\'écran d\'accueil ». Ouvre ensuite l\'application depuis son icône et reviens ici pour activer les notifications.', iosok: 'Compris',
       cardon: 'Activées sur cet appareil', cardoff: 'Pas encore activées sur cet appareil', cardden: 'Bloquées par ton navigateur', cardnosup: 'Non disponibles sur ce navigateur',
       denhelp: 'Touche le cadenas à côté de l\'adresse (ou ⋮ puis Paramètres du site), choisis Notifications > Autoriser, puis reviens ici.',
-      enable: 'Activer les notifications', test: 'Envoyer un test', retry: 'Vérifier à nouveau', on: 'Notifications activées ✅', denied: 'Notifications refusées. Tu peux les réactiver dans les réglages du navigateur.',
+      enable: 'Activer les notifications', test: 'Envoyer un test', retry: 'Vérifier à nouveau', on: 'Notifications activées', denied: 'Notifications refusées. Tu peux les réactiver dans les réglages du navigateur.',
       testok: 'Test envoyé ! Regarde ta barre de notifications.', testfail: 'Le test n\'est pas arrivé', nodev: 'Aucun appareil enregistré : touche « Activer les notifications ».',
-      f_all: 'Tout', f_unread: 'Non lues', f_activity: 'Activité', f_orders: 'Commandes', f_ann: 'Annonces', markall: 'Tout marquer comme lu', allread: 'Tout est lu ✓', nonehere: 'Rien dans cette catégorie.' },
+      f_all: 'Tout', f_unread: 'Non lues', f_activity: 'Activité', f_orders: 'Commandes', f_ann: 'Annonces', markall: 'Tout marquer comme lu', allread: 'Tout est lu', nonehere: 'Rien dans cette catégorie.' },
     en: { ptitle: 'Never miss a thing', ptext: 'Get likes, comments, orders and top-ups instantly, even when the app is closed.', pyes: 'Turn on', plater: 'Not now',
       iostitle: 'Notifications on iPhone', iostext: 'Tap Share, then "Add to Home Screen". Open the app from its icon and come back here to turn notifications on.', iosok: 'Got it',
       cardon: 'On for this device', cardoff: 'Not turned on for this device yet', cardden: 'Blocked by your browser', cardnosup: 'Not available in this browser',
       denhelp: 'Tap the padlock next to the address (or ⋮ then Site settings), choose Notifications > Allow, then come back here.',
-      enable: 'Turn on notifications', test: 'Send a test', retry: 'Check again', on: 'Notifications on ✅', denied: 'Notifications were refused. You can turn them on again in your browser settings.',
+      enable: 'Turn on notifications', test: 'Send a test', retry: 'Check again', on: 'Notifications on', denied: 'Notifications were refused. You can turn them on again in your browser settings.',
       testok: 'Test sent! Check your notification bar.', testfail: 'The test did not arrive', nodev: 'No device registered: tap "Turn on notifications".',
-      f_all: 'All', f_unread: 'Unread', f_activity: 'Activity', f_orders: 'Orders', f_ann: 'News', markall: 'Mark all as read', allread: 'All read ✓', nonehere: 'Nothing in this category.' },
+      f_all: 'All', f_unread: 'Unread', f_activity: 'Activity', f_orders: 'Orders', f_ann: 'News', markall: 'Mark all as read', allread: 'All read', nonehere: 'Nothing in this category.' },
     es: { ptitle: 'No te pierdas nada', ptext: 'Recibe al instante likes, comentarios, pedidos y recargas, incluso con la aplicación cerrada.', pyes: 'Activar', plater: 'Más tarde',
       iostitle: 'Notificaciones en iPhone', iostext: 'Toca Compartir y luego "Añadir a pantalla de inicio". Abre la app desde su icono y vuelve aquí para activar las notificaciones.', iosok: 'Entendido',
       cardon: 'Activadas en este dispositivo', cardoff: 'Aún no activadas en este dispositivo', cardden: 'Bloqueadas por el navegador', cardnosup: 'No disponibles en este navegador',
       denhelp: 'Toca el candado junto a la dirección (o ⋮ y Ajustes del sitio), elige Notificaciones > Permitir y vuelve aquí.',
-      enable: 'Activar notificaciones', test: 'Enviar una prueba', retry: 'Comprobar de nuevo', on: 'Notificaciones activadas ✅', denied: 'Notificaciones rechazadas. Puedes reactivarlas en los ajustes del navegador.',
+      enable: 'Activar notificaciones', test: 'Enviar una prueba', retry: 'Comprobar de nuevo', on: 'Notificaciones activadas', denied: 'Notificaciones rechazadas. Puedes reactivarlas en los ajustes del navegador.',
       testok: '¡Prueba enviada! Mira tu barra de notificaciones.', testfail: 'La prueba no llegó', nodev: 'Ningún dispositivo registrado: toca "Activar notificaciones".',
-      f_all: 'Todo', f_unread: 'No leídas', f_activity: 'Actividad', f_orders: 'Pedidos', f_ann: 'Novedades', markall: 'Marcar todo como leído', allread: 'Todo leído ✓', nonehere: 'Nada en esta categoría.' },
+      f_all: 'Todo', f_unread: 'No leídas', f_activity: 'Actividad', f_orders: 'Pedidos', f_ann: 'Novedades', markall: 'Marcar todo como leído', allread: 'Todo leído', nonehere: 'Nada en esta categoría.' },
     it: { ptitle: 'Non perdere nulla', ptext: 'Ricevi in tempo reale like, commenti, ordini e ricariche, anche con l\'app chiusa.', pyes: 'Attiva', plater: 'Più tardi',
       iostitle: 'Notifiche su iPhone', iostext: 'Tocca Condividi, poi "Aggiungi a Home". Apri l\'app dalla sua icona e torna qui per attivare le notifiche.', iosok: 'Ho capito',
       cardon: 'Attive su questo dispositivo', cardoff: 'Non ancora attive su questo dispositivo', cardden: 'Bloccate dal browser', cardnosup: 'Non disponibili su questo browser',
       denhelp: 'Tocca il lucchetto accanto all\'indirizzo (o ⋮ poi Impostazioni sito), scegli Notifiche > Consenti e torna qui.',
-      enable: 'Attiva le notifiche', test: 'Invia un test', retry: 'Controlla di nuovo', on: 'Notifiche attive ✅', denied: 'Notifiche rifiutate. Puoi riattivarle nelle impostazioni del browser.',
+      enable: 'Attiva le notifiche', test: 'Invia un test', retry: 'Controlla di nuovo', on: 'Notifiche attive', denied: 'Notifiche rifiutate. Puoi riattivarle nelle impostazioni del browser.',
       testok: 'Test inviato! Guarda la barra delle notifiche.', testfail: 'Il test non è arrivato', nodev: 'Nessun dispositivo registrato: tocca "Attiva le notifiche".',
-      f_all: 'Tutte', f_unread: 'Non lette', f_activity: 'Attività', f_orders: 'Ordini', f_ann: 'Novità', markall: 'Segna tutto come letto', allread: 'Tutto letto ✓', nonehere: 'Niente in questa categoria.' },
+      f_all: 'Tutte', f_unread: 'Non lette', f_activity: 'Attività', f_orders: 'Ordini', f_ann: 'Novità', markall: 'Segna tutto come letto', allread: 'Tutto letto', nonehere: 'Niente in questa categoria.' },
     pt: { ptitle: 'Não perca nada', ptext: 'Receba curtidas, comentários, pedidos e recargas na hora, mesmo com o app fechado.', pyes: 'Ativar', plater: 'Mais tarde',
       iostitle: 'Notificações no iPhone', iostext: 'Toque em Compartilhar e depois "Adicionar à Tela de Início". Abra o app pelo ícone e volte aqui para ativar as notificações.', iosok: 'Entendi',
       cardon: 'Ativadas neste aparelho', cardoff: 'Ainda não ativadas neste aparelho', cardden: 'Bloqueadas pelo navegador', cardnosup: 'Indisponíveis neste navegador',
       denhelp: 'Toque no cadeado ao lado do endereço (ou ⋮ e Configurações do site), escolha Notificações > Permitir e volte aqui.',
-      enable: 'Ativar notificações', test: 'Enviar um teste', retry: 'Verificar de novo', on: 'Notificações ativadas ✅', denied: 'Notificações recusadas. Você pode reativá-las nas configurações do navegador.',
+      enable: 'Ativar notificações', test: 'Enviar um teste', retry: 'Verificar de novo', on: 'Notificações ativadas', denied: 'Notificações recusadas. Você pode reativá-las nas configurações do navegador.',
       testok: 'Teste enviado! Veja a barra de notificações.', testfail: 'O teste não chegou', nodev: 'Nenhum aparelho registrado: toque em "Ativar notificações".',
-      f_all: 'Tudo', f_unread: 'Não lidas', f_activity: 'Atividade', f_orders: 'Pedidos', f_ann: 'Novidades', markall: 'Marcar tudo como lido', allread: 'Tudo lido ✓', nonehere: 'Nada nesta categoria.' }
+      f_all: 'Tudo', f_unread: 'Não lidas', f_activity: 'Atividade', f_orders: 'Pedidos', f_ann: 'Novidades', markall: 'Marcar tudo como lido', allread: 'Tudo lido', nonehere: 'Nada nesta categoria.' }
   };
   var L10N2 = {
-    fr: { subfail: 'Le service de notifications a refusé l\'enregistrement de cet appareil.', notreg: 'Autorisées, mais cet appareil n\'est pas encore enregistré', fix: 'Réparer', fixok: 'Appareil enregistré ✅', fixfail: 'Enregistrement impossible', netblock: 'La connexion au service de notifications a échoué. Vérifie ta connexion internet et réessaie.' },
-    en: { subfail: 'The notification service refused to register this device.', notreg: 'Allowed, but this device is not registered yet', fix: 'Repair', fixok: 'Device registered ✅', fixfail: 'Registration failed', netblock: 'Could not reach the notification service. Check your connection and try again.' },
-    es: { subfail: 'El servicio de notificaciones rechazó el registro de este dispositivo.', notreg: 'Permitidas, pero este dispositivo aún no está registrado', fix: 'Reparar', fixok: 'Dispositivo registrado ✅', fixfail: 'No se pudo registrar', netblock: 'No se pudo conectar con el servicio de notificaciones. Revisa tu conexión e inténtalo de nuevo.' },
-    it: { subfail: 'Il servizio di notifiche ha rifiutato la registrazione di questo dispositivo.', notreg: 'Consentite, ma questo dispositivo non è ancora registrato', fix: 'Ripara', fixok: 'Dispositivo registrato ✅', fixfail: 'Registrazione non riuscita', netblock: 'Impossibile raggiungere il servizio di notifiche. Controlla la connessione e riprova.' },
-    pt: { subfail: 'O serviço de notificações recusou o registro deste aparelho.', notreg: 'Permitidas, mas este aparelho ainda não está registrado', fix: 'Reparar', fixok: 'Aparelho registrado ✅', fixfail: 'Falha no registro', netblock: 'Não foi possível acessar o serviço de notificações. Verifique a conexão e tente de novo.' }
+    fr: { subfail: 'Le service de notifications a refusé l\'enregistrement de cet appareil.', notreg: 'Autorisées, mais cet appareil n\'est pas encore enregistré', fix: 'Réparer', fixok: 'Appareil enregistré', fixfail: 'Enregistrement impossible', netblock: 'La connexion au service de notifications a échoué. Vérifie ta connexion internet et réessaie.' },
+    en: { subfail: 'The notification service refused to register this device.', notreg: 'Allowed, but this device is not registered yet', fix: 'Repair', fixok: 'Device registered', fixfail: 'Registration failed', netblock: 'Could not reach the notification service. Check your connection and try again.' },
+    es: { subfail: 'El servicio de notificaciones rechazó el registro de este dispositivo.', notreg: 'Permitidas, pero este dispositivo aún no está registrado', fix: 'Reparar', fixok: 'Dispositivo registrado', fixfail: 'No se pudo registrar', netblock: 'No se pudo conectar con el servicio de notificaciones. Revisa tu conexión e inténtalo de nuevo.' },
+    it: { subfail: 'Il servizio di notifiche ha rifiutato la registrazione di questo dispositivo.', notreg: 'Consentite, ma questo dispositivo non è ancora registrato', fix: 'Ripara', fixok: 'Dispositivo registrato', fixfail: 'Registrazione non riuscita', netblock: 'Impossibile raggiungere il servizio di notifiche. Controlla la connessione e riprova.' },
+    pt: { subfail: 'O serviço de notificações recusou o registro deste aparelho.', notreg: 'Permitidas, mas este aparelho ainda não está registrado', fix: 'Reparar', fixok: 'Aparelho registrado', fixfail: 'Falha no registro', netblock: 'Não foi possível acessar o serviço de notificações. Verifique a conexão e tente de novo.' }
   };
   function tx2(k) { return (L10N2[lang()] || L10N2.fr)[k]; }
   // Message humain pour les erreurs Firebase les plus fréquentes
+  function ico(n) { return '<svg class="ico" aria-hidden="true"><use href="#i-' + n + '"/></svg>'; }
   function humanErr(e) {
     var code = String((e && e.code) || ''), full = String((e && e.message) || e || '');
     var all = code + ' ' + full;
@@ -319,12 +320,12 @@
     }
     var st = deviceState(), h = '';
     var u0 = cu(), registered = !!(u0 && ls(tkKey(u0.uid)));
-    if (st === 'granted' && registered) h = '<div class="st">🔔 ' + esc(tx('cardon')) + '</div><div class="row"><button type="button" class="btn btn-outline btn-sm" id="cn-push-test">' + esc(tx('test')) + '</button></div>';
-    else if (st === 'granted') h = '<div class="st">⚠️ ' + esc(tx2('notreg')) + '</div><div class="row"><button type="button" class="btn btn-primary btn-sm" id="cn-push-fix">' + esc(tx2('fix')) + '</button></div>';
-    else if (st === 'default') h = '<div class="st">🔕 ' + esc(tx('cardoff')) + '</div><div class="row"><button type="button" class="btn btn-primary btn-sm" id="cn-push-enable">' + esc(tx('enable')) + '</button></div>';
-    else if (st === 'denied') h = '<div class="st">🚫 ' + esc(tx('cardden')) + '</div><div class="hp">' + esc(tx('denhelp')) + '</div><div class="row"><button type="button" class="btn btn-outline btn-sm" id="cn-push-retry">' + esc(tx('retry')) + '</button></div>';
-    else if (st === 'ios-install') h = '<div class="st">🔕 ' + esc(tx('iostitle')) + '</div><div class="hp">' + esc(tx('iostext')) + '</div>';
-    else h = '<div class="st">🔕 ' + esc(tx('cardnosup')) + '</div>';
+    if (st === 'granted' && registered) h = '<div class="st">' + ico('bell') + ' ' + esc(tx('cardon')) + '</div><div class="row"><button type="button" class="btn btn-outline btn-sm" id="cn-push-test">' + esc(tx('test')) + '</button></div>';
+    else if (st === 'granted') h = '<div class="st">' + ico('alert') + ' ' + esc(tx2('notreg')) + '</div><div class="row"><button type="button" class="btn btn-primary btn-sm" id="cn-push-fix">' + esc(tx2('fix')) + '</button></div>';
+    else if (st === 'default') h = '<div class="st">' + ico('bellOff') + ' ' + esc(tx('cardoff')) + '</div><div class="row"><button type="button" class="btn btn-primary btn-sm" id="cn-push-enable">' + esc(tx('enable')) + '</button></div>';
+    else if (st === 'denied') h = '<div class="st">' + ico('ban') + ' ' + esc(tx('cardden')) + '</div><div class="hp">' + esc(tx('denhelp')) + '</div><div class="row"><button type="button" class="btn btn-outline btn-sm" id="cn-push-retry">' + esc(tx('retry')) + '</button></div>';
+    else if (st === 'ios-install') h = '<div class="st">' + ico('bellOff') + ' ' + esc(tx('iostitle')) + '</div><div class="hp">' + esc(tx('iostext')) + '</div>';
+    else h = '<div class="st">' + ico('bellOff') + ' ' + esc(tx('cardnosup')) + '</div>';
     card.innerHTML = h;
   }
 
