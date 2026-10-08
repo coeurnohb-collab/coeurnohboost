@@ -1,4 +1,4 @@
-// sw.js — Service Worker de Coeurnoh Universe (v13).
+// sw.js — Service Worker de Coeurnoh Universe (v14).
 // 1) Rend le site installable (PWA / Google Play via TWA) + copie de secours hors-ligne.
 // 2) Affiche les notifications push MÊME QUAND L'APP EST FERMÉE, comme Facebook /
 //    WhatsApp / TikTok : icône, grande image, boutons « Ouvrir / Plus tard »,
@@ -15,6 +15,29 @@ firebase.initializeApp({
   storageBucket: "coeurnohboost.firebasestorage.app",
   messagingSenderId: "295783149587",
   appId: "1:295783149587:web:13aec67a2ae0109eaa4fe6"
+});
+
+// Appareils « Web Push direct » (secours quand l'enregistrement Firebase est bloqué) :
+// le serveur envoie { from: 'cn-webpush', data: {...} }. Ce gestionnaire est enregistré AVANT
+// celui de Firebase et l'empêche de traiter ces messages (pas de doublon) ; tous les autres
+// messages restent gérés par Firebase comme avant.
+self.addEventListener('push', (event) => {
+  let p = null;
+  try { p = event.data ? event.data.json() : null; } catch (e) { p = null; }
+  if (!p || p.from !== 'cn-webpush' || !p.data) return;
+  event.stopImmediatePropagation();
+  const d = p.data;
+  const category = d.category || 'activity';
+  event.waitUntil(showRichNotification({
+    title: d.title || 'Coeurnoh Universe',
+    body: d.body || '',
+    category,
+    url: d.url || '/',
+    tag: d.tag || ('cn-' + category),
+    image: d.image || '',
+    icon: d.icon || ICON,
+    badgeCount: d.badgeCount
+  }));
 });
 
 const messaging = firebase.messaging();
@@ -97,7 +120,7 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
-const CACHE_NAME = 'coeurnohboost-v13';
+const CACHE_NAME = 'coeurnohboost-v14';
 const APP_SHELL = [
   '/',
   '/index.html',

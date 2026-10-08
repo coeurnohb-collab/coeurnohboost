@@ -147,12 +147,53 @@
     }
   }
 
+  /* ---------- Secours : abonnement Web Push direct ----------
+     Si le service d'enregistrement Firebase est bloqué sur ce téléphone (« Failed to fetch »),
+     on s'abonne directement au service de notifications du navigateur. Le serveur sait envoyer
+     aux deux types d'appareils (voir api/_lib/push.js). */
+  var WEBPUSH_PUBLIC_KEY = 'BIQpKN1qPHEzJnDizdWaIRURPga7AHTAprmem9PYHMymy0V2TD4vu0XdGo1O0fEwrWz2z1SDXC6OTqt2BKVRwlc';
+  function b64uToBytes(str) {
+    var pad = '='.repeat((4 - str.length % 4) % 4), b = (str + pad).replace(/-/g, '+').replace(/_/g, '/'), raw = atob(b), out = new Uint8Array(raw.length);
+    for (var i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
+    return out;
+  }
+  function bytesToB64u(bytes) {
+    var bin = ''; for (var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+  async function webPushToken(swReg) {
+    var key = b64uToBytes(WEBPUSH_PUBLIC_KEY);
+    var sub = await swReg.pushManager.getSubscription();
+    if (sub) {
+      var same = false;
+      try { var cur = new Uint8Array(sub.options.applicationServerKey || []); same = cur.length === key.length && cur.every(function (v, i) { return v === key[i]; }); } catch (e) { /* ignore */ }
+      if (!same) { try { await sub.unsubscribe(); } catch (e) { /* ignore */ } sub = null; }
+    }
+    if (!sub) sub = await swReg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key });
+    return 'wp1:' + bytesToB64u(new TextEncoder().encode(JSON.stringify(sub.toJSON())));
+  }
+
   async function syncToken() {
     var u = cu(), d = dbx();
     if (!u || !d || !supported() || Notification.permission !== 'granted') return false;
     var messaging = firebase.messaging();
     var swReg = await navigator.serviceWorker.ready;
-    var token = await fetchToken(messaging, swReg, u.uid);
+    var stored = ls(tkKey(u.uid)) || '';
+    var wpMode = stored.indexOf('wp1:') === 0;
+    var retryKey = 'cn_fcm_retry:' + u.uid;
+    var retryAt = parseInt(ls(retryKey) || '0', 10) || 0;
+    var token = null, fcmErr = null;
+
+    // Déjà en mode secours : on ne réessaie Firebase qu'une fois par semaine.
+    if (wpMode && Date.now() - retryAt < 7 * DAY) { try { token = await webPushToken(swReg); } catch (e) { token = null; } }
+    if (!token) {
+      if (wpMode) { ls(retryKey, String(Date.now())); try { var s0 = await swReg.pushManager.getSubscription(); if (s0) await s0.unsubscribe(); } catch (e) { /* ignore */ } }
+      try { token = await fetchToken(messaging, swReg, u.uid); } catch (e) { fcmErr = e; token = null; }
+    }
+    if (!token) {
+      try { token = await webPushToken(swReg); ls(retryKey, String(Date.now())); }
+      catch (e2) { throw fcmErr || e2; }
+    }
     if (!token) return false;
     var old = ls(tkKey(u.uid));
     var last = parseInt(ls(syKey(u.uid)) || '0', 10) || 0;
@@ -186,6 +227,7 @@
     var tok = ls(tkKey(u.uid));
     if (tok) { try { await d.collection('users').doc(u.uid).update({ fcmTokens: firebase.firestore.FieldValue.arrayRemove(tok) }); } catch (e) { /* ignore */ } }
     ls(tkKey(u.uid), null); ls(syKey(u.uid), null);
+    if (tok && tok.indexOf('wp1:') === 0) { try { var rg = await navigator.serviceWorker.ready; var sb = await rg.pushManager.getSubscription(); if (sb) await sb.unsubscribe(); } catch (e) { /* ignore */ } return; }
     try { if (supported()) await firebase.messaging().deleteToken(); } catch (e) { /* ignore */ }
   }
 
