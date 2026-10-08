@@ -1,4 +1,4 @@
-// sw.js — Service Worker de Coeurnoh Universe (v12).
+// sw.js — Service Worker de Coeurnoh Universe (v13).
 // 1) Rend le site installable (PWA / Google Play via TWA) + copie de secours hors-ligne.
 // 2) Affiche les notifications push MÊME QUAND L'APP EST FERMÉE, comme Facebook /
 //    WhatsApp / TikTok : icône, grande image, boutons « Ouvrir / Plus tard »,
@@ -97,7 +97,7 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
-const CACHE_NAME = 'coeurnohboost-v12';
+const CACHE_NAME = 'coeurnohboost-v13';
 const APP_SHELL = [
   '/',
   '/index.html',
@@ -133,7 +133,7 @@ self.addEventListener('fetch', (event) => {
   // On ne gere que nos propres fichiers (meme origine), en GET.
   // Les reponses /api/* ne sont jamais mises en cache ni servies depuis le cache
   // (une coupure reseau ne doit pas renvoyer la reponse d'un autre utilisateur).
-  if (event.request.method !== 'GET' || url.origin !== self.location.origin || url.pathname.startsWith('/api/')) {
+  if (event.request.method !== 'GET' || url.origin !== self.location.origin || url.pathname.startsWith('/api/') || url.pathname.startsWith('/__/')) {
     return;
   }
   // Vidéos d'ambiance et requêtes partielles (Range) : le navigateur les gère seul.

@@ -1,9 +1,17 @@
 /* =========================================================
    FIREBASE CONFIG — projet "coeurnohboost"
    ========================================================= */
+// Connexion Google sur iPhone/iPad : Safari isole le stockage des sites tiers, donc la
+// connexion par redirection ne peut pas revenir vers l'application si le service de
+// connexion est sur un autre domaine (firebaseapp.com). Sur Apple UNIQUEMENT, on utilise
+// donc le domaine de l'application elle-meme (relaye par vercel.json -> /__/auth/).
+// Android et ordinateur gardent exactement le fonctionnement actuel.
+const AUTH_PROXY_HOSTS = ['coeurnohboost.vercel.app'];
+const IS_IOS_DEVICE = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 const firebaseConfig = {
   apiKey: "AIzaSyAK9j8lmKlxp267bfwKegKgW54fo_jrS9E",
-  authDomain: "coeurnohboost.firebaseapp.com",
+  authDomain: (IS_IOS_DEVICE && AUTH_PROXY_HOSTS.indexOf(location.hostname) !== -1) ? location.hostname : "coeurnohboost.firebaseapp.com",
   projectId: "coeurnohboost",
   storageBucket: "coeurnohboost.firebasestorage.app",
   messagingSenderId: "295783149587",

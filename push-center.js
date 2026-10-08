@@ -57,18 +57,22 @@
       f_all: 'Tudo', f_unread: 'Não lidas', f_activity: 'Atividade', f_orders: 'Pedidos', f_ann: 'Novidades', markall: 'Marcar tudo como lido', allread: 'Tudo lido ✓', nonehere: 'Nada nesta categoria.' }
   };
   var L10N2 = {
-    fr: { notreg: 'Autorisées, mais cet appareil n\'est pas encore enregistré', fix: 'Réparer', fixok: 'Appareil enregistré ✅', fixfail: 'Enregistrement impossible', netblock: 'La connexion au service de notifications a échoué. Vérifie ta connexion internet et réessaie.' },
-    en: { notreg: 'Allowed, but this device is not registered yet', fix: 'Repair', fixok: 'Device registered ✅', fixfail: 'Registration failed', netblock: 'Could not reach the notification service. Check your connection and try again.' },
-    es: { notreg: 'Permitidas, pero este dispositivo aún no está registrado', fix: 'Reparar', fixok: 'Dispositivo registrado ✅', fixfail: 'No se pudo registrar', netblock: 'No se pudo conectar con el servicio de notificaciones. Revisa tu conexión e inténtalo de nuevo.' },
-    it: { notreg: 'Consentite, ma questo dispositivo non è ancora registrato', fix: 'Ripara', fixok: 'Dispositivo registrato ✅', fixfail: 'Registrazione non riuscita', netblock: 'Impossibile raggiungere il servizio di notifiche. Controlla la connessione e riprova.' },
-    pt: { notreg: 'Permitidas, mas este aparelho ainda não está registrado', fix: 'Reparar', fixok: 'Aparelho registrado ✅', fixfail: 'Falha no registro', netblock: 'Não foi possível acessar o serviço de notificações. Verifique a conexão e tente de novo.' }
+    fr: { subfail: 'Le service de notifications a refusé l\'enregistrement de cet appareil.', notreg: 'Autorisées, mais cet appareil n\'est pas encore enregistré', fix: 'Réparer', fixok: 'Appareil enregistré ✅', fixfail: 'Enregistrement impossible', netblock: 'La connexion au service de notifications a échoué. Vérifie ta connexion internet et réessaie.' },
+    en: { subfail: 'The notification service refused to register this device.', notreg: 'Allowed, but this device is not registered yet', fix: 'Repair', fixok: 'Device registered ✅', fixfail: 'Registration failed', netblock: 'Could not reach the notification service. Check your connection and try again.' },
+    es: { subfail: 'El servicio de notificaciones rechazó el registro de este dispositivo.', notreg: 'Permitidas, pero este dispositivo aún no está registrado', fix: 'Reparar', fixok: 'Dispositivo registrado ✅', fixfail: 'No se pudo registrar', netblock: 'No se pudo conectar con el servicio de notificaciones. Revisa tu conexión e inténtalo de nuevo.' },
+    it: { subfail: 'Il servizio di notifiche ha rifiutato la registrazione di questo dispositivo.', notreg: 'Consentite, ma questo dispositivo non è ancora registrato', fix: 'Ripara', fixok: 'Dispositivo registrato ✅', fixfail: 'Registrazione non riuscita', netblock: 'Impossibile raggiungere il servizio di notifiche. Controlla la connessione e riprova.' },
+    pt: { subfail: 'O serviço de notificações recusou o registro deste aparelho.', notreg: 'Permitidas, mas este aparelho ainda não está registrado', fix: 'Reparar', fixok: 'Aparelho registrado ✅', fixfail: 'Falha no registro', netblock: 'Não foi possível acessar o serviço de notificações. Verifique a conexão e tente de novo.' }
   };
   function tx2(k) { return (L10N2[lang()] || L10N2.fr)[k]; }
   // Message humain pour les erreurs Firebase les plus fréquentes
   function humanErr(e) {
-    var m = String((e && (e.code || e.message)) || e || '');
-    if (/token-subscribe-failed|Failed to fetch|network/i.test(m)) return tx2('netblock') + ' (' + (/token-subscribe-failed/.test(m) ? 'token-subscribe-failed' : 'réseau') + ')';
-    return m.slice(0, 160);
+    var code = String((e && e.code) || ''), full = String((e && e.message) || e || '');
+    var all = code + ' ' + full;
+    // Détail renvoyé par Google (ex. clé API bloquée, API désactivée) : indispensable pour diagnostiquer.
+    var detail = full.replace(/^(Firebase|Messaging):\s*/i, '').replace(/\s*\(messaging\/[^)]+\)\.?\s*$/i, '').trim().slice(0, 150);
+    if (/token-subscribe-failed/i.test(all)) return tx2('subfail') + ' (token-subscribe-failed' + (detail ? ' : ' + detail : '') + ')';
+    if (/Failed to fetch|network/i.test(all)) return tx2('netblock') + ' (réseau)';
+    return (detail || code || 'erreur').slice(0, 160);
   }
   function lang() { try { if (typeof currentLang !== 'undefined' && L10N[currentLang]) return currentLang; } catch (e) { /* ignore */ } var n = (navigator.language || 'fr').slice(0, 2); return L10N[n] ? n : 'fr'; }
   function tx(k) { return (L10N[lang()] || L10N.fr)[k] || L10N.fr[k] || k; }
@@ -128,12 +132,27 @@
   function tkKey(uid) { return 'cn_fcm_token:' + uid; }
   function syKey(uid) { return 'cn_fcm_sync:' + uid; }
 
+  // Premier essai ; s'il échoue (abonnement push périmé ou resté coincé), on nettoie l'ancien
+  // jeton et l'ancien abonnement de ce téléphone, puis on réessaie une fois proprement.
+  async function fetchToken(messaging, swReg, uid) {
+    var opts = { vapidKey: FCM_VAPID_KEY, serviceWorkerRegistration: swReg };
+    try { return await messaging.getToken(opts); }
+    catch (e1) {
+      console.log('[push] 1er essai échoué, nettoyage puis nouvel essai :', e1 && e1.code, e1 && e1.message);
+      try { await messaging.deleteToken(); } catch (x) { /* ignore */ }
+      try { var sub = await swReg.pushManager.getSubscription(); if (sub) await sub.unsubscribe(); } catch (x) { /* ignore */ }
+      if (uid) { ls(tkKey(uid), null); ls(syKey(uid), null); }
+      await new Promise(function (r) { setTimeout(r, 500); });
+      return await messaging.getToken(opts);
+    }
+  }
+
   async function syncToken() {
     var u = cu(), d = dbx();
     if (!u || !d || !supported() || Notification.permission !== 'granted') return false;
     var messaging = firebase.messaging();
     var swReg = await navigator.serviceWorker.ready;
-    var token = await messaging.getToken({ vapidKey: FCM_VAPID_KEY, serviceWorkerRegistration: swReg });
+    var token = await fetchToken(messaging, swReg, u.uid);
     if (!token) return false;
     var old = ls(tkKey(u.uid));
     var last = parseInt(ls(syKey(u.uid)) || '0', 10) || 0;

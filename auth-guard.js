@@ -23,7 +23,7 @@
   function inAppKind() {
     if (/FBAN|FBAV|FB_IAB|FBIOS|Instagram|TikTok|musical_ly|Bytedance|Snapchat|MicroMessenger|Line\/|Twitter|LinkedInApp|Pinterest/i.test(ua)) return 'social';
     if (/Android/i.test(ua) && /; wv\)/.test(ua)) return 'webview';
-    if (/iPhone|iPad|iPod/i.test(ua) && navigator.standalone === true) return 'ios-app';
+    if (/iPhone|iPad|iPod/i.test(ua) && navigator.standalone === true) return proxied() ? '' : 'ios-app';
     return '';
   }
   var KIND = inAppKind();
@@ -49,7 +49,10 @@
     'auth/missing-password': "Entre ton mot de passe.",
     'auth/missing-email': "Entre ton email.",
     'auth/too-many-requests': "Trop de tentatives. Par sécurité, patiente quelques minutes puis réessaie, ou utilise « Mot de passe oublié ».",
-    'auth/network-request-failed': "Pas de connexion internet stable. Vérifie ton réseau puis réessaie."
+    'auth/network-request-failed': "Pas de connexion internet stable. Vérifie ton réseau puis réessaie.",
+    'auth/unauthorized-domain': "Ce site n'est pas encore autorisé pour la connexion Google. Utilise ton email, ou contacte le support.",
+    'auth/redirect-cancelled-by-user': "Connexion Google annulée. Touche « Continuer avec Google » pour réessayer.",
+    'auth/redirect-operation-pending': "Connexion déjà en cours… patiente un instant."
   };
   var origTranslate = window.translateAuthError;
   window.translateAuthError = function (e) {
@@ -119,25 +122,95 @@
     };
   }
 
-  /* ---------- 2. Google : un seul essai à la fois, hors-ligne détecté ---------- */
-  var busy = false, busyTimer = null;
-  var origGoogle = window.signInWithGoogle;
-  if (typeof origGoogle === 'function') {
-    window.signInWithGoogle = function () {
-      if (busy) return undefined;
-      if (navigator.onLine === false) {
-        try { showAuthError(MSG['auth/network-request-failed']); } catch (e) { /* ignore */ }
-        return undefined;
-      }
-      busy = true;
-      clearTimeout(busyTimer); busyTimer = setTimeout(function () { busy = false; }, 60000);
-      var done = function () { busy = false; clearTimeout(busyTimer); };
-      var p;
-      try { p = origGoogle.apply(this, arguments); } catch (e) { done(); throw e; }
-      Promise.resolve(p).then(done, done);
-      return p;
-    };
+  /* ---------- 2. Google : fenêtre sur Android/ordinateur, REDIRECTION sur iPhone/iPad ----------
+     Sur iPhone (Safari ou application installée), la petite fenêtre Google est bloquée ou fermée
+     d'office. On passe donc par une redirection plein écran : la personne choisit son compte Google,
+     puis revient dans l'application déjà connectée. Fonctionne avec n'importe quelle adresse liée
+     à un compte Google (Gmail, iCloud, Outlook…). */
+  var REDIR_KEY = 'cn_g_redirect_at';
+  function proxied() { try { return firebase.app().options.authDomain === location.hostname; } catch (e) { return false; } }
+  function isApple() { try { return !!IS_IOS_DEVICE; } catch (e) { return /iPad|iPhone|iPod/.test(ua); } }
+  function lsSet(k, v) { try { if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) { /* ignore */ } }
+  function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+
+  // Crée le profil la toute première fois (même contenu que l'inscription classique), sans rien écraser.
+  function ensureUserDoc(user) {
+    if (!user) return Promise.resolve();
+    var dbx = firebase.firestore();
+    var ref = dbx.collection('users').doc(user.uid);
+    return ref.get().then(function (snap) {
+      if (snap.exists) return null;
+      var name = user.displayName || (user.email ? user.email.split('@')[0] : 'Membre');
+      var refUid = null; try { refUid = getPendingReferrerUid(); } catch (e) { /* ignore */ }
+      return ref.set({
+        name: name, email: user.email || '', photoURL: user.photoURL || null, balance: 0, referredBy: refUid, createdAt: new Date().toISOString()
+      }).then(function () {
+        try { if (typeof syncPublicProfile === 'function') syncPublicProfile(user.uid, { name: name, photoURL: user.photoURL || null, verified: false, referredBy: refUid }); } catch (e) { /* ignore */ }
+      });
+    });
   }
+  function finishOk() { try { if (typeof closeAuth === 'function') closeAuth(); } catch (e) { /* ignore */ } }
+  function failMsg(e) {
+    try { console.log('[auth] Google :', e && e.code, e && e.message); } catch (x) { /* ignore */ }
+    try { showAuthError(window.translateAuthError(e)); } catch (x) { /* ignore */ }
+  }
+
+  var busy = false, busyTimer = null;
+  window.signInWithGoogle = function () {
+    if (busy) return undefined;
+    if (navigator.onLine === false) {
+      try { showAuthError(MSG['auth/network-request-failed']); } catch (e) { /* ignore */ }
+      return undefined;
+    }
+    if (typeof firebase === 'undefined' || !firebase.auth) {
+      try { showAuthError("Connexion au service indisponible. Vérifie ta connexion internet et réessaie."); } catch (e) { /* ignore */ }
+      return undefined;
+    }
+    busy = true;
+    clearTimeout(busyTimer); busyTimer = setTimeout(function () { busy = false; }, 60000);
+    var done = function () { busy = false; clearTimeout(busyTimer); try { if (typeof setAuthLoading === 'function') setAuthLoading(false); } catch (e) { /* ignore */ } };
+    try { if (typeof hideAuthError === 'function') hideAuthError(); } catch (e) { /* ignore */ }
+    try { if (typeof setAuthLoading === 'function') setAuthLoading(true); } catch (e) { /* ignore */ }
+
+    var a = firebase.auth();
+    var provider = new firebase.auth.GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
+    function viaRedirect() {
+      lsSet(REDIR_KEY, String(Date.now()));
+      return a.signInWithRedirect(provider); // la page part chez Google puis revient ici
+    }
+    var p;
+    try {
+      if (isApple() && proxied()) p = viaRedirect();
+      else p = a.signInWithPopup(provider).then(function (res) {
+        return ensureUserDoc(res && res.user).then(finishOk);
+      }).catch(function (e) {
+        var c = e && e.code;
+        if (c === 'auth/popup-blocked' || c === 'auth/operation-not-supported-in-this-environment') return viaRedirect();
+        throw e;
+      });
+    } catch (e) { p = Promise.reject(e); }
+    return Promise.resolve(p).catch(function (e) { lsSet(REDIR_KEY, null); failMsg(e); }).then(done, done);
+  };
+
+  // Retour de chez Google (redirection) : on termine la connexion et on ferme la fenêtre.
+  function handleRedirectReturn() {
+    var at = parseInt(lsGet(REDIR_KEY) || '0', 10) || 0;
+    if (!at) return;
+    if (Date.now() - at > 10 * 60 * 1000) { lsSet(REDIR_KEY, null); return; }
+    try {
+      firebase.auth().getRedirectResult().then(function (res) {
+        lsSet(REDIR_KEY, null);
+        if (res && res.user) return ensureUserDoc(res.user).then(finishOk);
+        return null;
+      }).catch(function (e) {
+        lsSet(REDIR_KEY, null);
+        try { if (typeof openAuth === 'function') openAuth('login'); } catch (x) { /* ignore */ }
+        failMsg(e);
+      });
+    } catch (e) { lsSet(REDIR_KEY, null); }
+  }
+  setTimeout(handleRedirectReturn, 0);
 
   /* ---------- 3. Avertissement « navigateur intégré » ---------- */
   function currentUrl() { return window.location.href; }
