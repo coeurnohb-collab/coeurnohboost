@@ -11,6 +11,8 @@
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="admin.css">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check-compat.js"></script>
+<script src="app-check.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 </head>
@@ -297,6 +299,24 @@
       <h2 class="page-title" style="margin-top:28px">Bannières publicitaires actives</h2>
       <p class="muted" style="margin-bottom:14px">Campagnes CoeurNoh Business visibles par tous les utilisateurs sur le fil d'accueil. Désactive une bannière problématique si besoin (le professionnel n'est pas remboursé automatiquement).</p>
       <div id="admin-banners-list"></div>
+    </div>
+
+    <!-- ---- Surveillance : erreurs de l'application ---- -->
+    <div class="admin-tab hidden" id="admin-tab-errors">
+      <h2 class="page-title">Erreurs de l'application</h2>
+      <p class="muted" style="margin-bottom:14px">Les erreurs réelles rencontrées par les utilisateurs connectés (conservées 30 jours), regroupées par message. Une alerte t'est envoyée chaque matin si un même message dépasse le seuil ci-dessous.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px">
+        <select id="admin-errors-range" onchange="loadErrorsAdmin()">
+          <option value="1">Dernières 24 h</option>
+          <option value="7">7 derniers jours</option>
+          <option value="30">30 derniers jours</option>
+        </select>
+        <button class="btn btn-outline btn-sm" onclick="loadErrorsAdmin()">↻ Actualiser</button>
+        <span class="muted small" style="margin-left:auto">Seuil d'alerte :</span>
+        <input type="number" id="admin-errors-threshold" min="2" max="1000" value="10" style="width:80px">
+        <button class="btn btn-primary btn-sm" onclick="saveErrorThreshold()">Enregistrer</button>
+      </div>
+      <div id="admin-errors-body"></div>
     </div>
 
     <!-- ---- Annonces (messages publics) ---- -->

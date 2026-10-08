@@ -168,6 +168,7 @@ async function downloadMedia(url, type) {
 let auth, db;
 try {
   firebase.initializeApp(firebaseConfig);
+  if (window.cnInitAppCheck) window.cnInitAppCheck(); // App Check (surveillance) : voir app-check.js
   auth = firebase.auth();
   db = firebase.firestore();
 } catch (e) {
@@ -229,6 +230,7 @@ const ADMIN_TABS = [
   { id: "withdrawals",  label: "💸 Retraits" },
   { id: "domains",      label: "🌐 Domaines" },
   { id: "reports",      label: "🚩 Signalements" },
+  { id: "errors",       label: "🐞 Erreurs" },
   { id: "announcements",label: "📢 Annonces" },
   { id: "users",        label: "👤 Utilisateurs" },
   { id: "automation",   label: "🤖 Automatisation" }
@@ -257,6 +259,7 @@ function showAdminTab(tab) {
   if (tab === 'withdrawals') loadWithdrawalsAdmin();
   if (tab === 'domains') loadDomainsAdmin();
   if (tab === 'reports') loadReportsAdmin();
+  if (tab === 'errors') loadErrorsAdmin();
   if (tab === 'announcements') { loadAnnouncementsAdmin(); loadScheduledBroadcastsAdmin(); updateSchedRecurrenceFields(); }
   if (tab === 'users') loadUsersAdmin();
   if (tab === 'automation') { loadAutomationStatus(); loadServiceMapAdmin(); }
@@ -1914,4 +1917,142 @@ async function deleteScheduledBroadcast(id) {
   } catch (e) {
     alert("Erreur : " + e.message);
   }
+}
+
+/* =========================================================
+   SURVEILLANCE : tableau de bord des erreurs (collection client_errors)
+   Lecture limitée à 500 documents par chargement (quota gratuit Firebase).
+   ========================================================= */
+let errorGroupsCache = [];
+let errorRawIds = [];
+
+// Regroupe les doublons : les chiffres et identifiants longs sont remplacés (« 404 » et « 500 » = même famille)
+function normalizeErrorMessage(msg) {
+  return String(msg || '').replace(/[0-9a-f]{8,}/gi, 'ID').replace(/\d+/g, 'N').slice(0, 140);
+}
+function errorDeviceLabel(ua) {
+  ua = String(ua || '');
+  if (/iPhone|iPad|iPod/.test(ua)) return 'iPhone/iPad';
+  if (/Android/.test(ua)) return 'Android';
+  return 'Ordinateur';
+}
+
+async function loadErrorsAdmin() {
+  const el = document.getElementById('admin-errors-body');
+  if (!el) return;
+  const days = parseInt(document.getElementById('admin-errors-range').value, 10) || 1;
+  el.innerHTML = `<p class="admin-empty">Chargement...</p>`;
+  try {
+    let threshold = 10;
+    try {
+      const cfg = await db.collection('app_config').doc('monitoring').get();
+      if (cfg.exists && Number(cfg.data().errorThreshold) >= 2) threshold = Number(cfg.data().errorThreshold);
+    } catch (e) { /* seuil par défaut */ }
+    document.getElementById('admin-errors-threshold').value = threshold;
+
+    const since = Date.now() - days * 86400000;
+    const snap = await db.collection('client_errors').where('at', '>=', since).orderBy('at', 'desc').limit(500).get();
+    if (snap.empty) {
+      errorGroupsCache = []; errorRawIds = [];
+      el.innerHTML = `<p class="admin-empty">Aucune erreur sur cette période 🎉</p>`;
+      return;
+    }
+
+    const groups = new Map(), byPage = {}, byDay = {}, users = new Set();
+    errorRawIds = [];
+    snap.forEach((doc) => {
+      const d = doc.data();
+      errorRawIds.push(doc.id);
+      users.add(d.uid);
+      const key = normalizeErrorMessage(d.msg) + '|' + (d.file || '') + ':' + (d.line || 0);
+      let g = groups.get(key);
+      if (!g) { g = { key, msg: d.msg || '', file: d.file || '', line: d.line || 0, count: 0, uids: new Set(), pages: {}, devices: {}, first: d.at, last: d.at, ids: [] }; groups.set(key, g); }
+      g.count++; g.uids.add(d.uid); g.ids.push(doc.id);
+      g.pages[d.page || '/'] = (g.pages[d.page || '/'] || 0) + 1;
+      const dev = errorDeviceLabel(d.ua); g.devices[dev] = (g.devices[dev] || 0) + 1;
+      if (d.at < g.first) g.first = d.at;
+      if (d.at > g.last) g.last = d.at;
+      byPage[d.page || '/'] = (byPage[d.page || '/'] || 0) + 1;
+      const day = new Date(d.at).toISOString().slice(0, 10);
+      byDay[day] = (byDay[day] || 0) + 1;
+    });
+    errorGroupsCache = Array.from(groups.values()).sort((a, b) => b.count - a.count);
+
+    // Barres par jour (jours sans erreur inclus)
+    const dayList = [];
+    for (let i = Math.min(days, 30) - 1; i >= 0; i--) dayList.push(new Date(Date.now() - i * 86400000).toISOString().slice(0, 10));
+    const maxDay = Math.max(1, ...dayList.map((k) => byDay[k] || 0));
+    const bars = days === 1 ? '' : `
+      <div class="admin-row" style="margin-bottom:14px">
+        <div class="admin-row-title">Erreurs par jour</div>
+        <div style="display:flex;align-items:flex-end;gap:3px;height:90px;margin-top:8px">
+          ${dayList.map((k) => `<div title="${escapeHtml(k)} : ${byDay[k] || 0}" style="flex:1;min-width:4px;background:var(--red,#d7263d);opacity:${(byDay[k] || 0) ? 1 : .15};height:${Math.max(3, Math.round(((byDay[k] || 0) / maxDay) * 100))}%;border-radius:3px 3px 0 0"></div>`).join('')}
+        </div>
+        <div class="admin-row-meta" style="display:flex;justify-content:space-between"><span>${escapeHtml(dayList[0])}</span><span>${escapeHtml(dayList[dayList.length - 1])}</span></div>
+      </div>`;
+
+    const pages = Object.entries(byPage).sort((a, b) => b[1] - a[1]).slice(0, 8);
+    const topPage = pages[0] ? pages[0][0] : '—';
+    const limited = snap.size >= 500 ? `<p class="admin-empty" style="margin-bottom:10px">⚠️ Affichage limité aux 500 erreurs les plus récentes.</p>` : '';
+
+    el.innerHTML = `
+      <div class="stats-cards" style="margin-bottom:14px">
+        <div class="stat-card"><span class="stat-value">${snap.size}</span><span class="stat-label">Erreurs</span></div>
+        <div class="stat-card"><span class="stat-value">${errorGroupsCache.length}</span><span class="stat-label">Messages différents</span></div>
+        <div class="stat-card"><span class="stat-value">${users.size}</span><span class="stat-label">Personnes touchées</span></div>
+        <div class="stat-card"><span class="stat-value" style="font-size:1rem">${escapeHtml(topPage)}</span><span class="stat-label">Page la plus touchée</span></div>
+      </div>
+      ${limited}${bars}
+      <h3 style="margin:6px 0 10px">Erreurs regroupées</h3>
+      ${errorGroupsCache.map((g, i) => {
+        const hot = g.count >= threshold;
+        const pgs = Object.entries(g.pages).sort((a, b) => b[1] - a[1]).map(([p, n]) => `${escapeHtml(p)} (${n})`).join(', ');
+        const devs = Object.entries(g.devices).map(([p, n]) => `${escapeHtml(p)} (${n})`).join(', ');
+        return `
+        <div class="admin-row" style="${hot ? 'border-left:4px solid var(--red,#d7263d)' : ''}">
+          <div class="admin-row-top">
+            <div class="admin-row-title">${hot ? '🔴 ' : ''}${escapeHtml(g.msg)}</div>
+            <strong>×${g.count}</strong>
+          </div>
+          <div class="admin-row-meta">
+            📄 ${escapeHtml(g.file || 'inconnu')}${g.line ? ':' + g.line : ''}<br>
+            👥 ${g.uids.size} personne(s) · 📱 ${devs}<br>
+            🕒 première : ${escapeHtml(new Date(g.first).toLocaleString('fr-FR'))} · dernière : ${escapeHtml(new Date(g.last).toLocaleString('fr-FR'))}<br>
+            🧭 ${pgs}
+          </div>
+          <div style="margin-top:8px"><button class="btn btn-outline btn-sm" onclick="deleteErrorGroup(${i})">🗑 Supprimer ce groupe (${g.count})</button></div>
+        </div>`;
+      }).join('')}
+      <h3 style="margin:18px 0 10px">Par page</h3>
+      <div class="admin-row">${pages.map(([p, n]) => `<div style="display:flex;justify-content:space-between"><span>${escapeHtml(p)}</span><strong>${n}</strong></div>`).join('')}</div>
+      <div style="margin-top:16px"><button class="btn btn-outline btn-sm" onclick="deleteAllErrorsInView()">🗑 Vider toutes les erreurs affichées (${snap.size})</button></div>`;
+  } catch (e) {
+    el.innerHTML = `<p class="admin-empty">Erreur de chargement : ${escapeHtml(e.message)}</p>`;
+  }
+}
+
+async function deleteErrorDocs(ids) {
+  for (let i = 0; i < ids.length; i += 400) {
+    const batch = db.batch();
+    ids.slice(i, i + 400).forEach((id) => batch.delete(db.collection('client_errors').doc(id)));
+    await batch.commit();
+  }
+}
+async function deleteErrorGroup(index) {
+  const g = errorGroupsCache[index];
+  if (!g || !confirm('Supprimer ces ' + g.count + ' erreurs ?')) return;
+  try { await deleteErrorDocs(g.ids); loadErrorsAdmin(); } catch (e) { alert('Suppression impossible : ' + e.message); }
+}
+async function deleteAllErrorsInView() {
+  if (!errorRawIds.length || !confirm('Supprimer les ' + errorRawIds.length + ' erreurs affichées ?')) return;
+  try { await deleteErrorDocs(errorRawIds); loadErrorsAdmin(); } catch (e) { alert('Suppression impossible : ' + e.message); }
+}
+async function saveErrorThreshold() {
+  const n = parseInt(document.getElementById('admin-errors-threshold').value, 10);
+  if (!(n >= 2 && n <= 1000)) { alert('Choisis un nombre entre 2 et 1000.'); return; }
+  try {
+    await db.collection('app_config').doc('monitoring').set({ errorThreshold: n }, { merge: true });
+    alert('Seuil enregistré : alerte dès ' + n + ' erreurs identiques en 24 h.');
+    loadErrorsAdmin();
+  } catch (e) { alert('Enregistrement impossible : ' + e.message); }
 }

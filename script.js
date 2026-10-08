@@ -472,6 +472,7 @@ let authMode = 'register';
 
 try {
   firebase.initializeApp(firebaseConfig);
+  if (window.cnInitAppCheck) window.cnInitAppCheck(); // App Check (surveillance) : voir app-check.js
   auth = firebase.auth();
   // Garde la connexion active indefiniment sur cet appareil, meme apres
   // fermeture complete de l'app/du navigateur -- deconnexion UNIQUEMENT si
