@@ -276,7 +276,7 @@
     window.showToast = wrapped;
   }
 
-  var MAP = { '\u2705': 'check', '\u2713': 'check', '\u2714': 'check', '\u{1F5BC}': 'image', '\u{1F4C4}': 'file', '\u{1F4F7}': 'camera', '\u{1F4CE}': 'paperclip' };
+  var MAP = { '\u2705': 'check', '\u2713': 'check', '\u2714': 'check', '\u{1F5BC}': 'image', '\u{1F4C4}': 'file', '\u{1F4F7}': 'camera', '\u{1F4CE}': 'paperclip', '\u{1F3A5}': 'video' };
   function icon(name) { return '<svg class="ico" aria-hidden="true"><use href="#i-' + name + '"/></svg>'; }
   var queued = false;
   function fix() {

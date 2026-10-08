@@ -14,7 +14,7 @@
    ===================================================================== */
 (function () {
   'use strict';
-  var SITE_KEY = '6Ldx5eQtAAAAABG-gRrPLOQUW4lAM13K2J7TtFwM';   // ← ex. '6LcAbCdEf...' (clé de site reCAPTCHA v3, commence par 6L)
+  var SITE_KEY = '';   // ← ex. '6LcAbCdEf...' (clé de site reCAPTCHA v3, commence par 6L)
 
   window.cnInitAppCheck = function () {
     try {

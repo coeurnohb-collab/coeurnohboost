@@ -35,6 +35,10 @@ const APP_SPLASH_MIN_MS = 1100;
    Remplace les alert() bloquants pour les messages courts (succes, erreur,
    confirmation) — sauf pour les instructions longues et le fallback de
    copie manuelle, ou une vraie boite de dialogue reste plus adaptee. */
+function cnIco(name) {
+  return '<svg class="ico" aria-hidden="true"><use href="#i-' + name + '"/></svg>';
+}
+
 function showToast(message, type = 'info') {
   const container = document.getElementById('toast-container');
   if (!container) { alert(message); return; }
@@ -309,7 +313,7 @@ function renderGalleryPhotoRow(rowClass, value) {
       <input type="file" id="${uid}" class="file-input-hidden gallery-photo-file" accept="image/*" onchange="handleGalleryPhotoFileChange(this)">
       <label for="${uid}" class="file-picker-btn">
         <span class="file-picker-icon">🖼️</span>
-        <span class="file-picker-text">${safeValue ? '✅ Photo enregistrée (toucher pour remplacer)' : 'Choisir une photo'}</span>
+        <span class="file-picker-text">${safeValue ? 'Photo enregistrée (toucher pour remplacer)' : 'Choisir une photo'}</span>
       </label>
       ${safeValue ? `<img src="${escapeHtml(safeValue)}" class="gallery-photo-thumb" alt="">` : ''}
       <button type="button" class="invoice-row-remove" onclick="this.closest('.gallery-photo-row').remove()" aria-label="Retirer">×</button>
@@ -327,7 +331,7 @@ function handleGalleryPhotoFileChange(inputEl) {
   const hasExisting = !!row.dataset.existingUrl;
   const textEl = row.querySelector('.file-picker-text');
   const btnEl = row.querySelector('.file-picker-btn');
-  if (textEl) textEl.textContent = file ? `✅ ${file.name}` : (hasExisting ? '✅ Photo enregistrée (toucher pour remplacer)' : 'Choisir une photo');
+  if (textEl) textEl.textContent = file ? `${file.name}` : (hasExisting ? 'Photo enregistrée (toucher pour remplacer)' : 'Choisir une photo');
   if (btnEl) btnEl.classList.toggle('has-file', !!(file || hasExisting));
   let thumb = row.querySelector('.gallery-photo-thumb');
   const url = file ? URL.createObjectURL(file) : row.dataset.existingUrl;
@@ -559,33 +563,33 @@ function showDashTab(tab) {
    ("users/{uid}.balance") reste l'unique source de verite, ce relevé est
    uniquement un historique lisible, pas un deuxieme portefeuille. */
 const WALLET_TX_LABELS = {
-  topup_crypto: { label: 'Recharge (crypto)', icon: '💳' },
-  topup_mobile_money: { label: 'Recharge (Mobile Money)', icon: '💳' },
-  topup_admin: { label: 'Recharge validée par l\'équipe', icon: '💳' },
-  order_purchase: { label: 'Commande de service', icon: '🚀' },
-  order_refund: { label: 'Remboursement de commande', icon: '↩️' },
-  shop_purchase: { label: 'Achat boutique', icon: '🛍️' },
-  shop_sale: { label: 'Vente boutique', icon: '🛍️' },
-  contest_entry: { label: 'Participation à un concours', icon: '🏆' },
-  contest_income: { label: 'Revenu concours', icon: '🏆' },
-  event_ticket: { label: 'Billet d\'événement', icon: '🎟️' },
-  event_income: { label: 'Revenu billetterie', icon: '🎟️' },
-  event_cancel_refund: { label: 'Remboursement billet annulé', icon: '↩️' },
-  event_income_reversed: { label: 'Reprise revenu (billet annulé)', icon: '↩️' },
-  course_enrollment: { label: 'Inscription à un cours', icon: '📚' },
-  course_income: { label: 'Revenu formation', icon: '📚' },
-  book_purchase: { label: 'Achat d\'un livre', icon: '📖' },
-  book_income: { label: 'Vente de livre', icon: '📖' },
-  order_income: { label: 'Revenu commande SMM', icon: '🚀' },
-  order_income_reversed: { label: 'Reprise revenu (commande refusée)', icon: '↩️' },
-  commission_income: { label: 'Commission perçue', icon: '💰' },
-  site_premium: { label: 'Site Premium', icon: '✨' },
-  site_premium_income: { label: 'Revenu Site Premium', icon: '✨' },
-  business_pro: { label: 'CoeurNoh Business Pro', icon: '🏢' },
-  business_pro_income: { label: 'Revenu Business Pro', icon: '🏢' },
-  withdrawal_request: { label: 'Demande de retrait', icon: '🏦' },
-  withdrawal_rejected_refund: { label: 'Retrait refusé, remboursé', icon: '↩️' },
-  referral_bonus: { label: 'Bonus de parrainage', icon: '🎁' }
+  topup_crypto: { label: 'Recharge (crypto)', icon: 'card' },
+  topup_mobile_money: { label: 'Recharge (Mobile Money)', icon: 'card' },
+  topup_admin: { label: 'Recharge validée par l\'équipe', icon: 'card' },
+  order_purchase: { label: 'Commande de service', icon: 'cart' },
+  order_refund: { label: 'Remboursement de commande', icon: 'undo' },
+  shop_purchase: { label: 'Achat boutique', icon: 'bag' },
+  shop_sale: { label: 'Vente boutique', icon: 'bag' },
+  contest_entry: { label: 'Participation à un concours', icon: 'award' },
+  contest_income: { label: 'Revenu concours', icon: 'award' },
+  event_ticket: { label: 'Billet d\'événement', icon: 'ticket' },
+  event_income: { label: 'Revenu billetterie', icon: 'ticket' },
+  event_cancel_refund: { label: 'Remboursement billet annulé', icon: 'undo' },
+  event_income_reversed: { label: 'Reprise revenu (billet annulé)', icon: 'undo' },
+  course_enrollment: { label: 'Inscription à un cours', icon: 'book' },
+  course_income: { label: 'Revenu formation', icon: 'book' },
+  book_purchase: { label: 'Achat d\'un livre', icon: 'bookopen' },
+  book_income: { label: 'Vente de livre', icon: 'bookopen' },
+  order_income: { label: 'Revenu commande SMM', icon: 'cart' },
+  order_income_reversed: { label: 'Reprise revenu (commande refusée)', icon: 'undo' },
+  commission_income: { label: 'Commission perçue', icon: 'card' },
+  site_premium: { label: 'Site Premium', icon: 'star' },
+  site_premium_income: { label: 'Revenu Site Premium', icon: 'star' },
+  business_pro: { label: 'CoeurNoh Business Pro', icon: 'briefcase' },
+  business_pro_income: { label: 'Revenu Business Pro', icon: 'briefcase' },
+  withdrawal_request: { label: 'Demande de retrait', icon: 'bank' },
+  withdrawal_rejected_refund: { label: 'Retrait refusé, remboursé', icon: 'undo' },
+  referral_bonus: { label: 'Bonus de parrainage', icon: 'gift' }
 };
 
 async function loadWalletHistory() {
@@ -604,13 +608,13 @@ async function loadWalletHistory() {
     }
     listEl.innerHTML = snap.docs.map(doc => {
       const t = doc.data();
-      const meta = WALLET_TX_LABELS[t.type] || { label: t.type || 'Transaction', icon: '💠' };
+      const meta = WALLET_TX_LABELS[t.type] || { label: t.type || 'Transaction', icon: 'card' };
       const isCredit = (t.amount || 0) >= 0;
       const dateStr = t.createdAt ? new Date(t.createdAt).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
       return `
         <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)">
           <div style="display:flex;gap:10px;align-items:center;min-width:0">
-            <span style="font-size:1.2rem">${meta.icon}</span>
+            <span style="font-size:1.2rem;display:inline-flex">${cnIco(meta.icon)}</span>
             <div style="min-width:0">
               <div style="font-weight:600;font-size:0.92rem">${escapeHtml(meta.label)}</div>
               <div class="muted small">${escapeHtml(dateStr)}</div>
@@ -2033,7 +2037,7 @@ function handleAccountPhotoFileChange(event) {
   pendingAccountPhotoFile = (event.target.files && event.target.files[0]) || null;
   const text = document.getElementById('account-photo-file-text');
   const label = document.getElementById('account-photo-file-label');
-  if (text) text.textContent = pendingAccountPhotoFile ? `✅ ${pendingAccountPhotoFile.name}` : 'Choisir une photo';
+  if (text) text.textContent = pendingAccountPhotoFile ? `${pendingAccountPhotoFile.name}` : 'Choisir une photo';
   if (label) label.classList.toggle('has-file', !!pendingAccountPhotoFile);
   renderAccountPhotoPreview();
 }
@@ -2473,7 +2477,7 @@ function showFatalLoadError() {
   el.style.cssText = 'position:fixed;inset:0;z-index:100000;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:24px;text-align:center';
   el.innerHTML = `
     <div style="max-width:340px">
-      <div style="font-size:2.6rem;margin-bottom:14px">⚠️</div>
+      <div style="font-size:2.6rem;margin-bottom:14px"><svg class="ico" aria-hidden="true"><use href="#i-alert"/></svg></div>
       <h2 style="margin:0 0 10px">${t('fatal_load_error_title')}</h2>
       <p class="muted" style="margin:0 0 20px">${t('fatal_load_error_body')}</p>
       <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="window.location.reload()">${t('fatal_load_error_retry')}</button>
@@ -2784,7 +2788,7 @@ function renderCartModal() {
   const { subtotal, discountApplies, total } = getCartTotal();
   summaryEl.innerHTML = `
     <div class="cart-summary-row"><span>Sous-total</span><span>${subtotal.toFixed(2)}$</span></div>
-    ${discountApplies ? `<div class="cart-summary-row cart-discount-row"><span>🎉 Remise -5% (plus de 3 articles)</span><span>-${(subtotal - total).toFixed(2)}$</span></div>` : ''}
+    ${discountApplies ? `<div class="cart-summary-row cart-discount-row"><span>Remise -5% (plus de 3 articles)</span><span>-${(subtotal - total).toFixed(2)}$</span></div>` : ''}
     <div class="cart-summary-row cart-total-row"><span>Total</span><span>${total.toFixed(2)}$</span></div>`;
 }
 
@@ -2813,7 +2817,7 @@ async function checkoutCart() {
     currentUser.balance = data.newBalance;
     cartItems = [];
     saveCart();
-    document.getElementById('cart-items-list').innerHTML = `<p style="text-align:center;color:var(--green);font-weight:700">✅ Achat confirmé ! Contacte les vendeurs via WhatsApp sur chaque article pour la livraison.</p>`;
+    document.getElementById('cart-items-list').innerHTML = `<p style="text-align:center;color:var(--green);font-weight:700">Achat confirmé ! Contacte les vendeurs via WhatsApp sur chaque article pour la livraison.</p>`;
     document.getElementById('cart-summary').innerHTML = '';
     renderShopFeed();
   } catch (e) {
@@ -2846,15 +2850,15 @@ function openSellForm() {
     <div class="modal-overlay" id="sell-modal">
       <div class="modal">
         <button class="modal-close" onclick="document.getElementById('sell-modal').remove()" aria-label="Fermer">×</button>
-        <h2>➕ Vendre un article</h2>
+        <h2><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg> Vendre un article</h2>
         <p class="sub">Coeurnoh Universe prélève 10% de commission sur chaque vente. Tu reçois 90% directement sur ton solde.</p>
         <div class="modal-error hidden" id="sell-form-error"></div>
 
         <div class="field">
           <label>Type</label>
           <select id="sell-type" class="text-input" onchange="toggleSellFields()">
-            <option value="book">📖 Livre (avec lien de téléchargement)</option>
-            <option value="product">🛍️ Produit (photo)</option>
+            <option value="book">Livre (avec lien de téléchargement)</option>
+            <option value="product">Produit (photo)</option>
           </select>
         </div>
         <div class="field">
@@ -2872,12 +2876,12 @@ function openSellForm() {
         <div class="field">
           <label>Catégorie</label>
           <select id="sell-category" class="text-input">
-            <option value="ebooks">📚 Livres & Ebooks</option>
-            <option value="beaute">💄 Beauté & Bien-être</option>
-            <option value="mode">👗 Mode & Accessoires</option>
-            <option value="electronique">🔌 Électronique</option>
-            <option value="maison">🏠 Maison & Déco</option>
-            <option value="autres">📦 Autres</option>
+            <option value="ebooks">Livres & Ebooks</option>
+            <option value="beaute">Beauté & Bien-être</option>
+            <option value="mode">Mode & Accessoires</option>
+            <option value="electronique">Électronique</option>
+            <option value="maison">Maison & Déco</option>
+            <option value="autres">Autres</option>
           </select>
         </div>
         <div class="field">
@@ -2953,7 +2957,7 @@ function handleSellImageFileChange(event) {
   pendingSellImageFile = (event.target.files && event.target.files[0]) || null;
   const textEl = document.getElementById('sell-image-file-text');
   const labelEl = document.getElementById('sell-image-file-label');
-  if (textEl) textEl.textContent = pendingSellImageFile ? `✅ ${pendingSellImageFile.name}` : 'Choisir une photo';
+  if (textEl) textEl.textContent = pendingSellImageFile ? `${pendingSellImageFile.name}` : 'Choisir une photo';
   if (labelEl) labelEl.classList.toggle('has-file', !!pendingSellImageFile);
   const previewEl = document.getElementById('sell-image-preview');
   if (!previewEl) return;
@@ -2966,7 +2970,7 @@ function handleSellBookFileChange(event) {
   pendingSellBookFile = (event.target.files && event.target.files[0]) || null;
   const nameEl = document.getElementById('sell-file-name');
   const labelEl = document.getElementById('sell-file-input-label');
-  if (nameEl) nameEl.textContent = pendingSellBookFile ? `✅ ${pendingSellBookFile.name}` : 'Choisir un PDF';
+  if (nameEl) nameEl.textContent = pendingSellBookFile ? `${pendingSellBookFile.name}` : 'Choisir un PDF';
   if (labelEl) labelEl.classList.toggle('has-file', !!pendingSellBookFile);
 }
 
@@ -3041,7 +3045,7 @@ async function submitSellForm() {
     });
 
     // Annonce publique visible par tous (panneau notifications) + vraie alerte push
-    const annTitle = discountPercent > 0 ? 'Promotion disponible 🎉' : 'Nouveau produit disponible 🆕';
+    const annTitle = discountPercent > 0 ? 'Promotion disponible' : 'Nouveau produit disponible 🆕';
     const annBody = `${title} — ${price.toFixed(2)}$${discountPercent > 0 ? ` (-${discountPercent}%)` : ''}`;
     await db.collection('announcements').add({
       title: annTitle, body: annBody, type: 'announcement', url: '/?open=' + newPubRef.id, createdAt: new Date().toISOString()
@@ -3289,7 +3293,7 @@ async function notifyPublicationShared(pubId) {
     const pubSnap = await db.collection('publications').doc(pubId).get();
     const pub = pubSnap.data();
     if (pub && pub.sellerUid && pub.sellerUid !== currentUser.uid) {
-      const title = 'Partage 🔗';
+      const title = 'Partage';
       const body = `${currentUser.name || 'Quelqu\'un'} a partagé "${pub.title || pub.description || 'ta publication'}".`;
       await db.collection('notifications').add({
         uid: pub.sellerUid, title, body, type: 'share', read: false, url: '/?open=' + pubId, createdAt: new Date().toISOString()
@@ -3668,7 +3672,7 @@ function handlePostMediaFileChange(event) {
   pendingPostMediaFile = (event.target.files && event.target.files[0]) || null;
   const text = document.getElementById('post-media-file-text');
   const label = document.getElementById('post-media-file-label');
-  if (text) text.textContent = pendingPostMediaFile ? `✅ ${pendingPostMediaFile.name}` : 'Choisir un fichier';
+  if (text) text.textContent = pendingPostMediaFile ? `${pendingPostMediaFile.name}` : 'Choisir un fichier';
   if (label) label.classList.toggle('has-file', !!pendingPostMediaFile);
   updatePostMediaPreview();
 }
@@ -3744,7 +3748,7 @@ async function submitCreatePost() {
 
     // Annonce publique visible par tous (panneau notifications) + vraie alerte push
     const mediaLabel = mediaType === 'photo' ? 'une photo' : mediaType === 'video' ? 'une vidéo' : 'un texte';
-    const annTitle = 'Nouvelle publication 📸';
+    const annTitle = 'Nouvelle publication';
     const annBody = `${currentUser.name || 'Quelqu\'un'} a publié ${mediaLabel}${caption ? ` : "${caption.slice(0, 60)}"` : ''}`;
     db.collection('announcements').add({
       title: annTitle, body: annBody, type: 'announcement', url: '/?open=' + newPubRef.id, createdAt: new Date().toISOString()
@@ -3847,7 +3851,7 @@ function openWithdrawForm() {
     <div class="modal-overlay" id="withdraw-modal">
       <div class="modal">
         <button class="modal-close" onclick="document.getElementById('withdraw-modal').remove()" aria-label="Fermer">×</button>
-        <h2>💸 Demander un retrait</h2>
+        <h2><svg class="ico" aria-hidden="true"><use href="#i-card"/></svg> Demander un retrait</h2>
         <p class="sub">Ton solde disponible : <strong>${balance.toFixed(2)}$</strong></p>
         <p class="muted small" style="margin-bottom:14px">Ta demande sera traitée manuellement par Coeurnoh Universe, généralement sous 24-48h.</p>
         <div class="modal-error hidden" id="withdraw-form-error"></div>
@@ -4019,7 +4023,7 @@ async function loadSellerWithdrawals() {
       return;
     }
 
-    const statusLabels = { pending: '⏳ En attente', paid: '✅ Payé', rejected: '❌ Rejeté' };
+    const statusLabels = { pending: 'En attente', paid: 'Payé', rejected: 'Rejeté' };
     el.innerHTML = snap.docs.map(doc => {
       const w = doc.data();
       return `
@@ -4078,11 +4082,11 @@ async function loadSellerStats() {
       </div>
       <div class="seller-stat-box">
         <div class="seller-stat-value">${bookSales}</div>
-        <div class="seller-stat-label">📖 Livres vendus</div>
+        <div class="seller-stat-label"><svg class="ico" aria-hidden="true"><use href="#i-bookopen"/></svg> Livres vendus</div>
       </div>
       <div class="seller-stat-box">
         <div class="seller-stat-value">${productSales}</div>
-        <div class="seller-stat-label">🛍️ Produits vendus</div>
+        <div class="seller-stat-label"><svg class="ico" aria-hidden="true"><use href="#i-bag"/></svg> Produits vendus</div>
       </div>`;
 
     if (sales.length === 0) {
@@ -4120,7 +4124,7 @@ async function loadMyPublications() {
 
     el.innerHTML = snap.docs.map(doc => {
       const d = doc.data();
-      const typeLabel = d.type === 'book' ? '📖' : '🛍️';
+      const typeLabel = d.type === 'book' ? '<svg class="ico" aria-hidden="true"><use href="#i-bookopen"/></svg>' : '<svg class="ico" aria-hidden="true"><use href="#i-bag"/></svg>';
       return `
       <div class="seller-pub-row">
         <img src="${escapeHtml(d.imageUrl)}" alt="" class="seller-pub-img" loading="lazy">
@@ -4389,7 +4393,7 @@ function getEffectivePrice(item) {
 }
 
 function renderShopCard(item, isLiked, isPurchased) {
-  const typeLabel = item.type === 'book' ? '📖 Livre' : '🛍️ Produit';
+  const typeLabel = item.type === 'book' ? '<svg class="ico" aria-hidden="true"><use href="#i-bookopen"/></svg> Livre' : '<svg class="ico" aria-hidden="true"><use href="#i-bag"/></svg> Produit';
   const alreadyOwned = item.type === 'book' && isPurchased;
   const effectivePrice = getEffectivePrice(item);
   const hasPromo = effectivePrice < item.price;
@@ -4400,7 +4404,7 @@ function renderShopCard(item, isLiked, isPurchased) {
 
   let buyButtonHtml;
   if (alreadyOwned) {
-    buyButtonHtml = `<a class="btn btn-primary btn-sm btn-buy-full" href="${safeHref(item.fileUrl)}" target="_blank">📖 Télécharger</a>`;
+    buyButtonHtml = `<a class="btn btn-primary btn-sm btn-buy-full" href="${safeHref(item.fileUrl)}" target="_blank"><svg class="ico" aria-hidden="true"><use href="#i-download"/></svg> Télécharger</a>`;
   } else if (item.type === 'book') {
     buyButtonHtml = `<button class="btn btn-primary btn-sm btn-buy-full" onclick="buyShopItem('${item.id}','${escapeForJs(item.title)}',${effectivePrice},'${escapeForJs(item.type)}')" data-i18n="shop_buy">Commander</button>`;
   } else {
@@ -4427,8 +4431,8 @@ function renderShopCard(item, isLiked, isPurchased) {
     : '';
 
   const categoryLabels = {
-    ebooks: '📚 Livres & Ebooks', beaute: '💄 Beauté & Bien-être', mode: '👗 Mode & Accessoires',
-    electronique: '🔌 Électronique', maison: '🏠 Maison & Déco', autres: '📦 Autres'
+    ebooks: 'Livres & Ebooks', beaute: 'Beauté & Bien-être', mode: 'Mode & Accessoires',
+    electronique: 'Électronique', maison: 'Maison & Déco', autres: 'Autres'
   };
   const categoryLine = item.category && categoryLabels[item.category]
     ? `<span class="shop-card-category">${escapeHtml(categoryLabels[item.category])}</span>`
@@ -4438,7 +4442,7 @@ function renderShopCard(item, isLiked, isPurchased) {
   <div class="shop-card" id="shop-card-${item.id}">
     <img src="${escapeHtml(item.imageUrl)}" alt="${escapeHtml(item.title)}" class="shop-card-img" loading="lazy" onclick="openPostDetail('${item.id}')" onerror="mediaLoadError(this)">
     <div class="shop-card-body">
-      <span class="shop-card-type">${typeLabel}${alreadyOwned ? ' · ✅ Déjà acheté' : ''}</span>
+      <span class="shop-card-type">${typeLabel}${alreadyOwned ? ' · Déjà acheté' : ''}</span>
       ${categoryLine}
       <h3 class="shop-card-title">${escapeHtml(item.title)}</h3>
       ${sellerLine}
@@ -5021,7 +5025,7 @@ async function toggleShopLike(pubId) {
         const pubSnap = await pubRef.get();
         const pub = pubSnap.data();
         if (pub && pub.sellerUid && pub.sellerUid !== currentUser.uid) {
-          const title = 'Nouveau like ❤️';
+          const title = 'Nouveau like';
           const body = `${currentUser.name || 'Quelqu\'un'} a aimé "${pub.title || pub.description || 'ta publication'}".`;
           await db.collection('notifications').add({
             uid: pub.sellerUid, title, body, type: 'like', read: false, url: '/?open=' + pubId, createdAt: new Date().toISOString(),
@@ -6029,7 +6033,7 @@ function openEditProfileScreen() {
               <span class="upload-progress-label" id="edit-profile-photo-progress-label">0%</span>
             </div>
           </div>
-          <button class="edit-profile-link-btn" onclick="copyProfileLinkFromEdit()">🔗 Copier le lien de mon profil</button>
+          <button class="edit-profile-link-btn" onclick="copyProfileLinkFromEdit()"><svg class="ico" aria-hidden="true"><use href="#i-link"/></svg> Copier le lien de mon profil</button>
           <div class="field">
             <label for="edit-username-input">Nom d'utilisateur</label>
             <input type="text" id="edit-username-input" class="text-input" placeholder="ex: coeurnoh" maxlength="24" value="${escapeHtml(currentUser.username || '')}">
@@ -6290,7 +6294,7 @@ function openDirectoryEditForm() {
             <input type="file" id="directory-photo-file" class="file-input-hidden" accept="image/*" onchange="handleDirectoryPhotoFileChange(event)">
             <label for="directory-photo-file" class="file-picker-btn" id="directory-photo-file-label">
               <span class="file-picker-icon" id="directory-photo-file-icon">🖼️</span>
-              <span class="file-picker-text" id="directory-photo-file-text">${f.photoURL ? `✅ ${t('directory_photo_saved')}` : t('alert_photo_choose')}</span>
+              <span class="file-picker-text" id="directory-photo-file-text">${f.photoURL ? `${t('directory_photo_saved')}` : t('alert_photo_choose')}</span>
             </label>
             <div class="upload-progress-wrap hidden" id="directory-photo-progress-wrap">
               <div class="upload-progress-fill" id="directory-photo-progress-fill"></div>
@@ -6396,7 +6400,7 @@ function handleDirectoryPhotoFileChange(event) {
   pendingDirectoryPhotoFile = (event.target.files && event.target.files[0]) || null;
   const text = document.getElementById('directory-photo-file-text');
   const label = document.getElementById('directory-photo-file-label');
-  if (text) text.textContent = pendingDirectoryPhotoFile ? `✅ ${pendingDirectoryPhotoFile.name}` : (currentDirectoryPhotoUrl ? `✅ ${t('directory_photo_saved')}` : t('alert_photo_choose'));
+  if (text) text.textContent = pendingDirectoryPhotoFile ? `${pendingDirectoryPhotoFile.name}` : (currentDirectoryPhotoUrl ? `${t('directory_photo_saved')}` : t('alert_photo_choose'));
   if (label) label.classList.toggle('has-file', !!(pendingDirectoryPhotoFile || currentDirectoryPhotoUrl));
   const previewEl = document.getElementById('directory-photo-preview');
   if (previewEl) {
@@ -6997,7 +7001,7 @@ function handleAlertPhotoFileChange(event) {
   pendingAlertPhotoFile = (event.target.files && event.target.files[0]) || null;
   const text = document.getElementById('alert-photo-file-text');
   const label = document.getElementById('alert-photo-file-label');
-  if (text) text.textContent = pendingAlertPhotoFile ? `✅ ${pendingAlertPhotoFile.name}` : t('alert_photo_choose');
+  if (text) text.textContent = pendingAlertPhotoFile ? `${pendingAlertPhotoFile.name}` : t('alert_photo_choose');
   if (label) label.classList.toggle('has-file', !!pendingAlertPhotoFile);
   const previewEl = document.getElementById('alert-photo-preview');
   if (previewEl) {
@@ -7415,7 +7419,7 @@ function handleContestCoverFileChange(event) {
   pendingContestCoverFile = (event.target.files && event.target.files[0]) || null;
   const text = document.getElementById('contest-cover-file-text');
   const label = document.getElementById('contest-cover-file-label');
-  if (text) text.textContent = pendingContestCoverFile ? `✅ ${pendingContestCoverFile.name}` : t('common_choose_image');
+  if (text) text.textContent = pendingContestCoverFile ? `${pendingContestCoverFile.name}` : t('common_choose_image');
   if (label) label.classList.toggle('has-file', !!pendingContestCoverFile);
   const previewEl = document.getElementById('contest-cover-preview');
   if (previewEl) {
@@ -7758,7 +7762,7 @@ function handleContestEntryFileChange(event) {
   const icon = document.getElementById('entry-file-icon');
   const isVideo = pendingContestEntryFile && pendingContestEntryFile.type.startsWith('video/');
   if (icon) icon.textContent = isVideo ? '🎥' : '📷';
-  if (text) text.textContent = pendingContestEntryFile ? `✅ ${pendingContestEntryFile.name}` : t('common_choose_file');
+  if (text) text.textContent = pendingContestEntryFile ? `${pendingContestEntryFile.name}` : t('common_choose_file');
   if (label) label.classList.toggle('has-file', !!pendingContestEntryFile);
   const previewEl = document.getElementById('entry-file-preview');
   if (previewEl) {
@@ -8446,7 +8450,7 @@ function handleJobApplyCvFileChange(event) {
   pendingJobApplyCvFile = (event.target.files && event.target.files[0]) || null;
   const text = document.getElementById('job-apply-cv-file-text');
   const label = document.getElementById('job-apply-cv-file-label');
-  if (text) text.textContent = pendingJobApplyCvFile ? `✅ ${pendingJobApplyCvFile.name}` : t('common_choose_file');
+  if (text) text.textContent = pendingJobApplyCvFile ? `${pendingJobApplyCvFile.name}` : t('common_choose_file');
   if (label) label.classList.toggle('has-file', !!pendingJobApplyCvFile);
 }
 
@@ -8851,7 +8855,7 @@ function openJobSeekerForm() {
   currentJobSeekerCvUrl = p.cvUrl || null;
   pendingJobSeekerCvFile = null;
   document.getElementById('jobseeker-cv-file').value = '';
-  document.getElementById('jobseeker-cv-file-text').textContent = currentJobSeekerCvUrl ? `✅ ${t('jobseeker_cv_already_sent')}` : t('common_choose_file');
+  document.getElementById('jobseeker-cv-file-text').textContent = currentJobSeekerCvUrl ? `${t('jobseeker_cv_already_sent')}` : t('common_choose_file');
   document.getElementById('jobseeker-cv-file-label').classList.toggle('has-file', !!currentJobSeekerCvUrl);
   resetUploadProgress('jobseeker-cv');
   document.getElementById('jobseeker-whatsapp-input').value = p.whatsapp || '';
@@ -8870,7 +8874,7 @@ function handleJobSeekerCvFileChange(event) {
   pendingJobSeekerCvFile = (event.target.files && event.target.files[0]) || null;
   const text = document.getElementById('jobseeker-cv-file-text');
   const label = document.getElementById('jobseeker-cv-file-label');
-  if (text) text.textContent = pendingJobSeekerCvFile ? `✅ ${pendingJobSeekerCvFile.name}` : (currentJobSeekerCvUrl ? `✅ ${t('jobseeker_cv_already_sent')}` : t('common_choose_file'));
+  if (text) text.textContent = pendingJobSeekerCvFile ? `${pendingJobSeekerCvFile.name}` : (currentJobSeekerCvUrl ? `${t('jobseeker_cv_already_sent')}` : t('common_choose_file'));
   if (label) label.classList.toggle('has-file', !!(pendingJobSeekerCvFile || currentJobSeekerCvUrl));
 }
 
@@ -9197,7 +9201,7 @@ function handleEventCoverFileChange(event) {
   pendingEventCoverFile = (event.target.files && event.target.files[0]) || null;
   const text = document.getElementById('event-cover-file-text');
   const label = document.getElementById('event-cover-file-label');
-  if (text) text.textContent = pendingEventCoverFile ? `✅ ${pendingEventCoverFile.name}` : t('common_choose_image');
+  if (text) text.textContent = pendingEventCoverFile ? `${pendingEventCoverFile.name}` : t('common_choose_image');
   if (label) label.classList.toggle('has-file', !!pendingEventCoverFile);
   renderEventCoverPreview();
 }
@@ -10527,7 +10531,7 @@ function bookPriceLabel(b) {
 function bookCoverHtml(b, w, h, fontSize) {
   return b.coverImage
     ? `<img src="${escapeHtml(b.coverImage)}" alt="" style="width:${w}px;height:${h}px;object-fit:cover;border-radius:8px;flex:0 0 auto;box-shadow:0 4px 12px rgba(0,0,0,.15)">`
-    : `<div style="width:${w}px;height:${h}px;border-radius:8px;background:var(--cream);display:flex;align-items:center;justify-content:center;flex:0 0 auto;font-size:${fontSize}">📖</div>`;
+    : `<div style="width:${w}px;height:${h}px;border-radius:8px;background:var(--cream);display:flex;align-items:center;justify-content:center;flex:0 0 auto;font-size:${fontSize}"><svg class="ico" aria-hidden="true"><use href="#i-bookopen"/></svg></div>`;
 }
 
 function renderBooksBrowseList(list) {
@@ -10676,7 +10680,7 @@ function closeBookForm() {
 function handleBookCoverFileChange(event) {
   pendingBookCoverFile = (event.target.files && event.target.files[0]) || null;
   const text = document.getElementById('book-cover-file-text');
-  if (text) text.textContent = pendingBookCoverFile ? `✅ ${pendingBookCoverFile.name}` : t('common_choose_image');
+  if (text) text.textContent = pendingBookCoverFile ? `${pendingBookCoverFile.name}` : t('common_choose_image');
   renderBookCoverPreview();
 }
 
@@ -10690,7 +10694,7 @@ function renderBookCoverPreview() {
 function handleBookFileChange(event) {
   pendingBookFile = (event.target.files && event.target.files[0]) || null;
   const text = document.getElementById('book-file-text');
-  if (text) text.textContent = pendingBookFile ? `✅ ${pendingBookFile.name}` : (currentBookFileUrl ? t('book_file_already_uploaded') : t('book_choose_pdf'));
+  if (text) text.textContent = pendingBookFile ? `${pendingBookFile.name}` : (currentBookFileUrl ? t('book_file_already_uploaded') : t('book_choose_pdf'));
 }
 
 async function saveBook() {
@@ -10905,7 +10909,7 @@ function handleCourseCoverFileChange(event) {
   pendingCourseCoverFile = (event.target.files && event.target.files[0]) || null;
   const text = document.getElementById('course-cover-file-text');
   const label = document.getElementById('course-cover-file-label');
-  if (text) text.textContent = pendingCourseCoverFile ? `✅ ${pendingCourseCoverFile.name}` : t('common_choose_image');
+  if (text) text.textContent = pendingCourseCoverFile ? `${pendingCourseCoverFile.name}` : t('common_choose_image');
   if (label) label.classList.toggle('has-file', !!pendingCourseCoverFile);
   renderCourseCoverPreview();
 }
@@ -11917,10 +11921,10 @@ async function acceptQuote(requestId, proUid, proName) {
     await batch.commit();
 
     await db.collection('notifications').add({
-      uid: proUid, title: 'Devis accepté ✅', body: `Ton devis a été accepté pour une demande de service.`,
+      uid: proUid, title: 'Devis accepté', body: `Ton devis a été accepté pour une demande de service.`,
       type: 'quote_accepted', read: false, createdAt: new Date().toISOString()
     });
-    notifyUserPush(proUid, 'Devis accepté ✅', 'Ton devis a été accepté pour une demande de service.');
+    notifyUserPush(proUid, 'Devis accepté', 'Ton devis a été accepté pour une demande de service.');
 
     document.getElementById('srequest-quotes-modal').remove();
     showToast('Devis accepté', 'success');
@@ -12145,11 +12149,11 @@ async function saveQuote(requestId) {
     });
 
     await db.collection('notifications').add({
-      uid: req.clientUid, title: 'Nouveau devis reçu 💬',
+      uid: req.clientUid, title: 'Nouveau devis reçu',
       body: `${currentUser.name || 'Un professionnel'} a envoyé un devis pour "${req.title}".`,
       type: 'new_quote', read: false, createdAt: new Date().toISOString()
     });
-    notifyUserPush(req.clientUid, 'Nouveau devis reçu 💬', `Nouveau devis pour "${req.title}".`);
+    notifyUserPush(req.clientUid, 'Nouveau devis reçu', `Nouveau devis pour "${req.title}".`);
 
     document.getElementById('quote-form-modal').remove();
     if (!srequestMyQuotedIds) srequestMyQuotedIds = new Set();
@@ -12347,7 +12351,7 @@ async function verifyPublicSiteLink() {
   try {
     const snap = await db.collection('mini_sites').where('slug', '==', mySiteCache.slug).limit(1).get();
     const ok = !snap.empty && snap.docs[0].data().status === 'published';
-    resultEl.textContent = ok ? `✅ ${t('site_check_link_ok')}` : `⚠️ ${t('site_check_link_fail')}`;
+    resultEl.textContent = ok ? `${t('site_check_link_ok')}` : `${t('site_check_link_fail')}`;
     resultEl.style.color = ok ? '#177a3f' : '#b5720b';
   } catch (e) {
     resultEl.textContent = friendlyErrorMessage(e);
@@ -12905,7 +12909,7 @@ function handleSiteLogoFileChange(event) {
   pendingSiteLogoFile = (event.target.files && event.target.files[0]) || null;
   const text = document.getElementById('site-logo-file-text');
   const label = document.getElementById('site-logo-file-label');
-  if (text) text.textContent = pendingSiteLogoFile ? `✅ ${pendingSiteLogoFile.name}` : (currentSiteLogoUrl ? t('site_logo_already_saved') : t('common_choose_image'));
+  if (text) text.textContent = pendingSiteLogoFile ? `${pendingSiteLogoFile.name}` : (currentSiteLogoUrl ? t('site_logo_already_saved') : t('common_choose_image'));
   if (label) label.classList.toggle('has-file', !!(pendingSiteLogoFile || currentSiteLogoUrl));
   const previewEl = document.getElementById('site-logo-preview');
   if (previewEl) {
@@ -12918,7 +12922,7 @@ function handleSiteCoverFileChange(event) {
   pendingSiteCoverFile = (event.target.files && event.target.files[0]) || null;
   const text = document.getElementById('site-cover-file-text');
   const label = document.getElementById('site-cover-file-label');
-  if (text) text.textContent = pendingSiteCoverFile ? `✅ ${pendingSiteCoverFile.name}` : (currentSiteCoverUrl ? t('site_cover_already_saved') : t('common_choose_image'));
+  if (text) text.textContent = pendingSiteCoverFile ? `${pendingSiteCoverFile.name}` : (currentSiteCoverUrl ? t('site_cover_already_saved') : t('common_choose_image'));
   if (label) label.classList.toggle('has-file', !!(pendingSiteCoverFile || currentSiteCoverUrl));
   const previewEl = document.getElementById('site-cover-preview');
   if (previewEl) {
@@ -14094,7 +14098,7 @@ function handleBusinessLogoFileChange(event) {
   pendingBusinessLogoFile = (event.target.files && event.target.files[0]) || null;
   const text = document.getElementById('business-logo-file-text');
   const label = document.getElementById('business-logo-file-label');
-  if (text) text.textContent = pendingBusinessLogoFile ? `✅ ${pendingBusinessLogoFile.name}` : (currentBusinessLogoUrl ? t('business_logo_already_saved') : t('common_choose_image'));
+  if (text) text.textContent = pendingBusinessLogoFile ? `${pendingBusinessLogoFile.name}` : (currentBusinessLogoUrl ? t('business_logo_already_saved') : t('common_choose_image'));
   if (label) label.classList.toggle('has-file', !!(pendingBusinessLogoFile || currentBusinessLogoUrl));
   const previewEl = document.getElementById('business-logo-preview');
   if (previewEl) {
@@ -14107,7 +14111,7 @@ function handleBusinessCoverFileChange(event) {
   pendingBusinessCoverFile = (event.target.files && event.target.files[0]) || null;
   const text = document.getElementById('business-cover-file-text');
   const label = document.getElementById('business-cover-file-label');
-  if (text) text.textContent = pendingBusinessCoverFile ? `✅ ${pendingBusinessCoverFile.name}` : (currentBusinessCoverUrl ? t('business_cover_already_saved') : t('common_choose_image'));
+  if (text) text.textContent = pendingBusinessCoverFile ? `${pendingBusinessCoverFile.name}` : (currentBusinessCoverUrl ? t('business_cover_already_saved') : t('common_choose_image'));
   if (label) label.classList.toggle('has-file', !!(pendingBusinessCoverFile || currentBusinessCoverUrl));
   const previewEl = document.getElementById('business-cover-preview');
   if (previewEl) {
@@ -14223,7 +14227,7 @@ function handleBusinessPostImageFileChange(event) {
   pendingBusinessPostImageFile = (event.target.files && event.target.files[0]) || null;
   const text = document.getElementById('business-post-image-file-text');
   const label = document.getElementById('business-post-image-file-label');
-  if (text) text.textContent = pendingBusinessPostImageFile ? `✅ ${pendingBusinessPostImageFile.name}` : t('common_choose_image');
+  if (text) text.textContent = pendingBusinessPostImageFile ? `${pendingBusinessPostImageFile.name}` : t('common_choose_image');
   if (label) label.classList.toggle('has-file', !!pendingBusinessPostImageFile);
   const previewEl = document.getElementById('business-post-image-preview');
   if (previewEl) {
@@ -14526,7 +14530,7 @@ async function renderReviewsSection(pubId, sellerUid) {
 
   return `
     <div class="reviews-section">
-      <h4>⭐ Avis ${reviews.length ? `— ${avg.toFixed(1)}/5 (${reviews.length})` : ''}</h4>
+      <h4>Avis ${reviews.length ? `— ${avg.toFixed(1)}/5 (${reviews.length})` : ''}</h4>
       ${formHtml}
       <div class="reviews-list">${listHtml}</div>
     </div>
@@ -15021,7 +15025,7 @@ async function addShopComment(pubId, parentId = null) {
       const pubSnap = await db.collection('publications').doc(pubId).get();
       const pub = pubSnap.data();
       if (pub && pub.sellerUid && pub.sellerUid !== currentUser.uid) {
-        const title = parentId ? 'Nouvelle réponse 💬' : 'Nouveau commentaire 💬';
+        const title = parentId ? 'Nouvelle réponse' : 'Nouveau commentaire';
         const body = `${currentUser.name || 'Quelqu\'un'} a ${parentId ? 'répondu sur' : 'commenté'} "${pub.title || pub.description || 'ta publication'}" : "${text.slice(0, 60)}"`;
         await db.collection('notifications').add({
           uid: pub.sellerUid, title, body, type: 'comment', read: false, url: '/?open=' + pubId, createdAt: new Date().toISOString(),
@@ -15035,7 +15039,7 @@ async function addShopComment(pubId, parentId = null) {
         const parentSnap = await db.collection('publication_comments').doc(parentId).get();
         const parent = parentSnap.data();
         if (parent && parent.uid && parent.uid !== currentUser.uid && (!pub || parent.uid !== pub.sellerUid)) {
-          const title2 = 'Nouvelle réponse 💬';
+          const title2 = 'Nouvelle réponse';
           const body2 = `${currentUser.name || 'Quelqu\'un'} a répondu à ton commentaire : "${text.slice(0, 60)}"`;
           await db.collection('notifications').add({
             uid: parent.uid, title: title2, body: body2, type: 'comment', read: false, url: '/?open=' + pubId, createdAt: new Date().toISOString(),
@@ -15062,11 +15066,11 @@ function buyShopItem(pubId, title, price, itemType) {
     <div class="modal-overlay" id="shop-checkout-modal">
       <div class="modal">
         <button class="modal-close" onclick="closeShopCheckout()" aria-label="Fermer">×</button>
-        <h2>🛍️ ${escapeHtml(title)}</h2>
+        <h2><svg class="ico" aria-hidden="true"><use href="#i-bag"/></svg> ${escapeHtml(title)}</h2>
         <p class="sub">Prix : <strong>${price.toFixed(2)}$</strong> — Ton solde : <strong>${(currentUser.balance || 0).toFixed(2)}$</strong></p>
         <div class="modal-error hidden" id="shop-checkout-error"></div>
         <div class="hidden" id="shop-checkout-success">
-          <div class="tutorial-emoji">✅</div>
+          <div class="tutorial-emoji"><svg class="ico" aria-hidden="true"><use href="#i-check"/></svg></div>
           <p class="sub" style="text-align:center;font-weight:700;color:var(--green)">Achat confirmé !</p>
           <div id="shop-checkout-download"></div>
         </div>
@@ -15113,7 +15117,7 @@ async function confirmShopPurchase(pubId, title, price, itemType) {
       shopPurchasedSet.add(pubId);
       if (data.fileUrl) {
         document.getElementById('shop-checkout-download').innerHTML =
-          `<a class="btn btn-primary" style="width:100%;justify-content:center;margin-top:10px" href="${safeHref(data.fileUrl)}" target="_blank">📖 Télécharger le livre</a>`;
+          `<a class="btn btn-primary" style="width:100%;justify-content:center;margin-top:10px" href="${safeHref(data.fileUrl)}" target="_blank"><svg class="ico" aria-hidden="true"><use href="#i-download"/></svg> Télécharger le livre</a>`;
       }
       renderShopFeed(); // le bouton "Commander" de la carte devient "Télécharger"
     } else {
