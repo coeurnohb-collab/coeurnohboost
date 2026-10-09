@@ -123,7 +123,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="app.min.css?v=c915560676" onerror="['style','polish','menu-pro','pro'].forEach(function(n){var l=document.createElement('link');l.rel='stylesheet';l.href=n+'.css';document.head.appendChild(l)})">
+<link rel="stylesheet" href="app.min.css?v=72297e49c8" onerror="['style','polish','menu-pro','pro'].forEach(function(n){var l=document.createElement('link');l.rel='stylesheet';l.href=n+'.css';document.head.appendChild(l)})">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check-compat.js" defer></script>
 <script src="app-check.js" defer></script>
@@ -766,11 +766,11 @@
       <button class="btn btn-outline" style="position:relative" onclick="openCart()" aria-label="Panier"><svg class="ico" aria-hidden="true"><use href="#i-cart"/></svg> <span class="cart-badge hidden" id="cart-badge">0</span></button>
     </div>
 
-    <button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:14px" onclick="showLibrary()"><svg class="ico" aria-hidden="true"><use href="#i-book"/></svg> <span data-i18n="shop_goto_library">Aller à la Bibliothèque (livres uniquement)</span></button>
+    <div class="shop-switch"><button type="button" class="active" data-i18n="shop_title">Boutique</button><button type="button" onclick="showLibrary()" data-i18n="library_title">Bibliothèque</button></div>
 
     <div class="shop-cat-chips" id="shop-cat-chips"><button type="button" class="active" onclick="setShopCategoryChip(this,'all')" data-i18n="shop_cat_all">Tout</button><button type="button" onclick="setShopCategoryChip(this,'ebooks')" data-i18n="shop_cat_ebooks">Livres &amp; Ebooks</button><button type="button" onclick="setShopCategoryChip(this,'beaute')" data-i18n="shop_cat_beaute">Beauté &amp; Bien-être</button><button type="button" onclick="setShopCategoryChip(this,'mode')" data-i18n="shop_cat_mode">Mode &amp; Accessoires</button><button type="button" onclick="setShopCategoryChip(this,'electronique')" data-i18n="shop_cat_electronique">Électronique</button><button type="button" onclick="setShopCategoryChip(this,'maison')" data-i18n="shop_cat_maison">Maison &amp; Déco</button><button type="button" onclick="setShopCategoryChip(this,'autres')" data-i18n="shop_cat_autres">Autres</button></div>
 
-    <div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap">
+    <div class="shop-toolbar" style="display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap">
       <div class="shop-filter-tabs" id="shop-filter-tabs" style="margin-bottom:0;flex:1">
         <button class="active" data-filter="all" onclick="setShopFilter('all')" data-i18n="shop_filter_all">Tous</button>
         <button data-filter="book" onclick="setShopFilter('book')" data-i18n="shop_filter_books">Livres</button>
@@ -1156,6 +1156,7 @@
       <button class="btn btn-outline nt-back" onclick="showDashboard()" aria-label="Retour"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
       <h2 class="page-title" style="margin-bottom:0">Notifications
       </h2>
+      <button class="btn btn-outline nt-check" onclick="var m=document.querySelector('#cn-notif-tools .mk');if(m)m.click()" aria-label="Tout marquer comme lu" title="Tout marquer comme lu"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>
     </div>
     <div id="notif-header-select" class="hidden" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:10px">
       <button class="btn btn-outline btn-sm" onclick="toggleNotifSelectMode()" aria-label="Annuler la sélection">
@@ -2418,7 +2419,7 @@
   </div>
 </div>
 
-<script src="app.min.js?v=ff68b476cc" defer onerror="(function(){function f(){['translations','catalog-data','script','polish','menu-pro','push-center'].forEach(function(n){var x=document.createElement('script');x.src=n+'.js';x.async=false;document.body.appendChild(x)})}document.readyState==='loading'?document.addEventListener('DOMContentLoaded',f):f()})()"></script>
+<script src="app.min.js?v=7677132d40" defer onerror="(function(){function f(){['translations','catalog-data','script','polish','menu-pro','push-center'].forEach(function(n){var x=document.createElement('script');x.src=n+'.js';x.async=false;document.body.appendChild(x)})}document.readyState==='loading'?document.addEventListener('DOMContentLoaded',f):f()})()"></script>
 
 <!-- PWA : activation du service worker (installation en app) -->
 <script>

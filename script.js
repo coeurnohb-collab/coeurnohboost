@@ -15638,6 +15638,13 @@ async function deleteSelectedNotifs() {
   }
 }
 
+let notifVisibleLimit = 30;
+const notifProfilesRequested = new Set();
+function showMoreNotifs() {
+  notifVisibleLimit += 30;
+  renderNotifPanel();
+}
+
 function renderNotifPanel() {
   const listEl = document.getElementById('notif-list');
   if (!listEl) return;
@@ -15651,7 +15658,9 @@ function renderNotifPanel() {
     ...announcementsCache.map(a => ({ ...a, isAnnouncement: true }))
   ]
     .filter(n => !n.fromUid || !mutedUids.has(n.fromUid))
-    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 30);
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  const mergedTotal = merged.length;
+  merged.length = Math.min(merged.length, notifVisibleLimit);
 
   if (merged.length === 0) {
     listEl.innerHTML = '<p class="muted small" style="padding:16px">Aucune notification pour l\'instant.</p>';
@@ -15671,6 +15680,29 @@ function renderNotifPanel() {
   const lastSeen = getLastSeenAnnouncementAt();
   const isUnread = (n) => (!n.isAnnouncement && !n.read) || (n.isAnnouncement && n.createdAt > lastSeen);
 
+  // Avatar facon Facebook : photo de la personne a l'origine de la notification
+  // (chargee en arriere-plan), sinon son initiale ; pour les messages de l'app
+  // (annonces, commandes, recharges...) le logo Coeurnoh. Petit badge colore du type en bas a droite.
+  const avatarFor = (n) => {
+    if (n.fromUid) {
+      try {
+        const p = publicProfileCache.get(n.fromUid);
+        const photo = p && typeof p.photoURL === 'string' ? p.photoURL : null;
+        const nm = typeof n.fromName === 'string' && n.fromName ? n.fromName : (p && typeof p.name === 'string' ? p.name : 'C');
+        return renderAvatarHtml(nm, photo, 64);
+      } catch (e) { return renderAvatarHtml('C', null, 64); }
+    }
+    return '<img class="notif-logo-av" src="icon-192-v2.png" alt="" width="64" height="64">';
+  };
+  const textFor = (n) => {
+    const name = n.fromName ? String(n.fromName) : '';
+    const body = String(n.body || '');
+    if (name && body.startsWith(name)) {
+      return `<b>${escapeHtml(name)}</b>${escapeHtml(body.slice(name.length))}`;
+    }
+    return `<b>${escapeHtml(n.title)}</b> ${escapeHtml(body)}`;
+  };
+
   const renderRow = (n) => {
     const isSelected = selectedNotifIds.has(n.id);
     const badgeClass = 'badge-' + (n.type || 'announcement');
@@ -15679,12 +15711,11 @@ function renderNotifPanel() {
       data-id="${n.id}" data-announcement="${n.isAnnouncement ? '1' : '0'}">
       ${notifSelectMode && !n.isAnnouncement ? `<span class="notif-select-dot ${isSelected ? 'checked' : ''}">${ICON_CHECK}</span>` : ''}
       <span class="notif-icon-wrap">
-        <span class="notif-icon">${ICON_BELL}</span>
+        <span class="notif-icon">${avatarFor(n)}</span>
         <span class="notif-type-badge ${badgeClass}">${typeBadgeIcons[n.type] || ICON_BELL}</span>
       </span>
       <div class="notif-content">
-        <strong>${escapeHtml(n.title)}</strong>
-        <p>${escapeHtml(n.body)}</p>
+        <p class="notif-text">${textFor(n)}</p>
         <span class="notif-time">${timeAgo(n.createdAt)}</span>
       </div>
       ${(!notifSelectMode && !n.isAnnouncement) ? `<button class="notif-more-btn" data-notif-more="${n.id}" aria-label="Options de cette notification" title="Options">${ICON_DOTS}</button>` : ''}
@@ -15703,8 +15734,21 @@ function renderNotifPanel() {
   }
   if (unreadRows.length > 0 && readRows.length > 0) html += `<div class="notif-section-header notif-section-earlier">Plus tôt</div>`;
   html += readRows.map(renderRow).join('');
+  if (mergedTotal > merged.length) {
+    html += `<div class="notif-more-wrap"><button type="button" class="notif-more-list-btn" onclick="showMoreNotifs()">Voir les notifications précédentes</button></div>`;
+  }
   listEl.innerHTML = html;
   bindNotifListEvents();
+
+  // Charge en arriere-plan les photos de profil manquantes, puis redessine une seule fois.
+  const missing = [...new Set(merged.filter(n => n.fromUid).map(n => n.fromUid))]
+    .filter(uid => !publicProfileCache.has(uid) && !notifProfilesRequested.has(uid));
+  if (missing.length) {
+    missing.forEach(uid => notifProfilesRequested.add(uid));
+    Promise.all(missing.map(uid => fetchPublicProfile(uid).catch(() => null))).then(() => {
+      if (!notifSelectMode && document.getElementById('notif-list')) renderNotifPanel();
+    });
+  }
 }
 
 /* ================= MENU OPTIONS NOTIFICATION (3 points, façon Facebook) =================
