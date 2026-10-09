@@ -123,7 +123,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="app.min.css?v=da33b48680" onerror="['style','polish','menu-pro','pro'].forEach(function(n){var l=document.createElement('link');l.rel='stylesheet';l.href=n+'.css';document.head.appendChild(l)})">
+<link rel="stylesheet" href="app.min.css?v=c915560676" onerror="['style','polish','menu-pro','pro'].forEach(function(n){var l=document.createElement('link');l.rel='stylesheet';l.href=n+'.css';document.head.appendChild(l)})">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check-compat.js" defer></script>
 <script src="app-check.js" defer></script>
@@ -768,6 +768,8 @@
 
     <button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:14px" onclick="showLibrary()"><svg class="ico" aria-hidden="true"><use href="#i-book"/></svg> <span data-i18n="shop_goto_library">Aller à la Bibliothèque (livres uniquement)</span></button>
 
+    <div class="shop-cat-chips" id="shop-cat-chips"><button type="button" class="active" onclick="setShopCategoryChip(this,'all')" data-i18n="shop_cat_all">Tout</button><button type="button" onclick="setShopCategoryChip(this,'ebooks')" data-i18n="shop_cat_ebooks">Livres &amp; Ebooks</button><button type="button" onclick="setShopCategoryChip(this,'beaute')" data-i18n="shop_cat_beaute">Beauté &amp; Bien-être</button><button type="button" onclick="setShopCategoryChip(this,'mode')" data-i18n="shop_cat_mode">Mode &amp; Accessoires</button><button type="button" onclick="setShopCategoryChip(this,'electronique')" data-i18n="shop_cat_electronique">Électronique</button><button type="button" onclick="setShopCategoryChip(this,'maison')" data-i18n="shop_cat_maison">Maison &amp; Déco</button><button type="button" onclick="setShopCategoryChip(this,'autres')" data-i18n="shop_cat_autres">Autres</button></div>
+
     <div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap">
       <div class="shop-filter-tabs" id="shop-filter-tabs" style="margin-bottom:0;flex:1">
         <button class="active" data-filter="all" onclick="setShopFilter('all')" data-i18n="shop_filter_all">Tous</button>
@@ -1151,9 +1153,8 @@
 <div id="view-notifications" class="hidden">
   <div class="wrap dash-wrap">
     <div id="notif-header-normal" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:10px">
-      <button class="btn btn-outline" onclick="showDashboard()">← Retour</button>
-      <h2 class="page-title" style="margin-bottom:0">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:6px"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>Notifications
+      <button class="btn btn-outline nt-back" onclick="showDashboard()" aria-label="Retour"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <h2 class="page-title" style="margin-bottom:0">Notifications
       </h2>
     </div>
     <div id="notif-header-select" class="hidden" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:10px">
@@ -1961,10 +1962,6 @@
         <h2 data-i18n="menu_help">Aide &amp; informations</h2>
       </div>
       <div class="menu-card">
-      <button class="menu-item" onclick="goToAccountSection('section-faq')">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 2-3 4"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        <span data-i18n="menu_faq">Questions fréquentes</span>
-      </button>
       <button class="menu-item" onclick="goToAccountSection('section-contact')">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z"/></svg>
         <span data-i18n="menu_support">Assistance</span>
@@ -2421,7 +2418,7 @@
   </div>
 </div>
 
-<script src="app.min.js?v=0fb674cc8c" defer onerror="(function(){function f(){['translations','catalog-data','script','polish','menu-pro','push-center'].forEach(function(n){var x=document.createElement('script');x.src=n+'.js';x.async=false;document.body.appendChild(x)})}document.readyState==='loading'?document.addEventListener('DOMContentLoaded',f):f()})()"></script>
+<script src="app.min.js?v=ff68b476cc" defer onerror="(function(){function f(){['translations','catalog-data','script','polish','menu-pro','push-center'].forEach(function(n){var x=document.createElement('script');x.src=n+'.js';x.async=false;document.body.appendChild(x)})}document.readyState==='loading'?document.addEventListener('DOMContentLoaded',f):f()})()"></script>
 
 <!-- PWA : activation du service worker (installation en app) -->
 <script>

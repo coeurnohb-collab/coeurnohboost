@@ -2980,6 +2980,14 @@ function setShopCategory(category) {
   renderShopFeed();
 }
 
+// Pastilles de categories (Boutique) : memes categories que la liste deroulante cachee.
+function setShopCategoryChip(btn, category) {
+  document.querySelectorAll('#shop-cat-chips button').forEach(b => b.classList.toggle('active', b === btn));
+  const sel = document.getElementById('shop-category-select');
+  if (sel) sel.value = category;
+  setShopCategory(category);
+}
+
 function openSellForm() {
   if (!currentUser) { openAuth('register'); return; }
   const modalHtml = `
@@ -15693,6 +15701,7 @@ function renderNotifPanel() {
   if (unreadRows.length > 0) {
     html += `<div class="notif-section-header">Nouveau</div>` + unreadRows.map(renderRow).join('');
   }
+  if (unreadRows.length > 0 && readRows.length > 0) html += `<div class="notif-section-header notif-section-earlier">Plus tôt</div>`;
   html += readRows.map(renderRow).join('');
   listEl.innerHTML = html;
   bindNotifListEvents();

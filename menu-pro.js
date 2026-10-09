@@ -655,7 +655,6 @@
     { id: 's_lang', grp: 'setting', tk: 'menu_language', ic: 'globe2', c: ['#868e96', '#495057'], acc: 'section-language', kw: 'langue language francais english espanol italiano portugues' },
     { id: 's_account', grp: 'setting', tk: 'menu_account', ic: 'user', c: ['#868e96', '#495057'], acc: 'section-editaccount', kw: 'compte profil nom photo account edit' },
     { id: 's_privacy', grp: 'setting', tk: 'menu_privacy', ic: 'ban', c: ['#868e96', '#495057'], acc: 'section-blocked', kw: 'confidentialite bloques privacy blocked' },
-    { id: 's_faq', grp: 'setting', tk: 'menu_faq', ic: 'help', c: ['#868e96', '#495057'], acc: 'section-faq', kw: 'aide faq questions help' },
     { id: 's_support', grp: 'setting', tk: 'menu_support', ic: 'chat', c: ['#868e96', '#495057'], acc: 'section-contact', kw: 'assistance support contact aide' },
     { id: 's_about', grp: 'setting', tk: 'menu_about', ic: 'info', c: ['#868e96', '#495057'], acc: 'section-about', kw: 'a propos about coeurnoh' },
     { id: 's_share', grp: 'setting', tk: 'menu_share', ic: 'share', c: ['#868e96', '#495057'], acc: 'section-share', kw: 'partager application share app invite' },
