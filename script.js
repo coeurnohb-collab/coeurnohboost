@@ -1193,6 +1193,9 @@ function payFriendlyError(response, data) {
     const wait = Math.max(1, Math.ceil(((data && data.retryAfterSec) || 60) / 60));
     return 'Trop d\'essais en peu de temps. Patiente environ ' + wait + ' min, puis réessaie.';
   }
+  // Le serveur renvoie des messages courts et maîtrisés (ex. « Session invalide », « Configuration serveur manquante ») : on les montre.
+  const msg = data && typeof data.error === 'string' ? data.error.trim() : '';
+  if (msg && msg.length <= 160) return t('pay_err_generic') + ' (' + msg + ')';
   return t('pay_err_generic');
 }
 function renderPayMethodTabs() {
@@ -1612,7 +1615,7 @@ async function submitRecharge() {
     okEl.classList.remove('hidden');
   } catch (e) {
     console.error("Erreur demande recharge :", e.message);
-    errEl.textContent = t('pay_err_generic');
+    errEl.textContent = t('pay_err_generic') + (e && e.message ? ' (' + String(e.message).slice(0, 80) + ')' : '');
     errEl.classList.remove('hidden');
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = btn.dataset.originalLabel || t('pay_submit'); }
