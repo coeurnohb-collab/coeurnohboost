@@ -1287,10 +1287,63 @@ function selectCrypto(id) {
   payCryptoId = id;
   renderPayCryptoOptions();
 }
+// Paiement par carte : tant que MaxiCash n'est pas passé en réel, on guide le client vers
+// « carte → USDT → Cryptomus » (aucun compte à connecter). Quand MaxiCash sera prêt, mets true.
+const CARD_VIA_MAXICASH = false;
+
+const CARD_GUIDE_TEXT = {
+  fr: { title: 'Payer par carte Visa / Mastercard', intro: 'Simple et sans compte à créer chez nous. 3 étapes :',
+    s1: 'Achète des USDT avec ta carte, dans une application connue (Binance, Bybit, Trust Wallet…). Cherche « Acheter » puis « USDT ».',
+    s2: 'Reviens ici, appuie sur le bouton ci-dessous, choisis ton montant : on te crée une facture.',
+    s3: 'Envoie les USDT à l\'adresse de la facture (choisis le réseau indiqué dessus). Ton solde monte dès que le paiement est confirmé.',
+    tip: 'Conseil : commence par un petit montant pour t\'habituer. Les applications peuvent prendre de petits frais.', btn: 'Continuer avec la crypto' },
+  en: { title: 'Pay with a Visa / Mastercard card', intro: 'Simple, no account to create with us. 3 steps:',
+    s1: 'Buy USDT with your card in a well-known app (Binance, Bybit, Trust Wallet…). Look for “Buy” then “USDT”.',
+    s2: 'Come back here, tap the button below and choose your amount: we create an invoice for you.',
+    s3: 'Send the USDT to the invoice address (pick the network shown on it). Your balance goes up once the payment is confirmed.',
+    tip: 'Tip: start with a small amount to get used to it. Apps may charge small fees.', btn: 'Continue with crypto' },
+  es: { title: 'Pagar con tarjeta Visa / Mastercard', intro: 'Sencillo, sin crear cuenta con nosotros. 3 pasos:',
+    s1: 'Compra USDT con tu tarjeta en una app conocida (Binance, Bybit, Trust Wallet…). Busca «Comprar» y luego «USDT».',
+    s2: 'Vuelve aquí, pulsa el botón de abajo y elige tu importe: te creamos una factura.',
+    s3: 'Envía los USDT a la dirección de la factura (elige la red indicada). Tu saldo sube cuando se confirma el pago.',
+    tip: 'Consejo: empieza con un importe pequeño. Las apps pueden cobrar comisiones pequeñas.', btn: 'Continuar con cripto' },
+  it: { title: 'Paga con carta Visa / Mastercard', intro: 'Semplice, nessun account da creare da noi. 3 passaggi:',
+    s1: 'Compra USDT con la tua carta in un\'app nota (Binance, Bybit, Trust Wallet…). Cerca « Acquista » poi « USDT ».',
+    s2: 'Torna qui, tocca il pulsante qui sotto e scegli l\'importo: ti creiamo una fattura.',
+    s3: 'Invia gli USDT all\'indirizzo della fattura (scegli la rete indicata). Il saldo sale appena il pagamento è confermato.',
+    tip: 'Consiglio: inizia con un piccolo importo. Le app possono applicare piccole commissioni.', btn: 'Continua con la crypto' },
+  pt: { title: 'Pagar com cartão Visa / Mastercard', intro: 'Simples, sem criar conta connosco. 3 passos:',
+    s1: 'Compre USDT com o seu cartão numa app conhecida (Binance, Bybit, Trust Wallet…). Procure « Comprar » e depois « USDT ».',
+    s2: 'Volte aqui, toque no botão abaixo e escolha o valor: criamos uma fatura para si.',
+    s3: 'Envie os USDT para o endereço da fatura (escolha a rede indicada). O saldo sobe quando o pagamento é confirmado.',
+    tip: 'Dica: comece com um valor pequeno. As apps podem cobrar pequenas taxas.', btn: 'Continuar com cripto' }
+};
+function renderCardGuide() {
+  const host = document.getElementById('pay-card-guide');
+  if (!host) return;
+  const g = CARD_GUIDE_TEXT[currentLang] || CARD_GUIDE_TEXT.fr;
+  host.innerHTML = `
+    <h3 style="margin:14px 0 4px">${escapeHtml(g.title)}</h3>
+    <p class="muted small" style="margin-bottom:10px">${escapeHtml(g.intro)}</p>
+    <ol style="padding-left:20px;line-height:1.55;margin:0 0 10px">
+      <li style="margin-bottom:8px">${escapeHtml(g.s1)}</li>
+      <li style="margin-bottom:8px">${escapeHtml(g.s2)}</li>
+      <li>${escapeHtml(g.s3)}</li>
+    </ol>
+    <p class="muted small">${escapeHtml(g.tip)}</p>
+    <button type="button" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:12px" onclick="selectPayMethod('crypto')">${escapeHtml(g.btn)}</button>`;
+}
 function renderPayPanel() {
   document.getElementById('pay-panel-mobile').classList.toggle('hidden', payMethod !== 'mobile');
   document.getElementById('pay-panel-crypto').classList.toggle('hidden', payMethod !== 'crypto');
   document.getElementById('pay-panel-card').classList.toggle('hidden', payMethod !== 'card');
+  // En mode « guide carte », on cache le montant et le bouton d'envoi (le bouton du guide mène à la crypto)
+  const guide = payMethod === 'card' && !CARD_VIA_MAXICASH;
+  const guideEl = document.getElementById('pay-card-guide');
+  if (guideEl) { guideEl.classList.toggle('hidden', !guide); if (guide) renderCardGuide(); }
+  const prev = document.getElementById('pay-card-preview');
+  if (prev) prev.classList.toggle('hidden', guide);
+  ['recharge-amount-block', 'recharge-submit-btn'].forEach(id => { const el = document.getElementById(id); if (el) el.classList.toggle('hidden', guide); });
   if (payMethod === 'crypto') renderPayCryptoOptions();
   renderPayCurrencyToggle();
 }
@@ -1432,6 +1485,7 @@ async function submitRecharge() {
       // passe directement au flux manuel juste en dessous.
     }
 
+    if (payMethod === 'card' && !CARD_VIA_MAXICASH) { selectPayMethod('crypto'); return; }
     if (payMethod === 'card') {
       // Paiement carte via MaxiCash (methode "Form Post" officielle) : le
       // backend renvoie l'URL du formulaire + les champs a y mettre, et
