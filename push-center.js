@@ -522,7 +522,7 @@
       // Les liens ?tab=… des anciennes notifications passent par notre routeur
       try {
         var it = findItem(id, !!isAnn);
-        if (it && it.url && /[?&](tab|loc)=/.test(it.url) && !/[?&]open=/.test(it.url)) { openUrl(it.url); return; }
+        if (it && it.url && /[?&](tab|loc)=/.test(it.url) && !/[?&](open|profile)=/.test(it.url)) { openUrl(it.url); return; }
       } catch (e) { /* ignore */ }
       return origOpenRow.apply(this, arguments);
     };

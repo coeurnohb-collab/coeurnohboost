@@ -150,16 +150,16 @@ body.cn-banner-on #toast-container { top: calc(max(12px, env(safe-area-inset-top
    « réduire les animations »), l'image fixe prend le relais. */
 .hero { position: relative; isolation: isolate; overflow: hidden; background-image: url(intro-light-poster.jpg); background-size: cover; background-position: center; }
 .hero::after { content: ""; position: absolute; inset: 0; z-index: -2; pointer-events: none;
-  background: linear-gradient(180deg, rgba(255,255,255,.50), rgba(255,255,255,.22) 55%, rgba(255,255,255,.58)); }
+  background: linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,.04) 55%, rgba(255,255,255,.34)); }
 .cn-bgvideo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -3; opacity: 0; transition: opacity 1.4s ease; pointer-events: none; }
 .cn-bgvideo.on { opacity: 1; }
 .cn-watermark { position: absolute; left: 50%; top: 50%; width: min(78vw, 420px); aspect-ratio: 720 / 335; transform: translate(-50%, -50%); z-index: -1; pointer-events: none;
-  background: url(logo-mark.png) center / contain no-repeat; opacity: .058; animation: cnMark 9s ease-in-out infinite; }
+  background: url(logo-mark.png) center / contain no-repeat; opacity: .20; animation: cnMark 9s ease-in-out infinite; }
 @keyframes cnMark { 0%, 100% { transform: translate(-50%, -50%) scale(1) rotate(-2deg); } 50% { transform: translate(-50%, -53%) scale(1.045) rotate(2deg); } }
 .auth-hero { isolation: isolate; background-image: url(intro-dark-poster.jpg); background-size: cover; background-position: center; }
 .auth-hero .cn-bgvideo { z-index: -3; }
 .auth-hero::after { content: ""; position: absolute; inset: 0; z-index: -2; pointer-events: none; background: linear-gradient(180deg, rgba(12,16,24,.30), rgba(12,16,24,.45)); }
-.auth-hero .cn-watermark { background-image: url(logo-mark-white.png); left: auto; right: -40px; top: auto; bottom: 16px; width: 310px; opacity: .09; transform: none; animation-name: cnMarkR; }
+.auth-hero .cn-watermark { background-image: url(logo-mark-white.png); left: auto; right: -40px; top: auto; bottom: 16px; width: 310px; opacity: .22; transform: none; animation-name: cnMarkR; }
 @keyframes cnMarkR { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-10px) rotate(2deg); } }
 @media (prefers-reduced-motion: reduce) { .cn-bgvideo { display: none; } .cn-watermark { animation: none; } }
 
@@ -179,3 +179,19 @@ body.cn-banner-on #toast-container { top: calc(max(12px, env(safe-area-inset-top
   stroke-linecap: round; stroke-linejoin: round; vertical-align: -.2em; flex: none; }
 .file-picker-icon .ico { width: 1.5em; height: 1.5em; vertical-align: middle; }
 .contact-icon .ico { width: 1.2em; height: 1.2em; color: #fff; }
+
+
+/* ---------- 14. Fond d'ambiance de l'accueil : le logo se voit clairement derrière les cartes ---------- */
+body:has(#view-dashboard:not(.hidden))::before {
+  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(60% 40% at 50% 28%, rgba(243,156,31,.16), transparent 70%),
+    url(logo-mark.png) center 32% / min(92vw, 520px) auto no-repeat;
+  opacity: .30;
+}
+html[data-theme="dark"] body:has(#view-dashboard:not(.hidden))::before {
+  background:
+    radial-gradient(60% 40% at 50% 28%, rgba(243,156,31,.18), transparent 70%),
+    url(logo-mark-white.png) center 32% / min(92vw, 520px) auto no-repeat;
+  opacity: .22;
+}

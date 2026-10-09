@@ -531,7 +531,12 @@ function showDashboard() {
 
 function showDashTab(tab) {
   document.querySelectorAll('.dash-tab').forEach(el => el.classList.add('hidden'));
-  document.getElementById('dash-tab-' + tab).classList.remove('hidden');
+  const tabEl = document.getElementById('dash-tab-' + tab);
+  if (!tabEl) { // onglet inconnu (ex. ancien lien de notification) : on revient sur l'accueil au lieu de planter
+    const homeEl = document.getElementById('dash-tab-home'); if (homeEl) homeEl.classList.remove('hidden');
+    return;
+  }
+  tabEl.classList.remove('hidden');
   document.querySelectorAll('.bnav-btn').forEach(el => el.classList.remove('active'));
   // "account" n'a plus de bouton dedie dans la nav basse depuis qu'il est
   // accessible via le menu ☰ -- sans cette verification, la ligne suivante
@@ -1132,7 +1137,7 @@ async function loadOrders() {
   if (!currentUser) return;
   const container = document.getElementById('dash-tab-orders');
   try {
-    const snap = await db.collection('orders').where('uid', '==', currentUser.uid).get();
+    const snap = await db.collection('orders').where('uid', '==', currentUser.uid).limit(200).get();
     const orders = [];
     snap.forEach(doc => orders.push(doc.data()));
     orders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -1741,7 +1746,7 @@ function renderReferralBox() {
   // solde...) de chaque personne qu'il a parrainee, juste pour un simple
   // compteur. Corrige : seul le nombre est necessaire, donc seule une donnee
   // publique est desormais interrogee.
-  db.collection('public_profiles').where('referredBy', '==', currentUser.uid).get()
+  db.collection('public_profiles').where('referredBy', '==', currentUser.uid).limit(200).get()
     .then(snap => {
       const countEl = document.getElementById('referral-count-text');
       if (countEl) countEl.textContent = `${snap.size} ${t('referral_count_suffix')}`;
@@ -3155,7 +3160,7 @@ async function loadHomeFeed(append = false) {
       // (regles pas encore publiees, etc.), le fil d'accueil continue quand
       // meme a s'afficher normalement.
       try {
-        const followSnap = await db.collection('follows').where('followerUid', '==', currentUser.uid).get();
+        const followSnap = await db.collection('follows').where('followerUid', '==', currentUser.uid).limit(1000).get();
         followingSet = new Set(followSnap.docs.map(d => d.data().followedUid));
       } catch (e) {
         console.log('[follows] non bloquant :', e.message);
@@ -4016,7 +4021,7 @@ async function loadSellerWithdrawals() {
     const snap = await db.collection('withdrawal_requests')
       .where('uid', '==', currentUser.uid)
       .orderBy('createdAt', 'desc')
-      .get();
+      .limit(200).get();
 
     if (snap.empty) {
       el.innerHTML = '<p class="muted">Aucune demande de retrait pour l\'instant.</p>';
@@ -4049,7 +4054,7 @@ async function loadSellerStats() {
       .where('sellerUid', '==', currentUser.uid)
       .where('status', '==', 'completed')
       .orderBy('createdAt', 'desc')
-      .get();
+      .limit(200).get();
 
     const sales = snap.docs.map(doc => doc.data());
     const totalSales = sales.length;
@@ -4115,7 +4120,7 @@ async function loadMyPublications() {
     const snap = await db.collection('publications')
       .where('sellerUid', '==', currentUser.uid)
       .orderBy('createdAt', 'desc')
-      .get();
+      .limit(200).get();
 
     if (snap.empty) {
       el.innerHTML = '<p class="muted">Tu n\'as encore rien publié.</p>';
@@ -4320,7 +4325,7 @@ async function loadShopFeed() {
           db.collection('shop_orders')
             .where('uid', '==', currentUser.uid)
             .where('status', '==', 'completed')
-            .get()
+            .limit(200).get()
         ]);
         shopFeedItems.forEach((item, i) => { shopLikedMap[item.id] = likeChecks[i].exists ? (likeChecks[i].data().type || 'love') : null; });
         ordersSnap.docs.forEach(doc => shopPurchasedSet.add(doc.data().pubId));
@@ -4745,7 +4750,7 @@ async function loadPublicReviews(targetType, targetId, containerId, targetName) 
     const snap = await db.collection('public_reviews')
       .where('targetType', '==', targetType)
       .where('targetId', '==', targetId)
-      .get();
+      .limit(200).get();
     const reviews = snap.docs.map(d => ({ id: d.id, ...d.data() }))
       .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
     const avg = reviews.length > 0 ? reviews.reduce((s, r) => s + (r.rating || 0), 0) / reviews.length : 0;
@@ -5116,7 +5121,7 @@ async function renderStoriesBar() {
 
     let viewedIds = new Set();
     try {
-      const viewsSnap = await db.collection('story_views').where('viewerUid', '==', currentUser.uid).get();
+      const viewsSnap = await db.collection('story_views').where('viewerUid', '==', currentUser.uid).limit(1000).get();
       viewsSnap.docs.forEach(d => viewedIds.add(d.data().storyId));
     } catch (e) { /* pas bloquant : tout apparait juste "non vu" */ }
 
@@ -5182,7 +5187,7 @@ async function openStoryViewer(uid) {
       .where('uid', '==', uid)
       .where('createdAt', '>', cutoff)
       .orderBy('createdAt', 'asc')
-      .get();
+      .limit(200).get();
     const stories = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     if (!stories.length) { showToast('Aucune story active.', 'info'); return; }
 
@@ -5314,7 +5319,7 @@ function renderStoryViewerFrame() {
   // Pour le proprietaire : nombre de vues (charge en arriere-plan, sans
   // bloquer l'affichage de la story).
   if (isOwn) {
-    db.collection('story_views').where('storyId', '==', s.id).get().then(snap => {
+    db.collection('story_views').where('storyId', '==', s.id).limit(1000).get().then(snap => {
       const el = document.getElementById(`story-views-count-${s.id}`);
       if (el) el.textContent = snap.size;
     }).catch(() => {});
@@ -5353,7 +5358,7 @@ async function openStoryViewersList(storyId) {
   document.body.appendChild(overlay);
 
   try {
-    const snap = await db.collection('story_views').where('storyId', '==', storyId).get();
+    const snap = await db.collection('story_views').where('storyId', '==', storyId).limit(1000).get();
     const rows = snap.docs.map(d => d.data()).sort((a, b) => (b.viewedAt || '').localeCompare(a.viewedAt || ''));
     const list = document.getElementById('story-viewers-list');
     if (!list) return;
@@ -5609,6 +5614,7 @@ async function toggleFollow(sellerUid, sellerName) {
       btnEls.forEach(el => el.classList.add('following'));
       labelEls.forEach(el => { el.textContent = t('btn_following'); el.setAttribute('data-i18n', 'btn_following'); });
       showToast(`Tu suis maintenant ${sellerName || 'ce compte'}`, 'success');
+      notifyNewFollower(sellerUid); // comme Instagram : « X a commencé à te suivre »
     }
   } catch (e) {
     showToast(friendlyErrorMessage(e), 'error');
@@ -5616,6 +5622,21 @@ async function toggleFollow(sellerUid, sellerName) {
     btnEls.forEach(el => el.style.opacity = '');
     likeInFlight.delete(lockKey);
   }
+}
+
+// Prévient la personne suivie. Un seul message par paire (id fixe) : suivre/ne plus suivre/re-suivre ne spamme pas.
+async function notifyNewFollower(targetUid) {
+  try {
+    const name = currentUser.name || 'Quelqu\'un';
+    const title = 'Nouvel abonné';
+    const body = `${name} a commencé à te suivre.`;
+    const url = '/?profile=' + currentUser.uid;
+    await db.collection('notifications').doc(`follow_${currentUser.uid}_${targetUid}`).set({
+      uid: targetUid, title, body, type: 'follow', read: false, url, createdAt: new Date().toISOString(),
+      fromUid: currentUser.uid, fromName: name
+    });
+    notifyUserPush(targetUid, title, body, 'activity', url);
+  } catch (e) { /* deja notifie ou refuse : sans gravite */ }
 }
 
 /* ================= BLOCAGE DE COMPTE ================= */
@@ -5674,7 +5695,7 @@ async function toggleBlockAccount(targetUid, targetName) {
 async function loadBlockedSet() {
   if (!currentUser) { blockedSet = new Set(); return; }
   try {
-    const snap = await db.collection('blocks').where('blockerUid', '==', currentUser.uid).get();
+    const snap = await db.collection('blocks').where('blockerUid', '==', currentUser.uid).limit(1000).get();
     blockedSet = new Set(snap.docs.map(d => d.data().blockedUid));
   } catch (e) {
     console.log('[blocks] chargement non bloquant :', e.message);
@@ -5689,7 +5710,7 @@ async function loadBlockedSet() {
 async function loadFollowingSet() {
   if (!currentUser) { followingSet = new Set(); return; }
   try {
-    const snap = await db.collection('follows').where('followerUid', '==', currentUser.uid).get();
+    const snap = await db.collection('follows').where('followerUid', '==', currentUser.uid).limit(1000).get();
     followingSet = new Set(snap.docs.map(d => d.data().followedUid));
   } catch (e) {
     console.log('[follows] chargement non bloquant :', e.message);
@@ -5723,8 +5744,8 @@ async function openProfileModal(sellerUid, sellerName, sellerVerified) {
         .where('sellerUid', '==', sellerUid)
         .where('status', '==', 'published')
         .limit(50).get(),
-      db.collection('follows').where('followedUid', '==', sellerUid).get(),
-      db.collection('follows').where('followerUid', '==', sellerUid).get()
+      db.collection('follows').where('followedUid', '==', sellerUid).limit(1000).get(),
+      db.collection('follows').where('followerUid', '==', sellerUid).limit(1000).get()
     ]);
 
     // Statut bloque -- isole dans son propre try/catch comme les autres
@@ -6894,7 +6915,7 @@ async function loadAlerts() {
     // requete entiere. Tri fait cote telephone a la place.
     const snap = await db.collection('alerts')
       .where('ownerUid', '==', currentUser.uid)
-      .get();
+      .limit(200).get();
     alertsCache = snap.docs
       .map(d => ({ id: d.id, ...d.data() }))
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -7644,7 +7665,7 @@ async function loadContestEntries(contestId, status) {
         const votesSnap = await db.collection('contest_votes')
           .where('contestId', '==', contestId)
           .where('uid', '==', currentUser.uid)
-          .get();
+          .limit(200).get();
         votesSnap.forEach(v => contestMyVotesCache.add(`${contestId}_${v.data().entryId}_${currentUser.uid}`));
         contestMyVotesCache.add('__loaded_' + contestId);
       }
@@ -7904,7 +7925,7 @@ async function loadFollowingList() {
   if (!el || !currentUser) return;
   el.innerHTML = '<p class="muted small">Chargement...</p>';
   try {
-    const snap = await db.collection('follows').where('followerUid', '==', currentUser.uid).get();
+    const snap = await db.collection('follows').where('followerUid', '==', currentUser.uid).limit(1000).get();
     if (snap.empty) {
       el.innerHTML = '<p class="muted small">Tu ne suis encore personne. Ouvre le profil d\'un vendeur depuis le fil d\'accueil pour le suivre.</p>';
       return;
@@ -7950,7 +7971,7 @@ async function openFollowListModal(uid, type, displayName) {
 
   try {
     const field = type === 'followers' ? 'followedUid' : 'followerUid';
-    const snap = await db.collection('follows').where(field, '==', uid).get();
+    const snap = await db.collection('follows').where(field, '==', uid).limit(1000).get();
     if (snap.empty) {
       body.innerHTML = `<p class="muted small" style="padding:20px 0;text-align:center">${
         type === 'followers' ? 'Personne ne suit ce compte pour l\'instant.' : 'Ce compte ne suit personne pour l\'instant.'
@@ -8006,7 +8027,7 @@ async function loadFollowersList() {
   if (!el || !currentUser) return;
   el.innerHTML = '<p class="muted small">Chargement...</p>';
   try {
-    const snap = await db.collection('follows').where('followedUid', '==', currentUser.uid).get();
+    const snap = await db.collection('follows').where('followedUid', '==', currentUser.uid).limit(1000).get();
     if (snap.empty) {
       el.innerHTML = '<p class="muted small">Personne ne te suit encore.</p>';
       return;
@@ -8033,7 +8054,7 @@ async function loadBlockedList() {
   if (!el || !currentUser) return;
   el.innerHTML = '<p class="muted small">Chargement...</p>';
   try {
-    const snap = await db.collection('blocks').where('blockerUid', '==', currentUser.uid).get();
+    const snap = await db.collection('blocks').where('blockerUid', '==', currentUser.uid).limit(1000).get();
     if (snap.empty) {
       el.innerHTML = '<p class="muted small">Aucun compte bloqué.</p>';
       return;
@@ -8539,7 +8560,7 @@ async function loadMyJobApplications() {
   if (!currentUser) { listEl.innerHTML = `<p class="muted small">${t('job_login_to_view_apps')}</p>`; return; }
   listEl.innerHTML = renderFeedSkeletons(2);
   try {
-    const snap = await db.collection('job_applications').where('applicantUid', '==', currentUser.uid).get();
+    const snap = await db.collection('job_applications').where('applicantUid', '==', currentUser.uid).limit(200).get();
     const apps = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     apps.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
 
@@ -8563,7 +8584,7 @@ async function loadMyJobOffers() {
   if (!currentUser) { listEl.innerHTML = `<p class="muted small">${t('job_login_to_manage_offers')}</p>`; return; }
   listEl.innerHTML = renderFeedSkeletons(2);
   try {
-    const snap = await db.collection('job_offers').where('ownerUid', '==', currentUser.uid).get();
+    const snap = await db.collection('job_offers').where('ownerUid', '==', currentUser.uid).limit(200).get();
     myJobOffersCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     myJobOffersCache.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
 
@@ -8595,7 +8616,7 @@ async function openJobCandidates(offerId) {
     <div id="job-candidates-list"><p class="muted small">${t('common_loading')}</p></div>`;
 
   try {
-    const snap = await db.collection('job_applications').where('offerId', '==', offerId).get();
+    const snap = await db.collection('job_applications').where('offerId', '==', offerId).limit(200).get();
     const apps = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     apps.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
     const listEl = document.getElementById('job-candidates-list');
@@ -9442,7 +9463,7 @@ async function loadMyEventTickets() {
   if (!currentUser) { listEl.innerHTML = `<p class="muted small">${t('event_login_mytickets_prompt')}</p>`; return; }
   listEl.innerHTML = renderFeedSkeletons(2);
   try {
-    const snap = await db.collection('event_tickets').where('buyerUid', '==', currentUser.uid).get();
+    const snap = await db.collection('event_tickets').where('buyerUid', '==', currentUser.uid).limit(200).get();
     const tickets = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     tickets.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
 
@@ -9498,7 +9519,7 @@ async function loadMyOrganizedEvents() {
   if (!currentUser) { listEl.innerHTML = `<p class="muted small">${t('event_login_myevents_prompt')}</p>`; return; }
   listEl.innerHTML = renderFeedSkeletons(2);
   try {
-    const snap = await db.collection('events').where('ownerUid', '==', currentUser.uid).get();
+    const snap = await db.collection('events').where('ownerUid', '==', currentUser.uid).limit(200).get();
     myEventsCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     myEventsCache.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
 
@@ -9533,7 +9554,7 @@ async function openEventAttendees(eventId) {
     <div id="event-attendees-list"><p class="muted small">${t('common_loading')}</p></div>`;
 
   try {
-    const snap = await db.collection('event_tickets').where('eventId', '==', eventId).get();
+    const snap = await db.collection('event_tickets').where('eventId', '==', eventId).limit(200).get();
     const tickets = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     tickets.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
     const listEl = document.getElementById('event-attendees-list');
@@ -9677,7 +9698,7 @@ async function openTravelDetail(spotId) {
   if (currentUser) {
     if (!travelFavoritesCache) {
       try {
-        const favSnap = await db.collection('travel_favorites').where('uid', '==', currentUser.uid).get();
+        const favSnap = await db.collection('travel_favorites').where('uid', '==', currentUser.uid).limit(200).get();
         travelFavoritesCache = new Set(favSnap.docs.map(d => d.data().spotId));
       } catch (e) { travelFavoritesCache = new Set(); }
     }
@@ -9743,7 +9764,7 @@ async function loadTravelFavorites() {
   }
   listEl.innerHTML = renderFeedSkeletons(2);
   try {
-    const favSnap = await db.collection('travel_favorites').where('uid', '==', currentUser.uid).get();
+    const favSnap = await db.collection('travel_favorites').where('uid', '==', currentUser.uid).limit(200).get();
     const favDocs = favSnap.docs.slice().sort((a, b) => (b.data().createdAt || '').localeCompare(a.data().createdAt || ''));
     travelFavoritesCache = new Set(favDocs.map(d => d.data().spotId));
 
@@ -9768,7 +9789,7 @@ async function loadMyTravelSpots() {
   }
   listEl.innerHTML = renderFeedSkeletons(2);
   try {
-    const snap = await db.collection('travel_spots').where('ownerUid', '==', currentUser.uid).get();
+    const snap = await db.collection('travel_spots').where('ownerUid', '==', currentUser.uid).limit(200).get();
     travelMyCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     travelMyCache.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
 
@@ -10116,7 +10137,7 @@ async function loadAvailableSlots(proUid) {
     const snap = await db.collection('bookings')
       .where('proUid', '==', proUid)
       .where('date', '==', date)
-      .get();
+      .limit(200).get();
     const taken = new Set(snap.docs.map(d => d.data()).filter(b => b.status !== 'cancelled').map(b => b.startTime));
 
     const now = new Date();
@@ -10229,7 +10250,7 @@ async function loadMyBookings() {
   if (!currentUser) { listEl.innerHTML = `<p class="muted small" style="text-align:center;padding:20px 0">${t('booking_login_mine_prompt')}</p>`; return; }
   listEl.innerHTML = renderFeedSkeletons(2);
   try {
-    const snap = await db.collection('bookings').where('clientUid', '==', currentUser.uid).get();
+    const snap = await db.collection('bookings').where('clientUid', '==', currentUser.uid).limit(200).get();
     const bookings = snap.docs.map(d => ({ id: d.id, ...d.data() }))
       .sort((a, b) => `${b.date}${b.startTime}`.localeCompare(`${a.date}${a.startTime}`));
     renderBookingsList(bookings, 'booking-mine-list', t('booking_no_bookings_mine'), false);
@@ -10243,7 +10264,7 @@ async function loadReceivedBookings() {
   if (!currentUser) { listEl.innerHTML = `<p class="muted small" style="text-align:center;padding:20px 0">${t('booking_login_received_prompt')}</p>`; return; }
   listEl.innerHTML = renderFeedSkeletons(2);
   try {
-    const snap = await db.collection('bookings').where('proUid', '==', currentUser.uid).get();
+    const snap = await db.collection('bookings').where('proUid', '==', currentUser.uid).limit(200).get();
     const bookings = snap.docs.map(d => ({ id: d.id, ...d.data() }))
       .sort((a, b) => `${b.date}${b.startTime}`.localeCompare(`${a.date}${a.startTime}`));
     renderBookingsList(bookings, 'booking-received-list', t('booking_no_bookings_received'), true);
@@ -10564,7 +10585,7 @@ async function loadRatingBadgeInline(targetType, targetId, elId) {
     const snap = await db.collection('public_reviews')
       .where('targetType', '==', targetType)
       .where('targetId', '==', targetId)
-      .get();
+      .limit(200).get();
     if (snap.empty) return;
     const ratings = snap.docs.map(d => d.data().rating || 0);
     const avg = ratings.reduce((s, r) => s + r, 0) / ratings.length;
@@ -11162,7 +11183,7 @@ async function loadMyEnrolledCourses() {
   if (!currentUser) { listEl.innerHTML = `<p class="muted small">${t('course_login_mycourses_prompt')}</p>`; return; }
   listEl.innerHTML = renderFeedSkeletons(2);
   try {
-    const snap = await db.collection('course_enrollments').where('studentUid', '==', currentUser.uid).get();
+    const snap = await db.collection('course_enrollments').where('studentUid', '==', currentUser.uid).limit(200).get();
     const enrollments = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     enrollments.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
 
@@ -11186,7 +11207,7 @@ async function loadMyTaughtCourses() {
   if (!currentUser) { listEl.innerHTML = `<p class="muted small">${t('course_login_myteaching_prompt')}</p>`; return; }
   listEl.innerHTML = renderFeedSkeletons(2);
   try {
-    const snap = await db.collection('courses').where('ownerUid', '==', currentUser.uid).get();
+    const snap = await db.collection('courses').where('ownerUid', '==', currentUser.uid).limit(200).get();
     myTaughtCoursesCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     myTaughtCoursesCache.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
 
@@ -11220,7 +11241,7 @@ async function openCourseStudents(courseId) {
   try {
     const courseSnap = await db.collection('courses').doc(courseId).get();
     const totalChapters = courseSnap.exists ? (courseSnap.data().chapters || []).length || 1 : 1;
-    const snap = await db.collection('course_enrollments').where('courseId', '==', courseId).get();
+    const snap = await db.collection('course_enrollments').where('courseId', '==', courseId).limit(200).get();
     const students = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     students.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
     const listEl = document.getElementById('course-students-list');
@@ -11368,7 +11389,7 @@ async function openImmoDetail(propertyId) {
   if (currentUser) {
     if (!immoFavoritesCache) {
       try {
-        const favSnap = await db.collection('property_favorites').where('uid', '==', currentUser.uid).get();
+        const favSnap = await db.collection('property_favorites').where('uid', '==', currentUser.uid).limit(200).get();
         immoFavoritesCache = new Set(favSnap.docs.map(d => d.data().propertyId));
       } catch (e) { immoFavoritesCache = new Set(); }
     }
@@ -11434,7 +11455,7 @@ async function loadImmoFavorites() {
   }
   listEl.innerHTML = renderFeedSkeletons(2);
   try {
-    const favSnap = await db.collection('property_favorites').where('uid', '==', currentUser.uid).get();
+    const favSnap = await db.collection('property_favorites').where('uid', '==', currentUser.uid).limit(200).get();
     const favDocs = favSnap.docs.slice().sort((a, b) => (b.data().createdAt || '').localeCompare(a.data().createdAt || ''));
     immoFavoritesCache = new Set(favDocs.map(d => d.data().propertyId));
 
@@ -11458,7 +11479,7 @@ async function loadMyImmoProperties() {
   }
   listEl.innerHTML = renderFeedSkeletons(2);
   try {
-    const snap = await db.collection('properties').where('ownerUid', '==', currentUser.uid).get();
+    const snap = await db.collection('properties').where('ownerUid', '==', currentUser.uid).limit(200).get();
     immoMyCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     immoMyCache.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
 
@@ -11782,7 +11803,7 @@ async function loadMySRequests() {
   if (!currentUser) { listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Connecte-toi pour publier une demande.</p>'; return; }
   listEl.innerHTML = renderFeedSkeletons(2);
   try {
-    const snap = await db.collection('service_requests').where('clientUid', '==', currentUser.uid).get();
+    const snap = await db.collection('service_requests').where('clientUid', '==', currentUser.uid).limit(200).get();
     srequestMineCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     srequestMineCache.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
 
@@ -11796,7 +11817,7 @@ async function loadMySRequests() {
     try {
       const openIds = srequestMineCache.filter(r => r.status === 'open').map(r => r.id);
       if (openIds.length > 0) {
-        const quotesSnaps = await Promise.all(openIds.map(id => db.collection('service_quotes').where('requestId', '==', id).get()));
+        const quotesSnaps = await Promise.all(openIds.map(id => db.collection('service_quotes').where('requestId', '==', id).limit(200).get()));
         openIds.forEach((id, i) => { quoteCounts[id] = quotesSnaps[i].size; });
       }
     } catch (e) { /* best-effort, pas bloquant */ }
@@ -11852,7 +11873,7 @@ async function viewSRequestQuotes(requestId) {
 
   const listEl = document.getElementById('srequest-quotes-list');
   try {
-    const snap = await db.collection('service_quotes').where('requestId', '==', requestId).get();
+    const snap = await db.collection('service_quotes').where('requestId', '==', requestId).limit(200).get();
     const quotes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     quotes.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0) || (a.price || 0) - (b.price || 0));
 
@@ -11865,7 +11886,7 @@ async function viewSRequestQuotes(requestId) {
     const ratings = {};
     try {
       const uniqueProUids = [...new Set(quotes.map(q => q.proUid))];
-      const reviewSnaps = await Promise.all(uniqueProUids.map(pUid => db.collection('professional_reviews').where('proUid', '==', pUid).get()));
+      const reviewSnaps = await Promise.all(uniqueProUids.map(pUid => db.collection('professional_reviews').where('proUid', '==', pUid).limit(200).get()));
       uniqueProUids.forEach((pUid, i) => {
         const revs = reviewSnaps[i].docs.map(d => d.data());
         if (revs.length > 0) {
@@ -11901,7 +11922,7 @@ async function viewSRequestQuotes(requestId) {
 async function acceptQuote(requestId, proUid, proName) {
   if (!confirm(`Confirmer ${proName} pour cette demande ?`)) return;
   try {
-    const quotesSnap = await db.collection('service_quotes').where('requestId', '==', requestId).get();
+    const quotesSnap = await db.collection('service_quotes').where('requestId', '==', requestId).limit(200).get();
     let acceptedProPhone = null, acceptedProEmail = null, acceptedProFacebook = null, acceptedProTiktok = null;
     const batch = db.batch();
     quotesSnap.docs.forEach(d => {
@@ -12017,7 +12038,7 @@ async function loadAvailableSRequests() {
   try {
     const [reqSnap, myQuotesSnap] = await Promise.all([
       db.collection('service_requests').where('status', '==', 'open').limit(300).get(),
-      currentUser ? db.collection('service_quotes').where('proUid', '==', currentUser.uid).get() : Promise.resolve(null)
+      currentUser ? db.collection('service_quotes').where('proUid', '==', currentUser.uid).limit(200).get() : Promise.resolve(null)
     ]);
     srequestAvailableCache = reqSnap.docs.map(d => ({ id: d.id, ...d.data() }));
     srequestAvailableCache.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
@@ -12174,7 +12195,7 @@ async function loadMyQuotes() {
   if (!currentUser) { listEl.innerHTML = '<p class="muted small" style="text-align:center;padding:20px 0">Connecte-toi pour voir tes devis.</p>'; return; }
   listEl.innerHTML = renderFeedSkeletons(2);
   try {
-    const snap = await db.collection('service_quotes').where('proUid', '==', currentUser.uid).get();
+    const snap = await db.collection('service_quotes').where('proUid', '==', currentUser.uid).limit(200).get();
     srequestMyQuotesCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     srequestMyQuotesCache.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
 
@@ -13586,10 +13607,10 @@ async function openBusinessDetail(ownerUid) {
   // fiche, calcules a la volee comme dans le tableau de bord prive du
   // proprietaire (voir renderMyBusinessStatus), pour un vrai signal de
   // confiance visible par les visiteurs (avant : invisible publiquement).
-  db.collection('follows').where('followedUid', '==', ownerUid).get()
+  db.collection('follows').where('followedUid', '==', ownerUid).limit(1000).get()
     .then(snap => { const el = document.getElementById('biz-public-followers-count'); if (el) el.textContent = snap.size; })
     .catch(() => {});
-  db.collection('business_posts').where('businessUid', '==', ownerUid).get()
+  db.collection('business_posts').where('businessUid', '==', ownerUid).limit(200).get()
     .then(snap => { const el = document.getElementById('biz-public-posts-count'); if (el) el.textContent = snap.size; })
     .catch(() => {});
 
@@ -13610,7 +13631,7 @@ async function loadBusinessRatingBadge(ownerUid) {
     const snap = await db.collection('public_reviews')
       .where('targetType', '==', 'business')
       .where('targetId', '==', ownerUid)
-      .get();
+      .limit(200).get();
     if (snap.empty) return;
     const ratings = snap.docs.map(d => d.data().rating || 0);
     const avg = ratings.reduce((s, r) => s + r, 0) / ratings.length;
@@ -13688,19 +13709,19 @@ async function renderMyBusinessStatus() {
   }
   let followerCount = '…';
   try {
-    const favSnap = await db.collection('follows').where('followedUid', '==', currentUser.uid).get();
+    const favSnap = await db.collection('follows').where('followedUid', '==', currentUser.uid).limit(1000).get();
     followerCount = favSnap.size;
   } catch (e) { followerCount = '—'; }
 
   let postsCount = '…';
   try {
-    const postsSnap = await db.collection('business_posts').where('businessUid', '==', currentUser.uid).get();
+    const postsSnap = await db.collection('business_posts').where('businessUid', '==', currentUser.uid).limit(200).get();
     postsCount = postsSnap.size;
   } catch (e) { postsCount = '—'; }
 
   let clientsCount = '…';
   try {
-    const clientsSnap = await db.collection('business_clients').where('ownerUid', '==', currentUser.uid).get();
+    const clientsSnap = await db.collection('business_clients').where('ownerUid', '==', currentUser.uid).limit(200).get();
     clientsCount = clientsSnap.size;
   } catch (e) { clientsCount = '—'; }
 
@@ -13932,7 +13953,7 @@ async function loadBusinessClients() {
   const listEl = document.getElementById('business-clients-list');
   if (!listEl) return;
   try {
-    const snap = await db.collection('business_clients').where('ownerUid', '==', currentUser.uid).get();
+    const snap = await db.collection('business_clients').where('ownerUid', '==', currentUser.uid).limit(200).get();
     const clients = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     clients.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
 
@@ -14351,7 +14372,7 @@ async function submitReport() {
 async function openPostDetail(pubId) {
   try {
     const pubSnap = await db.collection('publications').doc(pubId).get();
-    if (!pubSnap.exists) return;
+    if (!pubSnap.exists) { showToast('Ce contenu n\'est plus disponible.', 'info'); return; }
     const item = { id: pubId, ...pubSnap.data() };
 
     // Corrige nom/photo/certification avec la version la plus recente
@@ -14719,7 +14740,7 @@ async function loadShopComments(pubId) {
     if (currentUser) {
       try {
         const likesSnap = await db.collection('comment_likes')
-          .where('pubId', '==', pubId).where('uid', '==', currentUser.uid).get();
+          .where('pubId', '==', pubId).where('uid', '==', currentUser.uid).limit(200).get();
         likesSnap.docs.forEach(d => myReactions.set(d.data().commentId, d.data().type));
       } catch (e) { /* pas bloquant : les coeurs seront juste tous vides */ }
     }
@@ -15307,7 +15328,7 @@ function startNotifWatch() {
       .orderBy('createdAt', 'desc')
       .limit(15)
       .onSnapshot((snap) => {
-        announcementsCache = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        announcementsCache = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })).filter(isAnnouncementAlive);
         updateNotifBadge();
         if (!document.getElementById('view-notifications').classList.contains('hidden')) {
           renderNotifPanel();
@@ -15315,6 +15336,22 @@ function startNotifWatch() {
       }, (err) => console.log('[notif] Erreur suivi annonces :', err.message));
   }
 }
+
+// Les messages programmés par l'admin (type « admin_message ») disparaissent tout seuls 10 h après leur envoi,
+// pour ne pas remplir la barre de notifications. Le serveur les supprime aussi (cron quotidien).
+const SCHEDULED_MSG_LIFETIME_MS = 10 * 3600 * 1000;
+function isAnnouncementAlive(a) {
+  if (!a || a.type !== 'admin_message') return true;
+  const t = new Date(a.createdAt).getTime();
+  return !t || Date.now() - t < SCHEDULED_MSG_LIFETIME_MS;
+}
+setInterval(function () {
+  try {
+    const before = announcementsCache.length;
+    announcementsCache = announcementsCache.filter(isAnnouncementAlive);
+    if (announcementsCache.length !== before) { updateNotifBadge(); const v = document.getElementById('view-notifications'); if (v && !v.classList.contains('hidden')) renderNotifPanel(); }
+  } catch (e) { /* ignore */ }
+}, 60000);
 
 function stopNotifWatch() {
   if (notifUnsubscribe) { notifUnsubscribe(); notifUnsubscribe = null; }
@@ -15687,17 +15724,24 @@ function openNotifRow(id, isAnnouncement) {
   const list = isAnnouncement ? announcementsCache : notifCache;
   const n = list.find((x) => x.id === id);
   if (!n) return;
-
-  if (n.url) {
-    const params = new URLSearchParams(n.url.split('?')[1] || '');
-    const pubId = params.get('open');
-    const tab = params.get('openTab');
-    if (pubId) { openPostDetail(pubId); return; }
-    if (tab) { showDashTab(tab); return; }
-  }
-  document.getElementById('notif-detail-title').textContent = n.title || '';
-  document.getElementById('notif-detail-body').textContent = n.body || '';
-  document.getElementById('notif-detail-modal').classList.remove('hidden');
+  try {
+    if (n.url) {
+      const q = String(n.url).split('?')[1] || '';
+      const params = new URLSearchParams(q);
+      const pubId = params.get('open');
+      const tab = params.get('openTab');
+      const profileUid = params.get('profile');
+      if (pubId) { openPostDetail(pubId); return; }
+      if (profileUid) { openSharedProfile(profileUid); return; }
+      if (tab && document.getElementById('dash-tab-' + tab)) { showDashTab(tab); return; }
+    }
+  } catch (e) { console.log('[notif] ouverture :', e && e.message); }
+  // Pas de cible precise (annonce generale, ancien lien...) : on affiche le message en entier.
+  const tEl = document.getElementById('notif-detail-title'), bEl = document.getElementById('notif-detail-body'), mEl = document.getElementById('notif-detail-modal');
+  if (!tEl || !bEl || !mEl) return;
+  tEl.textContent = n.title || '';
+  bEl.textContent = n.body || '';
+  mEl.classList.remove('hidden');
 }
 
 function closeNotifDetailModal() {
