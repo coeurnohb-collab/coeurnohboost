@@ -1187,6 +1187,14 @@ function showRecharge() {
   renderPayPanel();
   if (!LIVE_RATES) fetchLiveRates();
 }
+// Message clair quand le serveur refuse (ex. « trop de demandes en peu de temps ») au lieu d'une erreur vague.
+function payFriendlyError(response, data) {
+  if (response && response.status === 429) {
+    const wait = Math.max(1, Math.ceil(((data && data.retryAfterSec) || 60) / 60));
+    return 'Trop d\'essais en peu de temps. Patiente environ ' + wait + ' min, puis réessaie.';
+  }
+  return t('pay_err_generic');
+}
 function renderPayMethodTabs() {
   const methods = [
     { id: "mobile", label: t('pay_mobile'), icon: ICON_MOBILE_MONEY },
@@ -1501,7 +1509,7 @@ async function submitRecharge() {
 
       if (!response.ok || !data.success) {
         console.error("Erreur creation facture Cryptomus :", data.error);
-        errEl.textContent = t('pay_err_generic');
+        errEl.textContent = payFriendlyError(response, data);
         errEl.classList.remove('hidden');
         return;
       }
@@ -1566,6 +1574,7 @@ async function submitRecharge() {
 
       if (!response.ok || !data.success) {
         console.error("Erreur creation paiement carte :", data.error);
+        if (response.status === 429) { errEl.textContent = payFriendlyError(response, data); errEl.classList.remove('hidden'); return; }
         errEl.textContent = data.error ? `Erreur MaxiCash : ${data.error}` : t('pay_err_generic');
         errEl.classList.remove('hidden');
         return;
