@@ -1,4 +1,4 @@
-// tests/notifications.test.js — clic sur notification, suppression à 10 h, abonné, limites de requêtes.
+/// tests/notifications.test.js — clic sur notification, suppression à 10 h, abonné, limites de requêtes.
 const test = require('node:test');
 const assert = require('node:assert');
 const fs = require('fs');
@@ -88,5 +88,7 @@ test('Recharge : un refus « trop de demandes » (429) est expliqué au lieu d\'
   const f = new Function('t', m + '; return payFriendlyError;')(() => 'GENERIC');
   assert.match(f({ status: 429 }, { retryAfterSec: 600 }), /10 min/);
   assert.strictEqual(f({ status: 500 }, {}), 'GENERIC');
+  assert.strictEqual(f({ status: 500 }, { error: 'Session invalide' }), 'GENERIC (Session invalide)');
   assert.match(s, /errEl\.textContent = payFriendlyError\(response, data\);/);
 });
+Enter);
