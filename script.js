@@ -570,6 +570,7 @@ function showDashTab(tab) {
 const WALLET_TX_LABELS = {
   topup_crypto: { label: 'Recharge (crypto)', icon: 'card' },
   topup_mobile_money: { label: 'Recharge (Mobile Money)', icon: 'card' },
+  topup_optgateway: { label: 'Recharge (carte / Mobile Money)', icon: 'card' },
   topup_admin: { label: 'Recharge validée par l\'équipe', icon: 'card' },
   order_purchase: { label: 'Commande de service', icon: 'cart' },
   order_refund: { label: 'Remboursement de commande', icon: 'undo' },
@@ -1301,6 +1302,8 @@ function selectCrypto(id) {
 // Paiement par carte : tant que MaxiCash n'est pas passé en réel, on guide le client vers
 // « carte → USDT → Cryptomus » (aucun compte à connecter). Quand MaxiCash sera prêt, mets true.
 const CARD_VIA_MAXICASH = false;
+// Carte bancaire / Mobile Money via la page de paiement hebergee OPTGateway (api/payment-initiate.js, provider "optgateway").
+const CARD_VIA_OPT = true;
 
 const CARD_GUIDE_TEXT = {
   fr: { title: 'Payer par carte Visa / Mastercard', intro: 'Simple et sans compte à créer chez nous. 3 étapes :',
@@ -1412,7 +1415,7 @@ function renderPayPanel() {
   document.getElementById('pay-panel-crypto').classList.toggle('hidden', payMethod !== 'crypto');
   document.getElementById('pay-panel-card').classList.toggle('hidden', payMethod !== 'card');
   // En mode « guide carte », on cache le montant et le bouton d'envoi (le bouton du guide mène à la crypto)
-  const guide = payMethod === 'card' && !CARD_VIA_MAXICASH;
+  const guide = payMethod === 'card' && !CARD_VIA_MAXICASH && !CARD_VIA_OPT;
   const guideEl = document.getElementById('pay-card-guide');
   if (guideEl) { guideEl.classList.toggle('hidden', !guide); if (guide) renderCardGuide(); }
   const prev = document.getElementById('pay-card-preview');
@@ -1561,6 +1564,25 @@ async function submitRecharge() {
       // passe directement au flux manuel juste en dessous.
     }
 
+    if (payMethod === 'card' && CARD_VIA_OPT) {
+      // Page de paiement hebergee OPTGateway : le serveur cree la session avec la cle secrete,
+      // puis on redirige le client. Le solde est credite uniquement par le webhook verifie.
+      const idToken = await auth.currentUser.getIdToken();
+      const response = await fetch('/api/payment-initiate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken, provider: 'optgateway', amountUSD: amount })
+      });
+      const data = await response.json();
+      if (!response.ok || !data.success || typeof data.paymentUrl !== 'string' || !/^https:\/\//.test(data.paymentUrl)) {
+        console.error("Erreur creation paiement OPTGateway :", data && data.error);
+        errEl.textContent = payFriendlyError(response, data);
+        errEl.classList.remove('hidden');
+        return;
+      }
+      window.location.href = data.paymentUrl;
+      return;
+    }
     if (payMethod === 'card' && !CARD_VIA_MAXICASH) { selectPayMethod('crypto'); return; }
     if (payMethod === 'card') {
       // Paiement carte via MaxiCash (methode "Form Post" officielle) : le
