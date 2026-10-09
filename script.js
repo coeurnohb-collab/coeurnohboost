@@ -1333,6 +1333,69 @@ function renderCardGuide() {
     <p class="muted small">${escapeHtml(g.tip)}</p>
     <button type="button" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:12px" onclick="selectPayMethod('crypto')">${escapeHtml(g.btn)}</button>`;
 }
+// Paiement crypto DIRECT vers ton portefeuille (marche dans tous les navigateurs, sans passerelle).
+// ► Colle ici ton adresse USDT publique (réseau TRON / TRC20, elle commence par T). Vide = bloc caché.
+const DIRECT_USDT_ADDRESS = '';
+const DIRECT_PAY_TEXT = {
+  fr: { title: 'Autre moyen : payer directement', warn: 'Réseau obligatoire : TRON (TRC20). Un autre réseau = argent perdu.', addr: 'Adresse USDT', copy: 'Copier', copied: 'Copié ✓',
+    steps: '1) Copie l\'adresse. 2) Envoie le montant en USDT depuis ton application. 3) Écris ci-dessous le montant et, si tu l\'as, l\'identifiant de transaction (TXID), puis appuie sur « J\'ai payé ».',
+    txid: 'Identifiant de transaction (TXID) — facultatif', btn: 'J\'ai payé', needAmount: 'Écris d\'abord le montant en dollars ci-dessus.', ok: 'Demande envoyée ! Ton solde sera crédité dès que ton paiement est vérifié (généralement sous quelques minutes).', err: 'Impossible d\'envoyer la demande. Réessaie.' },
+  en: { title: 'Another way: pay directly', warn: 'Network required: TRON (TRC20). Any other network = lost funds.', addr: 'USDT address', copy: 'Copy', copied: 'Copied ✓',
+    steps: '1) Copy the address. 2) Send the amount in USDT from your app. 3) Enter the amount above and, if you have it, the transaction ID (TXID), then tap “I paid”.',
+    txid: 'Transaction ID (TXID) — optional', btn: 'I paid', needAmount: 'First enter the amount in dollars above.', ok: 'Request sent! Your balance will be credited once your payment is checked (usually within minutes).', err: 'Could not send the request. Try again.' }
+};
+function renderDirectPay() {
+  const host = document.getElementById('pay-direct-box');
+  if (!host) return;
+  if (!DIRECT_USDT_ADDRESS) { host.classList.add('hidden'); host.innerHTML = ''; return; }
+  const g = DIRECT_PAY_TEXT[currentLang] || DIRECT_PAY_TEXT.en;
+  host.classList.remove('hidden');
+  host.innerHTML = `
+    <h3 style="margin:18px 0 6px">${escapeHtml(g.title)}</h3>
+    <p class="muted small" style="margin-bottom:8px"><strong>${escapeHtml(g.warn)}</strong></p>
+    <label class="field-label">${escapeHtml(g.addr)}</label>
+    <div style="display:flex;gap:8px;align-items:stretch">
+      <input type="text" class="text-input" id="pay-direct-addr" readonly value="${escapeHtml(DIRECT_USDT_ADDRESS)}" style="flex:1;font-size:13px">
+      <button type="button" class="btn btn-outline" onclick="copyDirectAddress(this)">${escapeHtml(g.copy)}</button>
+    </div>
+    <p class="muted small" style="margin:8px 0">${escapeHtml(g.steps)}</p>
+    <input type="text" class="text-input" id="pay-direct-txid" maxlength="120" placeholder="${escapeHtml(g.txid)}" autocomplete="off">
+    <div class="modal-error hidden" id="pay-direct-error"></div>
+    <div class="modal-loading hidden" id="pay-direct-ok"></div>
+    <button type="button" class="btn btn-primary" id="pay-direct-btn" style="width:100%;justify-content:center;margin-top:10px" onclick="submitDirectPay()">${escapeHtml(g.btn)}</button>`;
+}
+function copyDirectAddress(btn) {
+  const g = DIRECT_PAY_TEXT[currentLang] || DIRECT_PAY_TEXT.en;
+  const done = () => { if (btn) { const old = btn.textContent; btn.textContent = g.copied; setTimeout(() => { btn.textContent = old; }, 1500); } };
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(DIRECT_USDT_ADDRESS).then(done, done); return; }
+  } catch (e) { /* repli ci-dessous */ }
+  const el = document.getElementById('pay-direct-addr');
+  if (el) { el.select(); try { document.execCommand('copy'); } catch (e) { /* ignore */ } }
+  done();
+}
+async function submitDirectPay() {
+  const g = DIRECT_PAY_TEXT[currentLang] || DIRECT_PAY_TEXT.en;
+  const errEl = document.getElementById('pay-direct-error'), okEl = document.getElementById('pay-direct-ok'), btn = document.getElementById('pay-direct-btn');
+  errEl.classList.add('hidden'); okEl.classList.add('hidden');
+  if (!currentUser) { openAuth('login'); return; }
+  const amount = parseFloat(document.getElementById('recharge-amount').value || 0);
+  if (!amount || amount <= 0) { errEl.textContent = g.needAmount; errEl.classList.remove('hidden'); return; }
+  const txid = (document.getElementById('pay-direct-txid').value || '').trim().slice(0, 120);
+  try {
+    if (btn) btn.disabled = true;
+    // Mêmes champs que les autres demandes manuelles (le TXID est rangé dans « operator » pour l'admin)
+    await db.collection('topup_requests').add({
+      uid: currentUser.uid, email: currentUser.email, method: 'crypto', country: null,
+      operator: txid ? 'TXID: ' + txid : 'Paiement direct USDT TRC20', phone: null,
+      crypto: 'USDT TRC20 (direct)', amountUSD: amount, status: 'pending', createdAt: new Date().toISOString()
+    });
+    okEl.textContent = g.ok; okEl.classList.remove('hidden');
+  } catch (e) {
+    console.error('Erreur paiement direct :', e && e.message);
+    errEl.textContent = g.err; errEl.classList.remove('hidden');
+  } finally { if (btn) btn.disabled = false; }
+}
 function renderPayPanel() {
   document.getElementById('pay-panel-mobile').classList.toggle('hidden', payMethod !== 'mobile');
   document.getElementById('pay-panel-crypto').classList.toggle('hidden', payMethod !== 'crypto');
@@ -1345,6 +1408,8 @@ function renderPayPanel() {
   if (prev) prev.classList.toggle('hidden', guide);
   ['recharge-amount-block', 'recharge-submit-btn'].forEach(id => { const el = document.getElementById(id); if (el) el.classList.toggle('hidden', guide); });
   if (payMethod === 'crypto') renderPayCryptoOptions();
+  renderDirectPay();
+  const dbox = document.getElementById('pay-direct-box'); if (dbox && payMethod !== 'crypto') dbox.classList.add('hidden');
   renderPayCurrencyToggle();
 }
 function updateRechargeEquivalent() {
