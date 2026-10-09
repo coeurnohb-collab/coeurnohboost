@@ -29,7 +29,7 @@ const FCM_VAPID_KEY = "BCwBF4M8jxL1uYPBERZvSFz0lYZk34m7vNLUtBby1lUwfoYVLFgY4c23O
 // (voir hideAppSplash()) : l'entree reste toujours visible un minimum de
 // temps, peu importe la vitesse de la connexion.
 const APP_SPLASH_START = Date.now();
-const APP_SPLASH_MIN_MS = 1100;
+const APP_SPLASH_MIN_MS = 1600;
 
 /* ================= NOTIFICATIONS "TOAST" (bannieres discretes) =================
    Remplace les alert() bloquants pour les messages courts (succes, erreur,

@@ -31,7 +31,7 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; base-uri 'none'; frame-ancestors 'self'; object-src 'none'; form-action 'self' https://api.maxicashme.com https://api-testbed.maxicashme.com https://accounts.google.com; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://apis.google.com https://www.google.com/recaptcha/ https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://www.gstatic.com https://tile.openstreetmap.org https://server.arcgisonline.com https://a.tile.openstreetmap.fr https://b.tile.openstreetmap.fr https://c.tile.openstreetmap.fr https://tile.opentopomap.org https://a.tile.opentopomap.org https://b.tile.opentopomap.org https://c.tile.opentopomap.org https://res.cloudinary.com https://drive.google.com https://*.googleusercontent.com; media-src 'self' data: blob: https://res.cloudinary.com https://drive.google.com; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.googleapis.com https://fcm.googleapis.com https://fcmregistrations.googleapis.com https://firebaseinstallations.googleapis.com https://firebaseappcheck.googleapis.com https://www.google.com/recaptcha/ https://api.cloudinary.com https://open.er-api.com https://nominatim.openstreetmap.org; frame-src 'self' https://*.firebaseapp.com https://accounts.google.com https://www.google.com/recaptcha/ https://recaptcha.google.com/recaptcha/; worker-src 'self'; manifest-src 'self'"
+          "value": "default-src 'self'; base-uri 'none'; frame-ancestors 'self'; object-src 'none'; form-action 'self' https://api.maxicashapp.com https://api.maxicashme.com https://api-testbed.maxicashme.com https://api-testbed.maxicashapp.com https://accounts.google.com; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://apis.google.com https://www.google.com/recaptcha/ https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://www.gstatic.com https://tile.openstreetmap.org https://server.arcgisonline.com https://a.tile.openstreetmap.fr https://b.tile.openstreetmap.fr https://c.tile.openstreetmap.fr https://tile.opentopomap.org https://a.tile.opentopomap.org https://b.tile.opentopomap.org https://c.tile.opentopomap.org https://res.cloudinary.com https://drive.google.com https://*.googleusercontent.com; media-src 'self' data: blob: https://res.cloudinary.com https://drive.google.com; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.googleapis.com https://fcm.googleapis.com https://fcmregistrations.googleapis.com https://firebaseinstallations.googleapis.com https://firebaseappcheck.googleapis.com https://www.google.com/recaptcha/ https://api.cloudinary.com https://open.er-api.com https://nominatim.openstreetmap.org; frame-src 'self' https://*.firebaseapp.com https://accounts.google.com https://www.google.com/recaptcha/ https://recaptcha.google.com/recaptcha/; worker-src 'self'; manifest-src 'self'"
         },
         {
           "key": "Cross-Origin-Opener-Policy",
@@ -45,6 +45,33 @@
         {
           "key": "Cache-Control",
           "value": "no-store"
+        }
+      ]
+    },
+    {
+      "source": "/app.min.(js|css)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)\\.(png|jpg|jpeg|webp|svg|ico|woff2)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=604800, stale-while-revalidate=86400"
+        }
+      ]
+    },
+    {
+      "source": "/(sw.js|manifest.json)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
         }
       ]
     }
@@ -65,6 +92,26 @@
     {
       "source": "/sitemap-sites.xml",
       "destination": "/api/render-site?sitemap=1"
+    },
+    {
+      "source": "/about",
+      "destination": "/legal.html?p=about"
+    },
+    {
+      "source": "/terms",
+      "destination": "/legal.html?p=terms"
+    },
+    {
+      "source": "/privacy",
+      "destination": "/legal.html?p=privacy"
+    },
+    {
+      "source": "/refund",
+      "destination": "/legal.html?p=refund"
+    },
+    {
+      "source": "/contact",
+      "destination": "/legal.html?p=contact"
     }
   ]
 }

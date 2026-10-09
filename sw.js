@@ -120,14 +120,11 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
-const CACHE_NAME = 'coeurnohboost-v14';
+const CACHE_NAME = 'coeurnohboost-v15';
 const APP_SHELL = [
   '/',
   '/index.html',
-  '/style.css',
-  '/script.js',
-  '/catalog-data.js',
-  '/translations.js',
+  '/legal.html',
   '/icon-192-v2.png',
   '/icon-512-v2.png'
 ];
@@ -164,15 +161,34 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Pages (HTML) : réseau d'abord, copie hors-ligne en secours.
+  // Fichiers (JS, CSS, images) : on sert la copie gardée tout de suite (ouverture instantanée)
+  // et on la met à jour en arrière-plan pour la prochaine ouverture.
+  const isPage = event.request.mode === 'navigate' || /\.html$/i.test(url.pathname) || url.pathname === '/';
+  if (isPage) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy)).catch(() => {});
+          return response;
+        })
+        .catch(() => caches.match(event.request).then((cached) => cached || caches.match('/index.html')))
+    );
+    return;
+  }
   event.respondWith(
-    fetch(event.request)
-      .then((response) => {
-        const copy = response.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy)).catch(() => {});
-        return response;
-      })
-      .catch(() =>
-        caches.match(event.request).then((cached) => cached || caches.match('/index.html'))
-      )
+    caches.match(event.request).then((cached) => {
+      const refresh = fetch(event.request)
+        .then((response) => {
+          if (response && response.ok) {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy)).catch(() => {});
+          }
+          return response;
+        })
+        .catch(() => cached);
+      return cached || refresh;
+    })
   );
 });

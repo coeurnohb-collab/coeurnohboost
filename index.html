@@ -118,18 +118,18 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="apple-touch-icon" href="/icon-192-v2.png">
 
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="polish.css">
-<link rel="stylesheet" href="menu-pro.css">
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check-compat.js"></script>
-<script src="app-check.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"></script>
+<link rel="stylesheet" href="app.min.css?v=da33b48680" onerror="['style','polish','menu-pro','pro'].forEach(function(n){var l=document.createElement('link');l.rel='stylesheet';l.href=n+'.css';document.head.appendChild(l)})">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" defer></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check-compat.js" defer></script>
+<script src="app-check.js" defer></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js" defer></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js" defer></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js" defer></script>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -183,13 +183,14 @@
 <div id="toast-container"></div>
 <div id="app-splash">
   <div id="app-splash-inner">
-    <img id="app-splash-logo-img" src="icon-512-v2.png" alt="Coeurnoh Universe" width="128" height="128">
+    <div class="sp-mark"><img id="app-splash-logo-img" src="icon-512-v2.png" alt="Coeurnoh Universe" width="108" height="108"></div>
     <div id="app-splash-brand">
       <span id="app-splash-name"><span class="app-splash-name-red">Coeurnoh</span> <span class="app-splash-name-green">Universe</span></span>
       <span id="app-splash-tagline">Multi Services</span>
     </div>
     <div id="app-splash-spinner"></div>
   </div>
+  <div id="app-splash-foot">Mobile Money · Crypto · Carte</div>
 </div>
 
 <!-- ================= NAV ================= -->
@@ -324,8 +325,11 @@
     <div class="wrap">
       <p>© 2026 Coeurnoh Business — Coeurnoh Universe. <span data-i18n="footer_rights">Tous droits réservés</span>.</p>
       <div class="footer-links">
+        <a href="/about">À propos</a>
+        <a href="/terms">Conditions</a>
+        <a href="/privacy">Confidentialité</a>
+        <a href="/contact">Contact</a>
         <a href="https://wa.me/243825001290">WhatsApp</a>
-        <a href="mailto:coeurnohb@gmail.com">Email</a>
       </div>
       <p id="cn-recaptcha-legal" class="muted small" style="display:none;margin-top:8px;font-size:.72rem;opacity:.7">Protégé par reCAPTCHA — la <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">politique de confidentialité</a> et les <a href="https://policies.google.com/terms" target="_blank" rel="noopener">conditions d'utilisation</a> de Google s'appliquent.</p>
     </div>
@@ -585,7 +589,14 @@
 
       <div class="order-box" id="section-about" data-menu-title="À propos">
         <h3><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:6px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>À propos</h3>
-        <p class="muted small">Coeurnoh Universe — panel de croissance réseaux sociaux (TikTok, Instagram, YouTube, Facebook), avec paiement Mobile Money, crypto et carte, pour l'Afrique francophone.</p>
+        <p class="muted small">Coeurnoh Universe est une application multi-services éditée par Coeurnoh Business : boutique et bibliothèque, publications, emploi et freelance, immobilier, voyages, réservations, factures et reçus, mini-sites, croissance des réseaux sociaux et portefeuille intégré. Les paiements se font par Mobile Money, crypto ou carte.</p>
+        <div class="cn-about-links">
+          <a href="/about">Qui sommes-nous</a>
+          <a href="/terms">Conditions d'utilisation</a>
+          <a href="/privacy">Politique de confidentialité</a>
+          <a href="/refund">Remboursement et livraison</a>
+          <a href="/contact">Nous contacter</a>
+        </div>
       </div>
 
       <button class="btn btn-outline" data-i18n="dash_logout" onclick="logout()">Se déconnecter</button>
@@ -2410,12 +2421,7 @@
   </div>
 </div>
 
-<script src="translations.js"></script>
-<script src="catalog-data.js"></script>
-<script src="script.js"></script>
-<script src="polish.js"></script>
-<script src="menu-pro.js"></script>
-<script src="push-center.js"></script>
+<script src="app.min.js?v=0fb674cc8c" defer onerror="(function(){function f(){['translations','catalog-data','script','polish','menu-pro','push-center'].forEach(function(n){var x=document.createElement('script');x.src=n+'.js';x.async=false;document.body.appendChild(x)})}document.readyState==='loading'?document.addEventListener('DOMContentLoaded',f):f()})()"></script>
 
 <!-- PWA : activation du service worker (installation en app) -->
 <script>
