@@ -220,28 +220,36 @@ html[data-theme="dark"] .shop-card .shop-action-btn { background: #232b3a; }
 #view-recharge .page-title { color: var(--rc-ink); letter-spacing: -.02em; }
 #view-recharge .page-title + .muted { color: var(--rc-mute); }
 
-/* Choix du moyen de paiement (liste de cartes à sélectionner) */
-.cn-methods { display: grid; gap: 10px; margin-bottom: 16px; }
-.cn-method {
-  display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; cursor: pointer;
-  padding: 14px 16px; border-radius: 16px; border: 1.5px solid #e2e8f0; background: #fff; color: #0f172a;
-  font: inherit; box-shadow: 0 1px 2px rgba(15,23,42,.04); transition: border-color .15s, background .15s, box-shadow .15s;
+/* Onglets de moyens de paiement : même emplacement qu'avant, avec mini-logos de confiance */
+.cn-tabs {
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; padding: 5px; margin-bottom: 16px;
+  background: #eef2f7; border: 1px solid #e2e8f0; border-radius: 18px;
 }
-.cn-method:hover { border-color: #93b4f5; }
-.cn-method:focus-visible { outline: 3px solid rgba(37,99,235,.35); outline-offset: 2px; }
-.cn-method.active { border-color: #2563eb; background: #eff6ff; box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
-.cn-method-ic {
-  flex: 0 0 44px; height: 44px; border-radius: 12px; display: grid; place-items: center;
-  background: #f1f5f9; color: #334155;
+.cn-tab {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 7px; min-width: 0;
+  padding: 10px 2px 9px; border: 0; border-radius: 14px; background: transparent; cursor: pointer; font: inherit;
+  color: #64748b; transition: background .15s, box-shadow .15s, color .15s;
 }
-.cn-method.active .cn-method-ic { background: #2563eb; color: #fff; }
-.cn-method.active .cn-method-ic svg { stroke: currentColor; }
-.cn-method-tx { flex: 1; min-width: 0; display: grid; gap: 2px; }
-.cn-method-tx b { font-size: 1rem; font-weight: 700; color: #0f172a; }
-.cn-method-tx small { font-size: .82rem; color: #64748b; line-height: 1.35; }
-.cn-method-radio { flex: 0 0 22px; height: 22px; border-radius: 50%; border: 2px solid #cbd5e1; background: #fff; position: relative; }
-.cn-method.active .cn-method-radio { border-color: #2563eb; }
-.cn-method.active .cn-method-radio::after { content: ""; position: absolute; inset: 4px; border-radius: 50%; background: #2563eb; }
+.cn-tab:focus-visible { outline: 3px solid rgba(37,99,235,.35); outline-offset: 1px; }
+.cn-tab-logos { display: flex; align-items: center; justify-content: center; gap: 3px; min-height: 20px; filter: grayscale(.25); opacity: .92; transition: filter .15s, opacity .15s; }
+.cn-tab-label { font-size: .66rem; font-weight: 700; line-height: 1.15; text-align: center; white-space: nowrap; letter-spacing: 0; }
+.cn-tab.active { background: #fff; color: #1d4ed8; box-shadow: 0 2px 8px rgba(15,23,42,.10), 0 0 0 1.5px #2563eb; }
+.cn-tab.active .cn-tab-logos { filter: none; opacity: 1; }
+
+/* Pastilles de marques */
+.cn-lg { display: inline-flex; align-items: center; justify-content: center; height: 18px; min-width: 18px; border-radius: 5px; font-style: normal; font-weight: 800; line-height: 1; box-shadow: 0 0 0 1px rgba(15,23,42,.08); overflow: hidden; }
+.lg-mpesa  { background: #e60000; color: #fff; font-size: 5.5px; padding: 0 2.5px; letter-spacing: .02em; }
+.lg-orange { background: #ff7900; color: #fff; font-size: 5.5px; padding: 0 2.5px; }
+.lg-airtel { background: #ed1c24; color: #fff; font-size: 5.5px; padding: 0 2.5px; }
+.lg-visa   { background: #fff; color: #1a1f71; font-size: 8px; font-style: italic; font-weight: 900; padding: 0 4px; letter-spacing: -.02em; }
+.lg-mc     { background: #fff; padding: 0 3px; gap: 0; }
+.lg-mc b   { width: 9px; height: 9px; border-radius: 50%; background: #eb001b; }
+.lg-mc b + b { background: #f79e1b; margin-left: -4px; mix-blend-mode: multiply; }
+.lg-illico { background: #fff3d6; color: #d97706; padding: 0 3px; }
+.lg-coin   { border-radius: 50%; width: 18px; padding: 0; color: #fff; font-size: 10px; }
+.lg-btc    { background: #f7931a; }
+.lg-usdt   { background: #26a17b; }
+.lg-trx    { background: #e50914; font-size: 9px; }
 
 /* Formulaire : une seule police, une seule taille pour tous les champs */
 #view-recharge .order-box {
@@ -303,4 +311,4 @@ html[data-theme="dark"] .shop-card .shop-action-btn { background: #232b3a; }
 #view-recharge.cn-uncovered .cn-secure,
 #view-recharge.cn-uncovered #pay-currency-toggle { display: none !important; }
 
-@media (prefers-reduced-motion: reduce) { .cn-method, .cn-amt-chips button { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .cn-tab, .cn-amt-chips button { transition: none; } }

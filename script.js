@@ -1202,19 +1202,31 @@ function payFriendlyError(response, data) {
 const ICON_ILLICO = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2"/><path d="M3 7v11a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2H5a2 2 0 0 1-2-2z"/><circle cx="16.5" cy="14.5" r="1.2" fill="currentColor"/></svg>`;
 // Moyens payés via la page hébergée OPTGateway (carte, illicocash) : même flux, une seule méthode imposée.
 function isOptMethod() { return CARD_VIA_OPT && (payMethod === 'card' || payMethod === 'illicocash'); }
+// Mini-logos de confiance affichés dans chaque onglet (pastilles de marques de paiement).
+const CN_LG = {
+  mpesa:  '<i class="cn-lg lg-mpesa">M-PESA</i>',
+  orange: '<i class="cn-lg lg-orange">orange</i>',
+  airtel: '<i class="cn-lg lg-airtel">airtel</i>',
+  visa:   '<i class="cn-lg lg-visa">VISA</i>',
+  mc:     '<i class="cn-lg lg-mc"><b></b><b></b></i>',
+  illico: '<i class="cn-lg lg-illico"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M10 18h4"/></svg></i>',
+  btc:    '<i class="cn-lg lg-coin lg-btc">₿</i>',
+  usdt:   '<i class="cn-lg lg-coin lg-usdt">₮</i>',
+  trx:    '<i class="cn-lg lg-coin lg-trx">T</i>'
+};
+// Moyens payés via la page hébergée OPTGateway (carte, illicocash) : même flux, une seule méthode imposée.
+function isOptMethod() { return CARD_VIA_OPT && (payMethod === 'card' || payMethod === 'illicocash'); }
 function renderPayMethodTabs() {
-  const big = s => s.replace(/width="18" height="18"/, 'width="22" height="22"');
   const methods = [
-    { id: "mobile",    label: t('pay_mobile'),     sub: t('pay_mobile_sub'),  icon: big(ICON_MOBILE_MONEY) },
-    { id: "illicocash", label: t('pay_illico'),    sub: t('pay_illico_sub'),  icon: ICON_ILLICO },
-    { id: "card",      label: t('pay_card_title'), sub: t('pay_card_sub'),    icon: big(ICON_CARD) },
-    { id: "crypto",    label: t('pay_crypto'),     sub: t('pay_crypto_sub'),  icon: big(ICON_CRYPTO) }
+    { id: "mobile",     label: t('pay_mobile'),    logos: CN_LG.mpesa + CN_LG.orange + CN_LG.airtel },
+    { id: "illicocash", label: t('pay_illico'),    logos: CN_LG.illico },
+    { id: "card",       label: t('pay_card_tab'),  logos: CN_LG.visa + CN_LG.mc },
+    { id: "crypto",     label: t('pay_crypto'),    logos: CN_LG.btc + CN_LG.usdt + CN_LG.trx }
   ];
   document.getElementById('pay-method-tabs').innerHTML = methods.map(m => `
-    <button type="button" role="radio" aria-checked="${m.id === payMethod}" class="cn-method${m.id === payMethod ? ' active' : ''}" onclick="selectPayMethod('${m.id}')">
-      <span class="cn-method-ic">${m.icon}</span>
-      <span class="cn-method-tx"><b>${m.label}</b><small>${m.sub}</small></span>
-      <span class="cn-method-radio" aria-hidden="true"></span>
+    <button type="button" role="tab" aria-selected="${m.id === payMethod}" class="cn-tab${m.id === payMethod ? ' active' : ''}" onclick="selectPayMethod('${m.id}')">
+      <span class="cn-tab-logos">${m.logos}</span>
+      <span class="cn-tab-label">${m.label}</span>
     </button>
   `).join('');
 }
