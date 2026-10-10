@@ -27,11 +27,11 @@
   };
 
   var TXT = {
-    fr: { country: "Le paiement par Mobile Money n'est pas encore disponible dans ton pays. Pas de souci : le paiement par crypto fonctionne partout.", operator: "Cet opérateur n'est pas disponible pour le moment. Choisis {ops}, ou utilise la crypto.", cta: 'Payer par crypto' },
-    en: { country: 'Mobile Money payment is not available in your country yet. No worries: crypto payment works everywhere.', operator: 'This operator is not available right now. Choose {ops}, or use crypto.', cta: 'Pay with crypto' },
-    es: { country: 'El pago por Mobile Money aún no está disponible en tu país. Sin problema: el pago con cripto funciona en todas partes.', operator: 'Este operador no está disponible por ahora. Elige {ops} o usa cripto.', cta: 'Pagar con cripto' },
-    it: { country: 'Il pagamento con Mobile Money non è ancora disponibile nel tuo paese. Nessun problema: il pagamento in cripto funziona ovunque.', operator: 'Questo operatore al momento non è disponibile. Scegli {ops} oppure usa la cripto.', cta: 'Paga in cripto' },
-    pt: { country: 'O pagamento por Mobile Money ainda não está disponível no seu país. Sem problema: o pagamento em cripto funciona em qualquer lugar.', operator: 'Este operador não está disponível no momento. Escolha {ops} ou use cripto.', cta: 'Pagar com cripto' }
+    fr: { country: "Le Mobile Money n'est pas encore disponible dans ton pays. Pas de souci : tu peux payer par carte bancaire ou par crypto, ça fonctionne partout.", operator: "Cet opérateur n'est pas disponible pour le moment. Choisis {ops}, ou utilise la crypto.", cta: 'Payer par crypto', card: 'Payer par carte' },
+    en: { country: 'Mobile Money is not available in your country yet. No worries: you can pay by bank card or crypto, both work everywhere.', operator: 'This operator is not available right now. Choose {ops}, or use crypto.', cta: 'Pay with crypto', card: 'Pay by card' },
+    es: { country: 'Mobile Money aún no está disponible en tu país. Sin problema: puedes pagar con tarjeta bancaria o cripto, funcionan en todas partes.', operator: 'Este operador no está disponible por ahora. Elige {ops} o usa cripto.', cta: 'Pagar con cripto', card: 'Pagar con tarjeta' },
+    it: { country: 'Mobile Money non è ancora disponibile nel tuo paese. Nessun problema: puoi pagare con carta bancaria o cripto, funzionano ovunque.', operator: 'Questo operatore al momento non è disponibile. Scegli {ops} oppure usa la cripto.', cta: 'Paga in cripto', card: 'Paga con carta' },
+    pt: { country: 'O Mobile Money ainda não está disponível no seu país. Sem problema: pode pagar com cartão bancário ou cripto, funcionam em qualquer lugar.', operator: 'Este operador não está disponível no momento. Escolha {ops} ou use cripto.', cta: 'Pagar com cripto', card: 'Pagar com cartão' }
   };
   function lang() { try { if (typeof currentLang !== 'undefined' && TXT[currentLang]) return currentLang; } catch (e) { /* ignore */ } return 'fr'; }
   function tx(k, v) { var s = TXT[lang()][k] || TXT.fr[k]; if (v) for (var n in v) s = s.split('{' + n + '}').join(v[n]); return s; }
@@ -45,22 +45,30 @@
     el = document.createElement('div');
     el.id = 'cn-pay-notice';
     el.setAttribute('role', 'status');
-    el.style.cssText = 'display:none;margin:12px 0;padding:14px 16px;border-radius:14px;background:#fff8e6;border:1px solid #ffe3a3;color:#7a4a00;font-size:.9rem;line-height:1.5';
+    el.className = 'cn-pay-notice';
+    el.style.display = 'none';
     el.addEventListener('click', function (ev) {
-      var b = ev.target && ev.target.closest ? ev.target.closest('[data-cn-crypto]') : null;
-      if (b && typeof selectPayMethod === 'function') { selectPayMethod('crypto'); hide(); }
+      if (typeof selectPayMethod !== 'function' || !ev.target || !ev.target.closest) return;
+      var c = ev.target.closest('[data-cn-crypto]');
+      if (c) { selectPayMethod('crypto'); hide(); return; }
+      var k = ev.target.closest('[data-cn-card]');
+      if (k) { selectPayMethod('card'); hide(); }
     });
     anchor.parentNode.insertBefore(el, anchor);
     return el;
   }
-  function hide() { var el = document.getElementById('cn-pay-notice'); if (el) el.style.display = 'none'; setSubmit(true); }
+  function setUncovered(on) { var v = document.getElementById('view-recharge'); if (v) v.classList.toggle('cn-uncovered', !!on); }
+  function hide() { var el = document.getElementById('cn-pay-notice'); if (el) el.style.display = 'none'; setUncovered(false); setSubmit(true); }
   function setSubmit(ok) {
     var b = document.getElementById('recharge-submit-btn');
     if (b) { b.style.opacity = ok ? '' : '.5'; b.setAttribute('aria-disabled', ok ? 'false' : 'true'); }
   }
   function show(html) {
     var el = box(); if (!el) return;
-    el.innerHTML = html + '<div style="margin-top:10px"><button type="button" data-cn-crypto="1" style="border:0;border-radius:10px;padding:10px 16px;font:inherit;font-weight:800;background:#e8590c;color:#fff;cursor:pointer">' + esc(tx('cta')) + '</button></div>';
+    var cardOk = false; try { cardOk = typeof CARD_VIA_OPT !== 'undefined' && CARD_VIA_OPT; } catch (e) { /* ignore */ }
+    el.innerHTML = '<div class="cn-pay-notice-text">' + html + '</div><div class="cn-pay-notice-cta">' +
+      (cardOk ? '<button type="button" class="cn-cta-card" data-cn-card="1">' + esc(tx('card')) + '</button>' : '') +
+      '<button type="button" class="cn-cta-crypto" data-cn-crypto="1">' + esc(tx('cta')) + '</button></div>';
     el.style.display = 'block';
   }
 
@@ -68,10 +76,11 @@
     if (typeof payMethod === 'undefined' || payMethod !== 'mobile') { hide(); return; }
     var code = (typeof payCountryCode !== 'undefined') ? payCountryCode : null;
     if (!code) { hide(); return; }
-    if (!COVERED[code]) { show('<div>' + esc(tx('country')) + '</div>'); setSubmit(false); return; }
+    if (!COVERED[code]) { show(esc(tx('country'))); setUncovered(true); setSubmit(false); return; }
+    setUncovered(false);
     var op = (typeof payOperator !== 'undefined') ? payOperator : null;
     if (op && COVERED[code].indexOf(op) < 0) {
-      show('<div>' + esc(tx('operator', { ops: COVERED[code].join(' / ') })) + '</div>'); setSubmit(false); return;
+      show(esc(tx('operator', { ops: COVERED[code].join(' / ') }))); setSubmit(false); return;
     }
     hide();
   }

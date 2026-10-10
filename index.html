@@ -123,7 +123,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="app.min.css?v=72297e49c8" onerror="['style','polish','menu-pro','pro'].forEach(function(n){var l=document.createElement('link');l.rel='stylesheet';l.href=n+'.css';document.head.appendChild(l)})">
+<link rel="stylesheet" href="app.min.css?v=2c4929fdef" onerror="['style','polish','menu-pro','pro'].forEach(function(n){var l=document.createElement('link');l.rel='stylesheet';l.href=n+'.css';document.head.appendChild(l)})">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check-compat.js" defer></script>
 <script src="app-check.js" defer></script>
@@ -718,14 +718,30 @@
             <span class="card-preview-brands"><span class="brand-pill brand-pill-visa">VISA</span><span class="brand-pill brand-pill-mastercard"><span class="mc-circles"><span></span><span></span></span><span class="mc-label">mastercard</span></span></span>
           </div>
         </div>
-        <p class="muted small" style="margin-top:10px" data-i18n="pay_card_note">Paiement par carte Visa ou Mastercard.</p>
+        <p class="muted small" style="margin-top:10px" data-i18n="pay_card_note">Visa ou Mastercard, partout dans le monde. En RDC, tu peux aussi payer par illicocash ou Mobile Money sur la même page.</p>
+        <div class="cn-how" id="pay-card-how">
+          <div class="cn-how-title" data-i18n="pay_card_how_t">Comment ça se passe</div>
+          <ol>
+            <li data-i18n="pay_card_how_1">Indique le montant (minimum 2 $) puis appuie sur « Payer » : tu es redirigé vers la page sécurisée OPTGateway.</li>
+            <li data-i18n="pay_card_how_2">Choisis ton moyen : carte bancaire, ou illicocash / Mobile Money si tu es en RDC.</li>
+            <li data-i18n="pay_card_how_3">Carte : saisis les informations de ta carte, puis le code de confirmation de ta banque si elle le demande. Mobile Money : confirme la demande reçue sur ton téléphone avec ton code secret. illicocash : saisis le code reçu par SMS.</li>
+            <li data-i18n="pay_card_how_4">Ton solde est crédité automatiquement dès que le paiement est confirmé.</li>
+          </ol>
+        </div>
         </div>
       </div>
 
       <div id="recharge-amount-block">
         <label class="field-label" style="margin-top:16px" id="recharge-amount-label" data-i18n="pay_amount_label">Montant (USD)</label>
         <div class="segmented" id="pay-currency-toggle" style="margin-bottom:10px"></div>
-        <input type="number" id="recharge-amount" class="text-input" placeholder="Ex: 1" oninput="updateRechargeEquivalent()">
+        <input type="number" id="recharge-amount" class="text-input" placeholder="Ex: 5" inputmode="decimal" oninput="updateRechargeEquivalent()">
+        <div class="cn-amt-chips" role="group" aria-label="Montants rapides">
+          <button type="button" onclick="cnSetAmount(2)">2 $</button>
+          <button type="button" onclick="cnSetAmount(5)">5 $</button>
+          <button type="button" onclick="cnSetAmount(10)">10 $</button>
+          <button type="button" onclick="cnSetAmount(20)">20 $</button>
+          <button type="button" onclick="cnSetAmount(50)">50 $</button>
+        </div>
         <p class="muted small" id="recharge-equivalent"></p>
       </div>
 
@@ -733,9 +749,10 @@
       <div class="modal-loading hidden" id="recharge-success"></div>
 
       <button class="btn btn-primary" id="recharge-submit-btn" style="width:100%;justify-content:center;margin-top:14px" data-i18n="pay_submit" onclick="submitRecharge()">Envoyer la demande</button>
+      <p class="cn-secure" data-i18n="pay_secure">Paiement sécurisé · crédit automatique après confirmation</p>
     </div>
 
-    <p class="muted small" style="text-align:center;margin-top:12px" data-i18n="pay_manual_note">Chaque demande est validée manuellement après réception du paiement (généralement sous quelques minutes).</p>
+    <p id="pay-manual-note" class="muted small" style="text-align:center;margin-top:12px" data-i18n="pay_manual_note">Chaque demande est validée manuellement après réception du paiement (généralement sous quelques minutes).</p>
   </div>
 </div>
 
@@ -2419,7 +2436,7 @@
   </div>
 </div>
 
-<script src="app.min.js?v=d3c0c6d509" defer onerror="(function(){function f(){['translations','catalog-data','script','polish','menu-pro','push-center'].forEach(function(n){var x=document.createElement('script');x.src=n+'.js';x.async=false;document.body.appendChild(x)})}document.readyState==='loading'?document.addEventListener('DOMContentLoaded',f):f()})()"></script>
+<script src="app.min.js?v=289d003b4e" defer onerror="(function(){function f(){['translations','catalog-data','script','polish','menu-pro','push-center'].forEach(function(n){var x=document.createElement('script');x.src=n+'.js';x.async=false;document.body.appendChild(x)})}document.readyState==='loading'?document.addEventListener('DOMContentLoaded',f):f()})()"></script>
 
 <!-- PWA : activation du service worker (installation en app) -->
 <script>

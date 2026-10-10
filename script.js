@@ -1214,10 +1214,30 @@ function selectPayMethod(m) {
   renderPayMethodTabs();
   renderPayPanel();
 }
+// Pays où le Mobile Money (MbotePay) fonctionne réellement : même liste que api/payment-initiate.js et pay-guard.js.
+const MOBILE_COVERED_CODES = ['CD','BJ','CI','CM','CG','GA','SN','KE','RW','UG','ZM','SL'];
 function renderPayCountrySelect() {
   const sel = document.getElementById('pay-country-select');
+  const opt = c => `<option value="${c.code}">${c.flag} ${c.name}</option>`;
+  const covered = COUNTRIES.filter(c => MOBILE_COVERED_CODES.includes(c.code));
+  const others = COUNTRIES.filter(c => !MOBILE_COVERED_CODES.includes(c.code));
+  // Pays couverts en premier ; les autres (carte ou crypto) regroupés tout en bas de la liste.
   sel.innerHTML = `<option value="">${t('pay_choose_country')}</option>` +
-    COUNTRIES.map(c => `<option value="${c.code}">${c.flag} ${c.name}</option>`).join('');
+    `<optgroup label="${t('pay_covered_countries')}">${covered.map(opt).join('')}</optgroup>` +
+    (others.length ? `<optgroup label="${t('pay_other_countries')}">${others.map(opt).join('')}</optgroup>` : '');
+}
+// Montants rapides (toujours saisis en USD ; convertis si la personne saisit en devise locale).
+function cnSetAmount(usd) {
+  const input = document.getElementById('recharge-amount');
+  if (!input) return;
+  let v = usd;
+  if (payMethod === 'mobile' && payCurrency === 'local' && payCountryCode) {
+    const c = COUNTRIES.find(x => x.code === payCountryCode);
+    const rate = (LIVE_RATES && c && LIVE_RATES[c.currency]) || (c ? c.rate : 1);
+    v = Math.round(usd * rate);
+  }
+  input.value = v;
+  updateRechargeEquivalent();
 }
 function onPayCountryChange() {
   payCountryCode = document.getElementById('pay-country-select').value || null;
@@ -1304,6 +1324,7 @@ function selectCrypto(id) {
 const CARD_VIA_MAXICASH = false;
 // Carte bancaire / Mobile Money via la page de paiement hebergee OPTGateway (api/payment-initiate.js, provider "optgateway").
 const CARD_VIA_OPT = true;
+const CARD_OPT_MIN_USD = 2; // doit rester identique à MIN_OPT_USD dans api/payment-initiate.js
 
 const CARD_GUIDE_TEXT = {
   fr: { title: 'Payer par carte Visa / Mastercard', intro: 'Simple et sans compte à créer chez nous. 3 étapes :',
@@ -1421,6 +1442,11 @@ function renderPayPanel() {
   const prev = document.getElementById('pay-card-preview');
   if (prev) prev.classList.toggle('hidden', guide);
   ['recharge-amount-block', 'recharge-submit-btn'].forEach(id => { const el = document.getElementById(id); if (el) el.classList.toggle('hidden', guide); });
+  // Carte : bouton « Payer », et pas de mention de validation manuelle (le crédit est automatique)
+  const subBtn = document.getElementById('recharge-submit-btn');
+  if (subBtn && !subBtn.disabled) { const k = (payMethod === 'card' && CARD_VIA_OPT) ? 'pay_btn_pay' : 'pay_submit'; subBtn.setAttribute('data-i18n', k); subBtn.textContent = t(k); }
+  const manualNote = document.getElementById('pay-manual-note');
+  if (manualNote) manualNote.classList.toggle('hidden', payMethod === 'card' && CARD_VIA_OPT);
   if (payMethod === 'crypto') renderPayCryptoOptions();
   renderDirectPay();
   const dbox = document.getElementById('pay-direct-box'); if (dbox && payMethod !== 'crypto') dbox.classList.add('hidden');
@@ -1567,6 +1593,18 @@ async function submitRecharge() {
     if (payMethod === 'card' && CARD_VIA_OPT) {
       // Page de paiement hebergee OPTGateway : le serveur cree la session avec la cle secrete,
       // puis on redirige le client. Le solde est credite uniquement par le webhook verifie.
+      if (amount < CARD_OPT_MIN_USD) {
+        const msgs = {
+          fr: `Montant minimum : ${CARD_OPT_MIN_USD} $ pour ce moyen de paiement.`,
+          en: `Minimum amount: $${CARD_OPT_MIN_USD} for this payment method.`,
+          es: `Monto mínimo: ${CARD_OPT_MIN_USD} $ para este medio de pago.`,
+          it: `Importo minimo: ${CARD_OPT_MIN_USD} $ per questo metodo di pagamento.`,
+          pt: `Valor mínimo: ${CARD_OPT_MIN_USD} $ para este meio de pagamento.`
+        };
+        errEl.textContent = msgs[currentLang] || msgs.fr;
+        errEl.classList.remove('hidden');
+        return;
+      }
       const idToken = await auth.currentUser.getIdToken();
       const response = await fetch('/api/payment-initiate', {
         method: 'POST',
