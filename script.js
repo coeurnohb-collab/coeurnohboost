@@ -1609,7 +1609,7 @@ async function submitRecharge() {
       const response = await fetch('/api/payment-initiate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ idToken, provider: 'optgateway', amountUSD: amount })
+        body: JSON.stringify({ idToken, provider: 'optgateway', amountUSD: amount, onlyCard: true })
       });
       const data = await response.json();
       if (!response.ok || !data.success || typeof data.paymentUrl !== 'string' || !/^https:\/\//.test(data.paymentUrl)) {
