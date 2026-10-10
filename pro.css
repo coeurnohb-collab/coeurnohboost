@@ -212,3 +212,80 @@ html[data-theme="dark"] .shop-card .shop-action-btn { background: #232b3a; }
   background: var(--green-light); color: var(--ink); text-decoration: none; font-weight: 700; font-size: .9rem;
 }
 .cn-about-links a::after { content: "›"; font-size: 1.2rem; color: var(--muted); }
+
+/* =====================================================================
+   5. Recharge : design clair, pays non couverts, explications, montants rapides
+   ===================================================================== */
+#view-recharge .segmented {
+  background: #fff; border: 1px solid #e6eaf1; padding: 5px; gap: 4px;
+  box-shadow: 0 2px 10px rgba(16,24,40,.05); overflow-x: auto; scrollbar-width: none;
+}
+#view-recharge .segmented::-webkit-scrollbar { display: none; }
+#view-recharge .segmented button {
+  flex: 1 1 0; min-width: 0; white-space: nowrap; border-radius: 999px; font-weight: 800; font-size: .82rem; padding: 11px 6px; text-align: center;
+  color: #5b6577; transition: background .15s, color .15s, box-shadow .15s;
+}
+#view-recharge .segmented button.active {
+  background: linear-gradient(135deg, #f39c1f, #e8590c); color: #fff; box-shadow: 0 6px 16px rgba(232,89,12,.28);
+}
+#view-recharge .segmented button.active svg { color: #fff; stroke: currentColor; }
+#view-recharge .order-box {
+  background: #fff; border: 1px solid #e8ecf3; border-radius: 22px; padding: 20px 18px;
+  box-shadow: 0 10px 30px rgba(16,24,40,.06);
+}
+#view-recharge .select-input, #view-recharge .text-input {
+  border-radius: 14px; border: 1.5px solid #e1e6ef; background: #fbfcfe; min-height: 50px; font-size: 1rem;
+}
+#view-recharge .select-input:focus, #view-recharge .text-input:focus {
+  outline: none; border-color: #f39c1f; box-shadow: 0 0 0 4px rgba(243,156,31,.18); background: #fff;
+}
+#view-recharge #recharge-amount { font-size: 1.5rem; font-weight: 900; letter-spacing: -.01em; min-height: 58px; }
+#view-recharge .op-grid { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); }
+#view-recharge .op-card { border: 1.5px solid #e6eaf1; border-radius: 18px; background: #fff; }
+#view-recharge .op-card.active { border-color: #f39c1f; box-shadow: 0 0 0 4px rgba(243,156,31,.18); }
+
+/* Montants rapides */
+.cn-amt-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 2px; }
+.cn-amt-chips button {
+  border: 1.5px solid #e1e6ef; background: #fff; color: #28374f; border-radius: 999px;
+  padding: 9px 16px; font: inherit; font-weight: 800; font-size: .9rem; cursor: pointer;
+  transition: border-color .15s, background .15s, transform .1s;
+}
+.cn-amt-chips button:hover, .cn-amt-chips button:focus-visible { border-color: #f39c1f; background: #fff7ea; outline: none; }
+.cn-amt-chips button:active { transform: scale(.96); }
+
+/* Bouton d'envoi + mention de sécurité */
+#view-recharge #recharge-submit-btn {
+  min-height: 54px; border-radius: 16px; font-size: 1.05rem; font-weight: 900; border: 0; color: #fff;
+  background: linear-gradient(135deg, #f39c1f, #e8590c); box-shadow: 0 10px 24px rgba(232,89,12,.30);
+}
+#view-recharge #recharge-submit-btn[aria-disabled="true"] { box-shadow: none; }
+.cn-secure { text-align: center; color: #6b7587; font-size: .8rem; margin: 12px 0 0; }
+.cn-secure::before { content: "🔒 "; }
+
+/* Explications du paiement carte */
+.cn-how { margin-top: 14px; padding: 14px 16px; border-radius: 16px; background: #f3f8ff; border: 1px solid #dbe8fb; }
+.cn-how-title { font-weight: 900; color: #1c3d7a; margin-bottom: 8px; font-size: .95rem; }
+.cn-how ol { margin: 0; padding-left: 20px; display: grid; gap: 8px; color: #33415c; font-size: .88rem; line-height: 1.5; }
+.cn-how li::marker { color: #e8590c; font-weight: 900; }
+
+/* Pays non couvert par le Mobile Money : message clair + 2 actions, aucun formulaire inutile */
+.cn-pay-notice {
+  margin: 14px 0; padding: 16px; border-radius: 18px; background: #fff8ec; border: 1px solid #ffe2b0;
+  color: #6b4200; font-size: .92rem; line-height: 1.55;
+}
+.cn-pay-notice-cta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+.cn-pay-notice-cta button {
+  flex: 1 1 140px; border: 0; border-radius: 14px; padding: 13px 16px; font: inherit; font-weight: 900; cursor: pointer;
+}
+.cn-pay-notice-cta .cn-cta-card { background: linear-gradient(135deg, #f39c1f, #e8590c); color: #fff; box-shadow: 0 8px 18px rgba(232,89,12,.25); }
+.cn-pay-notice-cta .cn-cta-crypto { background: #fff; color: #28374f; border: 1.5px solid #e1e6ef; }
+#view-recharge.cn-uncovered #pay-operators,
+#view-recharge.cn-uncovered label[for="recharge-phone"],
+#view-recharge.cn-uncovered #recharge-phone,
+#view-recharge.cn-uncovered #recharge-amount-block,
+#view-recharge.cn-uncovered #recharge-submit-btn,
+#view-recharge.cn-uncovered .cn-secure,
+#view-recharge.cn-uncovered #pay-currency-toggle { display: none !important; }
+
+@media (prefers-reduced-motion: reduce) { .cn-amt-chips button { transition: none; } }
