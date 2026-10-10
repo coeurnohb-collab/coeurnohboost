@@ -123,7 +123,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="app.min.css?v=2c4929fdef" onerror="['style','polish','menu-pro','pro'].forEach(function(n){var l=document.createElement('link');l.rel='stylesheet';l.href=n+'.css';document.head.appendChild(l)})">
+<link rel="stylesheet" href="app.min.css?v=23ba674b64" onerror="['style','polish','menu-pro','pro'].forEach(function(n){var l=document.createElement('link');l.rel='stylesheet';l.href=n+'.css';document.head.appendChild(l)})">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check-compat.js" defer></script>
 <script src="app-check.js" defer></script>
@@ -685,7 +685,7 @@
     <h2 class="page-title" style="margin-bottom:4px" data-i18n="pay_title">Recharger mon solde</h2>
     <p class="muted" style="margin-bottom:18px" data-i18n="pay_sub">Choisis ton moyen de paiement.</p>
 
-    <div class="segmented" id="pay-method-tabs"></div>
+    <div class="cn-methods" id="pay-method-tabs" role="radiogroup"></div>
 
     <div class="order-box">
 
@@ -705,6 +705,19 @@
         <p class="muted small" data-i18n="pay_crypto_note">L'adresse de paiement te sera envoyée par WhatsApp après ta demande.</p>
         <p class="muted small" id="pay-crypto-browser-tip">Si la page de paiement affiche une erreur, copie le lien et ouvre-le dans un autre navigateur (Firefox, Edge…).</p>
         <div id="pay-direct-box" class="hidden"></div>
+      </div>
+
+      <!-- illicocash (via OPTGateway) -->
+      <div id="pay-panel-illico" class="hidden">
+        <p class="muted small" data-i18n="pay_illico_note">Paie avec ton portefeuille illicocash (RDC).</p>
+        <div class="cn-how">
+          <div class="cn-how-title" data-i18n="pay_card_how_t">Comment ça se passe</div>
+          <ol>
+            <li data-i18n="pay_illico_how_1">Indique le montant (minimum 2 $) puis appuie sur « Payer » : tu es redirigé vers la page sécurisée OPTGateway.</li>
+            <li data-i18n="pay_illico_how_2">Entre ton numéro illicocash : tu reçois un code par SMS, saisis-le sur cette page.</li>
+            <li data-i18n="pay_card_how_4">Ton solde est crédité automatiquement dès que le paiement est confirmé.</li>
+          </ol>
+        </div>
       </div>
 
       <!-- Carte virtuelle -->
@@ -2436,7 +2449,7 @@
   </div>
 </div>
 
-<script src="app.min.js?v=a89bd743ad" defer onerror="(function(){function f(){['translations','catalog-data','script','polish','menu-pro','push-center'].forEach(function(n){var x=document.createElement('script');x.src=n+'.js';x.async=false;document.body.appendChild(x)})}document.readyState==='loading'?document.addEventListener('DOMContentLoaded',f):f()})()"></script>
+<script src="app.min.js?v=41c8b30b39" defer onerror="(function(){function f(){['translations','catalog-data','script','polish','menu-pro','push-center'].forEach(function(n){var x=document.createElement('script');x.src=n+'.js';x.async=false;document.body.appendChild(x)})}document.readyState==='loading'?document.addEventListener('DOMContentLoaded',f):f()})()"></script>
 
 <!-- PWA : activation du service worker (installation en app) -->
 <script>

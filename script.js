@@ -1199,14 +1199,23 @@ function payFriendlyError(response, data) {
   if (msg && msg.length <= 160) return t('pay_err_generic') + ' (' + msg + ')';
   return t('pay_err_generic');
 }
+const ICON_ILLICO = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2"/><path d="M3 7v11a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2H5a2 2 0 0 1-2-2z"/><circle cx="16.5" cy="14.5" r="1.2" fill="currentColor"/></svg>`;
+// Moyens payés via la page hébergée OPTGateway (carte, illicocash) : même flux, une seule méthode imposée.
+function isOptMethod() { return CARD_VIA_OPT && (payMethod === 'card' || payMethod === 'illicocash'); }
 function renderPayMethodTabs() {
+  const big = s => s.replace(/width="18" height="18"/, 'width="22" height="22"');
   const methods = [
-    { id: "mobile", label: t('pay_mobile'), icon: ICON_MOBILE_MONEY },
-    { id: "crypto", label: t('pay_crypto'), icon: ICON_CRYPTO },
-    { id: "card",   label: t('pay_card'),   icon: ICON_CARD }
+    { id: "mobile",    label: t('pay_mobile'),     sub: t('pay_mobile_sub'),  icon: big(ICON_MOBILE_MONEY) },
+    { id: "illicocash", label: t('pay_illico'),    sub: t('pay_illico_sub'),  icon: ICON_ILLICO },
+    { id: "card",      label: t('pay_card_title'), sub: t('pay_card_sub'),    icon: big(ICON_CARD) },
+    { id: "crypto",    label: t('pay_crypto'),     sub: t('pay_crypto_sub'),  icon: big(ICON_CRYPTO) }
   ];
   document.getElementById('pay-method-tabs').innerHTML = methods.map(m => `
-    <button class="${m.id === payMethod ? 'active' : ''}" onclick="selectPayMethod('${m.id}')">${m.icon} ${m.label}</button>
+    <button type="button" role="radio" aria-checked="${m.id === payMethod}" class="cn-method${m.id === payMethod ? ' active' : ''}" onclick="selectPayMethod('${m.id}')">
+      <span class="cn-method-ic">${m.icon}</span>
+      <span class="cn-method-tx"><b>${m.label}</b><small>${m.sub}</small></span>
+      <span class="cn-method-radio" aria-hidden="true"></span>
+    </button>
   `).join('');
 }
 function selectPayMethod(m) {
@@ -1435,6 +1444,7 @@ function renderPayPanel() {
   document.getElementById('pay-panel-mobile').classList.toggle('hidden', payMethod !== 'mobile');
   document.getElementById('pay-panel-crypto').classList.toggle('hidden', payMethod !== 'crypto');
   document.getElementById('pay-panel-card').classList.toggle('hidden', payMethod !== 'card');
+  const illPanel = document.getElementById('pay-panel-illico'); if (illPanel) illPanel.classList.toggle('hidden', payMethod !== 'illicocash');
   // En mode « guide carte », on cache le montant et le bouton d'envoi (le bouton du guide mène à la crypto)
   const guide = payMethod === 'card' && !CARD_VIA_MAXICASH && !CARD_VIA_OPT;
   const guideEl = document.getElementById('pay-card-guide');
@@ -1444,9 +1454,9 @@ function renderPayPanel() {
   ['recharge-amount-block', 'recharge-submit-btn'].forEach(id => { const el = document.getElementById(id); if (el) el.classList.toggle('hidden', guide); });
   // Carte : bouton « Payer », et pas de mention de validation manuelle (le crédit est automatique)
   const subBtn = document.getElementById('recharge-submit-btn');
-  if (subBtn && !subBtn.disabled) { const k = (payMethod === 'card' && CARD_VIA_OPT) ? 'pay_btn_pay' : 'pay_submit'; subBtn.setAttribute('data-i18n', k); subBtn.textContent = t(k); }
+  if (subBtn && !subBtn.disabled) { const k = isOptMethod() ? 'pay_btn_pay' : 'pay_submit'; subBtn.setAttribute('data-i18n', k); subBtn.textContent = t(k); }
   const manualNote = document.getElementById('pay-manual-note');
-  if (manualNote) manualNote.classList.toggle('hidden', payMethod === 'card' && CARD_VIA_OPT);
+  if (manualNote) manualNote.classList.toggle('hidden', isOptMethod());
   if (payMethod === 'crypto') renderPayCryptoOptions();
   renderDirectPay();
   const dbox = document.getElementById('pay-direct-box'); if (dbox && payMethod !== 'crypto') dbox.classList.add('hidden');
@@ -1590,7 +1600,7 @@ async function submitRecharge() {
       // passe directement au flux manuel juste en dessous.
     }
 
-    if (payMethod === 'card' && CARD_VIA_OPT) {
+    if (isOptMethod()) {
       // Page de paiement hebergee OPTGateway : le serveur cree la session avec la cle secrete,
       // puis on redirige le client. Le solde est credite uniquement par le webhook verifie.
       if (amount < CARD_OPT_MIN_USD) {
@@ -1609,7 +1619,7 @@ async function submitRecharge() {
       const response = await fetch('/api/payment-initiate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ idToken, provider: 'optgateway', amountUSD: amount, onlyCard: true })
+        body: JSON.stringify({ idToken, provider: 'optgateway', amountUSD: amount, onlyMethod: payMethod === 'illicocash' ? 'illicocash' : 'card' })
       });
       const data = await response.json();
       if (!response.ok || !data.success || typeof data.paymentUrl !== 'string' || !/^https:\/\//.test(data.paymentUrl)) {

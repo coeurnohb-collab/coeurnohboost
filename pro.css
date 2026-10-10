@@ -214,72 +214,87 @@ html[data-theme="dark"] .shop-card .shop-action-btn { background: #232b3a; }
 .cn-about-links a::after { content: "›"; font-size: 1.2rem; color: var(--muted); }
 
 /* =====================================================================
-   5. Recharge : design clair, pays non couverts, explications, montants rapides
+   5. Recharge : liste de moyens de paiement, palette bleu/ardoise, champs homogènes
    ===================================================================== */
-#view-recharge .segmented {
-  background: #fff; border: 1px solid #e6eaf1; padding: 5px; gap: 4px;
-  box-shadow: 0 2px 10px rgba(16,24,40,.05); overflow-x: auto; scrollbar-width: none;
+#view-recharge { --rc-ink:#0f172a; --rc-mute:#64748b; --rc-line:#e2e8f0; --rc-bg:#f8fafc; --rc-pri:#1d4ed8; --rc-pri2:#2563eb; --rc-tint:#eff6ff; }
+#view-recharge .page-title { color: var(--rc-ink); letter-spacing: -.02em; }
+#view-recharge .page-title + .muted { color: var(--rc-mute); }
+
+/* Choix du moyen de paiement (liste de cartes à sélectionner) */
+.cn-methods { display: grid; gap: 10px; margin-bottom: 16px; }
+.cn-method {
+  display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; cursor: pointer;
+  padding: 14px 16px; border-radius: 16px; border: 1.5px solid #e2e8f0; background: #fff; color: #0f172a;
+  font: inherit; box-shadow: 0 1px 2px rgba(15,23,42,.04); transition: border-color .15s, background .15s, box-shadow .15s;
 }
-#view-recharge .segmented::-webkit-scrollbar { display: none; }
-#view-recharge .segmented button {
-  flex: 1 1 0; min-width: 0; white-space: nowrap; border-radius: 999px; font-weight: 800; font-size: .82rem; padding: 11px 6px; text-align: center;
-  color: #5b6577; transition: background .15s, color .15s, box-shadow .15s;
+.cn-method:hover { border-color: #93b4f5; }
+.cn-method:focus-visible { outline: 3px solid rgba(37,99,235,.35); outline-offset: 2px; }
+.cn-method.active { border-color: #2563eb; background: #eff6ff; box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
+.cn-method-ic {
+  flex: 0 0 44px; height: 44px; border-radius: 12px; display: grid; place-items: center;
+  background: #f1f5f9; color: #334155;
 }
-#view-recharge .segmented button.active {
-  background: linear-gradient(135deg, #f39c1f, #e8590c); color: #fff; box-shadow: 0 6px 16px rgba(232,89,12,.28);
-}
-#view-recharge .segmented button.active svg { color: #fff; stroke: currentColor; }
+.cn-method.active .cn-method-ic { background: #2563eb; color: #fff; }
+.cn-method.active .cn-method-ic svg { stroke: currentColor; }
+.cn-method-tx { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.cn-method-tx b { font-size: 1rem; font-weight: 700; color: #0f172a; }
+.cn-method-tx small { font-size: .82rem; color: #64748b; line-height: 1.35; }
+.cn-method-radio { flex: 0 0 22px; height: 22px; border-radius: 50%; border: 2px solid #cbd5e1; background: #fff; position: relative; }
+.cn-method.active .cn-method-radio { border-color: #2563eb; }
+.cn-method.active .cn-method-radio::after { content: ""; position: absolute; inset: 4px; border-radius: 50%; background: #2563eb; }
+
+/* Formulaire : une seule police, une seule taille pour tous les champs */
 #view-recharge .order-box {
-  background: #fff; border: 1px solid #e8ecf3; border-radius: 22px; padding: 20px 18px;
-  box-shadow: 0 10px 30px rgba(16,24,40,.06);
+  background: #fff; border: 1px solid #e2e8f0; border-radius: 20px; padding: 20px 18px;
+  box-shadow: 0 8px 24px rgba(15,23,42,.06);
 }
-#view-recharge .select-input, #view-recharge .text-input {
-  border-radius: 14px; border: 1.5px solid #e1e6ef; background: #fbfcfe; min-height: 50px; font-size: 1rem;
+#view-recharge .field-label { font-size: .88rem; font-weight: 600; color: #334155; margin-bottom: 6px; display: block; }
+#view-recharge .select-input, #view-recharge .text-input, #view-recharge #recharge-amount {
+  font-family: inherit; font-size: 1rem; font-weight: 500; color: #0f172a; letter-spacing: 0;
+  min-height: 50px; border-radius: 12px; border: 1.5px solid #e2e8f0; background: #fff; padding: 0 14px;
 }
-#view-recharge .select-input:focus, #view-recharge .text-input:focus {
-  outline: none; border-color: #f39c1f; box-shadow: 0 0 0 4px rgba(243,156,31,.18); background: #fff;
+#view-recharge .select-input:focus, #view-recharge .text-input:focus, #view-recharge #recharge-amount:focus {
+  outline: none; border-color: #2563eb; box-shadow: 0 0 0 4px rgba(37,99,235,.14);
 }
-#view-recharge #recharge-amount { font-size: 1.5rem; font-weight: 900; letter-spacing: -.01em; min-height: 58px; }
+#view-recharge .text-input::placeholder, #view-recharge #recharge-amount::placeholder { color: #94a3b8; font-weight: 400; }
 #view-recharge .op-grid { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); }
-#view-recharge .op-card { border: 1.5px solid #e6eaf1; border-radius: 18px; background: #fff; }
-#view-recharge .op-card.active { border-color: #f39c1f; box-shadow: 0 0 0 4px rgba(243,156,31,.18); }
+#view-recharge .op-card { border: 1.5px solid #e2e8f0; border-radius: 14px; background: #fff; }
+#view-recharge .op-card.active { border-color: #2563eb; background: #eff6ff; box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
 
 /* Montants rapides */
 .cn-amt-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 2px; }
 .cn-amt-chips button {
-  border: 1.5px solid #e1e6ef; background: #fff; color: #28374f; border-radius: 999px;
-  padding: 9px 16px; font: inherit; font-weight: 800; font-size: .9rem; cursor: pointer;
-  transition: border-color .15s, background .15s, transform .1s;
+  border: 1.5px solid #e2e8f0; background: #fff; color: #334155; border-radius: 999px;
+  padding: 8px 16px; font: inherit; font-size: .9rem; font-weight: 600; cursor: pointer;
+  transition: border-color .15s, background .15s, color .15s, transform .1s;
 }
-.cn-amt-chips button:hover, .cn-amt-chips button:focus-visible { border-color: #f39c1f; background: #fff7ea; outline: none; }
+.cn-amt-chips button:hover, .cn-amt-chips button:focus-visible { border-color: #2563eb; background: #eff6ff; color: #1d4ed8; outline: none; }
 .cn-amt-chips button:active { transform: scale(.96); }
 
-/* Bouton d'envoi + mention de sécurité */
+/* Bouton de paiement + mention de sécurité */
 #view-recharge #recharge-submit-btn {
-  min-height: 54px; border-radius: 16px; font-size: 1.05rem; font-weight: 900; border: 0; color: #fff;
-  background: linear-gradient(135deg, #f39c1f, #e8590c); box-shadow: 0 10px 24px rgba(232,89,12,.30);
+  min-height: 52px; border-radius: 14px; font-size: 1rem; font-weight: 700; border: 0; color: #fff;
+  background: linear-gradient(180deg, #2f6df0, #1d4ed8); box-shadow: 0 8px 20px rgba(29,78,216,.28);
 }
-#view-recharge #recharge-submit-btn[aria-disabled="true"] { box-shadow: none; }
-.cn-secure { text-align: center; color: #6b7587; font-size: .8rem; margin: 12px 0 0; }
+#view-recharge #recharge-submit-btn:disabled { opacity: .7; }
+.cn-secure { text-align: center; color: #64748b; font-size: .8rem; margin: 12px 0 0; }
 .cn-secure::before { content: "🔒 "; }
 
-/* Explications du paiement carte */
-.cn-how { margin-top: 14px; padding: 14px 16px; border-radius: 16px; background: #f3f8ff; border: 1px solid #dbe8fb; }
-.cn-how-title { font-weight: 900; color: #1c3d7a; margin-bottom: 8px; font-size: .95rem; }
-.cn-how ol { margin: 0; padding-left: 20px; display: grid; gap: 8px; color: #33415c; font-size: .88rem; line-height: 1.5; }
-.cn-how li::marker { color: #e8590c; font-weight: 900; }
+/* Explications du paiement */
+.cn-how { margin-top: 14px; padding: 14px 16px; border-radius: 14px; background: #f8fafc; border: 1px solid #e2e8f0; }
+.cn-how-title { font-weight: 700; color: #0f172a; margin-bottom: 8px; font-size: .92rem; }
+.cn-how ol { margin: 0; padding-left: 20px; display: grid; gap: 8px; color: #475569; font-size: .88rem; line-height: 1.5; }
+.cn-how li::marker { color: #2563eb; font-weight: 700; }
 
-/* Pays non couvert par le Mobile Money : message clair + 2 actions, aucun formulaire inutile */
+/* Pays non couvert par le Mobile Money : message clair + 2 actions */
 .cn-pay-notice {
-  margin: 14px 0; padding: 16px; border-radius: 18px; background: #fff8ec; border: 1px solid #ffe2b0;
-  color: #6b4200; font-size: .92rem; line-height: 1.55;
+  margin: 14px 0; padding: 16px; border-radius: 14px; background: #fffbeb; border: 1px solid #fde68a;
+  color: #78350f; font-size: .92rem; line-height: 1.55;
 }
 .cn-pay-notice-cta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
-.cn-pay-notice-cta button {
-  flex: 1 1 140px; border: 0; border-radius: 14px; padding: 13px 16px; font: inherit; font-weight: 900; cursor: pointer;
-}
-.cn-pay-notice-cta .cn-cta-card { background: linear-gradient(135deg, #f39c1f, #e8590c); color: #fff; box-shadow: 0 8px 18px rgba(232,89,12,.25); }
-.cn-pay-notice-cta .cn-cta-crypto { background: #fff; color: #28374f; border: 1.5px solid #e1e6ef; }
+.cn-pay-notice-cta button { flex: 1 1 140px; border: 0; border-radius: 12px; padding: 13px 16px; font: inherit; font-weight: 700; cursor: pointer; }
+.cn-pay-notice-cta .cn-cta-card { background: linear-gradient(180deg, #2f6df0, #1d4ed8); color: #fff; }
+.cn-pay-notice-cta .cn-cta-crypto { background: #fff; color: #334155; border: 1.5px solid #e2e8f0; }
 #view-recharge.cn-uncovered #pay-operators,
 #view-recharge.cn-uncovered label[for="recharge-phone"],
 #view-recharge.cn-uncovered #recharge-phone,
@@ -288,4 +303,4 @@ html[data-theme="dark"] .shop-card .shop-action-btn { background: #232b3a; }
 #view-recharge.cn-uncovered .cn-secure,
 #view-recharge.cn-uncovered #pay-currency-toggle { display: none !important; }
 
-@media (prefers-reduced-motion: reduce) { .cn-amt-chips button { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .cn-method, .cn-amt-chips button { transition: none; } }
