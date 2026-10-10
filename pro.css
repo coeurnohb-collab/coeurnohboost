@@ -420,3 +420,4 @@ html[data-theme="dark"] .shop-card .shop-action-btn { background: #232b3a; }
   :root:not([data-theme="light"]) .sbx-type.on{background:#1b2a52}
 }
 .sbx-hint+.sbx-lab{margin-top:10px}
+.sbx-stat-row{display:grid;grid-template-columns:1fr 2fr;gap:8px;margin-bottom:8px}

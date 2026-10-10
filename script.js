@@ -12466,7 +12466,7 @@ async function loadMyQuotes() {
 const SITE_TEMPLATES = {
   classique: { label: 'site_template_classique', accent: '#2563eb' },
   sombre: { label: 'site_template_sombre', accent: '#111827' },
-  chaleureux: { label: 'site_template_chaleureux', accent: '#e11d48' },
+  chaleureux: { label: 'site_template_chaleureux', accent: '#d97706' },
   doux: { label: 'site_template_doux', accent: '#db2777', premium: true },
   nature: { label: 'site_template_nature', accent: '#15803d', premium: true }
 };
@@ -12529,7 +12529,7 @@ function renderSiteStatusView() {
   const isPremium = siteIsPremiumActive(site);
   const subdomainReady = SITE_ROOT_DOMAIN !== null; // devient vrai des qu'un domaine sera connecte a Vercel
   const subdomainLink = subdomainReady ? `https://${encodeURIComponent(site.slug)}.${SITE_ROOT_DOMAIN}` : null;
-  const isPublished = site.status === 'published';
+  const isPublished = site.status === 'published' && isPremium;
 
   const statusPillHtml = isPublished
     ? `<span class="shop-card-category" style="background:#e3f6ea;color:#177a3f">${ICON_SPARKLE} ${t('site_status_published')}</span>`
@@ -12547,6 +12547,7 @@ function renderSiteStatusView() {
     <div class="order-box" style="margin-bottom:14px;border-color:#f5a623;background:linear-gradient(135deg,rgba(255,212,59,.10),var(--white) 60%)">
       <strong style="font-size:1.02rem">${t('site_pack_pro_title')} — ${SITE_PRICING.premiumPriceMonth}$${t('site_pack_pro_price_suffix')}</strong>
       <ul class="muted small" style="margin:8px 0 10px;padding-left:18px;line-height:1.7">
+        <li><b>${t('sb_feature_publish')}</b></li>
         <li>${t('site_feature_photos_prefix')} ${t('site_unlimited_label')} ${t('site_feature_photos_mid')} ${SITE_FREE_PHOTO_LIMIT})</li>
         <li>${t('site_feature_blog_prefix')} ${t('site_unlimited_label')} ${t('site_feature_blog_mid')} ${SITE_FREE_BLOG_LIMIT})</li>
         <li>${t('site_feature_themes')}</li>
@@ -12561,17 +12562,18 @@ function renderSiteStatusView() {
   statusEl.innerHTML = `
     <div class="order-box" style="margin-bottom:14px">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
-        <strong style="font-size:1.05rem">${escapeHtml(site.businessName || t('site_default_name'))}</strong>
+        <strong style="font-size:1.05rem">${siteTypeIcon(siteTypeOf(site), 18)} ${escapeHtml(site.businessName || t('site_default_name'))}</strong>
         ${statusPillHtml}
       </div>
       <p class="muted small" id="site-link-text" style="margin:8px 0;word-break:break-all">${escapeHtml(link)}</p>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn btn-outline btn-sm" onclick="copySiteLink()">${t('site_copy_link_btn')}</button>
-        <a class="btn btn-outline btn-sm" href="${safeHref(link)}" target="_blank">${t('site_preview_btn')}</a>
+        <a class="btn btn-outline btn-sm" href="${safeHref(link)}" target="_blank" rel="noopener">${t('sb_open')}</a>
         <button class="btn btn-outline btn-sm" onclick="verifyPublicSiteLink()">${t('site_check_link_btn')}</button>
       </div>
       <p class="muted small" id="site-check-link-result" style="margin-top:8px"></p>
     </div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:8px" onclick="openSitePreviewFromSaved()">${t('sb_preview_btn')}</button>
     ${premiumBlockHtml}
     <button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="openSiteForm()">${t('site_edit_btn')}</button>
     <button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="openSiteSettingsScreen()">${t('site_settings_btn')}</button>
@@ -12592,7 +12594,7 @@ async function verifyPublicSiteLink() {
   resultEl.style.color = '';
   try {
     const snap = await db.collection('mini_sites').where('slug', '==', mySiteCache.slug).limit(1).get();
-    const ok = !snap.empty && snap.docs[0].data().status === 'published';
+    const ok = !snap.empty && snap.docs[0].data().status === 'published' && siteIsPremiumActive(snap.docs[0].data());
     resultEl.textContent = ok ? `${t('site_check_link_ok')}` : `${t('site_check_link_fail')}`;
     resultEl.style.color = ok ? '#177a3f' : '#b5720b';
   } catch (e) {
@@ -12634,52 +12636,507 @@ async function purchaseSitePremium() {
   }
 }
 
-/* ---- Parametres du site (domaine, referencement, image de marque) ----
-   NOUVEAU (chantier "site professionnel") : ecran separe du contenu, comme
-   sur un vrai constructeur de site -- le proprietaire y gere ce qui
-   concerne l'adresse et la visibilite de son site plutot que son contenu. */
+/* ====================== Aperçu fidèle du site (v-pro13) ======================
+   L'aperçu utilise EXACTEMENT le même rendu que le site public (api/render-site.js,
+   en mode POST) : ce que le propriétaire voit ici = ce que ses clients verront.
+   Il fonctionne aussi pour un brouillon non publié et peut simuler le Pack Pro
+   (rien n'est débité) pour montrer, avant paiement, ce que donne chaque modèle. */
+const SITE_TYPES = ['entreprise', 'boutique', 'restaurant', 'portfolio'];
+const SITE_SOCIALS = [
+  ['facebook', 'site_field_facebook', 'https://facebook.com/...'],
+  ['instagram', 'site_field_instagram', 'https://instagram.com/...'],
+  ['tiktok', 'site_field_tiktok', 'https://tiktok.com/@...'],
+  ['youtube', 'sb_social_youtube', 'https://youtube.com/@...'],
+  ['linkedin', 'sb_social_linkedin', 'https://linkedin.com/...'],
+  ['x', 'sb_social_x', 'https://x.com/...']
+];
+const SITE_TYPE_ICONS = {
+  entreprise: '<path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h2M13 9h2M9 13h2M13 13h2M9 17h6"/>',
+  boutique: '<path d="M4 7h16l-1 13H5L4 7zM8 7a4 4 0 0 1 8 0"/>',
+  restaurant: '<path d="M7 3v8M5 3v5a2 2 0 0 0 4 0V3M7 11v10M17 3c-2 2-3 5-3 8h3v10"/>',
+  portfolio: '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M3 13h18"/>'
+};
+function siteTypeIcon(type, size) {
+  return `<svg viewBox="0 0 24 24" width="${size || 22}" height="${size || 22}" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${SITE_TYPE_ICONS[type] || SITE_TYPE_ICONS.entreprise}</svg>`;
+}
+function siteTypeOf(site) {
+  return (site && SITE_TYPES.indexOf(site.siteType) >= 0) ? site.siteType : 'entreprise';
+}
+function currentSiteTypeValue() {
+  const el = document.getElementById('site-type');
+  return el && SITE_TYPES.indexOf(el.value) >= 0 ? el.value : 'entreprise';
+}
+function renderSiteTypePicker(selected) {
+  return `<label class="field-label" style="display:block">${t('sb_type_title')}</label>
+    <input type="hidden" id="site-type" value="${selected}">
+    <div class="sbx-types" id="site-type-picker">${SITE_TYPES.map(ty => `
+      <button type="button" class="sbx-type${ty === selected ? ' on' : ''}" data-type="${ty}" onclick="selectSiteType('${ty}')">
+        ${siteTypeIcon(ty)}<b>${t('sb_type_' + ty)}</b><small>${t('sb_type_' + ty + '_d')}</small>
+      </button>`).join('')}</div>`;
+}
+function selectSiteType(ty) {
+  const input = document.getElementById('site-type');
+  if (!input) return;
+  input.value = ty;
+  document.querySelectorAll('#site-type-picker .sbx-type').forEach(b => b.classList.toggle('on', b.dataset.type === ty));
+  const label = document.getElementById('site-items-label');
+  if (label) label.textContent = t('sb_items_' + ty);
+  document.querySelectorAll('#site-service-rows .site-service-name').forEach(inp => { inp.placeholder = t('sb_item_ph_' + ty); });
+}
+
+let sitePreviewState = null;
+
+function sitePreviewTemplates() {
+  return Object.keys(SITE_TEMPLATES);
+}
+
+// Brouillon lu directement dans le formulaire ouvert (rien n'est envoyé ni enregistré).
+function collectSiteDraftForPreview() {
+  const g = (id) => { const e = document.getElementById(id); return e ? e.value.trim() : ''; };
+  const base = editingSiteExisting || {};
+  const rowUrl = (row) => {
+    const input = row.querySelector('.gallery-photo-file');
+    if (input && input._pendingFile) { try { return URL.createObjectURL(input._pendingFile); } catch (e) { return ''; } }
+    return row.dataset.existingUrl || '';
+  };
+  const social = {};
+  SITE_SOCIALS.forEach(([k]) => { const v = g('site-' + k); if (v) social[k] = v; });
+  const prev = base.socialLinks || {};
+  SITE_SOCIALS.forEach(([k]) => { if (!document.getElementById('site-' + k) && prev[k]) social[k] = prev[k]; });
+  return Object.assign({}, base, {
+    slug: g('site-slug') || base.slug || 'apercu',
+    siteType: currentSiteTypeValue(),
+    template: g('site-template') || base.template || 'classique',
+    businessName: g('site-business-name'),
+    tagline: g('site-tagline'),
+    aboutText: g('site-about'),
+    logoUrl: pendingSiteLogoFile ? URL.createObjectURL(pendingSiteLogoFile) : currentSiteLogoUrl,
+    coverImageUrl: pendingSiteCoverFile ? URL.createObjectURL(pendingSiteCoverFile) : currentSiteCoverUrl,
+    services: Array.from(document.querySelectorAll('#site-service-rows .invoice-item-row')).map(r => ({
+      name: r.querySelector('.site-service-name').value.trim(), price: r.querySelector('.site-service-price').value.trim(),
+      desc: (r.querySelector('.site-service-desc') || { value: '' }).value.trim()
+    })).filter(x => x.name),
+    announcement: g('site-announcement'),
+    stats: Array.from(document.querySelectorAll('#site-stat-rows .sbx-stat-row')).map(r => ({
+      value: r.querySelector('.site-stat-value').value.trim(), label: r.querySelector('.site-stat-label').value.trim()
+    })).filter(x => x.value && x.label),
+    gallery: Array.from(document.querySelectorAll('#site-photo-rows .gallery-photo-row')).map(rowUrl).filter(Boolean),
+    contactWhatsapp: g('site-whatsapp'), contactPhone: g('site-phone'), contactEmail: g('site-email'),
+    address: g('site-address'), hours: g('site-hours'), socialLinks: social,
+    faq: Array.from(document.querySelectorAll('#site-faq-rows .invoice-item-row')).map(r => ({
+      question: r.querySelector('.site-faq-question').value.trim(), answer: r.querySelector('.site-faq-answer').value.trim()
+    })).filter(f => f.question && f.answer),
+    testimonials: Array.from(document.querySelectorAll('#site-testimonial-rows .invoice-item-row')).map(r => ({
+      name: r.querySelector('.site-testimonial-name').value.trim(), text: r.querySelector('.site-testimonial-text').value.trim()
+    })).filter(x => x.name && x.text),
+    blogPosts: Array.from(document.querySelectorAll('#site-blog-rows .invoice-item-row')).map(r => ({
+      title: r.querySelector('.site-blog-title').value.trim(), body: r.querySelector('.site-blog-body').value.trim(),
+      category: (r.querySelector('.site-blog-category') || {}).value || null,
+      imageUrl: (function () { const pr = r.querySelector('.gallery-photo-row'); return pr ? rowUrl(pr) : ''; })() || null,
+      date: new Date().toISOString()
+    })).filter(x => x.title && x.body),
+    customSections: Array.from(document.querySelectorAll('#site-custom-rows .invoice-item-row')).map(r => ({
+      title: r.querySelector('.site-custom-title').value.trim(), body: r.querySelector('.site-custom-body').value.trim()
+    })).filter(x => x.title && x.body)
+  });
+}
+
+function openSitePreviewFromForm() {
+  const draft = collectSiteDraftForPreview();
+  if (!draft.businessName) draft.businessName = t('site_default_name');
+  openSitePreview({
+    site: draft, draft: true,
+    canActivate: !!(editingSiteExisting && currentUser),
+    onUse: (tpl) => { const sel = document.getElementById('site-template'); if (sel) sel.value = tpl; }
+  });
+}
+
+function openSitePreviewFromSaved(template) {
+  if (!mySiteCache) return;
+  openSitePreview({
+    site: Object.assign({}, mySiteCache), draft: false, canActivate: true, startTemplate: template,
+    onUse: async (tpl) => {
+      try {
+        await db.collection('mini_sites').doc(currentUser.uid).update({ template: tpl, updatedAt: new Date().toISOString() });
+        mySiteCache.template = tpl;
+        showToast(t('sb_prev_applied'), 'success');
+        renderSiteStatusView();
+      } catch (e) { showToast(friendlyErrorMessage(e), 'error'); }
+    }
+  });
+}
+
+function openSitePreview(opts) {
+  if (document.getElementById('site-preview-screen')) return;
+  const site = opts.site;
+  const isPremium = siteIsPremiumActive(site) || siteIsPremiumActive(mySiteCache);
+  sitePreviewState = {
+    site, isPremium, mode: 'mobile', seq: 0, onUse: opts.onUse, canActivate: !!opts.canActivate,
+    template: opts.startTemplate || site.template || 'classique',
+    originalTemplate: site.template || 'classique',
+    proView: isPremium
+  };
+  const chips = sitePreviewTemplates().map(k => {
+    const tpl = SITE_TEMPLATES[k];
+    return `<button type="button" class="sbx-chip" data-tpl="${k}" onclick="sitePreviewPick('${k}')"><i style="background:${tpl.accent}"></i>${escapeHtml(t(tpl.label))}${tpl.premium ? '<em>PRO</em>' : ''}</button>`;
+  }).join('');
+  document.body.insertAdjacentHTML('beforeend', `
+    <div class="sbx-prev" id="site-preview-screen">
+      <div class="sbx-prev-top">
+        <button type="button" class="sbx-icon-btn" onclick="closeSitePreview()" aria-label="Fermer">←</button>
+        <strong>${t('sb_prev_title')}</strong>
+        <div class="sbx-seg"><button type="button" class="on" data-mode="mobile" onclick="sitePreviewMode('mobile')">${t('sb_prev_mobile')}</button><button type="button" data-mode="desktop" onclick="sitePreviewMode('desktop')">${t('sb_prev_desktop')}</button></div>
+      </div>
+      <div class="sbx-prev-models"><span>${t('sb_prev_models')}</span>${chips}</div>
+      <div class="sbx-prev-stage" id="site-preview-stage">
+        <div class="sbx-prev-frame" id="site-preview-frame"><iframe id="site-preview-iframe" title="Aperçu" sandbox="allow-scripts allow-popups"></iframe></div>
+        <div class="sbx-prev-loading" id="site-preview-loading">${t('sb_prev_loading')}</div>
+      </div>
+      <div class="sbx-prev-bottom">
+        <p class="sbx-prev-note" id="site-preview-note"></p>
+        <label class="sbx-pro-toggle" id="site-preview-pro-row"><input type="checkbox" id="site-preview-pro" onchange="sitePreviewTogglePro(this.checked)"><span>${t('sb_prev_pro_toggle')}</span></label>
+        <div class="sbx-prev-actions" id="site-preview-actions"></div>
+      </div>
+    </div>`);
+  document.body.style.overflow = 'hidden';
+  window.addEventListener('resize', sitePreviewLayout);
+  sitePreviewRefresh();
+}
+
+function closeSitePreview() {
+  const el = document.getElementById('site-preview-screen');
+  if (el) el.remove();
+  document.body.style.overflow = '';
+  window.removeEventListener('resize', sitePreviewLayout);
+  sitePreviewState = null;
+}
+
+function sitePreviewMode(mode) {
+  if (!sitePreviewState) return;
+  sitePreviewState.mode = mode;
+  document.querySelectorAll('#site-preview-screen .sbx-seg button').forEach(b => b.classList.toggle('on', b.dataset.mode === mode));
+  sitePreviewLayout();
+}
+
+function sitePreviewPick(tpl) {
+  if (!sitePreviewState) return;
+  sitePreviewState.template = tpl;
+  if (SITE_TEMPLATES[tpl] && SITE_TEMPLATES[tpl].premium && !sitePreviewState.isPremium) sitePreviewState.proView = true;
+  sitePreviewRefresh();
+}
+
+function sitePreviewTogglePro(on) {
+  if (!sitePreviewState) return;
+  const tpl = SITE_TEMPLATES[sitePreviewState.template];
+  sitePreviewState.proView = (tpl && tpl.premium && !sitePreviewState.isPremium) ? true : !!on;
+  sitePreviewRefresh();
+}
+
+function sitePreviewLayout() {
+  const st = sitePreviewState;
+  const stage = document.getElementById('site-preview-stage');
+  const frame = document.getElementById('site-preview-frame');
+  if (!st || !stage || !frame) return;
+  const w = stage.clientWidth, h = stage.clientHeight;
+  if (st.mode === 'desktop') {
+    const dw = 1100, scale = Math.min(1, (w - 16) / dw);
+    frame.className = 'sbx-prev-frame desk';
+    frame.style.width = dw + 'px';
+    frame.style.height = Math.round((h - 16) / scale) + 'px';
+    frame.style.transform = `scale(${scale})`;
+    frame.style.transformOrigin = 'top left';
+    frame.style.margin = '8px 0 0 ' + Math.round((w - dw * scale) / 2) + 'px';
+  } else {
+    const fw = Math.min(w - 16, 420);
+    frame.className = 'sbx-prev-frame mob';
+    frame.style.width = fw + 'px';
+    frame.style.height = (h - 16) + 'px';
+    frame.style.transform = 'none';
+    frame.style.margin = '8px auto 0';
+  }
+}
+
+async function sitePreviewRefresh() {
+  const st = sitePreviewState;
+  if (!st) return;
+  const seq = ++st.seq;
+  const tplInfo = SITE_TEMPLATES[st.template] || SITE_TEMPLATES.classique;
+  const locked = !!(tplInfo.premium && !st.isPremium);
+  document.querySelectorAll('#site-preview-screen .sbx-chip').forEach(c => c.classList.toggle('on', c.dataset.tpl === st.template));
+  const proRow = document.getElementById('site-preview-pro-row');
+  const proBox = document.getElementById('site-preview-pro');
+  if (proRow && proBox) {
+    proRow.style.display = st.isPremium ? 'none' : '';
+    proBox.checked = !!st.proView;
+    proBox.disabled = locked;
+  }
+  const noteEl = document.getElementById('site-preview-note');
+  if (noteEl) noteEl.textContent = locked ? t('sb_prev_locked') : (sitePreviewState.site && sitePreviewState.draft ? t('sb_prev_draft_note') : '');
+  // Boutons d'action
+  const act = document.getElementById('site-preview-actions');
+  if (act) {
+    let h = '';
+    if (locked) {
+      h = st.canActivate
+        ? `<button class="btn btn-primary" style="flex:1;justify-content:center" onclick="closeSitePreview();purchaseSitePremium()">${t('sb_prev_activate')} — ${SITE_PRICING.premiumPriceMonth}$</button>`
+        : `<p class="sbx-prev-note" style="margin:0">${t('sb_prev_after_create')}</p>`;
+    } else if (st.template !== st.originalTemplate && st.onUse) {
+      h = `<button class="btn btn-primary" style="flex:1;justify-content:center" onclick="sitePreviewUse()">${t('sb_prev_use')}</button>`;
+    }
+    h += `<button class="btn btn-outline" onclick="closeSitePreview()">OK</button>`;
+    act.innerHTML = h;
+  }
+  const loading = document.getElementById('site-preview-loading');
+  if (loading) { loading.style.display = ''; loading.textContent = t('sb_prev_loading'); }
+  sitePreviewLayout();
+  try {
+    const siteData = Object.assign({}, st.site, { template: st.template });
+    const res = await fetch('/api/render-site', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ site: siteData, premium: !!st.proView })
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const html = await res.text();
+    if (!sitePreviewState || seq !== sitePreviewState.seq) return;
+    const iframe = document.getElementById('site-preview-iframe');
+    if (iframe) iframe.srcdoc = html;
+    if (loading) loading.style.display = 'none';
+  } catch (e) {
+    if (loading && sitePreviewState && seq === sitePreviewState.seq) loading.textContent = t('sb_prev_error');
+  }
+}
+
+async function sitePreviewUse() {
+  const st = sitePreviewState;
+  if (!st || !st.onUse) return;
+  const tpl = st.template;
+  await st.onUse(tpl);
+  closeSitePreview();
+}
+
+/* ====================== Écran Paramètres (v-pro13) ====================== */
 function openSiteSettingsScreen() {
-  if (!mySiteCache || document.getElementById('site-settings-modal')) return;
+  if (!mySiteCache || document.getElementById('site-settings-screen')) return;
   const site = mySiteCache;
   const isPremium = siteIsPremiumActive(site);
-  const html = `
-    <div class="modal-overlay" id="site-settings-modal">
-      <div class="modal" style="max-width:480px">
-        <button class="modal-close" onclick="document.getElementById('site-settings-modal').remove()" aria-label="Fermer">×</button>
-        <h3 style="margin-bottom:4px">${t('site_settings_title')}</h3>
-        <p class="muted small" style="margin-bottom:14px">${t('site_settings_intro')}</p>
-
-        <label class="field-label" style="display:block">${t('site_field_domain_label')}</label>
-        <div class="field">
-          <input type="text" id="site-settings-domain" class="text-input" maxlength="60" placeholder="${t('site_field_domain_ph')}" value="${escapeHtml(site.customDomain || '')}">
-          <p class="muted small" style="margin-top:4px">${t('site_field_domain_hint')}</p>
-        </div>
-
-        <div class="field" id="site-domain-purchase-block"></div>
-
-        <label class="field-label" style="display:block">${t('site_seo_section_title')}</label>
-        <div class="field">
-          <label for="site-settings-seo-title">${t('site_seo_title_label')}</label>
-          <input type="text" id="site-settings-seo-title" class="text-input" maxlength="70" placeholder="${escapeHtml(site.businessName || '')}" value="${escapeHtml(site.seoTitle || '')}">
-        </div>
-        <div class="field">
-          <label for="site-settings-seo-desc">${t('site_seo_desc_label')}</label>
-          <textarea id="site-settings-seo-desc" class="text-input" rows="2" maxlength="160" placeholder="${escapeHtml(site.tagline || '')}">${escapeHtml(site.seoDescription || '')}</textarea>
-          <p class="muted small" style="margin-top:4px">${t('site_seo_desc_hint')}</p>
-        </div>
-
-        <label class="field" style="display:flex;align-items:center;gap:10px;background:${isPremium ? 'var(--green-light)' : 'var(--cream)'};border-radius:12px;padding:10px 12px;margin:10px 0 14px;opacity:${isPremium ? '1' : '0.6'}">
-          <input type="checkbox" id="site-settings-hide-branding" ${site.hideBranding ? 'checked' : ''} ${isPremium ? '' : 'disabled'} style="width:18px;height:18px;flex:0 0 auto">
-          <span style="font-size:0.86rem;font-weight:700">${t('site_hide_branding_label')}${isPremium ? '' : ' ' + t('site_requires_premium_suffix')}</span>
-        </label>
-
-        <div class="modal-error hidden" id="site-settings-error"></div>
-        <button class="btn btn-primary" id="site-settings-save-btn" style="width:100%;justify-content:center" onclick="saveSiteSettings()">${t('common_save')}</button>
-        <p class="muted small" id="site-settings-msg" style="margin-top:6px;text-align:center"></p>
+  const social = site.socialLinks || {};
+  const link = `${window.location.origin}/s/${encodeURIComponent(site.slug)}`;
+  const isPublished = site.status === 'published' && isPremium;
+  const tplChips = Object.keys(SITE_TEMPLATES).map(k => {
+    const tpl = SITE_TEMPLATES[k];
+    const locked = tpl.premium && !isPremium;
+    return `<button type="button" class="sbx-chip${(site.template || 'classique') === k ? ' on' : ''}${locked ? ' locked' : ''}" data-tpl="${k}" onclick="${locked ? `openSitePreviewFromSaved('${k}')` : `pickSettingsTemplate('${k}')`}"><i style="background:${tpl.accent}"></i>${escapeHtml(t(tpl.label))}${tpl.premium ? '<em>PRO</em>' : ''}</button>`;
+  }).join('');
+  const accent = (isPremium && /^#[0-9a-fA-F]{6}$/.test(site.accentColor || '')) ? site.accentColor : '';
+  document.body.insertAdjacentHTML('beforeend', `
+    <div class="sbx-set" id="site-settings-screen">
+      <div class="sbx-set-top">
+        <button type="button" class="sbx-icon-btn" onclick="closeSiteSettingsScreen()" aria-label="Fermer">←</button>
+        <strong>${t('sb_set_title')}</strong>
+        <button type="button" class="sbx-link-btn" onclick="openSitePreviewFromSaved()">${t('sb_prev_title')}</button>
       </div>
-    </div>`;
-  document.body.insertAdjacentHTML('beforeend', html);
+      <div class="sbx-set-body">
+        <div class="sbx-card sbx-hero">
+          <div class="sbx-hero-ic">${siteTypeIcon(siteTypeOf(site), 26)}</div>
+          <div style="min-width:0">
+            <strong>${escapeHtml(site.businessName || t('site_default_name'))}</strong>
+            <small>${t('sb_type_' + siteTypeOf(site))} · ${t('site_template_' + (site.template || 'classique'))}</small>
+          </div>
+          <span class="sbx-pill ${isPublished ? 'ok' : 'off'}" id="ss-pill">${isPublished ? t('site_status_published') : t('site_status_draft')}</span>
+        </div>
+
+        <div class="sbx-card">
+          <h4>${t('sb_sec_publication')}</h4>
+          <label class="sbx-switch" ${isPremium ? '' : 'onclick="settingsNeedPro(event)"'}><span><b>${t('sb_pub_toggle')} ${isPremium ? '' : '<em class="sbx-pro">PRO</em>'}</b><small id="ss-pub-desc">${isPublished ? t('sb_pub_online') : (isPremium ? t('sb_pub_offline') : t('sb_pub_pro_only'))}</small></span>
+            <input type="checkbox" id="ss-status" ${isPublished ? 'checked' : ''} ${isPremium ? '' : 'disabled'} onchange="settingsPubChanged(this.checked)"><i></i></label>
+        </div>
+
+        <div class="sbx-card">
+          <h4>${t('sb_sec_link')}</h4>
+          <div class="sbx-linkbox" id="ss-link">${escapeHtml(link)}</div>
+          <div class="sbx-row">
+            <button type="button" class="btn btn-outline btn-sm" onclick="settingsCopyLink()">${t('sb_copy')}</button>
+            <button type="button" class="btn btn-outline btn-sm" onclick="settingsShareLink()">${t('sb_share')}</button>
+            <a class="btn btn-outline btn-sm" href="${safeHref(link)}" target="_blank" rel="noopener">${t('sb_open')}</a>
+          </div>
+        </div>
+
+        <div class="sbx-card">
+          <h4>${t('sb_sec_domain')}</h4>
+          <input type="text" id="ss-domain" class="text-input" maxlength="60" placeholder="${t('site_field_domain_ph')}" value="${escapeHtml(site.customDomain || '')}">
+          <p class="sbx-hint">${t('site_field_domain_hint')} ${t('sb_domain_note')}</p>
+          <div id="site-domain-purchase-block" style="margin-top:10px"></div>
+        </div>
+
+        <div class="sbx-card">
+          <h4>${t('sb_sec_seo')}</h4>
+          <div class="sbx-google" id="ss-google">
+            <small>${t('sb_seo_preview')}</small>
+            <div class="g-url" id="ss-g-url"></div>
+            <div class="g-title" id="ss-g-title"></div>
+            <div class="g-desc" id="ss-g-desc"></div>
+          </div>
+          <label class="sbx-lab" for="ss-seo-title">${t('site_seo_title_label')} <span id="ss-c-title"></span></label>
+          <input type="text" id="ss-seo-title" class="text-input" maxlength="70" placeholder="${escapeHtml(site.businessName || '')}" value="${escapeHtml(site.seoTitle || '')}" oninput="settingsSeoUpdate()">
+          <label class="sbx-lab" for="ss-seo-desc" style="margin-top:10px">${t('site_seo_desc_label')} <span id="ss-c-desc"></span></label>
+          <textarea id="ss-seo-desc" class="text-input" rows="3" maxlength="160" placeholder="${escapeHtml(site.tagline || '')}" oninput="settingsSeoUpdate()">${escapeHtml(site.seoDescription || '')}</textarea>
+          <p class="sbx-hint">${t('sb_seo_tip')}</p>
+        </div>
+
+        <div class="sbx-card">
+          <h4>${t('sb_sec_social')}</h4>
+          <p class="sbx-hint" style="margin-top:0">${t('sb_social_hint')}</p>
+          ${SITE_SOCIALS.map(([k, lab, ph]) => `<label class="sbx-lab" for="ss-${k}">${t(lab)}</label><input type="url" id="ss-${k}" class="text-input" placeholder="${ph}" value="${escapeHtml(social[k] || '')}" style="margin-bottom:8px">`).join('')}
+        </div>
+
+        <div class="sbx-card">
+          <h4>${t('sb_sec_appearance')}</h4>
+          <div class="sbx-chips" id="ss-tpls">${tplChips}</div>
+          <input type="hidden" id="ss-template" value="${escapeHtml(site.template || 'classique')}">
+          <label class="sbx-lab" style="margin-top:12px">${t('sb_accent_label')} ${isPremium ? '' : '<em class="sbx-pro">PRO</em>'}</label>
+          <div class="sbx-row" style="align-items:center;opacity:${isPremium ? 1 : .5}">
+            <input type="color" id="ss-accent" oninput="this.dataset.reset=''" value="${accent || (SITE_TEMPLATES[site.template || 'classique'] || SITE_TEMPLATES.classique).accent}" ${isPremium ? '' : 'disabled'} style="width:52px;height:40px;border:none;background:none;padding:0">
+            <button type="button" class="btn btn-outline btn-sm" ${isPremium ? '' : 'disabled'} onclick="document.getElementById('ss-accent').dataset.reset='1'; showToast('✓','info')">${t('sb_accent_reset')}</button>
+          </div>
+          <label class="sbx-switch" style="margin-top:10px;opacity:${isPremium ? 1 : .5}"><span><b>${t('site_hide_branding_label')}</b>${isPremium ? '' : `<small>${t('site_requires_premium_suffix')}</small>`}</span>
+            <input type="checkbox" id="ss-hide-branding" ${site.hideBranding ? 'checked' : ''} ${isPremium ? '' : 'disabled'}><i></i></label>
+        </div>
+
+        <div class="sbx-card">
+          <h4>${t('sb_sec_stats')}</h4>
+          <div class="sbx-stat"><b>${site.viewsCount || 0}</b><span>${t('sb_views_label')}</span></div>
+        </div>
+
+        <div class="sbx-card ${isPremium ? '' : 'sbx-card-pro'}">
+          <h4>${t('sb_sec_pro')} ${ICON_SPARKLE}</h4>
+          ${isPremium
+            ? `<p class="sbx-hint" style="margin:0 0 10px">${t('sb_pro_active')} ${escapeHtml(new Date(site.premiumUntil).toLocaleDateString())}</p>
+               <button type="button" class="btn btn-outline btn-sm" onclick="closeSiteSettingsScreen();purchaseSitePremium()">${t('site_renew_prefix')} ${SITE_PRICING.premiumPriceMonth}$)</button>`
+            : `<p class="sbx-hint" style="margin:0 0 10px">${t('sb_pro_inactive')}</p>
+               <div class="sbx-row"><button type="button" class="btn btn-outline btn-sm" onclick="openSitePreviewFromSaved('doux')">${t('sb_prev_pro_toggle')}</button>
+               <button type="button" class="btn btn-primary btn-sm" onclick="closeSiteSettingsScreen();purchaseSitePremium()">${t('sb_prev_activate')} — ${SITE_PRICING.premiumPriceMonth}$</button></div>`}
+        </div>
+
+        <div class="sbx-card">
+          <h4>${t('sb_sec_danger')}</h4>
+          <button type="button" class="btn btn-outline" style="width:100%;justify-content:center;color:var(--red-text)" onclick="closeSiteSettingsScreen();deleteMySite()">${t('site_delete_btn')}</button>
+        </div>
+        <div class="modal-error hidden" id="site-settings-error" style="margin:0 0 80px"></div>
+      </div>
+      <div class="sbx-set-foot"><button class="btn btn-primary" id="site-settings-save-btn" style="width:100%;justify-content:center" onclick="saveSiteSettings()">${t('sb_save')}</button></div>
+    </div>`);
+  document.body.style.overflow = 'hidden';
+  settingsSeoUpdate();
   loadDomainPurchaseStatus();
+}
+
+function closeSiteSettingsScreen() {
+  const el = document.getElementById('site-settings-screen');
+  if (el) el.remove();
+  document.body.style.overflow = '';
+}
+
+function pickSettingsTemplate(k) {
+  const input = document.getElementById('ss-template');
+  if (input) input.value = k;
+  document.querySelectorAll('#ss-tpls .sbx-chip').forEach(c => c.classList.toggle('on', c.dataset.tpl === k));
+  const acc = document.getElementById('ss-accent');
+  if (acc && !acc.disabled) { acc.value = SITE_TEMPLATES[k].accent; acc.dataset.reset = '1'; }
+}
+
+function settingsNeedPro(ev) {
+  if (ev) ev.preventDefault();
+  if (confirm(t('sb_pub_needs_pro'))) { closeSiteSettingsScreen(); purchaseSitePremium(); }
+}
+
+function settingsPubChanged(on) {
+  const d = document.getElementById('ss-pub-desc');
+  if (d) d.textContent = on ? t('sb_pub_online') : t('sb_pub_offline');
+  const pill = document.getElementById('ss-pill');
+  if (pill) { pill.className = 'sbx-pill ' + (on ? 'ok' : 'off'); pill.textContent = on ? t('site_status_published') : t('site_status_draft'); }
+}
+
+function settingsSeoUpdate() {
+  const site = mySiteCache || {};
+  const tEl = document.getElementById('ss-seo-title'), dEl = document.getElementById('ss-seo-desc');
+  if (!tEl || !dEl) return;
+  const title = tEl.value.trim() || site.businessName || '';
+  const desc = dEl.value.trim() || site.tagline || site.aboutText || '';
+  const set = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
+  set('ss-g-url', `${window.location.host}/s/${site.slug || ''}`);
+  set('ss-g-title', (title + ' — Coeurnoh Universe').slice(0, 70));
+  set('ss-g-desc', desc.slice(0, 160));
+  set('ss-c-title', `${tEl.value.length}/70`);
+  set('ss-c-desc', `${dEl.value.length}/160`);
+}
+
+function settingsCopyLink() {
+  const el = document.getElementById('ss-link');
+  if (el && navigator.clipboard) navigator.clipboard.writeText(el.textContent).then(() => showToast(t('site_link_copied_toast'), 'success'));
+}
+
+function settingsShareLink() {
+  const el = document.getElementById('ss-link');
+  if (!el) return;
+  if (navigator.share) navigator.share({ title: (mySiteCache && mySiteCache.businessName) || '', url: el.textContent }).catch(() => {});
+  else settingsCopyLink();
+}
+
+async function saveSiteSettings() {
+  const btn = document.getElementById('site-settings-save-btn');
+  const errEl = document.getElementById('site-settings-error');
+  errEl.classList.add('hidden');
+  const v = (id) => { const e = document.getElementById(id); return e ? e.value.trim() : ''; };
+  const isPremium = siteIsPremiumActive(mySiteCache);
+  const customDomain = cleanCustomDomainInput(v('ss-domain'));
+  const socialLinks = {};
+  for (const [k] of SITE_SOCIALS) {
+    const val = v('ss-' + k);
+    if (val && !/^https?:\/\//i.test(val)) {
+      errEl.textContent = `${k} : https://...`;
+      errEl.classList.remove('hidden');
+      return;
+    }
+    socialLinks[k] = val || null;
+  }
+  const template = v('ss-template') || mySiteCache.template || 'classique';
+  if (SITE_TEMPLATES[template] && SITE_TEMPLATES[template].premium && !isPremium) {
+    errEl.textContent = t('site_theme_premium_required');
+    errEl.classList.remove('hidden');
+    return;
+  }
+  const accEl = document.getElementById('ss-accent');
+  let accentColor = null;
+  if (isPremium && accEl && accEl.dataset.reset !== '1') {
+    const tplAccent = (SITE_TEMPLATES[template] || SITE_TEMPLATES.classique).accent.toLowerCase();
+    accentColor = accEl.value.toLowerCase() !== tplAccent ? accEl.value : null;
+  } else if (isPremium && accEl && accEl.dataset.reset === '1') {
+    accentColor = null;
+  }
+  const status = isPremium ? (document.getElementById('ss-status').checked ? 'published' : 'draft') : (mySiteCache.status || 'draft');
+  const hideBrandingEl = document.getElementById('ss-hide-branding');
+  const patch = {
+    customDomain: customDomain || null,
+    seoTitle: v('ss-seo-title'),
+    seoDescription: v('ss-seo-desc'),
+    hideBranding: isPremium && !!(hideBrandingEl && hideBrandingEl.checked),
+    socialLinks, template, accentColor, status,
+    updatedAt: new Date().toISOString()
+  };
+  btn.disabled = true;
+  btn.textContent = t('common_saving');
+  try {
+    await db.collection('mini_sites').doc(currentUser.uid).update(patch);
+    Object.assign(mySiteCache, patch);
+    closeSiteSettingsScreen();
+    renderSiteStatusView();
+    showToast(t('sb_saved'), 'success');
+  } catch (e) {
+    errEl.textContent = friendlyErrorMessage(e);
+    errEl.classList.remove('hidden');
+    btn.disabled = false;
+    btn.textContent = t('sb_save');
+  }
 }
 
 /* ---- Achat de domaine PAR l'équipe (distinct du champ "domaine personnalisé"
@@ -12764,43 +13221,16 @@ async function purchaseSiteDomain() {
   }
 }
 
-async function saveSiteSettings() {
-  const btn = document.getElementById('site-settings-save-btn');
-  const errEl = document.getElementById('site-settings-error');
-  errEl.classList.add('hidden');
-  const customDomain = cleanCustomDomainInput(document.getElementById('site-settings-domain').value);
-  const seoTitle = document.getElementById('site-settings-seo-title').value.trim();
-  const seoDescription = document.getElementById('site-settings-seo-desc').value.trim();
-  const isPremium = siteIsPremiumActive(mySiteCache);
-  const hideBranding = isPremium && document.getElementById('site-settings-hide-branding').checked;
-
-  btn.disabled = true;
-  btn.textContent = t('common_saving');
-  try {
-    await db.collection('mini_sites').doc(currentUser.uid).update({
-      customDomain: customDomain || null, seoTitle, seoDescription, hideBranding,
-      updatedAt: new Date().toISOString()
-    });
-    mySiteCache.customDomain = customDomain || null;
-    mySiteCache.seoTitle = seoTitle;
-    mySiteCache.seoDescription = seoDescription;
-    mySiteCache.hideBranding = hideBranding;
-    document.getElementById('site-settings-modal').remove();
-    showToast(t('site_settings_saved_toast'), 'success');
-  } catch (e) {
-    errEl.textContent = friendlyErrorMessage(e);
-    errEl.classList.remove('hidden');
-    btn.disabled = false;
-    btn.textContent = t('common_save');
-  }
-}
-
 function copySiteLink() {
   const text = document.getElementById('site-link-text').textContent;
   if (navigator.clipboard) navigator.clipboard.writeText(text).then(() => showToast(t('site_link_copied_toast'), 'success'));
 }
 
 async function toggleSitePublish(newStatus) {
+  if (newStatus === 'published' && !siteIsPremiumActive(mySiteCache)) {
+    if (confirm(t('sb_pub_needs_pro'))) purchaseSitePremium();
+    return;
+  }
   try {
     await db.collection('mini_sites').doc(currentUser.uid).update({ status: newStatus });
     mySiteCache.status = newStatus;
@@ -12852,17 +13282,14 @@ function openSiteForm() {
     <div class="modal-overlay" id="site-form-modal">
       <div class="modal" style="max-width:480px">
         <button class="modal-close" onclick="document.getElementById('site-form-modal').remove()" aria-label="Fermer">×</button>
-        <h3 style="margin-bottom:14px">${editingSiteExisting ? t('site_form_title_edit') : t('site_form_title_new')}</h3>
+        <h3 style="margin:0 0 14px 46px">${editingSiteExisting ? t('site_form_title_edit') : t('site_form_title_new')}</h3>
         <div class="modal-error hidden" id="site-form-error"></div>
-        ${!editingSiteExisting ? `
-        <label class="field" style="display:flex;align-items:center;gap:10px;background:var(--green-light);border-radius:12px;padding:10px 12px;margin-bottom:14px">
-          <input type="checkbox" id="site-publish-now" checked style="width:18px;height:18px;flex:0 0 auto">
-          <span style="font-size:0.86rem;font-weight:700">${t('site_publish_now_label')}</span>
-        </label>` : ''}
+        ${!editingSiteExisting ? `<p class="sbx-prev-note" style="margin:0 0 14px">${t('sb_pub_pro_note')}</p>` : ''}
 
-        <div class="field">
+        ${renderSiteTypePicker(siteTypeOf(s))}
+        <div class="field" style="margin-top:14px">
           <label for="site-slug">${t('site_field_slug_label')}</label>
-          <div class="muted small" style="margin-bottom:4px;word-break:break-all">${escapeHtml(window.location.origin)}/?site=<span id="site-slug-preview">${escapeHtml(s.slug || '')}</span></div>
+          <div class="muted small" style="margin-bottom:4px;word-break:break-all">${escapeHtml(window.location.origin)}/s/<span id="site-slug-preview">${escapeHtml(s.slug || '')}</span></div>
           <input type="text" id="site-slug" class="text-input" placeholder="${t('site_field_slug_ph')}" maxlength="30" value="${escapeHtml(s.slug || '')}" oninput="document.getElementById('site-slug-preview').textContent = this.value.trim().toLowerCase()">
         </div>
         <div class="field">
@@ -12913,7 +13340,15 @@ function openSiteForm() {
           <div id="site-cover-preview">${s.coverImageUrl ? `<img src="${escapeHtml(s.coverImageUrl)}" class="post-media-preview-media" alt="">` : ''}</div>
         </div>
 
-        <label class="field-label" style="display:block">${t('site_field_services')}</label>
+        <div class="field">
+          <label for="site-announcement">${t('sb_announce_label')}</label>
+          <input type="text" id="site-announcement" class="text-input" maxlength="140" placeholder="${t('sb_announce_ph')}" value="${escapeHtml(s.announcement || '')}">
+        </div>
+        <label class="field-label" style="display:block">${t('sb_stats_label')}</label>
+        <p class="muted small" style="margin:-4px 0 8px">${t('sb_stats_hint')}</p>
+        <div id="site-stat-rows">${[0, 1, 2, 3].map(i => { const st = (Array.isArray(s.stats) && s.stats[i]) || {}; return `<div class="sbx-stat-row"><input type="text" class="text-input site-stat-value" maxlength="12" placeholder="${t('sb_stat_value_ph')}" value="${escapeHtml(st.value || '')}"><input type="text" class="text-input site-stat-label" maxlength="30" placeholder="${t('sb_stat_label_ph')}" value="${escapeHtml(st.label || '')}"></div>`; }).join('')}</div>
+        <div style="height:10px"></div>
+        <label class="field-label" style="display:block" id="site-items-label">${t('sb_items_' + siteTypeOf(s))}</label>
         <div id="site-service-rows"></div>
         <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:6px 0 14px" onclick="addSiteServiceRow()">${t('site_add_service_btn')}</button>
 
@@ -12987,6 +13422,8 @@ function openSiteForm() {
           </div>
         </div>
 
+        <p class="muted small" style="margin:0 0 8px;text-align:center">${t('sb_form_preview_hint')}</p>
+        <button type="button" class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="openSitePreviewFromForm()">${t('sb_preview_btn')}</button>
         <button class="btn btn-primary" id="site-form-submit-btn" style="width:100%;justify-content:center" onclick="saveMySite()">${t('common_save')}</button>
         <p class="muted small" id="site-form-msg" style="margin-top:6px"></p>
       </div>
@@ -13011,10 +13448,15 @@ function addSiteServiceRow(service) {
   const rowsEl = document.getElementById('site-service-rows');
   const row = document.createElement('div');
   row.className = 'invoice-item-row';
+  row.style.flexDirection = 'column';
+  row.style.alignItems = 'stretch';
   row.innerHTML = `
-    <input type="text" class="text-input site-service-name" placeholder="${t('site_service_name_ph')}" value="${escapeHtml(service ? service.name || '' : '')}" style="flex:2">
-    <input type="text" class="text-input site-service-price" placeholder="${t('site_service_price_ph')}" value="${escapeHtml(service ? service.price || '' : '')}" style="flex:1">
-    <button type="button" class="invoice-row-remove" onclick="this.parentElement.remove()" aria-label="Retirer">×</button>`;
+    <div style="display:flex;gap:8px;width:100%">
+      <input type="text" class="text-input site-service-name" placeholder="${t('sb_item_ph_' + currentSiteTypeValue())}" value="${escapeHtml(service ? service.name || '' : '')}" style="flex:2">
+      <input type="text" class="text-input site-service-price" placeholder="${t('site_service_price_ph')}" value="${escapeHtml(service ? service.price || '' : '')}" style="flex:1">
+      <button type="button" class="invoice-row-remove" onclick="this.closest('.invoice-item-row').remove()" aria-label="Retirer">×</button>
+    </div>
+    <input type="text" class="text-input site-service-desc" maxlength="120" placeholder="${t('sb_item_desc_ph')}" value="${escapeHtml(service ? service.desc || '' : '')}" style="margin-top:6px">`;
   rowsEl.appendChild(row);
 }
 
@@ -13208,6 +13650,7 @@ async function saveMySite() {
 
   const slug = slugifySiteAddress(document.getElementById('site-slug').value);
   const template = document.getElementById('site-template').value;
+  const siteType = currentSiteTypeValue();
   const businessName = document.getElementById('site-business-name').value.trim();
   const tagline = document.getElementById('site-tagline').value.trim();
   const aboutText = document.getElementById('site-about').value.trim();
@@ -13215,8 +13658,14 @@ async function saveMySite() {
   let coverImageUrl = currentSiteCoverUrl;
   const services = Array.from(document.querySelectorAll('#site-service-rows .invoice-item-row')).map(row => ({
     name: row.querySelector('.site-service-name').value.trim(),
-    price: row.querySelector('.site-service-price').value.trim()
+    price: row.querySelector('.site-service-price').value.trim(),
+    desc: (row.querySelector('.site-service-desc') || { value: '' }).value.trim()
   })).filter(sv => sv.name);
+  const stats = Array.from(document.querySelectorAll('#site-stat-rows .sbx-stat-row')).map(row => ({
+    value: row.querySelector('.site-stat-value').value.trim(),
+    label: row.querySelector('.site-stat-label').value.trim()
+  })).filter(x => x.value && x.label).slice(0, 4);
+  const announcement = document.getElementById('site-announcement').value.trim().slice(0, 140);
   const isPremiumNow = siteIsPremiumActive(editingSiteExisting);
   const contactWhatsapp = document.getElementById('site-whatsapp').value.trim();
   const contactPhone = document.getElementById('site-phone').value.trim();
@@ -13228,6 +13677,7 @@ async function saveMySite() {
     instagram: document.getElementById('site-instagram').value.trim() || null,
     tiktok: document.getElementById('site-tiktok').value.trim() || null
   };
+  ['youtube', 'linkedin', 'x'].forEach(k => { const prevSoc = editingSiteExisting && editingSiteExisting.socialLinks; if (prevSoc && prevSoc[k]) socialLinks[k] = prevSoc[k]; });
   const customDomain = cleanCustomDomainInput(document.getElementById('site-domain').value);
   const faq = Array.from(document.querySelectorAll('#site-faq-rows .invoice-item-row')).map(row => ({
     question: row.querySelector('.site-faq-question').value.trim(),
@@ -13324,12 +13774,11 @@ async function saveMySite() {
         throw new Error('SLUG_TAKEN');
       }
       const sitePayload = {
-        ownerUid: uid, slug, template, businessName, tagline, aboutText,
+        ownerUid: uid, slug, template, siteType, businessName, tagline, aboutText,
         logoUrl: logoUrl || null, coverImageUrl: coverImageUrl || null,
         services, gallery, contactWhatsapp, contactPhone, contactEmail, address, hours, socialLinks,
-        status: editingSiteExisting
-          ? editingSiteExisting.status
-          : (document.getElementById('site-publish-now').checked ? 'published' : 'draft'),
+        status: editingSiteExisting ? editingSiteExisting.status : 'draft',
+        stats, announcement,
         customDomain: customDomain || null,
         faq, testimonials, blogPosts, customSections, categories,
         createdAt: editingSiteExisting ? editingSiteExisting.createdAt : new Date().toISOString(),
@@ -13394,28 +13843,12 @@ function slugFromSubdomain() {
 }
 
 async function checkForPublicSiteView() {
+  // v-pro13 : l'ancien affichage "dans l'application" est remplace par la vraie
+  // page du site (/s/<slug>, rendue par le serveur) -- meme design partout.
   const params = new URLSearchParams(window.location.search);
   const slug = params.get('site') || slugFromSubdomain();
   if (!slug) return;
-
-  const overlay = document.getElementById('public-site-overlay');
-  overlay.innerHTML = `<p class="muted small" style="padding:40px;text-align:center">${t('site_loading_public')}</p>`;
-  overlay.classList.remove('hidden');
-
-  try {
-    const snap = await db.collection('mini_sites').where('slug', '==', slug).limit(1).get();
-    if (snap.empty || snap.docs[0].data().status !== 'published') {
-      overlay.innerHTML = `<p class="muted small" style="padding:40px;text-align:center">${t('site_not_found_public')}</p>`;
-      return;
-    }
-    const siteDoc = snap.docs[0];
-    renderPublicSiteHtml(siteDoc.data(), overlay);
-    // Comptage des visites, best-effort : ne doit jamais bloquer ni
-    // ralentir l'affichage du site pour le visiteur.
-    siteDoc.ref.update({ viewsCount: firebase.firestore.FieldValue.increment(1) }).catch(() => {});
-  } catch (e) {
-    overlay.innerHTML = `<p class="muted small" style="padding:40px;text-align:center">${t('site_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
-  }
+  window.location.replace(`${window.location.origin}/s/${encodeURIComponent(String(slug).toLowerCase())}`);
 }
 
 // CORRECTIF : ferme la page publique d'un mini-site et revient a
