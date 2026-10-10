@@ -12565,13 +12565,13 @@ function renderSiteStatusView() {
         <strong style="font-size:1.05rem">${siteTypeIcon(siteTypeOf(site), 18)} ${escapeHtml(site.businessName || t('site_default_name'))}</strong>
         ${statusPillHtml}
       </div>
-      <p class="muted small" id="site-link-text" style="margin:8px 0;word-break:break-all">${escapeHtml(link)}</p>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <p class="muted small" id="site-link-text" style="margin:8px 0;word-break:break-all;${isPublished ? '' : 'opacity:.55'}">${escapeHtml(link)}</p>
+      ${isPublished ? `<div style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn btn-outline btn-sm" onclick="copySiteLink()">${t('site_copy_link_btn')}</button>
         <a class="btn btn-outline btn-sm" href="${safeHref(link)}" target="_blank" rel="noopener">${t('sb_open')}</a>
         <button class="btn btn-outline btn-sm" onclick="verifyPublicSiteLink()">${t('site_check_link_btn')}</button>
       </div>
-      <p class="muted small" id="site-check-link-result" style="margin-top:8px"></p>
+      <p class="muted small" id="site-check-link-result" style="margin-top:8px"></p>` : `<p class="sbx-prev-note" style="margin:6px 0 0">${t('sb_status_private')}</p>`}
     </div>
     <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:8px" onclick="openSitePreviewFromSaved()">${t('sb_preview_btn')}</button>
     ${premiumBlockHtml}
@@ -12902,7 +12902,7 @@ async function sitePreviewRefresh() {
     if (iframe) iframe.srcdoc = html;
     if (loading) loading.style.display = 'none';
   } catch (e) {
-    if (loading && sitePreviewState && seq === sitePreviewState.seq) loading.textContent = t('sb_prev_error');
+    if (loading && sitePreviewState && seq === sitePreviewState.seq) loading.textContent = t('sb_prev_error') + ' (' + (e && e.message ? e.message : '?') + ')';
   }
 }
 
@@ -12957,8 +12957,9 @@ function openSiteSettingsScreen() {
           <div class="sbx-row">
             <button type="button" class="btn btn-outline btn-sm" onclick="settingsCopyLink()">${t('sb_copy')}</button>
             <button type="button" class="btn btn-outline btn-sm" onclick="settingsShareLink()">${t('sb_share')}</button>
-            <a class="btn btn-outline btn-sm" href="${safeHref(link)}" target="_blank" rel="noopener">${t('sb_open')}</a>
+            ${isPublished ? `<a class="btn btn-outline btn-sm" href="${safeHref(link)}" target="_blank" rel="noopener">${t('sb_open')}</a>` : `<button type="button" class="btn btn-outline btn-sm" onclick="openSitePreviewFromSaved()">${t('sb_prev_title')}</button>`}
           </div>
+          ${isPublished ? '' : `<p class="sbx-hint">${t('sb_status_private')}</p>`}
         </div>
 
         <div class="sbx-card">
