@@ -50,11 +50,36 @@
   </nav>
 
   <div class="wrap admin-wrap">
-    <div class="segmented admin-tabs" id="admin-tabs"></div>
+    <div class="adm-topbar">
+      <button type="button" class="adm-burger" onclick="toggleAdminMenu()" aria-label="Menu">☰ <span>Menu</span></button>
+      <h1 id="adm-title">Statistiques</h1>
+    </div>
+    <div class="adm-backdrop" onclick="toggleAdminMenu(false)"></div>
+    <nav class="admin-tabs" id="admin-tabs" aria-label="Sections"></nav>
 
     <!-- ---- Statistiques ---- -->
     <div class="admin-tab" id="admin-tab-stats">
       <div class="stats-cards" id="admin-stats-cards"></div>
+    </div>
+
+    <!-- ---- Sites créés ---- -->
+    <div class="admin-tab hidden" id="admin-tab-sites">
+      <div class="adm-kpis" id="admin-sites-kpis"></div>
+      <div class="adm-toolbar">
+        <input type="search" id="admin-sites-search" placeholder="Rechercher un site, un email…" oninput="renderSitesAdmin()">
+        <select id="admin-sites-filter" onchange="renderSitesAdmin()"><option value="all">Tous</option><option value="premium">Premium</option><option value="free">Gratuits</option><option value="published">Publiés</option></select>
+      </div>
+      <div id="admin-sites-list"></div>
+    </div>
+
+    <!-- ---- Entreprises ---- -->
+    <div class="admin-tab hidden" id="admin-tab-businesses">
+      <div class="adm-kpis" id="admin-biz-kpis"></div>
+      <div class="adm-toolbar">
+        <input type="search" id="admin-biz-search" placeholder="Rechercher une entreprise…" oninput="renderBusinessesAdmin()">
+        <select id="admin-biz-filter" onchange="renderBusinessesAdmin()"><option value="all">Toutes</option><option value="pro">Pro</option><option value="free">Gratuites</option><option value="verified">Vérifiées</option></select>
+      </div>
+      <div id="admin-biz-list"></div>
     </div>
 
     <!-- ---- Commandes ---- -->
@@ -283,7 +308,7 @@
 
     <!-- ---- Achats de domaine ("Crée ton site") ---- -->
     <div class="admin-tab hidden" id="admin-tab-domains">
-      <h2 class="page-title">Site & domaine — tarifs et demandes</h2>
+      <h2 class="page-title">Prix Site, Entreprise & domaines</h2>
       <p class="muted" style="margin-bottom:14px">Le paiement a déjà été débité du portefeuille du propriétaire. Achète réellement le nom de domaine chez un registrar (ex: Namecheap, OVH), connecte-le au projet Vercel, puis marque la demande comme active. Si le nom n'est pas disponible, rejette : le montant est remboursé automatiquement.</p>
       <div id="admin-site-pricing-editor" style="margin-bottom:20px"></div>
       <h3 style="margin-bottom:10px">Demandes d'achat de domaine</h3>

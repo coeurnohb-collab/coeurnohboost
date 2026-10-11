@@ -829,6 +829,7 @@ async function loadBundlePricingOverrides() {
    qui applique la meme regle de repli et le meme calcul). */
 let SITE_PRICING = {
   premiumPriceMonth: 20,  // valeur de repli -- doit rester identique a SITE_PREMIUM_PRICE plus bas dans ce fichier et a SITE_PREMIUM_PRICE dans api/payments-actions.js
+  businessProPrice: 15,   // $/mois, reglable par l'admin (pricing/site) -- repli identique a BUSINESS_PRO_PRICE dans api/payments-actions.js
   domainPriceMonth: 4     // valeur de repli ($/mois) -- doit rester identique a SITE_DOMAIN_PRICE_MONTH dans api/payments-actions.js ; sert de base au calcul automatique des formules
 };
 // Durees standards proposees au client, toujours calculees a partir de
@@ -859,6 +860,9 @@ async function loadSitePricingOverrides() {
       }
       if (typeof data.domainPriceMonth === 'number' && data.domainPriceMonth > 0) {
         SITE_PRICING.domainPriceMonth = data.domainPriceMonth;
+      }
+      if (typeof data.businessProPrice === 'number' && data.businessProPrice > 0) {
+        SITE_PRICING.businessProPrice = data.businessProPrice;
       }
     }
   } catch (e) {
@@ -12574,11 +12578,7 @@ function renderSiteStatusView() {
       <p class="muted small" id="site-check-link-result" style="margin-top:8px"></p>` : `<p class="sbx-prev-note" style="margin:6px 0 0">${t('sb_status_private')}</p>`}
     </div>
     <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:8px" onclick="openSitePreviewFromSaved()">${t('sb_preview_btn')}</button>
-    <div class="md-card" onclick="openMediaManager('site')">
-      <span class="md-card-ic">🖼</span>
-      <div><b>${t('md_title')}</b><small>${mediaCountOf(mediaItems('site'), 'image')} ${t('md_images').toLowerCase()} · ${mediaCountOf(mediaItems('site'), 'video')} ${t('md_videos').toLowerCase()} · ${mediaCountOf(mediaItems('site'), 'file')} ${t('md_files').toLowerCase()}</small></div>
-      <em>${isPremium ? t('md_unlimited') : '3 · 1 · 2'}</em>
-    </div>
+    ${siteHubHtml(site, isPremium)}
     ${premiumBlockHtml}
     <button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="openSiteForm()">${t('site_edit_btn')}</button>
     <button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="openSiteSettingsScreen()">${t('site_settings_btn')}</button>
@@ -14262,6 +14262,11 @@ async function openBusinessDetail(ownerUid) {
       <h4>${t('bz_timeline_heading')}</h4>
       <ol class="bz-tl">${b.timeline.map(x => `<li><b>${escapeHtml(x.year || '')}</b><span>${escapeHtml(x.text || '')}</span></li>`).join('')}</ol>
     </div>` : '';
+  const branchesHtml = (bizPro && b.branches && b.branches.length) ? `
+    <div class="biz-section" style="padding-top:4px">
+      <h4>${t('bz_branches_heading')}</h4>
+      ${b.branches.map(x => `<div class="bz-job"><div><strong>${escapeHtml(x.name || '')}</strong>${x.address ? `<small>${escapeHtml(x.address)}</small>` : ''}${x.phone ? `<p>${escapeHtml(x.phone)}</p>` : ''}</div>${x.phone ? `<a class="btn btn-outline btn-sm" href="${safeHref('tel:' + String(x.phone).replace(/[^+\d]/g, ''))}">${t('bz_call')}</a>` : ''}</div>`).join('')}
+    </div>` : '';
   const faqHtml = (b.faq && b.faq.length) ? `
     <div class="biz-section" id="biz-sec-faq" style="padding-top:4px">
       <h4>${t('bz_faq_heading')}</h4>
@@ -14334,6 +14339,7 @@ async function openBusinessDetail(ownerUid) {
         ${timelineHtml}
         ${jobsHtml}
         ${partnersHtml}
+        ${branchesHtml}
         ${faqHtml}
         ${!isOwn && currentUser ? `<div class="biz-section" style="padding-top:0"><button class="btn btn-outline btn-sm" style="width:100%;justify-content:center" onclick="openReportModal('${ownerUid}', '${ownerUid}', 'business')">${ICON_FLAG} ${t('business_report_btn')}</button></div>` : ''}
         <div class="biz-section" id="biz-sec-reviews">
@@ -14485,10 +14491,10 @@ async function renderMyBusinessStatus() {
         <strong>${t('business_pro_active_label')} ${ICON_SPARKLE}</strong>
         <span class="shop-card-category" style="background:#fff4e0;color:#b5720b">${t('business_pro_until_prefix')} ${escapeHtml(new Date(b.proUntil).toLocaleDateString())}</span>
       </div>
-      <button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="purchaseBusinessPro()">${t('business_renew_prefix')} ${BUSINESS_PRO_PRICE}$)</button>
+      <button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="purchaseBusinessPro()">${t('business_renew_prefix')} ${SITE_PRICING.businessProPrice}$)</button>
     </div>` : `
     <div class="order-box" style="margin-bottom:14px">
-      <strong>${t('business_upgrade_title_prefix')} ${BUSINESS_PRO_PRICE}$${t('business_per_month_suffix')}</strong>
+      <strong>${t('business_upgrade_title_prefix')} ${SITE_PRICING.businessProPrice}$${t('business_per_month_suffix')}</strong>
       <ul class="muted small" style="margin:8px 0 10px;padding-left:18px;line-height:1.6">
         <li>${t('business_feature_catalog_prefix')} ${BUSINESS_PRO_CATALOG_LIMIT} ${t('business_feature_catalog_suffix')} ${BUSINESS_FREE_CATALOG_LIMIT})</li>
         <li>${t('business_feature_coupons_prefix')} ${BUSINESS_PRO_COUPON_LIMIT} ${t('business_feature_coupons_mid')} ${BUSINESS_FREE_COUPON_LIMIT})</li>
@@ -14553,6 +14559,7 @@ async function renderMyBusinessStatus() {
       <button class="btn btn-outline btn-sm" onclick="openBusinessListEditor('awards')">${t('bz_tool_awards')}${pt}</button>
       <button class="btn btn-outline btn-sm" onclick="openBusinessListEditor('jobs')">${t('bz_tool_jobs')}${pt}</button>
       <button class="btn btn-outline btn-sm" onclick="openBusinessListEditor('partners')">${t('bz_tool_partners')}${pt}</button>
+      <button class="btn btn-outline btn-sm" onclick="openBusinessListEditor('branches')">${t('bz_tool_branches')}${pt}</button>
       <button class="btn btn-outline btn-sm" onclick="openBusinessListEditor('timeline')">${t('bz_tool_timeline')}${pt}</button>
       <button class="btn btn-outline btn-sm" onclick="openBusinessLookForm()">${t('bz_tool_announce')}${pt}</button>
     </div>
@@ -14572,7 +14579,7 @@ async function renderMyBusinessStatus() {
 
 async function purchaseBusinessPro() {
   if (!currentUser || !businessMyProfile) return;
-  if (!confirm(`${t('business_confirm_pro_prefix')} ${BUSINESS_PRO_PRICE}$ ${t('business_confirm_pro_suffix')}`)) return;
+  if (!confirm(`${t('business_confirm_pro_prefix')} ${SITE_PRICING.businessProPrice}$ ${t('business_confirm_pro_suffix')}`)) return;
   try {
     const idToken = await auth.currentUser.getIdToken();
     const res = await fetch('/api/payments-actions', {
@@ -14621,6 +14628,7 @@ function businessCompleteness(b) {
 function businessTrustChipsHtml(b, skipPro) {
   const chips = [];
   const comp = businessCompleteness(b);
+  if (b.adminVerified) chips.push(`<span class="bz-chip ok">✔ ${t('bz_verified_badge')}</span>`);
   if (comp.complete) chips.push(`<span class="bz-chip ok">${ICON_SPARKLE} ${t('bz_complete_badge')}</span>`);
   if (!skipPro && businessIsProActive(b)) chips.push(`<span class="bz-chip pro">${t('business_pro_badge')}</span>`);
   const year = parseInt(b.foundedYear, 10);
@@ -14690,6 +14698,7 @@ const BIZ_LISTS = {
   team: { title: 'bz_team_title', proOnly: true, free: 0, pro: BUSINESS_TEAM_LIMIT, fields: [['name', 'bz_team_name_ph', 60, false], ['role', 'bz_team_role_ph', 60, false]] },
   awards: { title: 'bz_awards_title', proOnly: true, free: 0, pro: BUSINESS_AWARDS_LIMIT, str: true, fields: [['text', 'bz_awards_ph', 100, false]] },
   jobs: { title: 'bz_jobs_title', proOnly: true, free: 0, pro: 20, fields: [['title', 'bz_jobs_title_ph', 80, false], ['meta', 'bz_jobs_meta_ph', 60, false], ['desc', 'bz_jobs_desc_ph', 400, true]] },
+  branches: { title: 'bz_branches_title', proOnly: true, free: 0, pro: 10, fields: [['name', 'bz_branch_name_ph', 60, false], ['address', 'bz_branch_addr_ph', 100, false], ['phone', 'bz_branch_phone_ph', 30, false]] },
   partners: { title: 'bz_partners_title', proOnly: true, free: 0, pro: 30, str: true, fields: [['text', 'bz_partners_ph', 60, false]] },
   timeline: { title: 'bz_timeline_title', proOnly: true, free: 0, pro: 20, fields: [['year', 'bz_timeline_year_ph', 8, false], ['text', 'bz_timeline_text_ph', 160, false]] }
 };
@@ -14745,6 +14754,7 @@ async function saveBusinessList(kind) {
   if (kind === 'faq') list = list.filter(x => x.question && x.answer);
   else if (kind === 'team') list = list.filter(x => x.name);
   else if (kind === 'jobs') list = list.filter(x => x.title);
+  else if (kind === 'branches') list = list.filter(x => x.name);
   else if (kind === 'timeline') list = list.filter(x => x.year && x.text);
   else list = list.map(x => x.text).filter(Boolean);
   list = list.slice(0, limit);
@@ -15056,6 +15066,197 @@ function collectSitePortfolioDraft(rowUrl) {
     desc: r.querySelector('.site-pf-desc').value.trim(), link: r.querySelector('.site-pf-link').value.trim(),
     image: (function () { const pr = r.querySelector('.gallery-photo-row'); return pr ? rowUrl(pr) : ''; })() || null
   })).filter(x => x.title);
+}
+
+/* ---- Espace de publication du site : actualités, portfolio, forfaits, équipe... (enregistrement immédiat) ---- */
+const SITE_LISTS = {
+  plans: { title: 'sp_plans', icon: '💎', free: 3, paid: 12, fields: [['name', 'sp_plan_name_ph', 40, 'i'], ['price', 'sp_plan_price_ph', 30, 'i'], ['features', 'sp_plan_features_ph', 400, 't']], need: 'name' },
+  team: { title: 'sp_team', icon: '👥', free: 4, paid: 30, fields: [['name', 'bz_team_name_ph', 60, 'i'], ['role', 'bz_team_role_ph', 60, 'i']], need: 'name' },
+  partners: { title: 'sp_partners', icon: '🤝', free: 6, paid: 40, str: true, fields: [['text', 'bz_partners_ph', 60, 'i']], need: 'text' },
+  timeline: { title: 'sp_timeline', icon: '🕓', free: 5, paid: 30, fields: [['year', 'bz_timeline_year_ph', 8, 'i'], ['text', 'bz_timeline_text_ph', 160, 'i']], need: 'year' }
+};
+let spModal = null;
+
+function spClose() { const m = document.getElementById('sp-modal'); if (m) m.remove(); spModal = null; renderSiteStatusView(); }
+function spShell(title, inner) {
+  const old = document.getElementById('sp-modal'); if (old) old.remove();
+  document.body.insertAdjacentHTML('beforeend', `
+    <div class="modal-overlay" id="sp-modal"><div class="modal md-modal">
+      <button class="modal-close" onclick="spClose()" aria-label="Fermer">×</button>
+      <h3 style="margin:0 0 12px 46px">${escapeHtml(title)}</h3>
+      <div id="sp-body">${inner}</div>
+    </div></div>`);
+}
+async function spSave(field, value) {
+  await db.collection('mini_sites').doc(currentUser.uid).update({ [field]: value, updatedAt: new Date().toISOString() });
+  mySiteCache[field] = value;
+}
+
+/* Actualités avec photo */
+function openSiteNewsManager() {
+  if (!mySiteCache) return;
+  spModal = 'news'; spShell(t('sp_news'), '');
+  renderSiteNewsManager();
+}
+function renderSiteNewsManager() {
+  const body = document.getElementById('sp-body'); if (!body) return;
+  const posts = Array.isArray(mySiteCache.blogPosts) ? mySiteCache.blogPosts : [];
+  const paid = siteIsPremiumActive(mySiteCache);
+  body.innerHTML = `
+    <p class="muted small" style="margin:0 0 10px">${paid ? t('sp_news_paid') : `${t('sp_news_free')} ${SITE_FREE_BLOG_LIMIT}`}</p>
+    <div class="md-sec">
+      <input type="text" id="sp-news-title" class="text-input" maxlength="100" placeholder="${t('site_post_title_ph')}">
+      <textarea id="sp-news-body" class="text-input" rows="3" maxlength="1500" placeholder="${t('site_post_body_ph')}" style="margin-top:6px"></textarea>
+      <div id="sp-news-prev" class="sp-prev"></div>
+      <label class="btn btn-outline btn-sm md-add" for="sp-news-img">📷 ${t('sp_add_photo')}</label>
+      <input type="file" id="sp-news-img" class="file-input-hidden" accept="image/*" onchange="spNewsPreview(this)">
+      <div class="md-prog hidden" id="sp-news-prog"><div class="md-prog-fill" id="sp-news-fill"></div><span>…</span></div>
+      <button type="button" class="btn btn-primary md-add" id="sp-news-btn" onclick="spPublishNews()">${t('sp_publish')}</button>
+    </div>
+    <h4 style="margin:14px 0 8px">${t('sp_news_list')} (${posts.length})</h4>
+    ${posts.length ? posts.map((p, i) => ({ p, i })).reverse().map(({ p, i }) => `<div class="md-item">${p.imageUrl ? `<img src="${escapeHtml(p.imageUrl)}" alt="" class="md-thumb">` : '<span class="md-thumb md-ico">📰</span>'}<div class="md-meta"><b>${escapeHtml(p.title || '')}</b><small>${escapeHtml(p.date ? new Date(p.date).toLocaleDateString() : '')}</small></div><button type="button" class="md-btn md-del" onclick="spDeleteNews(${i})" aria-label="${t('common_delete')}">×</button></div>`).join('') : `<p class="muted small">${t('md_empty')}</p>`}`;
+}
+function spNewsPreview(input) {
+  const f = input.files && input.files[0]; const box = document.getElementById('sp-news-prev');
+  if (!f || !box) return;
+  if (!f.type.startsWith('image/')) { showToast(t('md_bad_type'), 'error'); input.value = ''; return; }
+  box.innerHTML = `<img src="${URL.createObjectURL(f)}" alt="">`;
+}
+async function spPublishNews() {
+  const title = document.getElementById('sp-news-title').value.trim();
+  const text = document.getElementById('sp-news-body').value.trim();
+  if (!title || !text) { showToast(t('sp_news_need'), 'info'); return; }
+  const posts = (Array.isArray(mySiteCache.blogPosts) ? mySiteCache.blogPosts : []).slice();
+  if (!siteIsPremiumActive(mySiteCache) && posts.length >= SITE_FREE_BLOG_LIMIT) {
+    if (confirm(t('md_limit_upgrade'))) { spClose(); purchaseSitePremium(); } return;
+  }
+  const btn = document.getElementById('sp-news-btn'); btn.disabled = true;
+  try {
+    const file = (document.getElementById('sp-news-img').files || [])[0];
+    let imageUrl = null;
+    if (file) {
+      const prog = document.getElementById('sp-news-prog'); prog.classList.remove('hidden');
+      imageUrl = (await uploadFileToStorage(file, 'sites/articles', { maxSizeMB: 10, onProgress: (p) => { document.getElementById('sp-news-fill').style.width = p + '%'; } })).url;
+    }
+    posts.push({ title, body: text, category: null, imageUrl, date: new Date().toISOString() });
+    await spSave('blogPosts', posts);
+    showToast(t('sp_published'), 'success');
+    renderSiteNewsManager();
+  } catch (e) { showToast(friendlyErrorMessage(e), 'error'); btn.disabled = false; }
+}
+async function spDeleteNews(i) {
+  if (!confirm(t('md_confirm_delete'))) return;
+  const posts = (mySiteCache.blogPosts || []).slice(); posts.splice(i, 1);
+  try { await spSave('blogPosts', posts); renderSiteNewsManager(); } catch (e) { showToast(friendlyErrorMessage(e), 'error'); }
+}
+
+/* Portfolio */
+function openSitePortfolioManager() {
+  if (!mySiteCache) return;
+  spModal = 'portfolio'; spShell(t('pf_section'), '');
+  renderSitePortfolioManager();
+}
+function renderSitePortfolioManager() {
+  const body = document.getElementById('sp-body'); if (!body) return;
+  const list = Array.isArray(mySiteCache.portfolio) ? mySiteCache.portfolio : [];
+  const paid = siteIsPremiumActive(mySiteCache);
+  body.innerHTML = `
+    <p class="muted small" style="margin:0 0 10px">${t('pf_hint')} ${paid ? '' : `(${t('pf_free_limit')} ${SITE_FREE_PORTFOLIO_LIMIT})`}</p>
+    <div class="md-sec">
+      <input type="text" id="sp-pf-title" class="text-input" maxlength="80" placeholder="${t('pf_title_ph')}">
+      <input type="text" id="sp-pf-cat" class="text-input" maxlength="30" placeholder="${t('pf_category_ph')}" style="margin-top:6px">
+      <textarea id="sp-pf-desc" class="text-input" rows="2" maxlength="300" placeholder="${t('pf_desc_ph')}" style="margin-top:6px"></textarea>
+      <input type="url" id="sp-pf-link" class="text-input" maxlength="200" placeholder="${t('pf_link_ph')}" style="margin-top:6px">
+      <div id="sp-pf-prev" class="sp-prev"></div>
+      <label class="btn btn-outline btn-sm md-add" for="sp-pf-img">📷 ${t('sp_add_photo')}</label>
+      <input type="file" id="sp-pf-img" class="file-input-hidden" accept="image/*" onchange="spPfPreview(this)">
+      <button type="button" class="btn btn-primary md-add" id="sp-pf-btn" onclick="spAddProject()">${t('pf_add_btn')}</button>
+    </div>
+    <h4 style="margin:14px 0 8px">${t('pf_section')} (${list.length})</h4>
+    ${list.length ? list.map((p, i) => `<div class="md-item">${p.image ? `<img src="${escapeHtml(p.image)}" alt="" class="md-thumb">` : '<span class="md-thumb md-ico">🗂</span>'}<div class="md-meta"><b>${escapeHtml(p.title || '')}</b><small>${escapeHtml(p.category || '')}</small></div><button type="button" class="md-btn md-del" onclick="spDeleteProject(${i})" aria-label="${t('common_delete')}">×</button></div>`).join('') : `<p class="muted small">${t('md_empty')}</p>`}`;
+}
+function spPfPreview(input) {
+  const f = input.files && input.files[0]; const box = document.getElementById('sp-pf-prev');
+  if (!f || !box) return;
+  if (!f.type.startsWith('image/')) { showToast(t('md_bad_type'), 'error'); input.value = ''; return; }
+  box.innerHTML = `<img src="${URL.createObjectURL(f)}" alt="">`;
+}
+async function spAddProject() {
+  const title = document.getElementById('sp-pf-title').value.trim();
+  if (!title) { showToast(t('sp_news_need'), 'info'); return; }
+  const list = (Array.isArray(mySiteCache.portfolio) ? mySiteCache.portfolio : []).slice();
+  if (!siteIsPremiumActive(mySiteCache) && list.length >= SITE_FREE_PORTFOLIO_LIMIT) {
+    if (confirm(t('md_limit_upgrade'))) { spClose(); purchaseSitePremium(); } return;
+  }
+  const btn = document.getElementById('sp-pf-btn'); btn.disabled = true;
+  try {
+    const file = (document.getElementById('sp-pf-img').files || [])[0];
+    const image = file ? (await uploadFileToStorage(file, 'sites/portfolio', { maxSizeMB: 10 })).url : null;
+    let link = document.getElementById('sp-pf-link').value.trim();
+    if (link && !/^https:\/\//i.test(link)) link = 'https://' + link.replace(/^http:\/\//i, '');
+    list.push({ title, category: document.getElementById('sp-pf-cat').value.trim(), desc: document.getElementById('sp-pf-desc').value.trim(), link, image });
+    await spSave('portfolio', list);
+    showToast(t('sp_published'), 'success');
+    renderSitePortfolioManager();
+  } catch (e) { showToast(friendlyErrorMessage(e), 'error'); btn.disabled = false; }
+}
+async function spDeleteProject(i) {
+  if (!confirm(t('md_confirm_delete'))) return;
+  const list = (mySiteCache.portfolio || []).slice(); list.splice(i, 1);
+  try { await spSave('portfolio', list); renderSitePortfolioManager(); } catch (e) { showToast(friendlyErrorMessage(e), 'error'); }
+}
+
+/* Listes simples : forfaits, équipe, partenaires, historique */
+function openSiteListManager(kind) {
+  if (!mySiteCache) return;
+  spModal = kind; spShell(t(SITE_LISTS[kind].title), '');
+  renderSiteListManager(kind);
+}
+function renderSiteListManager(kind) {
+  const cfg = SITE_LISTS[kind], body = document.getElementById('sp-body'); if (!body) return;
+  const paid = siteIsPremiumActive(mySiteCache);
+  const limit = paid ? cfg.paid : cfg.free;
+  let list = Array.isArray(mySiteCache[kind]) ? mySiteCache[kind] : [];
+  if (cfg.str) list = list.map(x => ({ text: x }));
+  const summary = (it) => cfg.fields.map(f => String(it[f[0]] || '').split('\n')[0]).filter(Boolean).join(' · ');
+  body.innerHTML = `
+    <p class="muted small" style="margin:0 0 10px">${list.length}/${limit}${paid ? '' : ' · ' + t('sp_list_paid_more') + ' ' + cfg.paid}</p>
+    <div class="md-sec">
+      ${cfg.fields.map(([key, ph, max, ty], i) => ty === 't'
+        ? `<textarea class="text-input sp-lf" data-key="${key}" rows="3" maxlength="${max}" placeholder="${t(ph)}" style="margin-top:${i ? 6 : 0}px"></textarea>`
+        : `<input type="text" class="text-input sp-lf" data-key="${key}" maxlength="${max}" placeholder="${t(ph)}" style="margin-top:${i ? 6 : 0}px">`).join('')}
+      <button type="button" class="btn btn-primary md-add" onclick="spAddListItem('${kind}')">+ ${t('sp_add')}</button>
+    </div>
+    ${list.length ? list.map((it, i) => `<div class="md-item"><span class="md-thumb md-ico">${cfg.icon}</span><div class="md-meta"><b>${escapeHtml(summary(it))}</b></div><button type="button" class="md-btn md-del" onclick="spDeleteListItem('${kind}', ${i})" aria-label="${t('common_delete')}">×</button></div>`).join('') : `<p class="muted small">${t('md_empty')}</p>`}`;
+}
+async function spAddListItem(kind) {
+  const cfg = SITE_LISTS[kind];
+  const o = {}; document.querySelectorAll('#sp-body .sp-lf').forEach(el => { o[el.dataset.key] = el.value.trim(); });
+  if (!o[cfg.need]) { showToast(t('sp_news_need'), 'info'); return; }
+  const cur = (Array.isArray(mySiteCache[kind]) ? mySiteCache[kind] : []).slice();
+  const paid = siteIsPremiumActive(mySiteCache);
+  if (cur.length >= (paid ? cfg.paid : cfg.free)) { if (confirm(t('md_limit_upgrade'))) { spClose(); purchaseSitePremium(); } return; }
+  cur.push(cfg.str ? o.text : o);
+  try { await spSave(kind, cur); showToast(t('sp_published'), 'success'); renderSiteListManager(kind); } catch (e) { showToast(friendlyErrorMessage(e), 'error'); }
+}
+async function spDeleteListItem(kind, i) {
+  const cur = (mySiteCache[kind] || []).slice(); cur.splice(i, 1);
+  try { await spSave(kind, cur); renderSiteListManager(kind); } catch (e) { showToast(friendlyErrorMessage(e), 'error'); }
+}
+
+function siteHubHtml(site, isPremium) {
+  const n = (k) => (Array.isArray(site[k]) ? site[k].length : 0);
+  const mi = mediaItems('site');
+  const tile = (icon, label, count, fn) => `<button type="button" class="sp-tile" onclick="${fn}"><span class="sp-ic">${icon}</span><b>${escapeHtml(label)}</b><small>${count}</small></button>`;
+  return `<h4 class="sp-h">${t('sp_hub_title')}</h4><div class="sp-hub">
+    ${tile('📰', t('sp_news'), n('blogPosts'), 'openSiteNewsManager()')}
+    ${tile('🗂', t('pf_section'), n('portfolio'), 'openSitePortfolioManager()')}
+    ${tile('🖼', t('md_title'), `${mediaCountOf(mi, 'image')} · ${mediaCountOf(mi, 'video')} · ${mediaCountOf(mi, 'file')}`, "openMediaManager('site')")}
+    ${tile('💎', t('sp_plans'), n('plans'), "openSiteListManager('plans')")}
+    ${tile('👥', t('sp_team'), n('team'), "openSiteListManager('team')")}
+    ${tile('🤝', t('sp_partners'), n('partners'), "openSiteListManager('partners')")}
+    ${tile('🕓', t('sp_timeline'), n('timeline'), "openSiteListManager('timeline')")}
+  </div>`;
 }
 
 /* ---- Catalogue (produits/services) ---- */

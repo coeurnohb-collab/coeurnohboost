@@ -218,35 +218,66 @@ auth.onAuthStateChanged(user => {
 /* =========================================================
    NAVIGATION PAR ONGLETS
    ========================================================= */
-const ADMIN_TABS = [
-  { id: "stats",        label: "📊 Stats" },
-  { id: "orders",       label: "🛒 Commandes" },
-  { id: "deposits",     label: "💰 Dépôts" },
-  { id: "profit",       label: "💹 Bénéfices" },
-  { id: "pricing",      label: "🏷️ Tarifs" },
-  { id: "packages",     label: "📦 Packages" },
-  { id: "monetization", label: "💵 Monétisation" },
-  { id: "shop",         label: "🏪 Boutique" },
-  { id: "withdrawals",  label: "💸 Retraits" },
-  { id: "domains",      label: "🌐 Domaines" },
-  { id: "reports",      label: "🚩 Signalements" },
-  { id: "errors",       label: "🐞 Erreurs" },
-  { id: "announcements",label: "📢 Annonces" },
-  { id: "users",        label: "👤 Utilisateurs" },
-  { id: "automation",   label: "🤖 Automatisation" }
+const ADMIN_GROUPS = [
+  { title: "Aperçu", tabs: [
+    { id: "stats", label: "Statistiques", icon: "📊" },
+    { id: "profit", label: "Bénéfices", icon: "💹" } ] },
+  { title: "Ventes & argent", tabs: [
+    { id: "orders", label: "Commandes", icon: "🛒" },
+    { id: "deposits", label: "Dépôts", icon: "💰" },
+    { id: "withdrawals", label: "Retraits vendeurs", icon: "💸" } ] },
+  { title: "Prix & offres", tabs: [
+    { id: "pricing", label: "Tarifs SMM", icon: "🏷️" },
+    { id: "packages", label: "Packages", icon: "📦" },
+    { id: "monetization", label: "Monétisation", icon: "💵" },
+    { id: "domains", label: "Prix Site & Entreprise", icon: "🌐" } ] },
+  { title: "Sites & Entreprises", tabs: [
+    { id: "sites", label: "Sites créés", icon: "🖥️" },
+    { id: "businesses", label: "Entreprises", icon: "🏢" } ] },
+  { title: "Communauté", tabs: [
+    { id: "users", label: "Utilisateurs", icon: "👤" },
+    { id: "shop", label: "Boutique", icon: "🏪" },
+    { id: "reports", label: "Signalements", icon: "🚩" },
+    { id: "announcements", label: "Annonces", icon: "📢" } ] },
+  { title: "Système", tabs: [
+    { id: "automation", label: "Automatisation", icon: "🤖" },
+    { id: "errors", label: "Erreurs", icon: "🐞" } ] }
 ];
+const ADMIN_TABS = ADMIN_GROUPS.reduce((all, g) => all.concat(g.tabs), []);
 function initAdminPanel() {
-  document.getElementById('admin-tabs').innerHTML = ADMIN_TABS.map((t, i) =>
-    `<button class="${i === 0 ? 'active' : ''}" onclick="showAdminTab('${t.id}')">${t.label}</button>`
-  ).join('');
+  const el = document.getElementById('admin-tabs');
+  el.innerHTML = `
+    <div class="adm-search"><input type="search" id="adm-menu-search" placeholder="Rechercher une section…" oninput="filterAdminMenu(this.value)"></div>
+    ${ADMIN_GROUPS.map(g => `<div class="adm-group" data-group><h6>${escapeHtml(g.title)}</h6>${g.tabs.map(t =>
+      `<button type="button" data-tab="${t.id}" onclick="showAdminTab('${t.id}')"><span class="adm-ic">${t.icon}</span><span class="adm-lb">${t.label}</span></button>`).join('')}</div>`).join('')}`;
   showAdminTab('stats');
+}
+function toggleAdminMenu(force) {
+  const open = typeof force === 'boolean' ? force : !document.body.classList.contains('adm-menu-open');
+  document.body.classList.toggle('adm-menu-open', open);
+}
+function filterAdminMenu(q) {
+  q = (q || '').trim().toLowerCase();
+  document.querySelectorAll('#admin-tabs [data-group]').forEach(g => {
+    let any = false;
+    g.querySelectorAll('button').forEach(b => {
+      const ok = !q || b.textContent.toLowerCase().includes(q);
+      b.style.display = ok ? '' : 'none'; if (ok) any = true;
+    });
+    g.style.display = any ? '' : 'none';
+  });
 }
 function showAdminTab(tab) {
   document.querySelectorAll('.admin-tab').forEach(el => el.classList.add('hidden'));
   document.getElementById('admin-tab-' + tab).classList.remove('hidden');
-  document.querySelectorAll('#admin-tabs button').forEach(b => b.classList.remove('active'));
-  const idx = ADMIN_TABS.findIndex(t => t.id === tab);
-  document.querySelectorAll('#admin-tabs button')[idx].classList.add('active');
+  document.querySelectorAll('#admin-tabs button').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  const meta = ADMIN_TABS.find(t => t.id === tab);
+  const ttl = document.getElementById('adm-title');
+  if (ttl && meta) ttl.textContent = meta.icon + '  ' + meta.label;
+  toggleAdminMenu(false);
+  window.scrollTo(0, 0);
+  if (tab === 'sites') loadSitesAdmin();
+  if (tab === 'businesses') loadBusinessesAdmin();
 
   if (tab === 'stats') loadStats();
   if (tab === 'orders') loadOrdersAdmin();
@@ -1564,13 +1595,14 @@ async function loadSitePricingEditor() {
     const data = snap.exists ? snap.data() : {};
     const premiumPriceMonth = (typeof data.premiumPriceMonth === 'number' && data.premiumPriceMonth > 0) ? data.premiumPriceMonth : 20;
     const domainPriceMonth = (typeof data.domainPriceMonth === 'number' && data.domainPriceMonth > 0) ? data.domainPriceMonth : 4;
-    renderSitePricingEditor(premiumPriceMonth, domainPriceMonth);
+    const businessProPrice = (typeof data.businessProPrice === 'number' && data.businessProPrice > 0) ? data.businessProPrice : 15;
+    renderSitePricingEditor(premiumPriceMonth, domainPriceMonth, businessProPrice);
   } catch (e) {
     el.innerHTML = `<p class="admin-empty">Erreur de chargement des tarifs : ${escapeHtml(e.message)}</p>`;
   }
 }
 
-function renderSitePricingEditor(premiumPriceMonth, domainPriceMonth) {
+function renderSitePricingEditor(premiumPriceMonth, domainPriceMonth, businessProPrice) {
   const el = document.getElementById('admin-site-pricing-editor');
   el.innerHTML = `
     <div class="order-box">
@@ -1581,6 +1613,17 @@ function renderSitePricingEditor(premiumPriceMonth, domainPriceMonth) {
           <div class="pricing-tier-field">
             <span>Prix par mois ($)</span>
             <input type="number" step="0.01" min="0" id="site-pricing-premium-month" value="${premiumPriceMonth}">
+          </div>
+        </div>
+      </div>
+
+      <div class="pricing-service-block">
+        <label class="pricing-service-label">Abonnement Entreprise Pro</label>
+        <p class="muted small" style="margin:-4px 0 8px">Prix facturé pour 30 jours de Pro (page web publique, équipe, offres d'emploi, médiathèque illimitée, devis, etc.).</p>
+        <div class="pricing-tier-row" style="grid-template-columns:1fr">
+          <div class="pricing-tier-field">
+            <span>Prix par mois ($)</span>
+            <input type="number" step="0.01" min="0" id="site-pricing-business-pro" value="${businessProPrice}">
           </div>
         </div>
       </div>
@@ -1620,10 +1663,12 @@ function updateSiteDomainPricingPreview() {
 async function saveSitePricingConfig() {
   const premiumPriceMonth = parseFloat(document.getElementById('site-pricing-premium-month').value) || 0;
   const domainPriceMonth = parseFloat(document.getElementById('site-pricing-domain-month').value) || 0;
+  const businessProPrice = parseFloat(document.getElementById('site-pricing-business-pro').value) || 0;
+  if (businessProPrice <= 0) { alert('Le prix Entreprise Pro doit être supérieur à 0.'); return; }
   if (premiumPriceMonth <= 0) { alert('Le prix Premium doit être supérieur à 0.'); return; }
   if (domainPriceMonth <= 0) { alert('Le prix du domaine doit être supérieur à 0.'); return; }
   try {
-    await db.collection('pricing').doc('site').set({ premiumPriceMonth, domainPriceMonth });
+    await db.collection('pricing').doc('site').set({ premiumPriceMonth, domainPriceMonth, businessProPrice });
     const msg = document.getElementById('site-pricing-saved-msg');
     msg.classList.remove('hidden');
     setTimeout(() => msg.classList.add('hidden'), 2500);
@@ -2056,3 +2101,134 @@ async function saveErrorThreshold() {
     loadErrorsAdmin();
   } catch (e) { alert('Enregistrement impossible : ' + e.message); }
 }
+
+
+/* =========================================================
+   SITES CRÉÉS & ENTREPRISES — gestion depuis l'espace admin
+   (écritures faites côté serveur : api/payments-actions.js, admin_manage)
+   ========================================================= */
+let adminSitesCache = [];
+let adminBizCache = [];
+
+async function adminManageCall(target, id, op, extra) {
+  const idToken = await auth.currentUser.getIdToken();
+  const res = await fetch('/api/payments-actions', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(Object.assign({ idToken, action: 'admin_manage', target, id, op }, extra || {}))
+  });
+  const data = await res.json();
+  if (!data.success) throw new Error(data.error || 'Erreur');
+  return data;
+}
+
+function admFmtDate(iso) { return iso ? new Date(iso).toLocaleDateString('fr-FR') : '—'; }
+function admMediaCount(d) {
+  const m = Array.isArray(d.media) ? d.media : [];
+  const c = (t) => m.filter(x => x && x.type === t).length;
+  return `${c('image')} img · ${c('video')} vid · ${c('file')} fichiers`;
+}
+
+async function loadSitesAdmin() {
+  const el = document.getElementById('admin-sites-list');
+  el.innerHTML = `<p class="admin-empty">Chargement...</p>`;
+  try {
+    const snap = await db.collection('mini_sites').orderBy('createdAt', 'desc').limit(200).get();
+    adminSitesCache = snap.docs.map(d => Object.assign({ _id: d.id }, d.data()));
+    renderSitesAdmin();
+  } catch (e) { el.innerHTML = `<p class="admin-empty">Erreur : ${escapeHtml(e.message)}</p>`; }
+}
+function renderSitesAdmin() {
+  const el = document.getElementById('admin-sites-list');
+  const q = ((document.getElementById('admin-sites-search') || {}).value || '').trim().toLowerCase();
+  const f = ((document.getElementById('admin-sites-filter') || {}).value) || 'all';
+  const now = Date.now();
+  const list = adminSitesCache.filter(s => {
+    const prem = !!(s.premium && s.premiumUntil && new Date(s.premiumUntil).getTime() > now);
+    if (f === 'premium' && !prem) return false;
+    if (f === 'free' && prem) return false;
+    if (f === 'published' && s.status !== 'published') return false;
+    if (q && !((s.businessName || '') + ' ' + (s.slug || '') + ' ' + (s.contactEmail || '')).toLowerCase().includes(q)) return false;
+    return true;
+  });
+  const premCount = adminSitesCache.filter(s => s.premium && s.premiumUntil && new Date(s.premiumUntil).getTime() > now).length;
+  document.getElementById('admin-sites-kpis').innerHTML = `
+    <div class="adm-kpi"><b>${adminSitesCache.length}</b><span>Sites créés</span></div>
+    <div class="adm-kpi"><b>${premCount}</b><span>Premium actifs</span></div>
+    <div class="adm-kpi"><b>${adminSitesCache.filter(s => s.status === 'published').length}</b><span>Publiés</span></div>`;
+  if (!list.length) { el.innerHTML = `<p class="admin-empty">Aucun site.</p>`; return; }
+  el.innerHTML = list.map(s => {
+    const prem = !!(s.premium && s.premiumUntil && new Date(s.premiumUntil).getTime() > now);
+    return `<div class="admin-row adm-card">
+      <div class="admin-row-top"><div style="min-width:0">
+        <div class="admin-row-title">${escapeHtml(s.businessName || '—')} <span class="adm-pill ${prem ? 'gold' : ''}">${prem ? 'Premium' : 'Gratuit'}</span> <span class="adm-pill ${s.status === 'published' ? 'ok' : ''}">${s.status === 'published' ? 'Publié' : 'Brouillon'}</span></div>
+        <div class="admin-row-meta">/s/${escapeHtml(s.slug || '')} · type ${escapeHtml(s.siteType || '—')} · ${s.viewsCount || 0} vues<br>${prem ? 'Premium jusqu\'au ' + admFmtDate(s.premiumUntil) + ' · ' : ''}${admMediaCount(s)} · ${(s.portfolio || []).length} projets · ${(s.blogPosts || []).length} actus<br>Créé le ${admFmtDate(s.createdAt)}</div>
+      </div></div>
+      <div class="admin-row-actions">
+        <a class="btn btn-outline btn-sm" href="/s/${encodeURIComponent(s.slug || '')}" target="_blank" rel="noopener">Voir</a>
+        <button class="btn btn-outline btn-sm" onclick="adminGrant('site','${s._id}')">+ Offrir Premium</button>
+        ${prem ? `<button class="btn btn-outline btn-sm" onclick="adminOp('site','${s._id}','revoke')">Retirer Premium</button>` : ''}
+        <button class="btn btn-outline btn-sm" onclick="adminOp('site','${s._id}','status','${s.status === 'published' ? 'draft' : 'published'}')">${s.status === 'published' ? 'Dépublier' : 'Publier'}</button>
+        <button class="btn btn-outline btn-sm adm-danger" onclick="adminOp('site','${s._id}','delete')">Supprimer</button>
+      </div></div>`;
+  }).join('');
+}
+
+async function loadBusinessesAdmin() {
+  const el = document.getElementById('admin-biz-list');
+  el.innerHTML = `<p class="admin-empty">Chargement...</p>`;
+  try {
+    const snap = await db.collection('businesses').limit(300).get();
+    adminBizCache = snap.docs.map(d => Object.assign({ _id: d.id }, d.data()))
+      .sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
+    renderBusinessesAdmin();
+  } catch (e) { el.innerHTML = `<p class="admin-empty">Erreur : ${escapeHtml(e.message)}</p>`; }
+}
+function renderBusinessesAdmin() {
+  const el = document.getElementById('admin-biz-list');
+  const q = ((document.getElementById('admin-biz-search') || {}).value || '').trim().toLowerCase();
+  const f = ((document.getElementById('admin-biz-filter') || {}).value) || 'all';
+  const now = Date.now();
+  const isPro = (b) => !!(b.pro && b.proUntil && new Date(b.proUntil).getTime() > now);
+  const list = adminBizCache.filter(b => {
+    if (f === 'pro' && !isPro(b)) return false;
+    if (f === 'free' && isPro(b)) return false;
+    if (f === 'verified' && !b.adminVerified) return false;
+    if (q && !((b.businessName || '') + ' ' + (b.category || '') + ' ' + (b.address || '') + ' ' + (b.email || '')).toLowerCase().includes(q)) return false;
+    return true;
+  });
+  document.getElementById('admin-biz-kpis').innerHTML = `
+    <div class="adm-kpi"><b>${adminBizCache.length}</b><span>Entreprises</span></div>
+    <div class="adm-kpi"><b>${adminBizCache.filter(isPro).length}</b><span>Pro actives</span></div>
+    <div class="adm-kpi"><b>${adminBizCache.filter(b => b.adminVerified).length}</b><span>Vérifiées</span></div>`;
+  if (!list.length) { el.innerHTML = `<p class="admin-empty">Aucune entreprise.</p>`; return; }
+  el.innerHTML = list.map(b => {
+    const pro = isPro(b);
+    return `<div class="admin-row adm-card">
+      <div class="admin-row-top"><div style="min-width:0">
+        <div class="admin-row-title">${b.adminVerified ? '✔️ ' : ''}${escapeHtml(b.businessName || '—')} <span class="adm-pill ${pro ? 'gold' : ''}">${pro ? 'Pro' : 'Gratuit'}</span> <span class="adm-pill ${b.status === 'hidden' ? '' : 'ok'}">${b.status === 'hidden' ? 'Masquée' : 'Visible'}</span></div>
+        <div class="admin-row-meta">${escapeHtml(b.category || '')} · ${escapeHtml(b.address || '—')} · ${b.viewsCount || 0} vues<br>${pro ? 'Pro jusqu\'au ' + admFmtDate(b.proUntil) + ' · ' : ''}${admMediaCount(b)} · ${(b.catalog || []).length} produits · ${(b.jobs || []).length} offres d'emploi<br>Créée le ${admFmtDate(b.createdAt)}</div>
+      </div></div>
+      <div class="admin-row-actions">
+        ${pro ? `<a class="btn btn-outline btn-sm" href="/e/${encodeURIComponent(b._id)}" target="_blank" rel="noopener">Page web</a>` : ''}
+        <button class="btn btn-outline btn-sm" onclick="adminGrant('business','${b._id}')">+ Offrir Pro</button>
+        ${pro ? `<button class="btn btn-outline btn-sm" onclick="adminOp('business','${b._id}','revoke')">Retirer Pro</button>` : ''}
+        <button class="btn btn-outline btn-sm" onclick="adminOp('business','${b._id}','verify',${!b.adminVerified})">${b.adminVerified ? 'Retirer badge' : '✔️ Vérifier'}</button>
+        <button class="btn btn-outline btn-sm" onclick="adminOp('business','${b._id}','status','${b.status === 'hidden' ? 'active' : 'hidden'}')">${b.status === 'hidden' ? 'Rendre visible' : 'Masquer'}</button>
+        <button class="btn btn-outline btn-sm adm-danger" onclick="adminOp('business','${b._id}','delete')">Supprimer</button>
+      </div></div>`;
+  }).join('');
+}
+
+async function adminGrant(target, id) {
+  const v = prompt('Combien de jours offrir ? (ex. 30)', '30');
+  if (v === null) return;
+  const days = parseInt(v, 10);
+  if (!days || days < 1) { alert('Nombre de jours invalide.'); return; }
+  try { await adminManageCall(target, id, 'grant', { days }); await adminReload(target); } catch (e) { alert(e.message); }
+}
+async function adminOp(target, id, op, value) {
+  const labels = { revoke: 'Retirer l’abonnement ?', delete: 'Supprimer définitivement ? Cette action est irréversible.' };
+  if (labels[op] && !confirm(labels[op])) return;
+  try { await adminManageCall(target, id, op, { value }); await adminReload(target); } catch (e) { alert(e.message); }
+}
+async function adminReload(target) { return target === 'site' ? loadSitesAdmin() : loadBusinessesAdmin(); }
