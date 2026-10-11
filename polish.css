@@ -182,3 +182,43 @@ body.cn-banner-on #toast-container { top: calc(max(12px, env(safe-area-inset-top
 
 
 /* ---------- 14. Accueil : fond uni, sans filigrane ---------- */
+
+/* ---------- 15. Système visuel v-pro21 : sobre, dense, professionnel ---------- */
+html { font-size: 15px; }
+h1 { font-size: 1.55rem; } h2 { font-size: 1.25rem; } h3 { font-size: 1.05rem; } h4 { font-size: .95rem; }
+.btn { min-height: 40px; padding: 9px 16px; font-size: .86rem; font-weight: 650; border-radius: 12px; letter-spacing: 0; }
+.btn-sm { min-height: 34px; padding: 6px 12px; font-size: .78rem; border-radius: 10px; }
+.btn-lg { padding: 12px 22px; font-size: .92rem; }
+.btn-primary { box-shadow: 0 4px 12px rgba(20, 26, 38, .16); }
+.text-input, .field input, .field select, .field textarea, select.text-input {
+  font-size: .9rem; padding: 10px 12px; border-radius: 11px; min-height: 42px;
+}
+textarea.text-input { min-height: 0; }
+.modal-overlay { align-items: flex-end; padding: 0; }
+@media (min-width: 640px) { .modal-overlay { align-items: center; padding: 16px; } }
+.modal { border-radius: 22px 22px 0 0; padding: 20px 18px calc(20px + env(safe-area-inset-bottom)); box-shadow: 0 -12px 40px rgba(0, 0, 0, .25); }
+@media (min-width: 640px) { .modal { border-radius: 20px; } }
+.modal-close { top: 12px; left: 12px; width: 34px; height: 34px; min-width: 34px; min-height: 34px; box-shadow: none; }
+.modal-close::before { width: 17px; height: 17px; }
+.modal h3 { font-size: 1.05rem; }
+.modal h4 { font-size: .85rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 800; }
+.muted.small, .small { font-size: .78rem; }
+.invoice-row-remove { width: 34px; height: 34px; min-width: 34px; font-size: 1rem; border-radius: 10px; }
+.file-picker-btn { font-size: .82rem; padding: 9px 12px; border-radius: 11px; }
+.gallery-photo-thumb { width: 44px; height: 44px; border-radius: 10px; object-fit: cover; }
+.bz-tools .btn, .bz-tools .btn-sm { min-height: 0; }
+.sp-tile { gap: 4px; }
+.sp-tile .sp-ic { width: 34px; height: 34px; border-radius: 10px; font-size: 1rem; }
+.lead-err { color: #b42318; background: #fdecec; border-radius: 10px; padding: 9px 11px; font-size: .8rem; font-weight: 600; }
+.toast, #toast { font-size: .86rem; border-radius: 14px; padding: 12px 14px; }
+
+/* ---------- 16. Coque de l'app : navigation du bas et cartes (v-pro22) ---------- */
+.bottom-nav { background: color-mix(in srgb, var(--white) 92%, transparent); backdrop-filter: saturate(160%) blur(14px); -webkit-backdrop-filter: saturate(160%) blur(14px); border-top: 1px solid var(--line); padding-top: 6px; box-shadow: 0 -6px 24px rgba(15, 23, 42, .05); }
+.bnav-btn { font-size: .62rem; gap: 3px; position: relative; transition: color .15s ease; }
+.bnav-btn.active::before { content: ""; position: absolute; top: -7px; left: 50%; width: 22px; height: 3px; margin-left: -11px; border-radius: 0 0 3px 3px; background: var(--accent, #f39c1f); }
+.bnav-btn.active { font-weight: 800; }
+.card, .post-card, .shop-card, .op-card, .pack-card, .quick-link { border-radius: 14px; }
+.card { box-shadow: 0 1px 2px rgba(15, 23, 42, .04), 0 6px 18px -10px rgba(15, 23, 42, .12); }
+input[type="search"], .search-input { border-radius: 12px; }
+::selection { background: rgba(243, 156, 31, .28); }
+@media (prefers-reduced-motion: reduce) { .bnav-btn, .btn { transition: none; } }

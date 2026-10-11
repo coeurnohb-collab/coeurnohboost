@@ -2128,7 +2128,18 @@ function admMediaCount(d) {
   return `${c('image')} img · ${c('video')} vid · ${c('file')} fichiers`;
 }
 
+let adminLeadStats = null;
+async function loadAdminLeadStats() {
+  try { adminLeadStats = await adminManageCall(null, null, 'leads_stats'); } catch (e) { adminLeadStats = null; }
+  if (typeof renderSitesAdmin === 'function' && document.getElementById('admin-sites-kpis')) { renderSitesAdmin(); }
+  if (typeof renderBusinessesAdmin === 'function' && document.getElementById('admin-biz-kpis') && adminBizCache.length) { renderBusinessesAdmin(); }
+}
+function admLeadKpis() {
+  const l = adminLeadStats; if (!l) return '';
+  return `<div class="adm-kpi"><b>${l.appointments}</b><span>Rendez-vous${l.appointmentsNew ? ' · ' + l.appointmentsNew + ' nouv.' : ''}</span></div><div class="adm-kpi"><b>${l.subscribers}</b><span>Abonnés newsletter</span></div>`;
+}
 async function loadSitesAdmin() {
+  loadAdminLeadStats();
   const el = document.getElementById('admin-sites-list');
   el.innerHTML = `<p class="admin-empty">Chargement...</p>`;
   try {
@@ -2154,7 +2165,7 @@ function renderSitesAdmin() {
   document.getElementById('admin-sites-kpis').innerHTML = `
     <div class="adm-kpi"><b>${adminSitesCache.length}</b><span>Sites créés</span></div>
     <div class="adm-kpi"><b>${premCount}</b><span>Premium actifs</span></div>
-    <div class="adm-kpi"><b>${adminSitesCache.filter(s => s.status === 'published').length}</b><span>Publiés</span></div>`;
+    <div class="adm-kpi"><b>${adminSitesCache.filter(s => s.status === 'published').length}</b><span>Publiés</span></div>${admLeadKpis()}`;
   if (!list.length) { el.innerHTML = `<p class="admin-empty">Aucun site.</p>`; return; }
   el.innerHTML = list.map(s => {
     const prem = !!(s.premium && s.premiumUntil && new Date(s.premiumUntil).getTime() > now);
@@ -2174,6 +2185,7 @@ function renderSitesAdmin() {
 }
 
 async function loadBusinessesAdmin() {
+  if (!adminLeadStats) loadAdminLeadStats();
   const el = document.getElementById('admin-biz-list');
   el.innerHTML = `<p class="admin-empty">Chargement...</p>`;
   try {
@@ -2199,7 +2211,7 @@ function renderBusinessesAdmin() {
   document.getElementById('admin-biz-kpis').innerHTML = `
     <div class="adm-kpi"><b>${adminBizCache.length}</b><span>Entreprises</span></div>
     <div class="adm-kpi"><b>${adminBizCache.filter(isPro).length}</b><span>Pro actives</span></div>
-    <div class="adm-kpi"><b>${adminBizCache.filter(b => b.adminVerified).length}</b><span>Vérifiées</span></div>`;
+    <div class="adm-kpi"><b>${adminBizCache.filter(b => b.adminVerified).length}</b><span>Vérifiées</span></div>${admLeadKpis()}`;
   if (!list.length) { el.innerHTML = `<p class="admin-empty">Aucune entreprise.</p>`; return; }
   el.innerHTML = list.map(b => {
     const pro = isPro(b);

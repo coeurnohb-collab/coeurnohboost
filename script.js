@@ -14708,9 +14708,9 @@ async function saveBusinessInfo() {
 /* ---- Listes : FAQ / équipe / distinctions ---- */
 const BIZ_LISTS = {
   faq: { title: 'bz_faq_title', proOnly: false, free: BUSINESS_FREE_FAQ_LIMIT, pro: BUSINESS_PRO_FAQ_LIMIT, fields: [['question', 'bz_faq_q_ph', 120, false], ['answer', 'bz_faq_a_ph', 400, true]] },
-  team: { title: 'bz_team_title', proOnly: true, free: 0, pro: BUSINESS_TEAM_LIMIT, fields: [['name', 'bz_team_name_ph', 60, false], ['role', 'bz_team_role_ph', 60, false]] },
+  team: { photo: true, title: 'bz_team_title', proOnly: true, free: 0, pro: BUSINESS_TEAM_LIMIT, fields: [['name', 'bz_team_name_ph', 60, false], ['role', 'bz_team_role_ph', 60, false]] },
   awards: { title: 'bz_awards_title', proOnly: true, free: 0, pro: BUSINESS_AWARDS_LIMIT, str: true, fields: [['text', 'bz_awards_ph', 100, false]] },
-  jobs: { title: 'bz_jobs_title', proOnly: true, free: 0, pro: 20, fields: [['title', 'bz_jobs_title_ph', 80, false], ['meta', 'bz_jobs_meta_ph', 60, false], ['desc', 'bz_jobs_desc_ph', 400, true]] },
+  jobs: { photo: true, title: 'bz_jobs_title', proOnly: true, free: 0, pro: 20, fields: [['title', 'bz_jobs_title_ph', 80, false], ['meta', 'bz_jobs_meta_ph', 60, false], ['desc', 'bz_jobs_desc_ph', 400, true]] },
   branches: { title: 'bz_branches_title', proOnly: true, free: 0, pro: 10, fields: [['name', 'bz_branch_name_ph', 60, false], ['address', 'bz_branch_addr_ph', 100, false], ['phone', 'bz_branch_phone_ph', 30, false]] },
   partners: { title: 'bz_partners_title', proOnly: true, free: 0, pro: 30, str: true, fields: [['text', 'bz_partners_ph', 60, false]] },
   timeline: { title: 'bz_timeline_title', proOnly: true, free: 0, pro: 20, fields: [['year', 'bz_timeline_year_ph', 8, false], ['text', 'bz_timeline_text_ph', 160, false]] }
@@ -14752,18 +14752,29 @@ function addBusinessListRow(kind, item, silent) {
     : `<input type="text" class="text-input bz-field" data-key="${key}" maxlength="${max}" placeholder="${t(ph)}" value="${escapeHtml(item ? item[key] || '' : '')}" style="flex:1;${i ? 'margin-left:0' : ''}">`);
   const first = cfg.fields[0][3] ? '' : inputs.slice(0, cfg.fields.filter(f => !f[3]).length).join('');
   const areas = inputs.filter((x, i) => cfg.fields[i][3]).join('');
-  row.innerHTML = `<div style="display:flex;gap:8px;width:100%">${first}<button type="button" class="invoice-row-remove" onclick="this.closest('.invoice-item-row').remove()" aria-label="Retirer">×</button></div>${areas}`;
+  row.innerHTML = `<div style="display:flex;gap:8px;width:100%">${first}<button type="button" class="invoice-row-remove" onclick="this.closest('.invoice-item-row').remove()" aria-label="Retirer">×</button></div>${areas}${cfg.photo ? `<div style="margin-top:6px">${renderGalleryPhotoRow('bz-photo-row', item ? item.image : null)}</div>` : ''}`;
   rows.appendChild(row);
 }
 
 async function saveBusinessList(kind) {
   const cfg = BIZ_LISTS[kind];
   const limit = parseInt(document.getElementById('business-list-modal').dataset.limit, 10);
-  let list = Array.from(document.querySelectorAll('#business-list-rows .invoice-item-row')).map(row => {
-    const o = {};
-    row.querySelectorAll('.bz-field').forEach(el => { o[el.dataset.key] = el.value.trim(); });
-    return o;
-  });
+  const msgEl = document.getElementById('business-list-msg');
+  let list = [];
+  try {
+    if (cfg.photo && msgEl) msgEl.textContent = '…';
+    for (const row of Array.from(document.querySelectorAll('#business-list-rows .invoice-item-row'))) {
+      const o = {};
+      row.querySelectorAll('.bz-field').forEach(el => { o[el.dataset.key] = el.value.trim(); });
+      if (cfg.photo) {
+        const pr = row.querySelector('.bz-photo-row');
+        const input = pr && pr.querySelector('.gallery-photo-file');
+        if (input && input._pendingFile) o.image = (await uploadFileToStorage(input._pendingFile, 'businesses/' + kind, { maxSizeMB: 10 })).url;
+        else if (pr && pr.dataset.existingUrl) o.image = pr.dataset.existingUrl;
+      }
+      list.push(o);
+    }
+  } catch (e) { if (msgEl) msgEl.textContent = friendlyErrorMessage(e); return; }
   if (kind === 'faq') list = list.filter(x => x.question && x.answer);
   else if (kind === 'team') list = list.filter(x => x.name);
   else if (kind === 'jobs') list = list.filter(x => x.title);
@@ -15281,7 +15292,8 @@ function siteHubHtml(site, isPremium) {
 async function leadsCall(body) {
   const tok = await currentUser.getIdToken();
   const r = await fetch('/api/render-site', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + tok }, body: JSON.stringify(body) });
-  const j = await r.json().catch(() => ({}));
+  const j = await r.json().catch(() => null);
+  if (!j) throw new Error(t('lead_srv_old'));
   if (!r.ok || !j.success) throw new Error(j.error || 'Erreur');
   return j;
 }
@@ -15313,7 +15325,10 @@ async function openLeadsManager(kind, type) {
     const j = await leadsCall({ action: 'leads_list', kind });
     leadState.items = (j.items || []).filter(x => x.type === type);
     renderLeadsManager();
-  } catch (e) { showToast(friendlyErrorMessage(e), 'error'); }
+  } catch (e) {
+    if (leadState) { leadState.items = []; leadState.err = (e && e.message) || ''; renderLeadsManager(); }
+    showToast((e && e.message) || friendlyErrorMessage(e), 'error');
+  }
 }
 function closeLeadsManager() {
   const m = document.getElementById('lead-modal'); if (m) m.remove();
@@ -15338,7 +15353,7 @@ function renderLeadsManager() {
     </div>`;
   let list;
   if (items === null) list = `<p class="muted small">${t('sb_prev_loading')}</p>`;
-  else if (!items.length) list = `<p class="muted small">${t(isB ? 'bk_empty' : 'nl_empty')}</p>`;
+  else if (!items.length) list = s.err ? `<p class="lead-err">⚠ ${escapeHtml(s.err)}</p>` : `<p class="muted small">${t(isB ? 'bk_empty' : 'nl_empty')}</p>`;
   else if (isB) list = items.map(x => {
     const st = x.status || 'new';
     const phone = String(x.phone || '').replace(/[^0-9+]/g, '');
