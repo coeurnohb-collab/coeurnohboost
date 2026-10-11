@@ -90,6 +90,10 @@
       "destination": "/api/render-site?slug=:slug"
     },
     {
+      "source": "/e/:id",
+      "destination": "/api/render-site?biz=:id"
+    },
+    {
       "source": "/sitemap-sites.xml",
       "destination": "/api/render-site?sitemap=1"
     },

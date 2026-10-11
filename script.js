@@ -14163,6 +14163,9 @@ async function openBusinessDetail(ownerUid) {
     } catch (e) { showToast(friendlyErrorMessage(e), 'error'); return; }
   }
 
+  window.__bizDetail = b;
+  const bizPro = businessIsProActive(b);
+  const brand = (bizPro && /^#[0-9a-fA-F]{6}$/.test(b.brandColor || '')) ? b.brandColor : '';
   const isOwn = currentUser && currentUser.uid === ownerUid;
   const isFollowing = followingSet.has(ownerUid);
   const waLink = b.whatsapp ? `https://wa.me/${b.whatsapp.replace(/\D/g, '')}` : null;
@@ -14176,8 +14179,8 @@ async function openBusinessDetail(ownerUid) {
   const catalogHtml = (b.catalog && b.catalog.length > 0) ? `
     <div class="biz-section" style="padding-top:4px">
       <h4>${ICON_GRID3} ${t('business_catalog_heading')}</h4>
-      <div class="biz-desc-card" style="margin:0">
-        ${b.catalog.map(it => `<div style="display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--line)"><span>${escapeHtml(it.name || '')}</span><strong style="color:var(--green-dark-text);white-space:nowrap">${escapeHtml(it.price || '')}</strong></div>`).join('')}
+      <div class="biz-desc-card" style="margin:0;white-space:normal">
+        ${b.catalog.map(it => `<div style="display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--line)"><span>${escapeHtml(it.name || '')}${it.desc ? `<small class="muted" style="display:block">${escapeHtml(it.desc)}</small>` : ''}</span><strong style="color:var(--green-dark-text);white-space:nowrap">${escapeHtml(it.price || '')}</strong></div>`).join('')}
       </div>
     </div>` : '';
   const couponsHtml = activeCoupons.length > 0 ? `
@@ -14194,17 +14197,51 @@ async function openBusinessDetail(ownerUid) {
   // .profile-page-back au lieu de la croix "×"). Bannière + avatar qui la
   // chevauche, boutons d'action en pleine largeur, sections en cartes --
   // habillage professionnel façon page Facebook/Instagram Business.
+  const galleryHtml = (b.gallery && b.gallery.length) ? `
+    <div class="biz-section" id="biz-sec-gallery" style="padding-top:4px">
+      <h4>${t('bz_gallery_heading')}</h4>
+      <div class="bz-gallery">${b.gallery.map(u => `<img src="${escapeHtml(u)}" alt="" loading="lazy" onerror="mediaLoadError(this)" onclick="openMediaLightbox('${escapeForJs(u)}')">`).join('')}</div>
+    </div>` : '';
+  const infoRows = [];
+  if (b.foundedYear) infoRows.push([t('bz_founded'), b.foundedYear]);
+  if (b.teamSize) infoRows.push([t('bz_team_size'), b.teamSize]);
+  if (b.legalId) infoRows.push([t('bz_legal_label'), b.legalId]);
+  if (b.languages) infoRows.push([t('bz_languages'), b.languages]);
+  const infoHtml = infoRows.length ? `
+    <div class="biz-section" id="biz-sec-info" style="padding-top:4px">
+      <h4>${t('bz_info_heading')}</h4>
+      <div class="biz-desc-card" style="margin:0;white-space:normal">${infoRows.map(([k, v]) => `<div class="bz-info-row"><span>${escapeHtml(String(k))}</span><strong>${escapeHtml(String(v))}</strong></div>`).join('')}</div>
+    </div>` : '';
+  const teamHtml = (bizPro && b.team && b.team.length) ? `
+    <div class="biz-section" style="padding-top:4px">
+      <h4>${t('bz_team_heading')}</h4>
+      <div class="bz-team">${b.team.map(m => `<div class="bz-member"><span>${escapeHtml((m.name || '?').charAt(0).toUpperCase())}</span><strong>${escapeHtml(m.name || '')}</strong><small>${escapeHtml(m.role || '')}</small></div>`).join('')}</div>
+    </div>` : '';
+  const awardsHtml = (bizPro && b.awards && b.awards.length) ? `
+    <div class="biz-section" style="padding-top:4px">
+      <h4>${t('bz_awards_heading')}</h4>
+      <div class="bz-chips">${b.awards.map(a => `<span class="bz-chip">🏅 ${escapeHtml(a)}</span>`).join('')}</div>
+    </div>` : '';
+  const faqHtml = (b.faq && b.faq.length) ? `
+    <div class="biz-section" id="biz-sec-faq" style="padding-top:4px">
+      <h4>${t('bz_faq_heading')}</h4>
+      ${b.faq.map(f => `<details class="bz-faq"><summary>${escapeHtml(f.question || '')}</summary><p>${escapeHtml(f.answer || '')}</p></details>`).join('')}
+    </div>` : '';
   const initial = (b.businessName || '?').trim().charAt(0).toUpperCase();
   const navTabsHtml = [
     couponsHtml ? '<a href="#biz-sec-promos">' + t('business_promos_heading') + '</a>' : '',
     catalogHtml ? '<a href="#biz-sec-catalog">' + t('business_catalog_heading') + '</a>' : '',
+    galleryHtml ? '<a href="#biz-sec-gallery">' + t('bz_gallery_heading') + '</a>' : '',
+    infoHtml ? '<a href="#biz-sec-info">' + t('bz_info_heading') + '</a>' : '',
+    faqHtml ? '<a href="#biz-sec-faq">' + t('bz_faq_heading') + '</a>' : '',
     '<a href="#biz-sec-reviews">' + t('reviews_heading') + '</a>',
     '<a href="#biz-sec-posts">' + t('business_news_heading') + '</a>'
   ].filter(Boolean).join('');
 
   const html = `
     <div class="modal-overlay" id="business-detail-modal">
-      <div class="modal post-detail-modal-inner">
+      <div class="modal post-detail-modal-inner"${brand ? ` style="--biz:${brand}"` : ''}>
+        ${bizPro && b.announcement ? `<div class="bz-announce">${escapeHtml(b.announcement)}</div>` : ''}
         <button class="profile-page-back" onclick="document.getElementById('business-detail-modal').remove()" aria-label="Retour">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
         </button>
@@ -14218,10 +14255,12 @@ async function openBusinessDetail(ownerUid) {
             <h2>${escapeHtml(b.businessName || t('business_default_name'))}</h2>
             ${businessIsProActive(b) ? `<span class="biz-pro-badge">${ICON_SPARKLE} ${t('business_pro_badge')}</span>` : ''}
           </div>
+          ${b.tagline ? `<p class="bz-tagline">${escapeHtml(b.tagline)}</p>` : ''}
           <div class="biz-category-row" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
             <span>${t(NEARBY_CATEGORY_LABELS[b.category]) || ''}</span>
             <span class="biz-rating-badge" id="biz-rating-badge-${ownerUid}"></span>
           </div>
+          ${businessTrustChipsHtml(b, true)}
           ${b.address ? `<div class="biz-meta-row">${ICON_LOCATION} ${escapeHtml(b.address)}</div>` : ''}
           ${b.hours ? `<div class="biz-meta-row">${ICON_CLOCK} ${escapeHtml(b.hours)}</div>` : ''}
           <div class="biz-meta-row" style="gap:14px;margin-top:6px">
@@ -14232,16 +14271,25 @@ async function openBusinessDetail(ownerUid) {
           ${followBtnHtml ? `<div style="margin-top:14px">${followBtnHtml}</div>` : ''}
         </div>
         <div class="biz-actions-row">
-          ${waLink ? `<a class="btn btn-primary" href="${safeHref(waLink)}" target="_blank">${ICON_WHATSAPP} ${t('business_whatsapp_btn')}</a>` : ''}
+          ${(b.whatsapp || b.email) ? `<button class="btn btn-primary bz-cta" onclick="openBusinessQuote('${ownerUid}')">${ICON_WHATSAPP} ${escapeHtml((bizPro && b.ctaLabel) || t('bz_quote_default_cta'))}</button>` : ''}
           ${b.phone ? `<a class="btn btn-outline" href="tel:${escapeHtml(b.phone)}">${ICON_PHONE} ${t('business_call_btn')}</a>` : ''}
           ${b.email ? `<a class="btn btn-outline" href="mailto:${escapeHtml(b.email)}">${ICON_MAIL} ${t('business_email_btn')}</a>` : ''}
           ${b.facebookUrl ? `<a class="btn btn-outline" href="${safeHref(b.facebookUrl)}" target="_blank">${ICON_FACEBOOK} Facebook</a>` : ''}
           ${b.tiktokUrl ? `<a class="btn btn-outline" href="${safeHref(b.tiktokUrl)}" target="_blank">${ICON_TIKTOK} TikTok</a>` : ''}
+          ${b.instagramUrl ? `<a class="btn btn-outline" href="${safeHref(b.instagramUrl)}" target="_blank">Instagram</a>` : ''}
+          ${b.youtubeUrl ? `<a class="btn btn-outline" href="${safeHref(b.youtubeUrl)}" target="_blank">YouTube</a>` : ''}
+          ${b.linkedinUrl ? `<a class="btn btn-outline" href="${safeHref(b.linkedinUrl)}" target="_blank">LinkedIn</a>` : ''}
+          ${b.website ? `<a class="btn btn-outline" href="${safeHref(b.website)}" target="_blank">${t('bz_website')}</a>` : ''}
         </div>
         ${navTabsHtml ? `<nav class="biz-nav-tabs">${navTabsHtml}</nav>` : ''}
         ${b.description ? `<div class="biz-desc-card">${escapeHtml(b.description)}</div>` : ''}
         ${couponsHtml}
         ${catalogHtml}
+        ${galleryHtml}
+        ${infoHtml}
+        ${teamHtml}
+        ${awardsHtml}
+        ${faqHtml}
         ${!isOwn && currentUser ? `<div class="biz-section" style="padding-top:0"><button class="btn btn-outline btn-sm" style="width:100%;justify-content:center" onclick="openReportModal('${ownerUid}', '${ownerUid}', 'business')">${ICON_FLAG} ${t('business_report_btn')}</button></div>` : ''}
         <div class="biz-section" id="biz-sec-reviews">
           <h4>${t('reviews_heading')}</h4>
@@ -14298,7 +14346,8 @@ async function loadBusinessRatingBadge(ownerUid) {
 // deep link ?entreprise=UID ouvert automatiquement par
 // openSharedBusinessIfAny() a l'ouverture de l'app.
 function shareBusiness(ownerUid, businessName) {
-  const shareUrl = `${window.location.origin}${window.location.pathname}?entreprise=${ownerUid}`;
+  const known = (businessCache || []).find(x => x.ownerUid === ownerUid) || (businessMyProfile && businessMyProfile.ownerUid === ownerUid ? businessMyProfile : null) || window.__bizDetail;
+  const shareUrl = (known && known.ownerUid === ownerUid && businessIsProActive(known)) ? businessPublicUrl(ownerUid) : `${window.location.origin}${window.location.pathname}?entreprise=${ownerUid}`;
   const shareText = `${t('business_share_text_prefix')} ${businessName}`;
   if (navigator.share) {
     navigator.share({ title: businessName, text: shareText, url: shareUrl }).catch(() => {});
@@ -14400,16 +14449,33 @@ async function renderMyBusinessStatus() {
         <li>${t('business_feature_coupons_prefix')} ${BUSINESS_PRO_COUPON_LIMIT} ${t('business_feature_coupons_mid')} ${BUSINESS_FREE_COUPON_LIMIT})</li>
         <li>${t('business_feature_crm_prefix')} ${BUSINESS_PRO_CLIENT_LIMIT} ${t('business_feature_crm_mid')} ${BUSINESS_FREE_CLIENT_LIMIT})</li>
         <li>${t('business_feature_badge')}</li>
+        <li><b>${t('bz_pro_f1')}</b></li>
+        <li>${t('bz_pro_f2')}</li>
+        <li>${t('bz_pro_f3')}</li>
+        <li>${t('bz_pro_f4')}</li>
       </ul>
       <button class="btn btn-primary btn-sm" onclick="purchaseBusinessPro()">${t('business_activate_pro_btn')}</button>
     </div>`;
 
+  const comp = businessCompleteness(b);
+  const todo = comp.items.filter(i => !i.done);
+  const initialB = (b.businessName || '?').trim().charAt(0).toUpperCase();
+  const pt = isPro ? '' : ' <em class="sbx-pro">PRO</em>';
+  const publicUrl = businessPublicUrl(currentUser.uid);
   statusEl.innerHTML = `
-    <div class="order-box" style="margin-bottom:14px">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
-        <strong>${escapeHtml(b.businessName || '')}</strong>${isPro ? ` <span class="shop-card-category" style="background:#fff4e0;color:#b5720b">${t('business_pro_badge')}</span>` : ''}
+    <div class="bz-hero">
+      <div class="bz-hero-top">
+        ${b.logoUrl ? `<img src="${escapeHtml(b.logoUrl)}" class="bz-av" alt="">` : `<div class="bz-av">${escapeHtml(initialB)}</div>`}
+        <div style="min-width:0"><strong>${escapeHtml(b.businessName || '')}</strong><small>${t(NEARBY_CATEGORY_LABELS[b.category]) || ''}</small></div>
       </div>
-      <button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="openBusinessForm()">${t('business_edit_page_btn')}</button>
+      ${businessTrustChipsHtml(b)}
+      <div class="bz-meter"><div class="bz-meter-bar"><i style="width:${comp.pct}%"></i></div><span>${t('bz_completeness')} ${comp.pct}%</span></div>
+      ${todo.length ? `<details class="bz-todo"><summary>${t('bz_todo_title')} (${todo.length})</summary><ul>${todo.map(i => `<li>${t('bz_c_' + i.key)}</li>`).join('')}</ul></details>` : ''}
+      <div class="bz-hero-actions">
+        <button class="btn btn-outline btn-sm" onclick="openBusinessForm()">${t('business_edit_page_btn')}</button>
+        <button class="btn btn-outline btn-sm" onclick="openBusinessDetail('${currentUser.uid}')">${t('business_view_page_btn')}</button>
+        <button class="btn btn-outline btn-sm" onclick="shareBusiness('${currentUser.uid}','${escapeForJs(b.businessName || '')}')">${ICON_SHARE}</button>
+      </div>
     </div>
 
     <h4 style="margin-bottom:8px">${t('business_dashboard_heading')}</h4>
@@ -14424,14 +14490,33 @@ async function renderMyBusinessStatus() {
 
     ${proBlockHtml}
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+    <h4 style="margin-bottom:8px">${t('bz_sec_content')}</h4>
+    <div class="bz-tools">
       <button class="btn btn-outline btn-sm" onclick="openBusinessCatalogManager()">${t('business_catalog_heading')} (${catalogCount})</button>
       <button class="btn btn-outline btn-sm" onclick="openBusinessCouponsManager()">${t('business_coupons_btn')} (${couponsCount})</button>
+      <button class="btn btn-outline btn-sm" onclick="openBusinessGalleryEditor()">${t('bz_tool_gallery')} (${(b.gallery || []).length})</button>
+      <button class="btn btn-outline btn-sm" onclick="openBusinessListEditor('faq')">${t('bz_tool_faq')} (${(b.faq || []).length})</button>
       <button class="btn btn-outline btn-sm" onclick="openBusinessClientsManager()">${t('business_my_clients_btn')}</button>
       <button class="btn btn-primary btn-sm" onclick="openBusinessPostForm()">${t('business_publish_news_btn')}</button>
     </div>
 
-    <h4 style="margin-bottom:8px">${t('business_my_news_heading')}</h4>
+    <h4 style="margin:14px 0 8px">${t('bz_sec_trust')}</h4>
+    <div class="bz-tools">
+      <button class="btn btn-outline btn-sm" onclick="openBusinessInfoForm()">${t('bz_tool_info')}</button>
+      <button class="btn btn-outline btn-sm" onclick="openBusinessListEditor('team')">${t('bz_tool_team')}${pt}</button>
+      <button class="btn btn-outline btn-sm" onclick="openBusinessListEditor('awards')">${t('bz_tool_awards')}${pt}</button>
+      <button class="btn btn-outline btn-sm" onclick="openBusinessLookForm()">${t('bz_tool_announce')}${pt}</button>
+    </div>
+
+    <div class="bz-web">
+      <strong>${t('bz_web_title')}${pt}</strong>
+      ${isPro
+        ? `<p class="muted small" style="margin:6px 0">${t('bz_web_desc')}</p><div class="sbx-linkbox">${escapeHtml(publicUrl)}</div>
+           <div class="sbx-row"><button class="btn btn-outline btn-sm" onclick="copyBusinessPublicUrl()">${t('bz_web_copy')}</button><a class="btn btn-outline btn-sm" href="${safeHref(publicUrl)}" target="_blank" rel="noopener">${t('bz_web_open')}</a></div>`
+        : `<p class="muted small" style="margin:6px 0 10px">${t('bz_web_locked')}</p><button class="btn btn-primary btn-sm" onclick="purchaseBusinessPro()">${t('business_activate_pro_btn')}</button>`}
+    </div>
+
+    <h4 style="margin:14px 0 8px">${t('business_my_news_heading')}</h4>
     <div id="business-mine-posts"><p class="muted small">${t('common_loading')}</p></div>`;
   loadBusinessPostsFeed(currentUser.uid, 'business-mine-posts');
 }
@@ -14457,6 +14542,290 @@ async function purchaseBusinessPro() {
   }
 }
 
+/* ====================== ENTREPRISE v2 (v-pro16) ======================
+   Fiche entreprise "grande entreprise" : informations légales, profil complet,
+   galerie, FAQ, équipe, distinctions, annonce, couleur de marque, demande de
+   devis/rendez-vous et page web publique (/e/<uid>, réservée Pro). Tous ces
+   champs vivent dans businesses/{uid} (les règles Firestore autorisent déjà
+   les champs libres, sauf pro/proUntil qui restent verrouillés). */
+const BUSINESS_FREE_GALLERY_LIMIT = 4;
+const BUSINESS_PRO_GALLERY_LIMIT = 20;
+const BUSINESS_FREE_FAQ_LIMIT = 3;
+const BUSINESS_PRO_FAQ_LIMIT = 15;
+const BUSINESS_TEAM_LIMIT = 12;   // Pro
+const BUSINESS_AWARDS_LIMIT = 10; // Pro
+
+function businessCompleteness(b) {
+  b = b || {};
+  const hasSocial = !!(b.facebookUrl || b.tiktokUrl || b.instagramUrl || b.youtubeUrl || b.linkedinUrl || b.website);
+  const items = [
+    ['logo', !!b.logoUrl], ['cover', !!b.coverImageUrl], ['tagline', !!b.tagline],
+    ['desc', (b.description || '').length >= 60], ['whatsapp', !!b.whatsapp], ['address', !!b.address],
+    ['hours', !!b.hours], ['email', !!b.email], ['legal', !!b.legalId], ['year', !!b.foundedYear],
+    ['catalog', (b.catalog || []).length > 0], ['gallery', (b.gallery || []).length > 0],
+    ['faq', (b.faq || []).length > 0], ['social', hasSocial]
+  ].map(([key, done]) => ({ key, done }));
+  const done = items.filter(i => i.done).length;
+  return { pct: Math.round(done / items.length * 100), items, complete: done / items.length >= 0.8 };
+}
+
+function businessTrustChipsHtml(b, skipPro) {
+  const chips = [];
+  const comp = businessCompleteness(b);
+  if (comp.complete) chips.push(`<span class="bz-chip ok">${ICON_SPARKLE} ${t('bz_complete_badge')}</span>`);
+  if (!skipPro && businessIsProActive(b)) chips.push(`<span class="bz-chip pro">${t('business_pro_badge')}</span>`);
+  const year = parseInt(b.foundedYear, 10);
+  if (year > 1900 && year <= new Date().getFullYear()) chips.push(`<span class="bz-chip">${t('bz_founded')} ${year}</span>`);
+  if (b.teamSize) chips.push(`<span class="bz-chip">${escapeHtml(String(b.teamSize))} ${t('bz_team_size')}</span>`);
+  if (b.legalId) chips.push(`<span class="bz-chip">${t('bz_legal_label')} ✓</span>`);
+  return chips.length ? `<div class="bz-chips">${chips.join('')}</div>` : '';
+}
+
+function businessNeedPro() {
+  if (confirm(t('bz_need_pro'))) purchaseBusinessPro();
+}
+
+/* ---- Informations & confiance ---- */
+function openBusinessInfoForm() {
+  if (document.getElementById('business-info-modal')) return;
+  const b = businessMyProfile || {};
+  const f = (id, label, val, ph, type) => `<div class="field"><label for="${id}">${label}</label><input type="${type || 'text'}" id="${id}" class="text-input" maxlength="120" placeholder="${ph || ''}" value="${val || ''}"></div>`;
+  document.body.insertAdjacentHTML('beforeend', `
+    <div class="modal-overlay" id="business-info-modal"><div class="modal" style="max-width:460px">
+      <button class="modal-close" onclick="document.getElementById('business-info-modal').remove()" aria-label="Fermer">×</button>
+      <h3 style="margin:0 0 4px 46px">${t('bz_info_title')}</h3>
+      <p class="muted small" style="margin-bottom:14px">${t('bz_info_hint')}</p>
+      ${f('bz-tagline', t('bz_f_tagline'), escapeHtml(b.tagline || ''), escapeHtml(t('bz_f_tagline_ph')))}
+      ${f('bz-year', t('bz_f_year'), escapeHtml(b.foundedYear || ''), '2015', 'number')}
+      ${f('bz-teamsize', t('bz_f_team'), escapeHtml(b.teamSize || ''), '10', 'number')}
+      ${f('bz-legal', t('bz_f_legal'), escapeHtml(b.legalId || ''), escapeHtml(t('bz_f_legal_ph')))}
+      ${f('bz-lang', t('bz_f_lang'), escapeHtml(b.languages || ''), escapeHtml(t('bz_f_lang_ph')))}
+      ${f('bz-web', t('bz_f_web'), escapeHtml(b.website || ''), 'https://...', 'url')}
+      ${f('bz-insta', 'Instagram', escapeHtml(b.instagramUrl || ''), 'https://instagram.com/...', 'url')}
+      ${f('bz-youtube', 'YouTube', escapeHtml(b.youtubeUrl || ''), 'https://youtube.com/@...', 'url')}
+      ${f('bz-linkedin', 'LinkedIn', escapeHtml(b.linkedinUrl || ''), 'https://linkedin.com/company/...', 'url')}
+      <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="saveBusinessInfo()">${t('common_save')}</button>
+      <p class="muted small" id="bz-info-msg" style="margin-top:6px"></p>
+    </div></div>`);
+}
+
+async function saveBusinessInfo() {
+  const v = (id) => document.getElementById(id).value.trim();
+  const urls = { website: v('bz-web'), instagramUrl: v('bz-insta'), youtubeUrl: v('bz-youtube'), linkedinUrl: v('bz-linkedin') };
+  for (const k in urls) {
+    if (urls[k] && !/^https?:\/\//i.test(urls[k])) { document.getElementById('bz-info-msg').textContent = 'https://...'; return; }
+  }
+  const year = parseInt(v('bz-year'), 10);
+  const patch = {
+    tagline: v('bz-tagline').slice(0, 80),
+    foundedYear: (year > 1900 && year <= new Date().getFullYear()) ? year : null,
+    teamSize: Math.max(0, parseInt(v('bz-teamsize'), 10) || 0) || null,
+    legalId: v('bz-legal').slice(0, 60),
+    languages: v('bz-lang').slice(0, 80),
+    website: urls.website || null, instagramUrl: urls.instagramUrl || null,
+    youtubeUrl: urls.youtubeUrl || null, linkedinUrl: urls.linkedinUrl || null
+  };
+  try {
+    await db.collection('businesses').doc(currentUser.uid).update(patch);
+    Object.assign(businessMyProfile, patch);
+    businessCache = null;
+    document.getElementById('business-info-modal').remove();
+    showToast(t('bz_saved'), 'success');
+    renderMyBusinessStatus();
+  } catch (e) { document.getElementById('bz-info-msg').textContent = friendlyErrorMessage(e); }
+}
+
+/* ---- Listes : FAQ / équipe / distinctions ---- */
+const BIZ_LISTS = {
+  faq: { title: 'bz_faq_title', proOnly: false, free: BUSINESS_FREE_FAQ_LIMIT, pro: BUSINESS_PRO_FAQ_LIMIT, fields: [['question', 'bz_faq_q_ph', 120, false], ['answer', 'bz_faq_a_ph', 400, true]] },
+  team: { title: 'bz_team_title', proOnly: true, free: 0, pro: BUSINESS_TEAM_LIMIT, fields: [['name', 'bz_team_name_ph', 60, false], ['role', 'bz_team_role_ph', 60, false]] },
+  awards: { title: 'bz_awards_title', proOnly: true, free: 0, pro: BUSINESS_AWARDS_LIMIT, fields: [['text', 'bz_awards_ph', 100, false]] }
+};
+
+function openBusinessListEditor(kind) {
+  const cfg = BIZ_LISTS[kind];
+  const isPro = businessIsProActive(businessMyProfile);
+  if (cfg.proOnly && !isPro) { businessNeedPro(); return; }
+  if (document.getElementById('business-list-modal')) return;
+  const limit = isPro ? cfg.pro : cfg.free;
+  let current = businessMyProfile[kind] || [];
+  if (kind === 'awards') current = current.map(x => ({ text: x }));
+  document.body.insertAdjacentHTML('beforeend', `
+    <div class="modal-overlay" id="business-list-modal" data-kind="${kind}" data-limit="${limit}"><div class="modal" style="max-width:460px">
+      <button class="modal-close" onclick="document.getElementById('business-list-modal').remove()" aria-label="Fermer">×</button>
+      <h3 style="margin:0 0 4px 46px">${t(cfg.title)}</h3>
+      <p class="muted small" style="margin-bottom:14px">${limit} max${isPro ? '' : ' · Pro : ' + cfg.pro}</p>
+      <div id="business-list-rows"></div>
+      <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:6px 0 14px" onclick="addBusinessListRow('${kind}')">${t('bz_add_row')}</button>
+      <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="saveBusinessList('${kind}')">${t('common_save')}</button>
+      <p class="muted small" id="business-list-msg" style="margin-top:6px"></p>
+    </div></div>`);
+  current.forEach(item => addBusinessListRow(kind, item, true));
+  if (!current.length) addBusinessListRow(kind, null, true);
+}
+
+function addBusinessListRow(kind, item, silent) {
+  const cfg = BIZ_LISTS[kind];
+  const modal = document.getElementById('business-list-modal');
+  const rows = document.getElementById('business-list-rows');
+  const limit = parseInt(modal.dataset.limit, 10);
+  if (rows.children.length >= limit) { if (!silent) showToast(t('bz_limit_reached'), 'info'); return; }
+  const row = document.createElement('div');
+  row.className = 'invoice-item-row';
+  row.style.cssText = 'flex-direction:column;align-items:stretch';
+  const inputs = cfg.fields.map(([key, ph, max, area], i) => area
+    ? `<textarea class="text-input bz-field" data-key="${key}" rows="2" maxlength="${max}" placeholder="${t(ph)}" style="margin-top:6px">${escapeHtml(item ? item[key] || '' : '')}</textarea>`
+    : `<input type="text" class="text-input bz-field" data-key="${key}" maxlength="${max}" placeholder="${t(ph)}" value="${escapeHtml(item ? item[key] || '' : '')}" style="flex:1;${i ? 'margin-left:0' : ''}">`);
+  const first = cfg.fields[0][3] ? '' : inputs.slice(0, cfg.fields.filter(f => !f[3]).length).join('');
+  const areas = inputs.filter((x, i) => cfg.fields[i][3]).join('');
+  row.innerHTML = `<div style="display:flex;gap:8px;width:100%">${first}<button type="button" class="invoice-row-remove" onclick="this.closest('.invoice-item-row').remove()" aria-label="Retirer">×</button></div>${areas}`;
+  rows.appendChild(row);
+}
+
+async function saveBusinessList(kind) {
+  const cfg = BIZ_LISTS[kind];
+  const limit = parseInt(document.getElementById('business-list-modal').dataset.limit, 10);
+  let list = Array.from(document.querySelectorAll('#business-list-rows .invoice-item-row')).map(row => {
+    const o = {};
+    row.querySelectorAll('.bz-field').forEach(el => { o[el.dataset.key] = el.value.trim(); });
+    return o;
+  });
+  if (kind === 'faq') list = list.filter(x => x.question && x.answer);
+  else if (kind === 'team') list = list.filter(x => x.name);
+  else list = list.map(x => x.text).filter(Boolean);
+  list = list.slice(0, limit);
+  try {
+    await db.collection('businesses').doc(currentUser.uid).update({ [kind]: list });
+    businessMyProfile[kind] = list;
+    businessCache = null;
+    document.getElementById('business-list-modal').remove();
+    showToast(t('bz_saved'), 'success');
+    renderMyBusinessStatus();
+  } catch (e) { document.getElementById('business-list-msg').textContent = friendlyErrorMessage(e); }
+}
+
+/* ---- Galerie ---- */
+function openBusinessGalleryEditor() {
+  if (document.getElementById('business-gallery-modal')) return;
+  const isPro = businessIsProActive(businessMyProfile);
+  const limit = isPro ? BUSINESS_PRO_GALLERY_LIMIT : BUSINESS_FREE_GALLERY_LIMIT;
+  const photos = businessMyProfile.gallery || [];
+  document.body.insertAdjacentHTML('beforeend', `
+    <div class="modal-overlay" id="business-gallery-modal" data-limit="${limit}"><div class="modal" style="max-width:460px">
+      <button class="modal-close" onclick="document.getElementById('business-gallery-modal').remove()" aria-label="Fermer">×</button>
+      <h3 style="margin:0 0 4px 46px">${t('bz_gallery_title')}</h3>
+      <p class="muted small" style="margin-bottom:14px">${limit} max${isPro ? '' : ' · Pro : ' + BUSINESS_PRO_GALLERY_LIMIT}</p>
+      <div id="business-gallery-rows"></div>
+      <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:6px 0 14px" onclick="addBusinessGalleryRow()">${t('bz_add_row')}</button>
+      <button class="btn btn-primary" id="business-gallery-save" style="width:100%;justify-content:center" onclick="saveBusinessGallery()">${t('common_save')}</button>
+      <p class="muted small" id="business-gallery-msg" style="margin-top:6px"></p>
+    </div></div>`);
+  photos.forEach(p => addBusinessGalleryRow(p, true));
+  if (!photos.length) addBusinessGalleryRow('', true);
+}
+
+function addBusinessGalleryRow(value, silent) {
+  const rows = document.getElementById('business-gallery-rows');
+  const limit = parseInt(document.getElementById('business-gallery-modal').dataset.limit, 10);
+  if (rows.children.length >= limit) { if (!silent) showToast(t('bz_limit_reached'), 'info'); return; }
+  rows.insertAdjacentHTML('beforeend', renderGalleryPhotoRow('biz-gal-row', value || null));
+}
+
+async function saveBusinessGallery() {
+  const btn = document.getElementById('business-gallery-save');
+  const msg = document.getElementById('business-gallery-msg');
+  const limit = parseInt(document.getElementById('business-gallery-modal').dataset.limit, 10);
+  if (btn.disabled) return;
+  btn.disabled = true; msg.textContent = t('bz_uploading');
+  try {
+    const gallery = await collectGalleryPhotoUrls('#business-gallery-rows .gallery-photo-row', 'entreprises/galerie', limit);
+    await db.collection('businesses').doc(currentUser.uid).update({ gallery });
+    businessMyProfile.gallery = gallery;
+    businessCache = null;
+    document.getElementById('business-gallery-modal').remove();
+    showToast(t('bz_saved'), 'success');
+    renderMyBusinessStatus();
+  } catch (e) { msg.textContent = friendlyErrorMessage(e); btn.disabled = false; }
+}
+
+/* ---- Annonce & apparence (Pro) ---- */
+function openBusinessLookForm() {
+  if (!businessIsProActive(businessMyProfile)) { businessNeedPro(); return; }
+  if (document.getElementById('business-look-modal')) return;
+  const b = businessMyProfile;
+  document.body.insertAdjacentHTML('beforeend', `
+    <div class="modal-overlay" id="business-look-modal"><div class="modal" style="max-width:460px">
+      <button class="modal-close" onclick="document.getElementById('business-look-modal').remove()" aria-label="Fermer">×</button>
+      <h3 style="margin:0 0 14px 46px">${t('bz_look_title')}</h3>
+      <div class="field"><label for="bz-announce">${t('bz_announce')}</label>
+        <input type="text" id="bz-announce" class="text-input" maxlength="140" placeholder="${t('bz_announce_ph')}" value="${escapeHtml(b.announcement || '')}"></div>
+      <div class="field"><label for="bz-cta">${t('bz_cta_label')}</label>
+        <input type="text" id="bz-cta" class="text-input" maxlength="40" placeholder="${t('bz_quote_default_cta')}" value="${escapeHtml(b.ctaLabel || '')}"></div>
+      <div class="field"><label>${t('bz_brand')}</label>
+        <div style="display:flex;gap:10px;align-items:center">
+          <input type="color" id="bz-brand" value="${/^#[0-9a-fA-F]{6}$/.test(b.brandColor || '') ? b.brandColor : '#0f2150'}" oninput="this.dataset.clear=''" style="width:56px;height:42px;border:none;background:none;padding:0">
+          <button type="button" class="btn btn-outline btn-sm" onclick="const i=document.getElementById('bz-brand');i.dataset.clear='1';i.value='#0f2150'">${t('bz_brand_reset')}</button>
+        </div></div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="saveBusinessLook()">${t('common_save')}</button>
+      <p class="muted small" id="bz-look-msg" style="margin-top:6px"></p>
+    </div></div>`);
+}
+
+async function saveBusinessLook() {
+  const brandEl = document.getElementById('bz-brand');
+  const patch = {
+    announcement: document.getElementById('bz-announce').value.trim().slice(0, 140),
+    ctaLabel: document.getElementById('bz-cta').value.trim().slice(0, 40),
+    brandColor: brandEl.dataset.clear === '1' ? null : brandEl.value
+  };
+  try {
+    await db.collection('businesses').doc(currentUser.uid).update(patch);
+    Object.assign(businessMyProfile, patch);
+    businessCache = null;
+    document.getElementById('business-look-modal').remove();
+    showToast(t('bz_saved'), 'success');
+    renderMyBusinessStatus();
+  } catch (e) { document.getElementById('bz-look-msg').textContent = friendlyErrorMessage(e); }
+}
+
+/* ---- Demande de devis / rendez-vous (visiteur) ---- */
+function openBusinessQuote(ownerUid) {
+  const b = (businessCache || []).find(x => x.ownerUid === ownerUid) || (businessMyProfile && businessMyProfile.ownerUid === ownerUid ? businessMyProfile : null) || window.__bizDetail;
+  if (!b || document.getElementById('business-quote-modal')) return;
+  const items = (b.catalog || []).map(it => `<option value="${escapeHtml(it.name)}">${escapeHtml(it.name)}${it.price ? ' — ' + escapeHtml(it.price) : ''}</option>`).join('');
+  document.body.insertAdjacentHTML('beforeend', `
+    <div class="modal-overlay" id="business-quote-modal"><div class="modal" style="max-width:440px">
+      <button class="modal-close" onclick="document.getElementById('business-quote-modal').remove()" aria-label="Fermer">×</button>
+      <h3 style="margin:0 0 14px 46px">${t('bz_quote_title')}</h3>
+      <div class="field"><label for="bq-name">${t('bz_quote_name')}</label><input type="text" id="bq-name" class="text-input" maxlength="60" value="${escapeHtml((currentUser && (currentUser.name || currentUser.username)) || '')}"></div>
+      <div class="field"><label for="bq-service">${t('bz_quote_service')}</label>
+        <select id="bq-service" class="select-input">${items}<option value="">${t('bz_quote_other')}</option></select></div>
+      <div class="field"><label for="bq-date">${t('bz_quote_date')}</label><input type="date" id="bq-date" class="text-input"></div>
+      <div class="field"><label for="bq-msg">${t('bz_quote_msg')}</label><textarea id="bq-msg" class="text-input" rows="3" maxlength="400"></textarea></div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="sendBusinessQuote('${ownerUid}')">${t('bz_quote_send')}</button>
+    </div></div>`);
+}
+
+function sendBusinessQuote(ownerUid) {
+  const b = (businessCache || []).find(x => x.ownerUid === ownerUid) || window.__bizDetail;
+  if (!b) return;
+  const name = document.getElementById('bq-name').value.trim();
+  const service = document.getElementById('bq-service').value;
+  const date = document.getElementById('bq-date').value;
+  const msg = document.getElementById('bq-msg').value.trim();
+  if (!name) { document.getElementById('bq-name').focus(); return; }
+  const text = `${t('bz_quote_hello')} ${name}.${service ? ' ' + service + '.' : ''}${date ? ' (' + date + ')' : ''}${msg ? ' ' + msg : ''}`;
+  if (b.whatsapp) window.open(`https://wa.me/${b.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(text)}`, '_blank');
+  else if (b.email) window.location.href = `mailto:${b.email}?subject=${encodeURIComponent(t('bz_quote_title'))}&body=${encodeURIComponent(text)}`;
+  const m = document.getElementById('business-quote-modal'); if (m) m.remove();
+}
+
+/* ---- Page web publique (Pro) ---- */
+function businessPublicUrl(uid) { return `${window.location.origin}/e/${encodeURIComponent(uid)}`; }
+function copyBusinessPublicUrl() {
+  if (navigator.clipboard) navigator.clipboard.writeText(businessPublicUrl(currentUser.uid)).then(() => showToast(t('referral_copied'), 'success'));
+}
+
 /* ---- Catalogue (produits/services) ---- */
 function openBusinessCatalogManager() {
   if (document.getElementById('business-catalog-modal')) return;
@@ -14478,25 +14847,31 @@ function openBusinessCatalogManager() {
     </div>`;
   document.body.insertAdjacentHTML('beforeend', html);
   const rowsEl = document.getElementById('business-catalog-rows');
-  (catalog.length > 0 ? catalog : [{ name: '', price: '' }]).forEach(it => addBusinessCatalogRow(it.name, it.price, limit));
+  (catalog.length > 0 ? catalog : [{ name: '', price: '' }]).forEach(it => addBusinessCatalogRow(it.name, it.price, limit, it.desc));
 }
 
-function addBusinessCatalogRow(name, price, limit) {
+function addBusinessCatalogRow(name, price, limit, desc) {
   const rowsEl = document.getElementById('business-catalog-rows');
   if (rowsEl.children.length >= (limit || BUSINESS_FREE_CATALOG_LIMIT)) return;
   const row = document.createElement('div');
   row.className = 'invoice-item-row';
+  row.style.cssText = 'flex-direction:column;align-items:stretch';
   row.innerHTML = `
-    <input type="text" class="text-input business-catalog-name" placeholder="${t('business_item_name_ph')}" value="${escapeHtml(name || '')}" style="flex:2">
-    <input type="text" class="text-input business-catalog-price" placeholder="${t('business_item_price_ph')}" value="${escapeHtml(price || '')}" style="flex:1">
-    <button type="button" class="invoice-row-remove" onclick="this.parentElement.remove()" aria-label="Retirer">×</button>`;
+    <div style="display:flex;gap:8px;width:100%">
+      <input type="text" class="text-input business-catalog-name" placeholder="${t('business_item_name_ph')}" value="${escapeHtml(name || '')}" style="flex:2">
+      <input type="text" class="text-input business-catalog-price" placeholder="${t('business_item_price_ph')}" value="${escapeHtml(price || '')}" style="flex:1">
+      <button type="button" class="invoice-row-remove" onclick="this.closest('.invoice-item-row').remove()" aria-label="Retirer">×</button>
+    </div>
+    <input type="text" class="text-input business-catalog-desc" maxlength="120" placeholder="${t('bz_item_desc_ph')}" value="${escapeHtml(desc || '')}" style="margin-top:6px">`;
   rowsEl.appendChild(row);
 }
 
 async function saveBusinessCatalog() {
-  const names = Array.from(document.querySelectorAll('.business-catalog-name')).map(i => i.value.trim());
-  const prices = Array.from(document.querySelectorAll('.business-catalog-price')).map(i => i.value.trim());
-  const catalog = names.map((n, i) => ({ name: n, price: prices[i] })).filter(it => it.name);
+  const catalog = Array.from(document.querySelectorAll('#business-catalog-rows .invoice-item-row')).map(row => ({
+    name: row.querySelector('.business-catalog-name').value.trim(),
+    price: row.querySelector('.business-catalog-price').value.trim(),
+    desc: row.querySelector('.business-catalog-desc').value.trim()
+  })).filter(it => it.name);
   try {
     await db.collection('businesses').doc(currentUser.uid).update({ catalog });
     businessMyProfile.catalog = catalog;
