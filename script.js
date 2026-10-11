@@ -1906,6 +1906,8 @@ function openNotifTargetIfAny() {
   const pubId = params.get('open');
   const tab = params.get('openTab');
   const profileUid = params.get('profile');
+  const leadsKind = params.get('leads');
+  if (leadsKind) { openLeadsManager(leadsKind === 'biz' ? 'biz' : 'site', 'appointment'); window.history.replaceState({}, '', window.location.pathname); return; }
   if (pubId) {
     openPostDetail(pubId);
   } else if (profileUid) {
@@ -12791,7 +12793,7 @@ function openSitePreview(opts) {
       <div class="sbx-prev-top">
         <button type="button" class="sbx-icon-btn" onclick="closeSitePreview()" aria-label="Fermer">←</button>
         <strong>${t('sb_prev_title')}</strong>
-        <div class="sbx-seg"><button type="button" class="on" data-mode="mobile" onclick="sitePreviewMode('mobile')">${t('sb_prev_mobile')}</button><button type="button" data-mode="desktop" onclick="sitePreviewMode('desktop')">${t('sb_prev_desktop')}</button></div>
+        <div class="sbx-seg"><button type="button" class="on" data-mode="mobile" onclick="sitePreviewMode('mobile')">${t('sb_prev_mobile')}</button><button type="button" data-mode="desktop" onclick="sitePreviewMode('desktop')">${t('sb_prev_desktop')}</button><button type="button" onclick="sitePreviewFull()" aria-label="Plein écran">⛶</button></div>
       </div>
       <div class="sbx-prev-models"><span>${t('sb_prev_models')}</span>${chips}</div>
       <div class="sbx-prev-stage" id="site-preview-stage">
@@ -12817,6 +12819,13 @@ function closeSitePreview() {
   document.body.style.overflow = '';
   window.removeEventListener('resize', sitePreviewLayout);
   sitePreviewState = null;
+}
+
+function sitePreviewFull() {
+  const el = document.getElementById('site-preview-screen');
+  if (!el) return;
+  el.classList.add('full');
+  setTimeout(sitePreviewLayout, 30);
 }
 
 function sitePreviewMode(mode) {
@@ -12855,12 +12864,12 @@ function sitePreviewLayout() {
     frame.style.transformOrigin = 'top left';
     frame.style.margin = '8px 0 0 ' + Math.round((w - dw * scale) / 2) + 'px';
   } else {
-    const fw = Math.min(w - 16, 420);
-    frame.className = 'sbx-prev-frame mob';
+    const fw = w <= 480 ? w : Math.min(w - 16, 420);
+    frame.className = 'sbx-prev-frame mob' + (w <= 480 ? ' edge' : '');
     frame.style.width = fw + 'px';
-    frame.style.height = (h - 16) + 'px';
+    frame.style.height = (w <= 480 ? h : h - 16) + 'px';
     frame.style.transform = 'none';
-    frame.style.margin = '8px auto 0';
+    frame.style.margin = w <= 480 ? '0' : '8px auto 0';
   }
 }
 
@@ -14552,6 +14561,8 @@ async function renderMyBusinessStatus() {
       <button class="btn btn-outline btn-sm" onclick="openBusinessListEditor('faq')">${t('bz_tool_faq')} (${(b.faq || []).length})</button>
       <button class="btn btn-outline btn-sm" onclick="openBusinessClientsManager()">${t('business_my_clients_btn')}</button>
       <button class="btn btn-primary btn-sm" onclick="openBusinessPostForm()">${t('business_publish_news_btn')}</button>
+      <button class="btn btn-outline btn-sm" onclick="openLeadsManager('biz','appointment')">📅 ${t('bk_title')}</button>
+      <button class="btn btn-outline btn-sm" onclick="openLeadsManager('biz','newsletter')">📬 ${t('nl_title')}</button>
     </div>
 
     <h4 style="margin:14px 0 8px">${t('bz_sec_trust')}</h4>
@@ -15109,6 +15120,7 @@ function renderSiteNewsManager() {
     <div class="md-sec">
       <input type="text" id="sp-news-title" class="text-input" maxlength="100" placeholder="${t('site_post_title_ph')}">
       <textarea id="sp-news-body" class="text-input" rows="3" maxlength="1500" placeholder="${t('site_post_body_ph')}" style="margin-top:6px"></textarea>
+      <div class="sp-cat-row"><select id="sp-news-cat" class="text-input"><option value="">${t('sp_cat_choose')}</option>${(mySiteCache.categories || []).map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('')}</select><button type="button" class="btn btn-outline btn-sm" onclick="openSiteCategoriesManager()">+ ${t('sp_cat_title')}</button></div>
       <div id="sp-news-prev" class="sp-prev"></div>
       <label class="btn btn-outline btn-sm md-add" for="sp-news-img">📷 ${t('sp_add_photo')}</label>
       <input type="file" id="sp-news-img" class="file-input-hidden" accept="image/*" onchange="spNewsPreview(this)">
@@ -15140,7 +15152,8 @@ async function spPublishNews() {
       const prog = document.getElementById('sp-news-prog'); prog.classList.remove('hidden');
       imageUrl = (await uploadFileToStorage(file, 'sites/articles', { maxSizeMB: 10, onProgress: (p) => { document.getElementById('sp-news-fill').style.width = p + '%'; } })).url;
     }
-    posts.push({ title, body: text, category: null, imageUrl, date: new Date().toISOString() });
+    const catSel = document.getElementById('sp-news-cat'); const category = (catSel && catSel.value) || null;
+    posts.push({ title, body: text, category, imageUrl, date: new Date().toISOString() });
     await spSave('blogPosts', posts);
     showToast(t('sp_published'), 'success');
     renderSiteNewsManager();
@@ -15258,7 +15271,169 @@ function siteHubHtml(site, isPremium) {
     ${tile('👥', t('sp_team'), n('team'), "openSiteListManager('team')")}
     ${tile('🤝', t('sp_partners'), n('partners'), "openSiteListManager('partners')")}
     ${tile('🕓', t('sp_timeline'), n('timeline'), "openSiteListManager('timeline')")}
+    ${tile('🏷', t('sp_cat_title'), n('categories'), 'openSiteCategoriesManager()')}
+    ${tile('📅', t('bk_title'), t((site.booking && site.booking.enabled) ? 'lead_on' : 'lead_off'), "openLeadsManager('site','appointment')")}
+    ${tile('📬', t('nl_title'), t((site.newsletter && site.newsletter.enabled) ? 'lead_on' : 'lead_off'), "openLeadsManager('site','newsletter')")}
   </div>`;
+}
+
+/* ---- Rendez-vous, newsletter et catégories (v-pro20) ---- */
+async function leadsCall(body) {
+  const tok = await currentUser.getIdToken();
+  const r = await fetch('/api/render-site', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + tok }, body: JSON.stringify(body) });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok || !j.success) throw new Error(j.error || 'Erreur');
+  return j;
+}
+async function leadCtx(kind) {
+  const coll = kind === 'biz' ? 'businesses' : 'mini_sites';
+  let d = kind === 'biz' ? businessMyProfile : mySiteCache;
+  if (!d) {
+    const snap = await db.collection(coll).doc(currentUser.uid).get();
+    d = snap.exists ? snap.data() : null;
+    if (kind === 'biz') businessMyProfile = d; else mySiteCache = d;
+  }
+  return { coll, data: d };
+}
+let leadState = null;
+async function openLeadsManager(kind, type) {
+  if (!currentUser) return;
+  try {
+    const ctx = await leadCtx(kind);
+    if (!ctx.data) { showToast(t('bk_need_site'), 'info'); return; }
+    leadState = { kind, type, coll: ctx.coll, items: null };
+    const old = document.getElementById('lead-modal'); if (old) old.remove();
+    document.body.insertAdjacentHTML('beforeend', `
+      <div class="modal-overlay" id="lead-modal"><div class="modal md-modal">
+        <button class="modal-close" onclick="closeLeadsManager()" aria-label="Fermer">×</button>
+        <h3 style="margin:0 0 12px 46px">${type === 'appointment' ? '📅 ' + t('bk_title') : '📬 ' + t('nl_title')}</h3>
+        <div id="lead-body"></div>
+      </div></div>`);
+    renderLeadsManager();
+    const j = await leadsCall({ action: 'leads_list', kind });
+    leadState.items = (j.items || []).filter(x => x.type === type);
+    renderLeadsManager();
+  } catch (e) { showToast(friendlyErrorMessage(e), 'error'); }
+}
+function closeLeadsManager() {
+  const m = document.getElementById('lead-modal'); if (m) m.remove();
+  leadState = null;
+  if (typeof renderSiteStatusView === 'function') renderSiteStatusView();
+}
+function leadCfg() {
+  const s = leadState; if (!s) return {};
+  const d = s.kind === 'biz' ? businessMyProfile : mySiteCache;
+  return (d && d[s.type === 'appointment' ? 'booking' : 'newsletter']) || {};
+}
+function leadFmtDate(iso) { try { return new Date(iso).toLocaleDateString(undefined, { day: '2-digit', month: 'short' }); } catch (e) { return ''; } }
+function renderLeadsManager() {
+  const s = leadState, body = document.getElementById('lead-body'); if (!s || !body) return;
+  const cfg = leadCfg(), isB = s.type === 'appointment';
+  const items = s.items;
+  const head = `
+    <div class="md-sec">
+      <label class="lead-switch"><input type="checkbox" id="lead-on" ${cfg.enabled ? 'checked' : ''}><span>${t(isB ? 'bk_enable' : 'nl_enable')}</span></label>
+      <input type="text" id="lead-text" class="text-input" maxlength="${isB ? 200 : 80}" value="${escapeHtml(isB ? (cfg.note || '') : (cfg.title || ''))}" placeholder="${t(isB ? 'bk_note_ph' : 'nl_title_ph')}" style="margin-top:8px">
+      <button type="button" class="btn btn-primary md-add" onclick="saveLeadCfg()">${t('common_save')}</button>
+    </div>`;
+  let list;
+  if (items === null) list = `<p class="muted small">${t('sb_prev_loading')}</p>`;
+  else if (!items.length) list = `<p class="muted small">${t(isB ? 'bk_empty' : 'nl_empty')}</p>`;
+  else if (isB) list = items.map(x => {
+    const st = x.status || 'new';
+    const phone = String(x.phone || '').replace(/[^0-9+]/g, '');
+    const wa = String(x.phone || '').replace(/\D/g, '');
+    const msg = encodeURIComponent(`Bonjour ${x.name || ''}, votre rendez-vous du ${x.date || ''} à ${x.time || ''} est confirmé.`);
+    return `<div class="lead-card lead-${st}">
+      <div class="lead-top"><b>${escapeHtml(x.name || '')}</b><span class="lead-chip">${t('lead_st_' + st)}</span></div>
+      <div class="lead-when">📅 ${escapeHtml(x.date || '')} · ${escapeHtml(x.time || '')}${x.service ? ' · ' + escapeHtml(x.service) : ''}</div>
+      ${x.message ? `<p class="lead-msg">${escapeHtml(x.message)}</p>` : ''}
+      <div class="lead-actions">
+        ${st === 'new' ? `<button type="button" onclick="leadSetStatus('${escapeForJs(x.id)}','confirmed')">✓ ${t('lead_st_confirmed')}</button>` : ''}
+        ${st === 'confirmed' ? `<button type="button" onclick="leadSetStatus('${escapeForJs(x.id)}','done')">✔ ${t('lead_st_done')}</button>` : ''}
+        ${st !== 'cancelled' && st !== 'done' ? `<button type="button" onclick="leadSetStatus('${escapeForJs(x.id)}','cancelled')">✕ ${t('lead_st_cancelled')}</button>` : ''}
+        ${phone ? `<a href="tel:${escapeHtml(phone)}">📞</a>` : ''}
+        ${wa ? `<a href="https://wa.me/${escapeHtml(wa)}?text=${escapeHtml(msg)}" target="_blank" rel="noopener">💬</a>` : ''}
+        <button type="button" onclick="leadDelete('${escapeForJs(x.id)}')" aria-label="${t('common_delete')}">🗑</button>
+      </div></div>`;
+  }).join('');
+  else list = `<div class="lead-bar"><button type="button" class="btn btn-outline btn-sm" onclick="leadCopyEmails()">📋 ${t('nl_copy')}</button><button type="button" class="btn btn-outline btn-sm" onclick="leadExportCsv()">⬇ CSV</button><button type="button" class="btn btn-primary btn-sm" onclick="leadMailAll()">✉ ${t('nl_mail')}</button></div>` +
+    items.map(x => `<div class="md-item"><span class="md-thumb md-ico">✉</span><div class="md-meta"><b>${escapeHtml(x.email || '')}</b><small>${escapeHtml(leadFmtDate(x.createdAt))}</small></div><button type="button" class="md-btn md-del" onclick="leadDelete('${escapeForJs(x.id)}')" aria-label="${t('common_delete')}">×</button></div>`).join('');
+  body.innerHTML = head + `<h4 style="margin:14px 0 8px">${t(isB ? 'bk_inbox' : 'nl_subs')}${items ? ' (' + items.length + ')' : ''}</h4>` + list;
+}
+async function saveLeadCfg() {
+  const s = leadState; if (!s) return;
+  const isB = s.type === 'appointment';
+  const enabled = !!document.getElementById('lead-on').checked;
+  const text = document.getElementById('lead-text').value.trim().slice(0, isB ? 200 : 80);
+  const field = isB ? 'booking' : 'newsletter';
+  const value = isB ? { enabled, note: text } : { enabled, title: text };
+  try {
+    await db.collection(s.coll).doc(currentUser.uid).update({ [field]: value, updatedAt: new Date().toISOString() });
+    if (s.kind === 'biz') businessMyProfile[field] = value; else mySiteCache[field] = value;
+    showToast(t('sp_published'), 'success');
+  } catch (e) { showToast(friendlyErrorMessage(e), 'error'); }
+}
+async function leadSetStatus(id, status) {
+  try {
+    await leadsCall({ action: 'leads_update', leadId: id, status });
+    const it = leadState.items.find(x => x.id === id); if (it) it.status = status;
+    renderLeadsManager();
+  } catch (e) { showToast(friendlyErrorMessage(e), 'error'); }
+}
+async function leadDelete(id) {
+  if (!confirm(t('md_confirm_delete'))) return;
+  try {
+    await leadsCall({ action: 'leads_update', leadId: id, op: 'delete' });
+    leadState.items = leadState.items.filter(x => x.id !== id);
+    renderLeadsManager();
+  } catch (e) { showToast(friendlyErrorMessage(e), 'error'); }
+}
+function leadEmails() { return ((leadState && leadState.items) || []).map(x => x.email).filter(Boolean); }
+function leadCopyEmails() {
+  const txt = leadEmails().join(', ');
+  if (!txt) return;
+  (navigator.clipboard ? navigator.clipboard.writeText(txt) : Promise.reject()).then(() => showToast(t('nl_copied'), 'success')).catch(() => showToast(txt, 'info'));
+}
+function leadMailAll() { const e = leadEmails(); if (e.length) location.href = 'mailto:?bcc=' + encodeURIComponent(e.join(',')); }
+function leadExportCsv() {
+  const rows = ['email,date'].concat(((leadState && leadState.items) || []).map(x => `${x.email},${(x.createdAt || '').slice(0, 10)}`));
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([rows.join('\n')], { type: 'text/csv' }));
+  a.download = 'abonnes.csv'; document.body.appendChild(a); a.click(); a.remove();
+}
+
+/* Catégories d'articles (Pack Pro) : à créer ici, puis à choisir à chaque publication */
+function openSiteCategoriesManager() {
+  if (!mySiteCache) return;
+  spModal = 'cats'; spShell(t('sp_cat_title'), '');
+  renderSiteCategoriesManager();
+}
+function renderSiteCategoriesManager() {
+  const body = document.getElementById('sp-body'); if (!body) return;
+  const cats = Array.isArray(mySiteCache.categories) ? mySiteCache.categories : [];
+  body.innerHTML = `
+    <p class="muted small" style="margin:0 0 10px">${t('sp_cat_hint')}</p>
+    <div class="md-sec">
+      <input type="text" id="sp-cat-new" class="text-input" maxlength="30" placeholder="${t('sp_cat_add_ph')}">
+      <button type="button" class="btn btn-primary md-add" onclick="spAddCategory()">${t('md_add')}</button>
+    </div>
+    <h4 style="margin:14px 0 8px">${t('sp_cat_title')} (${cats.length}/${SITE_CATEGORY_LIMIT})</h4>
+    ${cats.length ? cats.map((c, i) => `<div class="md-item"><span class="md-thumb md-ico">🏷</span><div class="md-meta"><b>${escapeHtml(c)}</b></div><button type="button" class="md-btn md-del" onclick="spDeleteCategory(${i})" aria-label="${t('common_delete')}">×</button></div>`).join('') : `<p class="muted small">${t('sp_cat_none')}</p>`}`;
+}
+async function spAddCategory() {
+  const inp = document.getElementById('sp-cat-new'); const v = (inp.value || '').trim().slice(0, 30);
+  if (!v) return;
+  if (!siteIsPremiumActive(mySiteCache)) { if (confirm(t('sp_cat_prem'))) { spClose(); purchaseSitePremium(); } return; }
+  const cats = (mySiteCache.categories || []).slice();
+  if (cats.some(c => c.toLowerCase() === v.toLowerCase())) { showToast(t('sp_cat_exists'), 'info'); return; }
+  if (cats.length >= SITE_CATEGORY_LIMIT) { showToast(t('sp_cat_max'), 'info'); return; }
+  cats.push(v);
+  try { await spSave('categories', cats); renderSiteCategoriesManager(); } catch (e) { showToast(friendlyErrorMessage(e), 'error'); }
+}
+async function spDeleteCategory(i) {
+  const cats = (mySiteCache.categories || []).slice(); cats.splice(i, 1);
+  try { await spSave('categories', cats); renderSiteCategoriesManager(); } catch (e) { showToast(friendlyErrorMessage(e), 'error'); }
 }
 
 /* ---- Catalogue (produits/services) ---- */
@@ -17241,6 +17416,8 @@ function openNotifRow(id, isAnnouncement) {
       const pubId = params.get('open');
       const tab = params.get('openTab');
       const profileUid = params.get('profile');
+      const leadsKind = params.get('leads');
+      if (leadsKind) { openLeadsManager(leadsKind === 'biz' ? 'biz' : 'site', 'appointment'); return; }
       if (pubId) { openPostDetail(pubId); return; }
       if (profileUid) { openSharedProfile(profileUid); return; }
       if (tab && document.getElementById('dash-tab-' + tab)) { showDashTab(tab); return; }

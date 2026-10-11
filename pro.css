@@ -518,3 +518,23 @@ html[data-theme="dark"] .pay-card-help{background:rgba(59,130,246,.12);color:#bf
 .sp-tile{padding:11px 12px;border-radius:13px}
 .sp-tile b{font-size:.82rem}.sp-tile small{font-size:.7rem}
 .sp-hub{gap:8px}
+
+.sbx-prev-frame.edge{border-radius:0;box-shadow:none}
+.sbx-prev.full .sbx-prev-top,.sbx-prev.full .sbx-prev-models,.sbx-prev.full .sbx-prev-bottom{display:none}
+.sbx-prev.full .sbx-prev-frame.mob{width:100%!important;max-width:none;border-radius:0;margin:0!important;box-shadow:none}
+
+/* ===== 11. v-pro20 : rendez-vous, newsletter, catégories ===== */
+.lead-switch{display:flex;align-items:center;gap:10px;font-weight:700;font-size:.86rem}
+.lead-switch input{width:18px;height:18px}
+.lead-card{border:1px solid #e3e8f3;border-radius:14px;padding:11px 12px;margin-bottom:8px;background:#fff}
+html[data-theme="dark"] .lead-card{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.12)}
+.lead-top{display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:.9rem}
+.lead-chip{font-size:.66rem;font-weight:800;padding:3px 8px;border-radius:999px;background:#eaf1ff;color:#1d4ed8}
+.lead-confirmed .lead-chip{background:#e6f7ec;color:#157a3c}.lead-done .lead-chip{background:#eef0f4;color:#566}.lead-cancelled .lead-chip{background:#fdecec;color:#b42318}
+.lead-when{font-size:.8rem;margin-top:4px;color:#475069}
+html[data-theme="dark"] .lead-when{color:#b8c4dc}
+.lead-msg{margin:6px 0 0;font-size:.8rem;color:#6b7790}
+.lead-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.lead-actions button,.lead-actions a{border:1px solid #d9e2f2;background:transparent;color:inherit;border-radius:9px;padding:6px 10px;font-size:.76rem;font-weight:700;text-decoration:none;cursor:pointer;font-family:inherit}
+.lead-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.sp-cat-row{display:flex;gap:6px;margin-top:6px}.sp-cat-row select{flex:1;min-width:0}

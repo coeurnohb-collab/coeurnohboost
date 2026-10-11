@@ -372,6 +372,8 @@
     if (!cu()) return;
     try {
       var u = new URL(rel || '/', location.origin), p = u.searchParams;
+      var leads = p.get('leads');
+      if (leads && typeof openLeadsManager === 'function') { openLeadsManager(leads === 'biz' ? 'biz' : 'site', 'appointment'); return; }
       var open = p.get('open'), prof = p.get('profile'), loc = p.get('loc'), tab = p.get('openTab') || p.get('tab');
       if (open && typeof openPostDetail === 'function') { openPostDetail(open); return; }
       if (prof && typeof openSharedProfile === 'function') { openSharedProfile(prof); return; }

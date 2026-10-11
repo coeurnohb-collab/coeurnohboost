@@ -1,4 +1,4 @@
-// sw.js — Service Worker de Coeurnoh Universe (v14).
+// sw.js — Service Worker de Coeurnoh Universe (v15).
 // 1) Rend le site installable (PWA / Google Play via TWA) + copie de secours hors-ligne.
 // 2) Affiche les notifications push MÊME QUAND L'APP EST FERMÉE, comme Facebook /
 //    WhatsApp / TikTok : icône, grande image, boutons « Ouvrir / Plus tard »,
@@ -77,8 +77,8 @@ async function showRichNotification({ title, body, category, url, tag, image, ic
     tag,
     renotify: true, // « tag » est toujours défini ci-dessus : obligatoire avec renotify
     timestamp: Date.now(),
-    vibrate: urgent ? [400, 150, 400, 150, 400, 150, 800] : [180, 80, 180],
-    requireInteraction: urgent,
+    vibrate: urgent ? [400, 150, 400, 150, 400, 150, 800] : [300, 120, 300, 120, 500],
+    requireInteraction: true, // reste affichée (écran verrouillé) jusqu'à ce qu'on la touche
     silent: false,
     data: { url, count, category },
     actions: urgent
@@ -120,7 +120,7 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
-const CACHE_NAME = 'coeurnohboost-v15';
+const CACHE_NAME = 'coeurnohboost-v16';
 const APP_SHELL = [
   '/',
   '/index.html',
