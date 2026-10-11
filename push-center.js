@@ -105,6 +105,10 @@
       '#cn-push-card .st{font-weight:700;margin-bottom:4px}' +
       '#cn-push-card .hp{font-size:.84rem;opacity:.8;margin:4px 0 8px;line-height:1.4}' +
       '#cn-push-card .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}' +
+      '#cn-notif-strip{display:flex;align-items:center;gap:10px;margin:0 0 10px;padding:10px 12px;border-radius:14px;background:rgba(29,79,168,.09);border:1px solid rgba(29,79,168,.22)}' +
+      '#cn-notif-strip .si{width:20px;height:20px;flex:none;color:#1d4fa8}#cn-notif-strip .si svg{width:100%;height:100%}' +
+      '#cn-notif-strip p{margin:0;flex:1;font-size:.8rem;line-height:1.35}' +
+      '#cn-notif-strip button{flex:none;font:inherit;font-size:.78rem;font-weight:700;padding:7px 12px;border:0;border-radius:999px;background:#1d4fa8;color:#fff;cursor:pointer}' +
       '#cn-notif-tools{display:flex;gap:8px;align-items:center;overflow-x:auto;padding:2px 0 12px;-webkit-overflow-scrolling:touch}' +
       '#cn-notif-tools .chip{flex:0 0 auto;font:inherit;font-size:.85rem;font-weight:700;padding:7px 14px;border-radius:999px;border:1px solid rgba(120,130,150,.35);background:transparent;color:inherit;cursor:pointer}' +
       '#cn-notif-tools .chip.on{background:var(--green,#1f8a4c);border-color:var(--green,#1f8a4c);color:#fff}' +
@@ -278,7 +282,7 @@
   function hideAsk() { var el = document.getElementById('cn-push-ask'); if (el) { el.classList.remove('on'); setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 400); } }
   function snooze() {
     var n = parseInt(ls('cn_push_dismiss') || '0', 10) + 1; ls('cn_push_dismiss', String(n));
-    ls('cn_push_snooze', String(Date.now() + (n >= 3 ? 14 : 3) * DAY));
+    ls('cn_push_snooze', String(Date.now() + (n >= 3 ? 7 : 1) * DAY));
   }
   function showAsk(ios) {
     if (document.getElementById('cn-push-ask')) return;
@@ -448,6 +452,27 @@
       });
     }
     drawTools();
+    drawStrip(bar);
+  }
+  // Bandeau permanent dans le centre de notifications : tant que les notifications ne sont pas
+  // actives sur cet appareil, la personne peut les activer en un geste (la carte d'invitation, elle,
+  // est repoussee de 1 jour apres « Plus tard »).
+  function drawStrip(bar) {
+    var st = deviceState(), strip = document.getElementById('cn-notif-strip');
+    var need = st === 'default' || st === 'denied' || (st === 'granted' && !(cu() && ls(tkKey(cu().uid))));
+    if (!need) { if (strip && strip.parentNode) strip.parentNode.removeChild(strip); return; }
+    if (!strip) {
+      strip = document.createElement('div'); strip.id = 'cn-notif-strip';
+      bar.parentNode.insertBefore(strip, bar);
+      strip.addEventListener('click', function (e) {
+        var b = e.target.closest('button'); if (!b) return;
+        if (b.getAttribute('data-a') === 'fix') { b.disabled = true; syncToken().catch(function () {}).then(function () { drawStrip(bar); }); }
+        else enable();
+      });
+    }
+    var txt = st === 'denied' ? tx('cardden') + ' — ' + tx('denhelp') : (st === 'granted' ? tx2('notreg') : tx('ptext'));
+    var btn = st === 'denied' ? '' : '<button type="button" data-a="' + (st === 'granted' ? 'fix' : 'on') + '">' + esc(st === 'granted' ? tx2('fix') : tx('enable')) + '</button>';
+    strip.innerHTML = '<span class="si">' + BELL + '</span><p>' + esc(txt) + '</p>' + btn;
   }
   function drawTools() {
     var bar = document.getElementById('cn-notif-tools'); if (!bar) return;

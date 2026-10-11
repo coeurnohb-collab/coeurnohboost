@@ -181,17 +181,4 @@ body.cn-banner-on #toast-container { top: calc(max(12px, env(safe-area-inset-top
 .contact-icon .ico { width: 1.2em; height: 1.2em; color: #fff; }
 
 
-/* ---------- 14. Fond d'ambiance de l'accueil : le logo se voit clairement derrière les cartes ---------- */
-body:has(#view-dashboard:not(.hidden))::before {
-  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
-  background:
-    radial-gradient(60% 40% at 50% 28%, rgba(243,156,31,.16), transparent 70%),
-    url(logo-mark.png) center 32% / min(92vw, 520px) auto no-repeat;
-  opacity: .30;
-}
-html[data-theme="dark"] body:has(#view-dashboard:not(.hidden))::before {
-  background:
-    radial-gradient(60% 40% at 50% 28%, rgba(243,156,31,.18), transparent 70%),
-    url(logo-mark-white.png) center 32% / min(92vw, 520px) auto no-repeat;
-  opacity: .22;
-}
+/* ---------- 14. Accueil : fond uni, sans filigrane ---------- */

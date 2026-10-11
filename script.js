@@ -1232,7 +1232,7 @@ function renderPayMethodTabs() {
       <span class="cn-tab-logos">${m.logos}</span>
       <span class="cn-tab-label">${m.label}</span>
     </button>
-  `).join('');
+  `).join('') + (payMethod === 'card' ? `<p class="pay-card-help">${escapeHtml(t('pay_card_help'))}</p>` : '');
 }
 function selectPayMethod(m) {
   payMethod = m;
@@ -12808,6 +12808,8 @@ function openSitePreview(opts) {
   window.addEventListener('resize', sitePreviewLayout);
   sitePreviewRefresh();
 }
+
+window.addEventListener('message', (e) => { if (e && e.data && e.data.cnPreviewBack && document.getElementById('site-preview-screen')) closeSitePreview(); });
 
 function closeSitePreview() {
   const el = document.getElementById('site-preview-screen');
