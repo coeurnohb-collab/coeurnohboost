@@ -619,6 +619,7 @@
     // ---- Services (grille du hub) ----
     { id: 'pro', grp: 'service', sec: 'business', tk: 'svc_pro', ic: 'wrench', c: ['#ff922b', '#e8590c'], b: 'free', fn: 'openServiceRequestScreen', kw: 'professionnel artisan freelance devis prestataire service provider quote hire' },
     { id: 'site', grp: 'service', sec: 'business', tk: 'svc_site', ic: 'globe', c: ['#4dabf7', '#1971c2'], b: 'premium', fn: 'openSiteBuilderScreen', kw: 'site web mini site vitrine page website landing creer' },
+    { id: 'api', grp: 'service', sec: 'business', tk: 'svc_api', ic: 'file', c: ['#20c997', '#0b7285'], b: 'free', fn: 'openResellerApiScreen', kw: 'api revendeur reseller panel smm cle key developpeur developer connecter' },
     { id: 'business', grp: 'service', sec: 'business', tk: 'svc_business', ic: 'building', c: ['#9775fa', '#6741d9'], b: 'pro', fn: 'openBusinessScreen', kw: 'entreprise societe commerce catalogue coupon clients company shop crm' },
     { id: 'invoices', grp: 'service', sec: 'business', tk: 'svc_invoices', ic: 'file', c: ['#38d9a9', '#0ca678'], b: 'free', fn: 'openInvoiceScreen', kw: 'facture recu devis invoice receipt pdf' },
     { id: 'jobs', grp: 'service', sec: 'jobs', tk: 'svc_jobs', ic: 'briefcase', c: ['#ffd43b', '#f08c00'], b: 'free', fn: 'openJobsScreen', kw: 'emploi travail freelance offre cv job work hiring recrutement' },

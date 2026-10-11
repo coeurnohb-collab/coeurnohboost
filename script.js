@@ -12520,7 +12520,7 @@ function renderSiteStatusView() {
   if (!mySiteCache) {
     statusEl.innerHTML = `
       <p class="muted small" style="margin-bottom:14px">${t('site_create_intro')}</p>
-      <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="openSiteForm()">${t('site_create_btn')}</button>`;
+      <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="openSiteTypeGate()">${t('site_create_btn')}</button>`;
     return;
   }
   const site = mySiteCache;
@@ -12648,7 +12648,7 @@ async function purchaseSitePremium() {
    en mode POST) : ce que le propriétaire voit ici = ce que ses clients verront.
    Il fonctionne aussi pour un brouillon non publié et peut simuler le Pack Pro
    (rien n'est débité) pour montrer, avant paiement, ce que donne chaque modèle. */
-const SITE_TYPES = ['entreprise', 'boutique', 'restaurant', 'portfolio'];
+const SITE_TYPES = ['smm', 'entreprise', 'boutique', 'restaurant', 'portfolio', 'musique', 'education', 'sante', 'immobilier', 'evenement', 'association', 'beaute', 'media', 'agence'];
 const SITE_SOCIALS = [
   ['facebook', 'site_field_facebook', 'https://facebook.com/...'],
   ['instagram', 'site_field_instagram', 'https://instagram.com/...'],
@@ -12661,8 +12661,61 @@ const SITE_TYPE_ICONS = {
   entreprise: '<path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h2M13 9h2M9 13h2M13 13h2M9 17h6"/>',
   boutique: '<path d="M4 7h16l-1 13H5L4 7zM8 7a4 4 0 0 1 8 0"/>',
   restaurant: '<path d="M7 3v8M5 3v5a2 2 0 0 0 4 0V3M7 11v10M17 3c-2 2-3 5-3 8h3v10"/>',
-  portfolio: '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M3 13h18"/>'
+  portfolio: '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M3 13h18"/>',
+  smm: '<path d="M3 20h18M6 20v-6M11 20V9M16 20v-9M21 20V5"/><path d="M4 9l5-4 4 3 7-5"/>',
+  musique: '<path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/>',
+  education: '<path d="M2 9l10-5 10 5-10 5L2 9z"/><path d="M6 11.5V16c0 1.5 3 3 6 3s6-1.5 6-3v-4.5"/>',
+  sante: '<path d="M12 21s-8-4.6-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 6.4-8 11-8 11z"/><path d="M12 9v5M9.5 11.5h5"/>',
+  immobilier: '<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10M10 20v-6h4v6"/>',
+  evenement: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M12 13l1 2 2 .3-1.5 1.4.4 2.1-1.9-1-1.9 1 .4-2.1L9 15.3l2-.3 1-2z"/>',
+  association: '<circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M15 14.5c3 0 6 1.5 6 5"/>',
+  beaute: '<path d="M12 3l1.8 4.7L18.5 9l-4.7 1.8L12 15.5l-1.8-4.7L5.5 9l4.7-1.3L12 3zM18 16l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8.8-2z"/>',
+  media: '<path d="M4 4h13v16H6a2 2 0 0 1-2-2V4zM17 8h3v10a2 2 0 0 1-2 2h-1M8 8h5M8 12h5M8 16h3"/>',
+  agence: '<path d="M3 11v3a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1zM15 9a4 4 0 0 1 0 6M18 6.5a8 8 0 0 1 0 11"/>'
 };
+/* Textes des marques de site : [nom, description, titre de la liste, exemple] par langue */
+const SITE_TYPE_TEXT = {
+  smm: { fr: ['Panel de croissance (SMM)', 'Vendez abonnés, likes, vues', 'Vos services (prix pour 1000)', 'Ex : Abonnés Instagram'], en: ['Growth panel (SMM)', 'Sell followers, likes, views', 'Your services (price per 1000)', 'Eg: Instagram followers'], es: ['Panel de crecimiento (SMM)', 'Vende seguidores, likes, vistas', 'Tus servicios (precio por 1000)', 'Ej: Seguidores de Instagram'], it: ['Pannello crescita (SMM)', 'Vendi follower, like, visualizzazioni', 'I tuoi servizi (prezzo per 1000)', 'Es: Follower Instagram'], pt: ['Painel de crescimento (SMM)', 'Venda seguidores, curtidas, views', 'Seus serviços (preço por 1000)', 'Ex: Seguidores do Instagram'] },
+  entreprise: { fr: ['Entreprise', 'Services, devis, contact', 'Vos services', 'Ex : Installation électrique'], en: ['Business', 'Services, quotes, contact', 'Your services', 'Eg: Electrical installation'], es: ['Empresa', 'Servicios, presupuestos, contacto', 'Tus servicios', 'Ej: Instalación eléctrica'], it: ['Azienda', 'Servizi, preventivi, contatti', 'I tuoi servizi', 'Es: Impianti elettrici'], pt: ['Empresa', 'Serviços, orçamentos, contato', 'Seus serviços', 'Ex: Instalação elétrica'] },
+  boutique: { fr: ['Boutique', 'Produits et commandes WhatsApp', 'Vos produits', 'Ex : Robe en wax'], en: ['Shop', 'Products and WhatsApp orders', 'Your products', 'Eg: Wax dress'], es: ['Tienda', 'Productos y pedidos por WhatsApp', 'Tus productos', 'Ej: Vestido wax'], it: ['Negozio', 'Prodotti e ordini WhatsApp', 'I tuoi prodotti', 'Es: Abito wax'], pt: ['Loja', 'Produtos e pedidos por WhatsApp', 'Seus produtos', 'Ex: Vestido wax'] },
+  restaurant: { fr: ['Restaurant / Hôtel', 'Menu, réservation, ambiance', 'Votre menu', 'Ex : Poulet braisé'], en: ['Restaurant / Hotel', 'Menu, booking, atmosphere', 'Your menu', 'Eg: Grilled chicken'], es: ['Restaurante / Hotel', 'Menú, reservas, ambiente', 'Tu menú', 'Ej: Pollo a la brasa'], it: ['Ristorante / Hotel', 'Menu, prenotazioni, atmosfera', 'Il tuo menu', 'Es: Pollo alla brace'], pt: ['Restaurante / Hotel', 'Cardápio, reservas, ambiente', 'Seu cardápio', 'Ex: Frango grelhado'] },
+  portfolio: { fr: ['Portfolio', 'Réalisations et profil personnel', 'Vos prestations', 'Ex : Création de logo'], en: ['Portfolio', 'Work and personal profile', 'Your services', 'Eg: Logo design'], es: ['Portafolio', 'Trabajos y perfil personal', 'Tus servicios', 'Ej: Diseño de logo'], it: ['Portfolio', 'Lavori e profilo personale', 'I tuoi servizi', 'Es: Design del logo'], pt: ['Portfólio', 'Trabalhos e perfil pessoal', 'Seus serviços', 'Ex: Criação de logo'] },
+  musique: { fr: ['Musique / Artiste', 'Titres, concerts, booking', 'Vos offres (concert, studio…)', 'Ex : Concert privé'], en: ['Music / Artist', 'Tracks, shows, booking', 'Your offers (show, studio…)', 'Eg: Private show'], es: ['Música / Artista', 'Temas, conciertos, contratación', 'Tus ofertas (concierto, estudio…)', 'Ej: Concierto privado'], it: ['Musica / Artista', 'Brani, concerti, booking', 'Le tue offerte (concerto, studio…)', 'Es: Concerto privato'], pt: ['Música / Artista', 'Faixas, shows, contratação', 'Suas ofertas (show, estúdio…)', 'Ex: Show privado'] },
+  education: { fr: ['Éducation / Formation', 'Cours, formations, inscriptions', 'Vos formations', 'Ex : Formation en marketing'], en: ['Education / Training', 'Courses, training, enrolment', 'Your courses', 'Eg: Marketing course'], es: ['Educación / Formación', 'Cursos, formación, inscripciones', 'Tus cursos', 'Ej: Curso de marketing'], it: ['Istruzione / Formazione', 'Corsi, formazione, iscrizioni', 'I tuoi corsi', 'Es: Corso di marketing'], pt: ['Educação / Formação', 'Cursos, treinamentos, inscrições', 'Seus cursos', 'Ex: Curso de marketing'] },
+  sante: { fr: ['Santé / Clinique', 'Soins, rendez-vous, équipe', 'Vos soins et consultations', 'Ex : Consultation générale'], en: ['Health / Clinic', 'Care, appointments, team', 'Your care services', 'Eg: General consultation'], es: ['Salud / Clínica', 'Atención, citas, equipo', 'Tus servicios de salud', 'Ej: Consulta general'], it: ['Salute / Clinica', 'Cure, appuntamenti, team', 'I tuoi servizi sanitari', 'Es: Visita generale'], pt: ['Saúde / Clínica', 'Cuidados, consultas, equipe', 'Seus serviços de saúde', 'Ex: Consulta geral'] },
+  immobilier: { fr: ['Immobilier', 'Biens à vendre ou à louer', 'Vos biens', 'Ex : Appartement 3 pièces'], en: ['Real estate', 'Properties for sale or rent', 'Your properties', 'Eg: 3-room apartment'], es: ['Inmobiliaria', 'Propiedades en venta o alquiler', 'Tus propiedades', 'Ej: Apartamento de 3 habitaciones'], it: ['Immobiliare', 'Immobili in vendita o affitto', 'I tuoi immobili', 'Es: Appartamento 3 locali'], pt: ['Imobiliária', 'Imóveis à venda ou aluguel', 'Seus imóveis', 'Ex: Apartamento de 3 quartos'] },
+  evenement: { fr: ['Événements', 'Mariage, salle, billetterie', 'Vos formules', 'Ex : Pack mariage'], en: ['Events', 'Weddings, venue, tickets', 'Your packages', 'Eg: Wedding pack'], es: ['Eventos', 'Bodas, salón, entradas', 'Tus paquetes', 'Ej: Pack de boda'], it: ['Eventi', 'Matrimoni, sala, biglietti', 'I tuoi pacchetti', 'Es: Pacchetto matrimonio'], pt: ['Eventos', 'Casamentos, salão, ingressos', 'Seus pacotes', 'Ex: Pacote de casamento'] },
+  association: { fr: ['Église / Association', 'Cultes, dons, activités', 'Vos activités', 'Ex : Culte du dimanche'], en: ['Church / Association', 'Services, donations, activities', 'Your activities', 'Eg: Sunday service'], es: ['Iglesia / Asociación', 'Cultos, donaciones, actividades', 'Tus actividades', 'Ej: Culto dominical'], it: ['Chiesa / Associazione', 'Funzioni, donazioni, attività', 'Le tue attività', 'Es: Funzione domenicale'], pt: ['Igreja / Associação', 'Cultos, doações, atividades', 'Suas atividades', 'Ex: Culto de domingo'] },
+  beaute: { fr: ['Beauté / Coiffure', 'Salon, soins, rendez-vous', 'Vos prestations', 'Ex : Tresses africaines'], en: ['Beauty / Hair', 'Salon, care, appointments', 'Your services', 'Eg: Braids'], es: ['Belleza / Peluquería', 'Salón, cuidados, citas', 'Tus servicios', 'Ej: Trenzas'], it: ['Bellezza / Parrucchiere', 'Salone, trattamenti, appuntamenti', 'I tuoi servizi', 'Es: Treccine'], pt: ['Beleza / Cabelo', 'Salão, cuidados, agendamentos', 'Seus serviços', 'Ex: Tranças'] },
+  media: { fr: ['Blog / Média', 'Actualités et articles', 'Vos rubriques et offres', 'Ex : Publicité sur le site'], en: ['Blog / Media', 'News and articles', 'Your sections and offers', 'Eg: Ad placement'], es: ['Blog / Medio', 'Noticias y artículos', 'Tus secciones y ofertas', 'Ej: Publicidad en el sitio'], it: ['Blog / Media', 'Notizie e articoli', 'Le tue rubriche e offerte', 'Es: Spazio pubblicitario'], pt: ['Blog / Mídia', 'Notícias e artigos', 'Suas seções e ofertas', 'Ex: Publicidade no site'] },
+  agence: { fr: ['Agence / Studio', 'Marketing, design, digital', 'Vos offres', 'Ex : Gestion de page'], en: ['Agency / Studio', 'Marketing, design, digital', 'Your offers', 'Eg: Page management'], es: ['Agencia / Estudio', 'Marketing, diseño, digital', 'Tus ofertas', 'Ej: Gestión de página'], it: ['Agenzia / Studio', 'Marketing, design, digitale', 'Le tue offerte', 'Es: Gestione pagina'], pt: ['Agência / Estúdio', 'Marketing, design, digital', 'Suas ofertas', 'Ex: Gestão de página'] }
+};
+function siteTypeText(ty, idx) {
+  const row = SITE_TYPE_TEXT[ty] || SITE_TYPE_TEXT.entreprise;
+  return (row[currentLang] || row.fr)[idx];
+}
+let pendingSiteType = null;
+function openSiteTypeGate() {
+  if (!currentUser) { openAuth('register'); return; }
+  const old = document.getElementById('site-gate-modal'); if (old) old.remove();
+  document.body.insertAdjacentHTML('beforeend', `
+    <div class="modal-overlay" id="site-gate-modal"><div class="modal md-modal">
+      <button class="modal-close" onclick="document.getElementById('site-gate-modal').remove()" aria-label="Fermer">×</button>
+      <h3 style="margin:0 0 6px 46px">${t('gate_title')}</h3>
+      <p class="muted small" style="margin:0 0 10px">${t('gate_sub')}</p>
+      <div class="sbx-types">${SITE_TYPES.map(ty => `
+        <button type="button" class="sbx-type${ty === 'smm' ? ' sbx-type-hot' : ''}" onclick="chooseSiteType('${ty}')">
+          ${siteTypeIcon(ty)}<b>${escapeHtml(siteTypeText(ty, 0))}</b><small>${escapeHtml(siteTypeText(ty, 1))}</small>
+        </button>`).join('')}</div>
+      <p class="sbx-prev-note" style="margin-top:12px">${t('gate_note')}</p>
+    </div></div>`);
+}
+function chooseSiteType(ty) {
+  if (SITE_TYPES.indexOf(ty) < 0) return;
+  pendingSiteType = ty;
+  const m = document.getElementById('site-gate-modal'); if (m) m.remove();
+  openSiteForm();
+}
 function siteTypeIcon(type, size) {
   return `<svg viewBox="0 0 24 24" width="${size || 22}" height="${size || 22}" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${SITE_TYPE_ICONS[type] || SITE_TYPE_ICONS.entreprise}</svg>`;
 }
@@ -12678,7 +12731,7 @@ function renderSiteTypePicker(selected) {
     <input type="hidden" id="site-type" value="${selected}">
     <div class="sbx-types" id="site-type-picker">${SITE_TYPES.map(ty => `
       <button type="button" class="sbx-type${ty === selected ? ' on' : ''}" data-type="${ty}" onclick="selectSiteType('${ty}')">
-        ${siteTypeIcon(ty)}<b>${t('sb_type_' + ty)}</b><small>${t('sb_type_' + ty + '_d')}</small>
+        ${siteTypeIcon(ty)}<b>${escapeHtml(siteTypeText(ty, 0))}</b><small>${escapeHtml(siteTypeText(ty, 1))}</small>
       </button>`).join('')}</div>`;
 }
 function selectSiteType(ty) {
@@ -12687,8 +12740,9 @@ function selectSiteType(ty) {
   input.value = ty;
   document.querySelectorAll('#site-type-picker .sbx-type').forEach(b => b.classList.toggle('on', b.dataset.type === ty));
   const label = document.getElementById('site-items-label');
-  if (label) label.textContent = t('sb_items_' + ty);
-  document.querySelectorAll('#site-service-rows .site-service-name').forEach(inp => { inp.placeholder = t('sb_item_ph_' + ty); });
+  if (label) label.textContent = siteTypeText(ty, 2);
+  const imp = document.getElementById('site-smm-import'); if (imp) imp.classList.toggle('hidden', ty !== 'smm');
+  document.querySelectorAll('#site-service-rows .site-service-name').forEach(inp => { inp.placeholder = siteTypeText(ty, 3); });
 }
 
 let sitePreviewState = null;
@@ -12957,7 +13011,7 @@ function openSiteSettingsScreen() {
           <div class="sbx-hero-ic">${siteTypeIcon(siteTypeOf(site), 26)}</div>
           <div style="min-width:0">
             <strong>${escapeHtml(site.businessName || t('site_default_name'))}</strong>
-            <small>${t('sb_type_' + siteTypeOf(site))} · ${t('site_template_' + (site.template || 'classique'))}</small>
+            <small>${escapeHtml(siteTypeText(siteTypeOf(site), 0))} · ${t('site_template_' + (site.template || 'classique'))}</small>
           </div>
           <span class="sbx-pill ${isPublished ? 'ok' : 'off'}" id="ss-pill">${isPublished ? t('site_status_published') : t('site_status_draft')}</span>
         </div>
@@ -13281,6 +13335,8 @@ function openSiteForm() {
   if (document.getElementById('site-form-modal')) return;
   editingSiteExisting = mySiteCache;
   const s = editingSiteExisting || {};
+  const chosenType = (pendingSiteType && !editingSiteExisting) ? pendingSiteType : siteTypeOf(s);
+  pendingSiteType = null;
   const isPremium = siteIsPremiumActive(s);
   const photoLimit = isPremium ? SITE_PREMIUM_PHOTO_LIMIT : SITE_FREE_PHOTO_LIMIT;
   const blogLimit = isPremium ? SITE_PREMIUM_BLOG_LIMIT : SITE_FREE_BLOG_LIMIT;
@@ -13304,7 +13360,7 @@ function openSiteForm() {
         <div class="modal-error hidden" id="site-form-error"></div>
         ${!editingSiteExisting ? `<p class="sbx-prev-note" style="margin:0 0 14px">${t('sb_pub_pro_note')}</p>` : ''}
 
-        ${renderSiteTypePicker(siteTypeOf(s))}
+        ${renderSiteTypePicker(chosenType)}
         <div class="field" style="margin-top:14px">
           <label for="site-slug">${t('site_field_slug_label')}</label>
           <div class="muted small" style="margin-bottom:4px;word-break:break-all">${escapeHtml(window.location.origin)}/s/<span id="site-slug-preview">${escapeHtml(s.slug || '')}</span></div>
@@ -13366,7 +13422,11 @@ function openSiteForm() {
         <p class="muted small" style="margin:-4px 0 8px">${t('sb_stats_hint')}</p>
         <div id="site-stat-rows">${[0, 1, 2, 3].map(i => { const st = (Array.isArray(s.stats) && s.stats[i]) || {}; return `<div class="sbx-stat-row"><input type="text" class="text-input site-stat-value" maxlength="12" placeholder="${t('sb_stat_value_ph')}" value="${escapeHtml(st.value || '')}"><input type="text" class="text-input site-stat-label" maxlength="30" placeholder="${t('sb_stat_label_ph')}" value="${escapeHtml(st.label || '')}"></div>`; }).join('')}</div>
         <div style="height:10px"></div>
-        <label class="field-label" style="display:block" id="site-items-label">${t('sb_items_' + siteTypeOf(s))}</label>
+        <label class="field-label" style="display:block" id="site-items-label">${siteTypeText(chosenType, 2)}</label>
+        <div id="site-smm-import" class="${chosenType === 'smm' ? '' : 'hidden'}">
+          <p class="muted small" style="margin:-2px 0 8px">${t('smm_import_hint')}</p>
+          <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin-bottom:8px" onclick="openSmmImport()">📥 ${t('smm_import_btn')}</button>
+        </div>
         <div id="site-service-rows"></div>
         <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:6px 0 14px" onclick="addSiteServiceRow()">${t('site_add_service_btn')}</button>
 
@@ -13468,6 +13528,46 @@ function openSiteForm() {
   existingCustomSections.forEach(item => addSiteCustomSectionRow(item));
 }
 
+async function openSmmImport() {
+  const old = document.getElementById('smm-import-modal'); if (old) old.remove();
+  let disc = 15;
+  try { const r = await resellerCall({ op: 'status' }); if (r && typeof r.discountPct === 'number') disc = r.discountPct; } catch (e) { /* tarif public par défaut */ }
+  window._smmDisc = disc;
+  document.body.insertAdjacentHTML('beforeend', `
+    <div class="modal-overlay" id="smm-import-modal"><div class="modal md-modal">
+      <button class="modal-close" onclick="document.getElementById('smm-import-modal').remove()" aria-label="Fermer">×</button>
+      <h3 style="margin:0 0 8px 46px">📥 ${t('smm_import_btn')}</h3>
+      <p class="muted small" style="margin:0 0 10px">${t('smm_import_info')}</p>
+      <div class="sbx-types">${PLATFORMS.filter(p => (SERVICE_CATALOG[p.id] || []).length).map(p => `
+        <label class="sbx-type" style="cursor:pointer"><input type="checkbox" class="smm-plat" value="${escapeHtml(p.id)}" ${['instagram', 'tiktok', 'youtube', 'facebook'].indexOf(p.id) >= 0 ? 'checked' : ''}><b>${escapeHtml(p.name)}</b></label>`).join('')}</div>
+      <div class="field" style="margin-top:10px"><label for="smm-markup">${t('smm_markup')}</label>
+        <input type="number" id="smm-markup" class="text-input" min="0" max="500" value="40" inputmode="numeric"></div>
+      <p class="muted small" id="smm-import-cost">${t('smm_cost_info').replace('{d}', String(disc))}</p>
+      <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="runSmmImport()">${t('smm_import_go')}</button>
+    </div></div>`);
+}
+function runSmmImport() {
+  const mk = Math.min(Math.max(parseFloat(document.getElementById('smm-markup').value) || 0, 0), 500);
+  const disc = Number(window._smmDisc) || 0;
+  const plats = Array.from(document.querySelectorAll('#smm-import-modal .smm-plat:checked')).map(x => x.value);
+  if (!plats.length) { showToast(t('smm_pick_one'), 'error'); return; }
+  const rowsEl = document.getElementById('site-service-rows');
+  if (!rowsEl) return;
+  let n = 0;
+  plats.forEach(pid => {
+    const p = PLATFORMS.find(x => x.id === pid);
+    (SERVICE_CATALOG[pid] || []).forEach(sv => {
+      if (n >= 60) return;
+      const base = (sv.price && sv.price.standard) || 0;
+      const sell = base * (1 - disc / 100) * (1 + mk / 100);
+      addSiteServiceRow({ name: (p ? p.name : pid) + ' — ' + sv.label, price: '$' + sell.toFixed(2) + ' / 1000', desc: 'Min ' + sv.min + ' · Max ' + sv.max });
+      n++;
+    });
+  });
+  const m = document.getElementById('smm-import-modal'); if (m) m.remove();
+  showToast(t('smm_imported').replace('{n}', String(n)), 'success');
+}
+
 function addSiteServiceRow(service) {
   const rowsEl = document.getElementById('site-service-rows');
   const row = document.createElement('div');
@@ -13476,7 +13576,7 @@ function addSiteServiceRow(service) {
   row.style.alignItems = 'stretch';
   row.innerHTML = `
     <div style="display:flex;gap:8px;width:100%">
-      <input type="text" class="text-input site-service-name" placeholder="${t('sb_item_ph_' + currentSiteTypeValue())}" value="${escapeHtml(service ? service.name || '' : '')}" style="flex:2">
+      <input type="text" class="text-input site-service-name" placeholder="${escapeHtml(siteTypeText(currentSiteTypeValue(), 3))}" value="${escapeHtml(service ? service.name || '' : '')}" style="flex:2">
       <input type="text" class="text-input site-service-price" placeholder="${t('site_service_price_ph')}" value="${escapeHtml(service ? service.price || '' : '')}" style="flex:1">
       <button type="button" class="invoice-row-remove" onclick="this.closest('.invoice-item-row').remove()" aria-label="Retirer">×</button>
     </div>
@@ -15286,6 +15386,87 @@ function siteHubHtml(site, isPremium) {
     ${tile('📅', t('bk_title'), t((site.booking && site.booking.enabled) ? 'lead_on' : 'lead_off'), "openLeadsManager('site','appointment')")}
     ${tile('📬', t('nl_title'), t((site.newsletter && site.newsletter.enabled) ? 'lead_on' : 'lead_off'), "openLeadsManager('site','newsletter')")}
   </div>`;
+}
+
+/* ====================== API revendeur (v-pro23) ====================== */
+let resellerState = null;
+async function resellerCall(body) {
+  const tok = await currentUser.getIdToken();
+  const r = await fetch('/api/payments-actions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(Object.assign({ idToken: tok, action: 'api_key' }, body)) });
+  const j = await r.json().catch(() => null);
+  if (!j) throw new Error(t('lead_srv_old'));
+  if (!j.success) throw new Error(j.error || 'Erreur');
+  return j;
+}
+async function openResellerApiScreen() {
+  if (!currentUser) { openAuth('register'); return; }
+  const old = document.getElementById('reseller-modal'); if (old) old.remove();
+  document.body.insertAdjacentHTML('beforeend', `
+    <div class="modal-overlay" id="reseller-modal"><div class="modal md-modal">
+      <button class="modal-close" onclick="document.getElementById('reseller-modal').remove()" aria-label="Fermer">×</button>
+      <h3 style="margin:0 0 12px 46px">🔌 ${t('api_title')}</h3>
+      <div id="reseller-body"><p class="muted small">${t('common_loading')}</p></div>
+    </div></div>`);
+  try { resellerState = await resellerCall({ op: 'status' }); } catch (e) { resellerState = { err: (e && e.message) || '' }; }
+  renderResellerApi();
+}
+function resellerCopy(txt) {
+  (navigator.clipboard ? navigator.clipboard.writeText(txt) : Promise.reject()).then(() => showToast(t('nl_copied'), 'success')).catch(() => showToast(txt, 'info'));
+}
+function renderResellerApi(secret) {
+  const el = document.getElementById('reseller-body'); if (!el) return;
+  const s = resellerState || {};
+  if (s.err) { el.innerHTML = `<p class="lead-err">⚠ ${escapeHtml(s.err)}</p>`; return; }
+  const k = s.key || { exists: false };
+  const ep = s.endpoint || 'https://coeurnohboost.vercel.app/api/v2';
+  const keyBox = secret
+    ? `<div class="api-secret"><b>${t('api_copy_now')}</b><code id="api-secret-code">${escapeHtml(secret)}</code><button type="button" class="btn btn-primary btn-sm" onclick="resellerCopy(document.getElementById('api-secret-code').textContent)">📋 ${t('api_copy')}</button></div>`
+    : '';
+  el.innerHTML = `
+    <p class="muted small" style="margin:0 0 10px">${t('api_intro')} <b>−${s.discountPct || 0}%</b> ${t('api_discount')}</p>
+    ${s.enabled === false ? `<p class="lead-err">${t('api_off')}</p>` : ''}
+    <div class="md-sec">
+      <label class="field-label">${t('api_url')}</label>
+      <div class="api-row"><code>${escapeHtml(ep)}</code><button type="button" class="btn btn-outline btn-sm" onclick="resellerCopy('${escapeForJs(ep)}')">📋</button></div>
+    </div>
+    <div class="md-sec" style="margin-top:10px">
+      <label class="field-label">${t('api_key')}</label>
+      ${keyBox}
+      ${k.exists ? `
+        <div class="api-row"><code>${escapeHtml(k.prefix)}••••••••••••</code><span class="lead-chip">${k.active ? t('lead_on') : t('lead_off')}</span></div>
+        <div class="api-stats"><span>${t('api_orders')} <b>${k.ordersCount}</b></span><span>${t('api_today')} <b>${Number(k.spentToday).toFixed(2)} / ${Number(k.dailyLimit).toFixed(0)} $</b></span><span>${t('api_last')} <b>${k.lastUsedAt ? new Date(k.lastUsedAt).toLocaleDateString() : '—'}</b></span></div>
+        <div class="lead-actions"><button type="button" onclick="resellerRegen()">♻ ${t('api_regen')}</button><button type="button" onclick="resellerRevoke()">🗑 ${t('api_revoke')}</button></div>
+        <label class="field-label" style="margin-top:10px">${t('api_ips')}</label>
+        <input type="text" id="api-ips" class="text-input" value="${escapeHtml((k.ips || []).join(', '))}" placeholder="203.0.113.10, 198.51.100.7">
+        <button type="button" class="btn btn-outline btn-sm md-add" onclick="resellerSaveIps()">${t('common_save')}</button>
+      ` : `<button type="button" class="btn btn-primary md-add" onclick="resellerCreate()">${t('api_create')}</button>`}
+    </div>
+    <details class="api-guide"><summary>📘 ${t('api_guide')}</summary>
+      <ol>
+        <li>${t('api_step1')}</li>
+        <li>${t('api_step2')}</li>
+        <li>${t('api_step3')}</li>
+      </ol>
+      <pre>POST ${escapeHtml(ep)}
+key=VOTRE_CLE&amp;action=services
+key=VOTRE_CLE&amp;action=balance
+key=VOTRE_CLE&amp;action=add&amp;service=1000000&amp;link=https://…&amp;quantity=1000
+key=VOTRE_CLE&amp;action=status&amp;order=ID</pre>
+    </details>
+    <p class="muted small" style="margin-top:10px">🔒 ${t('api_security')}</p>`;
+}
+async function resellerCreate() {
+  try { const j = await resellerCall({ op: 'create' }); resellerState = j; renderResellerApi(j.secret); }
+  catch (e) { showToast((e && e.message) || friendlyErrorMessage(e), 'error'); }
+}
+async function resellerRegen() { if (confirm(t('api_regen_confirm'))) resellerCreate(); }
+async function resellerRevoke() {
+  if (!confirm(t('api_revoke_confirm'))) return;
+  try { resellerState = await resellerCall({ op: 'revoke' }); renderResellerApi(); } catch (e) { showToast((e && e.message) || '', 'error'); }
+}
+async function resellerSaveIps() {
+  try { resellerState = await resellerCall({ op: 'set_ips', ips: document.getElementById('api-ips').value }); renderResellerApi(); showToast(t('sp_published'), 'success'); }
+  catch (e) { showToast((e && e.message) || '', 'error'); }
 }
 
 /* ---- Rendez-vous, newsletter et catégories (v-pro20) ---- */

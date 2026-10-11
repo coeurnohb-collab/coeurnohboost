@@ -86,6 +86,10 @@
       "destination": "https://coeurnohboost.firebaseapp.com/__/firebase/:path*"
     },
     {
+      "source": "/api/v2",
+      "destination": "/api/place-smm-order?mode=reseller"
+    },
+    {
       "source": "/s/:slug",
       "destination": "/api/render-site?slug=:slug"
     },

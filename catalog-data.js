@@ -278,5 +278,5 @@ function applyPricingOverrides(overrides) {
    dont une fonction serveur pourrait avoir besoin pour recalculer un prix
    de maniere fiable (verification anti-fraude). */
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { SERVICE_CATALOG, QUALITY_TIERS, applyPricingOverrides };
+  module.exports = { SERVICE_CATALOG, QUALITY_TIERS, PLATFORMS, applyPricingOverrides };
 }

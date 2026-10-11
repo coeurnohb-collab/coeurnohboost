@@ -374,3 +374,9 @@ nav.admin-tabs button{ font-size:.84rem; padding:10px 12px; border-radius:10px; 
 .admin-menu-btn,#admin-menu-btn{ min-height:34px; padding:6px 12px; font-size:.78rem; border-radius:10px; }
 .admin-gate .admin-login-box{ border-radius:18px; padding:28px 22px 22px; }
 .admin-login-box h1{ font-size:1.1rem; }
+
+/* v-pro23 : réglages API revendeurs */
+.adm-inline{display:flex;align-items:center;gap:8px;font-size:.84rem;font-weight:650;margin:8px 0}
+.adm-grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.adm-grid2 label{display:grid;gap:4px;font-size:.72rem;font-weight:700;color:#6b7790}
+.adm-grid2 input{font-size:.88rem;padding:8px 10px;border:1px solid #dfe5f0;border-radius:10px;background:#fff}

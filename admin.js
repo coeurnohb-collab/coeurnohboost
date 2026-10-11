@@ -230,7 +230,8 @@ const ADMIN_GROUPS = [
     { id: "pricing", label: "Tarifs SMM", icon: "🏷️" },
     { id: "packages", label: "Packages", icon: "📦" },
     { id: "monetization", label: "Monétisation", icon: "💵" },
-    { id: "domains", label: "Prix Site & Entreprise", icon: "🌐" } ] },
+    { id: "domains", label: "Prix Site & Entreprise", icon: "🌐" },
+    { id: "resellers", label: "API revendeurs", icon: "🔌" } ] },
   { title: "Sites & Entreprises", tabs: [
     { id: "sites", label: "Sites créés", icon: "🖥️" },
     { id: "businesses", label: "Entreprises", icon: "🏢" } ] },
@@ -276,6 +277,7 @@ function showAdminTab(tab) {
   if (ttl && meta) ttl.textContent = meta.icon + '  ' + meta.label;
   toggleAdminMenu(false);
   window.scrollTo(0, 0);
+  if (tab === 'resellers') loadResellersAdmin();
   if (tab === 'sites') loadSitesAdmin();
   if (tab === 'businesses') loadBusinessesAdmin();
 
@@ -2244,3 +2246,72 @@ async function adminOp(target, id, op, value) {
   try { await adminManageCall(target, id, op, { value }); await adminReload(target); } catch (e) { alert(e.message); }
 }
 async function adminReload(target) { return target === 'site' ? loadSitesAdmin() : loadBusinessesAdmin(); }
+
+
+/* =========================================================
+   API REVENDEURS : réglages globaux, clés actives, suspension
+   ========================================================= */
+let adminResellers = { items: [], settings: {} };
+async function loadResellersAdmin() {
+  const el = document.getElementById('admin-resellers-list');
+  el.innerHTML = '<p class="admin-empty">Chargement...</p>';
+  try {
+    const d = await adminManageCall(null, null, 'api_list');
+    adminResellers = d;
+    renderResellersAdmin();
+  } catch (e) { el.innerHTML = `<p class="admin-empty">Erreur : ${escapeHtml(e.message)}</p>`; }
+}
+function renderResellersAdmin() {
+  const st = adminResellers.settings || {};
+  const items = adminResellers.items || [];
+  const set = document.getElementById('admin-resellers-settings');
+  set.innerHTML = `
+    <div class="adm-card admin-row">
+      <div class="admin-row-title">Réglages de l'API</div>
+      <label class="adm-inline"><input type="checkbox" id="rs-enabled" ${st.enabled !== false ? 'checked' : ''}> API activée pour tous</label>
+      <div class="adm-grid2">
+        <label>Remise revendeur (%)<input type="number" id="rs-discount" min="0" max="40" step="1" value="${Number(st.discountPct != null ? st.discountPct : 15)}"></label>
+        <label>Plafond par jour ($)<input type="number" id="rs-limit" min="1" max="10000" step="1" value="${Number(st.dailyLimitDefault || 100)}"></label>
+      </div>
+      <div class="admin-row-actions"><button class="btn btn-primary btn-sm" onclick="saveResellerSettings()">Enregistrer</button></div>
+    </div>`;
+  document.getElementById('admin-resellers-kpis').innerHTML = `
+    <div class="adm-kpi"><b>${items.length}</b><span>Clés</span></div>
+    <div class="adm-kpi"><b>${items.filter(x => x.active).length}</b><span>Actives</span></div>
+    <div class="adm-kpi"><b>${items.reduce((a, x) => a + (x.ordersCount || 0), 0)}</b><span>Commandes API</span></div>`;
+  const el = document.getElementById('admin-resellers-list');
+  if (!items.length) { el.innerHTML = '<p class="admin-empty">Aucune clé créée pour le moment.</p>'; return; }
+  const today = new Date().toISOString().slice(0, 10);
+  el.innerHTML = items.map(x => {
+    const spent = x.spentDay && x.spentDay.date === today ? Number(x.spentDay.amount || 0) : 0;
+    return `<div class="admin-row adm-card">
+      <div class="admin-row-title">${escapeHtml(x.email || x.uid)} <span class="adm-pill ${x.active ? 'ok' : ''}">${x.active ? 'Active' : 'Suspendue'}</span></div>
+      <div class="admin-row-meta">${escapeHtml(x.prefix || '')}… · ${x.ordersCount || 0} commandes · aujourd'hui ${spent.toFixed(2)} / ${x.dailyLimit} $<br>Dernier usage : ${admFmtDate(x.lastUsedAt)}${x.lastIp ? ' · ' + escapeHtml(x.lastIp) : ''} · créée le ${admFmtDate(x.createdAt)}</div>
+      <div class="admin-row-actions">
+        <button class="btn btn-outline btn-sm" onclick="resellerAdminToggle('${x.id}', ${x.active ? 'false' : 'true'})">${x.active ? 'Suspendre' : 'Réactiver'}</button>
+        <button class="btn btn-outline btn-sm" onclick="resellerAdminLimit('${x.id}', ${x.dailyLimit})">Plafond</button>
+        <button class="btn btn-outline btn-sm" style="color:#b42318" onclick="resellerAdminDelete('${x.id}')">Supprimer</button>
+      </div></div>`;
+  }).join('');
+}
+async function saveResellerSettings() {
+  try {
+    await adminManageCall(null, null, 'api_settings', {
+      enabled: document.getElementById('rs-enabled').checked,
+      discountPct: parseFloat(document.getElementById('rs-discount').value) || 0,
+      dailyLimitDefault: parseFloat(document.getElementById('rs-limit').value) || 100
+    });
+    alert('Réglages enregistrés.'); loadResellersAdmin();
+  } catch (e) { alert('Erreur : ' + e.message); }
+}
+async function resellerAdminToggle(id, value) {
+  try { await adminManageCall(null, id, 'api_toggle', { value }); loadResellersAdmin(); } catch (e) { alert('Erreur : ' + e.message); }
+}
+async function resellerAdminLimit(id, cur) {
+  const v = prompt('Plafond de dépense par jour (en $) :', cur); if (v == null) return;
+  try { await adminManageCall(null, id, 'api_limit', { value: parseFloat(v) }); loadResellersAdmin(); } catch (e) { alert('Erreur : ' + e.message); }
+}
+async function resellerAdminDelete(id) {
+  if (!confirm('Supprimer cette clé définitivement ?')) return;
+  try { await adminManageCall(null, id, 'api_delete'); loadResellersAdmin(); } catch (e) { alert('Erreur : ' + e.message); }
+}
