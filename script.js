@@ -12574,6 +12574,11 @@ function renderSiteStatusView() {
       <p class="muted small" id="site-check-link-result" style="margin-top:8px"></p>` : `<p class="sbx-prev-note" style="margin:6px 0 0">${t('sb_status_private')}</p>`}
     </div>
     <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:8px" onclick="openSitePreviewFromSaved()">${t('sb_preview_btn')}</button>
+    <div class="md-card" onclick="openMediaManager('site')">
+      <span class="md-card-ic">🖼</span>
+      <div><b>${t('md_title')}</b><small>${mediaCountOf(mediaItems('site'), 'image')} ${t('md_images').toLowerCase()} · ${mediaCountOf(mediaItems('site'), 'video')} ${t('md_videos').toLowerCase()} · ${mediaCountOf(mediaItems('site'), 'file')} ${t('md_files').toLowerCase()}</small></div>
+      <em>${isPremium ? t('md_unlimited') : '3 · 1 · 2'}</em>
+    </div>
     ${premiumBlockHtml}
     <button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="openSiteForm()">${t('site_edit_btn')}</button>
     <button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="openSiteSettingsScreen()">${t('site_settings_btn')}</button>
@@ -12735,6 +12740,7 @@ function collectSiteDraftForPreview() {
       imageUrl: (function () { const pr = r.querySelector('.gallery-photo-row'); return pr ? rowUrl(pr) : ''; })() || null,
       date: new Date().toISOString()
     })).filter(x => x.title && x.body),
+    portfolio: collectSitePortfolioDraft(rowUrl),
     customSections: Array.from(document.querySelectorAll('#site-custom-rows .invoice-item-row')).map(r => ({
       title: r.querySelector('.site-custom-title').value.trim(), body: r.querySelector('.site-custom-body').value.trim()
     })).filter(x => x.title && x.body)
@@ -13383,6 +13389,11 @@ function openSiteForm() {
         <div id="site-blog-rows"></div>
         <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:6px 0 14px" onclick="addSiteBlogRow(null, ${blogLimit})">${t('site_add_post_btn')}</button>
 
+        <label class="field-label" style="display:block">${t('pf_section')}</label>
+        <p class="muted small" style="margin:-4px 0 8px">${t('pf_hint')} ${isPremium ? '' : `(${t('pf_free_limit')} ${SITE_FREE_PORTFOLIO_LIMIT})`}</p>
+        <div id="site-portfolio-rows"></div>
+        <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:6px 0 14px" onclick="addSitePortfolioRow(null, ${isPremium ? 60 : SITE_FREE_PORTFOLIO_LIMIT})">${t('pf_add_btn')}</button>
+
         <label class="field-label" style="display:block">${t('site_section_custom')}</label>
         <p class="muted small" style="margin:-4px 0 8px">${t('site_section_custom_hint')}</p>
         <div id="site-custom-rows"></div>
@@ -13441,6 +13452,7 @@ function openSiteForm() {
   existingTestimonials.forEach(item => addSiteTestimonialRow(item));
   const existingBlogPosts = Array.isArray(s.blogPosts) ? s.blogPosts : [];
   existingBlogPosts.forEach(item => addSiteBlogRow(item, blogLimit));
+  (Array.isArray(s.portfolio) ? s.portfolio : []).forEach(item => addSitePortfolioRow(item, isPremium ? 60 : SITE_FREE_PORTFOLIO_LIMIT));
   const existingCustomSections = Array.isArray(s.customSections) ? s.customSections : [];
   existingCustomSections.forEach(item => addSiteCustomSectionRow(item));
 }
@@ -13710,6 +13722,17 @@ async function saveMySite() {
     };
   }));
   const blogPosts = blogPostsAll.filter(x => x.title && x.body).slice(0, isPremiumNow ? SITE_PREMIUM_BLOG_LIMIT : SITE_FREE_BLOG_LIMIT);
+  const portfolioAll = await Promise.all(Array.from(document.querySelectorAll('#site-portfolio-rows .invoice-item-row')).map(async (row) => {
+    const pin = row.querySelector('.gallery-photo-file');
+    const prow = row.querySelector('.gallery-photo-row');
+    let image = null;
+    if (pin && pin._pendingFile) image = (await uploadFileToStorage(pin._pendingFile, 'sites/portfolio', { maxSizeMB: 10 })).url;
+    else if (prow && prow.dataset.existingUrl) image = prow.dataset.existingUrl;
+    let link = row.querySelector('.site-pf-link').value.trim();
+    if (link && !/^https:\/\//i.test(link)) link = /^http:\/\//i.test(link) ? link.replace(/^http:/i, 'https:') : 'https://' + link;
+    return { title: row.querySelector('.site-pf-title').value.trim(), category: row.querySelector('.site-pf-category').value.trim(), desc: row.querySelector('.site-pf-desc').value.trim(), link, image };
+  }));
+  const portfolio = portfolioAll.filter(x => x.title).slice(0, isPremiumNow ? 60 : SITE_FREE_PORTFOLIO_LIMIT);
   const categories = isPremiumNow ? getSiteCategoriesDraft().slice(0, SITE_CATEGORY_LIMIT) : [];
   const customSections = Array.from(document.querySelectorAll('#site-custom-rows .invoice-item-row')).map(row => ({
     title: row.querySelector('.site-custom-title').value.trim(),
@@ -13781,7 +13804,7 @@ async function saveMySite() {
         status: editingSiteExisting ? editingSiteExisting.status : 'draft',
         stats, announcement,
         customDomain: customDomain || null,
-        faq, testimonials, blogPosts, customSections, categories,
+        faq, testimonials, blogPosts, customSections, categories, portfolio,
         createdAt: editingSiteExisting ? editingSiteExisting.createdAt : new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
@@ -14197,10 +14220,12 @@ async function openBusinessDetail(ownerUid) {
   // .profile-page-back au lieu de la croix "×"). Bannière + avatar qui la
   // chevauche, boutons d'action en pleine largeur, sections en cartes --
   // habillage professionnel façon page Facebook/Instagram Business.
-  const galleryHtml = (b.gallery && b.gallery.length) ? `
+  const bzMedia = businessMediaHtml(b, businessIsProActive(b));
+  const galleryAll = (b.gallery || []).concat(bzMedia.images);
+  const galleryHtml = galleryAll.length ? `
     <div class="biz-section" id="biz-sec-gallery" style="padding-top:4px">
       <h4>${t('bz_gallery_heading')}</h4>
-      <div class="bz-gallery">${b.gallery.map(u => `<img src="${escapeHtml(u)}" alt="" loading="lazy" onerror="mediaLoadError(this)" onclick="openMediaLightbox('${escapeForJs(u)}')">`).join('')}</div>
+      <div class="bz-gallery">${galleryAll.map(u => `<img src="${escapeHtml(u)}" alt="" loading="lazy" onerror="mediaLoadError(this)" onclick="openMediaLightbox('${escapeForJs(u)}')">`).join('')}</div>
     </div>` : '';
   const infoRows = [];
   if (b.foundedYear) infoRows.push([t('bz_founded'), b.foundedYear]);
@@ -14221,6 +14246,21 @@ async function openBusinessDetail(ownerUid) {
     <div class="biz-section" style="padding-top:4px">
       <h4>${t('bz_awards_heading')}</h4>
       <div class="bz-chips">${b.awards.map(a => `<span class="bz-chip">🏅 ${escapeHtml(a)}</span>`).join('')}</div>
+    </div>` : '';
+  const jobsHtml = (bizPro && b.jobs && b.jobs.length) ? `
+    <div class="biz-section" id="biz-sec-jobs" style="padding-top:4px">
+      <h4>${t('bz_jobs_heading')}</h4>
+      ${b.jobs.map(j => `<div class="bz-job"><div><strong>${escapeHtml(j.title || '')}</strong>${j.meta ? `<small>${escapeHtml(j.meta)}</small>` : ''}${j.desc ? `<p>${escapeHtml(j.desc)}</p>` : ''}</div>${b.whatsapp ? `<a class="btn btn-outline btn-sm" target="_blank" rel="noopener" href="${safeHref('https://wa.me/' + String(b.whatsapp).replace(/\D/g, '') + '?text=' + encodeURIComponent(t('bz_jobs_apply_msg') + ' ' + (j.title || '')))}">${t('bz_jobs_apply')}</a>` : ''}</div>`).join('')}
+    </div>` : '';
+  const partnersHtml = (bizPro && b.partners && b.partners.length) ? `
+    <div class="biz-section" style="padding-top:4px">
+      <h4>${t('bz_partners_heading')}</h4>
+      <div class="bz-chips">${b.partners.map(a => `<span class="bz-chip">🤝 ${escapeHtml(a)}</span>`).join('')}</div>
+    </div>` : '';
+  const timelineHtml = (bizPro && b.timeline && b.timeline.length) ? `
+    <div class="biz-section" style="padding-top:4px">
+      <h4>${t('bz_timeline_heading')}</h4>
+      <ol class="bz-tl">${b.timeline.map(x => `<li><b>${escapeHtml(x.year || '')}</b><span>${escapeHtml(x.text || '')}</span></li>`).join('')}</ol>
     </div>` : '';
   const faqHtml = (b.faq && b.faq.length) ? `
     <div class="biz-section" id="biz-sec-faq" style="padding-top:4px">
@@ -14286,9 +14326,14 @@ async function openBusinessDetail(ownerUid) {
         ${couponsHtml}
         ${catalogHtml}
         ${galleryHtml}
+        ${bzMedia.vHtml}
+        ${bzMedia.fHtml}
         ${infoHtml}
         ${teamHtml}
         ${awardsHtml}
+        ${timelineHtml}
+        ${jobsHtml}
+        ${partnersHtml}
         ${faqHtml}
         ${!isOwn && currentUser ? `<div class="biz-section" style="padding-top:0"><button class="btn btn-outline btn-sm" style="width:100%;justify-content:center" onclick="openReportModal('${ownerUid}', '${ownerUid}', 'business')">${ICON_FLAG} ${t('business_report_btn')}</button></div>` : ''}
         <div class="biz-section" id="biz-sec-reviews">
@@ -14494,6 +14539,7 @@ async function renderMyBusinessStatus() {
     <div class="bz-tools">
       <button class="btn btn-outline btn-sm" onclick="openBusinessCatalogManager()">${t('business_catalog_heading')} (${catalogCount})</button>
       <button class="btn btn-outline btn-sm" onclick="openBusinessCouponsManager()">${t('business_coupons_btn')} (${couponsCount})</button>
+      <button class="btn btn-primary btn-sm" onclick="openMediaManager('biz')">${t('md_title')} (${(b.media || []).length})</button>
       <button class="btn btn-outline btn-sm" onclick="openBusinessGalleryEditor()">${t('bz_tool_gallery')} (${(b.gallery || []).length})</button>
       <button class="btn btn-outline btn-sm" onclick="openBusinessListEditor('faq')">${t('bz_tool_faq')} (${(b.faq || []).length})</button>
       <button class="btn btn-outline btn-sm" onclick="openBusinessClientsManager()">${t('business_my_clients_btn')}</button>
@@ -14505,6 +14551,9 @@ async function renderMyBusinessStatus() {
       <button class="btn btn-outline btn-sm" onclick="openBusinessInfoForm()">${t('bz_tool_info')}</button>
       <button class="btn btn-outline btn-sm" onclick="openBusinessListEditor('team')">${t('bz_tool_team')}${pt}</button>
       <button class="btn btn-outline btn-sm" onclick="openBusinessListEditor('awards')">${t('bz_tool_awards')}${pt}</button>
+      <button class="btn btn-outline btn-sm" onclick="openBusinessListEditor('jobs')">${t('bz_tool_jobs')}${pt}</button>
+      <button class="btn btn-outline btn-sm" onclick="openBusinessListEditor('partners')">${t('bz_tool_partners')}${pt}</button>
+      <button class="btn btn-outline btn-sm" onclick="openBusinessListEditor('timeline')">${t('bz_tool_timeline')}${pt}</button>
       <button class="btn btn-outline btn-sm" onclick="openBusinessLookForm()">${t('bz_tool_announce')}${pt}</button>
     </div>
 
@@ -14639,7 +14688,10 @@ async function saveBusinessInfo() {
 const BIZ_LISTS = {
   faq: { title: 'bz_faq_title', proOnly: false, free: BUSINESS_FREE_FAQ_LIMIT, pro: BUSINESS_PRO_FAQ_LIMIT, fields: [['question', 'bz_faq_q_ph', 120, false], ['answer', 'bz_faq_a_ph', 400, true]] },
   team: { title: 'bz_team_title', proOnly: true, free: 0, pro: BUSINESS_TEAM_LIMIT, fields: [['name', 'bz_team_name_ph', 60, false], ['role', 'bz_team_role_ph', 60, false]] },
-  awards: { title: 'bz_awards_title', proOnly: true, free: 0, pro: BUSINESS_AWARDS_LIMIT, fields: [['text', 'bz_awards_ph', 100, false]] }
+  awards: { title: 'bz_awards_title', proOnly: true, free: 0, pro: BUSINESS_AWARDS_LIMIT, str: true, fields: [['text', 'bz_awards_ph', 100, false]] },
+  jobs: { title: 'bz_jobs_title', proOnly: true, free: 0, pro: 20, fields: [['title', 'bz_jobs_title_ph', 80, false], ['meta', 'bz_jobs_meta_ph', 60, false], ['desc', 'bz_jobs_desc_ph', 400, true]] },
+  partners: { title: 'bz_partners_title', proOnly: true, free: 0, pro: 30, str: true, fields: [['text', 'bz_partners_ph', 60, false]] },
+  timeline: { title: 'bz_timeline_title', proOnly: true, free: 0, pro: 20, fields: [['year', 'bz_timeline_year_ph', 8, false], ['text', 'bz_timeline_text_ph', 160, false]] }
 };
 
 function openBusinessListEditor(kind) {
@@ -14649,7 +14701,7 @@ function openBusinessListEditor(kind) {
   if (document.getElementById('business-list-modal')) return;
   const limit = isPro ? cfg.pro : cfg.free;
   let current = businessMyProfile[kind] || [];
-  if (kind === 'awards') current = current.map(x => ({ text: x }));
+  if (cfg.str) current = current.map(x => ({ text: x }));
   document.body.insertAdjacentHTML('beforeend', `
     <div class="modal-overlay" id="business-list-modal" data-kind="${kind}" data-limit="${limit}"><div class="modal" style="max-width:460px">
       <button class="modal-close" onclick="document.getElementById('business-list-modal').remove()" aria-label="Fermer">×</button>
@@ -14692,6 +14744,8 @@ async function saveBusinessList(kind) {
   });
   if (kind === 'faq') list = list.filter(x => x.question && x.answer);
   else if (kind === 'team') list = list.filter(x => x.name);
+  else if (kind === 'jobs') list = list.filter(x => x.title);
+  else if (kind === 'timeline') list = list.filter(x => x.year && x.text);
   else list = list.map(x => x.text).filter(Boolean);
   list = list.slice(0, limit);
   try {
@@ -14824,6 +14878,184 @@ function sendBusinessQuote(ownerUid) {
 function businessPublicUrl(uid) { return `${window.location.origin}/e/${encodeURIComponent(uid)}`; }
 function copyBusinessPublicUrl() {
   if (navigator.clipboard) navigator.clipboard.writeText(businessPublicUrl(currentUser.uid)).then(() => showToast(t('referral_copied'), 'success'));
+}
+
+/* ---- Médiathèque : images / vidéos / fichiers (site + entreprise) ---- */
+const MEDIA_FREE = { image: 3, video: 1, file: 2 };
+const MEDIA_MAX_MB = { image: 10, video: 100, file: 25 };
+const MEDIA_ACCEPT = { image: 'image/*', video: 'video/*', file: '.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip' };
+const MEDIA_FILE_RE = /\.(pdf|docx?|xlsx?|pptx?|txt|csv|zip)$/i;
+let mediaKindOpen = null;
+let mediaBusy = false;
+
+function mediaCfg(kind) {
+  if (kind === 'site') {
+    return { col: 'mini_sites', doc: () => mySiteCache, paid: () => siteIsPremiumActive(mySiteCache), upgrade: () => purchaseSitePremium(), refresh: () => renderSiteStatusView(), folder: 'sites/media' };
+  }
+  return { col: 'businesses', doc: () => businessMyProfile, paid: () => businessIsProActive(businessMyProfile), upgrade: () => purchaseBusinessPro(), refresh: () => { businessCache = null; renderMyBusinessStatus(); }, folder: 'entreprises/media' };
+}
+function mediaItems(kind) { const d = mediaCfg(kind).doc(); return d && Array.isArray(d.media) ? d.media : []; }
+function mediaCountOf(items, type) { return items.filter(m => m && m.type === type).length; }
+function mediaSummaryLabel(kind) {
+  const items = mediaItems(kind);
+  return `${mediaCountOf(items, 'image')} · ${mediaCountOf(items, 'video')} · ${mediaCountOf(items, 'file')}`;
+}
+// Les medias affiches a un visiteur : plafonds gratuits appliques si pas payant.
+function mediaVisible(media, paid) {
+  const list = Array.isArray(media) ? media.filter(m => m && m.url && /^https:\/\//i.test(m.url)) : [];
+  if (paid) return list;
+  const seen = { image: 0, video: 0, file: 0 };
+  return list.filter(m => (seen[m.type] = (seen[m.type] || 0) + 1) <= (MEDIA_FREE[m.type] || 0));
+}
+
+function openMediaManager(kind) {
+  if (!currentUser) return;
+  const cfg = mediaCfg(kind);
+  if (!cfg.doc()) { showToast(t('md_need_profile'), 'info'); return; }
+  const old = document.getElementById('media-mgr'); if (old) old.remove();
+  mediaKindOpen = kind;
+  document.body.insertAdjacentHTML('beforeend', `
+    <div class="modal-overlay" id="media-mgr"><div class="modal md-modal">
+      <button class="modal-close" onclick="closeMediaManager()" aria-label="Fermer">×</button>
+      <h3 style="margin:0 0 4px 46px">${t('md_title')}</h3>
+      <p class="muted small" style="margin:0 0 12px">${cfg.paid() ? t('md_sub_paid') : t('md_sub_free')}</p>
+      <div class="md-prog hidden" id="md-prog"><div class="md-prog-fill" id="md-prog-fill"></div><span id="md-prog-label"></span></div>
+      <div id="media-mgr-body"></div>
+    </div></div>`);
+  renderMediaManager();
+}
+function closeMediaManager() {
+  const m = document.getElementById('media-mgr'); if (m) m.remove();
+  const k = mediaKindOpen; mediaKindOpen = null;
+  if (k) mediaCfg(k).refresh();
+}
+
+function renderMediaManager() {
+  const body = document.getElementById('media-mgr-body');
+  if (!body || !mediaKindOpen) return;
+  const kind = mediaKindOpen, cfg = mediaCfg(kind), paid = cfg.paid(), items = mediaItems(kind);
+  const sec = (type, icon, title, hint) => {
+    const list = items.map((m, i) => ({ m, i })).filter(x => x.m.type === type);
+    const count = list.length;
+    const counter = paid ? `${count} · ${t('md_unlimited')}` : `${count}/${MEDIA_FREE[type]}`;
+    const full = !paid && count >= MEDIA_FREE[type];
+    const rows = list.map(({ m, i }) => {
+      const thumb = type === 'image'
+        ? `<img src="${escapeHtml(m.url)}" alt="" class="md-thumb" onclick="openMediaLightbox('${escapeForJs(m.url)}')">`
+        : `<span class="md-thumb md-ico">${type === 'video' ? '▶' : escapeHtml(((m.name || '').split('.').pop() || 'FILE').toUpperCase().slice(0, 4))}</span>`;
+      const over = !paid && list.findIndex(x => x.i === i) >= MEDIA_FREE[type];
+      return `<div class="md-item${over ? ' md-over' : ''}">${thumb}<div class="md-meta"><b>${escapeHtml(m.title || m.name || title)}</b><small>${escapeHtml(m.name || '')}${over ? ' · ' + t('md_hidden_free') : ''}</small></div>
+        <button type="button" class="md-btn" onclick="mediaRename(${i})" aria-label="${t('md_rename')}">✎</button>
+        <button type="button" class="md-btn md-del" onclick="mediaRemove(${i})" aria-label="${t('common_delete') || 'Supprimer'}">×</button></div>`;
+    }).join('');
+    return `<div class="md-sec"><div class="md-sec-h"><span class="md-sec-ic">${icon}</span><div><b>${escapeHtml(title)}</b><small>${hint}</small></div><em class="md-count${full ? ' full' : ''}">${counter}</em></div>
+      ${rows || `<p class="muted small md-empty">${t('md_empty')}</p>`}
+      ${full
+        ? `<button type="button" class="btn btn-primary btn-sm md-add" onclick="mediaUpgrade()">${t('md_upgrade_btn')}</button>`
+        : `<label class="btn btn-outline btn-sm md-add" for="md-in-${type}">+ ${t('md_add_' + type)}</label>
+           <input type="file" id="md-in-${type}" class="file-input-hidden" accept="${MEDIA_ACCEPT[type]}" ${type === 'video' ? '' : 'multiple'} onchange="mediaPick('${type}', this)">`}
+    </div>`;
+  };
+  body.innerHTML =
+    sec('image', '🖼', t('md_images'), t('md_images_hint')) +
+    sec('video', '🎬', t('md_videos'), t('md_videos_hint')) +
+    sec('file', '📄', t('md_files'), t('md_files_hint'));
+}
+
+function mediaUpgrade() {
+  const cfg = mediaCfg(mediaKindOpen);
+  if (confirm(t('md_limit_upgrade'))) { closeMediaManager(); cfg.upgrade(); }
+}
+
+async function mediaSave(kind, items) {
+  const cfg = mediaCfg(kind);
+  await db.collection(cfg.col).doc(currentUser.uid).update({ media: items });
+  const d = cfg.doc(); if (d) d.media = items;
+}
+
+async function mediaPick(type, input) {
+  const files = Array.from(input.files || []); input.value = '';
+  if (!files.length || mediaBusy || !mediaKindOpen) return;
+  const kind = mediaKindOpen, cfg = mediaCfg(kind), paid = cfg.paid();
+  mediaBusy = true;
+  const items = mediaItems(kind).slice();
+  const prog = document.getElementById('md-prog'), fill = document.getElementById('md-prog-fill'), label = document.getElementById('md-prog-label');
+  let added = 0;
+  try {
+    for (const file of files) {
+      if (!paid && mediaCountOf(items, type) >= MEDIA_FREE[type]) { mediaBusy = false; if (added) await mediaSave(kind, items); renderMediaManager(); mediaUpgrade(); return; }
+      const okType = type === 'image' ? file.type.startsWith('image/')
+        : type === 'video' ? file.type.startsWith('video/')
+        : MEDIA_FILE_RE.test(file.name);
+      if (!okType) { showToast(t('md_bad_type'), 'error'); continue; }
+      if (file.size > MEDIA_MAX_MB[type] * 1024 * 1024) { showToast(`${t('md_too_big')} ${MEDIA_MAX_MB[type]} Mo`, 'error'); continue; }
+      if (prog) prog.classList.remove('hidden');
+      if (label) label.textContent = file.name;
+      const up = await uploadFileToStorage(file, cfg.folder, { maxSizeMB: MEDIA_MAX_MB[type], onProgress: (pct) => { if (fill) fill.style.width = pct + '%'; } });
+      items.push({ type, url: up.url, name: file.name.slice(0, 80), title: file.name.replace(/\.[^.]+$/, '').slice(0, 60), createdAt: new Date().toISOString() });
+      added++;
+      if (fill) fill.style.width = '0%';
+    }
+    if (added) { await mediaSave(kind, items); showToast(t('md_uploaded'), 'success'); }
+  } catch (e) {
+    showToast(friendlyErrorMessage(e), 'error');
+    if (added) { try { await mediaSave(kind, items); } catch (e2) { /* ignore */ } }
+  }
+  mediaBusy = false;
+  if (prog) prog.classList.add('hidden');
+  renderMediaManager();
+}
+
+async function mediaRemove(i) {
+  if (!mediaKindOpen || mediaBusy || !confirm(t('md_confirm_delete'))) return;
+  const items = mediaItems(mediaKindOpen).slice(); items.splice(i, 1);
+  try { await mediaSave(mediaKindOpen, items); renderMediaManager(); } catch (e) { showToast(friendlyErrorMessage(e), 'error'); }
+}
+async function mediaRename(i) {
+  if (!mediaKindOpen) return;
+  const items = mediaItems(mediaKindOpen).slice(); if (!items[i]) return;
+  const name = prompt(t('md_rename'), items[i].title || '');
+  if (name === null) return;
+  items[i] = Object.assign({}, items[i], { title: name.trim().slice(0, 60) });
+  try { await mediaSave(mediaKindOpen, items); renderMediaManager(); } catch (e) { showToast(friendlyErrorMessage(e), 'error'); }
+}
+
+// Affichage des videos / fichiers dans la fiche entreprise de l'application.
+function businessMediaHtml(b, paid) {
+  const vis = mediaVisible(b.media, paid);
+  const vids = vis.filter(m => m.type === 'video'), files = vis.filter(m => m.type === 'file');
+  const vHtml = vids.length ? `<div class="biz-section" id="biz-sec-videos" style="padding-top:4px"><h4>${t('md_videos')}</h4>${vids.map(v => `<figure class="bz-vid"><video controls preload="metadata" playsinline src="${escapeHtml(v.url)}"></video>${v.title ? `<figcaption>${escapeHtml(v.title)}</figcaption>` : ''}</figure>`).join('')}</div>` : '';
+  const fHtml = files.length ? `<div class="biz-section" id="biz-sec-docs" style="padding-top:4px"><h4>${t('md_files')}</h4>${files.map(f => `<a class="bz-doc" href="${safeHref(f.url)}" target="_blank" rel="noopener" download><span>${escapeHtml(((f.name || '').split('.').pop() || 'FILE').toUpperCase().slice(0, 4))}</span><b>${escapeHtml(f.title || f.name || '')}</b>↓</a>`).join('')}</div>` : '';
+  return { vHtml, fHtml, images: vis.filter(m => m.type === 'image').map(m => m.url) };
+}
+
+/* ---- Portfolio du site ---- */
+const SITE_FREE_PORTFOLIO_LIMIT = 3;
+function addSitePortfolioRow(item, max) {
+  const rowsEl = document.getElementById('site-portfolio-rows');
+  if (!rowsEl) return;
+  const limit = max || SITE_FREE_PORTFOLIO_LIMIT;
+  if (!item && rowsEl.children.length >= limit) { showToast(`${t('pf_limit_reached')} ${limit}`, 'info'); return; }
+  const row = document.createElement('div');
+  row.className = 'invoice-item-row';
+  row.style.cssText = 'flex-direction:column;align-items:stretch';
+  row.innerHTML = `
+    <div style="display:flex;gap:8px;width:100%">
+      <input type="text" class="text-input site-pf-title" placeholder="${t('pf_title_ph')}" maxlength="80" value="${escapeHtml(item ? item.title || '' : '')}" style="flex:1">
+      <button type="button" class="invoice-row-remove" onclick="this.closest('.invoice-item-row').remove()" aria-label="Retirer">×</button>
+    </div>
+    <input type="text" class="text-input site-pf-category" placeholder="${t('pf_category_ph')}" maxlength="30" value="${escapeHtml(item ? item.category || '' : '')}" style="margin-top:6px">
+    <textarea class="text-input site-pf-desc" rows="2" maxlength="300" placeholder="${t('pf_desc_ph')}" style="margin-top:6px">${escapeHtml(item ? item.desc || '' : '')}</textarea>
+    <input type="url" class="text-input site-pf-link" placeholder="${t('pf_link_ph')}" maxlength="200" value="${escapeHtml(item ? item.link || '' : '')}" style="margin-top:6px">
+    <div style="margin-top:6px">${renderGalleryPhotoRow('site-pf-photo-row', item ? item.image : null)}</div>`;
+  rowsEl.appendChild(row);
+}
+function collectSitePortfolioDraft(rowUrl) {
+  return Array.from(document.querySelectorAll('#site-portfolio-rows .invoice-item-row')).map(r => ({
+    title: r.querySelector('.site-pf-title').value.trim(), category: r.querySelector('.site-pf-category').value.trim(),
+    desc: r.querySelector('.site-pf-desc').value.trim(), link: r.querySelector('.site-pf-link').value.trim(),
+    image: (function () { const pr = r.querySelector('.gallery-photo-row'); return pr ? rowUrl(pr) : ''; })() || null
+  })).filter(x => x.title);
 }
 
 /* ---- Catalogue (produits/services) ---- */
