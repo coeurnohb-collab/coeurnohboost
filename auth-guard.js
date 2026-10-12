@@ -311,3 +311,11 @@
     clearContextNote: function () { var el = document.getElementById('cn-auth-context'); if (el) el.remove(); }
   };
 })();
+
+/* Charge stability.js (aperçu du site et bandeau de notification plus stables) */
+(function () {
+  if (document.querySelector('script[data-cn-st]')) return;
+  var s = document.createElement('script');
+  s.src = 'stability.js'; s.async = true; s.setAttribute('data-cn-st', '1');
+  document.head.appendChild(s);
+})();
