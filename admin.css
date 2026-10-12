@@ -380,3 +380,9 @@ nav.admin-tabs button{ font-size:.84rem; padding:10px 12px; border-radius:10px; 
 .adm-grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .adm-grid2 label{display:grid;gap:4px;font-size:.72rem;font-weight:700;color:#6b7790}
 .adm-grid2 input{font-size:.88rem;padding:8px 10px;border:1px solid #dfe5f0;border-radius:10px;background:#fff}
+
+/* Icônes vectorielles (remplacent les emoji) */
+.ico-i{display:inline-flex;align-items:center;justify-content:center;vertical-align:-.2em;margin-right:.45em;line-height:0}
+.ico-i-end{margin:0 0 0 .45em}
+.ico-i svg{width:1.15em;height:1.15em}
+.ico-i:only-child{margin:0}

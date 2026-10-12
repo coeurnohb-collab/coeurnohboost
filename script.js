@@ -12695,25 +12695,52 @@ function siteTypeText(ty, idx) {
   return (row[currentLang] || row.fr)[idx];
 }
 let pendingSiteType = null;
-function openSiteTypeGate() {
+let siteGateInline = false;
+function uiIc(n, size) { return (typeof window !== 'undefined' && window.cnIcon) ? window.cnIcon(n, size) : ''; }
+const SITE_TYPE_COLORS = {
+  smm: ['#0ea5a4', '#0b4f6c'], entreprise: ['#2563eb', '#1e3a8a'], boutique: ['#e11d48', '#7f1d3a'], restaurant: ['#f59e0b', '#92400e'],
+  portfolio: ['#7c3aed', '#3b1b86'], musique: ['#9333ea', '#4a1d96'], education: ['#3b82f6', '#1e40af'], sante: ['#0d9488', '#115e59'],
+  immobilier: ['#0f766e', '#134e4a'], evenement: ['#c026d3', '#701a75'], association: ['#d97706', '#78350f'], beaute: ['#ec4899', '#9d174d'],
+  media: ['#ef4444', '#7f1d1d'], agence: ['#6366f1', '#312e81']
+};
+function siteTypeGrad(ty) { const c = SITE_TYPE_COLORS[ty] || SITE_TYPE_COLORS.entreprise; return `linear-gradient(135deg,${c[0]},${c[1]})`; }
+function siteTypeBannerInner(ty) {
+  return `<span class="tb-ic">${siteTypeIcon(ty, 26)}</span>
+    <span class="tb-tx"><small>${t('gate_chosen')}</small><b>${escapeHtml(siteTypeText(ty, 0))}</b><em>${escapeHtml(siteTypeText(ty, 1))}</em></span>
+    <button type="button" class="tb-change" onclick="openSiteTypeGate(true)">${t('gate_change')}</button>`;
+}
+function openSiteTypeGate(inline) {
   if (!currentUser) { openAuth('register'); return; }
+  siteGateInline = inline === true;
   const old = document.getElementById('site-gate-modal'); if (old) old.remove();
   document.body.insertAdjacentHTML('beforeend', `
-    <div class="modal-overlay" id="site-gate-modal"><div class="modal md-modal">
-      <button class="modal-close" onclick="document.getElementById('site-gate-modal').remove()" aria-label="Fermer">×</button>
-      <h3 style="margin:0 0 6px 46px">${t('gate_title')}</h3>
-      <p class="muted small" style="margin:0 0 10px">${t('gate_sub')}</p>
-      <div class="sbx-types">${SITE_TYPES.map(ty => `
-        <button type="button" class="sbx-type${ty === 'smm' ? ' sbx-type-hot' : ''}" onclick="chooseSiteType('${ty}')">
-          ${siteTypeIcon(ty)}<b>${escapeHtml(siteTypeText(ty, 0))}</b><small>${escapeHtml(siteTypeText(ty, 1))}</small>
-        </button>`).join('')}</div>
-      <p class="sbx-prev-note" style="margin-top:12px">${t('gate_note')}</p>
-    </div></div>`);
+    <div class="fs-page" id="site-gate-modal">
+      <div class="fs-bar">
+        <button type="button" class="fs-back" onclick="closeSiteTypeGate()" aria-label="Retour">${uiIc('back', 22)}</button>
+        <div class="fs-title"><b>${t('gate_title')}</b><small>${t('gate_sub')}</small></div>
+      </div>
+      <div class="fs-body">
+        <div class="gate-list">${SITE_TYPES.map(ty => `
+          <button type="button" class="gate-card${ty === 'smm' ? ' gate-hot' : ''}" style="--g:${siteTypeGrad(ty)}" onclick="chooseSiteType('${ty}')">
+            <span class="gate-ic">${siteTypeIcon(ty, 28)}</span>
+            <span class="gate-tx"><b>${escapeHtml(siteTypeText(ty, 0))}${ty === 'smm' ? `<i>${t('gate_pop')}</i>` : ''}</b><small>${escapeHtml(siteTypeText(ty, 1))}</small></span>
+            <span class="gate-go">${uiIc('chevron', 18)}</span>
+          </button>`).join('')}</div>
+        <p class="gate-note">${uiIc('shield', 16)} ${t('gate_note')}</p>
+      </div>
+    </div>`);
+  document.body.classList.add('fs-open');
+}
+function closeSiteTypeGate() {
+  const m = document.getElementById('site-gate-modal'); if (m) m.remove();
+  if (!document.querySelector('.fs-page')) document.body.classList.remove('fs-open');
 }
 function chooseSiteType(ty) {
   if (SITE_TYPES.indexOf(ty) < 0) return;
+  const inline = siteGateInline;
+  closeSiteTypeGate();
+  if (inline && document.getElementById('site-type')) { selectSiteType(ty); return; }
   pendingSiteType = ty;
-  const m = document.getElementById('site-gate-modal'); if (m) m.remove();
   openSiteForm();
 }
 function siteTypeIcon(type, size) {
@@ -12741,6 +12768,7 @@ function selectSiteType(ty) {
   document.querySelectorAll('#site-type-picker .sbx-type').forEach(b => b.classList.toggle('on', b.dataset.type === ty));
   const label = document.getElementById('site-items-label');
   if (label) label.textContent = siteTypeText(ty, 2);
+  const bn = document.getElementById('site-type-banner'); if (bn) { bn.style.setProperty('--g', siteTypeGrad(ty)); bn.innerHTML = siteTypeBannerInner(ty); }
   const imp = document.getElementById('site-smm-import'); if (imp) imp.classList.toggle('hidden', ty !== 'smm');
   document.querySelectorAll('#site-service-rows .site-service-name').forEach(inp => { inp.placeholder = siteTypeText(ty, 3); });
 }
@@ -13360,7 +13388,9 @@ function openSiteForm() {
         <div class="modal-error hidden" id="site-form-error"></div>
         ${!editingSiteExisting ? `<p class="sbx-prev-note" style="margin:0 0 14px">${t('sb_pub_pro_note')}</p>` : ''}
 
-        ${renderSiteTypePicker(chosenType)}
+        <input type="hidden" id="site-type" value="${chosenType}">
+        <div class="type-banner" id="site-type-banner" style="--g:${siteTypeGrad(chosenType)}">${siteTypeBannerInner(chosenType)}</div>
+        <p class="muted small" style="margin:10px 0 0">${t('gate_fill')}</p>
         <div class="field" style="margin-top:14px">
           <label for="site-slug">${t('site_field_slug_label')}</label>
           <div class="muted small" style="margin-bottom:4px;word-break:break-all">${escapeHtml(window.location.origin)}/s/<span id="site-slug-preview">${escapeHtml(s.slug || '')}</span></div>
@@ -13425,7 +13455,7 @@ function openSiteForm() {
         <label class="field-label" style="display:block" id="site-items-label">${siteTypeText(chosenType, 2)}</label>
         <div id="site-smm-import" class="${chosenType === 'smm' ? '' : 'hidden'}">
           <p class="muted small" style="margin:-2px 0 8px">${t('smm_import_hint')}</p>
-          <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin-bottom:8px" onclick="openSmmImport()">📥 ${t('smm_import_btn')}</button>
+          <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin-bottom:8px" onclick="openSmmImport()">${uiIc('download', 16)} ${t('smm_import_btn')}</button>
         </div>
         <div id="site-service-rows"></div>
         <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:6px 0 14px" onclick="addSiteServiceRow()">${t('site_add_service_btn')}</button>
@@ -13536,7 +13566,7 @@ async function openSmmImport() {
   document.body.insertAdjacentHTML('beforeend', `
     <div class="modal-overlay" id="smm-import-modal"><div class="modal md-modal">
       <button class="modal-close" onclick="document.getElementById('smm-import-modal').remove()" aria-label="Fermer">×</button>
-      <h3 style="margin:0 0 8px 46px">📥 ${t('smm_import_btn')}</h3>
+      <h3 style="margin:0 0 8px 46px">${t('smm_import_btn')}</h3>
       <p class="muted small" style="margin:0 0 10px">${t('smm_import_info')}</p>
       <div class="sbx-types">${PLATFORMS.filter(p => (SERVICE_CATALOG[p.id] || []).length).map(p => `
         <label class="sbx-type" style="cursor:pointer"><input type="checkbox" class="smm-plat" value="${escapeHtml(p.id)}" ${['instagram', 'tiktok', 'youtube', 'facebook'].indexOf(p.id) >= 0 ? 'checked' : ''}><b>${escapeHtml(p.name)}</b></label>`).join('')}</div>
@@ -15398,62 +15428,107 @@ async function resellerCall(body) {
   if (!j.success) throw new Error(j.error || 'Erreur');
   return j;
 }
+const API_T = {
+  fr: { title: 'Connecter mon panel (API)', hero: 'Votre panel, nos services', heroSub: 'Vendez les services Coeurnoh sur votre propre site ou panel SMM. Vous gardez vos clients, nous livrons.', disc: 'de remise sur le tarif public', cred: 'Vos identifiants de connexion', url: 'URL de l’API', key: 'Clé API', fmt: 'Format', fmtV: 'Standard SMM (v2)', none: 'Aucune clé pour le moment', make: 'Générer ma clé API', regen: 'Régénérer', revoke: 'Révoquer', active: 'Active', off: 'Suspendue', once: 'Copiez cette clé maintenant : elle ne sera plus jamais affichée.', how: 'Comment connecter votre panel', s1: 'Générez votre clé API ci-dessus.', s2: 'Dans l’administration de votre panel : Fournisseurs (Providers) → Ajouter un fournisseur.', s3: 'Collez l’URL de l’API et la clé, enregistrez, puis importez les services.', s4: 'Fixez vos prix de vente : ils s’ajoutent à votre coût.', actions: 'Actions disponibles', code: 'Exemples de code', sec: 'Sécurité', ips: 'Adresses IP autorisées (optionnel)', ipsH: 'Séparées par une virgule. Vide = toutes les adresses.', save: 'Enregistrer', orders: 'Commandes', today: 'Dépensé aujourd’hui', last: 'Dernier appel', never: 'Jamais', secList: ['Votre clé n’est jamais stockée en clair chez nous.', 'Un plafond de dépense par jour limite tout risque de vol.', 'Limitez l’accès à l’IP de votre serveur pour bloquer toute utilisation ailleurs.', 'Ne mettez jamais la clé dans une application mobile ou une page publique.', 'En cas de doute : régénérez la clé, l’ancienne est coupée aussitôt.'], act: { services: 'Liste des services et prix', balance: 'Votre solde', add: 'Passer une commande', status: 'Statut d’une commande', orders: 'Statut de plusieurs commandes' }, par: 'Paramètres', off2: 'L’API revendeur est temporairement fermée.', disc2: 'Remise actuelle' },
+  en: { title: 'Connect my panel (API)', hero: 'Your panel, our services', heroSub: 'Sell Coeurnoh services on your own site or SMM panel. You keep your customers, we deliver.', disc: 'off the public price', cred: 'Your connection details', url: 'API URL', key: 'API key', fmt: 'Format', fmtV: 'Standard SMM (v2)', none: 'No key yet', make: 'Generate my API key', regen: 'Regenerate', revoke: 'Revoke', active: 'Active', off: 'Suspended', once: 'Copy this key now: it will never be shown again.', how: 'How to connect your panel', s1: 'Generate your API key above.', s2: 'In your panel admin: Providers → Add provider.', s3: 'Paste the API URL and key, save, then import the services.', s4: 'Set your selling prices: they add to your cost.', actions: 'Available actions', code: 'Code examples', sec: 'Security', ips: 'Allowed IP addresses (optional)', ipsH: 'Comma-separated. Empty = any address.', save: 'Save', orders: 'Orders', today: 'Spent today', last: 'Last call', never: 'Never', secList: ['Your key is never stored in clear text on our side.', 'A daily spending cap limits any risk of theft.', 'Restrict access to your server IP to block any use elsewhere.', 'Never put the key in a mobile app or a public page.', 'If in doubt: regenerate the key, the old one stops at once.'], act: { services: 'Services and prices', balance: 'Your balance', add: 'Place an order', status: 'Order status', orders: 'Multiple order status' }, par: 'Parameters', off2: 'The reseller API is temporarily closed.', disc2: 'Current discount' }
+};
+function apiT(k) { const d = API_T[currentLang] || API_T.en; return d[k] != null ? d[k] : API_T.en[k]; }
+function apiRow(label, valueHtml, copyTxt) {
+  return `<div class="api-field"><span>${label}</span><div class="api-row">${valueHtml}${copyTxt ? `<button type="button" class="api-cp" onclick="resellerCopy('${escapeForJs(copyTxt)}')" aria-label="Copier">${uiIc('copy', 17)}</button>` : ''}</div></div>`;
+}
 async function openResellerApiScreen() {
   if (!currentUser) { openAuth('register'); return; }
   const old = document.getElementById('reseller-modal'); if (old) old.remove();
   document.body.insertAdjacentHTML('beforeend', `
-    <div class="modal-overlay" id="reseller-modal"><div class="modal md-modal">
-      <button class="modal-close" onclick="document.getElementById('reseller-modal').remove()" aria-label="Fermer">×</button>
-      <h3 style="margin:0 0 12px 46px">🔌 ${t('api_title')}</h3>
-      <div id="reseller-body"><p class="muted small">${t('common_loading')}</p></div>
-    </div></div>`);
+    <div class="fs-page" id="reseller-modal">
+      <div class="fs-bar">
+        <button type="button" class="fs-back" onclick="closeResellerApi()" aria-label="Retour">${uiIc('back', 22)}</button>
+        <div class="fs-title"><b>${apiT('title')}</b><small>${t('svc_api')}</small></div>
+      </div>
+      <div class="fs-body" id="reseller-body"><p class="muted small">${t('common_loading')}</p></div>
+    </div>`);
+  document.body.classList.add('fs-open');
   try { resellerState = await resellerCall({ op: 'status' }); } catch (e) { resellerState = { err: (e && e.message) || '' }; }
   renderResellerApi();
+}
+function closeResellerApi() {
+  const m = document.getElementById('reseller-modal'); if (m) m.remove();
+  if (!document.querySelector('.fs-page')) document.body.classList.remove('fs-open');
 }
 function resellerCopy(txt) {
   (navigator.clipboard ? navigator.clipboard.writeText(txt) : Promise.reject()).then(() => showToast(t('nl_copied'), 'success')).catch(() => showToast(txt, 'info'));
 }
+function apiTab(i) {
+  document.querySelectorAll('.api-tabs button').forEach((b, j) => b.classList.toggle('on', j === i));
+  document.querySelectorAll('.api-code').forEach((c, j) => c.classList.toggle('hidden', j !== i));
+}
 function renderResellerApi(secret) {
   const el = document.getElementById('reseller-body'); if (!el) return;
   const s = resellerState || {};
-  if (s.err) { el.innerHTML = `<p class="lead-err">⚠ ${escapeHtml(s.err)}</p>`; return; }
+  if (s.err) { el.innerHTML = `<p class="lead-err">${uiIc('alert', 16)} ${escapeHtml(s.err)}</p>`; return; }
   const k = s.key || { exists: false };
   const ep = s.endpoint || 'https://coeurnohboost.vercel.app/api/v2';
-  const keyBox = secret
-    ? `<div class="api-secret"><b>${t('api_copy_now')}</b><code id="api-secret-code">${escapeHtml(secret)}</code><button type="button" class="btn btn-primary btn-sm" onclick="resellerCopy(document.getElementById('api-secret-code').textContent)">📋 ${t('api_copy')}</button></div>`
-    : '';
+  const KEY = secret || 'VOTRE_CLE_API';
+  const e = escapeHtml;
+  const keyBlock = secret
+    ? `<div class="api-secret"><b>${uiIc('alert', 16)} ${apiT('once')}</b><code id="api-secret-code">${e(secret)}</code><button type="button" class="btn btn-primary btn-sm" onclick="resellerCopy(document.getElementById('api-secret-code').textContent)">${uiIc('copy', 16)} ${t('api_copy')}</button></div>`
+    : (k.exists
+      ? apiRow(apiT('key'), `<code>${e(k.prefix)}••••••••••••••••</code><span class="api-pill ${k.active ? 'ok' : 'ko'}">${k.active ? apiT('active') : apiT('off')}</span>`)
+      : `<p class="muted small" style="margin:6px 0 0">${apiT('none')}</p>`);
+  const acts = [
+    ['services', 'action=services', ''],
+    ['balance', 'action=balance', ''],
+    ['add', 'action=add', 'service, link, quantity'],
+    ['status', 'action=status', 'order'],
+    ['orders', 'action=orders', 'orders (1,2,3)']
+  ];
+  const curl = `curl -X POST ${ep} \\\n  -d "key=${KEY}" \\\n  -d "action=add" \\\n  -d "service=1000000" \\\n  -d "link=https://instagram.com/votrecompte" \\\n  -d "quantity=1000"`;
+  const php = `<?php\n$ch = curl_init('${ep}');\ncurl_setopt_array($ch, [\n  CURLOPT_POST => true,\n  CURLOPT_RETURNTRANSFER => true,\n  CURLOPT_POSTFIELDS => http_build_query([\n    'key' => '${KEY}',\n    'action' => 'services',\n  ]),\n]);\n$res = json_decode(curl_exec($ch), true);`;
+  const py = `import requests\n\nr = requests.post('${ep}', data={\n    'key': '${KEY}',\n    'action': 'balance',\n})\nprint(r.json())`;
+  const js = `const r = await fetch('${ep}', {\n  method: 'POST',\n  headers: { 'Content-Type': 'application/json' },\n  body: JSON.stringify({ key: '${KEY}', action: 'status', order: 123 })\n});\nconsole.log(await r.json());`;
   el.innerHTML = `
-    <p class="muted small" style="margin:0 0 10px">${t('api_intro')} <b>−${s.discountPct || 0}%</b> ${t('api_discount')}</p>
-    ${s.enabled === false ? `<p class="lead-err">${t('api_off')}</p>` : ''}
-    <div class="md-sec">
-      <label class="field-label">${t('api_url')}</label>
-      <div class="api-row"><code>${escapeHtml(ep)}</code><button type="button" class="btn btn-outline btn-sm" onclick="resellerCopy('${escapeForJs(ep)}')">📋</button></div>
+    <div class="api-hero">
+      <span class="api-hero-ic">${uiIc('plug', 28)}</span>
+      <b>${apiT('hero')}</b>
+      <p>${apiT('heroSub')}</p>
+      <div class="api-hero-chips"><span>${uiIc('tag', 14)} −${Number(s.discountPct || 0)}% ${apiT('disc')}</span><span>${uiIc('shield', 14)} ${apiT('fmtV')}</span></div>
     </div>
-    <div class="md-sec" style="margin-top:10px">
-      <label class="field-label">${t('api_key')}</label>
-      ${keyBox}
-      ${k.exists ? `
-        <div class="api-row"><code>${escapeHtml(k.prefix)}••••••••••••</code><span class="lead-chip">${k.active ? t('lead_on') : t('lead_off')}</span></div>
-        <div class="api-stats"><span>${t('api_orders')} <b>${k.ordersCount}</b></span><span>${t('api_today')} <b>${Number(k.spentToday).toFixed(2)} / ${Number(k.dailyLimit).toFixed(0)} $</b></span><span>${t('api_last')} <b>${k.lastUsedAt ? new Date(k.lastUsedAt).toLocaleDateString() : '—'}</b></span></div>
-        <div class="lead-actions"><button type="button" onclick="resellerRegen()">♻ ${t('api_regen')}</button><button type="button" onclick="resellerRevoke()">🗑 ${t('api_revoke')}</button></div>
-        <label class="field-label" style="margin-top:10px">${t('api_ips')}</label>
-        <input type="text" id="api-ips" class="text-input" value="${escapeHtml((k.ips || []).join(', '))}" placeholder="203.0.113.10, 198.51.100.7">
-        <button type="button" class="btn btn-outline btn-sm md-add" onclick="resellerSaveIps()">${t('common_save')}</button>
-      ` : `<button type="button" class="btn btn-primary md-add" onclick="resellerCreate()">${t('api_create')}</button>`}
-    </div>
-    <details class="api-guide"><summary>📘 ${t('api_guide')}</summary>
-      <ol>
-        <li>${t('api_step1')}</li>
-        <li>${t('api_step2')}</li>
-        <li>${t('api_step3')}</li>
-      </ol>
-      <pre>POST ${escapeHtml(ep)}
-key=VOTRE_CLE&amp;action=services
-key=VOTRE_CLE&amp;action=balance
-key=VOTRE_CLE&amp;action=add&amp;service=1000000&amp;link=https://…&amp;quantity=1000
-key=VOTRE_CLE&amp;action=status&amp;order=ID</pre>
-    </details>
-    <p class="muted small" style="margin-top:10px">🔒 ${t('api_security')}</p>`;
+    ${s.enabled === false ? `<p class="lead-err">${apiT('off2')}</p>` : ''}
+
+    <section class="api-card">
+      <h4>${uiIc('key', 18)} ${apiT('cred')}</h4>
+      ${apiRow(apiT('url'), `<code>${e(ep)}</code>`, ep)}
+      ${keyBlock}
+      ${apiRow(apiT('fmt'), `<code>${apiT('fmtV')}</code>`)}
+      ${k.exists ? `<div class="api-btns"><button type="button" class="btn btn-outline btn-sm" onclick="resellerRegen()">${uiIc('refresh', 16)} ${apiT('regen')}</button><button type="button" class="btn btn-outline btn-sm api-danger" onclick="resellerRevoke()">${uiIc('trash', 16)} ${apiT('revoke')}</button></div>
+        <div class="api-stats"><span>${apiT('orders')}<b>${k.ordersCount}</b></span><span>${apiT('today')}<b>${Number(k.spentToday).toFixed(2)} / ${Number(k.dailyLimit).toFixed(0)} $</b></span><span>${apiT('last')}<b>${k.lastUsedAt ? new Date(k.lastUsedAt).toLocaleDateString() : apiT('never')}</b></span></div>`
+        : `<button type="button" class="btn btn-primary md-add" onclick="resellerCreate()">${uiIc('key', 16)} ${apiT('make')}</button>`}
+    </section>
+
+    <section class="api-card">
+      <h4>${uiIc('server', 18)} ${apiT('how')}</h4>
+      <ol class="api-steps"><li>${apiT('s1')}</li><li>${apiT('s2')}</li><li>${apiT('s3')}</li><li>${apiT('s4')}</li></ol>
+    </section>
+
+    <section class="api-card">
+      <h4>${uiIc('code', 18)} ${apiT('actions')}</h4>
+      <div class="api-table">${acts.map(a => `<div><code>${a[1]}</code><span>${apiT('act')[a[0]]}${a[2] ? `<small>${apiT('par')} : ${a[2]}</small>` : ''}</span></div>`).join('')}</div>
+    </section>
+
+    <section class="api-card">
+      <h4>${uiIc('doc', 18)} ${apiT('code')}</h4>
+      <div class="api-tabs"><button type="button" class="on" onclick="apiTab(0)">cURL</button><button type="button" onclick="apiTab(1)">PHP</button><button type="button" onclick="apiTab(2)">Python</button><button type="button" onclick="apiTab(3)">Node</button></div>
+      <pre class="api-code">${e(curl)}</pre><pre class="api-code hidden">${e(php)}</pre><pre class="api-code hidden">${e(py)}</pre><pre class="api-code hidden">${e(js)}</pre>
+    </section>
+
+    <section class="api-card">
+      <h4>${uiIc('shield', 18)} ${apiT('sec')}</h4>
+      ${k.exists ? `<label class="field-label">${apiT('ips')}</label>
+        <input type="text" id="api-ips" class="text-input" value="${e((k.ips || []).join(', '))}" placeholder="203.0.113.10, 198.51.100.7">
+        <p class="muted small" style="margin:4px 0 8px">${apiT('ipsH')}</p>
+        <button type="button" class="btn btn-outline btn-sm" onclick="resellerSaveIps()">${apiT('save')}</button>` : ''}
+      <ul class="api-sec">${apiT('secList').map(x => `<li>${uiIc('check', 15)}<span>${e(x)}</span></li>`).join('')}</ul>
+    </section>`;
 }
 async function resellerCreate() {
   try { const j = await resellerCall({ op: 'create' }); resellerState = j; renderResellerApi(j.secret); }
