@@ -632,3 +632,23 @@ pre.api-code{margin:0;background:#0b1220;color:#d6e2ff;border-radius:14px;paddin
 .api-sec{list-style:none;margin:12px 0 0;padding:0}
 .api-sec li{display:flex;gap:8px;align-items:flex-start;font-size:.82rem;color:#33415c;margin-bottom:7px}
 .api-sec svg{color:#16a34a;flex:0 0 auto;margin-top:2px}
+
+/* ============ 16. Qualité du site ============ */
+.sq-card{background:#fff;border:1px solid #e1e7f2;border-radius:20px;padding:16px;margin-bottom:14px;box-shadow:0 2px 10px rgba(15,35,80,.05)}
+.sq-head{display:flex;align-items:center;gap:14px}
+.sq-head h4{margin:0;font-size:1rem;color:#0f1b33}
+.sq-head small{color:#6b7790;font-size:.76rem;font-weight:700}
+.sq-ring{--c:#f59e0b;width:58px;height:58px;border-radius:50%;background:conic-gradient(var(--c) calc(var(--p)*1%),#e8edf6 0);display:flex;align-items:center;justify-content:center;position:relative;flex:0 0 auto}
+.sq-ring::before{content:"";position:absolute;inset:6px;border-radius:50%;background:#fff}
+.sq-ring b{position:relative;font-size:1rem;color:#0f1b33}
+.sq-good{--c:#16a34a}.sq-mid{--c:#2563eb}.sq-low{--c:#f59e0b}
+.sq-sub{font-size:.8rem;color:#6b7790;margin:10px 0 6px}
+.sq-list{list-style:none;margin:0;padding:0}
+.sq-list li{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid #edf0f7;font-size:.84rem;color:#33415c}
+.sq-list li:first-child{border-top:0}
+.sq-list li svg{flex:0 0 auto;border-radius:50%;padding:3px;width:22px;height:22px}
+.sq-list li.ok svg{background:#dcfce7;color:#16a34a}
+.sq-list li.todo svg{background:#eef3ff;color:#1d4fa8}
+.sq-list li span{flex:1}
+.sq-list li.ok span{color:#6b7790}
+.sq-list button{border:1px solid #d9e2f2;background:#fff;color:#1d4fa8;font-weight:700;font-size:.74rem;padding:5px 11px;border-radius:999px;cursor:pointer;font-family:inherit}

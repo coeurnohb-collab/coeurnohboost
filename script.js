@@ -12515,6 +12515,32 @@ async function loadMySite() {
   }
 }
 
+const SQ_T = {
+  fr: { title: 'Qualité de votre site', sub: 'Complétez ces points pour inspirer confiance et mieux apparaître sur Google.', logo: 'Ajouter un logo', cover: 'Photo de couverture', about: 'Présentation (80 caractères ou plus)', contact: 'Un moyen de contact (WhatsApp, e-mail ou téléphone)', items: 'Au moins 3 services ou produits', photos: 'Au moins 3 photos', faq: 'Questions fréquentes (FAQ)', seo: 'Titre et description pour Google', hours: 'Adresse ou horaires', published: 'Publier le site', fix: 'Compléter', views: 'visites', good: 'Excellent', mid: 'Bon début', low: 'À compléter' },
+  en: { title: 'Site quality', sub: 'Complete these points to build trust and rank better on Google.', logo: 'Add a logo', cover: 'Cover photo', about: 'About text (80+ characters)', contact: 'A contact method (WhatsApp, email or phone)', items: 'At least 3 services or products', photos: 'At least 3 photos', faq: 'FAQ', seo: 'Google title and description', hours: 'Address or opening hours', published: 'Publish the site', fix: 'Complete', views: 'visits', good: 'Excellent', mid: 'Good start', low: 'To complete' }
+};
+function sqT(k) { const d = SQ_T[currentLang] || SQ_T.en; return d[k] != null ? d[k] : SQ_T.en[k]; }
+function siteQualityHtml(site, isPublished) {
+  const n = (k) => (Array.isArray(site[k]) ? site[k].length : 0);
+  const checks = [
+    ['logo', !!site.logoUrl, 10, 'form'], ['cover', !!site.coverImageUrl, 10, 'form'],
+    ['about', String(site.aboutText || '').length >= 80, 15, 'form'],
+    ['contact', !!(site.contactWhatsapp || site.contactEmail || site.contactPhone), 15, 'form'],
+    ['items', n('services') >= 3, 15, 'form'], ['photos', n('gallery') >= 3, 10, 'form'],
+    ['faq', n('faq') >= 2, 5, 'form'], ['seo', !!(site.seoTitle && site.seoDescription), 5, 'settings'],
+    ['hours', !!(site.address || site.hours), 5, 'form'], ['published', !!isPublished, 10, 'pub']
+  ];
+  const score = checks.reduce((a, c) => a + (c[1] ? c[2] : 0), 0);
+  const tone = score >= 80 ? 'good' : (score >= 50 ? 'mid' : 'low');
+  const fixFn = { form: 'openSiteForm()', settings: 'openSiteSettingsScreen()', pub: "toggleSitePublish('published')" };
+  return `<section class="sq-card">
+    <div class="sq-head"><div class="sq-ring sq-${tone}" style="--p:${score}"><b>${score}</b></div>
+      <div><h4>${sqT('title')}</h4><small>${sqT(tone)} · ${Number(site.viewsCount || 0)} ${sqT('views')}</small></div></div>
+    <p class="sq-sub">${sqT('sub')}</p>
+    <ul class="sq-list">${checks.map(c => `<li class="${c[1] ? 'ok' : 'todo'}">${uiIc(c[1] ? 'check' : 'plus', 15)}<span>${sqT(c[0])}</span>${c[1] ? '' : `<button type="button" onclick="${fixFn[c[3]]}">${sqT('fix')}</button>`}</li>`).join('')}</ul>
+  </section>`;
+}
+
 function renderSiteStatusView() {
   const statusEl = document.getElementById('site-builder-status');
   if (!mySiteCache) {
@@ -12580,6 +12606,7 @@ function renderSiteStatusView() {
       <p class="muted small" id="site-check-link-result" style="margin-top:8px"></p>` : `<p class="sbx-prev-note" style="margin:6px 0 0">${t('sb_status_private')}</p>`}
     </div>
     <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:8px" onclick="openSitePreviewFromSaved()">${t('sb_preview_btn')}</button>
+    ${siteQualityHtml(site, isPublished)}
     ${siteHubHtml(site, isPremium)}
     ${premiumBlockHtml}
     <button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="openSiteForm()">${t('site_edit_btn')}</button>
@@ -15414,6 +15441,7 @@ function siteHubHtml(site, isPremium) {
     ${tile('🕓', t('sp_timeline'), n('timeline'), "openSiteListManager('timeline')")}
     ${tile('🏷', t('sp_cat_title'), n('categories'), 'openSiteCategoriesManager()')}
     ${tile('📅', t('bk_title'), t((site.booking && site.booking.enabled) ? 'lead_on' : 'lead_off'), "openLeadsManager('site','appointment')")}
+    ${tile('🔌', t('svc_api'), t('api_tile_sub'), 'openResellerApiScreen()')}
     ${tile('📬', t('nl_title'), t((site.newsletter && site.newsletter.enabled) ? 'lead_on' : 'lead_off'), "openLeadsManager('site','newsletter')")}
   </div>`;
 }

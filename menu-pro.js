@@ -560,6 +560,7 @@
      =================================================================== */
   var ICONS = {
     wrench: '<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L2 19l3 3 7.3-7.3a4 4 0 0 0 5.4-5.4l-2.8 2.8-2-2Z"/>',
+    plug: '<path d="M9 2v6M15 2v6M6 8h12v3a6 6 0 0 1-12 0V8zM12 17v5"/>',
     globe: '<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10Z"/>',
     building: '<rect x="4" y="2" width="16" height="20" rx="1"/><line x1="9" y1="7" x2="9" y2="7.01"/><line x1="15" y1="7" x2="15" y2="7.01"/><line x1="9" y1="11" x2="9" y2="11.01"/><line x1="15" y1="11" x2="15" y2="11.01"/><path d="M10 22v-4h4v4"/>',
     file: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/>',
@@ -619,7 +620,6 @@
     // ---- Services (grille du hub) ----
     { id: 'pro', grp: 'service', sec: 'business', tk: 'svc_pro', ic: 'wrench', c: ['#ff922b', '#e8590c'], b: 'free', fn: 'openServiceRequestScreen', kw: 'professionnel artisan freelance devis prestataire service provider quote hire' },
     { id: 'site', grp: 'service', sec: 'business', tk: 'svc_site', ic: 'globe', c: ['#4dabf7', '#1971c2'], b: 'premium', fn: 'openSiteBuilderScreen', kw: 'site web mini site vitrine page website landing creer' },
-    { id: 'api', grp: 'service', sec: 'business', tk: 'svc_api', ic: 'file', c: ['#20c997', '#0b7285'], b: 'free', fn: 'openResellerApiScreen', kw: 'api revendeur reseller panel smm cle key developpeur developer connecter' },
     { id: 'business', grp: 'service', sec: 'business', tk: 'svc_business', ic: 'building', c: ['#9775fa', '#6741d9'], b: 'pro', fn: 'openBusinessScreen', kw: 'entreprise societe commerce catalogue coupon clients company shop crm' },
     { id: 'invoices', grp: 'service', sec: 'business', tk: 'svc_invoices', ic: 'file', c: ['#38d9a9', '#0ca678'], b: 'free', fn: 'openInvoiceScreen', kw: 'facture recu devis invoice receipt pdf' },
     { id: 'jobs', grp: 'service', sec: 'jobs', tk: 'svc_jobs', ic: 'briefcase', c: ['#ffd43b', '#f08c00'], b: 'free', fn: 'openJobsScreen', kw: 'emploi travail freelance offre cv job work hiring recrutement' },
@@ -644,6 +644,7 @@
 
     // ---- Accès rapides de l'application ----
     { id: 'wallet', grp: 'core', tk: 'tab_wallet', ic: 'wallet', c: ['#20c997', '#087f5b'], go: function () { call('closeMainMenu'); call('showDashTab', 'wallet'); }, kw: 'portefeuille recharge solde argent mobile money crypto carte wallet balance top up deposit' },
+    { id: 'api', grp: 'core', tk: 'svc_api', ic: 'plug', c: ['#20c997', '#0b7285'], go: function () { call('closeMainMenu'); call('openResellerApiScreen'); }, kw: 'api revendeur reseller panel smm cle key developpeur developer connecter integration' },
     { id: 'shop', grp: 'core', tk: 'shop_title', ic: 'bag', c: ['#ff6b6b', '#c92a2a'], go: function () { call('closeMainMenu'); call('showShop'); }, kw: 'boutique acheter vendre produits shop buy sell marketplace' },
     { id: 'network', grp: 'core', tk: 'tab_network', ic: 'network', c: ['#339af0', '#1864ab'], go: function () { call('closeMainMenu'); call('showDashTab', 'orders'); }, kw: 'reseau commande booster followers likes vues abonnes order boost smm' },
     { id: 'referral', grp: 'core', tk: 'menu_referral', ic: 'gift', c: ['#f783ac', '#a61e4d'], acc: 'section-referral', kw: 'parrainage commission inviter amis referral invite earn' },
