@@ -356,6 +356,7 @@
     search_ph: ['Rechercher un service, un outil…', 'Search a service or tool…', 'Buscar un servicio o herramienta…', 'Cerca un servizio o strumento…', 'Pesquisar um serviço ou ferramenta…'],
     shortcuts: ['Vos raccourcis', 'Your shortcuts', 'Tus accesos directos', 'Le tue scorciatoie', 'Seus atalhos'],
     no_result: ['Aucun résultat pour', 'No results for', 'Sin resultados para', 'Nessun risultato per', 'Nenhum resultado para'],
+    api_row: ['API revendeur', 'Reseller API', 'API de revendedor', 'API rivenditore', 'API de revendedor'],
     tools_row: ['Boîte à outils gratuite', 'Free toolbox', 'Herramientas gratuitas', 'Strumenti gratuiti', 'Ferramentas gratuitas'],
     plans_row: ['Plans & tarifs', 'Plans & pricing', 'Planes y precios', 'Piani e prezzi', 'Planos e preços'],
     badge_free: ['Gratuit', 'Free', 'Gratis', 'Gratis', 'Grátis'],
@@ -662,6 +663,7 @@
     { id: 's_share', grp: 'setting', tk: 'menu_share', ic: 'share', c: ['#868e96', '#495057'], acc: 'section-share', kw: 'partager application share app invite' },
 
     // ---- Écrans du menu ----
+    { id: 'apirow', grp: 'meta', lk: 'api_row', ic: 'plug', c: ['#20c997', '#0b7285'], go: function () { call('closeMainMenu'); call('openResellerApiScreen'); }, kw: 'api revendeur reseller panel smm cle key developpeur' },
     { id: 'toolbox', grp: 'meta', lk: 'tools_row', ic: 'tools', c: ['#12b886', '#0b7285'], go: function () { openToolsScreen(); }, kw: 'outils boite tools toolbox gratuit free' },
     { id: 'plans', grp: 'meta', lk: 'plans_row', ic: 'crown', c: ['#fcc419', '#e67700'], go: function () { openPlansScreen(); }, kw: 'plans tarifs prix premium pro abonnement pricing upgrade payant gratuit' }
   ];
@@ -763,6 +765,7 @@
       var rows = card.querySelectorAll('.menu-category-row');
       var ref = rows.length >= 3 ? rows[3] : null; // avant "Aide & informations"
       var extra = [
+        { id: 'apirow', lab: 'mp-row-api' },
         { id: 'toolbox', lab: 'mp-row-tools' },
         { id: 'plans', lab: 'mp-row-plans' }
       ];
@@ -773,7 +776,7 @@
         btn.className = 'menu-category-row';
         btn.setAttribute('data-mp-row', x.id);
         btn.innerHTML = svg(e.ic, 22) + '<span id="' + x.lab + '"></span>' +
-          '<em class="mp-badge mp-b-' + (x.id === 'toolbox' ? 'new' : 'premium') + '" id="' + x.lab + '-badge"></em>' +
+          '<em class="mp-badge mp-b-' + (x.id === 'plans' ? 'premium' : 'new') + '" id="' + x.lab + '-badge"></em>' +
           '<svg class="menu-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + ICONS.chevronR + '</svg>';
         if (ref) card.insertBefore(btn, ref); else card.appendChild(btn);
       });
@@ -885,6 +888,8 @@
     var st = $('mp-shortcuts-title'); if (st) st.textContent = L('shortcuts');
     var pt = $('mp-promo-title'); if (pt) pt.textContent = L('promo_title');
     var ps = $('mp-promo-sub'); if (ps) ps.textContent = L('promo_sub');
+    var ar = $('mp-row-api'); if (ar) ar.textContent = L('api_row');
+    var arb = $('mp-row-api-badge'); if (arb) arb.textContent = L('badge_new');
     var a = $('mp-row-tools'); if (a) a.textContent = L('tools_row');
     var ab = $('mp-row-tools-badge'); if (ab) ab.textContent = L('badge_new');
     var b = $('mp-row-plans'); if (b) b.textContent = L('plans_row');

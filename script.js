@@ -1344,9 +1344,6 @@ function selectCrypto(id) {
   payCryptoId = id;
   renderPayCryptoOptions();
 }
-// Paiement par carte : tant que MaxiCash n'est pas passé en réel, on guide le client vers
-// « carte → USDT → Cryptomus » (aucun compte à connecter). Quand MaxiCash sera prêt, mets true.
-const CARD_VIA_MAXICASH = false;
 // Carte bancaire / Mobile Money via la page de paiement hebergee OPTGateway (api/payment-initiate.js, provider "optgateway").
 const CARD_VIA_OPT = true;
 const CARD_OPT_MIN_USD = 2; // doit rester identique à MIN_OPT_USD dans api/payment-initiate.js
@@ -1462,7 +1459,7 @@ function renderPayPanel() {
   document.getElementById('pay-panel-card').classList.toggle('hidden', payMethod !== 'card');
   const illPanel = document.getElementById('pay-panel-illico'); if (illPanel) illPanel.classList.toggle('hidden', payMethod !== 'illicocash');
   // En mode « guide carte », on cache le montant et le bouton d'envoi (le bouton du guide mène à la crypto)
-  const guide = payMethod === 'card' && !CARD_VIA_MAXICASH && !CARD_VIA_OPT;
+  const guide = payMethod === 'card' && !CARD_VIA_OPT;
   const guideEl = document.getElementById('pay-card-guide');
   if (guideEl) { guideEl.classList.toggle('hidden', !guide); if (guide) renderCardGuide(); }
   const prev = document.getElementById('pay-card-preview');
@@ -1647,43 +1644,7 @@ async function submitRecharge() {
       window.location.href = data.paymentUrl;
       return;
     }
-    if (payMethod === 'card' && !CARD_VIA_MAXICASH) { selectPayMethod('crypto'); return; }
-    if (payMethod === 'card') {
-      // Paiement carte via MaxiCash (methode "Form Post" officielle) : le
-      // backend renvoie l'URL du formulaire + les champs a y mettre, et
-      // c'est CE navigateur qui soumet le formulaire vers MaxiCash (pas de
-      // redirection vers une URL toute prete comme avant avec CinetPay).
-      const idToken = await auth.currentUser.getIdToken();
-      const response = await fetch('/api/payment-initiate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ idToken, provider: 'card', amountUSD: amount })
-      });
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        console.error("Erreur creation paiement carte :", data.error);
-        if (response.status === 429) { errEl.textContent = payFriendlyError(response, data); errEl.classList.remove('hidden'); return; }
-        errEl.textContent = data.error ? `Erreur MaxiCash : ${data.error}` : t('pay_err_generic');
-        errEl.classList.remove('hidden');
-        return;
-      }
-
-      const form = document.createElement('form');
-      form.method = 'POST';
-      form.action = data.formAction;
-      Object.entries(data.formFields).forEach(([name, value]) => {
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = name;
-        input.value = value;
-        form.appendChild(input);
-      });
-      document.body.appendChild(form);
-      form.submit();
-      return;
-    }
-
+    if (payMethod === 'card') { selectPayMethod('crypto'); return; }
     // Autres methodes (et Mobile Money non couvert par MboтePay) : demande manuelle comme avant
     await db.collection('topup_requests').add({
       uid: currentUser.uid,
@@ -12516,19 +12477,19 @@ async function loadMySite() {
 }
 
 const SQ_T = {
-  fr: { title: 'Qualité de votre site', sub: 'Complétez ces points pour inspirer confiance et mieux apparaître sur Google.', logo: 'Ajouter un logo', cover: 'Photo de couverture', about: 'Présentation (80 caractères ou plus)', contact: 'Un moyen de contact (WhatsApp, e-mail ou téléphone)', items: 'Au moins 3 services ou produits', photos: 'Au moins 3 photos', faq: 'Questions fréquentes (FAQ)', seo: 'Titre et description pour Google', hours: 'Adresse ou horaires', published: 'Publier le site', fix: 'Compléter', views: 'visites', good: 'Excellent', mid: 'Bon début', low: 'À compléter' },
-  en: { title: 'Site quality', sub: 'Complete these points to build trust and rank better on Google.', logo: 'Add a logo', cover: 'Cover photo', about: 'About text (80+ characters)', contact: 'A contact method (WhatsApp, email or phone)', items: 'At least 3 services or products', photos: 'At least 3 photos', faq: 'FAQ', seo: 'Google title and description', hours: 'Address or opening hours', published: 'Publish the site', fix: 'Complete', views: 'visits', good: 'Excellent', mid: 'Good start', low: 'To complete' }
+  fr: { title: 'Qualité de votre site', sub: 'Complétez ces points pour inspirer confiance et mieux apparaître sur Google.', promo: 'Options Pro : bandeau promo, barre d’actions ou bouton personnalisé', logo: 'Ajouter un logo', cover: 'Photo de couverture', about: 'Présentation (80 caractères ou plus)', contact: 'Un moyen de contact (WhatsApp, e-mail ou téléphone)', items: 'Au moins 3 services ou produits', photos: 'Au moins 3 photos', faq: 'Questions fréquentes (FAQ)', seo: 'Titre et description pour Google', hours: 'Adresse ou horaires', published: 'Publier le site', fix: 'Compléter', views: 'visites', good: 'Excellent', mid: 'Bon début', low: 'À compléter' },
+  en: { title: 'Site quality', sub: 'Complete these points to build trust and rank better on Google.', promo: 'Pro options: promo banner, action bar or custom button', logo: 'Add a logo', cover: 'Cover photo', about: 'About text (80+ characters)', contact: 'A contact method (WhatsApp, email or phone)', items: 'At least 3 services or products', photos: 'At least 3 photos', faq: 'FAQ', seo: 'Google title and description', hours: 'Address or opening hours', published: 'Publish the site', fix: 'Complete', views: 'visits', good: 'Excellent', mid: 'Good start', low: 'To complete' }
 };
 function sqT(k) { const d = SQ_T[currentLang] || SQ_T.en; return d[k] != null ? d[k] : SQ_T.en[k]; }
 function siteQualityHtml(site, isPublished) {
   const n = (k) => (Array.isArray(site[k]) ? site[k].length : 0);
   const checks = [
     ['logo', !!site.logoUrl, 10, 'form'], ['cover', !!site.coverImageUrl, 10, 'form'],
-    ['about', String(site.aboutText || '').length >= 80, 15, 'form'],
+    ['about', String(site.aboutText || '').length >= 80, 10, 'form'],
     ['contact', !!(site.contactWhatsapp || site.contactEmail || site.contactPhone), 15, 'form'],
     ['items', n('services') >= 3, 15, 'form'], ['photos', n('gallery') >= 3, 10, 'form'],
     ['faq', n('faq') >= 2, 5, 'form'], ['seo', !!(site.seoTitle && site.seoDescription), 5, 'settings'],
-    ['hours', !!(site.address || site.hours), 5, 'form'], ['published', !!isPublished, 10, 'pub']
+    ['hours', !!(site.address || site.hours), 5, 'form'], ['promo', !!(site.proOptions && (site.proOptions.promoText || site.proOptions.stickyBar || site.proOptions.ctaUrl)), 5, 'settings'], ['published', !!isPublished, 10, 'pub']
   ];
   const score = checks.reduce((a, c) => a + (c[1] ? c[2] : 0), 0);
   const tone = score >= 80 ? 'good' : (score >= 50 ? 'mid' : 'low');
@@ -13041,6 +13002,31 @@ async function sitePreviewUse() {
 }
 
 /* ====================== Écran Paramètres (v-pro13) ====================== */
+const PO_T = {
+  fr: { title: 'Options Pro', sub: 'Des outils de vente utilisés par les sites professionnels.', sticky: 'Barre d’actions mobile', stickyH: 'Appeler, WhatsApp et itinéraire toujours visibles sur téléphone.', promo: 'Bandeau promo', promoT: 'Texte de l’offre (ex : -20 % cette semaine)', promoU: 'Fin de l’offre (compte à rebours)', cta: 'Bouton principal personnalisé', ctaL: 'Texte du bouton (ex : Réserver maintenant)', ctaU: 'Lien du bouton (https://...)', pro: 'Réservé au Pack Pro', bad: 'Le lien du bouton doit commencer par https://' },
+  en: { title: 'Pro options', sub: 'Sales tools used by professional sites.', sticky: 'Mobile action bar', stickyH: 'Call, WhatsApp and directions always visible on phones.', promo: 'Promo banner', promoT: 'Offer text (e.g. 20% off this week)', promoU: 'Offer end date (countdown)', cta: 'Custom main button', ctaL: 'Button text (e.g. Book now)', ctaU: 'Button link (https://...)', pro: 'Pro Pack only', bad: 'The button link must start with https://' }
+};
+function poT(k) { const d = PO_T[currentLang] || PO_T.en; return d[k] != null ? d[k] : PO_T.en[k]; }
+function proOptionsCardHtml(site, isPremium) {
+  const o = (site.proOptions && typeof site.proOptions === 'object') ? site.proOptions : {};
+  const dis = isPremium ? '' : 'disabled';
+  const e = escapeHtml;
+  return `<div class="sbx-card ${isPremium ? '' : 'sbx-card-pro'}">
+    <h4>${poT('title')} ${ICON_SPARKLE}</h4>
+    <p class="sbx-hint" style="margin:0 0 10px">${poT('sub')}${isPremium ? '' : ' · ' + poT('pro')}</p>
+    <label class="sbx-switch" style="opacity:${isPremium ? 1 : .5}"><span><b>${poT('sticky')}</b><small>${poT('stickyH')}</small></span>
+      <input type="checkbox" id="ss-po-sticky" ${o.stickyBar ? 'checked' : ''} ${dis}><i></i></label>
+    <label class="field-label" style="margin-top:12px">${poT('promo')}</label>
+    <input type="text" id="ss-po-promo" class="text-input" maxlength="120" placeholder="${poT('promoT')}" value="${e(o.promoText || '')}" ${dis}>
+    <label class="field-label" style="margin-top:8px">${poT('promoU')}</label>
+    <input type="date" id="ss-po-until" class="text-input" value="${e(o.promoUntil || '')}" ${dis}>
+    <label class="field-label" style="margin-top:12px">${poT('cta')}</label>
+    <input type="text" id="ss-po-ctal" class="text-input" maxlength="40" placeholder="${poT('ctaL')}" value="${e(o.ctaLabel || '')}" ${dis}>
+    <input type="url" id="ss-po-ctau" class="text-input" maxlength="300" placeholder="${poT('ctaU')}" value="${e(o.ctaUrl || '')}" style="margin-top:6px" ${dis}>
+  </div>
+`;
+}
+
 function openSiteSettingsScreen() {
   if (!mySiteCache || document.getElementById('site-settings-screen')) return;
   const site = mySiteCache;
@@ -13129,6 +13115,7 @@ function openSiteSettingsScreen() {
             <input type="checkbox" id="ss-hide-branding" ${site.hideBranding ? 'checked' : ''} ${isPremium ? '' : 'disabled'}><i></i></label>
         </div>
 
+        ${proOptionsCardHtml(site, isPremium)}
         <div class="sbx-card">
           <h4>${t('sb_sec_stats')}</h4>
           <div class="sbx-stat"><b>${site.viewsCount || 0}</b><span>${t('sb_views_label')}</span></div>
@@ -13241,13 +13228,20 @@ async function saveSiteSettings() {
     accentColor = null;
   }
   const status = isPremium ? (document.getElementById('ss-status').checked ? 'published' : 'draft') : (mySiteCache.status || 'draft');
+  let proOptions = (mySiteCache.proOptions && typeof mySiteCache.proOptions === 'object') ? mySiteCache.proOptions : {};
+  if (isPremium) {
+    const ctaUrl = v('ss-po-ctau');
+    if (ctaUrl && !/^https:\/\/[^\s"'<>]+$/i.test(ctaUrl)) { errEl.textContent = poT('bad'); errEl.classList.remove('hidden'); return; }
+    const sb = document.getElementById('ss-po-sticky');
+    proOptions = { stickyBar: !!(sb && sb.checked), promoText: v('ss-po-promo'), promoUntil: v('ss-po-until'), ctaLabel: v('ss-po-ctal'), ctaUrl };
+  }
   const hideBrandingEl = document.getElementById('ss-hide-branding');
   const patch = {
     customDomain: customDomain || null,
     seoTitle: v('ss-seo-title'),
     seoDescription: v('ss-seo-desc'),
     hideBranding: isPremium && !!(hideBrandingEl && hideBrandingEl.checked),
-    socialLinks, template, accentColor, status,
+    socialLinks, template, accentColor, status, proOptions,
     updatedAt: new Date().toISOString()
   };
   btn.disabled = true;

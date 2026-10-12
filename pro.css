@@ -652,3 +652,10 @@ pre.api-code{margin:0;background:#0b1220;color:#d6e2ff;border-radius:14px;paddin
 .sq-list li span{flex:1}
 .sq-list li.ok span{color:#6b7790}
 .sq-list button{border:1px solid #d9e2f2;background:#fff;color:#1d4fa8;font-weight:700;font-size:.74rem;padding:5px 11px;border-radius:999px;cursor:pointer;font-family:inherit}
+
+/* ============ 17. Bande de chiffres de l'accueil : bleu verre transparent ============ */
+.stats-bar{background:radial-gradient(520px 220px at 85% -20%,rgba(125,211,252,.45),transparent 70%),radial-gradient(420px 200px at 0% 120%,rgba(99,102,241,.35),transparent 70%),linear-gradient(135deg,#1d4fa8,#2563eb 55%,#3b82f6);padding:26px 0;position:relative;overflow:hidden}
+.stats-bar .stats-grid{gap:12px}
+.stats-bar .stat{background:linear-gradient(145deg,rgba(255,255,255,.22),rgba(255,255,255,.08));border:1px solid rgba(255,255,255,.3);border-radius:18px;padding:16px 8px;backdrop-filter:blur(14px) saturate(140%);-webkit-backdrop-filter:blur(14px) saturate(140%);box-shadow:0 14px 30px -18px rgba(8,25,70,.7),inset 0 1px 0 rgba(255,255,255,.4)}
+.stats-bar .stat strong{color:#fff;text-shadow:0 2px 10px rgba(8,25,70,.35)}
+.stats-bar .stat span{color:rgba(255,255,255,.9);font-weight:600}
