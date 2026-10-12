@@ -2180,7 +2180,7 @@ function renderSitesAdmin() {
       </div></div>
       <div class="admin-row-actions">
         <a class="btn btn-outline btn-sm" href="/s/${encodeURIComponent(s.slug || '')}" target="_blank" rel="noopener">Voir</a>
-        <button class="btn btn-outline btn-sm" onclick="adminGrant('site','${s._id}')">+ Offrir Premium</button>
+        <button class="btn btn-outline btn-sm" onclick="adminGrant('site','${s._id}')">Offrir Premium…</button>
         ${prem ? `<button class="btn btn-outline btn-sm" onclick="adminOp('site','${s._id}','revoke')">Retirer Premium</button>` : ''}
         <button class="btn btn-outline btn-sm" onclick="adminOp('site','${s._id}','status','${s.status === 'published' ? 'draft' : 'published'}')">${s.status === 'published' ? 'Dépublier' : 'Publier'}</button>
         <button class="btn btn-outline btn-sm adm-danger" onclick="adminOp('site','${s._id}','delete')">Supprimer</button>
@@ -2221,26 +2221,64 @@ function renderBusinessesAdmin() {
     const pro = isPro(b);
     return `<div class="admin-row adm-card">
       <div class="admin-row-top"><div style="min-width:0">
-        <div class="admin-row-title">${b.adminVerified ? '✔️ ' : ''}${escapeHtml(b.businessName || '—')} <span class="adm-pill ${pro ? 'gold' : ''}">${pro ? 'Pro' : 'Gratuit'}</span> <span class="adm-pill ${b.status === 'hidden' ? '' : 'ok'}">${b.status === 'hidden' ? 'Masquée' : 'Visible'}</span></div>
+        <div class="admin-row-title">${b.adminVerified ? '<span class="adm-pill ok">Vérifiée</span> ' : ''}${escapeHtml(b.businessName || '—')} <span class="adm-pill ${pro ? 'gold' : ''}">${pro ? 'Pro' : 'Gratuit'}</span> <span class="adm-pill ${b.status === 'hidden' ? '' : 'ok'}">${b.status === 'hidden' ? 'Masquée' : 'Visible'}</span></div>
         <div class="admin-row-meta">${escapeHtml(b.category || '')} · ${escapeHtml(b.address || '—')} · ${b.viewsCount || 0} vues<br>${pro ? 'Pro jusqu\'au ' + admFmtDate(b.proUntil) + ' · ' : ''}${admMediaCount(b)} · ${(b.catalog || []).length} produits · ${(b.jobs || []).length} offres d'emploi<br>Créée le ${admFmtDate(b.createdAt)}</div>
       </div></div>
       <div class="admin-row-actions">
         ${pro ? `<a class="btn btn-outline btn-sm" href="/e/${encodeURIComponent(b._id)}" target="_blank" rel="noopener">Page web</a>` : ''}
-        <button class="btn btn-outline btn-sm" onclick="adminGrant('business','${b._id}')">+ Offrir Pro</button>
+        <button class="btn btn-outline btn-sm" onclick="adminGrant('business','${b._id}')">Offrir Pro…</button>
         ${pro ? `<button class="btn btn-outline btn-sm" onclick="adminOp('business','${b._id}','revoke')">Retirer Pro</button>` : ''}
-        <button class="btn btn-outline btn-sm" onclick="adminOp('business','${b._id}','verify',${!b.adminVerified})">${b.adminVerified ? 'Retirer badge' : '✔️ Vérifier'}</button>
+        <button class="btn btn-outline btn-sm" onclick="adminOp('business','${b._id}','verify',${!b.adminVerified})">${b.adminVerified ? 'Retirer badge' : 'Vérifier'}</button>
         <button class="btn btn-outline btn-sm" onclick="adminOp('business','${b._id}','status','${b.status === 'hidden' ? 'active' : 'hidden'}')">${b.status === 'hidden' ? 'Rendre visible' : 'Masquer'}</button>
         <button class="btn btn-outline btn-sm adm-danger" onclick="adminOp('business','${b._id}','delete')">Supprimer</button>
       </div></div>`;
   }).join('');
 }
 
-async function adminGrant(target, id) {
-  const v = prompt('Combien de jours offrir ? (ex. 30)', '30');
-  if (v === null) return;
-  const days = parseInt(v, 10);
-  if (!days || days < 1) { alert('Nombre de jours invalide.'); return; }
-  try { await adminManageCall(target, id, 'grant', { days }); await adminReload(target); } catch (e) { alert(e.message); }
+function adminGrant(target, id) {
+  const isSite = target === 'site';
+  const feats = isSite
+    ? [['publish', 'Publication du site'], ['look', 'Design et options Pro'], ['content', 'Contenu étendu (photos, projets, actus)']]
+    : [['web', 'Page web de l’entreprise'], ['tools', 'Outils professionnels'], ['content', 'Catalogue et offres étendus']];
+  const old = document.getElementById('adm-grant-modal'); if (old) old.remove();
+  const m = document.createElement('div');
+  m.id = 'adm-grant-modal';
+  m.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(8,12,24,.72);display:flex;align-items:flex-end;justify-content:center;padding:0';
+  m.innerHTML = `<div style="background:#fff;color:#111827;width:100%;max-width:520px;border-radius:18px 18px 0 0;padding:20px 18px 24px;max-height:92vh;overflow:auto;font-family:inherit">
+    <div style="font-weight:800;font-size:17px;margin-bottom:4px">${isSite ? 'Offrir Premium' : 'Offrir Pro'}</div>
+    <div style="font-size:13px;color:#6b7280;margin-bottom:14px">Choisissez ce que vous offrez, puis la durée.</div>
+    <label style="display:flex;gap:10px;align-items:center;padding:12px;border:1.5px solid #2563eb;border-radius:12px;margin-bottom:8px;cursor:pointer">
+      <input type="radio" name="ag-mode" value="all" checked> <span><b>Tout offrir en Pro</b><br><small style="color:#6b7280">Toutes les fonctions Pro sont débloquées</small></span></label>
+    <label style="display:flex;gap:10px;align-items:center;padding:12px;border:1.5px solid #d1d5db;border-radius:12px;margin-bottom:10px;cursor:pointer">
+      <input type="radio" name="ag-mode" value="pick"> <span><b>Choisir les services à offrir</b><br><small style="color:#6b7280">Seulement ceux que vous cochez</small></span></label>
+    <div id="ag-list" style="display:none;margin:0 0 12px;padding:6px 4px">
+      ${feats.map(f => `<label style="display:flex;gap:10px;align-items:center;padding:8px 4px;cursor:pointer"><input type="checkbox" class="ag-f" value="${f[0]}"> ${f[1]}</label>`).join('')}
+    </div>
+    <label style="font-size:13px;font-weight:700">Durée (jours)</label>
+    <div style="display:flex;gap:6px;margin:6px 0 16px;flex-wrap:wrap">
+      ${[7, 30, 90, 365].map(d => `<button type="button" class="btn btn-outline btn-sm ag-d" data-d="${d}">${d} j</button>`).join('')}
+      <input id="ag-days" type="number" min="1" max="3650" value="30" style="width:90px;padding:8px;border:1px solid #d1d5db;border-radius:8px">
+    </div>
+    <div style="display:flex;gap:8px"><button type="button" class="btn btn-outline" id="ag-cancel" style="flex:1">Annuler</button>
+    <button type="button" class="btn btn-primary" id="ag-ok" style="flex:2">Offrir</button></div></div>`;
+  document.body.appendChild(m);
+  const q = (s) => m.querySelector(s);
+  m.querySelectorAll('input[name=ag-mode]').forEach(r => r.addEventListener('change', () => {
+    q('#ag-list').style.display = q('input[name=ag-mode]:checked').value === 'pick' ? 'block' : 'none';
+  }));
+  m.querySelectorAll('.ag-d').forEach(b => b.addEventListener('click', () => { q('#ag-days').value = b.dataset.d; }));
+  q('#ag-cancel').addEventListener('click', () => m.remove());
+  m.addEventListener('click', (e) => { if (e.target === m) m.remove(); });
+  q('#ag-ok').addEventListener('click', async () => {
+    const days = parseInt(q('#ag-days').value, 10);
+    if (!days || days < 1) { alert('Nombre de jours invalide.'); return; }
+    const pick = q('input[name=ag-mode]:checked').value === 'pick';
+    const features = pick ? Array.from(m.querySelectorAll('.ag-f:checked')).map(x => x.value) : [];
+    if (pick && !features.length) { alert('Cochez au moins un service.'); return; }
+    q('#ag-ok').disabled = true;
+    try { await adminManageCall(target, id, 'grant', pick ? { days, features } : { days }); m.remove(); await adminReload(target); }
+    catch (e) { q('#ag-ok').disabled = false; alert(e.message); }
+  });
 }
 async function adminOp(target, id, op, value) {
   const labels = { revoke: 'Retirer l’abonnement ?', delete: 'Supprimer définitivement ? Cette action est irréversible.' };

@@ -12451,8 +12451,14 @@ const SITE_CATEGORY_LIMIT = 12; // categories d'articles -- fonctionnalite reser
 let mySiteCache = null;
 let editingSiteExisting = null;
 
-function siteIsPremiumActive(site) {
-  return !!(site && site.premium && site.premiumUntil && new Date(site.premiumUntil).getTime() > Date.now());
+// Pro complet, ou service Pro offert séparément par l'admin (featureGrants : publish / look / content).
+function featureGrantActive(doc, key) {
+  const g = doc && doc.featureGrants && doc.featureGrants[key];
+  return !!(g && new Date(g).getTime() > Date.now());
+}
+function siteIsPremiumActive(site, key) {
+  if (site && site.premium && site.premiumUntil && new Date(site.premiumUntil).getTime() > Date.now()) return true;
+  return !!key && featureGrantActive(site, key);
 }
 
 function openSiteBuilderScreen() {
@@ -12481,6 +12487,22 @@ const SQ_T = {
   en: { title: 'Site quality', sub: 'Complete these points to build trust and rank better on Google.', promo: 'Pro options: promo banner, action bar or custom button', logo: 'Add a logo', cover: 'Cover photo', about: 'About text (80+ characters)', contact: 'A contact method (WhatsApp, email or phone)', items: 'At least 3 services or products', photos: 'At least 3 photos', faq: 'FAQ', seo: 'Google title and description', hours: 'Address or opening hours', published: 'Publish the site', fix: 'Complete', views: 'visits', good: 'Excellent', mid: 'Good start', low: 'To complete' }
 };
 function sqT(k) { const d = SQ_T[currentLang] || SQ_T.en; return d[k] != null ? d[k] : SQ_T.en[k]; }
+const SQ_TARGET = { logo: ['form', 'site-logo-file-label'], cover: ['form', 'site-cover-file-label'], about: ['form', 'site-about'], contact: ['form', 'site-whatsapp'], items: ['form', 'site-service-rows'], photos: ['form', 'site-photo-rows'], faq: ['form', 'site-faq-rows'], hours: ['form', 'site-address'], seo: ['settings', 'ss-seo-title'], promo: ['settings', 'ss-po-promo'] };
+function sqFix(key) {
+  if (key === 'published') { toggleSitePublish('published'); return; }
+  const tg = SQ_TARGET[key]; if (!tg) { openSiteForm(); return; }
+  if (tg[0] === 'form') openSiteForm(); else openSiteSettingsScreen();
+  let tries = 0;
+  const go = () => {
+    const el = document.getElementById(tg[1]);
+    if (!el) { if (++tries < 15) setTimeout(go, 120); return; }
+    try { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) {}
+    const box = (el.closest && (el.closest('.sbx-card') || el.parentElement)) || el;
+    box.classList.add('sq-flash'); setTimeout(() => box.classList.remove('sq-flash'), 2200);
+    if (/^(INPUT|TEXTAREA)$/.test(el.tagName) && el.type !== 'file' && el.type !== 'date') { try { el.focus({ preventScroll: true }); } catch (e) {} }
+  };
+  setTimeout(go, 150);
+}
 function siteQualityHtml(site, isPublished) {
   const n = (k) => (Array.isArray(site[k]) ? site[k].length : 0);
   const checks = [
@@ -12493,12 +12515,11 @@ function siteQualityHtml(site, isPublished) {
   ];
   const score = checks.reduce((a, c) => a + (c[1] ? c[2] : 0), 0);
   const tone = score >= 80 ? 'good' : (score >= 50 ? 'mid' : 'low');
-  const fixFn = { form: 'openSiteForm()', settings: 'openSiteSettingsScreen()', pub: "toggleSitePublish('published')" };
   return `<section class="sq-card">
     <div class="sq-head"><div class="sq-ring sq-${tone}" style="--p:${score}"><b>${score}</b></div>
       <div><h4>${sqT('title')}</h4><small>${sqT(tone)} · ${Number(site.viewsCount || 0)} ${sqT('views')}</small></div></div>
     <p class="sq-sub">${sqT('sub')}</p>
-    <ul class="sq-list">${checks.map(c => `<li class="${c[1] ? 'ok' : 'todo'}">${uiIc(c[1] ? 'check' : 'plus', 15)}<span>${sqT(c[0])}</span>${c[1] ? '' : `<button type="button" onclick="${fixFn[c[3]]}">${sqT('fix')}</button>`}</li>`).join('')}</ul>
+    <ul class="sq-list">${checks.map(c => `<li class="${c[1] ? 'ok' : 'todo'}">${uiIc(c[1] ? 'check' : 'plus', 15)}<span>${sqT(c[0])}</span>${c[1] ? '' : `<button type="button" onclick="sqFix('${c[0]}')">${sqT('fix')}</button>`}</li>`).join('')}</ul>
   </section>`;
 }
 
@@ -12522,7 +12543,7 @@ function renderSiteStatusView() {
   const isPremium = siteIsPremiumActive(site);
   const subdomainReady = SITE_ROOT_DOMAIN !== null; // devient vrai des qu'un domaine sera connecte a Vercel
   const subdomainLink = subdomainReady ? `https://${encodeURIComponent(site.slug)}.${SITE_ROOT_DOMAIN}` : null;
-  const isPublished = site.status === 'published' && isPremium;
+  const isPublished = site.status === 'published' && siteIsPremiumActive(site, 'publish');
 
   const statusPillHtml = isPublished
     ? `<span class="shop-card-category" style="background:#e3f6ea;color:#177a3f">${ICON_SPARKLE} ${t('site_status_published')}</span>`
@@ -12589,7 +12610,7 @@ async function verifyPublicSiteLink() {
   resultEl.style.color = '';
   try {
     const snap = await db.collection('mini_sites').where('slug', '==', mySiteCache.slug).limit(1).get();
-    const ok = !snap.empty && snap.docs[0].data().status === 'published' && siteIsPremiumActive(snap.docs[0].data());
+    const ok = !snap.empty && snap.docs[0].data().status === 'published' && siteIsPremiumActive(snap.docs[0].data(), 'publish');
     resultEl.textContent = ok ? `${t('site_check_link_ok')}` : `${t('site_check_link_fail')}`;
     resultEl.style.color = ok ? '#177a3f' : '#b5720b';
   } catch (e) {
@@ -12791,7 +12812,8 @@ function collectSiteDraftForPreview() {
     coverImageUrl: pendingSiteCoverFile ? URL.createObjectURL(pendingSiteCoverFile) : currentSiteCoverUrl,
     services: Array.from(document.querySelectorAll('#site-service-rows .invoice-item-row')).map(r => ({
       name: r.querySelector('.site-service-name').value.trim(), price: r.querySelector('.site-service-price').value.trim(),
-      desc: (r.querySelector('.site-service-desc') || { value: '' }).value.trim()
+      desc: (r.querySelector('.site-service-desc') || { value: '' }).value.trim(),
+      image: (() => { const w = r.querySelector('.site-svc-photo'); const i = w && w.querySelector('.gallery-photo-file'); if (i && i._pendingFile) { try { return URL.createObjectURL(i._pendingFile); } catch (e) {} } return (w && w.dataset.existingUrl) || ''; })()
     })).filter(x => x.name),
     announcement: g('site-announcement'),
     stats: Array.from(document.querySelectorAll('#site-stat-rows .sbx-stat-row')).map(r => ({
@@ -13030,10 +13052,11 @@ function proOptionsCardHtml(site, isPremium) {
 function openSiteSettingsScreen() {
   if (!mySiteCache || document.getElementById('site-settings-screen')) return;
   const site = mySiteCache;
-  const isPremium = siteIsPremiumActive(site);
+  const isPremium = siteIsPremiumActive(site, 'look');
+  const canPub = siteIsPremiumActive(site, 'publish');
   const social = site.socialLinks || {};
   const link = `${window.location.origin}/s/${encodeURIComponent(site.slug)}`;
-  const isPublished = site.status === 'published' && isPremium;
+  const isPublished = site.status === 'published' && canPub;
   const tplChips = Object.keys(SITE_TEMPLATES).map(k => {
     const tpl = SITE_TEMPLATES[k];
     const locked = tpl.premium && !isPremium;
@@ -13059,8 +13082,8 @@ function openSiteSettingsScreen() {
 
         <div class="sbx-card">
           <h4>${t('sb_sec_publication')}</h4>
-          <label class="sbx-switch" ${isPremium ? '' : 'onclick="settingsNeedPro(event)"'}><span><b>${t('sb_pub_toggle')} ${isPremium ? '' : '<em class="sbx-pro">PRO</em>'}</b><small id="ss-pub-desc">${isPublished ? t('sb_pub_online') : (isPremium ? t('sb_pub_offline') : t('sb_pub_pro_only'))}</small></span>
-            <input type="checkbox" id="ss-status" ${isPublished ? 'checked' : ''} ${isPremium ? '' : 'disabled'} onchange="settingsPubChanged(this.checked)"><i></i></label>
+          <label class="sbx-switch" ${canPub ? '' : 'onclick="settingsNeedPro(event)"'}><span><b>${t('sb_pub_toggle')} ${canPub ? '' : '<em class="sbx-pro">PRO</em>'}</b><small id="ss-pub-desc">${isPublished ? t('sb_pub_online') : (isPremium ? t('sb_pub_offline') : t('sb_pub_pro_only'))}</small></span>
+            <input type="checkbox" id="ss-status" ${isPublished ? 'checked' : ''} ${canPub ? '' : 'disabled'} onchange="settingsPubChanged(this.checked)"><i></i></label>
         </div>
 
         <div class="sbx-card">
@@ -13201,7 +13224,8 @@ async function saveSiteSettings() {
   const errEl = document.getElementById('site-settings-error');
   errEl.classList.add('hidden');
   const v = (id) => { const e = document.getElementById(id); return e ? e.value.trim() : ''; };
-  const isPremium = siteIsPremiumActive(mySiteCache);
+  const isPremium = siteIsPremiumActive(mySiteCache, 'look');
+  const canPub = siteIsPremiumActive(mySiteCache, 'publish');
   const customDomain = cleanCustomDomainInput(v('ss-domain'));
   const socialLinks = {};
   for (const [k] of SITE_SOCIALS) {
@@ -13227,7 +13251,7 @@ async function saveSiteSettings() {
   } else if (isPremium && accEl && accEl.dataset.reset === '1') {
     accentColor = null;
   }
-  const status = isPremium ? (document.getElementById('ss-status').checked ? 'published' : 'draft') : (mySiteCache.status || 'draft');
+  const status = canPub ? (document.getElementById('ss-status').checked ? 'published' : 'draft') : (mySiteCache.status || 'draft');
   let proOptions = (mySiteCache.proOptions && typeof mySiteCache.proOptions === 'object') ? mySiteCache.proOptions : {};
   if (isPremium) {
     const ctaUrl = v('ss-po-ctau');
@@ -13348,7 +13372,7 @@ function copySiteLink() {
 }
 
 async function toggleSitePublish(newStatus) {
-  if (newStatus === 'published' && !siteIsPremiumActive(mySiteCache)) {
+  if (newStatus === 'published' && !siteIsPremiumActive(mySiteCache, 'publish')) {
     if (confirm(t('sb_pub_needs_pro'))) purchaseSitePremium();
     return;
   }
@@ -13386,7 +13410,7 @@ function openSiteForm() {
   const s = editingSiteExisting || {};
   const chosenType = (pendingSiteType && !editingSiteExisting) ? pendingSiteType : siteTypeOf(s);
   pendingSiteType = null;
-  const isPremium = siteIsPremiumActive(s);
+  const isPremium = siteIsPremiumActive(s, 'content');
   const photoLimit = isPremium ? SITE_PREMIUM_PHOTO_LIMIT : SITE_FREE_PHOTO_LIMIT;
   const blogLimit = isPremium ? SITE_PREMIUM_BLOG_LIMIT : SITE_FREE_BLOG_LIMIT;
 
@@ -13631,7 +13655,8 @@ function addSiteServiceRow(service) {
       <input type="text" class="text-input site-service-price" placeholder="${t('site_service_price_ph')}" value="${escapeHtml(service ? service.price || '' : '')}" style="flex:1">
       <button type="button" class="invoice-row-remove" onclick="this.closest('.invoice-item-row').remove()" aria-label="Retirer">×</button>
     </div>
-    <input type="text" class="text-input site-service-desc" maxlength="120" placeholder="${t('sb_item_desc_ph')}" value="${escapeHtml(service ? service.desc || '' : '')}" style="margin-top:6px">`;
+    <input type="text" class="text-input site-service-desc" maxlength="120" placeholder="${t('sb_item_desc_ph')}" value="${escapeHtml(service ? service.desc || '' : '')}" style="margin-top:6px">
+    <div class="site-svc-photo-wrap" style="margin-top:6px">${renderGalleryPhotoRow('site-svc-photo', service ? service.image || '' : '').replace('Choisir une photo', 'Photo du produit (facultatif)')}</div>`;
   rowsEl.appendChild(row);
 }
 
@@ -13834,14 +13859,23 @@ async function saveMySite() {
   const services = Array.from(document.querySelectorAll('#site-service-rows .invoice-item-row')).map(row => ({
     name: row.querySelector('.site-service-name').value.trim(),
     price: row.querySelector('.site-service-price').value.trim(),
-    desc: (row.querySelector('.site-service-desc') || { value: '' }).value.trim()
+    desc: (row.querySelector('.site-service-desc') || { value: '' }).value.trim(),
+    _row: row
   })).filter(sv => sv.name);
+  for (const sv of services) {
+    const pin = sv._row.querySelector('.site-svc-photo .gallery-photo-file');
+    const prev = sv._row.querySelector('.site-svc-photo');
+    sv.image = (prev && prev.dataset.existingUrl) || '';
+    if (pin && pin._pendingFile) sv.image = (await uploadFileToStorage(pin._pendingFile, 'sites/products', { maxSizeMB: 10 })).url;
+    delete sv._row;
+    if (!sv.image) delete sv.image;
+  }
   const stats = Array.from(document.querySelectorAll('#site-stat-rows .sbx-stat-row')).map(row => ({
     value: row.querySelector('.site-stat-value').value.trim(),
     label: row.querySelector('.site-stat-label').value.trim()
   })).filter(x => x.value && x.label).slice(0, 4);
   const announcement = document.getElementById('site-announcement').value.trim().slice(0, 140);
-  const isPremiumNow = siteIsPremiumActive(editingSiteExisting);
+  const isPremiumNow = siteIsPremiumActive(editingSiteExisting, 'content');
   const contactWhatsapp = document.getElementById('site-whatsapp').value.trim();
   const contactPhone = document.getElementById('site-phone').value.trim();
   const contactEmail = document.getElementById('site-email').value.trim();
@@ -14245,8 +14279,9 @@ const BUSINESS_PRO_COUPON_LIMIT = 10;
 const BUSINESS_FREE_CLIENT_LIMIT = 20;
 const BUSINESS_PRO_CLIENT_LIMIT = 300;
 
-function businessIsProActive(b) {
-  return !!(b && b.pro && b.proUntil && new Date(b.proUntil).getTime() > Date.now());
+function businessIsProActive(b, key) {
+  if (b && b.pro && b.proUntil && new Date(b.proUntil).getTime() > Date.now()) return true;
+  return !!key && featureGrantActive(b, key);
 }
 
 let businessCache = null;
@@ -14382,7 +14417,7 @@ async function openBusinessDetail(ownerUid) {
   // .profile-page-back au lieu de la croix "×"). Bannière + avatar qui la
   // chevauche, boutons d'action en pleine largeur, sections en cartes --
   // habillage professionnel façon page Facebook/Instagram Business.
-  const bzMedia = businessMediaHtml(b, businessIsProActive(b));
+  const bzMedia = businessMediaHtml(b, businessIsProActive(b, 'content'));
   const galleryAll = (b.gallery || []).concat(bzMedia.images);
   const galleryHtml = galleryAll.length ? `
     <div class="biz-section" id="biz-sec-gallery" style="padding-top:4px">
@@ -14560,7 +14595,7 @@ async function loadBusinessRatingBadge(ownerUid) {
 // openSharedBusinessIfAny() a l'ouverture de l'app.
 function shareBusiness(ownerUid, businessName) {
   const known = (businessCache || []).find(x => x.ownerUid === ownerUid) || (businessMyProfile && businessMyProfile.ownerUid === ownerUid ? businessMyProfile : null) || window.__bizDetail;
-  const shareUrl = (known && known.ownerUid === ownerUid && businessIsProActive(known)) ? businessPublicUrl(ownerUid) : `${window.location.origin}${window.location.pathname}?entreprise=${ownerUid}`;
+  const shareUrl = (known && known.ownerUid === ownerUid && businessIsProActive(known, 'web')) ? businessPublicUrl(ownerUid) : `${window.location.origin}${window.location.pathname}?entreprise=${ownerUid}`;
   const shareText = `${t('business_share_text_prefix')} ${businessName}`;
   if (navigator.share) {
     navigator.share({ title: businessName, text: shareText, url: shareUrl }).catch(() => {});
@@ -14869,7 +14904,7 @@ const BIZ_LISTS = {
 
 function openBusinessListEditor(kind) {
   const cfg = BIZ_LISTS[kind];
-  const isPro = businessIsProActive(businessMyProfile);
+  const isPro = businessIsProActive(businessMyProfile, 'tools');
   if (cfg.proOnly && !isPro) { businessNeedPro(); return; }
   if (document.getElementById('business-list-modal')) return;
   const limit = isPro ? cfg.pro : cfg.free;
@@ -14946,7 +14981,7 @@ async function saveBusinessList(kind) {
 /* ---- Galerie ---- */
 function openBusinessGalleryEditor() {
   if (document.getElementById('business-gallery-modal')) return;
-  const isPro = businessIsProActive(businessMyProfile);
+  const isPro = businessIsProActive(businessMyProfile, 'content');
   const limit = isPro ? BUSINESS_PRO_GALLERY_LIMIT : BUSINESS_FREE_GALLERY_LIMIT;
   const photos = businessMyProfile.gallery || [];
   document.body.insertAdjacentHTML('beforeend', `
@@ -14989,7 +15024,7 @@ async function saveBusinessGallery() {
 
 /* ---- Annonce & apparence (Pro) ---- */
 function openBusinessLookForm() {
-  if (!businessIsProActive(businessMyProfile)) { businessNeedPro(); return; }
+  if (!businessIsProActive(businessMyProfile, 'tools')) { businessNeedPro(); return; }
   if (document.getElementById('business-look-modal')) return;
   const b = businessMyProfile;
   document.body.insertAdjacentHTML('beforeend', `
@@ -15075,9 +15110,9 @@ let mediaBusy = false;
 
 function mediaCfg(kind) {
   if (kind === 'site') {
-    return { col: 'mini_sites', doc: () => mySiteCache, paid: () => siteIsPremiumActive(mySiteCache), upgrade: () => purchaseSitePremium(), refresh: () => renderSiteStatusView(), folder: 'sites/media' };
+    return { col: 'mini_sites', doc: () => mySiteCache, paid: () => siteIsPremiumActive(mySiteCache, 'content'), upgrade: () => purchaseSitePremium(), refresh: () => renderSiteStatusView(), folder: 'sites/media' };
   }
-  return { col: 'businesses', doc: () => businessMyProfile, paid: () => businessIsProActive(businessMyProfile), upgrade: () => purchaseBusinessPro(), refresh: () => { businessCache = null; renderMyBusinessStatus(); }, folder: 'entreprises/media' };
+  return { col: 'businesses', doc: () => businessMyProfile, paid: () => businessIsProActive(businessMyProfile, 'content'), upgrade: () => purchaseBusinessPro(), refresh: () => { businessCache = null; renderMyBusinessStatus(); }, folder: 'entreprises/media' };
 }
 function mediaItems(kind) { const d = mediaCfg(kind).doc(); return d && Array.isArray(d.media) ? d.media : []; }
 function mediaCountOf(items, type) { return items.filter(m => m && m.type === type).length; }
@@ -15276,7 +15311,7 @@ function openSiteNewsManager() {
 function renderSiteNewsManager() {
   const body = document.getElementById('sp-body'); if (!body) return;
   const posts = Array.isArray(mySiteCache.blogPosts) ? mySiteCache.blogPosts : [];
-  const paid = siteIsPremiumActive(mySiteCache);
+  const paid = siteIsPremiumActive(mySiteCache, 'content');
   body.innerHTML = `
     <p class="muted small" style="margin:0 0 10px">${paid ? t('sp_news_paid') : `${t('sp_news_free')} ${SITE_FREE_BLOG_LIMIT}`}</p>
     <div class="md-sec">
@@ -15303,7 +15338,7 @@ async function spPublishNews() {
   const text = document.getElementById('sp-news-body').value.trim();
   if (!title || !text) { showToast(t('sp_news_need'), 'info'); return; }
   const posts = (Array.isArray(mySiteCache.blogPosts) ? mySiteCache.blogPosts : []).slice();
-  if (!siteIsPremiumActive(mySiteCache) && posts.length >= SITE_FREE_BLOG_LIMIT) {
+  if (!siteIsPremiumActive(mySiteCache, 'content') && posts.length >= SITE_FREE_BLOG_LIMIT) {
     if (confirm(t('md_limit_upgrade'))) { spClose(); purchaseSitePremium(); } return;
   }
   const btn = document.getElementById('sp-news-btn'); btn.disabled = true;
@@ -15336,7 +15371,7 @@ function openSitePortfolioManager() {
 function renderSitePortfolioManager() {
   const body = document.getElementById('sp-body'); if (!body) return;
   const list = Array.isArray(mySiteCache.portfolio) ? mySiteCache.portfolio : [];
-  const paid = siteIsPremiumActive(mySiteCache);
+  const paid = siteIsPremiumActive(mySiteCache, 'content');
   body.innerHTML = `
     <p class="muted small" style="margin:0 0 10px">${t('pf_hint')} ${paid ? '' : `(${t('pf_free_limit')} ${SITE_FREE_PORTFOLIO_LIMIT})`}</p>
     <div class="md-sec">
@@ -15362,7 +15397,7 @@ async function spAddProject() {
   const title = document.getElementById('sp-pf-title').value.trim();
   if (!title) { showToast(t('sp_news_need'), 'info'); return; }
   const list = (Array.isArray(mySiteCache.portfolio) ? mySiteCache.portfolio : []).slice();
-  if (!siteIsPremiumActive(mySiteCache) && list.length >= SITE_FREE_PORTFOLIO_LIMIT) {
+  if (!siteIsPremiumActive(mySiteCache, 'content') && list.length >= SITE_FREE_PORTFOLIO_LIMIT) {
     if (confirm(t('md_limit_upgrade'))) { spClose(); purchaseSitePremium(); } return;
   }
   const btn = document.getElementById('sp-pf-btn'); btn.disabled = true;
@@ -15391,7 +15426,7 @@ function openSiteListManager(kind) {
 }
 function renderSiteListManager(kind) {
   const cfg = SITE_LISTS[kind], body = document.getElementById('sp-body'); if (!body) return;
-  const paid = siteIsPremiumActive(mySiteCache);
+  const paid = siteIsPremiumActive(mySiteCache, 'content');
   const limit = paid ? cfg.paid : cfg.free;
   let list = Array.isArray(mySiteCache[kind]) ? mySiteCache[kind] : [];
   if (cfg.str) list = list.map(x => ({ text: x }));
@@ -15411,7 +15446,7 @@ async function spAddListItem(kind) {
   const o = {}; document.querySelectorAll('#sp-body .sp-lf').forEach(el => { o[el.dataset.key] = el.value.trim(); });
   if (!o[cfg.need]) { showToast(t('sp_news_need'), 'info'); return; }
   const cur = (Array.isArray(mySiteCache[kind]) ? mySiteCache[kind] : []).slice();
-  const paid = siteIsPremiumActive(mySiteCache);
+  const paid = siteIsPremiumActive(mySiteCache, 'content');
   if (cur.length >= (paid ? cfg.paid : cfg.free)) { if (confirm(t('md_limit_upgrade'))) { spClose(); purchaseSitePremium(); } return; }
   cur.push(cfg.str ? o.text : o);
   try { await spSave(kind, cur); showToast(t('sp_published'), 'success'); renderSiteListManager(kind); } catch (e) { showToast(friendlyErrorMessage(e), 'error'); }
@@ -15426,24 +15461,24 @@ function siteHubHtml(site, isPremium) {
   const mi = mediaItems('site');
   const tile = (icon, label, count, fn) => `<button type="button" class="sp-tile" onclick="${fn}"><span class="sp-ic">${icon}</span><b>${escapeHtml(label)}</b><small>${count}</small></button>`;
   return `<h4 class="sp-h">${t('sp_hub_title')}</h4><div class="sp-hub">
-    ${tile('📰', t('sp_news'), n('blogPosts'), 'openSiteNewsManager()')}
-    ${tile('🗂', t('pf_section'), n('portfolio'), 'openSitePortfolioManager()')}
-    ${tile('🖼', t('md_title'), `${mediaCountOf(mi, 'image')} · ${mediaCountOf(mi, 'video')} · ${mediaCountOf(mi, 'file')}`, "openMediaManager('site')")}
-    ${tile('💎', t('sp_plans'), n('plans'), "openSiteListManager('plans')")}
-    ${tile('👥', t('sp_team'), n('team'), "openSiteListManager('team')")}
-    ${tile('🤝', t('sp_partners'), n('partners'), "openSiteListManager('partners')")}
-    ${tile('🕓', t('sp_timeline'), n('timeline'), "openSiteListManager('timeline')")}
-    ${tile('🏷', t('sp_cat_title'), n('categories'), 'openSiteCategoriesManager()')}
-    ${tile('📅', t('bk_title'), t((site.booking && site.booking.enabled) ? 'lead_on' : 'lead_off'), "openLeadsManager('site','appointment')")}
-    ${tile('🔌', t('svc_api'), t('api_tile_sub'), 'openResellerApiScreen()')}
-    ${tile('📬', t('nl_title'), t((site.newsletter && site.newsletter.enabled) ? 'lead_on' : 'lead_off'), "openLeadsManager('site','newsletter')")}
+    ${tile(uiIc('doc', 20), t('sp_news'), n('blogPosts'), 'openSiteNewsManager()')}
+    ${tile(uiIc('briefcase', 20), t('pf_section'), n('portfolio'), 'openSitePortfolioManager()')}
+    ${tile(uiIc('camera', 20), t('md_title'), `${mediaCountOf(mi, 'image')} · ${mediaCountOf(mi, 'video')} · ${mediaCountOf(mi, 'file')}`, "openMediaManager('site')")}
+    ${tile(uiIc('star', 20), t('sp_plans'), n('plans'), "openSiteListManager('plans')")}
+    ${tile(uiIc('user', 20), t('sp_team'), n('team'), "openSiteListManager('team')")}
+    ${tile(uiIc('handshake', 20), t('sp_partners'), n('partners'), "openSiteListManager('partners')")}
+    ${tile(uiIc('clock', 20), t('sp_timeline'), n('timeline'), "openSiteListManager('timeline')")}
+    ${tile(uiIc('tag', 20), t('sp_cat_title'), n('categories'), 'openSiteCategoriesManager()')}
+    ${tile(uiIc('calendar', 20), t('bk_title'), t((site.booking && site.booking.enabled) ? 'lead_on' : 'lead_off'), "openLeadsManager('site','appointment')")}
+    ${tile(uiIc('plug', 20), t('svc_api'), t('api_tile_sub'), 'openResellerApiScreen()')}
+    ${tile(uiIc('mail', 20), t('nl_title'), t((site.newsletter && site.newsletter.enabled) ? 'lead_on' : 'lead_off'), "openLeadsManager('site','newsletter')")}
   </div>`;
 }
 
 /* ====================== API revendeur (v-pro23) ====================== */
 let resellerState = null;
 async function resellerCall(body) {
-  const tok = await currentUser.getIdToken();
+  const tok = await auth.currentUser.getIdToken();
   const r = await fetch('/api/payments-actions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(Object.assign({ idToken: tok, action: 'api_key' }, body)) });
   const j = await r.json().catch(() => null);
   if (!j) throw new Error(t('lead_srv_old'));
@@ -15568,7 +15603,7 @@ async function resellerSaveIps() {
 
 /* ---- Rendez-vous, newsletter et catégories (v-pro20) ---- */
 async function leadsCall(body) {
-  const tok = await currentUser.getIdToken();
+  const tok = await auth.currentUser.getIdToken();
   const r = await fetch('/api/render-site', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + tok }, body: JSON.stringify(body) });
   const j = await r.json().catch(() => null);
   if (!j) throw new Error(t('lead_srv_old'));
@@ -15732,7 +15767,7 @@ async function spDeleteCategory(i) {
 /* ---- Catalogue (produits/services) ---- */
 function openBusinessCatalogManager() {
   if (document.getElementById('business-catalog-modal')) return;
-  const isPro = businessIsProActive(businessMyProfile);
+  const isPro = businessIsProActive(businessMyProfile, 'content');
   const limit = isPro ? BUSINESS_PRO_CATALOG_LIMIT : BUSINESS_FREE_CATALOG_LIMIT;
   const catalog = businessMyProfile.catalog || [];
 
@@ -15789,7 +15824,7 @@ async function saveBusinessCatalog() {
 /* ---- Coupons / promotions ---- */
 function openBusinessCouponsManager() {
   if (document.getElementById('business-coupons-modal')) return;
-  const isPro = businessIsProActive(businessMyProfile);
+  const isPro = businessIsProActive(businessMyProfile, 'content');
   const limit = isPro ? BUSINESS_PRO_COUPON_LIMIT : BUSINESS_FREE_COUPON_LIMIT;
   const coupons = businessMyProfile.coupons || [];
 
@@ -15890,7 +15925,7 @@ async function loadBusinessClients() {
     const clients = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     clients.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
 
-    const isPro = businessIsProActive(businessMyProfile);
+    const isPro = businessIsProActive(businessMyProfile, 'content');
     const limit = isPro ? BUSINESS_PRO_CLIENT_LIMIT : BUSINESS_FREE_CLIENT_LIMIT;
     listEl.dataset.count = clients.length;
 
@@ -15920,7 +15955,7 @@ async function addBusinessClient() {
   const notes = document.getElementById('business-client-notes').value.trim();
   if (!name) { msgEl.textContent = t('business_client_name_required'); return; }
 
-  const isPro = businessIsProActive(businessMyProfile);
+  const isPro = businessIsProActive(businessMyProfile, 'content');
   const limit = isPro ? BUSINESS_PRO_CLIENT_LIMIT : BUSINESS_FREE_CLIENT_LIMIT;
   const currentCount = parseInt(document.getElementById('business-clients-list').dataset.count || '0', 10);
   if (currentCount >= limit) {
