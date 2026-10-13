@@ -120,7 +120,7 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
-const CACHE_NAME = 'coeurnohboost-v16';
+const CACHE_NAME = 'coeurnohboost-v17';
 const APP_SHELL = [
   '/',
   '/index.html',

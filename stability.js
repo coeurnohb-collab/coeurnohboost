@@ -10,7 +10,8 @@
       avalés, puis l'application se fermait).
    3. Bandeau « nouvelle notification » : se ferme toujours tout seul,
       même si le minuteur d'origine est retardé par le téléphone.
-   4. Charge academy-pro.js (programme d'affiliation de l'Académie).
+   4. Charge academy-pro.js (affiliation, codes promo, gains) et academy-studio.js
+      (quiz, certificats, documents, packs, design de l'Académie).
    ===================================================================== */
 (function () {
   'use strict';
@@ -73,8 +74,13 @@
   try {
     if (!document.querySelector('script[data-cn-ap]')) {
       var ap = document.createElement('script');
-      ap.src = 'academy-pro.js'; ap.async = true; ap.setAttribute('data-cn-ap', '1');
+      ap.src = 'academy-pro.js?v=20261014'; ap.async = true; ap.setAttribute('data-cn-ap', '1');
       document.head.appendChild(ap);
+    }
+    if (!document.querySelector('script[data-cn-as]')) {
+      var as = document.createElement('script');
+      as.src = 'academy-studio.js?v=20261014'; as.async = true; as.setAttribute('data-cn-as', '1');
+      document.head.appendChild(as);
     }
   } catch (e) { /* ignore */ }
 
