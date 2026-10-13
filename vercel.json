@@ -1,4 +1,7 @@
 {
+  "functions": {
+    "api/payments-actions.js": { "maxDuration": 60 }
+  },
   "crons": [
     {
       "path": "/api/mtp-balance",
