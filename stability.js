@@ -10,8 +10,9 @@
       avalés, puis l'application se fermait).
    3. Bandeau « nouvelle notification » : se ferme toujours tout seul,
       même si le minuteur d'origine est retardé par le téléphone.
-   4. Charge academy-pro.js (affiliation, codes promo, gains) et academy-studio.js
-      (quiz, certificats, documents, packs, design de l'Académie).
+   4. Charge academy-ui.css (design), academy-pro.js (affiliation, codes promo, gains),
+      academy-studio.js (quiz, certificats, documents, packs) et academy-hub.js
+      (auto-études par IA, liste des étudiants, cartes de cours).
    ===================================================================== */
 (function () {
   'use strict';
@@ -70,18 +71,20 @@
   }
 
 
-  /* 4. Académie : programme d'affiliation (fichier séparé, jamais bloquant) */
+  /* 4. Académie : design, auto-études IA, affiliation / codes promo, quiz / certificats (fichiers séparés, jamais bloquants) */
   try {
-    if (!document.querySelector('script[data-cn-ap]')) {
-      var ap = document.createElement('script');
-      ap.src = 'academy-pro.js?v=20261014'; ap.async = true; ap.setAttribute('data-cn-ap', '1');
-      document.head.appendChild(ap);
+    var V = '20261015';
+    if (!document.querySelector('link[data-cn-au]')) {
+      var au = document.createElement('link');
+      au.rel = 'stylesheet'; au.href = 'academy-ui.css?v=' + V; au.setAttribute('data-cn-au', '1');
+      document.head.appendChild(au);
     }
-    if (!document.querySelector('script[data-cn-as]')) {
-      var as = document.createElement('script');
-      as.src = 'academy-studio.js?v=20261014'; as.async = true; as.setAttribute('data-cn-as', '1');
-      document.head.appendChild(as);
-    }
+    [['data-cn-ap', 'academy-pro.js'], ['data-cn-as', 'academy-studio.js'], ['data-cn-ah', 'academy-hub.js']].forEach(function (x) {
+      if (!x[1] || document.querySelector('script[' + x[0] + ']')) return;
+      var sc = document.createElement('script');
+      sc.src = x[1] + '?v=' + V; sc.async = true; sc.setAttribute(x[0], '1');
+      document.head.appendChild(sc);
+    });
   } catch (e) { /* ignore */ }
 
   function scan() {

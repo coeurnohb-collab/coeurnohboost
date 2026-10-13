@@ -148,6 +148,36 @@
         <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="saveMockupAiPricing()">💾 Enregistrer</button>
         <p class="muted small" id="mockup-ai-pricing-msg" style="margin-top:8px"></p>
       </div>
+
+      <h2 class="page-title" style="margin-top:32px">Académie — Auto-études par IA</h2>
+      <p class="muted" style="margin-bottom:14px">Prix de l'abonnement « Académie Plus » (payé avec le portefeuille, 30 jours) et limites par jour. Appliqué immédiatement, sans redéploiement. Chaque leçon générée coûte quelques centimes d'IA : garde les limites gratuites basses.</p>
+      <div class="order-box">
+        <div class="field">
+          <label>Auto-études ouvertes</label>
+          <select id="acad-ai-enabled" class="text-input"><option value="1">Oui</option><option value="0">Non (fermées pour tout le monde)</option></select>
+        </div>
+        <div class="field">
+          <label>Prix d'Académie Plus pour 30 jours ($)</label>
+          <input type="number" id="acad-ai-price" class="text-input" min="0" step="0.01" placeholder="5">
+        </div>
+        <p class="muted small" style="margin:10px 0 6px"><b>Version gratuite</b> (par utilisateur)</p>
+        <div class="field"><label>Leçons IA par jour</label><input type="number" id="acad-ai-free-lessons" class="text-input" min="0" step="1" placeholder="2"></div>
+        <div class="field"><label>Questions au tuteur par jour</label><input type="number" id="acad-ai-free-tutor" class="text-input" min="0" step="1" placeholder="5"></div>
+        <div class="field"><label>Parcours en même temps</label><input type="number" id="acad-ai-free-paths" class="text-input" min="0" step="1" placeholder="1"></div>
+        <p class="muted small" style="margin:10px 0 6px"><b>Académie Plus</b> (par utilisateur)</p>
+        <div class="field"><label>Leçons IA par jour</label><input type="number" id="acad-ai-plus-lessons" class="text-input" min="0" step="1" placeholder="30"></div>
+        <div class="field"><label>Questions au tuteur par jour</label><input type="number" id="acad-ai-plus-tutor" class="text-input" min="0" step="1" placeholder="100"></div>
+        <div class="field"><label>Parcours en même temps</label><input type="number" id="acad-ai-plus-paths" class="text-input" min="0" step="1" placeholder="20"></div>
+        <p class="muted small" style="margin:10px 0 6px"><b>Fournisseur d'IA</b> — les clés restent dans Vercel : ANTHROPIC_API_KEY et/ou GEMINI_API_KEY</p>
+        <div class="field">
+          <label>Fournisseur</label>
+          <select id="acad-ai-provider" class="text-input"><option value="auto">Automatique (Anthropic si la clé existe, sinon Gemini)</option><option value="anthropic">Anthropic (Claude)</option><option value="gemini">Google Gemini</option></select>
+        </div>
+        <div class="field"><label>Modèle — version gratuite (vide = modèle par défaut)</label><input type="text" id="acad-ai-model" class="text-input" placeholder="ex. claude-sonnet-5-5"></div>
+        <div class="field"><label>Modèle — Académie Plus (vide = identique)</label><input type="text" id="acad-ai-model-plus" class="text-input" placeholder="ex. un modèle plus puissant"></div>
+        <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="saveAcademyAiConfig()">💾 Enregistrer</button>
+        <p class="muted small" id="acad-ai-msg" style="margin-top:8px"></p>
+      </div>
     </div>
 
     <!-- ---- Utilisateurs ---- -->

@@ -287,7 +287,7 @@ function showAdminTab(tab) {
   if (tab === 'profit') loadProfitAdmin();
   if (tab === 'pricing') loadPricingAdmin();
   if (tab === 'packages') loadPackagesAdmin();
-  if (tab === 'monetization') { loadMonetizationAdmin(); loadMockupAiPricing(); }
+  if (tab === 'monetization') { loadMonetizationAdmin(); loadMockupAiPricing(); loadAcademyAiConfig(); }
   if (tab === 'shop') loadShopAdmin();
   if (tab === 'withdrawals') loadWithdrawalsAdmin();
   if (tab === 'domains') loadDomainsAdmin();
@@ -820,6 +820,51 @@ async function saveMockupAiPricing() {
       freeQuota, priceUsd, updatedAt: new Date().toISOString(), updatedBy: ADMIN_UID
     }, { merge: true });
     if (msg) { msg.textContent = '✅ Enregistré — appliqué immédiatement pour tous les utilisateurs.'; setTimeout(() => { msg.textContent = ''; }, 3000); }
+  } catch (e) {
+    if (msg) msg.textContent = 'Erreur : ' + e.message;
+  }
+}
+
+/* =========================================================
+   ACADÉMIE — AUTO-ÉTUDES PAR IA : prix d'Académie Plus, limites, modèle
+   Stocké dans app_config/academy_ai, relu par le serveur à chaque appel
+   (api/_lib/academy-study.js) : un changement ici est immédiat.
+   ========================================================= */
+const ACAD_AI_FIELDS = [
+  ['acad-ai-price', 'plusPriceMonth', 5], ['acad-ai-free-lessons', 'freeLessonsPerDay', 2], ['acad-ai-free-tutor', 'freeTutorPerDay', 5], ['acad-ai-free-paths', 'freeMaxPaths', 1],
+  ['acad-ai-plus-lessons', 'plusLessonsPerDay', 30], ['acad-ai-plus-tutor', 'plusTutorPerDay', 100], ['acad-ai-plus-paths', 'plusMaxPaths', 20]
+];
+async function loadAcademyAiConfig() {
+  const msg = document.getElementById('acad-ai-msg');
+  if (msg) msg.textContent = '';
+  try {
+    const snap = await db.collection('app_config').doc('academy_ai').get();
+    const d = snap.exists ? snap.data() : {};
+    ACAD_AI_FIELDS.forEach(([id, key, def]) => { document.getElementById(id).value = (d[key] != null) ? d[key] : def; });
+    document.getElementById('acad-ai-enabled').value = d.enabled === false ? '0' : '1';
+    document.getElementById('acad-ai-provider').value = ['auto', 'anthropic', 'gemini'].includes(d.provider) ? d.provider : 'auto';
+    document.getElementById('acad-ai-model').value = d.model || '';
+    document.getElementById('acad-ai-model-plus').value = d.modelPlus || '';
+  } catch (e) {
+    if (msg) msg.textContent = 'Erreur de chargement : ' + e.message;
+  }
+}
+
+async function saveAcademyAiConfig() {
+  const msg = document.getElementById('acad-ai-msg');
+  const data = { enabled: document.getElementById('acad-ai-enabled').value === '1', provider: document.getElementById('acad-ai-provider').value };
+  ACAD_AI_FIELDS.forEach(([id, key]) => {
+    const n = parseFloat(document.getElementById(id).value);
+    data[key] = Number.isFinite(n) ? Math.max(0, key === 'plusPriceMonth' ? n : Math.floor(n)) : 0;
+  });
+  const okModel = (v) => /^[A-Za-z0-9._:\-\/]{3,80}$/.test(v);
+  const m1 = document.getElementById('acad-ai-model').value.trim(), m2 = document.getElementById('acad-ai-model-plus').value.trim();
+  if ((m1 && !okModel(m1)) || (m2 && !okModel(m2))) { if (msg) msg.textContent = 'Nom de modèle invalide (lettres, chiffres, . _ - : /).'; return; }
+  data.model = m1; data.modelPlus = m2;
+  data.updatedAt = new Date().toISOString(); data.updatedBy = ADMIN_UID;
+  try {
+    await db.collection('app_config').doc('academy_ai').set(data, { merge: true });
+    if (msg) { msg.textContent = '✅ Enregistré — appliqué immédiatement pour tous les utilisateurs.'; setTimeout(() => { msg.textContent = ''; }, 3500); }
   } catch (e) {
     if (msg) msg.textContent = 'Erreur : ' + e.message;
   }
