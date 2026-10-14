@@ -578,7 +578,7 @@
           return '<div class="cnh-stu"><span class="cnh-av" style="background:' + avColor(s.name) + '">' + esc((s.name.trim().charAt(0) || '?').toUpperCase()) + '</span><div class="cnh-grow"><div class="cnh-row cnh-between"><span class="cnh-stu-n cnh-ellipsis">' + esc(s.name) + '</span><b style="font-size:.85rem">' + s.progress + '%</b></div>' +
             '<div class="cnh-bar' + (s.progress >= 100 ? ' ok' : '') + '" style="margin:7px 0 6px"><i style="width:' + s.progress + '%"></i></div>' +
             '<div class="cnh-stu-m cnh-row cnh-wrap" style="gap:4px 10px"><span>' + esc(tx('chapN', { a: s.doneChapters, b: total })) + '</span><span>' + esc(tx('joined', { d: fmtDate(s.joinedAt) })) + '</span>' +
-            (s.certificate ? '<span class="cnh-pill ok">' + esc(tx('cert')) + '</span>' : '') + '<span class="cnh-pill">' + (s.paid > 0 ? esc(Number(s.paid).toFixed(2)) + ' $' : esc(tx('freeW'))) + '</span></div></div></div>';
+            (s.quizAvg != null ? '<span class="cnh-pill">Quiz ' + esc(s.quizAvg) + '%</span>' : '') + (s.finalScore != null ? '<span class="cnh-pill ' + (s.finalScore >= 70 ? 'ok' : 'warn') + '">Examen ' + esc(s.finalScore) + '%</span>' : '') + (s.certificate ? '<span class="cnh-pill ok">' + esc(tx('cert')) + '</span>' : '') + '<span class="cnh-pill">' + (s.paid > 0 ? esc(Number(s.paid).toFixed(2)) + ' $' : esc(tx('freeW'))) + '</span></div></div></div>';
         }).join('') : '<p class="cnh-sub" style="text-align:center;padding:18px 0">' + esc(tx('stuNone')) + '</p>';
       }
       paint();

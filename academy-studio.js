@@ -134,89 +134,10 @@
 
   /* ======================= QUIZ ======================= */
   function openQuizEditor(courseId, chapterId, chapterTitle, onDone) {
-    modal(tx('quizEdTitle') + ' — ' + chapterTitle, function (body, close) {
-      var qs = [];
-      function newQ() { return { q: '', options: ['', '', ''], answer: 0 }; }
-      function draw() {
-        body.innerHTML = '';
-        if (!qs.length) { var p = document.createElement('p'); p.className = 'muted small'; p.textContent = tx('qEmptyHint'); body.appendChild(p); }
-        qs.forEach(function (q, qi) {
-          var d = document.createElement('div'); d.className = 'cn-st-q';
-          d.innerHTML = '<label class="small muted">' + esc(tx('qQ')) + ' ' + (qi + 1) + '</label><textarea rows="2" maxlength="200"></textarea>';
-          var ta = d.querySelector('textarea'); ta.value = q.q; ta.addEventListener('input', function () { q.q = ta.value; });
-          q.options.forEach(function (o, oi) {
-            var row = document.createElement('label'); row.className = 'cn-st-opt';
-            row.innerHTML = '<input type="radio" name="ans' + qi + '"><input type="text" maxlength="120" placeholder="' + esc(tx('qOpt', { n: oi + 1 })) + '"><span class="small muted">' + esc(tx('qOk')) + '</span>';
-            var radio = row.querySelector('input[type=radio]'), inp = row.querySelector('input[type=text]');
-            radio.checked = q.answer === oi; radio.addEventListener('change', function () { q.answer = oi; });
-            inp.value = o; inp.addEventListener('input', function () { q.options[oi] = inp.value; });
-            d.appendChild(row);
-          });
-          var rm = btn(tx('qDel'), 'btn-outline', function () { qs.splice(qi, 1); draw(); }); rm.style.marginTop = '8px';
-          d.appendChild(rm);
-          body.appendChild(d);
-        });
-        var row = document.createElement('div'); row.className = 'cn-st-row';
-        if (qs.length < 10) row.appendChild(btn(tx('qAdd'), 'btn-outline', function () { qs.push(newQ()); draw(); }));
-        var save = btn(tx('qSave'), 'btn-primary', async function () {
-          save.disabled = true;
-          try {
-            // la bonne réponse suit sa position après retrait des cases vides
-            var clean = qs.map(function (q) { var kept = [], ans = 0; q.options.forEach(function (o, i) { if (o.trim()) { if (i === q.answer) ans = kept.length; kept.push(o); } }); return { q: q.q, options: kept, answer: ans }; });
-            await call('academy_quiz', { op: 'save', courseId: courseId, chapterId: chapterId, questions: clean });
-            toast(tx('qSaved'), 'success'); close(); if (onDone) onDone();
-          } catch (e) { toast(errMsg(e), 'error'); save.disabled = false; }
-        });
-        row.appendChild(save); body.appendChild(row);
-      }
-      draw();
-      call('academy_quiz', { op: 'get', courseId: courseId, chapterId: chapterId }).then(function (r) { qs = (r.questions || []).map(function (x) { return { q: x.q, options: x.options.slice(), answer: x.answer }; }); draw(); }).catch(function () { qs = [newQ()]; draw(); });
-    });
+    if (window.CNLearn) window.CNLearn.edit(courseId, 'chapter', chapterId, chapterTitle, onDone);
   }
-
   function openQuizPlayer(courseId, chapterId, chapterTitle, onDone) {
-    modal(tx('quizPlay') + ' — ' + chapterTitle, function (body, close) {
-      call('academy_quiz', { op: 'get', courseId: courseId, chapterId: chapterId }).then(function (r) {
-        var chosen = [], wrongSet = {}, done = false;
-        function draw(result) {
-          body.innerHTML = '';
-          r.questions.forEach(function (q, qi) {
-            var d = document.createElement('div'); d.className = 'cn-st-q';
-            var h = document.createElement('b'); h.textContent = (qi + 1) + '. ' + q.q; d.appendChild(h);
-            q.options.forEach(function (o, oi) {
-              var row = document.createElement('label'); row.className = 'cn-st-opt' + (result && wrongSet[qi] ? ' bad' : '');
-              row.innerHTML = '<input type="radio" name="q' + qi + '"><span></span>';
-              row.querySelector('span').textContent = o;
-              var rd = row.querySelector('input'); rd.checked = chosen[qi] === oi; rd.disabled = !!(result && result.passed);
-              rd.addEventListener('change', function () { chosen[qi] = oi; });
-              d.appendChild(row);
-            });
-            body.appendChild(d);
-          });
-          if (result) {
-            var m = document.createElement('p'); m.style.cssText = 'font-weight:800;color:' + (result.passed ? '#15803d' : '#b91c1c');
-            m.textContent = result.passed ? tx('qPass', { n: result.score }) : tx('qFail', { n: result.score, m: result.passMark });
-            body.appendChild(m);
-          }
-          var row = document.createElement('div'); row.className = 'cn-st-row';
-          if (!result || !result.passed) {
-            var go = btn(tx('qSubmit'), 'btn-primary', async function () {
-              for (var i = 0; i < r.questions.length; i++) if (chosen[i] == null) { toast(tx('qAnswerAll'), 'error'); return; }
-              go.disabled = true;
-              try {
-                var res = await call('academy_quiz', { op: 'submit', courseId: courseId, chapterId: chapterId, answers: chosen });
-                wrongSet = {}; (res.wrong || []).forEach(function (i) { wrongSet[i] = 1; });
-                draw(res); if (res.passed && onDone) onDone();
-              } catch (e) { toast(errMsg(e), 'error'); go.disabled = false; }
-            });
-            row.appendChild(go);
-          }
-          row.appendChild(btn(tx('qClose'), 'btn-outline', close));
-          body.appendChild(row);
-        }
-        draw(null);
-      }).catch(function (e) { body.textContent = errMsg(e); });
-    });
+    if (window.CNLearn) window.CNLearn.play(courseId, 'chapter', chapterId, chapterTitle, onDone);
   }
 
   /* ======================= CERTIFICAT ======================= */
@@ -269,7 +190,7 @@
     b.classList.add('cn-cert-box');
     var pr = s.progress;
     var p = document.createElement('p'); p.className = 'muted small'; p.style.margin = '0 0 10px';
-    p.textContent = tx('cProg', { a: pr.chaptersDone, b: pr.chaptersTotal, c: pr.quizzesPassed, d: pr.quizzesTotal });
+    p.textContent = tx('cProg', { a: pr.chaptersDone, b: pr.chaptersTotal, c: pr.quizzesPassed, d: pr.quizzesTotal }) + (pr.finalExists ? ' · ' + (lang() === 'fr' ? 'Examen final' : 'Final exam') + ' ' + (pr.finalPassed ? '✓' : '✗') : '');
     c.appendChild(p);
     if (s.certificate) {
       c.appendChild(btn(tx('cView'), 'btn-primary', function () { showCertificate(s.certificate.code); }));
@@ -467,7 +388,8 @@
       if (isOwner || enrolled) blocks.push(await buildDocsBox(id, isOwner));
       if (!isOwner && !enrolled && Number(data.price) > 0 && data.status === 'active') blocks.push(await buildPackBuyBox(id));
     } catch (e) { /* ignore */ }
-    if (host.querySelector('.cn-st-box')) return;
+    try { if (window.CNLearn) { var lb = await window.CNLearn.blocks(id, data, isOwner, enrolled, function () { refreshCert(); }); lb.forEach(function (x) { blocks.push(x); }); } } catch (e) { /* ignore */ }
+    if (host.querySelector('.cn-st-box, .cnh-card.cn-st-box')) return;
     blocks.forEach(function (b) { if (b) host.insertBefore(b, anchor); });
   }
 
