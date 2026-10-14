@@ -211,3 +211,33 @@ textarea.cnh-input{min-height:84px;padding:12px 14px;resize:vertical}
 #course-detail-body>button.btn-primary,#course-detail-body>button.btn[onclick^="openCourseEnroll"],#course-detail-body>button.btn[onclick^="openCourseForm"]{min-height:52px;border-radius:15px;font-weight:800}
 #course-detail-body>button.btn-outline[onclick^="openReportModal"]{border:0;background:none;box-shadow:none;color:var(--cnh-sub);font-size:.82rem;text-decoration:underline;min-height:40px}
 .cnh-root [hidden]{display:none!important}
+
+/* ---------- Navigation plein écran (catégorie > domaine > sujet > parcours > leçon) ---------- */
+:root{--cnh-page:#f4f6fb}
+html[data-theme="dark"]{--cnh-page:#0f1217}
+html.cnh-fs-open,html.cnh-fs-open body{overflow:hidden}
+.cnh-fs{position:fixed;inset:0;z-index:100000;display:flex;flex-direction:column;background:var(--cnh-page);animation:cnh-fade .16s ease}
+.cnh-fs-top{display:flex;align-items:center;gap:10px;flex:0 0 auto;padding:calc(env(safe-area-inset-top,0px) + 10px) 14px 10px;background:var(--cnh-card);border-bottom:1px solid var(--cnh-line)}
+.cnh-fs-back{appearance:none;width:44px;height:44px;border-radius:50%;border:1.5px solid var(--cnh-line);background:var(--cnh-card);color:var(--cnh-ink);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto}
+.cnh-fs-back:active{transform:scale(.94)}
+.cnh-fs-title{flex:1;min-width:0;font-family:var(--font-head,'Sora',system-ui,sans-serif);font-weight:800;font-size:1.05rem;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cnh-fs-body{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;width:100%;max-width:780px;margin:0 auto;padding:16px 16px calc(env(safe-area-inset-bottom,0px) + 36px)}
+.cnh-crumb{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:.78rem;color:var(--cnh-sub);margin:0 0 10px}
+.cnh-crumb b{color:var(--cnh-ink)}
+.cnh-cathero{display:flex;gap:14px;align-items:center;margin:0 0 16px}
+.cnh-cathero .cnh-dom{width:58px;height:58px;border-radius:18px}.cnh-cathero .cnh-dom svg{width:28px;height:28px}
+.cnh-grp{display:flex;align-items:center;gap:14px;width:100%;text-align:left;padding:14px;margin:0 0 10px;border:1px solid var(--cnh-line);border-radius:18px;background:var(--cnh-card);color:var(--cnh-ink);font:inherit;cursor:pointer;box-shadow:var(--cnh-shadow);transition:transform .12s,border-color .15s}
+.cnh-grp:hover{border-color:var(--cnh-brand)}.cnh-grp:active{transform:scale(.99)}
+.cnh-grp .l{width:46px;height:46px;border-radius:14px;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-family:var(--font-head,'Sora',sans-serif);font-weight:800;font-size:1.1rem;flex:0 0 auto}
+.cnh-grp b{display:block;font-size:.98rem;line-height:1.25}.cnh-grp small{color:var(--cnh-sub);font-size:.78rem}
+.cnh-grp .cnh-ico{color:var(--cnh-sub);flex:0 0 auto}
+.cnh-tile{position:relative}
+.cnh-accb{position:absolute;top:10px;right:10px;display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:99px;font-size:.68rem;font-weight:800;background:var(--cnh-warn-bg);color:var(--cnh-warn)}
+.cnh-accb.plus{background:var(--cnh-soft);color:var(--cnh-brand-ink)}.cnh-accb.ok{background:var(--cnh-ok-bg);color:var(--cnh-ok)}
+.cnh-accbar{border-radius:18px;padding:14px;margin:0 0 16px;border:1px solid var(--cnh-line);background:var(--cnh-card)}
+.cnh-accbar.lock{background:var(--cnh-warn-bg);border-color:transparent}
+.cnh-accbar.ok{background:var(--cnh-ok-bg);border-color:transparent;color:var(--cnh-ok)}
+.cnh-topic{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:13px 14px;margin:0 0 8px;border:1px solid var(--cnh-line);border-radius:14px;background:var(--cnh-card);color:var(--cnh-ink);font:inherit;cursor:pointer;min-height:54px}
+.cnh-topic:hover{border-color:var(--cnh-brand);background:var(--cnh-soft2)}.cnh-topic .cnh-ico{color:var(--cnh-sub);flex:0 0 auto;margin-left:auto}
+.cnh-topic .n{width:30px;height:30px;border-radius:10px;background:var(--cnh-soft);color:var(--cnh-brand-ink);font-weight:800;font-size:.8rem;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto}
+.cnh-seg.four{grid-auto-flow:row;grid-template-columns:repeat(2,1fr)}@media(min-width:520px){.cnh-seg.four{grid-auto-flow:column;grid-template-columns:none}}

@@ -16,58 +16,74 @@
   /* ---------------------------- Textes ---------------------------- */
   var HX = {
     fr: {
-      tab: 'Auto-études', loginT: 'Étudie à ton rythme avec un tuteur IA', loginS: 'Connecte-toi pour créer ton premier parcours personnalisé.', loginB: 'Se connecter',
+      tab: 'Auto-études', loginT: 'Étudie à ton rythme avec un tuteur personnel', loginS: 'Connecte-toi pour créer ton premier parcours personnalisé.', loginB: 'Se connecter',
       sStreak: 'Série', sXp: 'Points', sDone: 'Leçons', days: '{n} j',
       planFree: 'Version gratuite', planPlus: 'Académie Plus', plusUntil: "Actif jusqu'au {d}", goPlus: 'Passer à Plus',
-      mLessons: 'Leçons IA aujourd\'hui', mTutor: 'Questions au tuteur', mPaths: 'Parcours',
-      resume: 'Reprendre', myPaths: 'Mes parcours', newPath: 'Nouveau parcours', newPathS: 'Choisis un domaine : ton tuteur IA construit un parcours sur mesure.',
+      mLessons: 'Leçons d\'aujourd\'hui', mTutor: 'Questions au tuteur', mPaths: 'Parcours',
+      resume: 'Reprendre', myPaths: 'Mes parcours', newPath: 'Nouveau parcours', newPathS: 'Choisis un domaine : ton tuteur construit un parcours sur mesure.',
       noPaths: 'Tu n\'as pas encore de parcours. Choisis un domaine ci-dessous pour commencer.', lessonsN: '{a}/{b} leçons', topicsN: '{n} sujets',
       createT: 'Ton parcours sur mesure', learnQ: 'Que veux-tu apprendre ?', learnPh: 'Ex. : Python, anglais des affaires…', popular: 'Idées de sujets',
       levelQ: 'Ton niveau', lv1: 'Débutant', lv2: 'Intermédiaire', lv3: 'Avancé', goalQ: 'Ton objectif (facultatif)', goalPh: 'Ex. : réussir mon examen en décembre, trouver un emploi…',
       hoursQ: 'Temps disponible par semaine', hoursV: '{n} h / semaine', createBtn: 'Créer mon parcours', compact: 'Version gratuite : parcours compact (4 modules maximum). Académie Plus débloque les parcours complets.',
       c1: 'Analyse de ton objectif…', c2: 'Choix des notions importantes…', c3: 'Organisation en modules…', c4: 'Dernières vérifications…', creatingS: 'Cela prend 15 à 40 secondes.',
-      back: 'Retour', outcomes: 'À la fin, tu sauras', pathProg: 'Progression', start: 'Commencer', continueL: 'Continuer : {t}', allDone: 'Parcours terminé, bravo !', delPath: 'Supprimer ce parcours', delConfirm: 'Supprimer ce parcours et toute sa progression ?', moduleN: 'Module {n}', ready: 'Prête', toGen: 'Sera préparée par l\'IA',
+      back: 'Retour', outcomes: 'À la fin, tu sauras', pathProg: 'Progression', start: 'Commencer', continueL: 'Continuer : {t}', allDone: 'Parcours terminé, bravo !', delPath: 'Supprimer ce parcours', delConfirm: 'Supprimer ce parcours et toute sa progression ?', moduleN: 'Module {n}', ready: 'Prête', toGen: 'Sera préparée à ton premier passage',
       lessonOf: 'Leçon {a} sur {b}', prep: 'Ton tuteur prépare la leçon…', prepS: 'La première fois, cela prend 15 à 40 secondes. Ensuite elle est enregistrée et s\'ouvre tout de suite.',
       keyT: 'À retenir', exT: 'Exemple', exerciseT: 'À toi de jouer', hint: 'Indice', solution: 'Voir la correction', cardsT: 'Flashcards', flipHint: 'Touche la carte pour la retourner', prevC: 'Précédente', nextC: 'Suivante',
       quizT: 'Quiz de la leçon', validate: 'Valider mes réponses', retry: 'Refaire le quiz', scoreOk: 'Bravo ! {n} %', scoreNo: '{n} % — relis la leçon puis réessaie (il faut {p} %).', answerAll: 'Réponds à toutes les questions.',
       complete: 'Terminer la leçon', completed: 'Leçon terminée', nextL: 'Suivante', askT: 'Tuteur', gained: '+{n} points', streakNow: 'Série : {n} jour(s)',
-      tutorT: 'Ton tuteur IA', tutorPh: 'Pose ta question…', tutorHi: 'Bonjour ! Je suis ton tuteur. Pose-moi une question sur cette leçon, demande un exemple ou un exercice supplémentaire.', send: 'Envoyer',
+      tutorT: 'Ton tuteur', tutorPh: 'Pose ta question…', tutorHi: 'Bonjour ! Je suis ton tuteur. Pose-moi une question sur cette leçon, demande un exemple ou un exercice supplémentaire.', send: 'Envoyer',
       plusT: 'Académie Plus', plusS: 'Apprends sans te limiter : parcours complets, plus de leçons et de questions chaque jour.', pFree: 'Gratuit', pPlus: 'Plus',
-      lim1: '{n} leçon(s) IA / jour', lim2: '{n} question(s) au tuteur / jour', lim3: '{n} parcours', lim4: 'Parcours complets (8 modules)', lim5: 'Parcours compact (4 modules)', perMonth: 'pour {d} jours', activate: 'Activer pour {p} $', balance: 'Ton solde : {b} $',
+      lim1: '{n} leçon(s) / jour', lim2: '{n} question(s) au tuteur / jour', lim3: '{n} parcours', lim4: 'Parcours complets (8 modules)', lim5: 'Parcours compact (4 modules)', perMonth: 'pour {d} jours', activate: 'Activer pour {p} $', balance: 'Ton solde : {b} $',
       plusOn: 'Académie Plus est activé. Bonnes études !', recharge: 'Recharger mon portefeuille', plusNA: "L'abonnement n'est pas disponible pour le moment.",
-      aiOff: "L'IA n'est pas encore activée sur cette application. Tu peux déjà explorer, mais la création de parcours sera possible dès que l'administrateur l'aura configurée.", closed: 'Les auto-études sont momentanément fermées.',
-      fail: 'Une erreur est survenue. Réessaie dans un instant.', slow: "L'IA met trop de temps à répondre. Réessaie dans un instant.", retryB: 'Réessayer', loadFail: 'Impossible de charger pour le moment.', close: 'Fermer',
+      aiOff: "Le tuteur n'est pas encore activé sur cette application. Tu peux déjà explorer, mais la création de parcours sera possible dès que l'administrateur l'aura configuré.", closed: 'Les auto-études sont momentanément fermées.',
+      fail: 'Une erreur est survenue. Réessaie dans un instant.', slow: "Le tuteur met trop de temps à répondre. Réessaie dans un instant.", retryB: 'Réessayer', loadFail: 'Impossible de charger pour le moment.', close: 'Fermer',
       stuT: 'Étudiants', stuCount: 'Inscrits', stuAvg: 'Progression moyenne', stuFin: 'Ont terminé', stuPaid: 'Payé par les étudiants', stuSearch: 'Rechercher un étudiant', fAll: 'Tous', fRun: 'En cours', fFin: 'Terminés', fNew: 'Pas commencé',
       stuEmpty: 'Aucun étudiant pour le moment', stuEmptyS: 'Partage le lien de ton cours : chaque inscription apparaîtra ici avec sa progression.', stuNone: 'Aucun résultat.', cert: 'Certificat', freeW: 'Gratuit', joined: 'Inscrit le {d}', chapN: '{a}/{b} chapitres',
       allC: 'Tous', chaptersN: '{n} chapitre(s)', studentsN: '{n} inscrit(s)', cont: 'Continuer', myEmpty: "Tu n'es inscrit(e) à aucun cours pour l'instant.", myEmptyB: 'Découvrir les cours', myLogin: 'Connecte-toi pour voir tes cours.', emptyCourses: 'Aucun cours dans cette catégorie pour le moment.',
-      cEnrolled: 'Cours suivis', cRunning: 'En cours', cFinished: 'Terminés', byOwner: 'par {n}'
+      cEnrolled: 'Cours suivis', cRunning: 'En cours', cFinished: 'Terminés', byOwner: 'par {n}',
+      catsT: 'Explore les domaines', catsS: 'Choisis une catégorie, puis un domaine, puis ton sujet.', groupsN: '{n} domaines', pickDomain: 'Choisis un domaine', pickTopic: 'Choisis ton sujet', searchG: 'Rechercher un domaine', searchT: 'Rechercher un sujet', noResult: 'Aucun résultat.',
+      otherT: 'Un autre sujet', otherS: 'Écris exactement ce que tu veux apprendre.', contB: 'Continuer', createS: 'Un parcours détaillé, adapté à ton niveau et à ton temps.',
+      lv1L: 'Débutant (A1–A2)', lv2L: 'Intermédiaire (B1–B2)', lv3L: 'Avancé (C1–C2)', levelQL: 'Ton niveau (échelle CECRL)',
+      styleQ: 'Ta façon d\'apprendre', st1: 'Équilibré', st2: 'Pratique', st3: 'Théorie', st4: 'Examen', stH_balanced: 'Explications claires et exercices en proportion égale.', stH_practice: 'Moins de théorie, beaucoup d\'exercices et de cas concrets.', stH_theory: 'Comprendre en profondeur les principes et les raisons.', stH_exam: 'Points clés, sujets types, pièges et méthode pour réussir une épreuve.',
+      accClosedB: 'Fermé', accClosedT: 'Cette catégorie est momentanément fermée.', accPlusT: 'Réservé aux membres Plus', accPlusS: 'Passe à Académie Plus pour accéder à cette catégorie et à tous ses domaines.',
+      accPaidT: 'Catégorie premium', accPaidS: 'Débloque-la une fois pour {p} $ : accès pendant {d} jours à tous ses domaines.', accUnlock: 'Débloquer pour {p} $', accActive: 'Accès actif jusqu\'au {d}',
+      unlockConfirm: 'Débloquer « {c} » pour {p} $ ? Ce montant sera débité de ton portefeuille.', unlocked: 'Catégorie débloquée. Bonne étude !',
+      plusMonth: '30 jours', plusYear: '1 an', activateYear: 'Activer 1 an pour {p} $', yearSave: 'Meilleur prix'
     },
     en: {
-      tab: 'Self-study', loginT: 'Study at your own pace with an AI tutor', loginS: 'Sign in to create your first personalised learning path.', loginB: 'Sign in',
+      tab: 'Self-study', loginT: 'Study at your own pace with a personal tutor', loginS: 'Sign in to create your first personalised learning path.', loginB: 'Sign in',
       sStreak: 'Streak', sXp: 'Points', sDone: 'Lessons', days: '{n} d',
       planFree: 'Free plan', planPlus: 'Academy Plus', plusUntil: 'Active until {d}', goPlus: 'Upgrade to Plus',
-      mLessons: 'AI lessons today', mTutor: 'Tutor questions', mPaths: 'Paths',
-      resume: 'Resume', myPaths: 'My paths', newPath: 'New path', newPathS: 'Pick a field: your AI tutor builds a path made for you.',
+      mLessons: "Today's lessons", mTutor: 'Tutor questions', mPaths: 'Paths',
+      resume: 'Resume', myPaths: 'My paths', newPath: 'New path', newPathS: 'Pick a field: your tutor builds a path made for you.',
       noPaths: "You don't have a path yet. Pick a field below to get started.", lessonsN: '{a}/{b} lessons', topicsN: '{n} topics',
       createT: 'Your tailor-made path', learnQ: 'What do you want to learn?', learnPh: 'E.g. Python, business English…', popular: 'Topic ideas',
       levelQ: 'Your level', lv1: 'Beginner', lv2: 'Intermediate', lv3: 'Advanced', goalQ: 'Your goal (optional)', goalPh: 'E.g. pass my exam in December, get a job…',
       hoursQ: 'Time available per week', hoursV: '{n} h / week', createBtn: 'Create my path', compact: 'Free plan: compact path (4 modules max). Academy Plus unlocks full paths.',
       c1: 'Analysing your goal…', c2: 'Choosing the key concepts…', c3: 'Organising modules…', c4: 'Final checks…', creatingS: 'This takes 15 to 40 seconds.',
-      back: 'Back', outcomes: 'By the end you will be able to', pathProg: 'Progress', start: 'Start', continueL: 'Continue: {t}', allDone: 'Path completed, well done!', delPath: 'Delete this path', delConfirm: 'Delete this path and all its progress?', moduleN: 'Module {n}', ready: 'Ready', toGen: 'Will be prepared by the AI',
+      back: 'Back', outcomes: 'By the end you will be able to', pathProg: 'Progress', start: 'Start', continueL: 'Continue: {t}', allDone: 'Path completed, well done!', delPath: 'Delete this path', delConfirm: 'Delete this path and all its progress?', moduleN: 'Module {n}', ready: 'Ready', toGen: 'Will be prepared when you open it',
       lessonOf: 'Lesson {a} of {b}', prep: 'Your tutor is preparing the lesson…', prepS: 'The first time takes 15 to 40 seconds. Then it is saved and opens instantly.',
       keyT: 'Key points', exT: 'Example', exerciseT: 'Your turn', hint: 'Hint', solution: 'Show the answer', cardsT: 'Flashcards', flipHint: 'Tap the card to flip it', prevC: 'Previous', nextC: 'Next',
       quizT: 'Lesson quiz', validate: 'Check my answers', retry: 'Retake the quiz', scoreOk: 'Well done! {n} %', scoreNo: '{n} % — reread the lesson and try again ({p} % needed).', answerAll: 'Answer every question.',
       complete: 'Finish lesson', completed: 'Lesson completed', nextL: 'Next', askT: 'Tutor', gained: '+{n} points', streakNow: 'Streak: {n} day(s)',
-      tutorT: 'Your AI tutor', tutorPh: 'Ask your question…', tutorHi: 'Hello! I am your tutor. Ask me about this lesson, or request another example or exercise.', send: 'Send',
+      tutorT: 'Your tutor', tutorPh: 'Ask your question…', tutorHi: 'Hello! I am your tutor. Ask me about this lesson, or request another example or exercise.', send: 'Send',
       plusT: 'Academy Plus', plusS: 'Learn without limits: full paths, more lessons and questions every day.', pFree: 'Free', pPlus: 'Plus',
-      lim1: '{n} AI lesson(s) / day', lim2: '{n} tutor question(s) / day', lim3: '{n} path(s)', lim4: 'Full paths (8 modules)', lim5: 'Compact path (4 modules)', perMonth: 'for {d} days', activate: 'Activate for {p} $', balance: 'Your balance: {b} $',
+      lim1: '{n} lesson(s) / day', lim2: '{n} tutor question(s) / day', lim3: '{n} path(s)', lim4: 'Full paths (8 modules)', lim5: 'Compact path (4 modules)', perMonth: 'for {d} days', activate: 'Activate for {p} $', balance: 'Your balance: {b} $',
       plusOn: 'Academy Plus is active. Happy studying!', recharge: 'Top up my wallet', plusNA: 'The subscription is not available right now.',
-      aiOff: 'AI is not enabled on this app yet. You can explore, but creating paths will work once the administrator sets it up.', closed: 'Self-study is temporarily closed.',
-      fail: 'Something went wrong. Please try again in a moment.', slow: 'The AI is taking too long. Please try again in a moment.', retryB: 'Try again', loadFail: 'Could not load right now.', close: 'Close',
+      aiOff: 'The tutor is not enabled on this app yet. You can explore, but creating paths will work once the administrator sets it up.', closed: 'Self-study is temporarily closed.',
+      fail: 'Something went wrong. Please try again in a moment.', slow: 'The tutor is taking too long. Please try again in a moment.', retryB: 'Try again', loadFail: 'Could not load right now.', close: 'Close',
       stuT: 'Students', stuCount: 'Enrolled', stuAvg: 'Average progress', stuFin: 'Finished', stuPaid: 'Paid by students', stuSearch: 'Search a student', fAll: 'All', fRun: 'In progress', fFin: 'Finished', fNew: 'Not started',
       stuEmpty: 'No students yet', stuEmptyS: 'Share your course link: every enrolment will appear here with its progress.', stuNone: 'No result.', cert: 'Certificate', freeW: 'Free', joined: 'Enrolled on {d}', chapN: '{a}/{b} chapters',
       allC: 'All', chaptersN: '{n} chapter(s)', studentsN: '{n} enrolled', cont: 'Continue', myEmpty: "You're not enrolled in any course yet.", myEmptyB: 'Browse courses', myLogin: 'Sign in to see your courses.', emptyCourses: 'No course in this category yet.',
-      cEnrolled: 'Courses followed', cRunning: 'In progress', cFinished: 'Finished', byOwner: 'by {n}'
+      cEnrolled: 'Courses followed', cRunning: 'In progress', cFinished: 'Finished', byOwner: 'by {n}',
+      catsT: 'Explore the fields', catsS: 'Pick a category, then a field, then your topic.', groupsN: '{n} fields', pickDomain: 'Pick a field', pickTopic: 'Pick your topic', searchG: 'Search a field', searchT: 'Search a topic', noResult: 'No result.',
+      otherT: 'Another topic', otherS: 'Write exactly what you want to learn.', contB: 'Continue', createS: 'A detailed path, adapted to your level and your time.',
+      lv1L: 'Beginner (A1–A2)', lv2L: 'Intermediate (B1–B2)', lv3L: 'Advanced (C1–C2)', levelQL: 'Your level (CEFR scale)',
+      styleQ: 'How you like to learn', st1: 'Balanced', st2: 'Practical', st3: 'Theory', st4: 'Exam', stH_balanced: 'Clear explanations and exercises in equal measure.', stH_practice: 'Less theory, plenty of exercises and real cases.', stH_theory: 'Understand principles and reasons in depth.', stH_exam: 'Key points, typical questions, pitfalls and method to pass a test.',
+      accClosedB: 'Closed', accClosedT: 'This category is temporarily closed.', accPlusT: 'Plus members only', accPlusS: 'Upgrade to Academy Plus to access this category and all its fields.',
+      accPaidT: 'Premium category', accPaidS: 'Unlock it once for {p} $: access for {d} days to all its fields.', accUnlock: 'Unlock for {p} $', accActive: 'Access active until {d}',
+      unlockConfirm: 'Unlock "{c}" for {p} $? This amount will be taken from your wallet.', unlocked: 'Category unlocked. Happy studying!',
+      plusMonth: '30 days', plusYear: '1 year', activateYear: 'Activate 1 year for {p} $', yearSave: 'Best value'
     }
   };
   function lang() { try { if (typeof currentLang !== 'undefined' && currentLang) return currentLang; } catch (e) { /* ignore */ } return 'fr'; }
@@ -149,36 +165,109 @@
   function errMsg(e) { return (e && e.message && e.message !== 'login' && e.message !== 'Failed to fetch') ? e.message : tx('fail'); }
 
   /* ---------------------------- État ---------------------------- */
-  var root = null, S = { cfg: null, paths: [], path: null, lessonId: null, lesson: null, form: null, chat: [], quiz: null, card: 0, cards: [] };
+  var root = null, S = { cfg: null, cat: null, paths: [], path: null, lessonId: null, lesson: null, form: null, chat: [], quiz: null, card: 0, cards: [], stack: [], fs: null, view: 'home', hist: false, ignorePop: false };
 
-  function domainOf(id) { var d = (S.cfg && S.cfg.domains) || []; for (var i = 0; i < d.length; i++) if (d[i].id === id) return { d: d[i], i: i }; return { d: { id: id, icon: 'book', label: {}, topics: [] }, i: 0 }; }
-  function dLabel(d) { return (d.label && (d.label[lang()] || d.label.en || d.label.fr)) || d.id; }
-  function domIcon(id, big) { var x = domainOf(id); return '<span class="cnh-dom" style="background:' + GRADS[x.i % GRADS.length] + '">' + ic(x.d.icon) + '</span>'; }
+  function L2(o) { return (o && (o[lang()] || o.en || o.fr)) || ''; }
+  function catOf(id) { var c = S.cat || []; for (var i = 0; i < c.length; i++) if (c[i].id === id) return { c: c[i], i: i }; return { c: { id: id, icon: 'book', label: {}, desc: {}, groups: [] }, i: 0 }; }
+  function groupOf(catId, gid) { var g = catOf(catId).c.groups || []; for (var i = 0; i < g.length; i++) if (g[i].id === gid) return g[i]; return null; }
+  function dLabel(d) { return L2(d.label) || d.id; }
+  function domIcon(id) { var x = catOf(id); return '<span class="cnh-dom" style="background:' + GRADS[x.i % GRADS.length] + '">' + ic(x.c.icon) + '</span>'; }
   function ring(p) {
     var r = 22, c = 2 * Math.PI * r, off = c * (1 - p / 100);
     return '<span class="cnh-ring"><svg width="56" height="56" viewBox="0 0 56 56"><circle cx="28" cy="28" r="' + r + '" fill="none" stroke="var(--cnh-soft)" stroke-width="6"/><circle cx="28" cy="28" r="' + r + '" fill="none" stroke="var(--cnh-brand)" stroke-width="6" stroke-linecap="round" stroke-dasharray="' + c.toFixed(1) + '" stroke-dashoffset="' + off.toFixed(1) + '"/></svg><b>' + p + '%</b></span>';
   }
-  function levelName(l) { return tx(l === 'advanced' ? 'lv3' : l === 'intermediate' ? 'lv2' : 'lv1'); }
+  function levelName(l, domain) {
+    var lang_ = domain === 'languages';
+    return tx(l === 'advanced' ? (lang_ ? 'lv3L' : 'lv3') : l === 'intermediate' ? (lang_ ? 'lv2L' : 'lv2') : (lang_ ? 'lv1L' : 'lv1'));
+  }
+  function accOf(id) { var a = S.cfg && S.cfg.access && S.cfg.access[id]; return a || { mode: 'free', open: true, enabled: true, price: 0, days: 90, untilMs: 0 }; }
+  function box() { return S.fs ? $('cnh-fs-body') : root; }
   function setRoot(html) {
-    if (!root) return;
-    root.innerHTML = html;
-    try { var y = root.getBoundingClientRect().top + (window.pageYOffset || 0) - 84; if (y < (window.pageYOffset || 0)) window.scrollTo(0, Math.max(0, y)); } catch (e) { /* ignore */ }
+    var b = box();
+    if (!b) return;
+    b.innerHTML = html;
+    if (S.fs) b.scrollTop = 0;
+    else { try { var y = root.getBoundingClientRect().top + (window.pageYOffset || 0) - 84; if (y < (window.pageYOffset || 0)) window.scrollTo(0, Math.max(0, y)); } catch (e) { /* ignore */ } }
   }
   function skeleton(n) { var s = ''; for (var i = 0; i < (n || 3); i++) s += '<div class="cnh-skel"></div>'; return s; }
   function errorBox(msg, act) { return '<div class="cnh-empty">' + '<span class="cnh-dom">' + ic('alert') + '</span><p style="margin:0 0 14px">' + esc(msg) + '</p><button type="button" class="cnh-btn primary" data-act="' + act + '">' + esc(tx('retryB')) + '</button></div>'; }
+
+  /* ---------------------------- Navigation plein écran ---------------------------- */
+  // Pile de pages : catégorie > domaine > sujet > formulaire > parcours > leçon. La flèche et le bouton retour du téléphone dépilent.
+  function fsOpen() {
+    if (S.fs) return;
+    var el = document.createElement('div');
+    el.id = 'cnh-fs'; el.className = 'cnh-root cnh-fs';
+    el.innerHTML = '<div class="cnh-fs-top"><button type="button" class="cnh-fs-back" data-act="back" aria-label="' + esc(tx('back')) + '">' + ic('arrow') + '</button><div class="cnh-fs-title" id="cnh-fs-title"></div></div><div class="cnh-fs-body" id="cnh-fs-body"></div>';
+    el.addEventListener('click', onClick); el.addEventListener('input', onInput);
+    document.body.appendChild(el);
+    document.documentElement.classList.add('cnh-fs-open');
+    S.fs = el;
+    try { history.pushState({ cnhFs: 1 }, '', window.location.href); S.hist = true; } catch (e) { S.hist = false; }
+  }
+  function fsClose(viaPop) {
+    if (!S.fs) return;
+    S.fs.remove(); S.fs = null;
+    document.documentElement.classList.remove('cnh-fs-open');
+    if (S.hist && !viaPop) { S.ignorePop = true; try { history.back(); } catch (e) { S.ignorePop = false; } }
+    S.hist = false;
+  }
+  function closeAll(viaPop) {
+    S.stack = []; fsClose(viaPop); S.view = 'home';
+    if (me()) loadHome(true);
+  }
+  function setTop(t) { var el = $('cnh-fs-title'); if (el) el.textContent = t || ''; }
+  function go(view, args) {
+    S.stack.push({ view: view, args: args || {} });
+    if (!S.fs) fsOpen();
+    renderEntry();
+  }
+  function replaceTop(view, args) { S.stack[S.stack.length ? S.stack.length - 1 : 0] = { view: view, args: args || {} }; renderEntry(); }
+  function back() {
+    if (S.stack.length > 1) { S.stack.pop(); renderEntry(); } else closeAll(false);
+  }
+  function renderEntry() {
+    var e = S.stack[S.stack.length - 1];
+    if (!e) { closeAll(); return; }
+    var a = e.args; S.view = e.view; S.q = '';
+    switch (e.view) {
+      case 'cat': renderCat(a.id); break;
+      case 'group': renderGroup(a.c, a.g); break;
+      case 'create': renderCreate(a.c, a.g, a.topic); break;
+      case 'path': if (S.path && S.path.id === a.id) renderPath(); else openPath(a.id); break;
+      case 'lesson': if (S.lesson && S.lessonId === a.id && S.path) renderLesson(); else openLesson(a.id); break;
+      default: closeAll();
+    }
+  }
+  // Bouton retour du téléphone : on dépile au lieu de quitter l'Académie. Capture : passe avant le piège de retour de l'application.
+  window.addEventListener('popstate', function (e) {
+    if (S.ignorePop) { S.ignorePop = false; e.stopImmediatePropagation(); return; }
+    if (!S.fs) return;
+    e.stopImmediatePropagation();
+    if (S.stack.length > 1) { S.stack.pop(); try { history.pushState({ cnhFs: 1 }, '', window.location.href); } catch (x) { S.hist = false; } renderEntry(); }
+    else { S.hist = false; closeAll(true); }
+  }, true);
 
   /* ---------------------------- Accueil ---------------------------- */
   async function loadHome(silent) {
     if (!silent) setRoot(skeleton(4));
     try {
-      var r = await Promise.all([call('academy_study', { op: 'config' }), call('academy_study', { op: 'paths' })]);
-      S.cfg = r[0]; S.paths = r[1].paths || [];
+      var r = await Promise.all([call('academy_study', { op: 'config' }), call('academy_study', { op: 'paths' }), S.cat ? Promise.resolve(null) : call('academy_study', { op: 'catalog' })]);
+      S.cfg = r[0]; S.paths = r[1].paths || []; if (r[2]) S.cat = r[2].categories || [];
+      if (S.fs) { if (S.view === 'cat' || S.view === 'create') renderEntry(); return; }
       if (!silent || S.view === 'home') { S.view = 'home'; renderHome(); }
     } catch (e) { if (!silent) setRoot(errorBox(errMsg(e) === tx('fail') ? tx('loadFail') : errMsg(e), 'reload')); }
   }
   function meter(label, used, max) {
     var p = max > 0 ? pct(used, max) : 100;
-    return '<div style="margin:10px 0 0"><div class="cnh-row cnh-between" style="font-size:.8rem;margin:0 0 5px"><span>' + esc(label) + '</span><b>' + used + ' / ' + max + '</b></div><div class="cnh-bar' + (p >= 100 ? '' : '') + '"><i style="width:' + p + '%"></i></div></div>';
+    return '<div style="margin:10px 0 0"><div class="cnh-row cnh-between" style="font-size:.8rem;margin:0 0 5px"><span>' + esc(label) + '</span><b>' + used + ' / ' + max + '</b></div><div class="cnh-bar"><i style="width:' + p + '%"></i></div></div>';
+  }
+  function accBadge(id) {
+    var a = accOf(id);
+    if (a.enabled === false) return '<span class="cnh-accb">' + esc(tx('accClosedB')) + '</span>';
+    if (a.mode === 'plus' && !a.open) return '<span class="cnh-accb plus">' + ic('crown').replace('cnh-ico', 'cnh-ico" style="width:12px;height:12px') + 'Plus</span>';
+    if (a.mode === 'paid') return a.open ? '<span class="cnh-accb ok">✓</span>' : '<span class="cnh-accb">' + ic('lock').replace('cnh-ico', 'cnh-ico" style="width:12px;height:12px') + esc(a.price) + ' $</span>';
+    return '';
   }
   function renderHome() {
     var c = S.cfg, plus = c.plus.active, h = '';
@@ -188,11 +277,10 @@
       '<div class="cnh-stat"><b>' + (c.stats.lessonsDone || 0) + '</b><span>' + esc(tx('sDone')) + '</span></div></div>';
     if (!c.enabled) h += '<div class="cnh-notice bad">' + ic('alert') + '<span>' + esc(tx('closed')) + '</span></div>';
     else if (!c.aiReady) h += '<div class="cnh-notice">' + ic('alert') + '<span>' + esc(tx('aiOff')) + '</span></div>';
-    // abonnement + compteurs du jour
+    var hasPlus = c.plus.priceMonth > 0 || c.plus.priceYear > 0;
     h += '<div class="cnh-card"><div class="cnh-row cnh-between"><div class="cnh-row"><span class="cnh-pill ' + (plus ? 'ok' : '') + '">' + ic('crown').replace('cnh-ico', 'cnh-ico" style="width:14px;height:14px') + esc(plus ? tx('planPlus') : tx('planFree')) + '</span></div>' +
-      (plus ? '<span class="cnh-sub">' + esc(tx('plusUntil', { d: fmtDate(c.plus.untilMs) })) + '</span>' : (c.plus.priceMonth > 0 ? '<button type="button" class="cnh-btn primary sm" data-act="plus">' + esc(tx('goPlus')) + '</button>' : '')) + '</div>' +
+      (plus ? '<span class="cnh-sub">' + esc(tx('plusUntil', { d: fmtDate(c.plus.untilMs) })) + '</span>' : (hasPlus ? '<button type="button" class="cnh-btn primary sm" data-act="plus">' + esc(tx('goPlus')) + '</button>' : '')) + '</div>' +
       meter(tx('mLessons'), c.usage.lessons, c.limits.lessons) + meter(tx('mTutor'), c.usage.tutor, c.limits.tutor) + '</div>';
-    // reprendre
     var last = S.paths[0];
     if (last) {
       var p0 = pct(last.done, last.lessonsTotal);
@@ -203,39 +291,97 @@
       h += '<div class="cnh-eyebrow">' + esc(tx('myPaths')) + '</div>';
       S.paths.slice(1).forEach(function (p) {
         h += '<button type="button" class="cnh-card cnh-path" data-act="path" data-id="' + esc(p.id) + '">' + domIcon(p.domain) +
-          '<span class="cnh-grow"><b class="cnh-ellipsis" style="display:block">' + esc(p.title) + '</b><span class="cnh-sub cnh-ellipsis" style="display:block">' + esc(levelName(p.level)) + ' · ' + esc(tx('lessonsN', { a: p.done, b: p.lessonsTotal })) + '</span><span class="cnh-bar" style="margin-top:8px;display:block"><i style="width:' + pct(p.done, p.lessonsTotal) + '%"></i></span></span></button>';
+          '<span class="cnh-grow"><b class="cnh-ellipsis" style="display:block">' + esc(p.title) + '</b><span class="cnh-sub cnh-ellipsis" style="display:block">' + esc(levelName(p.level, p.domain)) + ' · ' + esc(tx('lessonsN', { a: p.done, b: p.lessonsTotal })) + '</span><span class="cnh-bar" style="margin-top:8px;display:block"><i style="width:' + pct(p.done, p.lessonsTotal) + '%"></i></span></span></button>';
       });
     }
-    h += '<div class="cnh-eyebrow">' + esc(tx('newPath')) + '</div><p class="cnh-sub" style="margin:-4px 0 12px">' + esc(tx('newPathS')) + '</p>';
+    h += '<div class="cnh-eyebrow">' + esc(tx('catsT')) + '</div><p class="cnh-sub" style="margin:-4px 0 12px">' + esc(tx('catsS')) + '</p>';
     if (!S.paths.length) h += '<p class="cnh-sub" style="margin:0 0 12px">' + esc(tx('noPaths')) + '</p>';
     h += '<div class="cnh-tiles">';
-    c.domains.forEach(function (d, i) {
-      h += '<button type="button" class="cnh-tile" data-act="domain" data-id="' + esc(d.id) + '"><span class="cnh-dom" style="background:' + GRADS[i % GRADS.length] + '">' + ic(d.icon) + '</span><span><strong>' + esc(dLabel(d)) + '</strong><br><small>' + esc(tx('topicsN', { n: d.topics.length })) + '</small></span></button>';
+    (S.cat || []).forEach(function (d, i) {
+      h += '<button type="button" class="cnh-tile" data-act="cat" data-id="' + esc(d.id) + '"><span class="cnh-dom" style="background:' + GRADS[i % GRADS.length] + '">' + ic(d.icon) + '</span><span><strong>' + esc(dLabel(d)) + '</strong><br><small>' + esc(tx('groupsN', { n: d.groups.length })) + '</small></span>' + accBadge(d.id) + '</button>';
     });
     h += '</div>';
     setRoot(h);
   }
 
+  /* ---------------------------- Catégorie > domaines ---------------------------- */
+  function accessBar(id) {
+    var a = accOf(id), label = dLabel(catOf(id).c);
+    if (a.enabled === false) return '<div class="cnh-accbar lock"><b>' + esc(tx('accClosedT')) + '</b></div>';
+    if (a.open && a.mode === 'paid') return '<div class="cnh-accbar ok">' + ic('check') + ' <b>' + esc(tx('accActive', { d: fmtDate(a.untilMs) })) + '</b></div>';
+    if (a.open) return '';
+    if (a.mode === 'plus') return '<div class="cnh-accbar lock"><b>' + esc(tx('accPlusT')) + '</b><p class="cnh-sub" style="margin:4px 0 12px">' + esc(tx('accPlusS')) + '</p><button type="button" class="cnh-btn primary block" data-act="plus">' + ic('crown') + esc(tx('goPlus')) + '</button></div>';
+    return '<div class="cnh-accbar lock"><b>' + esc(tx('accPaidT')) + '</b><p class="cnh-sub" style="margin:4px 0 12px">' + esc(tx('accPaidS', { p: a.price, d: a.days })) + '</p><button type="button" class="cnh-btn primary block" data-act="unlock" data-id="' + esc(id) + '">' + ic('lock') + esc(tx('accUnlock', { p: a.price })) + '</button></div>';
+  }
+  function groupsHtml(c, q, gi) {
+    var qq = (q || '').trim().toLowerCase(), out = '', n = 0;
+    c.groups.forEach(function (g, i) {
+      var lb = L2(g.label);
+      if (qq && lb.toLowerCase().indexOf(qq) < 0) return;
+      n++;
+      out += '<button type="button" class="cnh-grp" data-act="group" data-c="' + esc(c.id) + '" data-id="' + esc(g.id) + '"><span class="l" style="background:' + GRADS[(gi + i) % GRADS.length] + '">' + esc(lb.charAt(0).toUpperCase()) + '</span><span class="cnh-grow"><b>' + esc(lb) + '</b><small>' + esc(tx('topicsN', { n: g.topics.length })) + '</small></span>' + ic('right') + '</button>';
+    });
+    return out || '<p class="cnh-sub" style="text-align:center;padding:18px 0">' + esc(tx('noResult')) + '</p>';
+  }
+  function renderCat(id) {
+    var x = catOf(id), c = x.c, h = '';
+    S.view = 'cat'; setTop(dLabel(c));
+    h += '<div class="cnh-cathero"><span class="cnh-dom" style="background:' + GRADS[x.i % GRADS.length] + '">' + ic(c.icon) + '</span><div><h2 class="cnh-h cnh-h2">' + esc(dLabel(c)) + '</h2><p class="cnh-sub">' + esc(L2(c.desc)) + '</p></div></div>';
+    h += accessBar(id);
+    h += '<div class="cnh-eyebrow" style="margin-top:4px">' + esc(tx('pickDomain')) + ' · ' + esc(tx('groupsN', { n: c.groups.length })) + '</div>';
+    if (c.groups.length > 7) h += '<input type="search" class="cnh-input" data-f="gsearch" placeholder="' + esc(tx('searchG')) + '" style="margin:0 0 12px" autocomplete="off">';
+    h += '<div id="cnh-glist">' + groupsHtml(c, '', x.i) + '</div>';
+    setRoot(h);
+  }
+
+  /* ---------------------------- Domaine > sujets ---------------------------- */
+  function topicText(g, tp) {
+    var t = L2(tp), txt = g.kind === 'language' ? L2(g.label) + ' : ' + t : t;
+    return txt.slice(0, 80);
+  }
+  function topicsHtml(cid, g, q) {
+    var qq = (q || '').trim().toLowerCase(), out = '', n = 0;
+    g.topics.forEach(function (tp, i) {
+      var lb = L2(tp);
+      if (qq && lb.toLowerCase().indexOf(qq) < 0) return;
+      n++;
+      out += '<button type="button" class="cnh-topic" data-act="topic-pick" data-c="' + esc(cid) + '" data-g="' + esc(g.id) + '" data-id="' + esc(tp.id) + '"><span class="n">' + (i + 1) + '</span><span>' + esc(lb) + '</span>' + ic('right') + '</button>';
+    });
+    return out || '<p class="cnh-sub" style="text-align:center;padding:18px 0">' + esc(tx('noResult')) + '</p>';
+  }
+  function renderGroup(cid, gid) {
+    var x = catOf(cid), g = groupOf(cid, gid), h = '';
+    if (!g) { back(); return; }
+    S.view = 'group'; setTop(L2(g.label));
+    h += '<div class="cnh-crumb"><span>' + esc(dLabel(x.c)) + '</span>' + ic('right').replace('cnh-ico', 'cnh-ico" style="width:14px;height:14px') + '<b>' + esc(L2(g.label)) + '</b></div>';
+    h += accessBar(cid);
+    h += '<div class="cnh-card" style="margin-bottom:16px"><b class="cnh-h cnh-h3">' + esc(tx('otherT')) + '</b><p class="cnh-sub" style="margin:4px 0 10px">' + esc(tx('otherS')) + '</p><div class="cnh-inline"><input class="cnh-input" data-f="own" maxlength="80" autocomplete="off" placeholder="' + esc(tx('learnPh')) + '"><button type="button" class="cnh-btn primary" data-act="own" data-c="' + esc(cid) + '" data-g="' + esc(gid) + '">' + esc(tx('contB')) + '</button></div></div>';
+    h += '<div class="cnh-eyebrow" style="margin-top:4px">' + esc(tx('pickTopic')) + ' · ' + esc(tx('topicsN', { n: g.topics.length })) + '</div>';
+    if (g.topics.length > 10) h += '<input type="search" class="cnh-input" data-f="tsearch" placeholder="' + esc(tx('searchT')) + '" style="margin:0 0 12px" autocomplete="off">';
+    h += '<div id="cnh-tlist">' + topicsHtml(cid, g, '') + '</div>';
+    setRoot(h);
+  }
+
   /* ---------------------------- Création d'un parcours ---------------------------- */
-  function renderCreate(domainId) {
-    var x = domainOf(domainId), d = x.d, c = S.cfg;
-    if (!S.form || S.form.domain !== domainId) S.form = { domain: domainId, topic: '', level: 'beginner', goal: '', hours: 4 };
-    var f = S.form, h = '';
-    h += '<button type="button" class="cnh-btn ghost" data-act="home" style="margin:-6px 0 6px -8px">' + ic('arrow') + esc(tx('back')) + '</button>';
-    h += '<div class="cnh-row" style="margin:0 0 16px">' + domIcon(domainId) + '<div class="cnh-grow"><h3 class="cnh-h cnh-h2">' + esc(tx('createT')) + '</h3><p class="cnh-sub">' + esc(dLabel(d)) + '</p></div></div>';
+  function renderCreate(cid, gid, topic) {
+    var x = catOf(cid), g = gid ? groupOf(cid, gid) : null, c = S.cfg, acc = accOf(cid);
+    if (!S.form || S.form.domain !== cid || S.form.group !== (gid || '') || (topic != null && S.form.seed !== topic)) S.form = { domain: cid, group: gid || '', topic: topic || '', seed: topic, level: 'beginner', goal: '', hours: 4, style: 'balanced' };
+    var f = S.form, h = '', isLang = cid === 'languages';
+    S.view = 'create'; setTop(tx('createT'));
+    h += '<div class="cnh-crumb"><span>' + esc(dLabel(x.c)) + '</span>' + (g ? ic('right').replace('cnh-ico', 'cnh-ico" style="width:14px;height:14px') + '<span>' + esc(L2(g.label)) + '</span>' : '') + '</div>';
+    h += '<div class="cnh-row" style="margin:0 0 16px">' + domIcon(cid) + '<div class="cnh-grow"><h3 class="cnh-h cnh-h2">' + esc(tx('createT')) + '</h3><p class="cnh-sub">' + esc(tx('createS')) + '</p></div></div>';
     h += '<div id="cnh-create-err"></div>';
     h += '<label class="cnh-field"><span class="cnh-label">' + esc(tx('learnQ')) + '</span><input class="cnh-input" data-f="topic" maxlength="80" autocomplete="off" placeholder="' + esc(tx('learnPh')) + '" value="' + esc(f.topic) + '"></label>';
-    h += '<div class="cnh-label">' + esc(tx('popular')) + '</div><div class="cnh-chips wrap" style="margin-bottom:14px">';
-    d.topics.forEach(function (tp) { h += '<button type="button" class="cnh-chip" data-act="topic" data-v="' + esc(tp) + '">' + esc(tp) + '</button>'; });
-    h += '</div>';
-    h += '<div class="cnh-field"><span class="cnh-label">' + esc(tx('levelQ')) + '</span><div class="cnh-seg">' +
-      [['beginner', 'lv1'], ['intermediate', 'lv2'], ['advanced', 'lv3']].map(function (l) { return '<button type="button" data-act="level" data-v="' + l[0] + '" class="' + (f.level === l[0] ? 'on' : '') + '">' + esc(tx(l[1])) + '</button>'; }).join('') + '</div></div>';
+    h += '<div class="cnh-field"><span class="cnh-label">' + esc(isLang ? tx('levelQL') : tx('levelQ')) + '</span><div class="cnh-seg">' +
+      [['beginner', 'lv1'], ['intermediate', 'lv2'], ['advanced', 'lv3']].map(function (l) { return '<button type="button" data-act="level" data-v="' + l[0] + '" class="' + (f.level === l[0] ? 'on' : '') + '">' + esc(tx(isLang ? l[1] + 'L' : l[1])) + '</button>'; }).join('') + '</div></div>';
+    h += '<div class="cnh-field"><span class="cnh-label">' + esc(tx('styleQ')) + '</span><div class="cnh-seg four">' +
+      [['balanced', 'st1'], ['practice', 'st2'], ['theory', 'st3'], ['exam', 'st4']].map(function (l) { return '<button type="button" data-act="style" data-v="' + l[0] + '" class="' + (f.style === l[0] ? 'on' : '') + '">' + esc(tx(l[1])) + '</button>'; }).join('') + '</div><p class="cnh-hint" id="cnh-style-h" style="margin:6px 0 0">' + esc(tx('stH_' + f.style)) + '</p></div>';
     h += '<label class="cnh-field"><span class="cnh-label">' + esc(tx('goalQ')) + '</span><textarea class="cnh-input" data-f="goal" maxlength="240" placeholder="' + esc(tx('goalPh')) + '">' + esc(f.goal) + '</textarea></label>';
     h += '<label class="cnh-field"><span class="cnh-label cnh-row cnh-between"><span>' + esc(tx('hoursQ')) + '</span><b id="cnh-hours-v">' + esc(tx('hoursV', { n: f.hours })) + '</b></span><input type="range" data-f="hours" min="1" max="20" step="1" value="' + f.hours + '" style="width:100%;accent-color:var(--cnh-brand)"></label>';
     if (!c.plus.active) h += '<div class="cnh-notice">' + ic('crown') + '<span>' + esc(tx('compact')) + '</span></div>';
-    h += '<button type="button" class="cnh-btn primary block" data-act="create"' + (c.enabled && c.aiReady ? '' : ' disabled') + '>' + ic('spark') + esc(tx('createBtn')) + '</button>';
+    if (!acc.open) h += accessBar(cid);
+    h += '<button type="button" class="cnh-btn primary block" data-act="create"' + (c.enabled && c.aiReady && acc.open ? '' : ' disabled') + '>' + ic('spark') + esc(tx('createBtn')) + '</button>';
     setRoot(h);
-    S.view = 'create';
   }
   async function doCreate() {
     var f = S.form;
@@ -244,16 +390,29 @@
     setRoot('<div class="cnh-load"><div class="cnh-spin"></div><h3 class="cnh-h cnh-h2" id="cnh-ld" style="margin:0 0 6px">' + esc(msgs[0]) + '</h3><p class="cnh-sub">' + esc(tx('creatingS')) + '</p></div>');
     var tm = setInterval(function () { i = Math.min(i + 1, msgs.length - 1); var el = $('cnh-ld'); if (el) el.textContent = msgs[i]; }, 5500);
     try {
-      var r = await call('academy_study', { op: 'create_path', domain: f.domain, topic: f.topic, level: f.level, goal: f.goal, hoursPerWeek: f.hours, lang: lang() });
+      var r = await call('academy_study', { op: 'create_path', domain: f.domain, group: f.group, style: f.style, topic: f.topic, level: f.level, goal: f.goal, hoursPerWeek: f.hours, lang: lang() });
       clearInterval(tm);
-      S.path = r.path; S.form = null; S.chat = [];
-      loadHome(true);
-      renderPath();
+      S.path = r.path; S.form = null; S.chat = []; S.lesson = null;
+      replaceTop('path', { id: r.path.id });
     } catch (e) {
       clearInterval(tm);
-      renderCreate(f.domain);
+      renderCreate(f.domain, f.group, null);
       var el = $('cnh-create-err');
-      if (el) el.innerHTML = '<div class="cnh-notice bad">' + ic('alert') + '<span>' + esc(errMsg(e)) + (/Plus/.test(errMsg(e)) && S.cfg && S.cfg.plus.priceMonth > 0 ? ' <a href="#" data-act="plus" style="font-weight:800;color:inherit;text-decoration:underline">' + esc(tx('goPlus')) + '</a>' : '') + '</span></div>';
+      if (el) el.innerHTML = '<div class="cnh-notice bad">' + ic('alert') + '<span>' + esc(errMsg(e)) + (/Plus/.test(errMsg(e)) && S.cfg && (S.cfg.plus.priceMonth > 0 || S.cfg.plus.priceYear > 0) ? ' <a href="#" data-act="plus" style="font-weight:800;color:inherit;text-decoration:underline">' + esc(tx('goPlus')) + '</a>' : '') + '</span></div>';
+    }
+  }
+  async function doUnlock(id) {
+    var a = accOf(id);
+    if (!window.confirm(tx('unlockConfirm', { c: dLabel(catOf(id).c), p: a.price }))) return;
+    try {
+      var r = await call('academy_study', { op: 'unlock', domain: id });
+      try { if (me() && typeof r.newBalance === 'number') { me().balance = r.newBalance; var w = $('wallet-balance'); if (w) w.textContent = r.newBalance.toFixed(2) + '$'; } } catch (e) { /* ignore */ }
+      toast(tx('unlocked'), 'success');
+      S.cfg = await call('academy_study', { op: 'config' });
+      renderEntry();
+    } catch (e) {
+      var m = errMsg(e); toast(m, 'error');
+      if (/solde/i.test(m)) { try { showDashTab('wallet'); } catch (x) { /* ignore */ } }
     }
   }
 
@@ -263,13 +422,13 @@
   async function openPath(id) {
     setRoot(skeleton(4)); S.view = 'path';
     try { var r = await call('academy_study', { op: 'get_path', pathId: id }); S.path = r.path; S.chat = []; renderPath(); }
-    catch (e) { setRoot(errorBox(errMsg(e), 'home')); }
+    catch (e) { setRoot(errorBox(errMsg(e), 'back')); }
   }
   function renderPath() {
     var p = S.path, h = '', fl = flatLessons(p), done = p.completed || [], gen = p.generated || [], nx = nextLessonOf(p), pc = pct(done.length, fl.length);
     S.view = 'path';
-    h += '<button type="button" class="cnh-btn ghost" data-act="home" style="margin:-6px 0 6px -8px">' + ic('arrow') + esc(tx('back')) + '</button>';
-    h += '<div class="cnh-row" style="margin:0 0 6px">' + domIcon(p.domain) + '<span class="cnh-pill">' + esc(levelName(p.level)) + '</span></div>';
+    setTop(p.title);
+    h += '<div class="cnh-row cnh-wrap" style="margin:0 0 6px">' + domIcon(p.domain) + '<span class="cnh-pill">' + esc(levelName(p.level, p.domain)) + '</span>' + (p.groupLabel ? '<span class="cnh-pill">' + esc(p.groupLabel) + '</span>' : '') + '</div>';
     h += '<h2 class="cnh-h cnh-h1" style="margin:8px 0 6px">' + esc(p.title) + '</h2><p class="cnh-sub" style="margin:0 0 14px">' + esc(p.summary) + '</p>';
     h += '<div class="cnh-card"><div class="cnh-row">' + ring(pc) + '<div class="cnh-grow"><b>' + esc(tx('pathProg')) + '</b><div class="cnh-sub">' + esc(tx('lessonsN', { a: done.length, b: fl.length })) + '</div></div></div>';
     if (nx) h += '<button type="button" class="cnh-btn primary block" style="margin-top:14px" data-act="lesson" data-id="' + esc(nx.id) + '">' + ic('right') + esc(done.length ? tx('continueL', { t: nx.title }) : tx('start')) + '</button>';
@@ -290,7 +449,7 @@
   }
   async function doDelete() {
     if (!window.confirm(tx('delConfirm'))) return;
-    try { await call('academy_study', { op: 'delete_path', pathId: S.path.id }); S.path = null; toast('✓', 'success'); await loadHome(); } catch (e) { toast(errMsg(e), 'error'); }
+    try { await call('academy_study', { op: 'delete_path', pathId: S.path.id }); S.path = null; S.lesson = null; toast('✓', 'success'); back(); } catch (e) { toast(errMsg(e), 'error'); }
   }
 
   /* ---------------------------- Leçon ---------------------------- */
@@ -300,6 +459,7 @@
     if (idx < 0) return;
     S.view = 'lesson'; S.lessonId = lessonId; S.lesson = null; S.quiz = { answers: [], result: null }; S.card = 0;
     var cached = (p.generated || []).indexOf(lessonId) >= 0;
+    setTop(fl[idx].title);
     setRoot('<div class="cnh-load"><div class="cnh-spin"></div><h3 class="cnh-h cnh-h2" style="margin:0 0 6px">' + esc(cached ? fl[idx].title : tx('prep')) + '</h3>' + (cached ? '' : '<p class="cnh-sub">' + esc(tx('prepS')) + '</p>') + '</div>');
     try {
       var r = await call('academy_study', { op: 'lesson', pathId: p.id, lessonId: lessonId });
@@ -307,8 +467,7 @@
       if (!r.cached) { (p.generated = p.generated || []).push(lessonId); call('academy_study', { op: 'config' }).then(function (c) { S.cfg = c; }).catch(function () { /* ignore */ }); }
       renderLesson();
     } catch (e) {
-      setRoot('<button type="button" class="cnh-btn ghost" data-act="path-back" style="margin:-6px 0 6px -8px">' + ic('arrow') + esc(tx('back')) + '</button>' +
-        '<div class="cnh-notice bad">' + ic('alert') + '<span>' + esc(errMsg(e)) + (/Plus/.test(errMsg(e)) && S.cfg && S.cfg.plus.priceMonth > 0 ? ' <a href="#" data-act="plus" style="font-weight:800;color:inherit;text-decoration:underline">' + esc(tx('goPlus')) + '</a>' : '') + '</span></div>');
+      setRoot('<div class="cnh-notice bad">' + ic('alert') + '<span>' + esc(errMsg(e)) + (/Plus/.test(errMsg(e)) && S.cfg && (S.cfg.plus.priceMonth > 0 || S.cfg.plus.priceYear > 0) ? ' <a href="#" data-act="plus" style="font-weight:800;color:inherit;text-decoration:underline">' + esc(tx('goPlus')) + '</a>' : '') + '</span></div>');
     }
   }
   function renderLesson() {
@@ -316,7 +475,7 @@
     fl.forEach(function (x, i) { if (x.id === S.lessonId) idx = i; });
     var meta = fl[idx];
     S.cards = l.flashcards || [];
-    h += '<button type="button" class="cnh-btn ghost" data-act="path-back" style="margin:-6px 0 6px -8px">' + ic('arrow') + esc(tx('back')) + '</button>';
+    setTop(l.title || meta.title);
     h += '<div class="cnh-sub" style="font-weight:700;margin:0 0 4px">' + esc(tx('moduleN', { n: meta.mi + 1 })) + ' · ' + esc(tx('lessonOf', { a: idx + 1, b: fl.length })) + '</div>';
     h += '<h2 class="cnh-h cnh-h1" style="margin:0 0 10px">' + esc(l.title || meta.title) + '</h2>';
     if (l.objective) h += '<div class="cnh-notice ok" style="background:var(--cnh-soft);color:var(--cnh-brand-ink)">' + ic('bulb') + '<span>' + esc(l.objective) + '</span></div>';
@@ -439,27 +598,30 @@
 
   function openPlus() {
     var c = S.cfg; if (!c) return;
-    var price = c.plus.priceMonth, bal = me() && typeof me().balance === 'number' ? me().balance : null;
+    var pm = c.plus.priceMonth, py = c.plus.priceYear, bal = me() && typeof me().balance === 'number' ? me().balance : null;
     var fl = c.freeLimits, pl = c.plusLimits;
     var h = '<p class="cnh-sub" style="margin:0 0 14px">' + esc(tx('plusS')) + '</p>' +
       '<div class="cnh-plan"><div><b>' + esc(tx('pFree')) + '</b><ul><li>' + esc(tx('lim1', { n: fl.lessons })) + '</li><li>' + esc(tx('lim2', { n: fl.tutor })) + '</li><li>' + esc(tx('lim3', { n: fl.paths })) + '</li><li>' + esc(tx('lim5')) + '</li></ul></div>' +
       '<div class="plus"><b>' + esc(tx('pPlus')) + '</b><ul><li>' + esc(tx('lim1', { n: pl.lessons })) + '</li><li>' + esc(tx('lim2', { n: pl.tutor })) + '</li><li>' + esc(tx('lim3', { n: pl.paths })) + '</li><li>' + esc(tx('lim4')) + '</li></ul></div></div>' +
-      '<div style="text-align:center;margin:6px 0 4px"><span class="cnh-price">' + esc(String(price)) + ' $</span> <span class="cnh-sub">' + esc(tx('perMonth', { d: c.plus.days })) + '</span></div>' +
+      '<div style="text-align:center;margin:6px 0 4px">' + (pm > 0 ? '<span class="cnh-price">' + esc(String(pm)) + ' $</span> <span class="cnh-sub">' + esc(tx('perMonth', { d: c.plus.days })) + '</span>' : '') + (py > 0 ? '<div class="cnh-sub" style="margin-top:4px"><b>' + esc(String(py)) + ' $</b> · ' + esc(tx('perMonth', { d: c.plus.yearDays })) + '</div>' : '') + '</div>' +
       (bal !== null ? '<p class="cnh-sub" style="text-align:center;margin:0">' + esc(tx('balance', { b: bal.toFixed(2) })) + '</p>' : '') + '<div id="cnh-plus-msg" style="margin-top:12px"></div>';
-    var foot = price > 0 ? '<button type="button" class="cnh-btn primary block" id="cnh-plus-go" data-act="plus-go">' + ic('crown') + esc(tx('activate', { p: price })) + '</button>' : '<p class="cnh-sub">' + esc(tx('plusNA')) + '</p>';
+    var foot = '';
+    if (pm > 0) foot += '<button type="button" class="cnh-btn primary block" id="cnh-plus-go" data-act="plus-go" data-plan="month">' + ic('crown') + esc(tx('activate', { p: pm })) + '</button>';
+    if (py > 0) foot += '<button type="button" class="cnh-btn ' + (pm > 0 ? 'soft' : 'primary') + ' block" style="margin-top:8px" data-act="plus-go" data-plan="year">' + esc(tx('activateYear', { p: py })) + '</button>';
+    if (!foot) foot = '<p class="cnh-sub">' + esc(tx('plusNA')) + '</p>';
     sheet(tx('plusT'), h, foot);
   }
-  async function doPlus() {
-    var b = $('cnh-plus-go'), msg = $('cnh-plus-msg'); if (!b || b.disabled) return;
-    b.disabled = true;
+  async function doPlus(plan, btn) {
+    var msg = $('cnh-plus-msg'); if (!btn || btn.disabled) return;
+    btn.disabled = true;
     try {
-      var r = await call('academy_study', { op: 'subscribe' });
+      var r = await call('academy_study', { op: 'subscribe', plan: plan });
       try { if (me() && typeof r.newBalance === 'number') { me().balance = r.newBalance; var w = $('wallet-balance'); if (w) w.textContent = r.newBalance.toFixed(2) + '$'; } } catch (e) { /* ignore */ }
-      closeSheet(); toast(tx('plusOn'), 'success'); await loadHome(true);
+      closeSheet(); toast(tx('plusOn'), 'success'); S.cfg = await call('academy_study', { op: 'config' }); if (S.fs) renderEntry(); else renderHome();
     } catch (e) {
       var m = errMsg(e), low = /solde/i.test(m);
       if (msg) msg.innerHTML = '<div class="cnh-notice bad">' + ic('alert') + '<span>' + esc(m) + '</span></div>' + (low ? '<button type="button" class="cnh-btn soft block" data-act="recharge">' + esc(tx('recharge')) + '</button>' : '');
-      b.disabled = false;
+      btn.disabled = false;
     }
   }
 
@@ -470,20 +632,33 @@
     var act = el.getAttribute('data-act'), id = el.getAttribute('data-id');
     if (el.tagName === 'A') e.preventDefault();
     switch (act) {
-      case 'reload': case 'home': loadHome(); break;
+      case 'reload': loadHome(); break;
+      case 'home': closeAll(false); break;
+      case 'back': back(); break;
       case 'login': try { openAuth('register'); } catch (x) { /* ignore */ } break;
       case 'plus': openPlus(); break;
-      case 'plus-go': doPlus(); break;
+      case 'plus-go': doPlus(el.getAttribute('data-plan') || 'month', el); break;
+      case 'unlock': doUnlock(id); break;
       case 'recharge': closeSheet(); try { showDashTab('wallet'); } catch (x) { /* ignore */ } break;
       case 'close': closeSheet(); break;
-      case 'domain': S.form = null; renderCreate(id); break;
-      case 'topic': if (S.form) { S.form.topic = el.getAttribute('data-v'); var ti = root.querySelector('[data-f="topic"]'); if (ti) ti.value = S.form.topic; } break;
-      case 'level': if (S.form) { S.form.level = el.getAttribute('data-v'); [].forEach.call(root.querySelectorAll('.cnh-seg button'), function (b) { b.classList.toggle('on', b === el); }); } break;
+      case 'cat': S.form = null; go('cat', { id: id }); break;
+      case 'group': go('group', { c: el.getAttribute('data-c'), g: id }); break;
+      case 'topic-pick':
+        var cg = groupOf(el.getAttribute('data-c'), el.getAttribute('data-g')), tpk = null;
+        if (cg) cg.topics.forEach(function (x) { if (x.id === id) tpk = x; });
+        if (cg && tpk) go('create', { c: el.getAttribute('data-c'), g: cg.id, topic: topicText(cg, tpk) });
+        break;
+      case 'own':
+        var own = (S.own || '').trim();
+        if (own.length < 2) { var oi = $('cnh-fs-body') && $('cnh-fs-body').querySelector('[data-f="own"]'); if (oi) oi.focus(); break; }
+        go('create', { c: el.getAttribute('data-c'), g: el.getAttribute('data-g'), topic: own.slice(0, 80) });
+        break;
+      case 'level': if (S.form) { S.form.level = el.getAttribute('data-v'); [].forEach.call(el.parentNode.querySelectorAll('button'), function (b) { b.classList.toggle('on', b === el); }); } break;
+      case 'style': if (S.form) { S.form.style = el.getAttribute('data-v'); [].forEach.call(el.parentNode.querySelectorAll('button'), function (b) { b.classList.toggle('on', b === el); }); var sh = $('cnh-style-h'); if (sh) sh.textContent = tx('stH_' + S.form.style); } break;
       case 'create': doCreate(); break;
-      case 'path': openPath(id); break;
-      case 'path-back': renderPath(); break;
+      case 'path': go('path', { id: id }); break;
       case 'delete': doDelete(); break;
-      case 'lesson': openLesson(id); break;
+      case 'lesson': go('lesson', { id: id }); break;
       case 'tutor': openTutor(); break;
       case 'reveal': var t0 = $(el.getAttribute('data-t')); if (t0) t0.hidden = !t0.hidden; break;
       case 'flip': var fc = $('cnh-fc'); if (fc) fc.classList.toggle('flip'); break;
@@ -495,14 +670,19 @@
       case 'complete': completeLesson(); break;
       case 'next-lesson':
         var fl = flatLessons(S.path), k = -1; fl.forEach(function (x, i) { if (x.id === S.lessonId) k = i; });
-        if (k >= 0 && k + 1 < fl.length) openLesson(fl[k + 1].id); else renderPath();
+        if (k >= 0 && k + 1 < fl.length) replaceTop('lesson', { id: fl[k + 1].id }); else back();
         break;
       default: break;
     }
   }
   function onInput(e) {
     var f = e.target.getAttribute && e.target.getAttribute('data-f');
-    if (!f || !S.form) return;
+    if (!f) return;
+    var cur = S.stack[S.stack.length - 1];
+    if (f === 'gsearch' && cur && cur.view === 'cat') { var x = catOf(cur.args.id), gl = $('cnh-glist'); if (gl) gl.innerHTML = groupsHtml(x.c, e.target.value, x.i); return; }
+    if (f === 'tsearch' && cur && cur.view === 'group') { var g = groupOf(cur.args.c, cur.args.g), tl = $('cnh-tlist'); if (g && tl) tl.innerHTML = topicsHtml(cur.args.c, g, e.target.value); return; }
+    if (f === 'own') { S.own = e.target.value; return; }
+    if (!S.form) return;
     if (f === 'hours') { S.form.hours = +e.target.value; var v = $('cnh-hours-v'); if (v) v.textContent = tx('hoursV', { n: S.form.hours }); }
     else S.form[f] = e.target.value;
   }
@@ -525,7 +705,7 @@
     sec.addEventListener('click', onClick); sec.addEventListener('input', onInput);
     var b = document.createElement('button');
     b.type = 'button'; b.setAttribute('data-content-type', 'study'); b.setAttribute('onclick', "setAcademyContentType('study')");
-    b.innerHTML = esc(tx('tab')) + '<span class="cnh-new">IA</span>';
+    b.textContent = tx('tab');
     tabs.appendChild(b);
     var orig = window.setAcademyContentType;
     if (typeof orig === 'function') {
