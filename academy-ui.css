@@ -304,3 +304,25 @@ html[data-theme="dark"] .cnh-grp .l{background:color-mix(in srgb,var(--t) 18%,va
 .cnh-todo .cnh-btn{justify-content:flex-start;width:100%}
 .cnh-attest{border:2px solid var(--cnh-brand);border-radius:var(--cnh-r);padding:28px 20px;text-align:center;background:var(--cnh-card)}
 .cnh-attest h3{font-size:var(--cnh-fs-xl);margin:6px 0 4px}
+
+/* ---------- Illustrations des catégories ---------- */
+.cnh-art{display:block;position:relative;aspect-ratio:16/10;overflow:hidden;background:var(--cnh-soft)}
+.cnh-art.wide{aspect-ratio:2/1}
+.cnh-art svg,.cnh-art img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.cnh-tile{padding:0;gap:0;min-height:0;overflow:hidden;justify-content:flex-start}
+.cnh-tile .b{display:block;padding:12px 14px 14px}
+.cnh-tile .cnh-accb{background:var(--cnh-card);box-shadow:0 1px 4px rgba(17,24,39,.18)}
+.cnh-banner{border:1px solid var(--cnh-line);border-radius:var(--cnh-r-lg);overflow:hidden;background:var(--cnh-card);margin:0 0 16px;box-shadow:var(--cnh-shadow)}
+.cnh-banner .cap{padding:14px 16px 16px}
+.cnh-banner .cap h2{font-size:var(--cnh-fs-xl);margin:0 0 4px}
+
+/* ---------- Harmonie générale de l'application (menu, services) ---------- */
+.mp-ico[data-flat]{background:color-mix(in srgb,var(--t) 12%,var(--cnh-card,#fff))!important;color:var(--t)!important;box-shadow:none!important;border:1px solid color-mix(in srgb,var(--t) 20%,transparent)}
+.mp-ico[data-flat] svg{color:var(--t)!important}
+.mp-promo{background:#14263f!important;border-radius:16px!important;padding:16px 18px!important;box-shadow:0 1px 2px rgba(17,24,39,.12),0 8px 22px -12px rgba(20,38,63,.55)!important;border:1px solid rgba(255,255,255,.06)!important}
+.mp-promo::after{display:none!important}
+.mp-promo::before{content:"";position:absolute;left:0;top:14px;bottom:14px;width:3px;border-radius:0 3px 3px 0;background:#e8b64c}
+.mp-promo .mp-ico{background:rgba(232,182,76,.14)!important;color:#e8b64c!important;border:1px solid rgba(232,182,76,.3);box-shadow:none!important;border-radius:12px!important;width:44px!important;height:44px!important}
+.mp-promo .mp-ico svg{color:#e8b64c!important}
+.mp-promo-title{font-weight:700!important;font-size:1rem!important;letter-spacing:-.005em!important}
+.mp-promo-sub{opacity:.78!important;font-size:.8125rem!important}

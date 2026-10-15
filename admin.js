@@ -860,6 +860,20 @@ function renderAcademyAccess(access) {
     </div>`;
   }).join('');
 }
+// Remplit le formulaire avec les prix conseillés pour les matières à forte valeur ; rien n'est enregistré tant que tu n'appuies pas sur « Enregistrer ».
+function applySuggestedAcademyPrices() {
+  const sug = { exams: 5, health: 8, business: 6 };
+  Object.keys(sug).forEach((id) => {
+    const row = document.querySelector(`[data-acc="${id}"]`);
+    if (!row) return;
+    row.querySelector('.acc-mode').value = 'paid';
+    row.querySelector('.acc-price').value = sug[id];
+    row.querySelector('.acc-days').value = 90;
+    row.querySelector('.acc-on').value = '1';
+  });
+  const msg = document.getElementById('acad-ai-msg');
+  if (msg) msg.textContent = 'Prix conseillés appliqués au formulaire : modifie-les si tu veux, puis appuie sur « Enregistrer tous les réglages ».';
+}
 function updateAcademySummary() {
   const el = document.getElementById('acad-summary');
   if (!el) return;

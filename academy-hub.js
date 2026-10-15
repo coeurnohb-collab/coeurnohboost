@@ -201,6 +201,7 @@
     return tx(l === 'advanced' ? (lang_ ? 'lv3L' : 'lv3') : l === 'intermediate' ? (lang_ ? 'lv2L' : 'lv2') : (lang_ ? 'lv1L' : 'lv1'));
   }
   function accOf(id) { var a = S.cfg && S.cfg.access && S.cfg.access[id]; return a || { mode: 'free', open: true, enabled: true, price: 0, days: 90, untilMs: 0 }; }
+  function art(id, cls) { try { if (window.CNArt) return window.CNArt.art(id, cls); } catch (e) { /* ignore */ } return '<span class="cnh-art ' + (cls || '') + '"></span>'; }
   function box() { return S.fs ? $('cnh-fs-body') : root; }
   function setRoot(html) {
     var b = box();
@@ -329,7 +330,7 @@
     if (!S.paths.length) h += '<p class="cnh-sub" style="margin:0 0 12px">' + esc(tx('noPaths')) + '</p>';
     h += '<div class="cnh-tiles">';
     (S.cat || []).forEach(function (d, i) {
-      h += '<button type="button" class="cnh-tile" data-act="cat" data-id="' + esc(d.id) + '"><span class="cnh-dom" style="--t:' + TINTS[i % TINTS.length] + '">' + ic(d.icon) + '</span><span><strong>' + esc(dLabel(d)) + '</strong><small>' + esc(tx('groupsN', { n: d.groups.length })) + '</small></span>' + accBadge(d.id) + '</button>';
+      h += '<button type="button" class="cnh-tile" data-act="cat" data-id="' + esc(d.id) + '">' + art(d.id) + '<span class="b"><strong>' + esc(dLabel(d)) + '</strong><small>' + esc(tx('groupsN', { n: d.groups.length })) + '</small></span>' + accBadge(d.id) + '</button>';
     });
     h += '</div>';
     setRoot(h);
@@ -357,7 +358,7 @@
   function renderCat(id) {
     var x = catOf(id), c = x.c, h = '';
     S.view = 'cat'; setTop(dLabel(c));
-    h += '<div class="cnh-cathero"><span class="cnh-dom" style="--t:' + TINTS[x.i % TINTS.length] + '">' + ic(c.icon) + '</span><div><h2 class="cnh-h cnh-h1" style="font-size:var(--cnh-fs-xl)">' + esc(dLabel(c)) + '</h2><p class="cnh-sub">' + esc(L2(c.desc)) + '</p></div></div>';
+    h += '<div class="cnh-banner">' + art(id, 'wide') + '<div class="cap"><h2 class="cnh-h cnh-h1">' + esc(dLabel(c)) + '</h2><p class="cnh-sub">' + esc(L2(c.desc)) + '</p></div></div>';
     h += accessBar(id);
     h += '<div class="cnh-eyebrow" style="margin-top:4px">' + esc(tx('pickDomain')) + ' · ' + esc(tx('groupsN', { n: c.groups.length })) + '</div>';
     if (c.groups.length > 7) h += '<input type="search" class="cnh-input" data-f="gsearch" placeholder="' + esc(tx('searchG')) + '" style="margin:0 0 12px" autocomplete="off">';
