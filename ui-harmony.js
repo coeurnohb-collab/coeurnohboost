@@ -32,6 +32,11 @@
       '@keyframes cnIcoIn{from{opacity:0;transform:translateY(10px) scale(.7)}to{opacity:1;transform:none}}',
       '@keyframes cnIcoBreath{50%{transform:translateY(-2px)}}',
       '.mp-tile:first-child .mp-ico[data-flat]{animation:cnIcoIn .5s both,cnIcoBreath 3.4s ease-in-out 1s infinite}',
+      'html .mp-ico[data-flat]{background:color-mix(in srgb,var(--t) 90%,#0b1220)!important;color:#fff!important;border:0!important;box-shadow:0 6px 14px color-mix(in srgb,var(--t) 38%,transparent),inset 0 1px 0 rgba(255,255,255,.28)!important}',
+      'html .mp-ico[data-flat] svg{color:#fff!important;stroke-width:2}',
+      'html .mp-ico[data-flat]::after{box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}',
+      '.mp-pin{display:none!important}',
+      '.mp-tile,.mp-row,.mp-shortcut{touch-action:manipulation}',
       '@media(prefers-reduced-motion:reduce){.mp-ico[data-flat],.mp-ico[data-flat] svg{animation:none!important;transition:none!important}}'
     ].join('\n');
     document.head.appendChild(st);

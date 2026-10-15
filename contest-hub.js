@@ -27,7 +27,7 @@
       cal: 'Ajouter au calendrier', share: 'Partager', back: 'Retour', join: 'Participer', joinPaid: 'Participer pour', again: 'Modifier ma participation', joined: 'Tu participes', login2: 'Connecte-toi pour participer',
       closedMsg: 'Ce concours est terminé.', soonMsg: 'Ce concours n’a pas encore commencé.', pendingMsg: 'Ce concours attend la validation de l’équipe.', rejectedMsg: 'Ce concours n’a pas été retenu.',
       pTop: 'Populaires', pNew: 'Récents', pSearch: 'Chercher un participant', noPeople: 'Pas encore de participant. Sois le premier !', voted: 'Déjà voté', yours: 'Ta participation', loadErr: 'Impossible de charger les participations.', winner: 'Gagnant', podiumEmpty: 'Le classement apparaîtra avec les premiers votes.', total: 'votes au total',
-      saved: 'Suivis', follow: 'Suivre', following: 'Suivi', soonEnd: 'Se terminent bientôt', stats_p: 'Participants', stats_v: 'Votes', stats_d: 'Jours restants', stats_r: 'Avancement', faq: 'Questions fréquentes', q1: 'Comment voter ?', a1: 'Ouvre l’onglet Participants et touche « Voter » sous la participation qui te plaît. Un seul vote par participation et par personne.', q2: 'Puis-je modifier ma participation ?', a2: 'Oui, tant que le concours est ouvert : un nouvel envoi remplace le précédent.', q3: 'Quand connaît-on les gagnants ?', a3: 'À la clôture, le classement final est figé et visible dans l’onglet Classement.', q4: 'Comment est calculé le classement ?', a4: 'Par nombre de votes. En cas d’égalité, la participation la plus ancienne passe devant.', wa: 'WhatsApp', copy: 'Copier le lien', copied: 'Lien copié', orgSpace: 'Espace organisateur', exportCsv: 'Exporter le classement (CSV)', photosAdmin: 'Photos de couverture', photosHint: 'Touche une catégorie pour choisir sa photo. Elle s’affiche sur tous les concours de cette catégorie qui n’ont pas leur propre image.', exampleC: 'Exemple de concours', organizer: 'Organisateur', pending: 'En attente', rejected: 'Refusé', daysLeft: 'jours restants', progress: 'Avancement', moderation: 'Modération', approve: 'Approuver', reject: 'Refuser', createFirst: 'Lance le premier concours', createHint: 'Les concours proposés sont relus par l’équipe avant publication.'
+      myspace: 'Mon espace', lvl: 'Niveau', lv1: 'Débutant', lv2: 'Compétiteur', lv3: 'Challenger', lv4: 'Champion', nextLvl: 'prochain niveau dans', kpiJoined: 'Concours joints', kpiVotes: 'Votes reçus', kpiBest: 'Meilleur rang', remind: 'Tes concours suivis qui se terminent bientôt', cats: 'Catégories', shareMine: 'Partager ma participation', cnt: 'concours', saved: 'Suivis', follow: 'Suivre', following: 'Suivi', soonEnd: 'Se terminent bientôt', stats_p: 'Participants', stats_v: 'Votes', stats_d: 'Jours restants', stats_r: 'Avancement', faq: 'Questions fréquentes', q1: 'Comment voter ?', a1: 'Ouvre l’onglet Participants et touche « Voter » sous la participation qui te plaît. Un seul vote par participation et par personne.', q2: 'Puis-je modifier ma participation ?', a2: 'Oui, tant que le concours est ouvert : un nouvel envoi remplace le précédent.', q3: 'Quand connaît-on les gagnants ?', a3: 'À la clôture, le classement final est figé et visible dans l’onglet Classement.', q4: 'Comment est calculé le classement ?', a4: 'Par nombre de votes. En cas d’égalité, la participation la plus ancienne passe devant.', wa: 'WhatsApp', copy: 'Copier le lien', copied: 'Lien copié', orgSpace: 'Espace organisateur', exportCsv: 'Exporter le classement (CSV)', photosAdmin: 'Photos de couverture', photosHint: 'Touche une catégorie pour choisir sa photo. Elle s’affiche sur tous les concours de cette catégorie qui n’ont pas leur propre image.', exampleC: 'Exemple de concours', organizer: 'Organisateur', pending: 'En attente', rejected: 'Refusé', daysLeft: 'jours restants', progress: 'Avancement', moderation: 'Modération', approve: 'Approuver', reject: 'Refuser', createFirst: 'Lance le premier concours', createHint: 'Les concours proposés sont relus par l’équipe avant publication.'
     },
     en: {
       hero_t: 'Contests & Rewards', hero_s: 'Enter, get your community to vote and win prizes. Every contest is tracked live.',
@@ -44,7 +44,7 @@
       cal: 'Add to calendar', share: 'Share', back: 'Back', join: 'Enter', joinPaid: 'Enter for', again: 'Edit my entry', joined: 'You are in', login2: 'Sign in to enter',
       closedMsg: 'This contest has ended.', soonMsg: 'This contest has not started yet.', pendingMsg: 'This contest is waiting for team approval.', rejectedMsg: 'This contest was not accepted.',
       pTop: 'Top', pNew: 'Newest', pSearch: 'Search a participant', noPeople: 'No entry yet. Be the first!', voted: 'Voted', yours: 'Your entry', loadErr: 'Could not load entries.', winner: 'Winner', podiumEmpty: 'The leaderboard appears with the first votes.', total: 'votes in total',
-      saved: 'Following', follow: 'Follow', following: 'Following', soonEnd: 'Ending soon', stats_p: 'Entries', stats_v: 'Votes', stats_d: 'Days left', stats_r: 'Progress', faq: 'FAQ', q1: 'How do I vote?', a1: 'Open the Entries tab and tap “Vote” under the entry you like. One vote per entry and per person.', q2: 'Can I edit my entry?', a2: 'Yes, while the contest is open: a new upload replaces the previous one.', q3: 'When are winners known?', a3: 'At closing, the final ranking is frozen and shown in the Leaderboard tab.', q4: 'How is the ranking computed?', a4: 'By number of votes. On a tie, the older entry ranks first.', wa: 'WhatsApp', copy: 'Copy link', copied: 'Link copied', orgSpace: 'Organizer space', exportCsv: 'Export leaderboard (CSV)', photosAdmin: 'Cover photos', photosHint: 'Tap a category to choose its photo. It shows on every contest of that category without its own image.', exampleC: 'Example contest', organizer: 'Organizer', pending: 'Pending', rejected: 'Rejected', daysLeft: 'days left', progress: 'Progress', moderation: 'Moderation', approve: 'Approve', reject: 'Reject', createFirst: 'Launch the first contest', createHint: 'Proposed contests are reviewed by the team before publishing.'
+      myspace: 'My space', lvl: 'Level', lv1: 'Rookie', lv2: 'Competitor', lv3: 'Challenger', lv4: 'Champion', nextLvl: 'next level in', kpiJoined: 'Contests joined', kpiVotes: 'Votes received', kpiBest: 'Best rank', remind: 'Followed contests ending soon', cats: 'Categories', shareMine: 'Share my entry', cnt: 'contests', saved: 'Following', follow: 'Follow', following: 'Following', soonEnd: 'Ending soon', stats_p: 'Entries', stats_v: 'Votes', stats_d: 'Days left', stats_r: 'Progress', faq: 'FAQ', q1: 'How do I vote?', a1: 'Open the Entries tab and tap “Vote” under the entry you like. One vote per entry and per person.', q2: 'Can I edit my entry?', a2: 'Yes, while the contest is open: a new upload replaces the previous one.', q3: 'When are winners known?', a3: 'At closing, the final ranking is frozen and shown in the Leaderboard tab.', q4: 'How is the ranking computed?', a4: 'By number of votes. On a tie, the older entry ranks first.', wa: 'WhatsApp', copy: 'Copy link', copied: 'Link copied', orgSpace: 'Organizer space', exportCsv: 'Export leaderboard (CSV)', photosAdmin: 'Cover photos', photosHint: 'Tap a category to choose its photo. It shows on every contest of that category without its own image.', exampleC: 'Example contest', organizer: 'Organizer', pending: 'Pending', rejected: 'Rejected', daysLeft: 'days left', progress: 'Progress', moderation: 'Moderation', approve: 'Approve', reject: 'Reject', createFirst: 'Launch the first contest', createHint: 'Proposed contests are reviewed by the team before publishing.'
     }
   };
   function L(k) { var l = lang() === 'en' ? 'en' : 'fr'; return (D[l][k] != null ? D[l][k] : D.fr[k]) || k; }
@@ -189,11 +189,12 @@
     return '<div class="cnc-tabs" role="tablist">' + tabs.map(function (x) { return '<button role="tab" aria-selected="' + (S.tab === x[0]) + '" class="' + (S.tab === x[0] ? 'on' : '') + '" data-act="tab" data-v="' + x[0] + '">' + x[1] + '</button>'; }).join('') + '</div>';
   }
   function catChips() {
-    var keys = ['all'].concat(Object.keys(CAT));
-    return '<div class="cnc-chips" role="group">' + keys.map(function (k) {
+    var keys = ['all'].concat(Object.keys(CAT)), a = approved();
+    return '<div class="cnc-cats" role="group" aria-label="' + esc(L('cats')) + '">' + keys.map(function (k) {
       var lab = k === 'all' ? L('all') : esc((function () { try { return tt(CONTEST_CATEGORY_META[k].label); } catch (e) { return k; } })());
-      var ic = k === 'all' ? '' : svg(CAT[k][1], 14);
-      return '<button class="cnc-chip ' + (S.cat === k ? 'on' : '') + '" data-act="cat" data-v="' + k + '" ' + (k !== 'all' ? 'style="--t:' + CAT[k][0] + '"' : '') + '>' + ic + lab + '</button>';
+      var n = k === 'all' ? a.length : a.filter(function (c) { return c.category === k; }).length;
+      var col = k === 'all' ? '#14263f' : CAT[k][0], ic = k === 'all' ? IC.trophy : CAT[k][1];
+      return '<button class="cnc-ct' + (S.cat === k ? ' on' : '') + '" data-act="cat" data-v="' + k + '" style="--t:' + col + '"><span class="i">' + svg(ic, 22, 1.8) + '</span><b>' + lab + '</b><em>' + n + '</em></button>';
     }).join('') + '</div>';
   }
   function filtersHtml() {
@@ -246,6 +247,20 @@
       return '<div class="cnc-how-i"><span class="n">' + (i + 1) + '</span><span class="ic">' + svg(x[0], 20) + '</span><b>' + esc(x[1]) + '</b><p>' + esc(x[2]) + '</p></div>';
     }).join('') + '</div>';
   }
+  function remindHtml() {
+    var r = approved().filter(function (c) { var m = new Date(c.endDate) - Date.now(); return isFollowed(c.id) && status(c) === 'active' && m > 0 && m < 2 * 864e5; });
+    if (!r.length) return '';
+    return '<div class="cnc-remind">' + svg(IC.clock, 18) + '<div><b>' + L('remind') + '</b>' + r.map(function (c) { return '<a data-act="open" data-id="' + esc(c.id) + '" tabindex="0" role="button">' + esc(c.title) + ' · ' + esc(timeLabel(c)) + '</a>'; }).join('') + '</div></div>';
+  }
+  function spaceHtml() {
+    var arr = S.mine || [], n = arr.length, votes = arr.reduce(function (s0, e) { return s0 + (e.votesCount || 0); }, 0);
+    var best = 0; arr.forEach(function (e) { var rk = ranked(e.contestId); var i = rk.map(function (z) { return z.id; }).indexOf(e.id); if (i >= 0 && (!best || i + 1 < best)) best = i + 1; });
+    var pts = n * 10 + votes, lv = pts >= 150 ? 4 : pts >= 60 ? 3 : pts >= 20 ? 2 : 1, th = [0, 20, 60, 150], next = lv < 4 ? th[lv] : 0;
+    var pct = lv >= 4 ? 100 : Math.round((pts - th[lv - 1]) / (th[lv] - th[lv - 1]) * 100);
+    return '<div class="cnc-space"><div class="cnc-space-h"><span class="lv">' + svg(IC.trophy, 22, 1.8) + '</span><div><small>' + L('myspace') + '</small><b>' + L('lvl') + ' ' + lv + ' · ' + L('lv' + lv) + '</b></div></div>' +
+      '<div class="cnc-bar"><i style="width:' + pct + '%"></i></div>' + (next ? '<p class="cnc-hint">' + L('nextLvl') + ' ' + Math.max(0, next - pts) + ' pts</p>' : '') +
+      '<div class="cnc-kpis"><div><b>' + n + '</b><span>' + L('kpiJoined') + '</span></div><div><b>' + votes + '</b><span>' + L('kpiVotes') + '</span></div><div><b>' + (best ? '#' + best : '—') + '</b><span>' + L('kpiBest') + '</span></div></div></div>';
+  }
   function soonHtml() {
     if (S.status === 'ended') return '';
     var r = approved().filter(function (c) { var m = new Date(c.endDate) - Date.now(); return status(c) === 'active' && m > 0 && m < 3 * 864e5; }).slice(0, 8);
@@ -273,8 +288,8 @@
     var x = listsForMe(); if (x) return x;
     if (!S.mineLoaded) return '<div class="cnc-skel"></div><div class="cnc-skel"></div>';
     var arr = S.mine || [];
-    if (!arr.length) return '<div class="cnc-empty">' + svg(IC.send, 34, 1.4) + '<p>' + esc(L('noEntries')) + '</p><button class="cnc-btn pri" data-act="goDiscover">' + L('discover') + '</button></div>';
-    return '<div class="cnc-grid">' + arr.map(function (e) {
+    if (!arr.length) return spaceHtml() + '<div class="cnc-empty">' + svg(IC.send, 34, 1.4) + '<p>' + esc(L('noEntries')) + '</p><button class="cnc-btn pri" data-act="goDiscover">' + L('discover') + '</button></div>';
+    return spaceHtml() + '<div class="cnc-grid">' + arr.map(function (e) {
       var c = cache().filter(function (z) { return z.id === e.contestId; })[0];
       if (!c) return '';
       return card(c).replace('</article>', '<div class="cnc-mine"><span>' + svg(IC.up, 14) + (e.votesCount || 0) + ' ' + ((e.votesCount || 0) === 1 ? L('vote') : L('votes')) + '</span><span>' + esc(e.name || '') + '</span></div></article>');
@@ -304,7 +319,7 @@
     var host = document.getElementById('contests-list'); if (!host) return;
     host.classList.add('cnc-root');
     var body;
-    if (S.tab === 'discover') body = filtersHtml() + '<div id="cnc-results">' + resultsHtml() + '</div>' + soonHtml() + recentHtml() + howHtml();
+    if (S.tab === 'discover') body = remindHtml() + filtersHtml() + '<div id="cnc-results">' + resultsHtml() + '</div>' + soonHtml() + recentHtml() + howHtml();
     else if (S.tab === 'entries') body = '<div id="cnc-results">' + entriesTab() + '</div>';
     else body = '<div id="cnc-results">' + mineTab() + '</div>';
     host.innerHTML = heroHtml() + tabsHtml() + '<div class="cnc-body">' + body + '</div>';
@@ -393,6 +408,7 @@
       '<div class="cnc-entry-b"><div class="cnc-entry-h"><span class="rk">#' + rank + '</span><b>' + esc(e.name || tt('contest_default_participant_name')) + '</b>' + (own ? pill(L('yours'), 'info') : '') + '</div>' +
       (e.caption ? '<p>' + esc(e.caption) + '</p>' : '') +
       '<div class="cnc-entry-f"><span class="v">' + svg(IC.up, 15) + n + ' ' + (n === 1 ? L('vote') : L('votes')) + '</span>' +
+      (own ? '<button class="cnc-btn sm" data-act="share" data-id="' + esc(c.id) + '">' + svg(IC.share, 15) + L('shareMine') + '</button>' : '') +
       (can ? '<button class="cnc-btn sm ' + (did ? '' : 'pri') + '" ' + (did ? 'disabled' : '') + ' data-act="vote" data-id="' + esc(c.id) + '" data-e="' + esc(e.id) + '">' + svg(IC.up, 15) + (did ? L('voted') : tt('contest_vote_btn')) + '</button>' : '') + '</div></div></div>';
   }
   function peoplePanel(c) {
@@ -518,8 +534,17 @@
     }
   }
   document.addEventListener('click', function (ev) {
-    if (ev.target.closest && (ev.target.closest('#contests-list') || ev.target.closest('#cnc-detail'))) act(ev);
-  });
+    if (ev.target.closest && (ev.target.closest('#contests-list') || ev.target.closest('#cnc-detail'))) { if (ev.target.closest('[data-act]')) ev.stopPropagation(); act(ev); }
+  }, true);
+  /* Geste « retour » : ferme d'abord la page de concours au lieu de quitter l'écran */
+  (function () {
+    var orig = window.closeTopmostOverlay;
+    window.closeTopmostOverlay = function () {
+      if (typeof orig === 'function' && orig()) return true;
+      if (document.getElementById('cnc-detail')) { closeDetail(); return true; }
+      return false;
+    };
+  })();
   document.addEventListener('keydown', key);
   document.addEventListener('cn-showcase-photos', function () { try { if (document.getElementById('contests-list') && document.getElementById('contests-list').children.length && cache().length) { paint(); if (S.d) paintDetail(); } } catch (e) { } });
   document.addEventListener('input', input);
@@ -744,6 +769,19 @@
     '.cnc-block .cnc-btn.full{width:100%}',
     '.cnc-phg{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.cnc-ph{position:relative;display:flex;align-items:center;gap:10px;min-height:64px;padding:8px 10px;border-radius:12px;border:1px dashed var(--t);background:color-mix(in srgb,var(--t) 8%,var(--cnh-card,#fff));color:var(--cnh-ink,#111827);font:inherit;font-size:.8125rem;font-weight:600;text-align:left;cursor:pointer;overflow:hidden}',
     '.cnc-ph svg{color:var(--t);flex:0 0 auto}.cnc-ph img{width:44px;height:44px;border-radius:10px;object-fit:cover;flex:0 0 auto}',
+    '.cnc-cats{display:flex;gap:10px;overflow-x:auto;padding:2px 2px 14px;margin:0 -2px;scrollbar-width:none}.cnc-cats::-webkit-scrollbar{display:none}',
+    '.cnc-ct{flex:0 0 auto;width:92px;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 6px 10px;border-radius:16px;border:1.5px solid var(--cnh-line,#e1e6ed);background:var(--cnh-card,#fff);color:var(--cnh-ink,#111827);cursor:pointer;position:relative;transition:transform .15s,border-color .15s,box-shadow .15s;touch-action:manipulation}',
+    '.cnc-ct .i{width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:var(--t);color:#fff;box-shadow:0 6px 14px color-mix(in srgb,var(--t) 35%,transparent)}',
+    '.cnc-ct b{font-size:.75rem;font-weight:600;line-height:1.2;text-align:center;min-height:2.4em;display:flex;align-items:center}',
+    '.cnc-ct em{position:absolute;top:6px;right:6px;font-style:normal;font-size:.625rem;font-weight:700;background:var(--cnh-soft,#eef3f9);color:var(--cnh-sub,#5a6577);border-radius:999px;padding:1px 6px}',
+    '.cnc-ct.on{border-color:var(--t);background:color-mix(in srgb,var(--t) 9%,var(--cnh-card,#fff));box-shadow:0 6px 18px color-mix(in srgb,var(--t) 22%,transparent)}.cnc-ct:active{transform:scale(.95)}',
+    '.cnc-remind{display:flex;gap:10px;align-items:flex-start;background:#fbf3e2;color:#8a5a0b;border-radius:14px;padding:12px 14px;margin:0 0 14px;font-size:.8125rem}.cnc-remind svg{flex:0 0 auto;margin-top:2px}.cnc-remind b{display:block;margin-bottom:2px}.cnc-remind a{display:block;font-weight:600;text-decoration:underline;cursor:pointer;padding:3px 0}',
+    '.cnc-space{background:var(--cnh-card,#fff);border:1px solid var(--cnh-line,#e1e6ed);border-radius:16px;padding:14px;margin:0 0 14px}.cnc-space-h{display:flex;align-items:center;gap:12px}.cnc-space-h small{display:block;font-size:.6875rem;letter-spacing:.08em;text-transform:uppercase;color:var(--cnh-sub,#5a6577)}.cnc-space-h b{font-size:1rem}',
+    '.cnc-space .lv{width:46px;height:46px;border-radius:14px;background:#14263f;color:#e8b64c;display:flex;align-items:center;justify-content:center}',
+    '.cnc-hero::before,.cnc-hero::after{content:"";position:absolute;border-radius:50%;background:rgba(232,182,76,.14);pointer-events:none;animation:cncFloat2 7s ease-in-out infinite}.cnc-hero::before{width:120px;height:120px;left:-40px;bottom:-50px}.cnc-hero::after{width:60px;height:60px;right:30%;top:-20px;animation-delay:1.5s}',
+    '.cnc-hero>*:not(.cnc-hero-art){position:relative;z-index:1}',
+    '@keyframes cncFloat2{50%{transform:translateY(-10px)}}',
+    '.cnc-card,.cnc-mini,.cnc-feat,.cnc-btn,.cnc-tabs button,.cnc-seg button{touch-action:manipulation}',
     '@media(prefers-reduced-motion:reduce){.cnc-card,.cnc-detail,.cnc-cover.art .c,.cnc-pill .dot{animation:none!important}.cnc-card,.cnc-bar i{transition:none!important}}'
   ].join('\n');
   try { var st = document.createElement('style'); st.setAttribute('data-cn-contest', '1'); st.textContent = css; document.head.appendChild(st); } catch (e) { /* ignore */ }

@@ -30,72 +30,72 @@
   var SV = [
     { id: 'jobs-browse-list', fn: 'openJobForm', ic: 'job', c: '#1d4f91',
       fr: { cta: 'Publier une offre', items: [
-        ['Développeur web junior', 'Agence digitale · Kampala', ['Temps plein', 'Sur site'], '600 $ / mois', 'Offre'],
+        ['Développeur web junior', 'Agence digitale · Kinshasa', ['Temps plein', 'Sur site'], '600 $ / mois', 'Offre'],
         ['Community manager', 'Boutique en ligne · À distance', ['Mi-temps', 'À distance'], '250 $ / mois', 'Offre'],
-        ['Comptable freelance', 'Cabinet de conseil · Goma', ['Mission', 'Hybride'], '400 $ / mission', 'Offre']] },
+        ['Comptable freelance', 'Cabinet de conseil · Lubumbashi', ['Mission', 'Hybride'], '400 $ / mission', 'Offre']] },
       en: { cta: 'Post a job', items: [
-        ['Junior web developer', 'Digital agency · Kampala', ['Full time', 'On site'], '$600 / month', 'Job'],
+        ['Junior web developer', 'Digital agency · Kinshasa', ['Full time', 'On site'], '$600 / month', 'Job'],
         ['Community manager', 'Online store · Remote', ['Part time', 'Remote'], '$250 / month', 'Job'],
-        ['Freelance accountant', 'Consulting firm · Goma', ['Contract', 'Hybrid'], '$400 / project', 'Job']] } },
+        ['Freelance accountant', 'Consulting firm · Lubumbashi', ['Contract', 'Hybrid'], '$400 / project', 'Job']] } },
     { id: 'jobseekers-browse-list', fn: 'openJobSeekerForm', ic: 'user', c: '#0f766e',
       fr: { cta: 'Publier mon profil', items: [
-        ['Graphiste & motion designer', '4 ans d’expérience · Kampala', ['Disponible', 'Freelance'], 'dès 80 $ / projet', 'Profil'],
-        ['Vendeuse e-commerce', '2 ans d’expérience · Goma', ['Disponible', 'Temps plein'], '200 $ / mois', 'Profil']] },
+        ['Graphiste & motion designer', '4 ans d’expérience · Kinshasa', ['Disponible', 'Freelance'], 'dès 80 $ / projet', 'Profil'],
+        ['Vendeuse e-commerce', '2 ans d’expérience · Abidjan', ['Disponible', 'Temps plein'], '200 $ / mois', 'Profil']] },
       en: { cta: 'Publish my profile', items: [
-        ['Graphic & motion designer', '4 years experience · Kampala', ['Available', 'Freelance'], 'from $80 / project', 'Profile'],
-        ['E-commerce sales associate', '2 years experience · Goma', ['Available', 'Full time'], '$200 / month', 'Profile']] } },
+        ['Graphic & motion designer', '4 years experience · Kinshasa', ['Available', 'Freelance'], 'from $80 / project', 'Profile'],
+        ['E-commerce sales associate', '2 years experience · Abidjan', ['Available', 'Full time'], '$200 / month', 'Profile']] } },
     { id: 'immo-browse-list', fn: 'openImmoForm', ic: 'home', c: '#b45309',
       fr: { cta: 'Publier un bien', items: [
-        ['Appartement 2 chambres meublé', 'Quartier résidentiel · Kampala', ['2 ch.', '1 sdb', '65 m²'], '450 $ / mois', 'Location'],
-        ['Parcelle constructible 20×30', 'Zone en développement · Goma', ['600 m²', 'Titre foncier'], '18 000 $', 'Vente'],
-        ['Local commercial centre-ville', 'Rue passante · Kampala', ['40 m²', 'Vitrine'], '300 $ / mois', 'Location']] },
+        ['Appartement 2 chambres meublé', 'Gombe · Kinshasa', ['2 ch.', '1 sdb', '65 m²'], '450 $ / mois', 'Location'],
+        ['Parcelle constructible 20×30', 'Bord du lac Kivu · Goma', ['600 m²', 'Titre foncier'], '18 000 $', 'Vente'],
+        ['Local commercial centre-ville', 'Plateau, centre-ville · Dakar', ['40 m²', 'Vitrine'], '300 $ / mois', 'Location']] },
       en: { cta: 'List a property', items: [
-        ['Furnished 2-bedroom apartment', 'Residential area · Kampala', ['2 bd', '1 ba', '65 m²'], '$450 / month', 'Rent'],
-        ['Building plot 20×30', 'Growing area · Goma', ['600 m²', 'Land title'], '$18,000', 'Sale'],
-        ['Downtown shop unit', 'Busy street · Kampala', ['40 m²', 'Shop window'], '$300 / month', 'Rent']] } },
+        ['Furnished 2-bedroom apartment', 'Gombe · Kinshasa', ['2 bd', '1 ba', '65 m²'], '$450 / month', 'Rent'],
+        ['Building plot 20×30', 'Lake Kivu shore · Goma', ['600 m²', 'Land title'], '$18,000', 'Sale'],
+        ['Downtown shop unit', 'Plateau, downtown · Dakar', ['40 m²', 'Shop window'], '$300 / month', 'Rent']] } },
     { id: 'events-browse-list', fn: 'openEventForm', ic: 'ticket', c: '#be123c',
       fr: { cta: 'Créer un événement', items: [
-        ['Soirée networking entrepreneurs', 'Samedi · 18:00 · Kampala', ['Billets en ligne', '150 places'], 'dès 5 $', 'Événement'],
-        ['Concert live acoustique', 'Vendredi · 20:00 · Goma', ['Placement libre', 'Scan QR'], 'dès 8 $', 'Événement'],
-        ['Atelier photo débutants', 'Dimanche · 09:00 · Kampala', ['Places limitées', '3 h'], '12 $', 'Événement']] },
+        ['Soirée networking entrepreneurs', 'Samedi · 18:00 · Kinshasa', ['Billets en ligne', '150 places'], 'dès 5 $', 'Événement'],
+        ['Concert live acoustique', 'Vendredi · 20:00 · Brazzaville', ['Placement libre', 'Scan QR'], 'dès 8 $', 'Événement'],
+        ['Atelier photo débutants', 'Dimanche · 09:00 · Paris', ['Places limitées', '3 h'], '12 $', 'Événement']] },
       en: { cta: 'Create an event', items: [
-        ['Entrepreneurs networking night', 'Saturday · 6 PM · Kampala', ['Online tickets', '150 seats'], 'from $5', 'Event'],
-        ['Live acoustic concert', 'Friday · 8 PM · Goma', ['Open seating', 'QR scan'], 'from $8', 'Event'],
-        ['Beginner photo workshop', 'Sunday · 9 AM · Kampala', ['Limited seats', '3 h'], '$12', 'Event']] } },
+        ['Entrepreneurs networking night', 'Saturday · 6 PM · Kinshasa', ['Online tickets', '150 seats'], 'from $5', 'Event'],
+        ['Live acoustic concert', 'Friday · 8 PM · Brazzaville', ['Open seating', 'QR scan'], 'from $8', 'Event'],
+        ['Beginner photo workshop', 'Sunday · 9 AM · Paris', ['Limited seats', '3 h'], '$12', 'Event']] } },
     { id: 'travel-browse-list', fn: 'openTravelForm', ic: 'plane', c: '#0369a1',
       fr: { cta: 'Proposer un voyage', items: [
-        ['Safari 3 jours · parc national', 'Départ de Kampala', ['Hébergement inclus', 'Guide'], '320 $ / pers.', 'Séjour'],
-        ['Week-end bord de lac', 'Départ de Goma', ['Transport inclus', '2 nuits'], '95 $ / pers.', 'Séjour'],
-        ['Billet bus Kampala → Nairobi', 'Départs quotidiens', ['Climatisé', 'Bagage inclus'], '40 $', 'Transport']] },
+        ['Trek des gorilles · parc des Virunga', 'Départ de Goma', ['Permis inclus', 'Guide'], '400 $ / pers.', 'Séjour'],
+        ['Week-end aux chutes de Zongo', 'Départ de Kinshasa', ['Transport inclus', '2 nuits'], '95 $ / pers.', 'Séjour'],
+        ['Séjour à l’île de Gorée', 'Départ de Dakar', ['Visite guidée', '3 nuits'], '180 $ / pers.', 'Séjour']] },
       en: { cta: 'Offer a trip', items: [
-        ['3-day national park safari', 'Departing Kampala', ['Lodging included', 'Guide'], '$320 / person', 'Stay'],
-        ['Lakeside weekend', 'Departing Goma', ['Transport included', '2 nights'], '$95 / person', 'Stay'],
-        ['Bus ticket Kampala → Nairobi', 'Daily departures', ['Air-conditioned', 'Luggage included'], '$40', 'Transport']] } },
+        ['Mountain gorilla trek · Virunga park', 'Departing Goma', ['Permit included', 'Guide'], '$400 / person', 'Stay'],
+        ['Weekend at Zongo Falls', 'Departing Kinshasa', ['Transport included', '2 nights'], '$95 / person', 'Stay'],
+        ['Gorée Island stay', 'Departing Dakar', ['Guided tour', '3 nights'], '$180 / person', 'Stay']] } },
     { id: 'business-browse-list', fn: 'openBusinessForm', ic: 'shop', c: '#6741d9',
       fr: { cta: 'Créer ma page entreprise', items: [
-        ['Atelier Couture Élégance', 'Mode sur mesure · Kampala', ['Catalogue', 'Coupons', 'Avis clients'], 'Ouvert 8h–18h', 'Entreprise'],
-        ['Fresh Market Livraison', 'Alimentation · Goma', ['Livraison', 'Paiement mobile'], 'Ouvert 7h–20h', 'Entreprise'],
-        ['Studio Pixel Agency', 'Marketing digital · Kampala', ['Devis gratuit', 'Portfolio'], 'Sur rendez-vous', 'Entreprise']] },
+        ['Atelier Couture Élégance', 'Mode sur mesure · Kinshasa', ['Catalogue', 'Coupons', 'Avis clients'], 'Ouvert 8h–18h', 'Entreprise'],
+        ['Fresh Market Livraison', 'Alimentation · Lubumbashi', ['Livraison', 'Paiement mobile'], 'Ouvert 7h–20h', 'Entreprise'],
+        ['Studio Pixel Agency', 'Marketing digital · Abidjan', ['Devis gratuit', 'Portfolio'], 'Sur rendez-vous', 'Entreprise']] },
       en: { cta: 'Create my business page', items: [
-        ['Elegance Tailoring Studio', 'Custom fashion · Kampala', ['Catalog', 'Coupons', 'Reviews'], 'Open 8 AM–6 PM', 'Business'],
-        ['Fresh Market Delivery', 'Food · Goma', ['Delivery', 'Mobile pay'], 'Open 7 AM–8 PM', 'Business'],
-        ['Pixel Studio Agency', 'Digital marketing · Kampala', ['Free quote', 'Portfolio'], 'By appointment', 'Business']] } },
+        ['Elegance Tailoring Studio', 'Custom fashion · Kinshasa', ['Catalog', 'Coupons', 'Reviews'], 'Open 8 AM–6 PM', 'Business'],
+        ['Fresh Market Delivery', 'Food · Lubumbashi', ['Delivery', 'Mobile pay'], 'Open 7 AM–8 PM', 'Business'],
+        ['Pixel Studio Agency', 'Digital marketing · Abidjan', ['Free quote', 'Portfolio'], 'By appointment', 'Business']] } },
     { id: 'booking-find-list', fn: null, ic: 'cal', c: '#0f766e',
       fr: { cta: '', items: [
-        ['Coiffure & soins à domicile', 'Salon mobile · Kampala', ['Créneaux 30 min', 'Rappel SMS'], 'dès 10 $', 'Réservation'],
-        ['Consultation juridique', 'Cabinet · Goma', ['Visio ou présentiel', '45 min'], '30 $', 'Réservation'],
-        ['Coaching sportif', 'Coach certifié · Kampala', ['Séance 1 h', 'Pack 5 séances'], '15 $', 'Réservation']] },
+        ['Coiffure & soins à domicile', 'Salon mobile · Kinshasa', ['Créneaux 30 min', 'Rappel SMS'], 'dès 10 $', 'Réservation'],
+        ['Consultation juridique', 'Cabinet · Bukavu', ['Visio ou présentiel', '45 min'], '30 $', 'Réservation'],
+        ['Coaching sportif', 'Coach certifié · Brazzaville', ['Séance 1 h', 'Pack 5 séances'], '15 $', 'Réservation']] },
       en: { cta: '', items: [
-        ['Hair & home care', 'Mobile salon · Kampala', ['30 min slots', 'SMS reminder'], 'from $10', 'Booking'],
-        ['Legal consultation', 'Law office · Goma', ['Video or in person', '45 min'], '$30', 'Booking'],
-        ['Fitness coaching', 'Certified coach · Kampala', ['1 h session', '5-session pack'], '$15', 'Booking']] } },
+        ['Hair & home care', 'Mobile salon · Kinshasa', ['30 min slots', 'SMS reminder'], 'from $10', 'Booking'],
+        ['Legal consultation', 'Law office · Bukavu', ['Video or in person', '45 min'], '$30', 'Booking'],
+        ['Fitness coaching', 'Certified coach · Brazzaville', ['1 h session', '5-session pack'], '$15', 'Booking']] } },
     { id: 'srequest-available-list', fn: 'openSRequestForm', ic: 'wrench', c: '#c2410c',
       fr: { cta: 'Publier ma demande', items: [
-        ['Besoin d’un électricien pour une installation', 'Maison de 3 chambres · Kampala', ['Devis demandé', 'Cette semaine'], 'Budget 60–90 $', 'Demande'],
+        ['Besoin d’un électricien pour une installation', 'Maison de 3 chambres · Kinshasa', ['Devis demandé', 'Cette semaine'], 'Budget 60–90 $', 'Demande'],
         ['Création d’un logo et d’une charte', 'Nouvelle boutique · À distance', ['Devis demandé', '7 jours'], 'Budget 80 $', 'Demande'],
         ['Traducteur français ↔ anglais', 'Document de 10 pages', ['Devis demandé', '48 h'], 'Budget 25 $', 'Demande']] },
       en: { cta: 'Post my request', items: [
-        ['Electrician needed for an installation', '3-bedroom house · Kampala', ['Quote requested', 'This week'], 'Budget $60–90', 'Request'],
+        ['Electrician needed for an installation', '3-bedroom house · Kinshasa', ['Quote requested', 'This week'], 'Budget $60–90', 'Request'],
         ['Logo and brand kit design', 'New shop · Remote', ['Quote requested', '7 days'], 'Budget $80', 'Request'],
         ['French ↔ English translator', '10-page document', ['Quote requested', '48 h'], 'Budget $25', 'Request']] } },
     { id: 'academy-browse-list', fn: 'openCourseForm', ic: 'cap', c: '#7c3aed',
@@ -243,7 +243,15 @@
     if (fnb) { var wasClose = fnb.hasAttribute('data-cnx-close'); if (wasClose) closeExample(); try { var f = window[fnb.getAttribute('data-cnx-fn')]; if (typeof f === 'function') f(); } catch (e) { } return; }
     if (t0.closest('[data-cnx-close]')) { closeExample(); return; }
     var op = t0.closest('[data-cnx-open]'); if (op) { var p = op.getAttribute('data-cnx-open').split('|'); openExample(p[0], parseInt(p[1], 10) || 0); }
-  });
+  }, true);
+  (function () {
+    var orig = window.closeTopmostOverlay;
+    window.closeTopmostOverlay = function () {
+      if (typeof orig === 'function' && orig()) return true;
+      if (document.getElementById('cnx-detail')) { closeExample(); return true; }
+      return false;
+    };
+  })();
   document.addEventListener('keydown', function (ev) {
     if (ev.key === 'Escape') closeExample();
     if ((ev.key === 'Enter' || ev.key === ' ') && ev.target.matches && ev.target.matches('[data-cnx-open]')) { ev.preventDefault(); ev.target.click(); }
@@ -272,7 +280,7 @@
     '.cnx-cta{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;min-height:48px;border-radius:12px;border:1.5px dashed var(--cnh-brand,#1d4f91);background:var(--cnh-brand-tint,rgba(29,79,145,.08));color:var(--cnh-brand-ink,#173f75);font:inherit;font-weight:700;font-size:.9375rem;cursor:pointer;margin-top:2px}',
     'html[data-theme="dark"] .cnx-cta{color:var(--cnh-ink,#eceff4)}',
     '.cnx-cta:active{transform:scale(.985)}',
-    '.cnx-card{cursor:pointer;transition:transform .15s,box-shadow .15s}.cnx-card:active{transform:scale(.985)}',
+    '.cnx-card{touch-action:manipulation;cursor:pointer;transition:transform .15s,box-shadow .15s}.cnx-card:active{transform:scale(.985)}',
     '@media(hover:hover){.cnx-card:hover{box-shadow:0 8px 22px rgba(17,24,39,.1)}}',
     '.cnx-f{display:flex;align-items:center;justify-content:space-between;gap:8px}.cnx-more{display:inline-flex;align-items:center;gap:2px;font-size:.8125rem;font-weight:600;color:var(--cnh-brand,#1d4f91)}',
     '.cnx-card:has(.cnx-cover){flex-direction:column;padding:0;overflow:hidden;gap:0}.cnx-card:has(.cnx-cover) .cnx-b{padding:12px}',
