@@ -217,9 +217,13 @@
     var r = listFiltered();
     if (!r.length) {
       var m = S.q || S.cat !== 'all' ? L('empty_q') : S.status === 'active' ? L('empty_live') : S.status === 'upcoming' ? L('empty_soon') : L('empty_done');
-      return '<div class="cnc-empty">' + svg(IC.trophy, 34, 1.4) + '<p>' + esc(m) + '</p></div>';
+      return '<div class="cnc-empty">' + svg(IC.trophy, 34, 1.4) + '<p>' + esc(m) + '</p></div>' + exampleCard();
     }
     return '<div class="cnc-grid">' + r.map(card).join('') + '</div>';
+  }
+  function exampleCard() {
+    var en = lang() === 'en';
+    return '<h3 class="cnc-h">' + (en ? 'Example contest' : 'Exemple de concours') + '</h3><article class="cnc-card" style="cursor:default"><div class="cnc-cover art" style="--t:#1d4f91"><i class="a"></i><i class="b"></i><i class="c"></i><span class="cnc-cover-ico">' + svg(CAT.photo[1], 36, 1.4) + '</span></div><div class="cnc-card-b"><div class="cnc-row"><span class="cnc-cat" style="--t:#1d4f91">' + svg(CAT.photo[1], 13) + (en ? 'Best photo' : 'Meilleure photo') + '</span>' + pill(en ? 'Example' : 'Exemple', '') + '</div><h3 class="cnc-card-t">' + (en ? 'Best photo of the city' : 'Meilleure photo de la ville') + '</h3><div class="cnc-by">' + (en ? 'Sample template' : 'Modèle d’exemple') + '</div><div class="cnc-prize">' + svg(IC.gift, 15) + '<span>' + (en ? '$200 + trophy' : '200 $ + trophée') + '</span></div><div class="cnc-row foot"><span class="cnc-time">' + svg(IC.clock, 14) + (en ? 'Ends in 14 days' : 'Se termine dans 14 j') + '</span>' + pill(L('free'), '') + '</div></div></article><p class="cnc-hint">' + esc(L('createHint')) + '</p>' + proposeBtn();
   }
   function howHtml() {
     var st = [[IC.send, L('h1'), L('h1d')], [IC.up, L('h2'), L('h2d')], [IC.trophy, L('h3'), L('h3d')]];
@@ -470,7 +474,7 @@
     if (host) { host.classList.add('cnc-root'); host.innerHTML = '<div class="cnc-skel hero"></div><div class="cnc-skel"></div><div class="cnc-skel"></div>'; }
     loadContests();
   };
-  window.renderContestsList = function () { if (!g('contestsCache')) return; paint(); if (S.d) paintDetail(); };
+  window.renderContestsList = function () { var cc = null; try { cc = contestsCache; } catch (e) { } if (!cc) return; paint(); if (S.d) paintDetail(); };
   window.setContestStatusFilter = function (s) { if (s === 'active' || s === 'upcoming' || s === 'ended') { S.status = s; S.tab = 'discover'; } else { S.tab = 'mine'; } paint(); };
   window.viewContest = function (id) { openDetail(id); };
   window.loadContestEntries = async function (contestId, st) {
