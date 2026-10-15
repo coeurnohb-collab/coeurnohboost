@@ -153,50 +153,52 @@
     <!-- ---- Académie ---- -->
     <div class="admin-tab hidden" id="admin-tab-academy">
       <h2 class="page-title">Académie — Auto-études</h2>
-      <p class="muted" style="margin-bottom:14px">Tous les prix et limites des auto-études se règlent ici, et s'appliquent immédiatement sans redéploiement. Les prix des cours des formateurs sont fixés par chaque formateur ; la commission du site est prélevée automatiquement.</p>
+      <p class="muted" style="margin-bottom:14px">Tout se règle sur cette page, en 4 étapes. Chaque changement s'applique tout de suite pour tous les élèves, sans redéployer. N'oublie pas d'appuyer sur « Enregistrer » en bas. Les prix des cours des formateurs sont fixés par chaque formateur ; la commission du site est prélevée automatiquement.</p>
 
       <div class="order-box">
-        <h3 style="margin:0 0 10px">Réglages généraux</h3>
-        <div class="field">
-          <label>Auto-études ouvertes</label>
-          <select id="acad-ai-enabled" class="text-input"><option value="1">Oui</option><option value="0">Non (fermées pour tout le monde)</option></select>
-        </div>
-        <div class="field">
-          <label>Académie Plus — prix pour 30 jours ($)</label>
-          <input type="number" id="acad-ai-price" class="text-input" min="0" step="0.01" placeholder="5">
-        </div>
-        <div class="field">
-          <label>Académie Plus — prix pour 1 an ($, 0 = formule annuelle désactivée)</label>
-          <input type="number" id="acad-ai-price-year" class="text-input" min="0" step="0.01" placeholder="0">
-        </div>
-        <p class="muted small" style="margin:10px 0 6px"><b>Version gratuite</b> (par utilisateur)</p>
-        <div class="field"><label>Leçons par jour</label><input type="number" id="acad-ai-free-lessons" class="text-input" min="0" step="1" placeholder="2"></div>
-        <div class="field"><label>Questions au tuteur par jour</label><input type="number" id="acad-ai-free-tutor" class="text-input" min="0" step="1" placeholder="5"></div>
-        <div class="field"><label>Parcours en même temps</label><input type="number" id="acad-ai-free-paths" class="text-input" min="0" step="1" placeholder="1"></div>
-        <p class="muted small" style="margin:10px 0 6px"><b>Académie Plus</b> (par utilisateur)</p>
+        <h3 style="margin:0 0 4px">Étape 1 — Essai gratuit</h3>
+        <p class="muted small" style="margin:0 0 12px">Ce que reçoit chaque nouvel élève, une seule fois. Quand il l'a utilisé, l'application lui propose tes abonnements. Les leçons déjà ouvertes restent consultables.</p>
+        <div class="field"><label>Leçons offertes (au total)</label><input type="number" id="acad-ai-free-lessons" class="text-input" min="0" step="1" placeholder="2"></div>
+        <div class="field"><label>Questions offertes au tuteur (au total)</label><input type="number" id="acad-ai-free-tutor" class="text-input" min="0" step="1" placeholder="5"></div>
+        <div class="field"><label>Parcours en même temps pour un élève gratuit</label><input type="number" id="acad-ai-free-paths" class="text-input" min="0" step="1" placeholder="1"></div>
+      </div>
+
+      <div class="order-box" style="margin-top:14px">
+        <h3 style="margin:0 0 4px">Étape 2 — Prix des abonnements</h3>
+        <p class="muted small" style="margin:0 0 12px">Le prix en dollars, payé avec le portefeuille de l'élève. Mets 0 pour cacher une formule.</p>
+        <div class="field"><label>1 mois (30 jours) — $</label><input type="number" id="acad-ai-price" class="text-input" min="0" step="0.01" placeholder="5"></div>
+        <div class="field"><label>3 mois, trimestre (90 jours) — $</label><input type="number" id="acad-ai-price-quarter" class="text-input" min="0" step="0.01" placeholder="13"></div>
+        <div class="field"><label>6 mois, semestre (180 jours) — $</label><input type="number" id="acad-ai-price-semester" class="text-input" min="0" step="0.01" placeholder="24"></div>
+        <div class="field"><label>1 an (365 jours) — $</label><input type="number" id="acad-ai-price-year" class="text-input" min="0" step="0.01" placeholder="45"></div>
+        <p class="muted small" id="acad-summary" style="margin:4px 0 12px"></p>
+        <p class="muted small" style="margin:10px 0 6px"><b>Ce que reçoit un abonné, chaque jour</b></p>
         <div class="field"><label>Leçons par jour</label><input type="number" id="acad-ai-plus-lessons" class="text-input" min="0" step="1" placeholder="30"></div>
         <div class="field"><label>Questions au tuteur par jour</label><input type="number" id="acad-ai-plus-tutor" class="text-input" min="0" step="1" placeholder="100"></div>
         <div class="field"><label>Parcours en même temps</label><input type="number" id="acad-ai-plus-paths" class="text-input" min="0" step="1" placeholder="20"></div>
       </div>
 
       <div class="order-box" style="margin-top:14px">
-        <h3 style="margin:0 0 6px">Accès et prix par catégorie</h3>
-        <p class="muted small" style="margin:0 0 12px"><b>Gratuit</b> : ouvert à tous (dans la limite du jour). <b>Plus</b> : réservé aux abonnés Académie Plus. <b>Payant</b> : l'élève paie un prix unique avec son portefeuille pour débloquer la catégorie pendant la durée choisie.</p>
+        <h3 style="margin:0 0 4px">Étape 3 — Accès par catégorie</h3>
+        <p class="muted small" style="margin:0 0 12px"><b>Gratuit</b> : ouvert à tous (avec l'essai, puis l'abonnement). <b>Plus</b> : réservé aux abonnés. <b>Payant</b> : l'élève paie un prix unique pour débloquer la catégorie pendant la durée choisie, en plus ou à la place de l'abonnement.</p>
         <div id="acad-access-list"></div>
       </div>
 
       <div class="order-box" style="margin-top:14px">
-        <h3 style="margin:0 0 6px">Fournisseur du tuteur</h3>
-        <p class="muted small" style="margin:0 0 10px">Les clés restent dans Vercel : ANTHROPIC_API_KEY et/ou GEMINI_API_KEY (la même clé Gemini sert aux mockups).</p>
+        <h3 style="margin:0 0 4px">Étape 4 — Tuteur et ouverture</h3>
+        <p class="muted small" style="margin:0 0 10px">Les clés restent dans Vercel : ANTHROPIC_API_KEY (meilleure qualité de cours) et/ou GEMINI_API_KEY (moins cher ; la même clé sert aux mockups).</p>
+        <div class="field">
+          <label>Auto-études ouvertes</label>
+          <select id="acad-ai-enabled" class="text-input"><option value="1">Oui</option><option value="0">Non (fermées pour tout le monde)</option></select>
+        </div>
         <div class="field">
           <label>Fournisseur</label>
           <select id="acad-ai-provider" class="text-input"><option value="auto">Automatique (Anthropic si la clé existe, sinon Gemini)</option><option value="anthropic">Anthropic (Claude)</option><option value="gemini">Google Gemini</option></select>
         </div>
-        <div class="field"><label>Modèle — version gratuite (vide = modèle par défaut)</label><input type="text" id="acad-ai-model" class="text-input" placeholder="ex. gemini-2.5-flash"></div>
-        <div class="field"><label>Modèle — Académie Plus (vide = identique)</label><input type="text" id="acad-ai-model-plus" class="text-input" placeholder="ex. un modèle plus puissant"></div>
+        <div class="field"><label>Modèle pour l'essai gratuit (vide = modèle par défaut)</label><input type="text" id="acad-ai-model" class="text-input" placeholder="ex. gemini-2.5-flash"></div>
+        <div class="field"><label>Modèle pour les abonnés (vide = identique)</label><input type="text" id="acad-ai-model-plus" class="text-input" placeholder="ex. un modèle plus puissant"></div>
       </div>
 
-      <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:14px" onclick="saveAcademyAiConfig()">💾 Enregistrer tous les réglages</button>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:14px" onclick="saveAcademyAiConfig()">Enregistrer tous les réglages</button>
       <p class="muted small" id="acad-ai-msg" style="margin-top:8px"></p>
     </div>
 

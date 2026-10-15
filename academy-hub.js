@@ -48,7 +48,13 @@
       accClosedB: 'Fermé', accClosedT: 'Cette catégorie est momentanément fermée.', accPlusT: 'Réservé aux membres Plus', accPlusS: 'Passe à Académie Plus pour accéder à cette catégorie et à tous ses domaines.',
       accPaidT: 'Catégorie premium', accPaidS: 'Débloque-la une fois pour {p} $ : accès pendant {d} jours à tous ses domaines.', accUnlock: 'Débloquer pour {p} $', accActive: 'Accès actif jusqu\'au {d}',
       unlockConfirm: 'Débloquer « {c} » pour {p} $ ? Ce montant sera débité de ton portefeuille.', unlocked: 'Catégorie débloquée. Bonne étude !',
-      plusMonth: '30 jours', plusYear: '1 an', activateYear: 'Activer 1 an pour {p} $', yearSave: 'Meilleur prix'
+      trialT: 'Essai gratuit', trialS: '{a} leçons et {b} questions au tuteur offertes pour découvrir la méthode. Ensuite, choisis la formule qui te convient.', trialLessons: 'Leçons offertes', trialTutor: 'Questions offertes', trialOver: 'Ton essai gratuit est terminé. Choisis une formule pour continuer à étudier.', seeOffers: 'Voir les formules', dailyLessons: "Leçons aujourd'hui", dailyTutor: "Questions aujourd'hui",
+      ownPh: 'Écris ton sujet…', deleted: 'Parcours supprimé.', formS: 'Un programme détaillé, construit pour ton niveau et ton temps disponible.', freeNote: 'Essai gratuit : {a} leçons et {b} questions au tuteur offertes. Ensuite, une formule est nécessaire.',
+      plansT: "Formules d'étude", plansS: "Des cours complets, sans limite de sujet, avec un tuteur à chaque leçon. Choisis la durée qui te convient.", pk1: 'Parcours complets : jusqu\'à 12 modules et 72 leçons', pk2: '{a} leçons et {b} questions au tuteur par jour', pk3: "Jusqu'à {n} parcours en parallèle", pk4: 'Quiz corrigés, flashcards, notes personnelles et attestation de parcours', pk5: "Tous les domaines ouverts à l'abonnement",
+      pMonth: '1 mois', pQuarter: '3 mois (trimestre)', pSemester: '6 mois (semestre)', pYear: '1 an', perMo: 'soit {p} $ par mois', bestV: 'Meilleur prix', activateSel: 'Activer pour {p} $', daysN: '{n} jours',
+      notesT: 'Mes notes', notesPh: 'Écris ce que tu veux retenir de cette leçon…', notesSaved: 'Notes enregistrées', reviewB: 'Réviser les flashcards', reviewT: 'Révision', reviewEmpty: "Ouvre quelques leçons : leurs flashcards apparaîtront ici pour réviser.", cardN: 'Carte {a} sur {b}', shuffleB: 'Mélanger',
+      attestB: "Attestation de parcours", attestT: 'Attestation de suivi', attestBody: 'atteste avoir suivi et terminé le parcours', attestMeta: '{n} leçons · niveau {l}', attestDate: 'Délivrée le {d}', attestPrint: 'Imprimer ou enregistrer en PDF', attestNote: "Document de suivi personnel délivré par l'Académie. Ce n'est pas un diplôme officiel.",
+      paywallT: 'Ton essai gratuit est terminé', paywallS: 'Continue à étudier avec une formule : cours complets, tuteur disponible chaque jour, sans limite de sujet.'
     },
     en: {
       tab: 'Self-study', loginT: 'Study at your own pace with a personal tutor', loginS: 'Sign in to create your first personalised learning path.', loginB: 'Sign in',
@@ -83,7 +89,13 @@
       accClosedB: 'Closed', accClosedT: 'This category is temporarily closed.', accPlusT: 'Plus members only', accPlusS: 'Upgrade to Academy Plus to access this category and all its fields.',
       accPaidT: 'Premium category', accPaidS: 'Unlock it once for {p} $: access for {d} days to all its fields.', accUnlock: 'Unlock for {p} $', accActive: 'Access active until {d}',
       unlockConfirm: 'Unlock "{c}" for {p} $? This amount will be taken from your wallet.', unlocked: 'Category unlocked. Happy studying!',
-      plusMonth: '30 days', plusYear: '1 year', activateYear: 'Activate 1 year for {p} $', yearSave: 'Best value'
+      trialT: 'Free trial', trialS: '{a} lessons and {b} tutor questions to discover the method. Then pick the plan that suits you.', trialLessons: 'Free lessons', trialTutor: 'Free questions', trialOver: 'Your free trial is over. Choose a plan to keep studying.', seeOffers: 'See plans', dailyLessons: "Today's lessons", dailyTutor: "Today's questions",
+      ownPh: 'Write your topic…', deleted: 'Path deleted.', formS: 'A detailed programme built for your level and your available time.', freeNote: 'Free trial: {a} lessons and {b} tutor questions included. A plan is needed after that.',
+      plansT: 'Study plans', plansS: 'Complete courses, any subject, with a tutor on every lesson. Pick the duration that suits you.', pk1: 'Full paths: up to 12 modules and 72 lessons', pk2: '{a} lessons and {b} tutor questions per day', pk3: 'Up to {n} paths at the same time', pk4: 'Graded quizzes, flashcards, personal notes and a completion certificate', pk5: 'Every field open to subscribers',
+      pMonth: '1 month', pQuarter: '3 months (quarter)', pSemester: '6 months (semester)', pYear: '1 year', perMo: 'about {p} $ per month', bestV: 'Best value', activateSel: 'Activate for {p} $', daysN: '{n} days',
+      notesT: 'My notes', notesPh: 'Write what you want to remember from this lesson…', notesSaved: 'Notes saved', reviewB: 'Review flashcards', reviewT: 'Review', reviewEmpty: 'Open a few lessons: their flashcards will appear here for review.', cardN: 'Card {a} of {b}', shuffleB: 'Shuffle',
+      attestB: 'Completion certificate', attestT: 'Certificate of completion', attestBody: 'has followed and completed the learning path', attestMeta: '{n} lessons · {l} level', attestDate: 'Issued on {d}', attestPrint: 'Print or save as PDF', attestNote: 'Personal progress document issued by the Academy. It is not an official diploma.',
+      paywallT: 'Your free trial is over', paywallS: 'Keep studying with a plan: complete courses, a tutor every day, any subject.'
     }
   };
   function lang() { try { if (typeof currentLang !== 'undefined' && currentLang) return currentLang; } catch (e) { /* ignore */ } return 'fr'; }
@@ -116,12 +128,13 @@
     cards: '<rect x="3" y="6" width="14" height="14" rx="2"/><path d="M7 6V4a1 1 0 0 1 1-1h11a2 2 0 0 1 2 2v11a1 1 0 0 1-1 1h-2"/>', quiz: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .9-1 1.7M12 17h.01"/>',
     trash: '<path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v6M14 11v6"/>', plus: '<path d="M12 5v14M5 12h14"/>', crown: '<path d="m3 8 4.5 4L12 5l4.5 7L21 8l-2 11H5z"/>', arrow: '<path d="m15 18-6-6 6-6"/>',
     users: '<circle cx="9" cy="8" r="4"/><path d="M2 21v-1a6 6 0 0 1 6-6h2M17 11a3 3 0 1 0 0-6M22 21v-1a5 5 0 0 0-4-4.9"/>', alert: '<path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/>',
+    sport: '<circle cx="12" cy="9" r="6"/><path d="m8.5 14-1.5 7 5-3 5 3-1.5-7"/>', print: '<path d="M6 9V3h12v6M6 18H4v-7h16v7h-2M7 14h10v7H7z"/>', note: '<path d="M5 3h10l4 4v14H5zM14 3v5h5M8 13h8M8 17h5"/>', refresh: '<path d="M20 11a8 8 0 0 0-14.9-3M4 4v4h4M4 13a8 8 0 0 0 14.9 3M20 20v-4h-4"/>', shield: '<path d="M12 3 4 6v6c0 4.5 3.2 7.8 8 9 4.8-1.2 8-4.5 8-9V6z"/><path d="m9 12 2 2 4-4"/>',
     lock: '<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>', search: '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>', x: '<path d="M18 6 6 18M6 6l12 12"/>', right: '<path d="m9 6 6 6-6 6"/>'
   };
   function ic(name, cls) { return '<svg class="cnh-ico ' + (cls || '') + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (P[name] || '') + '</svg>'; }
-  var GRADS = ['linear-gradient(135deg,#2563eb,#7c3aed)', 'linear-gradient(135deg,#0891b2,#2563eb)', 'linear-gradient(135deg,#7c3aed,#db2777)', 'linear-gradient(135deg,#ea580c,#db2777)', 'linear-gradient(135deg,#059669,#0891b2)', 'linear-gradient(135deg,#d97706,#ea580c)', 'linear-gradient(135deg,#4f46e5,#0ea5e9)', 'linear-gradient(135deg,#be185d,#7c3aed)'];
+  var TINTS = ['#1d4f91', '#0f766e', '#5b4bb0', '#9a4a14', '#2f6b3a', '#8a6a0c', '#0e6f8a', '#8e2f5a', '#3d4f8f', '#6b5a2f', '#2a6f6a', '#7a3b3b'];
   function hash(s) { var h = 0; s = String(s || ''); for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0; return h; }
-  function gradOf(s) { return GRADS[hash(s) % GRADS.length]; }
+  function tintOf(s) { return TINTS[hash(s) % TINTS.length]; }
 
   /* ---------------------------- Texte de leçon sûr (Markdown simplifié) ---------------------------- */
   function inline(t) { return esc(t).replace(/`([^`]+)`/g, '<code>$1</code>').replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>'); }
@@ -162,7 +175,14 @@
       throw e;
     } finally { clearTimeout(tm); }
   }
-  function errMsg(e) { return (e && e.message && e.message !== 'login' && e.message !== 'Failed to fetch') ? e.message : tx('fail'); }
+  function errMsg(e) { var m = (e && e.message && e.message !== 'login' && e.message !== 'Failed to fetch') ? e.message : tx('fail'); return m.replace(/^\[ESSAI\]\s*/, ''); }
+  // Le serveur commence par [ESSAI] quand l'essai gratuit est épuisé, et cite « Académie Plus » quand une catégorie est réservée aux abonnés.
+  function isPaywall(e) { var m = e && e.message ? e.message : ''; return /^\[ESSAI\]/.test(m) || /Académie Plus/.test(m); }
+  function hasOffers() { return !!(S.cfg && S.cfg.plus && S.cfg.plus.offers && S.cfg.plus.offers.length); }
+  function paywallHtml(msg) {
+    return '<div class="cnh-card"><div class="cnh-trial"><span class="cnh-dom">' + ic('lock') + '</span><div class="cnh-grow"><b class="cnh-h cnh-h3">' + esc(tx('paywallT')) + '</b><p class="cnh-sub" style="margin:4px 0 14px">' + esc(msg || tx('paywallS')) + '</p>' +
+      (hasOffers() ? '<button type="button" class="cnh-btn primary block" data-act="plus">' + ic('crown') + esc(tx('seeOffers')) + '</button>' : '') + '</div></div></div>';
+  }
 
   /* ---------------------------- État ---------------------------- */
   var root = null, S = { cfg: null, cat: null, paths: [], path: null, lessonId: null, lesson: null, form: null, chat: [], quiz: null, card: 0, cards: [], stack: [], fs: null, view: 'home', hist: false, ignorePop: false };
@@ -171,7 +191,7 @@
   function catOf(id) { var c = S.cat || []; for (var i = 0; i < c.length; i++) if (c[i].id === id) return { c: c[i], i: i }; return { c: { id: id, icon: 'book', label: {}, desc: {}, groups: [] }, i: 0 }; }
   function groupOf(catId, gid) { var g = catOf(catId).c.groups || []; for (var i = 0; i < g.length; i++) if (g[i].id === gid) return g[i]; return null; }
   function dLabel(d) { return L2(d.label) || d.id; }
-  function domIcon(id) { var x = catOf(id); return '<span class="cnh-dom" style="background:' + GRADS[x.i % GRADS.length] + '">' + ic(x.c.icon) + '</span>'; }
+  function domIcon(id) { var x = catOf(id); return '<span class="cnh-dom" style="--t:' + TINTS[x.i % TINTS.length] + '">' + ic(x.c.icon) + '</span>'; }
   function ring(p) {
     var r = 22, c = 2 * Math.PI * r, off = c * (1 - p / 100);
     return '<span class="cnh-ring"><svg width="56" height="56" viewBox="0 0 56 56"><circle cx="28" cy="28" r="' + r + '" fill="none" stroke="var(--cnh-soft)" stroke-width="6"/><circle cx="28" cy="28" r="' + r + '" fill="none" stroke="var(--cnh-brand)" stroke-width="6" stroke-linecap="round" stroke-dasharray="' + c.toFixed(1) + '" stroke-dashoffset="' + off.toFixed(1) + '"/></svg><b>' + p + '%</b></span>';
@@ -236,6 +256,7 @@
       case 'create': renderCreate(a.c, a.g, a.topic); break;
       case 'path': if (S.path && S.path.id === a.id) renderPath(); else openPath(a.id); break;
       case 'lesson': if (S.lesson && S.lessonId === a.id && S.path) renderLesson(); else openLesson(a.id); break;
+      case 'review': openReview(); break;
       default: closeAll();
     }
   }
@@ -260,31 +281,41 @@
   }
   function meter(label, used, max) {
     var p = max > 0 ? pct(used, max) : 100;
-    return '<div style="margin:10px 0 0"><div class="cnh-row cnh-between" style="font-size:.8rem;margin:0 0 5px"><span>' + esc(label) + '</span><b>' + used + ' / ' + max + '</b></div><div class="cnh-bar"><i style="width:' + p + '%"></i></div></div>';
+    return '<div class="cnh-quota"><div class="cnh-quota-h"><span>' + esc(label) + '</span><b>' + used + ' / ' + max + '</b></div><div class="cnh-bar"><i style="width:' + p + '%"></i></div></div>';
   }
   function accBadge(id) {
     var a = accOf(id);
     if (a.enabled === false) return '<span class="cnh-accb">' + esc(tx('accClosedB')) + '</span>';
-    if (a.mode === 'plus' && !a.open) return '<span class="cnh-accb plus">' + ic('crown').replace('cnh-ico', 'cnh-ico" style="width:12px;height:12px') + 'Plus</span>';
-    if (a.mode === 'paid') return a.open ? '<span class="cnh-accb ok">✓</span>' : '<span class="cnh-accb">' + ic('lock').replace('cnh-ico', 'cnh-ico" style="width:12px;height:12px') + esc(a.price) + ' $</span>';
+    if (a.mode === 'plus' && !a.open) return '<span class="cnh-accb plus">' + ic('crown', 'xs') + 'Plus</span>';
+    if (a.mode === 'paid') return a.open ? '<span class="cnh-accb ok">' + ic('check', 'xs') + '</span>' : '<span class="cnh-accb">' + ic('lock', 'xs') + esc(a.price) + ' $</span>';
     return '';
   }
+  function planCard(c) {
+    var plus = c.plus.active, tr = c.trial, offers = hasOffers();
+    if (plus) {
+      return '<div class="cnh-card"><div class="cnh-row cnh-between"><span class="cnh-pill ok">' + ic('crown', 'sm') + esc(tx('planPlus')) + '</span><span class="cnh-sub">' + esc(tx('plusUntil', { d: fmtDate(c.plus.untilMs) })) + '</span></div>' +
+        meter(tx('dailyLessons'), c.usage.lessons, c.limits.lessons) + meter(tx('dailyTutor'), c.usage.tutor, c.limits.tutor) + '</div>';
+    }
+    var h = '<div class="cnh-card"><div class="cnh-trial"><span class="cnh-dom">' + ic('bulb') + '</span><div class="cnh-grow"><b class="cnh-h cnh-h3">' + esc(tx('trialT')) + '</b>';
+    if (tr.over) h += '<p class="cnh-sub" style="margin:4px 0 0">' + esc(tx('trialOver')) + '</p>';
+    else h += '<p class="cnh-sub" style="margin:4px 0 0">' + esc(tx('trialS', { a: tr.lessons.max, b: tr.tutor.max })) + '</p>';
+    h += '</div></div>' + meter(tx('trialLessons'), Math.min(tr.lessons.used, tr.lessons.max), tr.lessons.max) + meter(tx('trialTutor'), Math.min(tr.tutor.used, tr.tutor.max), tr.tutor.max);
+    if (offers) h += '<button type="button" class="cnh-btn ' + (tr.over ? 'primary' : 'soft') + ' block" style="margin-top:14px" data-act="plus">' + ic('crown') + esc(tx('seeOffers')) + '</button>';
+    return h + '</div>';
+  }
   function renderHome() {
-    var c = S.cfg, plus = c.plus.active, h = '';
+    var c = S.cfg, h = '';
     h += '<div class="cnh-stats">' +
-      '<div class="cnh-stat"><b><span style="color:#ea580c;vertical-align:-3px">' + ic('flame') + '</span> ' + (c.stats.streak || 0) + '</b><span>' + esc(tx('sStreak')) + '</span></div>' +
-      '<div class="cnh-stat"><b>' + (c.stats.xp || 0) + '</b><span>' + esc(tx('sXp')) + '</span></div>' +
-      '<div class="cnh-stat"><b>' + (c.stats.lessonsDone || 0) + '</b><span>' + esc(tx('sDone')) + '</span></div></div>';
+      '<div class="cnh-stat"><b>' + ic('flame') + (c.stats.streak || 0) + '</b><span>' + esc(tx('sStreak')) + '</span></div>' +
+      '<div class="cnh-stat"><b>' + ic('star') + (c.stats.xp || 0) + '</b><span>' + esc(tx('sXp')) + '</span></div>' +
+      '<div class="cnh-stat"><b>' + ic('book') + (c.stats.lessonsDone || 0) + '</b><span>' + esc(tx('sDone')) + '</span></div></div>';
     if (!c.enabled) h += '<div class="cnh-notice bad">' + ic('alert') + '<span>' + esc(tx('closed')) + '</span></div>';
-    else if (!c.aiReady) h += '<div class="cnh-notice">' + ic('alert') + '<span>' + esc(tx('aiOff')) + '</span></div>';
-    var hasPlus = c.plus.priceMonth > 0 || c.plus.priceYear > 0;
-    h += '<div class="cnh-card"><div class="cnh-row cnh-between"><div class="cnh-row"><span class="cnh-pill ' + (plus ? 'ok' : '') + '">' + ic('crown').replace('cnh-ico', 'cnh-ico" style="width:14px;height:14px') + esc(plus ? tx('planPlus') : tx('planFree')) + '</span></div>' +
-      (plus ? '<span class="cnh-sub">' + esc(tx('plusUntil', { d: fmtDate(c.plus.untilMs) })) + '</span>' : (hasPlus ? '<button type="button" class="cnh-btn primary sm" data-act="plus">' + esc(tx('goPlus')) + '</button>' : '')) + '</div>' +
-      meter(tx('mLessons'), c.usage.lessons, c.limits.lessons) + meter(tx('mTutor'), c.usage.tutor, c.limits.tutor) + '</div>';
+    else if (!c.aiReady) h += '<div class="cnh-notice warn">' + ic('alert') + '<span>' + esc(tx('aiOff')) + '</span></div>';
+    h += planCard(c);
     var last = S.paths[0];
     if (last) {
       var p0 = pct(last.done, last.lessonsTotal);
-      h += '<div class="cnh-eyebrow">' + esc(tx('resume')) + '</div><button type="button" class="cnh-card cnh-path" data-act="path" data-id="' + esc(last.id) + '" style="margin-bottom:6px">' + ring(p0) +
+      h += '<div class="cnh-eyebrow">' + esc(tx('resume')) + '</div><button type="button" class="cnh-card cnh-path" data-act="path" data-id="' + esc(last.id) + '">' + ring(p0) +
         '<span class="cnh-grow"><b class="cnh-ellipsis" style="display:block">' + esc(last.title) + '</b><span class="cnh-sub cnh-ellipsis" style="display:block">' + esc(tx('lessonsN', { a: last.done, b: last.lessonsTotal })) + '</span></span><span class="cnh-btn primary sm" style="pointer-events:none">' + esc(tx('resume')) + '</span></button>';
     }
     if (S.paths.length > 1) {
@@ -298,7 +329,7 @@
     if (!S.paths.length) h += '<p class="cnh-sub" style="margin:0 0 12px">' + esc(tx('noPaths')) + '</p>';
     h += '<div class="cnh-tiles">';
     (S.cat || []).forEach(function (d, i) {
-      h += '<button type="button" class="cnh-tile" data-act="cat" data-id="' + esc(d.id) + '"><span class="cnh-dom" style="background:' + GRADS[i % GRADS.length] + '">' + ic(d.icon) + '</span><span><strong>' + esc(dLabel(d)) + '</strong><br><small>' + esc(tx('groupsN', { n: d.groups.length })) + '</small></span>' + accBadge(d.id) + '</button>';
+      h += '<button type="button" class="cnh-tile" data-act="cat" data-id="' + esc(d.id) + '"><span class="cnh-dom" style="--t:' + TINTS[i % TINTS.length] + '">' + ic(d.icon) + '</span><span><strong>' + esc(dLabel(d)) + '</strong><small>' + esc(tx('groupsN', { n: d.groups.length })) + '</small></span>' + accBadge(d.id) + '</button>';
     });
     h += '</div>';
     setRoot(h);
@@ -308,7 +339,7 @@
   function accessBar(id) {
     var a = accOf(id), label = dLabel(catOf(id).c);
     if (a.enabled === false) return '<div class="cnh-accbar lock"><b>' + esc(tx('accClosedT')) + '</b></div>';
-    if (a.open && a.mode === 'paid') return '<div class="cnh-accbar ok">' + ic('check') + ' <b>' + esc(tx('accActive', { d: fmtDate(a.untilMs) })) + '</b></div>';
+    if (a.open && a.mode === 'paid') return '<div class="cnh-accbar ok">' + ic('check') + '<b>' + esc(tx('accActive', { d: fmtDate(a.untilMs) })) + '</b></div>';
     if (a.open) return '';
     if (a.mode === 'plus') return '<div class="cnh-accbar lock"><b>' + esc(tx('accPlusT')) + '</b><p class="cnh-sub" style="margin:4px 0 12px">' + esc(tx('accPlusS')) + '</p><button type="button" class="cnh-btn primary block" data-act="plus">' + ic('crown') + esc(tx('goPlus')) + '</button></div>';
     return '<div class="cnh-accbar lock"><b>' + esc(tx('accPaidT')) + '</b><p class="cnh-sub" style="margin:4px 0 12px">' + esc(tx('accPaidS', { p: a.price, d: a.days })) + '</p><button type="button" class="cnh-btn primary block" data-act="unlock" data-id="' + esc(id) + '">' + ic('lock') + esc(tx('accUnlock', { p: a.price })) + '</button></div>';
@@ -319,14 +350,14 @@
       var lb = L2(g.label);
       if (qq && lb.toLowerCase().indexOf(qq) < 0) return;
       n++;
-      out += '<button type="button" class="cnh-grp" data-act="group" data-c="' + esc(c.id) + '" data-id="' + esc(g.id) + '"><span class="l" style="background:' + GRADS[(gi + i) % GRADS.length] + '">' + esc(lb.charAt(0).toUpperCase()) + '</span><span class="cnh-grow"><b>' + esc(lb) + '</b><small>' + esc(tx('topicsN', { n: g.topics.length })) + '</small></span>' + ic('right') + '</button>';
+      out += '<button type="button" class="cnh-grp" style="--t:' + TINTS[(gi + i) % TINTS.length] + '" data-act="group" data-c="' + esc(c.id) + '" data-id="' + esc(g.id) + '"><span class="l">' + esc(lb.charAt(0).toUpperCase()) + '</span><span class="cnh-grow"><b>' + esc(lb) + '</b><small>' + esc(tx('topicsN', { n: g.topics.length })) + '</small></span>' + ic('right') + '</button>';
     });
     return out || '<p class="cnh-sub" style="text-align:center;padding:18px 0">' + esc(tx('noResult')) + '</p>';
   }
   function renderCat(id) {
     var x = catOf(id), c = x.c, h = '';
     S.view = 'cat'; setTop(dLabel(c));
-    h += '<div class="cnh-cathero"><span class="cnh-dom" style="background:' + GRADS[x.i % GRADS.length] + '">' + ic(c.icon) + '</span><div><h2 class="cnh-h cnh-h2">' + esc(dLabel(c)) + '</h2><p class="cnh-sub">' + esc(L2(c.desc)) + '</p></div></div>';
+    h += '<div class="cnh-cathero"><span class="cnh-dom" style="--t:' + TINTS[x.i % TINTS.length] + '">' + ic(c.icon) + '</span><div><h2 class="cnh-h cnh-h1" style="font-size:var(--cnh-fs-xl)">' + esc(dLabel(c)) + '</h2><p class="cnh-sub">' + esc(L2(c.desc)) + '</p></div></div>';
     h += accessBar(id);
     h += '<div class="cnh-eyebrow" style="margin-top:4px">' + esc(tx('pickDomain')) + ' · ' + esc(tx('groupsN', { n: c.groups.length })) + '</div>';
     if (c.groups.length > 7) h += '<input type="search" class="cnh-input" data-f="gsearch" placeholder="' + esc(tx('searchG')) + '" style="margin:0 0 12px" autocomplete="off">';
@@ -353,9 +384,9 @@
     var x = catOf(cid), g = groupOf(cid, gid), h = '';
     if (!g) { back(); return; }
     S.view = 'group'; setTop(L2(g.label));
-    h += '<div class="cnh-crumb"><span>' + esc(dLabel(x.c)) + '</span>' + ic('right').replace('cnh-ico', 'cnh-ico" style="width:14px;height:14px') + '<b>' + esc(L2(g.label)) + '</b></div>';
+    h += '<div class="cnh-crumb"><span>' + esc(dLabel(x.c)) + '</span>' + ic('right', 'xs') + '<b>' + esc(L2(g.label)) + '</b></div>';
     h += accessBar(cid);
-    h += '<div class="cnh-card" style="margin-bottom:16px"><b class="cnh-h cnh-h3">' + esc(tx('otherT')) + '</b><p class="cnh-sub" style="margin:4px 0 10px">' + esc(tx('otherS')) + '</p><div class="cnh-inline"><input class="cnh-input" data-f="own" maxlength="80" autocomplete="off" placeholder="' + esc(tx('learnPh')) + '"><button type="button" class="cnh-btn primary" data-act="own" data-c="' + esc(cid) + '" data-g="' + esc(gid) + '">' + esc(tx('contB')) + '</button></div></div>';
+    h += '<div class="cnh-card cnh-own" style="margin-bottom:16px"><b class="cnh-h cnh-h3">' + esc(tx('otherT')) + '</b><p class="cnh-sub" style="margin:4px 0 12px">' + esc(tx('otherS')) + '</p><div class="cnh-inline"><input class="cnh-input" data-f="own" maxlength="80" autocomplete="off" placeholder="' + esc(tx('ownPh')) + '"><button type="button" class="cnh-btn primary" data-act="own" data-c="' + esc(cid) + '" data-g="' + esc(gid) + '">' + esc(tx('contB')) + '</button></div></div>';
     h += '<div class="cnh-eyebrow" style="margin-top:4px">' + esc(tx('pickTopic')) + ' · ' + esc(tx('topicsN', { n: g.topics.length })) + '</div>';
     if (g.topics.length > 10) h += '<input type="search" class="cnh-input" data-f="tsearch" placeholder="' + esc(tx('searchT')) + '" style="margin:0 0 12px" autocomplete="off">';
     h += '<div id="cnh-tlist">' + topicsHtml(cid, g, '') + '</div>';
@@ -368,17 +399,17 @@
     if (!S.form || S.form.domain !== cid || S.form.group !== (gid || '') || (topic != null && S.form.seed !== topic)) S.form = { domain: cid, group: gid || '', topic: topic || '', seed: topic, level: 'beginner', goal: '', hours: 4, style: 'balanced' };
     var f = S.form, h = '', isLang = cid === 'languages';
     S.view = 'create'; setTop(tx('createT'));
-    h += '<div class="cnh-crumb"><span>' + esc(dLabel(x.c)) + '</span>' + (g ? ic('right').replace('cnh-ico', 'cnh-ico" style="width:14px;height:14px') + '<span>' + esc(L2(g.label)) + '</span>' : '') + '</div>';
-    h += '<div class="cnh-row" style="margin:0 0 16px">' + domIcon(cid) + '<div class="cnh-grow"><h3 class="cnh-h cnh-h2">' + esc(tx('createT')) + '</h3><p class="cnh-sub">' + esc(tx('createS')) + '</p></div></div>';
+    h += '<div class="cnh-crumb"><span>' + esc(dLabel(x.c)) + '</span>' + (g ? ic('right', 'xs') + '<b>' + esc(L2(g.label)) + '</b>' : '') + '</div>';
+    h += '<div class="cnh-formhead">' + domIcon(cid) + '<div class="cnh-grow"><h3 class="cnh-h cnh-h2">' + esc(g ? L2(g.label) : dLabel(x.c)) + '</h3><p class="cnh-sub">' + esc(tx('formS')) + '</p></div></div>';
     h += '<div id="cnh-create-err"></div>';
-    h += '<label class="cnh-field"><span class="cnh-label">' + esc(tx('learnQ')) + '</span><input class="cnh-input" data-f="topic" maxlength="80" autocomplete="off" placeholder="' + esc(tx('learnPh')) + '" value="' + esc(f.topic) + '"></label>';
+    h += '<label class="cnh-field"><span class="cnh-label">' + esc(tx('learnQ')) + '</span><input class="cnh-input" data-f="topic" maxlength="80" autocomplete="off" placeholder="' + esc(tx('ownPh')) + '" value="' + esc(f.topic) + '"></label>';
     h += '<div class="cnh-field"><span class="cnh-label">' + esc(isLang ? tx('levelQL') : tx('levelQ')) + '</span><div class="cnh-seg">' +
       [['beginner', 'lv1'], ['intermediate', 'lv2'], ['advanced', 'lv3']].map(function (l) { return '<button type="button" data-act="level" data-v="' + l[0] + '" class="' + (f.level === l[0] ? 'on' : '') + '">' + esc(tx(isLang ? l[1] + 'L' : l[1])) + '</button>'; }).join('') + '</div></div>';
     h += '<div class="cnh-field"><span class="cnh-label">' + esc(tx('styleQ')) + '</span><div class="cnh-seg four">' +
-      [['balanced', 'st1'], ['practice', 'st2'], ['theory', 'st3'], ['exam', 'st4']].map(function (l) { return '<button type="button" data-act="style" data-v="' + l[0] + '" class="' + (f.style === l[0] ? 'on' : '') + '">' + esc(tx(l[1])) + '</button>'; }).join('') + '</div><p class="cnh-hint" id="cnh-style-h" style="margin:6px 0 0">' + esc(tx('stH_' + f.style)) + '</p></div>';
+      [['balanced', 'st1'], ['practice', 'st2'], ['theory', 'st3'], ['exam', 'st4']].map(function (l) { return '<button type="button" data-act="style" data-v="' + l[0] + '" class="' + (f.style === l[0] ? 'on' : '') + '">' + esc(tx(l[1])) + '</button>'; }).join('') + '</div><p class="cnh-hint" id="cnh-style-h">' + esc(tx('stH_' + f.style)) + '</p></div>';
     h += '<label class="cnh-field"><span class="cnh-label">' + esc(tx('goalQ')) + '</span><textarea class="cnh-input" data-f="goal" maxlength="240" placeholder="' + esc(tx('goalPh')) + '">' + esc(f.goal) + '</textarea></label>';
-    h += '<label class="cnh-field"><span class="cnh-label cnh-row cnh-between"><span>' + esc(tx('hoursQ')) + '</span><b id="cnh-hours-v">' + esc(tx('hoursV', { n: f.hours })) + '</b></span><input type="range" data-f="hours" min="1" max="20" step="1" value="' + f.hours + '" style="width:100%;accent-color:var(--cnh-brand)"></label>';
-    if (!c.plus.active) h += '<div class="cnh-notice">' + ic('crown') + '<span>' + esc(tx('compact')) + '</span></div>';
+    h += '<label class="cnh-field"><span class="cnh-label-row"><span>' + esc(tx('hoursQ')) + '</span><b id="cnh-hours-v">' + esc(tx('hoursV', { n: f.hours })) + '</b></span><input class="cnh-range" type="range" data-f="hours" min="1" max="20" step="1" value="' + f.hours + '"></label>';
+    if (!c.plus.active) h += '<div class="cnh-notice">' + ic('bulb') + '<span>' + esc(tx('freeNote', { a: c.trial.lessons.max, b: c.trial.tutor.max })) + '</span></div>';
     if (!acc.open) h += accessBar(cid);
     h += '<button type="button" class="cnh-btn primary block" data-act="create"' + (c.enabled && c.aiReady && acc.open ? '' : ' disabled') + '>' + ic('spark') + esc(tx('createBtn')) + '</button>';
     setRoot(h);
@@ -398,7 +429,7 @@
       clearInterval(tm);
       renderCreate(f.domain, f.group, null);
       var el = $('cnh-create-err');
-      if (el) el.innerHTML = '<div class="cnh-notice bad">' + ic('alert') + '<span>' + esc(errMsg(e)) + (/Plus/.test(errMsg(e)) && S.cfg && (S.cfg.plus.priceMonth > 0 || S.cfg.plus.priceYear > 0) ? ' <a href="#" data-act="plus" style="font-weight:800;color:inherit;text-decoration:underline">' + esc(tx('goPlus')) + '</a>' : '') + '</span></div>';
+      if (el) el.innerHTML = isPaywall(e) ? paywallHtml(errMsg(e)) : '<div class="cnh-notice bad">' + ic('alert') + '<span>' + esc(errMsg(e)) + '</span></div>';
     }
   }
   async function doUnlock(id) {
@@ -444,12 +475,48 @@
       });
       h += '</div>';
     });
-    h += '<div class="cnh-row" style="margin-top:6px"><button type="button" class="cnh-btn soft grow" style="flex:1" data-act="tutor">' + ic('chat') + esc(tx('askT')) + '</button><button type="button" class="cnh-btn danger" data-act="delete" aria-label="' + esc(tx('delPath')) + '">' + ic('trash') + '</button></div>';
+    h += '<div class="cnh-eyebrow">' + esc(tx('askT')) + '</div><div class="cnh-todo">' +
+      '<button type="button" class="cnh-btn soft" data-act="tutor">' + ic('chat') + esc(tx('tutorT')) + '</button>' +
+      '<button type="button" class="cnh-btn soft" data-act="review">' + ic('cards') + esc(tx('reviewB')) + '</button>' +
+      (!nx && fl.length ? '<button type="button" class="cnh-btn primary" data-act="attest">' + ic('cap') + esc(tx('attestB')) + '</button>' : '') +
+      '<button type="button" class="cnh-btn danger" data-act="delete">' + ic('trash') + esc(tx('delPath')) + '</button></div>';
     setRoot(h);
+  }
+  /* ---------- Révision des flashcards ---------- */
+  function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t0 = a[i]; a[i] = a[j]; a[j] = t0; } return a; }
+  async function openReview() {
+    setRoot(skeleton(2)); S.view = 'review'; setTop(tx('reviewT'));
+    try { var r = await call('academy_study', { op: 'review', pathId: S.path.id }); S.cards = shuffle(r.cards || []); S.card = 0; renderReview(); }
+    catch (e) { setRoot(errorBox(errMsg(e), 'back')); }
+  }
+  function renderReview() {
+    if (!S.cards.length) { setRoot('<div class="cnh-empty"><span class="cnh-dom">' + ic('cards') + '</span><p style="margin:0">' + esc(tx('reviewEmpty')) + '</p></div>'); return; }
+    setRoot('<p class="cnh-sub" id="cnh-fc-l" style="margin:0 0 10px"></p><div class="cnh-fc" id="cnh-fc"><div class="cnh-fc-in" data-act="flip"><div class="cnh-fc-f" id="cnh-fc-f"></div><div class="cnh-fc-b" id="cnh-fc-b"></div></div></div>' +
+      '<div class="cnh-row cnh-between" style="margin:6px 0"><button type="button" class="cnh-btn sm" data-act="prevc">' + ic('arrow') + esc(tx('prevC')) + '</button><span class="cnh-sub" id="cnh-fc-n"></span><button type="button" class="cnh-btn sm" data-act="nextc">' + esc(tx('nextC')) + ic('right') + '</button></div>' +
+      '<p class="cnh-hint" style="text-align:center">' + esc(tx('flipHint')) + '</p><button type="button" class="cnh-btn soft block" style="margin-top:14px" data-act="shuffle">' + ic('refresh') + esc(tx('shuffleB')) + '</button>');
+    paintCard();
+  }
+  /* ---------- Attestation de parcours (document de suivi personnel) ---------- */
+  function attestData() {
+    var p = S.path, fl = flatLessons(p);
+    return { name: (me() && (me().name || me().email)) || '', title: p.title, line: tx('attestMeta', { n: fl.length, l: levelName(p.level, p.domain) }), date: tx('attestDate', { d: fmtDate(Date.now()) }) };
+  }
+  function openAttest() {
+    var a = attestData();
+    sheet(tx('attestT'), '<div class="cnh-attest">' + ic('cap') + '<h3 class="cnh-h">' + esc(tx('attestT')) + '</h3><p class="cnh-sub">' + esc(a.name) + '</p><p class="cnh-sub" style="margin:10px 0 0">' + esc(tx('attestBody')) + '</p><p class="cnh-h cnh-h2" style="margin:6px 0">' + esc(a.title) + '</p><p class="cnh-sub">' + esc(a.line) + '</p><p class="cnh-sub">' + esc(a.date) + '</p></div><p class="cnh-hint">' + esc(tx('attestNote')) + '</p>',
+      '<button type="button" class="cnh-btn primary block" data-act="attest-print">' + ic('print') + esc(tx('attestPrint')) + '</button>');
+  }
+  function printAttest() {
+    var a = attestData(), w = null;
+    try { w = window.open('', '_blank'); } catch (e) { w = null; }
+    if (!w) return;
+    w.document.write('<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' + esc(tx('attestT')) + '</title><style>body{font-family:Georgia,"Times New Roman",serif;margin:0;padding:32px;color:#111;background:#fff}.b{border:3px double #1d4f91;padding:56px 32px;text-align:center;max-width:760px;margin:0 auto}h1{font-size:30px;letter-spacing:.06em;text-transform:uppercase;color:#1d4f91;margin:0 0 30px}p{font-size:17px;line-height:1.6;margin:8px 0}.n{font-size:30px;margin:16px 0}.t{font-size:24px;font-weight:bold;margin:14px 0}.s{color:#555;font-size:13px;margin-top:36px}</style></head><body><div class="b"><h1>' + esc(tx('attestT')) + '</h1><p class="n">' + esc(a.name) + '</p><p>' + esc(tx('attestBody')) + '</p><p class="t">' + esc(a.title) + '</p><p>' + esc(a.line) + '</p><p>' + esc(a.date) + '</p><p class="s">' + esc(tx('attestNote')) + '</p></div></body></html>');
+    w.document.close();
+    setTimeout(function () { try { w.focus(); w.print(); } catch (e) { /* ignore */ } }, 400);
   }
   async function doDelete() {
     if (!window.confirm(tx('delConfirm'))) return;
-    try { await call('academy_study', { op: 'delete_path', pathId: S.path.id }); S.path = null; S.lesson = null; toast('✓', 'success'); back(); } catch (e) { toast(errMsg(e), 'error'); }
+    try { await call('academy_study', { op: 'delete_path', pathId: S.path.id }); S.path = null; S.lesson = null; toast(tx('deleted'), 'success'); back(); } catch (e) { toast(errMsg(e), 'error'); }
   }
 
   /* ---------------------------- Leçon ---------------------------- */
@@ -463,11 +530,12 @@
     setRoot('<div class="cnh-load"><div class="cnh-spin"></div><h3 class="cnh-h cnh-h2" style="margin:0 0 6px">' + esc(cached ? fl[idx].title : tx('prep')) + '</h3>' + (cached ? '' : '<p class="cnh-sub">' + esc(tx('prepS')) + '</p>') + '</div>');
     try {
       var r = await call('academy_study', { op: 'lesson', pathId: p.id, lessonId: lessonId });
-      S.lesson = r.lesson; S.lesson.done = r.done; S.lesson.best = r.best;
+      S.lesson = r.lesson; S.lesson.done = r.done; S.lesson.best = r.best; S.lesson.note = r.note || '';
       if (!r.cached) { (p.generated = p.generated || []).push(lessonId); call('academy_study', { op: 'config' }).then(function (c) { S.cfg = c; }).catch(function () { /* ignore */ }); }
       renderLesson();
     } catch (e) {
-      setRoot('<div class="cnh-notice bad">' + ic('alert') + '<span>' + esc(errMsg(e)) + (/Plus/.test(errMsg(e)) && S.cfg && (S.cfg.plus.priceMonth > 0 || S.cfg.plus.priceYear > 0) ? ' <a href="#" data-act="plus" style="font-weight:800;color:inherit;text-decoration:underline">' + esc(tx('goPlus')) + '</a>' : '') + '</span></div>');
+      if (isPaywall(e)) { call('academy_study', { op: 'config' }).then(function (c) { S.cfg = c; }).catch(function () { /* ignore */ }); setRoot(paywallHtml(errMsg(e))); }
+      else setRoot('<div class="cnh-notice bad">' + ic('alert') + '<span>' + esc(errMsg(e)) + '</span></div><button type="button" class="cnh-btn block" data-act="back">' + esc(tx('back')) + '</button>');
     }
   }
   function renderLesson() {
@@ -476,9 +544,9 @@
     var meta = fl[idx];
     S.cards = l.flashcards || [];
     setTop(l.title || meta.title);
-    h += '<div class="cnh-sub" style="font-weight:700;margin:0 0 4px">' + esc(tx('moduleN', { n: meta.mi + 1 })) + ' · ' + esc(tx('lessonOf', { a: idx + 1, b: fl.length })) + '</div>';
+    h += '<div class="cnh-sub" style="font-weight:600;margin:0 0 6px">' + esc(tx('moduleN', { n: meta.mi + 1 })) + ' · ' + esc(tx('lessonOf', { a: idx + 1, b: fl.length })) + '</div>';
     h += '<h2 class="cnh-h cnh-h1" style="margin:0 0 10px">' + esc(l.title || meta.title) + '</h2>';
-    if (l.objective) h += '<div class="cnh-notice ok" style="background:var(--cnh-soft);color:var(--cnh-brand-ink)">' + ic('bulb') + '<span>' + esc(l.objective) + '</span></div>';
+    if (l.objective) h += '<div class="cnh-notice">' + ic('bulb') + '<span>' + esc(l.objective) + '</span></div>';
     h += '<div class="cnh-md" style="margin:0 0 16px">' + md(l.content) + '</div>';
     if (l.keyPoints && l.keyPoints.length) h += '<div class="cnh-box key"><div class="cnh-box-t">' + ic('star') + esc(tx('keyT')) + '</div><ul>' + l.keyPoints.map(function (k) { return '<li>' + inline(k) + '</li>'; }).join('') + '</ul></div>';
     if (l.example) h += '<div class="cnh-box ex"><div class="cnh-box-t">' + ic('bulb') + esc(tx('exT')) + '</div><div class="cnh-md" style="font-size:.95rem">' + md(l.example) + '</div></div>';
@@ -490,11 +558,12 @@
         (l.exercise.solution ? '<div id="cnh-sol" hidden class="cnh-md" style="margin-top:10px;padding:12px;border-radius:12px;background:var(--cnh-ok-bg)">' + md(l.exercise.solution) + '</div>' : '') + '</div>';
     }
     if (S.cards.length) {
-      h += '<div class="cnh-eyebrow">' + ic('cards').replace('cnh-ico', 'cnh-ico" style="vertical-align:-4px;margin-right:6px') + esc(tx('cardsT')) + '</div>' +
+      h += '<div class="cnh-eyebrow cnh-row">' + ic('cards', 'sm') + esc(tx('cardsT')) + '</div>' +
         '<div class="cnh-fc" id="cnh-fc"><div class="cnh-fc-in" data-act="flip"><div class="cnh-fc-f" id="cnh-fc-f"></div><div class="cnh-fc-b" id="cnh-fc-b"></div></div></div>' +
         '<div class="cnh-row cnh-between" style="margin-bottom:6px"><button type="button" class="cnh-btn sm" data-act="prevc">' + esc(tx('prevC')) + '</button><span class="cnh-sub" id="cnh-fc-n"></span><button type="button" class="cnh-btn sm" data-act="nextc">' + esc(tx('nextC')) + '</button></div><p class="cnh-hint" style="text-align:center">' + esc(tx('flipHint')) + '</p>';
     }
-    h += '<div class="cnh-eyebrow">' + ic('quiz').replace('cnh-ico', 'cnh-ico" style="vertical-align:-4px;margin-right:6px') + esc(tx('quizT')) + '</div><div id="cnh-quiz"></div>';
+    h += '<div class="cnh-eyebrow cnh-row">' + ic('note', 'sm') + esc(tx('notesT')) + '<span class="cnh-sub" id="cnh-note-s" style="margin-left:auto;text-transform:none;letter-spacing:0;font-weight:500"></span></div><textarea class="cnh-input cnh-note" data-f="note" maxlength="2000" placeholder="' + esc(tx('notesPh')) + '">' + esc(l.note || '') + '</textarea>';
+    h += '<div class="cnh-eyebrow cnh-row">' + ic('quiz', 'sm') + esc(tx('quizT')) + '</div><div id="cnh-quiz"></div>';
     h += '<div class="cnh-lbar"><button type="button" class="cnh-btn soft cnh-iconbtn" style="flex:0 0 46px;width:46px;padding:0" data-act="tutor" aria-label="' + esc(tx('askT')) + '">' + ic('chat') + '</button>' +
       '<button type="button" class="cnh-btn ' + (l.done ? 'soft' : 'primary') + '" id="cnh-complete" data-act="complete">' + ic('check') + '<span>' + esc(l.done ? tx('completed') : tx('complete')) + '</span></button>' +
       '<button type="button" class="cnh-btn" data-act="next-lesson" style="flex:0 0 auto"><span>' + esc(tx('nextL')) + '</span>' + ic('right') + '</button></div>';
@@ -507,6 +576,7 @@
     if (!f) return;
     if (box) box.classList.remove('flip');
     f.textContent = c.front; b.textContent = c.back; n.textContent = (S.card + 1) + ' / ' + S.cards.length;
+    var ll = $('cnh-fc-l'); if (ll) ll.textContent = c.lesson || '';
   }
   function paintQuiz() {
     var host = $('cnh-quiz'), q = S.lesson.quiz || [], st = S.quiz, h = '';
@@ -536,6 +606,9 @@
       S.path.scores = S.path.scores || {}; S.path.scores[S.lessonId] = Math.max(S.path.scores[S.lessonId] || 0, r.score);
       if (r.xpGained) toast(tx('gained', { n: r.xpGained }), 'success');
     } catch (e) { toast(errMsg(e), 'error'); }
+  }
+  function saveNote(pathId, lessonId, text) {
+    call('academy_study', { op: 'note', pathId: pathId, lessonId: lessonId, text: text }).then(function () { var el = $('cnh-note-s'); if (el && S.lessonId === lessonId) el.textContent = tx('notesSaved'); }).catch(function (e) { toast(errMsg(e), 'error'); });
   }
   async function completeLesson() {
     var btn = $('cnh-complete'); if (!btn || btn.disabled) return;
@@ -590,26 +663,37 @@
         var r = await call('academy_study', { op: 'tutor', pathId: S.path.id, lessonId: S.view === 'lesson' ? S.lessonId : null, message: msg, history: hist });
         S.chat.push({ role: 'assistant', text: r.reply });
         call('academy_study', { op: 'config' }).then(function (c) { S.cfg = c; }).catch(function () { /* ignore */ });
-      } catch (err) { S.chat.pop(); inp.value = msg; toast(errMsg(err), 'error'); }
+      } catch (err) { S.chat.pop(); inp.value = msg; toast(errMsg(err), 'error'); if (isPaywall(err) && hasOffers()) { call('academy_study', { op: 'config' }).then(function (c) { S.cfg = c; }).catch(function () { /* ignore */ }); closeSheet(); openPlus(); return; } }
       S.chatBusy = false; paint();
     });
     setTimeout(function () { var i = $('cnh-chat-i'); if (i) i.focus(); }, 250);
   }
 
+  var PLAN_KEY = { month: 'pMonth', quarter: 'pQuarter', semester: 'pSemester', year: 'pYear' };
+  function perMonth(o) { return Math.round(o.price / (o.days / 30) * 100) / 100; }
+  function offerBtn(o, sel, best) {
+    return '<button type="button" class="cnh-offer' + (o.plan === sel ? ' on' : '') + '" data-act="plan-pick" data-plan="' + esc(o.plan) + '">' + (best ? '<span class="tag">' + esc(tx('bestV')) + '</span>' : '') + '<span class="r">' + ic('check') + '</span>' +
+      '<span><b>' + esc(tx(PLAN_KEY[o.plan])) + '</b><small>' + esc(tx('daysN', { n: o.days })) + (o.days > 30 ? ' · ' + esc(tx('perMo', { p: perMonth(o) })) : '') + '</small></span><span class="p">' + esc(String(o.price)) + ' $</span></button>';
+  }
   function openPlus() {
     var c = S.cfg; if (!c) return;
-    var pm = c.plus.priceMonth, py = c.plus.priceYear, bal = me() && typeof me().balance === 'number' ? me().balance : null;
-    var fl = c.freeLimits, pl = c.plusLimits;
-    var h = '<p class="cnh-sub" style="margin:0 0 14px">' + esc(tx('plusS')) + '</p>' +
-      '<div class="cnh-plan"><div><b>' + esc(tx('pFree')) + '</b><ul><li>' + esc(tx('lim1', { n: fl.lessons })) + '</li><li>' + esc(tx('lim2', { n: fl.tutor })) + '</li><li>' + esc(tx('lim3', { n: fl.paths })) + '</li><li>' + esc(tx('lim5')) + '</li></ul></div>' +
-      '<div class="plus"><b>' + esc(tx('pPlus')) + '</b><ul><li>' + esc(tx('lim1', { n: pl.lessons })) + '</li><li>' + esc(tx('lim2', { n: pl.tutor })) + '</li><li>' + esc(tx('lim3', { n: pl.paths })) + '</li><li>' + esc(tx('lim4')) + '</li></ul></div></div>' +
-      '<div style="text-align:center;margin:6px 0 4px">' + (pm > 0 ? '<span class="cnh-price">' + esc(String(pm)) + ' $</span> <span class="cnh-sub">' + esc(tx('perMonth', { d: c.plus.days })) + '</span>' : '') + (py > 0 ? '<div class="cnh-sub" style="margin-top:4px"><b>' + esc(String(py)) + ' $</b> · ' + esc(tx('perMonth', { d: c.plus.yearDays })) + '</div>' : '') + '</div>' +
+    var offers = c.plus.offers || [], bal = me() && typeof me().balance === 'number' ? me().balance : null, pl = c.plusLimits;
+    var ok = offers.some(function (o) { return o.plan === S.planSel; });
+    if (!ok) { var q = offers.filter(function (o) { return o.plan === 'quarter'; })[0]; S.planSel = (q || offers[0] || {}).plan; }
+    var best = null;
+    if (offers.length > 1) offers.forEach(function (o) { if (!best || perMonth(o) < perMonth(best)) best = o; });
+    var h = '<p class="cnh-sub" style="margin:0 0 14px">' + esc(tx('plansS')) + '</p>' +
+      '<ul class="cnh-perks">' + [tx('pk1'), tx('pk2', { a: pl.lessons, b: pl.tutor }), tx('pk3', { n: pl.paths }), tx('pk4'), tx('pk5')].map(function (t0) { return '<li>' + ic('check') + '<span>' + esc(t0) + '</span></li>'; }).join('') + '</ul>' +
+      '<div class="cnh-offers" id="cnh-offers">' + offers.map(function (o) { return offerBtn(o, S.planSel, best && best.plan === o.plan); }).join('') + '</div>' +
       (bal !== null ? '<p class="cnh-sub" style="text-align:center;margin:0">' + esc(tx('balance', { b: bal.toFixed(2) })) + '</p>' : '') + '<div id="cnh-plus-msg" style="margin-top:12px"></div>';
-    var foot = '';
-    if (pm > 0) foot += '<button type="button" class="cnh-btn primary block" id="cnh-plus-go" data-act="plus-go" data-plan="month">' + ic('crown') + esc(tx('activate', { p: pm })) + '</button>';
-    if (py > 0) foot += '<button type="button" class="cnh-btn ' + (pm > 0 ? 'soft' : 'primary') + ' block" style="margin-top:8px" data-act="plus-go" data-plan="year">' + esc(tx('activateYear', { p: py })) + '</button>';
-    if (!foot) foot = '<p class="cnh-sub">' + esc(tx('plusNA')) + '</p>';
-    sheet(tx('plusT'), h, foot);
+    var foot = offers.length ? '<button type="button" class="cnh-btn primary block" id="cnh-plus-go" data-act="plus-go" data-plan="' + esc(S.planSel) + '">' + ic('crown') + '<span>' + esc(tx('activateSel', { p: priceOfPlan(S.planSel) })) + '</span></button>' : '<p class="cnh-sub">' + esc(tx('plusNA')) + '</p>';
+    sheet(tx('plansT'), h, foot);
+  }
+  function priceOfPlan(plan) { var r = ''; ((S.cfg && S.cfg.plus.offers) || []).forEach(function (o) { if (o.plan === plan) r = o.price; }); return r; }
+  function pickPlan(plan) {
+    S.planSel = plan;
+    [].forEach.call(document.querySelectorAll('#cnh-offers .cnh-offer'), function (b) { b.classList.toggle('on', b.getAttribute('data-plan') === plan); });
+    var go = $('cnh-plus-go'); if (go) { go.setAttribute('data-plan', plan); var sp = go.querySelector('span'); if (sp) sp.textContent = tx('activateSel', { p: priceOfPlan(plan) }); }
   }
   async function doPlus(plan, btn) {
     var msg = $('cnh-plus-msg'); if (!btn || btn.disabled) return;
@@ -621,6 +705,7 @@
     } catch (e) {
       var m = errMsg(e), low = /solde/i.test(m);
       if (msg) msg.innerHTML = '<div class="cnh-notice bad">' + ic('alert') + '<span>' + esc(m) + '</span></div>' + (low ? '<button type="button" class="cnh-btn soft block" data-act="recharge">' + esc(tx('recharge')) + '</button>' : '');
+      try { if (msg) msg.scrollIntoView({ block: 'nearest' }); } catch (x) { /* ignore */ }
       btn.disabled = false;
     }
   }
@@ -638,6 +723,11 @@
       case 'login': try { openAuth('register'); } catch (x) { /* ignore */ } break;
       case 'plus': openPlus(); break;
       case 'plus-go': doPlus(el.getAttribute('data-plan') || 'month', el); break;
+      case 'plan-pick': pickPlan(el.getAttribute('data-plan')); break;
+      case 'review': go('review', { id: S.path && S.path.id }); break;
+      case 'shuffle': S.cards = shuffle(S.cards); S.card = 0; paintCard(); break;
+      case 'attest': openAttest(); break;
+      case 'attest-print': printAttest(); break;
       case 'unlock': doUnlock(id); break;
       case 'recharge': closeSheet(); try { showDashTab('wallet'); } catch (x) { /* ignore */ } break;
       case 'close': closeSheet(); break;
@@ -682,6 +772,7 @@
     if (f === 'gsearch' && cur && cur.view === 'cat') { var x = catOf(cur.args.id), gl = $('cnh-glist'); if (gl) gl.innerHTML = groupsHtml(x.c, e.target.value, x.i); return; }
     if (f === 'tsearch' && cur && cur.view === 'group') { var g = groupOf(cur.args.c, cur.args.g), tl = $('cnh-tlist'); if (g && tl) tl.innerHTML = topicsHtml(cur.args.c, g, e.target.value); return; }
     if (f === 'own') { S.own = e.target.value; return; }
+    if (f === 'note') { var pid = S.path && S.path.id, lid = S.lessonId, val = e.target.value; clearTimeout(S.noteT); var st = $('cnh-note-s'); if (st) st.textContent = ''; S.noteT = setTimeout(function () { saveNote(pid, lid, val); }, 900); return; }
     if (!S.form) return;
     if (f === 'hours') { S.form.hours = +e.target.value; var v = $('cnh-hours-v'); if (v) v.textContent = tx('hoursV', { n: S.form.hours }); }
     else S.form[f] = e.target.value;
@@ -787,7 +878,7 @@
   }
   function courseCard(c) {
     var n = (c.chapters || []).length;
-    return '<button type="button" class="cnh-course" data-course="' + esc(c.id) + '"><div class="cnh-cover" style="background:' + gradOf(c.category || c.title) + '">' + ic('cap', 'bg').replace('class="cnh-ico bg"', 'class="bg"') +
+    return '<button type="button" class="cnh-course" data-course="' + esc(c.id) + '"><div class="cnh-cover" style="--t:' + tintOf(c.category || c.title) + '">' + ic('cap', 'bg').replace('class="cnh-ico bg"', 'class="bg"') +
       '<span class="cnh-pill">' + esc(c.category || '—') + '</span><span class="cnh-price-tag">' + esc(priceOf(c)) + '</span></div><div class="cnh-course-b"><h3 class="cnh-course-t">' + esc(c.title || safeT('course_default_title', '—')) + '</h3><p class="cnh-sub cnh-ellipsis">' + esc(tx('byOwner', { n: c.ownerName || '—' })) + '</p>' +
       '<div class="cnh-meta">' + (levelOfCourse(c) ? '<span>' + ic('star') + esc(levelOfCourse(c)) + '</span>' : '') + '<span>' + ic('book') + esc(tx('chaptersN', { n: n })) + '</span><span>' + ic('users') + esc(tx('studentsN', { n: c.studentsCount || 0 })) + '</span></div></div></button>';
   }

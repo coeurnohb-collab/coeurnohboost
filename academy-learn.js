@@ -53,11 +53,12 @@
   }
   function el(html) { var d = document.createElement('div'); d.innerHTML = html; return d.firstElementChild; }
   function shuffle(a) { var x = a.slice(); for (var i = x.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = x[i]; x[i] = x[j]; x[j] = t; } return x; }
+  var CX = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>';
   var CK = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
 
   /* ---------- Feuille plein écran ---------- */
   function sheet(title) {
-    var ov = el('<div class="cnh-root cnh-ov"><div class="cnh-sheet" role="dialog" aria-modal="true"><div class="cnh-sheet-h"><b class="cnh-h cnh-h3 t"></b><button type="button" class="cnh-btn ghost sm x" aria-label="' + esc(tx('close')) + '">✕</button></div><div class="cnh-sheet-b"></div><div class="cnh-sheet-f"></div></div></div>');
+    var ov = el('<div class="cnh-root cnh-ov"><div class="cnh-sheet" role="dialog" aria-modal="true"><div class="cnh-sheet-h"><b class="cnh-h cnh-h3 t"></b><button type="button" class="cnh-btn ghost sm x" aria-label="' + esc(tx('close')) + '"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div><div class="cnh-sheet-b"></div><div class="cnh-sheet-f"></div></div></div>');
     ov.querySelector('.t').textContent = title;
     var S = { ov: ov, body: ov.querySelector('.cnh-sheet-b'), foot: ov.querySelector('.cnh-sheet-f') };
     S.close = function () { if (ov.parentNode) ov.parentNode.removeChild(ov); document.removeEventListener('keydown', onKey); };
@@ -134,7 +135,7 @@
               else if (!rv.ok && chosen[qi] === oi) { cls = ' bad'; tag = tx('yourAnswer'); }
               else if (!rv.ok && rv.answer === oi) { cls = ' good'; tag = tx('goodAnswer'); }
               else return;
-              h += '<div class="cnh-opt' + cls + '" style="cursor:default"><span class="k">' + (cls === ' good' ? CK : '✕') + '</span><span class="cnh-grow">' + esc(o) + '</span><span class="cnh-sub" style="font-size:.74rem">' + esc(tag) + '</span></div>';
+              h += '<div class="cnh-opt' + cls + '" style="cursor:default"><span class="k">' + (cls === ' good' ? CK : CX) + '</span><span class="cnh-grow">' + esc(o) + '</span><span class="cnh-sub" style="font-size:.74rem">' + esc(tag) + '</span></div>';
             });
             h += '<p class="cnh-why">' + esc(rv.why || tx('noWhy')) + '</p></div>';
           });

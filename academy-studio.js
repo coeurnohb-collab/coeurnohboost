@@ -58,15 +58,15 @@
   var css = document.createElement('style');
   css.id = 'cn-st-style';
   css.textContent =
-    '#menu-screen-academy .order-box{border-radius:18px;border:1px solid rgba(15,23,42,.08);box-shadow:0 6px 22px rgba(15,23,42,.06);transition:transform .15s ease,box-shadow .15s ease}' +
+    '#menu-screen-academy .order-box{border-radius:14px;border:1px solid var(--cnh-line,#e1e6ed);box-shadow:0 1px 2px rgba(17,24,39,.04),0 4px 14px rgba(17,24,39,.05);transition:transform .15s ease,box-shadow .15s ease}' +
     '#menu-screen-academy #academy-browse-list .order-box:active,#menu-screen-academy #academy-mycourses-list .order-box:active{transform:scale(.992)}' +
     '#menu-screen-academy .shop-filter-tabs button{border-radius:999px;font-weight:700}' +
     '#menu-screen-academy .shop-card-category{border-radius:999px;font-weight:700}' +
-    '.cn-acad-hero{margin:0 0 16px;padding:20px 18px;border-radius:22px;color:#fff;background:linear-gradient(135deg,#1d4ed8 0%,#7c3aed 60%,#db2777 100%);box-shadow:0 12px 30px rgba(29,78,216,.28)}' +
-    '.cn-acad-hero h3{margin:0 0 6px;font-size:1.35rem;letter-spacing:-.01em;color:#fff}' +
-    '.cn-acad-hero p{margin:0 0 14px;opacity:.92;font-size:.92rem;line-height:1.45;color:#fff}' +
+    '.cn-acad-hero{margin:0 0 16px;padding:20px 18px;border-radius:16px;color:var(--cnh-ink,#111827);background:linear-gradient(180deg,var(--cnh-brand-tint,rgba(29,79,145,.08)),transparent 130%),var(--cnh-card,#fff);border:1px solid var(--cnh-line,#e1e6ed)}' +
+    '.cn-acad-hero h3{margin:0 0 6px;font-size:1.375rem;font-weight:700;letter-spacing:-.012em;line-height:1.25;color:var(--cnh-ink,#111827)}' +
+    '.cn-acad-hero p{margin:0 0 14px;font-size:.9375rem;line-height:1.55;color:var(--cnh-sub,#5a6577)}' +
     '.cn-acad-chips{display:flex;flex-wrap:wrap;gap:8px}' +
-    '.cn-acad-chip{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:999px;background:rgba(255,255,255,.18);font-weight:700;font-size:.8rem;color:#fff;backdrop-filter:blur(6px)}' +
+    '.cn-acad-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:8px;background:var(--cnh-brand-tint,rgba(29,79,145,.08));border:1px solid var(--cnh-line,#e1e6ed);font-weight:600;font-size:.8125rem;color:var(--cnh-brand-ink,#173f75)}' +
     '.cn-acad-chip svg{width:16px;height:16px}' +
     /* correctif : le titre d'un formulaire ne passe plus sous la flèche retour */
     '.modal>.modal-close+h2{padding-left:46px;min-height:34px;display:flex;align-items:center;margin-top:0}' +
@@ -190,7 +190,7 @@
     b.classList.add('cn-cert-box');
     var pr = s.progress;
     var p = document.createElement('p'); p.className = 'muted small'; p.style.margin = '0 0 10px';
-    p.textContent = tx('cProg', { a: pr.chaptersDone, b: pr.chaptersTotal, c: pr.quizzesPassed, d: pr.quizzesTotal }) + (pr.finalExists ? ' · ' + (lang() === 'fr' ? 'Examen final' : 'Final exam') + ' ' + (pr.finalPassed ? '✓' : '✗') : '');
+    p.textContent = tx('cProg', { a: pr.chaptersDone, b: pr.chaptersTotal, c: pr.quizzesPassed, d: pr.quizzesTotal }) + (pr.finalExists ? ' · ' + (lang() === 'fr' ? 'Examen final' : 'Final exam') + ' ' + (pr.finalPassed ? (lang() === 'fr' ? 'réussi' : 'passed') : (lang() === 'fr' ? 'à passer' : 'to take')) : '');
     c.appendChild(p);
     if (s.certificate) {
       c.appendChild(btn(tx('cView'), 'btn-primary', function () { showCertificate(s.certificate.code); }));

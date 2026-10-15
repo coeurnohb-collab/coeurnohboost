@@ -833,13 +833,14 @@ async function saveMockupAiPricing() {
    (api/_lib/academy-study.js) : un changement ici est immédiat.
    ========================================================= */
 const ACAD_AI_FIELDS = [
-  ['acad-ai-price', 'plusPriceMonth', 5], ['acad-ai-price-year', 'plusPriceYear', 0], ['acad-ai-free-lessons', 'freeLessonsPerDay', 2], ['acad-ai-free-tutor', 'freeTutorPerDay', 5], ['acad-ai-free-paths', 'freeMaxPaths', 1],
+  ['acad-ai-price', 'plusPriceMonth', 5], ['acad-ai-price-quarter', 'plusPriceQuarter', 13], ['acad-ai-price-semester', 'plusPriceSemester', 24], ['acad-ai-price-year', 'plusPriceYear', 45],
+  ['acad-ai-free-lessons', 'freeLessonsTotal', 2], ['acad-ai-free-tutor', 'freeTutorTotal', 5], ['acad-ai-free-paths', 'freeMaxPaths', 1],
   ['acad-ai-plus-lessons', 'plusLessonsPerDay', 30], ['acad-ai-plus-tutor', 'plusTutorPerDay', 100], ['acad-ai-plus-paths', 'plusMaxPaths', 20]
 ];
 // Les identifiants doivent correspondre à api/_lib/academy-catalog.js
 const ACAD_CATEGORIES = [
   ['languages', 'Langues'], ['tech', 'Informatique et numérique'], ['business', 'Business et gestion'], ['science', 'Sciences et ingénierie'],
-  ['health', 'Médecine et santé'], ['math', 'Mathématiques et logique'], ['arts', 'Arts et créativité'], ['exams', 'Examens et concours'],
+  ['health', 'Médecine et santé'], ['math', 'Mathématiques et logique'], ['arts', 'Arts et créativité'], ['sport', 'Sport et arts martiaux'], ['exams', 'Examens et concours'],
   ['career', 'Métiers et compétences pro'], ['society', 'Droit et sciences humaines'], ['personal', 'Développement personnel']
 ];
 function renderAcademyAccess(access) {
@@ -855,9 +856,18 @@ function renderAcademyAccess(access) {
       <div class="field"><label>Prix du déblocage ($)</label><input type="number" class="text-input acc-price" min="0" step="0.01" value="${Number(a.price) > 0 ? a.price : 0}"></div>
       <div class="field"><label>Durée du déblocage (jours)</label><input type="number" class="text-input acc-days" min="1" max="365" step="1" value="${Number(a.days) > 0 ? a.days : 90}"></div>
       <div class="field"><label>Catégorie ouverte</label>
-        <select class="text-input acc-on"><option value="1"${a.enabled === false ? '' : ' selected'}>Oui</option><option value="0"${a.enabled === false ? ' selected' : ''}>Non (masquée aux nouveaux parcours)</option></select></div>
+        <select class="text-input acc-on"><option value="1"${a.enabled === false ? '' : ' selected'}>Oui</option><option value="0"${a.enabled === false ? ' selected' : ''}>Non (fermée)</option></select></div>
     </div>`;
   }).join('');
+}
+function updateAcademySummary() {
+  const el = document.getElementById('acad-summary');
+  if (!el) return;
+  const v = (id) => Math.max(0, parseFloat((document.getElementById(id) || {}).value) || 0);
+  const free = `Un élève reçoit ${Math.floor(v('acad-ai-free-lessons'))} leçon(s) et ${Math.floor(v('acad-ai-free-tutor'))} question(s) gratuites.`;
+  const plans = [['1 mois', 'acad-ai-price', 30], ['3 mois', 'acad-ai-price-quarter', 90], ['6 mois', 'acad-ai-price-semester', 180], ['1 an', 'acad-ai-price-year', 365]]
+    .filter(([, id]) => v(id) > 0).map(([n, id, d]) => `${n} : ${v(id)} $ (${(v(id) / (d / 30)).toFixed(2)} $/mois)`);
+  el.textContent = free + ' Ensuite : ' + (plans.length ? plans.join(' · ') : 'aucune formule active (les élèves ne pourront pas continuer).');
 }
 async function loadAcademyAiConfig() {
   const msg = document.getElementById('acad-ai-msg');
@@ -871,6 +881,9 @@ async function loadAcademyAiConfig() {
     document.getElementById('acad-ai-model').value = d.model || '';
     document.getElementById('acad-ai-model-plus').value = d.modelPlus || '';
     renderAcademyAccess(d.domainAccess);
+    updateAcademySummary();
+    const tab = document.getElementById('admin-tab-academy');
+    if (tab && !tab.dataset.sumBound) { tab.dataset.sumBound = '1'; tab.addEventListener('input', updateAcademySummary); }
   } catch (e) {
     if (msg) msg.textContent = 'Erreur de chargement : ' + e.message;
   }
@@ -881,7 +894,7 @@ async function saveAcademyAiConfig() {
   const data = { enabled: document.getElementById('acad-ai-enabled').value === '1', provider: document.getElementById('acad-ai-provider').value };
   ACAD_AI_FIELDS.forEach(([id, key]) => {
     const n = parseFloat(document.getElementById(id).value);
-    data[key] = Number.isFinite(n) ? Math.max(0, (key === 'plusPriceMonth' || key === 'plusPriceYear') ? n : Math.floor(n)) : 0;
+    data[key] = Number.isFinite(n) ? Math.max(0, /^plusPrice/.test(key) ? n : Math.floor(n)) : 0;
   });
   const okModel = (v) => /^[A-Za-z0-9._:\-\/]{3,80}$/.test(v);
   const m1 = document.getElementById('acad-ai-model').value.trim(), m2 = document.getElementById('acad-ai-model-plus').value.trim();
@@ -901,7 +914,7 @@ async function saveAcademyAiConfig() {
   data.updatedAt = new Date().toISOString(); data.updatedBy = ADMIN_UID;
   try {
     await db.collection('app_config').doc('academy_ai').set(data, { merge: true });
-    if (msg) { msg.textContent = '✅ Enregistré — appliqué immédiatement pour tous les utilisateurs.'; setTimeout(() => { msg.textContent = ''; }, 3500); }
+    if (msg) { msg.textContent = 'Enregistré : appliqué immédiatement pour tous les utilisateurs.'; setTimeout(() => { msg.textContent = ''; }, 3500); }
   } catch (e) {
     if (msg) msg.textContent = 'Erreur : ' + e.message;
   }
