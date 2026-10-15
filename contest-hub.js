@@ -194,7 +194,7 @@
       var lab = k === 'all' ? L('all') : esc((function () { try { return tt(CONTEST_CATEGORY_META[k].label); } catch (e) { return k; } })());
       var n = k === 'all' ? a.length : a.filter(function (c) { return c.category === k; }).length;
       var col = k === 'all' ? '#14263f' : CAT[k][0], ic = k === 'all' ? IC.trophy : CAT[k][1];
-      return '<button class="cnc-ct' + (S.cat === k ? ' on' : '') + '" data-act="cat" data-v="' + k + '" style="--t:' + col + '"><span class="i">' + svg(ic, 22, 1.8) + '</span><b>' + lab + '</b><em>' + n + '</em></button>';
+      return '<button class="cnc-ct' + (S.cat === k ? ' on' : '') + '" data-act="cat" data-v="' + k + '" style="--t:' + col + '"><span class="i">' + (k !== 'all' && ph('contest_cat_' + k) ? '<img src="' + esc(ph('contest_cat_' + k)) + '" alt="">' : svg(ic, 22, 1.8)) + '</span><b>' + lab + '</b><em>' + n + '</em></button>';
     }).join('') + '</div>';
   }
   function filtersHtml() {
@@ -540,9 +540,9 @@
   (function () {
     var orig = window.closeTopmostOverlay;
     window.closeTopmostOverlay = function () {
-      if (typeof orig === 'function' && orig()) return true;
-      if (document.getElementById('cnc-detail')) { closeDetail(); return true; }
-      return false;
+      var other = Array.prototype.some.call(document.querySelectorAll('.modal-overlay:not(.hidden)'), function (e) { return e.id !== 'main-menu-modal'; });
+      if (!other && document.getElementById('cnc-detail')) { closeDetail(); return true; }
+      return typeof orig === 'function' ? orig() : false;
     };
   })();
   document.addEventListener('keydown', key);
@@ -589,6 +589,7 @@
   var css = [
     '#contest-create-btn,#contest-status-tabs{display:none!important}',
     '.cnc-lock{overflow:hidden}',
+    '#contest-entry-modal,#contest-form-modal{z-index:1150!important}',
     '.cnc-root{color:var(--cnh-ink,#111827);font-family:var(--cnh-font,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif);font-size:.9375rem;line-height:1.5;-webkit-font-smoothing:antialiased}',
     '.cnc-root *{box-sizing:border-box}',
     '.cnc-root button{font-family:inherit}',
@@ -694,7 +695,7 @@
     '.cnc-skel{height:120px;border-radius:16px;background:linear-gradient(90deg,var(--cnh-soft,#eef3f9) 25%,var(--cnh-soft2,#f6f8fb) 50%,var(--cnh-soft,#eef3f9) 75%);background-size:200% 100%;animation:cncSk 1.2s linear infinite;margin-bottom:12px}.cnc-skel.hero{height:230px}',
     '@keyframes cncSk{to{background-position:-200% 0}}',
     /* détail */
-    '.cnc-detail{position:fixed;inset:0;z-index:900;background:var(--cnh-page,#f4f6f9);display:flex;flex-direction:column;animation:cncSlide .28s cubic-bezier(.2,.8,.2,1)}',
+    '.cnc-detail{position:fixed;inset:0;z-index:1100;background:var(--cnh-page,#f4f6f9);display:flex;flex-direction:column;animation:cncSlide .28s cubic-bezier(.2,.8,.2,1)}',
     '@keyframes cncSlide{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}',
     '.cnc-d-bar{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:max(10px,env(safe-area-inset-top)) 10px 10px;background:var(--cnh-card,#fff);border-bottom:1px solid var(--cnh-line,#e1e6ed)}',
     '.cnc-d-bar span{font-weight:700;font-size:.9375rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
@@ -772,6 +773,7 @@
     '.cnc-cats{display:flex;gap:10px;overflow-x:auto;padding:2px 2px 14px;margin:0 -2px;scrollbar-width:none}.cnc-cats::-webkit-scrollbar{display:none}',
     '.cnc-ct{flex:0 0 auto;width:92px;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 6px 10px;border-radius:16px;border:1.5px solid var(--cnh-line,#e1e6ed);background:var(--cnh-card,#fff);color:var(--cnh-ink,#111827);cursor:pointer;position:relative;transition:transform .15s,border-color .15s,box-shadow .15s;touch-action:manipulation}',
     '.cnc-ct .i{width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:var(--t);color:#fff;box-shadow:0 6px 14px color-mix(in srgb,var(--t) 35%,transparent)}',
+    '.cnc-ct .i{overflow:hidden}.cnc-ct .i img{width:100%;height:100%;object-fit:cover}',
     '.cnc-ct b{font-size:.75rem;font-weight:600;line-height:1.2;text-align:center;min-height:2.4em;display:flex;align-items:center}',
     '.cnc-ct em{position:absolute;top:6px;right:6px;font-style:normal;font-size:.625rem;font-weight:700;background:var(--cnh-soft,#eef3f9);color:var(--cnh-sub,#5a6577);border-radius:999px;padding:1px 6px}',
     '.cnc-ct.on{border-color:var(--t);background:color-mix(in srgb,var(--t) 9%,var(--cnh-card,#fff));box-shadow:0 6px 18px color-mix(in srgb,var(--t) 22%,transparent)}.cnc-ct:active{transform:scale(.95)}',

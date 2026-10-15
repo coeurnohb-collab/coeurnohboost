@@ -316,6 +316,6 @@
 (function () {
   if (document.querySelector('script[data-cn-st]')) return;
   var s = document.createElement('script');
-  s.src = 'stability.js?v=20261023'; s.async = true; s.setAttribute('data-cn-st', '1');
+  s.src = 'stability.js?v=20261024'; s.async = true; s.setAttribute('data-cn-st', '1');
   document.head.appendChild(s);
 })();
