@@ -27,7 +27,7 @@
       cal: 'Ajouter au calendrier', share: 'Partager', back: 'Retour', join: 'Participer', joinPaid: 'Participer pour', again: 'Modifier ma participation', joined: 'Tu participes', login2: 'Connecte-toi pour participer',
       closedMsg: 'Ce concours est terminé.', soonMsg: 'Ce concours n’a pas encore commencé.', pendingMsg: 'Ce concours attend la validation de l’équipe.', rejectedMsg: 'Ce concours n’a pas été retenu.',
       pTop: 'Populaires', pNew: 'Récents', pSearch: 'Chercher un participant', noPeople: 'Pas encore de participant. Sois le premier !', voted: 'Déjà voté', yours: 'Ta participation', loadErr: 'Impossible de charger les participations.', winner: 'Gagnant', podiumEmpty: 'Le classement apparaîtra avec les premiers votes.', total: 'votes au total',
-      organizer: 'Organisateur', pending: 'En attente', rejected: 'Refusé', daysLeft: 'jours restants', progress: 'Avancement', moderation: 'Modération', approve: 'Approuver', reject: 'Refuser', createFirst: 'Lance le premier concours', createHint: 'Les concours proposés sont relus par l’équipe avant publication.'
+      saved: 'Suivis', follow: 'Suivre', following: 'Suivi', soonEnd: 'Se terminent bientôt', stats_p: 'Participants', stats_v: 'Votes', stats_d: 'Jours restants', stats_r: 'Avancement', faq: 'Questions fréquentes', q1: 'Comment voter ?', a1: 'Ouvre l’onglet Participants et touche « Voter » sous la participation qui te plaît. Un seul vote par participation et par personne.', q2: 'Puis-je modifier ma participation ?', a2: 'Oui, tant que le concours est ouvert : un nouvel envoi remplace le précédent.', q3: 'Quand connaît-on les gagnants ?', a3: 'À la clôture, le classement final est figé et visible dans l’onglet Classement.', q4: 'Comment est calculé le classement ?', a4: 'Par nombre de votes. En cas d’égalité, la participation la plus ancienne passe devant.', wa: 'WhatsApp', copy: 'Copier le lien', copied: 'Lien copié', orgSpace: 'Espace organisateur', exportCsv: 'Exporter le classement (CSV)', photosAdmin: 'Photos de couverture', photosHint: 'Touche une catégorie pour choisir sa photo. Elle s’affiche sur tous les concours de cette catégorie qui n’ont pas leur propre image.', exampleC: 'Exemple de concours', organizer: 'Organisateur', pending: 'En attente', rejected: 'Refusé', daysLeft: 'jours restants', progress: 'Avancement', moderation: 'Modération', approve: 'Approuver', reject: 'Refuser', createFirst: 'Lance le premier concours', createHint: 'Les concours proposés sont relus par l’équipe avant publication.'
     },
     en: {
       hero_t: 'Contests & Rewards', hero_s: 'Enter, get your community to vote and win prizes. Every contest is tracked live.',
@@ -44,7 +44,7 @@
       cal: 'Add to calendar', share: 'Share', back: 'Back', join: 'Enter', joinPaid: 'Enter for', again: 'Edit my entry', joined: 'You are in', login2: 'Sign in to enter',
       closedMsg: 'This contest has ended.', soonMsg: 'This contest has not started yet.', pendingMsg: 'This contest is waiting for team approval.', rejectedMsg: 'This contest was not accepted.',
       pTop: 'Top', pNew: 'Newest', pSearch: 'Search a participant', noPeople: 'No entry yet. Be the first!', voted: 'Voted', yours: 'Your entry', loadErr: 'Could not load entries.', winner: 'Winner', podiumEmpty: 'The leaderboard appears with the first votes.', total: 'votes in total',
-      organizer: 'Organizer', pending: 'Pending', rejected: 'Rejected', daysLeft: 'days left', progress: 'Progress', moderation: 'Moderation', approve: 'Approve', reject: 'Reject', createFirst: 'Launch the first contest', createHint: 'Proposed contests are reviewed by the team before publishing.'
+      saved: 'Following', follow: 'Follow', following: 'Following', soonEnd: 'Ending soon', stats_p: 'Entries', stats_v: 'Votes', stats_d: 'Days left', stats_r: 'Progress', faq: 'FAQ', q1: 'How do I vote?', a1: 'Open the Entries tab and tap “Vote” under the entry you like. One vote per entry and per person.', q2: 'Can I edit my entry?', a2: 'Yes, while the contest is open: a new upload replaces the previous one.', q3: 'When are winners known?', a3: 'At closing, the final ranking is frozen and shown in the Leaderboard tab.', q4: 'How is the ranking computed?', a4: 'By number of votes. On a tie, the older entry ranks first.', wa: 'WhatsApp', copy: 'Copy link', copied: 'Link copied', orgSpace: 'Organizer space', exportCsv: 'Export leaderboard (CSV)', photosAdmin: 'Cover photos', photosHint: 'Tap a category to choose its photo. It shows on every contest of that category without its own image.', exampleC: 'Example contest', organizer: 'Organizer', pending: 'Pending', rejected: 'Rejected', daysLeft: 'days left', progress: 'Progress', moderation: 'Moderation', approve: 'Approve', reject: 'Reject', createFirst: 'Launch the first contest', createHint: 'Proposed contests are reviewed by the team before publishing.'
     }
   };
   function L(k) { var l = lang() === 'en' ? 'en' : 'fr'; return (D[l][k] != null ? D[l][k] : D.fr[k]) || k; }
@@ -79,6 +79,13 @@
     entreprise: ['#475569', '<path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 9h1M9 13h1M14 9h1M14 13h1"/><path d="M9 21v-4h6v4"/>']
   };
   function cat(c) { return CAT[c.category] || ['#1d4f91', IC.trophy]; }
+  function followed() { try { return JSON.parse(localStorage.getItem('cn_contest_follow') || '[]'); } catch (e) { return []; } }
+  function isFollowed(id) { return followed().indexOf(id) >= 0; }
+  function toggleFollow(id) {
+    var a = followed(), i = a.indexOf(id); if (i >= 0) a.splice(i, 1); else a.push(id);
+    try { localStorage.setItem('cn_contest_follow', JSON.stringify(a.slice(-100))); } catch (e) { }
+  }
+  function ph(k) { try { return (window.CNShowcase && window.CNShowcase.photo(k)) || ''; } catch (e) { return ''; } }
   function catLabel(c) { try { var m = CONTEST_CATEGORY_META[c.category]; return m ? tt(m.label) : tt('contest_default_title'); } catch (e) { return ''; } }
 
   /* ---------- Compte à rebours ---------- */
@@ -117,7 +124,8 @@
   /* ---------- Visuels ---------- */
   function cover(c, big) {
     var k = cat(c), col = k[0];
-    if (c.coverImage) return '<div class="cnc-cover' + (big ? ' big' : '') + '" style="--t:' + col + '"><img src="' + esc(c.coverImage) + '" alt="" loading="lazy" onerror="this.remove()"><span class="cnc-cover-ico">' + svg(k[1], big ? 44 : 30, 1.5) + '</span></div>';
+    var img = c.coverImage || ph('contest_cat_' + (c.category || 'x'));
+    if (img) return '<div class="cnc-cover' + (big ? ' big' : '') + '" style="--t:' + col + '"><img src="' + esc(img) + '" alt="" loading="lazy" onerror="this.remove()"><span class="cnc-cover-ico">' + svg(k[1], big ? 44 : 30, 1.5) + '</span></div>';
     return '<div class="cnc-cover art' + (big ? ' big' : '') + '" style="--t:' + col + '"><i class="a"></i><i class="b"></i><i class="c"></i><span class="cnc-cover-ico">' + svg(k[1], big ? 54 : 36, 1.4) + '</span></div>';
   }
   function pill(txt, cls) { return '<span class="cnc-pill ' + (cls || '') + '">' + txt + '</span>'; }
@@ -137,7 +145,7 @@
   function card(c) {
     var st = status(c), k = cat(c);
     return '<article class="cnc-card" data-act="open" data-id="' + esc(c.id) + '" tabindex="0" role="button" aria-label="' + esc(c.title) + '">' +
-      cover(c) +
+      cover(c) + '<button type="button" class="cnc-fol' + (isFollowed(c.id) ? ' on' : '') + '" data-act="follow" data-id="' + esc(c.id) + '" aria-label="' + esc(L('follow')) + '">' + svg('<path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>', 17) + '</button>' +
       '<div class="cnc-card-b">' +
       '<div class="cnc-row"><span class="cnc-cat" style="--t:' + k[0] + '">' + svg(k[1], 13) + esc(catLabel(c)) + '</span>' + statusPill(c) + '</div>' +
       '<h3 class="cnc-card-t">' + esc(c.title || tt('contest_default_title')) + '</h3>' +
@@ -190,7 +198,7 @@
   }
   function filtersHtml() {
     var n = counts();
-    var seg = [['active', L('live'), n.active], ['upcoming', L('soon'), n.upcoming], ['ended', L('done'), n.ended]];
+    var seg = [['active', L('live'), n.active], ['upcoming', L('soon'), n.upcoming], ['ended', L('done'), n.ended], ['saved', L('saved'), approved().filter(function (c) { return isFollowed(c.id); }).length]];
     return '<div class="cnc-seg">' + seg.map(function (x) { return '<button class="' + (S.status === x[0] ? 'on' : '') + '" data-act="status" data-v="' + x[0] + '">' + x[1] + '<em>' + x[2] + '</em></button>'; }).join('') + '</div>' +
       '<div class="cnc-tools"><label class="cnc-search">' + svg(IC.search, 16) + '<input id="cnc-q" type="search" value="' + esc(S.q) + '" placeholder="' + esc(L('search')) + '" autocomplete="off" maxlength="60"></label>' +
       '<select id="cnc-sort" aria-label="' + esc(L('sort')) + '">' + [['end', L('s_end')], ['new', L('s_new')], ['free', L('s_free')], ['prize', L('s_prize')]].map(function (x) { return '<option value="' + x[0] + '"' + (S.sort === x[0] ? ' selected' : '') + '>' + x[1] + '</option>'; }).join('') + '</select></div>' +
@@ -199,7 +207,7 @@
   function listFiltered() {
     var q = S.q.trim().toLowerCase();
     var r = approved().filter(function (c) {
-      if (status(c) !== S.status) return false;
+      if (S.status === 'saved' ? !isFollowed(c.id) : status(c) !== S.status) return false;
       if (S.cat !== 'all' && c.category !== S.cat) return false;
       if (q && ((c.title || '') + ' ' + (c.description || '') + ' ' + (c.prize || '') + ' ' + (c.organizerName || '')).toLowerCase().indexOf(q) < 0) return false;
       return true;
@@ -216,19 +224,34 @@
   function resultsHtml() {
     var r = listFiltered();
     if (!r.length) {
-      var m = S.q || S.cat !== 'all' ? L('empty_q') : S.status === 'active' ? L('empty_live') : S.status === 'upcoming' ? L('empty_soon') : L('empty_done');
+      var m = S.q || S.cat !== 'all' ? L('empty_q') : S.status === 'active' ? L('empty_live') : S.status === 'upcoming' ? L('empty_soon') : S.status === 'saved' ? L('follow') + ' ✦' : L('empty_done');
       return '<div class="cnc-empty">' + svg(IC.trophy, 34, 1.4) + '<p>' + esc(m) + '</p></div>' + exampleCard();
     }
     return '<div class="cnc-grid">' + r.map(card).join('') + '</div>';
   }
   function exampleCard() {
-    var en = lang() === 'en';
-    return '<h3 class="cnc-h">' + (en ? 'Example contest' : 'Exemple de concours') + '</h3><article class="cnc-card" style="cursor:default"><div class="cnc-cover art" style="--t:#1d4f91"><i class="a"></i><i class="b"></i><i class="c"></i><span class="cnc-cover-ico">' + svg(CAT.photo[1], 36, 1.4) + '</span></div><div class="cnc-card-b"><div class="cnc-row"><span class="cnc-cat" style="--t:#1d4f91">' + svg(CAT.photo[1], 13) + (en ? 'Best photo' : 'Meilleure photo') + '</span>' + pill(en ? 'Example' : 'Exemple', '') + '</div><h3 class="cnc-card-t">' + (en ? 'Best photo of the city' : 'Meilleure photo de la ville') + '</h3><div class="cnc-by">' + (en ? 'Sample template' : 'Modèle d’exemple') + '</div><div class="cnc-prize">' + svg(IC.gift, 15) + '<span>' + (en ? '$200 + trophy' : '200 $ + trophée') + '</span></div><div class="cnc-row foot"><span class="cnc-time">' + svg(IC.clock, 14) + (en ? 'Ends in 14 days' : 'Se termine dans 14 j') + '</span>' + pill(L('free'), '') + '</div></div></article><p class="cnc-hint">' + esc(L('createHint')) + '</p>' + proposeBtn();
+    var en = lang() === 'en', u = ph('contest_example'), k = cat({ category: 'photo' });
+    var cov = u ? '<div class="cnc-cover" style="--t:#1d4f91"><img src="' + esc(u) + '" alt="" loading="lazy" onerror="this.remove()"><span class="cnc-cover-ico">' + svg(k[1], 30, 1.5) + '</span></div>'
+      : '<div class="cnc-cover art" style="--t:#1d4f91"><i class="a"></i><i class="b"></i><i class="c"></i><span class="cnc-cover-ico">' + svg(k[1], 36, 1.4) + '</span></div>';
+    var adm = isAdmin() ? '<span class="cnx-adm"><button type="button" data-cnx-photo="contest_example" aria-label="Photo">' + svg('<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2Z"/><circle cx="12" cy="13" r="4"/>', 16) + '</button></span>' : '';
+    return '<h3 class="cnc-h">' + L('exampleC') + '</h3><article class="cnc-card" data-cnx-open="contests-example|0" tabindex="0" role="button">' + cov + adm +
+      '<div class="cnc-card-b"><div class="cnc-row"><span class="cnc-cat" style="--t:#1d4f91">' + svg(k[1], 13) + (en ? 'Best photo' : 'Meilleure photo') + '</span>' + pill(en ? 'Example' : 'Exemple', '') + '</div>' +
+      '<h3 class="cnc-card-t">' + (en ? 'Best photo of the city' : 'Meilleure photo de la ville') + '</h3><div class="cnc-by">' + (en ? 'Sample template' : 'Modèle d’exemple') + '</div>' +
+      '<div class="cnc-prize">' + svg(IC.gift, 15) + '<span>' + (en ? '$200 + trophy' : '200 $ + trophée') + '</span></div>' +
+      '<div class="cnc-row foot"><span class="cnc-time">' + svg(IC.clock, 14) + (en ? 'Ends in 14 days' : 'Se termine dans 14 j') + '</span>' + pill(L('free'), '') + '</div></div></article><p class="cnc-hint">' + esc(L('createHint')) + '</p>' + proposeBtn();
   }
   function howHtml() {
     var st = [[IC.send, L('h1'), L('h1d')], [IC.up, L('h2'), L('h2d')], [IC.trophy, L('h3'), L('h3d')]];
     return '<h3 class="cnc-h">' + L('how') + '</h3><div class="cnc-how">' + st.map(function (x, i) {
       return '<div class="cnc-how-i"><span class="n">' + (i + 1) + '</span><span class="ic">' + svg(x[0], 20) + '</span><b>' + esc(x[1]) + '</b><p>' + esc(x[2]) + '</p></div>';
+    }).join('') + '</div>';
+  }
+  function soonHtml() {
+    if (S.status === 'ended') return '';
+    var r = approved().filter(function (c) { var m = new Date(c.endDate) - Date.now(); return status(c) === 'active' && m > 0 && m < 3 * 864e5; }).slice(0, 8);
+    if (!r.length) return '';
+    return '<h3 class="cnc-h">' + L('soonEnd') + '</h3><div class="cnc-strip">' + r.map(function (c) {
+      return '<div class="cnc-mini hot" data-act="open" data-id="' + esc(c.id) + '" tabindex="0" role="button"><span class="ic" style="--t:' + cat(c)[0] + '">' + svg(IC.clock, 18) + '</span><b>' + esc(c.title) + '</b><small>' + esc(timeLabel(c)) + '</small></div>';
     }).join('') + '</div>';
   }
   function recentHtml() {
@@ -257,10 +280,18 @@
       return card(c).replace('</article>', '<div class="cnc-mine"><span>' + svg(IC.up, 14) + (e.votesCount || 0) + ' ' + ((e.votesCount || 0) === 1 ? L('vote') : L('votes')) + '</span><span>' + esc(e.name || '') + '</span></div></article>');
     }).join('') + '</div>';
   }
+  function photosPanel() {
+    return '<h3 class="cnc-h">' + L('photosAdmin') + '</h3><p class="cnc-hint">' + esc(L('photosHint')) + '</p><div class="cnc-phg">' + Object.keys(CAT).concat(['example']).map(function (k) {
+      var key = k === 'example' ? 'contest_example' : 'contest_cat_' + k, u = ph(key), col = k === 'example' ? '#1d4f91' : CAT[k][0];
+      var lab = k === 'example' ? L('exampleC') : (function () { try { return tt(CONTEST_CATEGORY_META[k].label); } catch (e) { return k; } })();
+      return '<button type="button" class="cnc-ph" data-cnx-photo="' + key + '" style="--t:' + col + '">' + (u ? '<img src="' + esc(u) + '" alt="">' : svg(k === 'example' ? IC.trophy : CAT[k][1], 22)) + '<span>' + esc(lab) + '</span></button>';
+    }).join('') + '</div>';
+  }
   function mineTab() {
     var x = listsForMe(); if (x) return x;
     var u = me(), mine = cache().filter(function (c) { return c.organizerUid === u.uid; });
     var out = proposeBtn() + '<p class="cnc-hint">' + esc(L('createHint')) + '</p>';
+    if (isAdmin()) out += photosPanel();
     if (isAdmin()) {
       var pend = cache().filter(function (c) { return mod(c) === 'pending_review'; });
       if (pend.length) out += '<h3 class="cnc-h">' + L('moderate') + ' (' + pend.length + ')</h3><div class="cnc-grid">' + pend.map(card).join('') + '</div>';
@@ -273,7 +304,7 @@
     var host = document.getElementById('contests-list'); if (!host) return;
     host.classList.add('cnc-root');
     var body;
-    if (S.tab === 'discover') body = filtersHtml() + '<div id="cnc-results">' + resultsHtml() + '</div>' + recentHtml() + howHtml();
+    if (S.tab === 'discover') body = filtersHtml() + '<div id="cnc-results">' + resultsHtml() + '</div>' + soonHtml() + recentHtml() + howHtml();
     else if (S.tab === 'entries') body = '<div id="cnc-results">' + entriesTab() + '</div>';
     else body = '<div id="cnc-results">' + mineTab() + '</div>';
     host.innerHTML = heroHtml() + tabsHtml() + '<div class="cnc-body">' + body + '</div>';
@@ -319,19 +350,33 @@
     var lab = mine ? L('again') : paid ? L('joinPaid') + ' ' + money(c.entryFee) : L('join');
     return '<button class="cnc-btn pri full" data-act="join" data-id="' + esc(c.id) + '">' + svg(mine ? IC.check : IC.send, 18, 2) + '<span>' + lab + '</span></button>';
   }
+  function faqHtml() {
+    return '<div class="cnc-block"><h4>' + L('faq') + '</h4>' + [1, 2, 3, 4].map(function (i) { return '<div class="cnc-faq"><button type="button" data-act="faq">' + esc(L('q' + i)) + svg('<polyline points="6 9 12 15 18 9"/>', 16) + '</button><p>' + esc(L('a' + i)) + '</p></div>'; }).join('') + '</div>';
+  }
+  function orgHtml(c) {
+    var u = me(); if (!u || !(isAdmin() || c.organizerUid === u.uid)) return '';
+    return '<div class="cnc-block"><h4>' + L('orgSpace') + '</h4><button class="cnc-btn full" data-act="csv" data-id="' + esc(c.id) + '">' + svg('<path d="M12 3v12m0 0 4-4m-4 4-4-4"/><path d="M4 21h16"/>', 17) + L('exportCsv') + '</button></div>';
+  }
+  function statsHtml(c) {
+    var rk = ranked(c.id), tot = rk.reduce(function (s, e) { return s + (e.votesCount || 0); }, 0), ms = new Date(c.endDate) - Date.now();
+    var days = status(c) === 'ended' ? 0 : Math.max(0, Math.ceil(ms / 864e5)); if (!isFinite(days)) days = 0;
+    return '<div class="cnc-kpis"><div><b>' + rk.length + '</b><span>' + L('stats_p') + '</span></div><div><b>' + tot + '</b><span>' + L('stats_v') + '</span></div><div><b>' + days + '</b><span>' + L('stats_d') + '</span></div></div>';
+  }
   function aboutPanel(c) {
     var st = status(c), rules = ['r1', 'r2', 'r3', 'r4', 'r5'];
     var tl = [[L('open'), c.startDate, st !== 'upcoming'], [L('close'), c.endDate, st === 'ended'], [L('results'), c.endDate, st === 'ended']];
     var modHtml = (isAdmin() && mod(c) === 'pending_review') ? '<div class="cnc-block warn"><h4>' + L('moderation') + '</h4><div class="cnc-two"><button class="cnc-btn pri" data-act="approve" data-id="' + esc(c.id) + '">' + L('approve') + '</button><button class="cnc-btn" data-act="reject" data-id="' + esc(c.id) + '">' + L('reject') + '</button></div></div>' : '';
     var mine = myEntry(c.id);
     var mineHtml = mine ? '<div class="cnc-block ok"><h4>' + svg(IC.check, 16, 2.2) + L('joined') + '</h4><p>' + esc(mine.name || '') + ' · ' + (mine.votesCount || 0) + ' ' + ((mine.votesCount || 0) === 1 ? L('vote') : L('votes')) + ' · ' + L('rank') + ' ' + (ranked(c.id).indexOf(mine) + 1) + '</p></div>' : '';
-    return modHtml + mineHtml +
+    return modHtml + statsHtml(c) + mineHtml +
       (c.prize ? '<div class="cnc-prizebox"><span class="ic">' + svg(IC.gift, 22) + '</span><div><small>' + L('prize') + '</small><b>' + esc(c.prize) + '</b></div></div>' : '') +
       (c.description ? '<div class="cnc-block"><h4>' + L('desc') + '</h4><p class="cnc-desc">' + esc(c.description) + '</p></div>' : '') +
       '<div class="cnc-block"><h4>' + L('timeline') + '</h4><ol class="cnc-tl">' + tl.map(function (x) { return '<li class="' + (x[2] ? 'done' : '') + '"><i></i><div><b>' + x[0] + '</b><span>' + esc(dateFmt(x[1])) + '</span></div></li>'; }).join('') + '</ol></div>' +
       '<div class="cnc-block"><h4>' + L('rules') + '</h4><ul class="cnc-rules">' + rules.map(function (k) { return '<li>' + svg(IC.shield, 15) + '<span>' + esc(L(k)) + '</span></li>'; }).join('') + '</ul></div>' +
       '<div class="cnc-block"><h4>' + L('organizer') + '</h4><p>' + organizer(c) + '</p></div>' +
-      '<div class="cnc-two"><button class="cnc-btn" data-act="ics" data-id="' + esc(c.id) + '">' + svg(IC.cal, 17) + L('cal') + '</button><button class="cnc-btn" data-act="share" data-id="' + esc(c.id) + '">' + svg(IC.share, 17) + L('share') + '</button></div>';
+      faqHtml() + orgHtml(c) +
+      '<div class="cnc-two"><button class="cnc-btn" data-act="ics" data-id="' + esc(c.id) + '">' + svg(IC.cal, 17) + L('cal') + '</button><button class="cnc-btn" data-act="share" data-id="' + esc(c.id) + '">' + svg(IC.share, 17) + L('share') + '</button></div>' +
+      '<div class="cnc-two"><button class="cnc-btn" data-act="wa" data-id="' + esc(c.id) + '">' + svg('<path d="M21 11.5a8.5 8.5 0 0 1-12.5 7.5L3 21l2-5.3A8.5 8.5 0 1 1 21 11.5Z"/>', 17) + L('wa') + '</button><button class="cnc-btn" data-act="copy" data-id="' + esc(c.id) + '">' + svg('<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/>', 17) + L('copy') + '</button></div>';
   }
   function mediaHtml(e) {
     if (!e.submissionUrl) return '';
@@ -386,7 +431,7 @@
     var panel = S.dTab === 'people' ? peoplePanel(c) : S.dTab === 'board' ? boardPanel(c) : aboutPanel(c);
     var scroll = el.querySelector('.cnc-d-scroll'), top = scroll ? scroll.scrollTop : 0;
     el.innerHTML =
-      '<div class="cnc-d-bar"><button class="cnc-ib" data-act="close" aria-label="' + esc(L('back')) + '">' + svg(IC.back, 22, 2.2) + '</button><span>' + esc(catLabel(c)) + '</span><button class="cnc-ib" data-act="share" data-id="' + esc(c.id) + '" aria-label="' + esc(L('share')) + '">' + svg(IC.share, 20) + '</button></div>' +
+      '<div class="cnc-d-bar"><button class="cnc-ib" data-act="close" aria-label="' + esc(L('back')) + '">' + svg(IC.back, 22, 2.2) + '</button><span>' + esc(catLabel(c)) + '</span><span class="cnc-bar-r"><button class="cnc-ib' + (isFollowed(c.id) ? ' on' : '') + '" data-act="follow" data-id="' + esc(c.id) + '" aria-label="' + esc(L('follow')) + '">' + svg('<path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>', 20) + '</button><button class="cnc-ib" data-act="share" data-id="' + esc(c.id) + '" aria-label="' + esc(L('share')) + '">' + svg(IC.share, 20) + '</button></span></div>' +
       '<div class="cnc-d-scroll">' + cover(c, true) +
       '<div class="cnc-d-head"><div class="cnc-row">' + statusPill(c) + feePill(c) + '</div><h2>' + esc(c.title) + '</h2><div class="cnc-by">' + organizer(c) + '</div>' +
       (st !== 'ended' ? '<div class="cnc-d-cd"><small>' + (st === 'upcoming' ? L('starts') : L('ends')) + '</small>' + cdBlocks(st === 'upcoming' ? c.startDate : c.endDate) + '</div>' : '') +
@@ -420,6 +465,15 @@
     } catch (er) { try { showToast(friendlyErrorMessage(er), 'error'); } catch (e2) { } }
   }
 
+  function toast(m, ty) { try { showToast(m, ty || 'info'); } catch (e) { } }
+  function csv(c) {
+    var rk = ranked(c.id), q = function (v) { return '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"'; };
+    var rows = [['rang', 'nom', 'votes', 'date', 'media'].map(q).join(',')].concat(rk.map(function (e, i) { return [i + 1, e.name, e.votesCount || 0, e.createdAt || '', e.submissionUrl || ''].map(q).join(','); }));
+    try {
+      var b = new Blob(['\ufeff' + rows.join('\r\n')], { type: 'text/csv;charset=utf-8' }), a = document.createElement('a');
+      a.href = URL.createObjectURL(b); a.download = 'classement-' + c.id + '.csv'; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 800);
+    } catch (e) { }
+  }
   /* ---------- Actions ---------- */
   function act(ev) {
     var el = ev.target.closest && ev.target.closest('[data-act]'); if (!el) return;
@@ -433,6 +487,11 @@
       case 'cat': S.cat = v; paint(); break;
       case 'propose': try { openContestForm(); } catch (e) { } break;
       case 'login': try { openAuth('login'); } catch (e) { } break;
+      case 'follow': ev.stopPropagation(); toggleFollow(id); if (S.d) paintDetail(); paint(); break;
+      case 'wa': if (c) { var u2 = location.origin + location.pathname + '?concours=' + c.id; window.open('https://wa.me/?text=' + encodeURIComponent((c.title || '') + ' ' + u2), '_blank', 'noopener'); } break;
+      case 'copy': if (c) { var u3 = location.origin + location.pathname + '?concours=' + c.id; try { navigator.clipboard.writeText(u3).then(function () { toast(L('copied'), 'success'); }); } catch (e) { } } break;
+      case 'csv': if (c) csv(c); break;
+      case 'faq': el.parentNode.classList.toggle('open'); break;
       case 'close': closeDetail(); break;
       case 'dtab': S.dTab = v; paintDetail(); break;
       case 'dsort': S.dSort = v; paintDetail(); break;
@@ -462,6 +521,7 @@
     if (ev.target.closest && (ev.target.closest('#contests-list') || ev.target.closest('#cnc-detail'))) act(ev);
   });
   document.addEventListener('keydown', key);
+  document.addEventListener('cn-showcase-photos', function () { try { if (document.getElementById('contests-list') && document.getElementById('contests-list').children.length && cache().length) { paint(); if (S.d) paintDetail(); } } catch (e) { } });
   document.addEventListener('input', input);
   document.addEventListener('change', input);
 
@@ -674,6 +734,16 @@
     '.cnc-lb-r .m{flex:1;min-width:0}.cnc-lb-r .m b{display:block;font-size:.875rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
     '.cnc-lb-r .bar{height:5px;border-radius:99px;background:var(--cnh-soft,#eef3f9);margin-top:6px;overflow:hidden}.cnc-lb-r .bar i{display:block;height:100%;background:var(--cnh-brand,#1d4f91);border-radius:99px}',
     '.cnc-lb-r .v{font-weight:700;font-size:.9375rem}',
+    '.cnc-fol{position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:50%;border:0;background:rgba(255,255,255,.92);color:#14263f;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.18);z-index:2;transition:transform .2s cubic-bezier(.2,.9,.3,1.4)}',
+    '.cnc-fol:active{transform:scale(.85)}.cnc-fol.on,.cnc-ib.on{color:#b9871a}.cnc-fol.on svg,.cnc-ib.on svg{fill:currentColor}',
+    '.cnc-bar-r{display:flex;gap:8px}',
+    '.cnc-mini.hot{border-color:#e8b64c}.cnc-mini.hot .ic{background:#fbf3e2;color:#8a5a0b}',
+    '.cnc-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}.cnc-kpis div{background:var(--cnh-card,#fff);border:1px solid var(--cnh-line,#e1e6ed);border-radius:12px;padding:10px 6px;text-align:center}.cnc-kpis b{display:block;font-size:1.25rem;font-weight:700}.cnc-kpis span{font-size:.6875rem;color:var(--cnh-sub,#5a6577)}',
+    '.cnc-faq{border-top:1px solid var(--cnh-line,#e1e6ed)}.cnc-faq:first-of-type{border-top:0}.cnc-faq button{width:100%;display:flex;justify-content:space-between;align-items:center;gap:10px;background:none;border:0;color:inherit;font:inherit;font-weight:600;font-size:.875rem;text-align:left;padding:12px 0;cursor:pointer}',
+    '.cnc-faq svg{flex:0 0 auto;transition:transform .2s}.cnc-faq.open svg{transform:rotate(180deg)}.cnc-faq p{display:none;margin:0 0 12px;font-size:.8125rem!important;color:var(--cnh-sub,#5a6577)}.cnc-faq.open p{display:block}',
+    '.cnc-block .cnc-btn.full{width:100%}',
+    '.cnc-phg{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.cnc-ph{position:relative;display:flex;align-items:center;gap:10px;min-height:64px;padding:8px 10px;border-radius:12px;border:1px dashed var(--t);background:color-mix(in srgb,var(--t) 8%,var(--cnh-card,#fff));color:var(--cnh-ink,#111827);font:inherit;font-size:.8125rem;font-weight:600;text-align:left;cursor:pointer;overflow:hidden}',
+    '.cnc-ph svg{color:var(--t);flex:0 0 auto}.cnc-ph img{width:44px;height:44px;border-radius:10px;object-fit:cover;flex:0 0 auto}',
     '@media(prefers-reduced-motion:reduce){.cnc-card,.cnc-detail,.cnc-cover.art .c,.cnc-pill .dot{animation:none!important}.cnc-card,.cnc-bar i{transition:none!important}}'
   ].join('\n');
   try { var st = document.createElement('style'); st.setAttribute('data-cn-contest', '1'); st.textContent = css; document.head.appendChild(st); } catch (e) { /* ignore */ }

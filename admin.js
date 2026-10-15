@@ -1779,7 +1779,7 @@ async function saveSitePricingConfig() {
   if (premiumPriceMonth <= 0) { alert('Le prix Premium doit être supérieur à 0.'); return; }
   if (domainPriceMonth <= 0) { alert('Le prix du domaine doit être supérieur à 0.'); return; }
   try {
-    await db.collection('pricing').doc('site').set({ premiumPriceMonth, domainPriceMonth, businessProPrice });
+    await db.collection('pricing').doc('site').set({ premiumPriceMonth, domainPriceMonth, businessProPrice }, { merge: true });
     const msg = document.getElementById('site-pricing-saved-msg');
     msg.classList.remove('hidden');
     setTimeout(() => msg.classList.add('hidden'), 2500);
