@@ -256,7 +256,7 @@
     if (ev.key === 'Escape') closeExample();
     if ((ev.key === 'Enter' || ev.key === ' ') && ev.target.matches && ev.target.matches('[data-cnx-open]')) { ev.preventDefault(); ev.target.click(); }
   });
-  window.CNShowcase = { photo: photo, pick: pickPhoto, drop: dropPhoto, isAdmin: isAdm };
+  window.CNShowcase = { photo: photo, pick: pickPhoto, drop: dropPhoto, isAdmin: isAdm, has: function (k) { return !!photo(k); }, count: function (prefix) { var n = 0, p = key(prefix || ''); for (var k in PH) { if (k.indexOf(p) === 0 && photo(k)) n++; } return n; } };
   loadPhotos();
   setTimeout(all, 800);
 
