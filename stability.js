@@ -73,13 +73,13 @@
 
   /* 4. Académie : design, auto-études IA, affiliation / codes promo, quiz / certificats (fichiers séparés, jamais bloquants) */
   try {
-    var V = '20261026';
+    var V = '20261027';
     if (!document.querySelector('link[data-cn-au]')) {
       var au = document.createElement('link');
       au.rel = 'stylesheet'; au.href = 'academy-ui.css?v=' + V; au.setAttribute('data-cn-au', '1');
       document.head.appendChild(au);
     }
-    [['data-cn-aa', 'academy-art.js'], ['data-cn-ah2', 'ui-harmony.js'], ['data-cn-ap', 'academy-pro.js'], ['data-cn-as', 'academy-studio.js'], ['data-cn-al', 'academy-learn.js'], ['data-cn-ah', 'academy-hub.js'], ['data-cn-ch', 'contest-hub.js'], ['data-cn-sc', 'showcase.js'], ['data-cn-ai', 'admin-icons.js'], ['data-cn-pr', 'pull-refresh.js'], ['data-cn-nm', 'nearby-map.js'], ['data-cn-sg', 'site-gallery.js'], ['data-cn-sh', 'share-hub.js'], ['data-cn-rp', 'referral-pro.js'], ['data-cn-lp', 'location-pro.js']].forEach(function (x) {
+    [['data-cn-aa', 'academy-art.js'], ['data-cn-ah2', 'ui-harmony.js'], ['data-cn-ap', 'academy-pro.js'], ['data-cn-as', 'academy-studio.js'], ['data-cn-al', 'academy-learn.js'], ['data-cn-ah', 'academy-hub.js'], ['data-cn-ch', 'contest-hub.js'], ['data-cn-sc', 'showcase.js'], ['data-cn-ai', 'admin-icons.js'], ['data-cn-pr', 'pull-refresh.js'], ['data-cn-nm', 'nearby-map.js'], ['data-cn-sg', 'site-gallery.js'], ['data-cn-sh', 'share-hub.js'], ['data-cn-rp', 'referral-pro.js'], ['data-cn-lp', 'location-pro.js'], ['data-cn-ip', 'invoice-pro.js']].forEach(function (x) {
       if (!x[1] || document.querySelector('script[' + x[0] + ']')) return;
       var sc = document.createElement('script');
       sc.src = x[1] + '?v=' + V; sc.async = true; sc.setAttribute(x[0], '1');
