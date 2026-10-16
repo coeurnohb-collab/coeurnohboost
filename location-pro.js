@@ -83,6 +83,7 @@
     if (typeof cur.sp === 'number' && cur.sp > P.maxSp) P.maxSp = cur.sp;
     P.pos = cur;
     loadWx(false); paint();
+    try { document.dispatchEvent(new CustomEvent('cn-lp-pos', { detail: { trk: P.trk, pos: cur } })); } catch (e) { /* ignore */ }
   }
   function onErr() { paint(); }
   function startWatch() {
@@ -124,7 +125,7 @@
     '.lp-pill{display:inline-flex;align-items:center;gap:6px;font-size:.74rem;font-weight:700;padding:4px 10px;border-radius:999px;background:#e6f6ee;color:#0b7a50}.lp-pill.mid{background:#fff3d6;color:#8a5a00}.lp-pill.low{background:#fde5e8;color:#b0182c}.lp-pill.idle{background:#e9edf3;color:#4a5568}' +
     '.lp-hr{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}.lp-hr::-webkit-scrollbar{display:none}.lp-h{flex:0 0 58px;text-align:center;background:var(--bg,#f3f5f9);border-radius:14px;padding:8px 4px}.lp-h small{display:block;font-size:.7rem;color:var(--muted,#5d6779);font-weight:700}.lp-h b{display:block;font-size:.88rem;margin-top:2px}.lp-h em{display:block;font-style:normal;font-size:.66rem;color:#1c7ed6;min-height:12px}' +
     '.lp-d{display:grid;grid-template-columns:44px 30px 1fr 74px;align-items:center;gap:8px;padding:8px 0;border-top:1px solid rgba(0,0,0,.06);font-size:.86rem}.lp-d:first-of-type{border-top:0}.lp-bar{height:6px;border-radius:3px;background:#e3e8f0;position:relative}.lp-bar i{position:absolute;top:0;bottom:0;border-radius:3px;background:#f08c00}.lp-d span:last-child{text-align:right;font-weight:700;white-space:nowrap}' +
-    '.lp-note{font-size:.8rem;color:var(--muted,#5d6779);margin:10px 0 0}.lp-btn{border:0;border-radius:12px;background:var(--primary,#1b4fd8);color:#fff;font-weight:700;padding:9px 14px;cursor:pointer}' +
+    '.lp-tools{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}.lp-tools button{border:0;border-radius:18px;padding:14px;text-align:left;background:#14263f;color:#fff;cursor:pointer;display:flex;flex-direction:column;gap:4px}.lp-tools b{font-size:.95rem}.lp-tools small{font-size:.72rem;opacity:.75;line-height:1.3}.lp-note{font-size:.8rem;color:var(--muted,#5d6779);margin:10px 0 0}.lp-btn{border:0;border-radius:12px;background:var(--primary,#1b4fd8);color:#fff;font-weight:700;padding:9px 14px;cursor:pointer}' +
     '.lp-aq{display:flex;align-items:center;gap:10px;margin-top:12px;padding:10px 12px;border-radius:14px;background:var(--bg,#f3f5f9);font-size:.86rem}.lp-aq b{font-weight:800}';
   function ensureCss() { if (document.getElementById('lp-css')) return; var s = document.createElement('style'); s.id = 'lp-css'; s.textContent = CSS; document.head.appendChild(s); }
 
@@ -191,9 +192,14 @@
     return out;
   }
 
+  function toolsCard() {
+    var ic = function (d) { return '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>'; };
+    return '<div class="lp-tools"><button type="button" data-lp="weather">' + ic('<path d="M7 18h10a4 4 0 0 0 .4-8 5.5 5.5 0 0 0-10.6 1.5A3.3 3.3 0 0 0 7 18z"/>') + '<b>Météo complète</b><small>Heures, 7 jours, air, soleil, lune</small></button>' +
+      '<button type="button" data-lp="explore">' + ic('<path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>') + '<b>Autour de moi</b><small>Quartier, rues, lieux, photos</small></button></div>';
+  }
   function paint() {
     var host = document.getElementById('lp-root'); if (!host) return;
-    var html = liveCard() + wxCard();
+    var html = liveCard() + toolsCard() + wxCard();
     if (host.__h !== html) { host.__h = html; host.innerHTML = html; }
   }
   function inject() {
@@ -209,6 +215,7 @@
       host.addEventListener('click', function (e) {
         var b = e.target.closest && e.target.closest('[data-lp]'); if (!b) return;
         if (b.getAttribute('data-lp') === 'reset') { P.trk = P.pos ? [P.pos] : []; P.dist = 0; P.t0 = Date.now(); P.maxSp = 0; paint(); }
+        else if (b.getAttribute('data-lp') === 'weather' || b.getAttribute('data-lp') === 'explore') { document.dispatchEvent(new CustomEvent('cn-lp-open', { detail: { view: b.getAttribute('data-lp'), pos: P.pos } })); }
         else { P.wxErr = false; loadWx(true); paint(); }
       });
     }
@@ -242,5 +249,5 @@
     document.addEventListener('visibilitychange', function () { if (document.hidden) stopWatch(); else if (document.getElementById('lc-root')) inject(); });
   }
   if (document.body) watchRoot(); else document.addEventListener('DOMContentLoaded', watchRoot);
-  window.CNLocationPro = { _hav: hav, _aq: aqIdx, _uv: uvIdx, _compass: compass };
+  window.CNLocationPro = { _hav: hav, _aq: aqIdx, _uv: uvIdx, _compass: compass, wxIcon: wxIcon, wxKind: wxKind, hav: hav, compass: compass, state: function () { return P; }, wmo: function (c) { return L().wmo[c] || ''; } };
 })();
