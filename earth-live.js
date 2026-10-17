@@ -87,19 +87,31 @@
   }
   var POI_FR = { restaurant: 'Restaurant', cafe: 'Café', bar: 'Bar', fast_food: 'Restauration rapide', school: 'École', university: 'Université', college: 'Établissement scolaire', kindergarten: 'Maternelle', hospital: 'Hôpital', clinic: 'Clinique', pharmacy: 'Pharmacie', doctors: 'Cabinet médical', dentist: 'Dentiste', bank: 'Banque', atm: 'Distributeur', place_of_worship: 'Lieu de culte', marketplace: 'Marché', fuel: 'Station-service', police: 'Police', townhall: 'Mairie', post_office: 'Poste', library: 'Bibliothèque', cinema: 'Cinéma', theatre: 'Théâtre', hotel: 'Hôtel', guest_house: 'Maison d’hôtes', hostel: 'Auberge', supermarket: 'Supermarché', convenience: 'Alimentation', bakery: 'Boulangerie', clothes: 'Vêtements', hairdresser: 'Coiffeur', mobile_phone: 'Téléphonie', attraction: 'Site touristique', museum: 'Musée', viewpoint: 'Point de vue', park: 'Parc', stadium: 'Stade', pitch: 'Terrain de sport', sports_centre: 'Centre sportif', bus_station: 'Gare routière', apartments: 'Immeuble', office: 'Bureau', monument: 'Monument', memorial: 'Mémorial', ruins: 'Ruines' };
   function poiLabel(t) { return POI_FR[t] || (t ? t.charAt(0).toUpperCase() + t.slice(1).replace(/_/g, ' ') : 'Lieu'); }
-  function parseOverpass(j, c) {
+  function poiCat(tg) {
+    var a = tg.amenity || '', sh = tg.shop, tr = tg.tourism, le = tg.leisure;
+    if (/^(restaurant|cafe|bar|fast_food|pub|ice_cream|food_court)$/.test(a)) return 'food';
+    if (/^(hospital|clinic|pharmacy|doctors|dentist)$/.test(a) || tg.healthcare) return 'health';
+    if (a === 'place_of_worship') return 'faith';
+    if (/^(school|university|college|kindergarten|library)$/.test(a)) return 'edu';
+    if (/^(hotel|guest_house|hostel|motel|apartment)$/.test(tr || '')) return 'stay';
+    if (sh || a === 'marketplace' || a === 'bank' || a === 'atm' || a === 'fuel') return 'shop';
+    if (le || tr || tg.historic) return 'leisure';
+    if (/^(townhall|police|post_office|courthouse|fire_station|bus_station)$/.test(a)) return 'civic';
+    return 'other';
+  }
+  function parseOverpass(j, c, limit) {
     var seen = {}, out = [];
     ((j && j.elements) || []).forEach(function (e) {
       var tg = e.tags || {}, name = tg.name || tg['name:fr']; if (!name) return;
       var lat = e.lat != null ? e.lat : e.center && e.center.lat, lng = e.lon != null ? e.lon : e.center && e.center.lon; if (lat == null || lng == null) return;
       var type = tg.amenity || tg.shop || tg.tourism || tg.leisure || tg.historic || tg.office || tg.healthcare || tg.building || '';
       var k = name.toLowerCase() + '|' + Math.round(lat * 2000) + '|' + Math.round(lng * 2000); if (seen[k]) return; seen[k] = 1;
-      out.push({ name: String(name).slice(0, 80), type: poiLabel(type), lat: lat, lng: lng, dist: Math.round(hav(c, { lat: lat, lng: lng })) });
+      out.push({ name: String(name).slice(0, 80), type: poiLabel(type), cat: poiCat(tg), lat: lat, lng: lng, dist: Math.round(hav(c, { lat: lat, lng: lng })) });
     });
-    return out.sort(function (a, b) { return a.dist - b.dist; }).slice(0, 40);
+    return out.sort(function (a, b) { return a.dist - b.dist; }).slice(0, limit || 40);
   }
   function parseWikiGeo(j) { return (((j || {}).query || {}).geosearch || []).map(function (g) { return { title: String(g.title || '').slice(0, 90), lat: g.lat, lng: g.lon, dist: Math.round(g.dist || 0) }; }); }
-  window.CNEarth = { parentCrop: parentCrop, poiLabel: poiLabel, parseOverpass: parseOverpass, parseWikiGeo: parseWikiGeo, toDMS: toDMS, toUTM: toUTM, plusCode: plusCode, hav: hav, pathLength: pathLength, polyArea: polyArea, fmtDist: fmtDist, fmtArea: fmtArea, sunPosition: sunPosition, parseRainViewer: parseRainViewer, rvTile: rvTile, gibsTile: gibsTile, parseWayback: parseWayback, waybackTile: waybackTile };
+  window.CNEarth = { poiCat: poiCat, parentCrop: parentCrop, poiLabel: poiLabel, parseOverpass: parseOverpass, parseWikiGeo: parseWikiGeo, toDMS: toDMS, toUTM: toUTM, plusCode: plusCode, hav: hav, pathLength: pathLength, polyArea: polyArea, fmtDist: fmtDist, fmtArea: fmtArea, sunPosition: sunPosition, parseRainViewer: parseRainViewer, rvTile: rvTile, gibsTile: gibsTile, parseWayback: parseWayback, waybackTile: waybackTile };
 
   if (typeof document === 'undefined' || !document.createElement) return;
 
@@ -125,6 +137,9 @@
     '.el-row{display:flex;align-items:center;gap:10px;margin:8px 0;font-size:.82rem}.el-row input[type=range]{flex:1}.el-s{font-size:.74rem;color:#5d6779;margin:2px 0 6px}.el-b{border:1px solid #dde3ec;background:#fff;border-radius:11px;padding:8px 13px;font-weight:700;font-size:.82rem;cursor:pointer;color:inherit}.el-b.p{background:#1b4fd8;border-color:#1b4fd8;color:#fff}' +
     '.el-kv{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid #e9edf3;font-size:.86rem}.el-kv span:first-child{color:#5d6779}.el-kv button{border:0;background:none;color:#1b4fd8;font-weight:700;cursor:pointer;padding:0 0 0 8px}' +
     '.el-3d{position:fixed;inset:0;z-index:2900;background:#0b1626}.el-3d .top{position:absolute;left:0;right:0;top:0;z-index:5;display:flex;gap:8px;align-items:center;padding:max(10px,env(safe-area-inset-top)) 12px 10px;background:linear-gradient(#0b1626cc,#0b162600)}.el-3d .top button{border:0;border-radius:12px;background:#fff;padding:9px 13px;font-weight:800;cursor:pointer}.el-3d .top span{color:#fff;font-weight:700;font-size:.85rem;flex:1}.el-3d #el-3dmap{position:absolute;inset:0}';
+  css.textContent += '.el-pin{pointer-events:auto}.el-pin i{display:block;width:20px;height:20px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);margin:-20px 0 0 -10px;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.5);position:relative}.el-pin i:after{content:"";position:absolute;left:5px;top:5px;width:6px;height:6px;border-radius:50%;background:#fff}' +
+    '.el-pin span{position:absolute;left:12px;top:-24px;white-space:nowrap;font:700 11px/1.1 system-ui,sans-serif;color:#fff;text-shadow:0 0 3px #000,0 0 3px #000,0 0 2px #000;display:none;max-width:150px;overflow:hidden;text-overflow:ellipsis}.el-lab .el-pin span{display:block}' +
+    '.el-pin .c-food{background:#e8590c}.el-pin .c-shop{background:#1b64f2}.el-pin .c-health{background:#d62839}.el-pin .c-faith{background:#6b7a90}.el-pin .c-edu{background:#7048e8}.el-pin .c-stay{background:#0c8599}.el-pin .c-leisure{background:#2f9e44}.el-pin .c-civic{background:#364a6b}.el-pin .c-other{background:#868e96}';
   document.head.appendChild(css);
 
   /* ----- couches ----- */
@@ -175,6 +190,8 @@
     M.on[key] = true;
     if (key === 'truecolor' || key === 'fires' || key === 'night') {
       var g = GIBS[key]; M.layers[key] = guard(tileLayer(gibsTile(key, M.gDate), { maxNativeZoom: g.level, attribution: 'NASA GIBS / EOSDIS' }), key, key === 'truecolor' ? 'image NASA' : key === 'fires' ? 'feux actifs' : 'lumières nocturnes').addTo(m);
+    } else if (key === 'pins') {
+      M.layers.pins = window.L.layerGroup().addTo(m); M.pinKeys = {}; schedulePins(true);
     } else if (key === 'hd') {
       M.layers.hd = guard(smartLayer(HD, { maxZoom: 22, maxNativeZoom: 19, opacity: 1, zIndex: 440, attribution: 'Imagery © Esri Clarity, Maxar, Earthstar Geographics' }), 'hd', 'satellite HD').addTo(m);
       if (!M.hdTip) { M.hdTip = 1; toast('Satellite HD : zoomez jusqu’au bout, l’image la plus nette disponible s’affiche.', 'info'); }
@@ -197,14 +214,37 @@
     var lab = document.getElementById('el-wbt'); if (lab) lab.textContent = new Date(M.wb[i].date + 'T12:00:00').toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
   }
   function setOpacity(v) { M.op = v; Object.keys(M.layers).forEach(function (k) { if (k === 'wayback' || k === 'hd' || k === 'labels') return; var l = M.layers[k]; if (Array.isArray(l)) { l.forEach(function (x, i) { if (x && i === M.rvIdx) x.setOpacity(v); }); } else if (l && l.setOpacity && k !== 'hill') l.setOpacity(v); }); }
+  /* ----- repères sur la carte (style Google Earth) ----- */
+  var pinT = 0, pinCtl = null, pinCache = {};
+  function schedulePins(now) { clearTimeout(pinT); if (!M.on.pins) return; pinT = setTimeout(loadPins, now ? 50 : 900); }
+  function pinEndpoints(q) { return ['https://overpass-api.de/api/interpreter?data=', 'https://overpass.kumi.systems/api/interpreter?data='].map(function (u) { return u + encodeURIComponent(q); }); }
+  function loadPins() {
+    var m = M.map; if (!m || !M.on.pins || !M.layers.pins) return; var z = m.getZoom(), wrap = M.wrap;
+    if (wrap) wrap.classList.toggle('el-lab', z >= 17);
+    if (z < 15) { M.layers.pins.clearLayers(); M.pinKeys = {}; if (!M.pinHint) { M.pinHint = 1; toast('Zoomez pour voir les lieux : commerces, écoles, hôpitaux, lieux de culte…', 'info'); } return; }
+    M.pinHint = 0; var b = m.getBounds(), q = '[out:json][timeout:20];nwr[name][~"^(amenity|shop|tourism|leisure|office|healthcare|historic)$"~"."](' + b.getSouth().toFixed(5) + ',' + b.getWest().toFixed(5) + ',' + b.getNorth().toFixed(5) + ',' + b.getEast().toFixed(5) + ');out center 250;';
+    var ck = z + '|' + b.getSouth().toFixed(3) + '|' + b.getWest().toFixed(3) + '|' + b.getNorth().toFixed(3) + '|' + b.getEast().toFixed(3);
+    var draw = function (j) { var c = m.getCenter(), arr = parseOverpass(j, { lat: c.lat, lng: c.lng }, 220); arr.forEach(function (p) {
+        var id = p.name + '|' + p.lat.toFixed(5) + '|' + p.lng.toFixed(5); if (M.pinKeys[id]) return; M.pinKeys[id] = 1;
+        var L = window.L, mk = L.marker([p.lat, p.lng], { icon: L.divIcon({ className: 'el-pin', html: '<i class="c-' + p.cat + '"></i><span>' + esc(p.name) + '</span>', iconSize: [0, 0] }), keyboard: false });
+        mk.bindPopup('<b>' + esc(p.name) + '</b><br>' + esc(p.type)); M.layers.pins && M.layers.pins.addLayer(mk); });
+      var n = Object.keys(M.pinKeys).length; if (n > 600) { M.layers.pins.clearLayers(); M.pinKeys = {}; } };
+    if (pinCache[ck]) { draw(pinCache[ck]); return; }
+    if (pinCtl) { try { pinCtl.abort(); } catch (e) { /* ignore */ } } pinCtl = typeof AbortController === 'function' ? new AbortController() : null;
+    var tryEp = function (i) { var eps = pinEndpoints(q); if (i >= eps.length) return Promise.reject(new Error('indisponible')); return fetch(eps[i], pinCtl ? { signal: pinCtl.signal } : {}).then(function (r) { if (!r.ok) throw new Error('http'); return r.json(); }).catch(function (e) { if (e && e.name === 'AbortError') throw e; return tryEp(i + 1); }); };
+    tryEp(0).then(function (j) { pinCache[ck] = j; draw(j); }).catch(function (e) { if (e && e.name === 'AbortError') return; if (!M.pinFail) { M.pinFail = 1; toast('Les lieux sont momentanément indisponibles.', 'error'); setTimeout(function () { M.pinFail = 0; }, 30000); } });
+  }
+  var EARTH = ['hd', 'labels', 'pins', 'sharp'];
+  function earthOn() { return EARTH.every(function (k) { return M.on[k]; }); }
+  function setEarth(on) { EARTH.forEach(function (k) { if (!!M.on[k] !== on) toggle(k); }); try { localStorage.setItem('cn-el-mode', on ? '1' : '0'); } catch (e) { /* ignore */ } drawPanel(); }
   function setSharp(on) { try { var p = M.map.getPane('tilePane'); if (p) p.style.filter = on ? SHARP : ''; } catch (e) { /* ignore */ } }
   function updateChips() { if (!M.panel) return; M.panel.querySelectorAll('[data-el-l]').forEach(function (b) { b.classList.toggle('on', !!M.on[b.getAttribute('data-el-l')]); }); }
 
   /* ----- panneau ----- */
-  var CH = [['hd', 'Satellite HD'], ['labels', 'Noms et routes'], ['sharp', 'Netteté +'], ['radar', 'Radar de pluie'], ['ir', 'Nuages (satellite)'], ['truecolor', 'Image NASA du jour'], ['fires', 'Feux actifs'], ['night', 'Lumières nocturnes'], ['hill', 'Relief ombré'], ['wayback', 'Archives satellite']];
+  var CH = [['pins', 'Lieux et commerces'], ['hd', 'Satellite HD'], ['labels', 'Noms et routes'], ['sharp', 'Netteté +'], ['radar', 'Radar de pluie'], ['ir', 'Nuages (satellite)'], ['truecolor', 'Image NASA du jour'], ['fires', 'Feux actifs'], ['night', 'Lumières nocturnes'], ['hill', 'Relief ombré'], ['wayback', 'Archives satellite']];
   function drawPanel() {
     if (!M.panel) return; var on = M.on, h = '<div class="el-h"><b>Terre en direct</b><button class="el-x" data-el="close" aria-label="Fermer">×</button></div>';
-    h += '<div class="el-s">Images satellite réelles de la NASA, d’Esri et de RainViewer. Touchez une couche pour l’afficher sur la carte.</div><div class="el-ch">' + CH.map(function (c) { return '<button type="button" data-el-l="' + c[0] + '" class="' + (on[c[0]] ? 'on' : '') + '">' + esc(c[1]) + '</button>'; }).join('') + '</div>';
+    h += '<div class="el-ch"><button type="button" data-el="earth" class="' + (earthOn() ? 'on' : '') + '">Mode Earth : ' + (earthOn() ? 'activé' : 'désactivé') + '</button></div><div class="el-s">Images satellite réelles de la NASA, d’Esri et de RainViewer. Touchez une couche pour l’afficher sur la carte.</div><div class="el-ch">' + CH.map(function (c) { return '<button type="button" data-el-l="' + c[0] + '" class="' + (on[c[0]] ? 'on' : '') + '">' + esc(c[1]) + '</button>'; }).join('') + '</div>';
     if (on.radar || on.ir) { var kind = on.radar ? 'radar' : 'infrared', n = M.rv ? (kind === 'radar' ? M.rv.radar : M.rv.infrared).length : 0; h += '<div class="el-row"><button class="el-b p" data-el="play">' + (M.rvTimer ? 'Pause' : 'Lecture') + '</button><input type="range" id="el-rvs" min="0" max="' + Math.max(0, n - 1) + '" value="' + M.rvIdx + '"><b id="el-rvt" style="min-width:90px;text-align:right"></b></div><div class="el-s">' + (on.radar ? 'Pluie des 2 dernières heures et prévision à court terme.' : 'Nuages vus par satellite infrarouge, mis à jour toutes les 10 minutes environ.') + '</div>'; }
     if (on.truecolor || on.fires) { h += '<div class="el-row"><span>Date</span><input type="date" id="el-gd" class="text-input" value="' + esc(M.gDate) + '" max="' + dayStr(0) + '" style="flex:1"><button class="el-b" data-el="yday">Hier</button></div><div class="el-s">Passage du satellite NASA : l’image d’aujourd’hui peut n’être disponible que partiellement. Les zones nuageuses restent blanches.</div>'; }
     if (on.wayback) { var wbn = M.wb ? M.wb.length : 0; h += wbn ? '<div class="el-row"><span>Plus ancien</span><input type="range" id="el-wbs" min="0" max="' + (wbn - 1) + '" value="' + M.wbIdx + '" style="direction:rtl"><span>Récent</span></div><div class="el-row"><b>Image de <span id="el-wbt"></span></b></div><div class="el-s">Comparez le même lieu au fil des années (constructions, routes, forêts). Zoomez pour plus de détails.</div>' : '<div class="el-s">Chargement des archives…</div>'; }
@@ -228,7 +268,7 @@
       else if (act === 'yday') { M.gDate = dayStr(-1); reloadGibs(); drawPanel(); }
       else if (act === 'measure') { M.measure = !M.measure; if (!M.measure) clearMeasure(); drawPanel(); }
       else if (act === 'undo') { M.pts.pop(); drawMeasure(); } else if (act === 'clear') { clearMeasure(); drawMeasure(); }
-      else if (act === 'point') openPoint(); else if (act === 'poi') openPoi(); else if (act === '3d') open3D();
+      else if (act === 'point') openPoint(); else if (act === 'poi') openPoi(); else if (act === 'earth') setEarth(!earthOn()); else if (act === '3d') open3D();
     });
     p.addEventListener('input', function (e) {
       var t = e.target; if (t.id === 'el-op') setOpacity(t.value / 100);
@@ -342,7 +382,10 @@
     m.on('moveend zoomend', onMove); m.on('move', drawRead);
     m.on('click', function (e) { if (!M.measure) return; M.pts.push({ lat: e.latlng.lat, lng: e.latlng.lng }); drawMeasure(); });
     m.on('unload', function () { removeAllLayers(); if (M.map === m) { M.map = null; M.wrap = null; M.panel = null; } });
+    m.on('moveend', function () { schedulePins(false); });
     drawRead(); onMove();
+    var pref = null; try { pref = localStorage.getItem('cn-el-mode'); } catch (e) { /* ignore */ }
+    if (pref !== '0') setTimeout(function () { if (M.map === m && !earthOn()) setEarth(true); }, 400);
   }
   function removeAllLayers() { setSharp(false); Object.keys(M.layers).forEach(removeLayer); if (M.rvTimer) { clearInterval(M.rvTimer); M.rvTimer = null; } clearMeasure(); }
   function hookL(L) { try { if (L && L.Map && L.Map.addInitHook && !L.__cnEarth) { L.__cnEarth = true; L.Map.addInitHook(function () { var m = this; setTimeout(function () { try { var c = m.getContainer(); if (c && c.id === 'lc-map') onMap(m); } catch (e) { /* ignore */ } }, 50); }); } } catch (e) { /* ignore */ } }
