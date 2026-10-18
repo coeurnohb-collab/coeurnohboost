@@ -107,6 +107,19 @@
       ]
     }
   ],
+  "redirects": [
+    {
+      "source": "/:path((?!api/|__/).*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "coeurnohboost.vercel.app"
+        }
+      ],
+      "destination": "https://coeurnohuniverse.com/:path",
+      "permanent": false
+    }
+  ],
   "rewrites": [
     {
       "source": "/__/auth/:path*",
