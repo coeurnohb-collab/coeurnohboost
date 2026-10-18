@@ -193,7 +193,7 @@
   }
 
   /* ---------------------------- Appel serveur ---------------------------- */
-  async function call(action, payload) {
+  async function call1(action, payload) {
     var u = (typeof auth !== 'undefined' && auth) ? auth.currentUser : null;
     if (!u) throw new Error('login');
     var token = await u.getIdToken();
@@ -208,6 +208,19 @@
       if (e && e.name === 'AbortError') throw new Error(tx('slow'));
       throw e;
     } finally { clearTimeout(tm); }
+  }
+  // Reessai automatique (2 fois, avec pause) quand le tuteur est momentanement surcharge : le serveur ne decompte rien en cas d'echec.
+  async function call(action, payload) {
+    var waits = [2500, 5000];
+    for (var i = 0; ; i++) {
+      try { return await call1(action, payload); }
+      catch (e) {
+        var m = e && e.message ? e.message : '';
+        var transient = action === 'academy_study' && payload && /^(lesson|create_path|tutor|quiz)$/.test(payload.op || '') && /sollicit|incompl|indisponible|pas pu r|trop de temps/i.test(m) && !/^\[ESSAI\]/.test(m);
+        if (!transient || i >= waits.length) throw e;
+        await new Promise(function (r) { setTimeout(r, waits[i]); });
+      }
+    }
   }
   function errMsg(e) { var m = (e && e.message && e.message !== 'login' && e.message !== 'Failed to fetch') ? e.message : tx('fail'); return m.replace(/^\[ESSAI\]\s*/, ''); }
   // Le serveur commence par [ESSAI] quand l'essai gratuit est épuisé, et cite « Académie Plus » quand une catégorie est réservée aux abonnés.
