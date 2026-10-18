@@ -47,7 +47,7 @@
       var z = function (iso) { return new Date(iso).toISOString().replace(/[-:]/g, '').replace(/\.\d+/, ''); };
       var s = ev.startDate || ev.eventStartDate, e = ev.endDate || s; if (!s) return '';
       var esc2 = function (t) { return String(t || '').replace(/\\/g, '\\\\').replace(/[,;]/g, '\\$&').replace(/\r?\n/g, '\\n'); };
-      return ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Coeurnoh Universe//Billetterie//FR', 'BEGIN:VEVENT', 'UID:' + (ev.id || Date.now()) + '@coeurnohboost.vercel.app', 'DTSTAMP:' + z(new Date().toISOString()), 'DTSTART:' + z(s), 'DTEND:' + z(e), 'SUMMARY:' + esc2(ev.title || ev.eventTitle), 'LOCATION:' + esc2(ev.location), 'DESCRIPTION:' + esc2(ev.description), 'BEGIN:VALARM', 'TRIGGER:-PT2H', 'ACTION:DISPLAY', 'DESCRIPTION:Rappel', 'END:VALARM', 'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
+      return ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Coeurnoh Universe//Billetterie//FR', 'BEGIN:VEVENT', 'UID:' + (ev.id || Date.now()) + '@coeurnohuniverse.com', 'DTSTAMP:' + z(new Date().toISOString()), 'DTSTART:' + z(s), 'DTEND:' + z(e), 'SUMMARY:' + esc2(ev.title || ev.eventTitle), 'LOCATION:' + esc2(ev.location), 'DESCRIPTION:' + esc2(ev.description), 'BEGIN:VALARM', 'TRIGGER:-PT2H', 'ACTION:DISPLAY', 'DESCRIPTION:Rappel', 'END:VALARM', 'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
     }
     function downloadIcs(ev, name) {
       var t = icsFor(ev); if (!t) { toast('Date de l’événement indisponible', 'error'); return; }

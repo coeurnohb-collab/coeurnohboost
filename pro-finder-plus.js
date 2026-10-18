@@ -84,7 +84,7 @@
       } catch (e) { listEl.innerHTML = '<p class="muted small">Erreur de chargement : ' + esc(e.message) + '</p>'; }
     };
     function shareReq(r) {
-      var text = 'Je cherche : ' + r.title + ' (' + (r.city || '') + '). Envoie ton devis sur Coeurnoh Universe.\nhttps://coeurnohboost.vercel.app/?open=srequests';
+      var text = 'Je cherche : ' + r.title + ' (' + (r.city || '') + '). Envoie ton devis sur Coeurnoh Universe.\nhttps://coeurnohuniverse.com/?open=srequests';
       if (navigator.share) navigator.share({ title: 'Demande de service', text: text }).catch(function () { /* annulé */ }); else window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank', 'noopener');
     }
     async function republish(r) {

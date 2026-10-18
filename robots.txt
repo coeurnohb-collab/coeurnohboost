@@ -4,5 +4,5 @@ Disallow: /admin.html
 Disallow: /api/
 Disallow: /p/facture/
 
-Sitemap: https://coeurnohboost.vercel.app/sitemap.xml
-Sitemap: https://coeurnohboost.vercel.app/sitemap-sites.xml
+Sitemap: https://coeurnohuniverse.com/sitemap.xml
+Sitemap: https://coeurnohuniverse.com/sitemap-sites.xml

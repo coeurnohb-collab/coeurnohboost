@@ -12,7 +12,7 @@
   }
   function main() {
 
-  var ORIGIN = 'https://coeurnohboost.vercel.app';
+  var ORIGIN = 'https://coeurnohuniverse.com';
   var filt = 'all', q = '';
   var $ = function (id) { return document.getElementById(id); };
   function esc(s) { return (typeof escapeHtml === 'function') ? escapeHtml(s == null ? '' : String(s)) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
