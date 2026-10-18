@@ -54,7 +54,16 @@
       pMonth: '1 mois', pQuarter: '3 mois (trimestre)', pSemester: '6 mois (semestre)', pYear: '1 an', perMo: 'soit {p} $ par mois', bestV: 'Meilleur prix', activateSel: 'Activer pour {p} $', daysN: '{n} jours',
       notesT: 'Mes notes', notesPh: 'Écris ce que tu veux retenir de cette leçon…', notesSaved: 'Notes enregistrées', reviewB: 'Réviser les flashcards', reviewT: 'Révision', reviewEmpty: "Ouvre quelques leçons : leurs flashcards apparaîtront ici pour réviser.", cardN: 'Carte {a} sur {b}', shuffleB: 'Mélanger',
       attestB: "Attestation de parcours", attestT: 'Attestation de suivi', attestBody: 'atteste avoir suivi et terminé le parcours', attestMeta: '{n} leçons · niveau {l}', attestDate: 'Délivrée le {d}', attestPrint: 'Imprimer ou enregistrer en PDF', attestNote: "Document de suivi personnel délivré par l'Académie. Ce n'est pas un diplôme officiel.",
-      paywallT: 'Ton essai gratuit est terminé', paywallS: 'Continue à étudier avec une formule : cours complets, tuteur disponible chaque jour, sans limite de sujet.'
+      paywallT: 'Ton essai gratuit est terminé', paywallS: 'Continue à étudier avec une formule : cours complets, tuteur disponible chaque jour, sans limite de sujet.',
+      listen: 'Écouter', saveL: 'Enregistrer', savedL: 'Enregistré', exportL: 'Exporter', exportT: 'Exporter la leçon', savedT: 'Cours enregistrés', savedRow: 'Cours enregistrés', savedRowS: '{n} sur cet appareil, lisibles sans connexion',
+      savedS: "Ces cours sont gardés sur ton téléphone et s'ouvrent même sans connexion.", savedEmpty: "Aucun cours enregistré pour l'instant. Touche « Enregistrer » dans une leçon pour la garder sur ton téléphone, même sans connexion.",
+      savedOk: 'Cours enregistré sur cet appareil.', savedRemoved: 'Cours retiré des enregistrés.', savedFull: "Espace plein sur cet appareil : retire d'anciens cours enregistrés.", savedOffline: 'Hors connexion : voici la copie enregistrée.', remove: 'Retirer',
+      exPdf: 'PDF (imprimer ou enregistrer)', exPdfS: "Dans la fenêtre d'impression, choisis « Enregistrer au format PDF ».", exFile: 'Fichier de cours', exFileS: 'Une page à garder, partager ou ouvrir sans connexion.', exCopy: 'Copier le texte', exCopyS: 'Pour le coller dans tes notes ou un message.', exShare: 'Partager', exShareS: 'Envoyer le cours à un ami ou à une application.',
+      copied: 'Texte copié.', printFail: "Impression indisponible ici : le fichier de cours est téléchargé à la place.", dlOk: 'Fichier de cours téléchargé.', docFoot: "Cours généré par l'Académie. À vérifier avec d'autres sources pour un usage officiel.",
+      vocabT: 'Vocabulaire', phrasesT: 'Phrases à écouter et répéter', tableT: 'Tableau', mnemoT: 'Astuce de mémorisation', summaryT: 'Résumé de la leçon', termT: 'Terme', meaningT: 'Sens', phoneticT: 'Prononciation', exampleT: 'Exemple', phraseT: 'Phrase',
+      speed: 'Vitesse', slow: 'Lent', normal: 'Normal', hideTr: 'Masquer les traductions', repeatB: 'Répéter la phrase', listening: "Je t'écoute… dis la phrase.", heard: 'Entendu', pronOk: 'Très bien !', pronMid: 'Bien, continue.', pronLow: 'Réessaie en articulant.',
+      micDenied: "Le micro est refusé. Autorise-le dans les réglages du navigateur pour ce site.", noSpeech: "Je n'ai rien entendu. Réessaie plus près du micro.", recFail: "La reconnaissance vocale n'est pas disponible ici.", noRec: "L'exercice de prononciation (micro) demande Chrome sur Android ou un navigateur compatible.",
+      ttsNo: "La lecture vocale n'est pas disponible sur ce navigateur.", noVoice: "Aucune voix « {l} » sur cet appareil : la prononciation peut être approximative. Installe-la dans Réglages, Langue, Synthèse vocale."
     },
     en: {
       tab: 'Self-study', loginT: 'Study at your own pace with a personal tutor', loginS: 'Sign in to create your first personalised learning path.', loginB: 'Sign in',
@@ -95,7 +104,16 @@
       pMonth: '1 month', pQuarter: '3 months (quarter)', pSemester: '6 months (semester)', pYear: '1 year', perMo: 'about {p} $ per month', bestV: 'Best value', activateSel: 'Activate for {p} $', daysN: '{n} days',
       notesT: 'My notes', notesPh: 'Write what you want to remember from this lesson…', notesSaved: 'Notes saved', reviewB: 'Review flashcards', reviewT: 'Review', reviewEmpty: 'Open a few lessons: their flashcards will appear here for review.', cardN: 'Card {a} of {b}', shuffleB: 'Shuffle',
       attestB: 'Completion certificate', attestT: 'Certificate of completion', attestBody: 'has followed and completed the learning path', attestMeta: '{n} lessons · {l} level', attestDate: 'Issued on {d}', attestPrint: 'Print or save as PDF', attestNote: 'Personal progress document issued by the Academy. It is not an official diploma.',
-      paywallT: 'Your free trial is over', paywallS: 'Keep studying with a plan: complete courses, a tutor every day, any subject.'
+      paywallT: 'Your free trial is over', paywallS: 'Keep studying with a plan: complete courses, a tutor every day, any subject.',
+      listen: 'Listen', saveL: 'Save', savedL: 'Saved', exportL: 'Export', exportT: 'Export the lesson', savedT: 'Saved lessons', savedRow: 'Saved lessons', savedRowS: '{n} on this device, readable offline',
+      savedS: 'These lessons are kept on your phone and open even without a connection.', savedEmpty: 'No saved lessons yet. Tap "Save" in a lesson to keep it on your phone, even offline.',
+      savedOk: 'Lesson saved on this device.', savedRemoved: 'Lesson removed from saved.', savedFull: 'Storage full on this device: remove some saved lessons.', savedOffline: 'Offline: here is the saved copy.', remove: 'Remove',
+      exPdf: 'PDF (print or save)', exPdfS: 'In the print window, choose "Save as PDF".', exFile: 'Lesson file', exFileS: 'A page to keep, share or open offline.', exCopy: 'Copy the text', exCopyS: 'Paste it into your notes or a message.', exShare: 'Share', exShareS: 'Send the lesson to a friend or an app.',
+      copied: 'Text copied.', printFail: 'Printing is unavailable here: the lesson file was downloaded instead.', dlOk: 'Lesson file downloaded.', docFoot: 'Lesson generated by the Academy. Check other sources for official use.',
+      vocabT: 'Vocabulary', phrasesT: 'Phrases to listen to and repeat', tableT: 'Table', mnemoT: 'Memory tip', summaryT: 'Lesson summary', termT: 'Term', meaningT: 'Meaning', phoneticT: 'Pronunciation', exampleT: 'Example', phraseT: 'Phrase',
+      speed: 'Speed', slow: 'Slow', normal: 'Normal', hideTr: 'Hide translations', repeatB: 'Repeat the phrase', listening: 'Listening… say the phrase.', heard: 'Heard', pronOk: 'Very good!', pronMid: 'Good, keep going.', pronLow: 'Try again, speak clearly.',
+      micDenied: 'Microphone access is denied. Allow it in the browser settings for this site.', noSpeech: "I didn't hear anything. Try again closer to the microphone.", recFail: 'Speech recognition is not available here.', noRec: 'The pronunciation exercise (microphone) needs Chrome on Android or a compatible browser.',
+      ttsNo: 'Voice playback is not available in this browser.', noVoice: 'No "{l}" voice on this device: pronunciation may be approximate. Install it in Settings, Language, Text-to-speech.'
     }
   };
   function lang() { try { if (typeof currentLang !== 'undefined' && currentLang) return currentLang; } catch (e) { /* ignore */ } return 'fr'; }
@@ -129,6 +147,7 @@
     trash: '<path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v6M14 11v6"/>', plus: '<path d="M12 5v14M5 12h14"/>', crown: '<path d="m3 8 4.5 4L12 5l4.5 7L21 8l-2 11H5z"/>', arrow: '<path d="m15 18-6-6 6-6"/>',
     users: '<circle cx="9" cy="8" r="4"/><path d="M2 21v-1a6 6 0 0 1 6-6h2M17 11a3 3 0 1 0 0-6M22 21v-1a5 5 0 0 0-4-4.9"/>', alert: '<path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/>',
     sport: '<circle cx="12" cy="9" r="6"/><path d="m8.5 14-1.5 7 5-3 5 3-1.5-7"/>', print: '<path d="M6 9V3h12v6M6 18H4v-7h16v7h-2M7 14h10v7H7z"/>', note: '<path d="M5 3h10l4 4v14H5zM14 3v5h5M8 13h8M8 17h5"/>', refresh: '<path d="M20 11a8 8 0 0 0-14.9-3M4 4v4h4M4 13a8 8 0 0 0 14.9 3M20 20v-4h-4"/>', shield: '<path d="M12 3 4 6v6c0 4.5 3.2 7.8 8 9 4.8-1.2 8-4.5 8-9V6z"/><path d="m9 12 2 2 4-4"/>',
+    volume: '<path d="M11 5 6 9H2v6h4l5 4zM15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/>', mic: '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>', bookmark: '<path d="M6 3h12v18l-6-4-6 4z"/>', download: '<path d="M12 3v12M7 10l5 5 5-5M4 21h16"/>', share: '<circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="m8.2 10.8 7.6-3.6M8.2 13.2l7.6 3.6"/>', copy: '<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/>',
     lock: '<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>', search: '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>', x: '<path d="M18 6 6 18M6 6l12 12"/>', right: '<path d="m9 6 6 6-6 6"/>'
   };
   function ic(name, cls) { return '<svg class="cnh-ico ' + (cls || '') + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (P[name] || '') + '</svg>'; }
@@ -144,15 +163,30 @@
       if (i % 2 === 1) { out.push('<pre><code>' + esc(b.replace(/^[A-Za-z0-9+#-]*\n/, '').replace(/\n$/, '')) + '</code></pre>'); return; }
       var html = '', list = null;
       function close() { if (list) { html += '</' + list + '>'; list = null; } }
-      b.split('\n').forEach(function (line) {
-        var s = line.trim();
-        if (!s) { close(); return; }
+      var bl = b.split('\n');
+      for (var li = 0; li < bl.length; li++) {
+        var line = bl[li], s = line.trim();
+        if (!s) { close(); continue; }
+        if (s.charAt(0) === '|' && s.indexOf('|', 1) > 0) {
+          var rows = [];
+          while (li < bl.length && bl[li].trim().charAt(0) === '|') { rows.push(bl[li].trim()); li++; }
+          li--;
+          close();
+          var cells = function (r) { return r.replace(/^\|/, '').replace(/\|$/, '').split('|').map(function (c) { return c.trim(); }); };
+          var head = null, body = rows.filter(function (r) { return !/^\|?\s*:?-{2,}/.test(r); });
+          if (rows.length > 1 && /^\|?\s*:?-{2,}/.test(rows[1])) { head = cells(rows[0]); body = body.slice(1); }
+          html += '<div class="cnh-scroll"><table class="cnh-tbl">' + (head ? '<thead><tr>' + head.map(function (c) { return '<th>' + inline(c) + '</th>'; }).join('') + '</tr></thead>' : '') +
+            '<tbody>' + body.map(function (r) { return '<tr>' + cells(r).map(function (c) { return '<td>' + inline(c) + '</td>'; }).join('') + '</tr>'; }).join('') + '</tbody></table></div>';
+          continue;
+        }
+        var bq = /^>\s?(.*)$/.exec(s);
+        if (bq) { close(); html += '<blockquote>' + inline(bq[1]) + '</blockquote>'; continue; }
         var h = /^#{1,4}\s+(.*)$/.exec(s);
-        if (h) { close(); html += '<h4>' + inline(h[1]) + '</h4>'; return; }
+        if (h) { close(); html += '<h4>' + inline(h[1]) + '</h4>'; continue; }
         var u = /^[-*•]\s+(.*)$/.exec(s), o = /^\d+[.)]\s+(.*)$/.exec(s);
-        if (u || o) { var k = u ? 'ul' : 'ol'; if (list !== k) { close(); html += '<' + k + '>'; list = k; } html += '<li>' + inline((u || o)[1]) + '</li>'; return; }
+        if (u || o) { var k = u ? 'ul' : 'ol'; if (list !== k) { close(); html += '<' + k + '>'; list = k; } html += '<li>' + inline((u || o)[1]) + '</li>'; continue; }
         close(); html += '<p>' + inline(s) + '</p>';
-      });
+      }
       close(); out.push(html);
     });
     return out.join('');
@@ -206,6 +240,7 @@
   function setRoot(html) {
     var b = box();
     if (!b) return;
+    stopSpeech();
     b.innerHTML = html;
     if (S.fs) b.scrollTop = 0;
     else { try { var y = root.getBoundingClientRect().top + (window.pageYOffset || 0) - 84; if (y < (window.pageYOffset || 0)) window.scrollTo(0, Math.max(0, y)); } catch (e) { /* ignore */ } }
@@ -313,6 +348,7 @@
     if (!c.enabled) h += '<div class="cnh-notice bad">' + ic('alert') + '<span>' + esc(tx('closed')) + '</span></div>';
     else if (!c.aiReady) h += '<div class="cnh-notice warn">' + ic('alert') + '<span>' + esc(tx('aiOff')) + '</span></div>';
     h += planCard(c);
+    h += '<button type="button" class="cnh-card cnh-path" data-act="saved"><span class="cnh-dom">' + ic('bookmark') + '</span><span class="cnh-grow"><b style="display:block">' + esc(tx('savedRow')) + '</b><span class="cnh-sub" style="display:block">' + esc(tx('savedRowS', { n: savedList().length })) + '</span></span>' + ic('right') + '</button>';
     var last = S.paths[0];
     if (last) {
       var p0 = pct(last.done, last.lessonsTotal);
@@ -535,6 +571,8 @@
       if (!r.cached) { (p.generated = p.generated || []).push(lessonId); call('academy_study', { op: 'config' }).then(function (c) { S.cfg = c; }).catch(function () { /* ignore */ }); }
       renderLesson();
     } catch (e) {
+      var svd = savedFind(p.id, lessonId);
+      if (svd && (navigator.onLine === false || /fetch|network|load failed/i.test(String(e && e.message)))) { S.lesson = Object.assign({ quiz: [], done: false, best: null }, svd.lesson); toast(tx('savedOffline'), 'info'); renderLesson(); return; }
       if (isPaywall(e)) { call('academy_study', { op: 'config' }).then(function (c) { S.cfg = c; }).catch(function () { /* ignore */ }); setRoot(paywallHtml(errMsg(e))); }
       else setRoot('<div class="cnh-notice bad">' + ic('alert') + '<span>' + esc(errMsg(e)) + '</span></div><button type="button" class="cnh-btn block" data-act="back">' + esc(tx('back')) + '</button>');
     }
@@ -547,29 +585,20 @@
     setTop(l.title || meta.title);
     h += '<div class="cnh-sub" style="font-weight:600;margin:0 0 6px">' + esc(tx('moduleN', { n: meta.mi + 1 })) + ' · ' + esc(tx('lessonOf', { a: idx + 1, b: fl.length })) + '</div>';
     h += '<h2 class="cnh-h cnh-h1" style="margin:0 0 10px">' + esc(l.title || meta.title) + '</h2>';
-    if (l.objective) h += '<div class="cnh-notice">' + ic('bulb') + '<span>' + esc(l.objective) + '</span></div>';
-    h += '<div class="cnh-md" style="margin:0 0 16px">' + md(l.content) + '</div>';
-    if (l.keyPoints && l.keyPoints.length) h += '<div class="cnh-box key"><div class="cnh-box-t">' + ic('star') + esc(tx('keyT')) + '</div><ul>' + l.keyPoints.map(function (k) { return '<li>' + inline(k) + '</li>'; }).join('') + '</ul></div>';
-    if (l.example) h += '<div class="cnh-box ex"><div class="cnh-box-t">' + ic('bulb') + esc(tx('exT')) + '</div><div class="cnh-md" style="font-size:.95rem">' + md(l.example) + '</div></div>';
-    if (l.exercise && l.exercise.prompt) {
-      h += '<div class="cnh-box"><div class="cnh-box-t">' + ic('code') + esc(tx('exerciseT')) + '</div><div class="cnh-md" style="font-size:.95rem">' + md(l.exercise.prompt) + '</div><div class="cnh-row cnh-wrap" style="margin-top:10px">' +
-        (l.exercise.hint ? '<button type="button" class="cnh-btn soft sm" data-act="reveal" data-t="cnh-hint">' + esc(tx('hint')) + '</button>' : '') +
-        (l.exercise.solution ? '<button type="button" class="cnh-btn soft sm" data-act="reveal" data-t="cnh-sol">' + esc(tx('solution')) + '</button>' : '') + '</div>' +
-        (l.exercise.hint ? '<div id="cnh-hint" hidden class="cnh-notice" style="margin:10px 0 0">' + ic('bulb') + '<span>' + esc(l.exercise.hint) + '</span></div>' : '') +
-        (l.exercise.solution ? '<div id="cnh-sol" hidden class="cnh-md" style="margin-top:10px;padding:12px;border-radius:12px;background:var(--cnh-ok-bg)">' + md(l.exercise.solution) + '</div>' : '') + '</div>';
-    }
+    h += toolbarHtml(!!savedFind(p.id, S.lessonId));
+    h += lessonBodyHtml(l);
     if (S.cards.length) {
       h += '<div class="cnh-eyebrow cnh-row">' + ic('cards', 'sm') + esc(tx('cardsT')) + '</div>' +
         '<div class="cnh-fc" id="cnh-fc"><div class="cnh-fc-in" data-act="flip"><div class="cnh-fc-f" id="cnh-fc-f"></div><div class="cnh-fc-b" id="cnh-fc-b"></div></div></div>' +
-        '<div class="cnh-row cnh-between" style="margin-bottom:6px"><button type="button" class="cnh-btn sm" data-act="prevc">' + esc(tx('prevC')) + '</button><span class="cnh-sub" id="cnh-fc-n"></span><button type="button" class="cnh-btn sm" data-act="nextc">' + esc(tx('nextC')) + '</button></div><p class="cnh-hint" style="text-align:center">' + esc(tx('flipHint')) + '</p>';
+        '<div class="cnh-row cnh-between" style="margin-bottom:6px"><button type="button" class="cnh-btn sm" data-act="prevc">' + esc(tx('prevC')) + '</button><span class="cnh-sub" id="cnh-fc-n"></span><button type="button" class="cnh-btn sm" data-act="nextc">' + esc(tx('nextC')) + '</button></div>' + (l.speechLang ? '<div style="text-align:center;margin-bottom:6px"><button type="button" class="cnh-chip" data-act="speak-card">' + ic('volume', 'sm') + '<span>' + esc(tx('listen')) + '</span></button></div>' : '') + '<p class="cnh-hint" style="text-align:center">' + esc(tx('flipHint')) + '</p>';
     }
     h += '<div class="cnh-eyebrow cnh-row">' + ic('note', 'sm') + esc(tx('notesT')) + '<span class="cnh-sub" id="cnh-note-s" style="margin-left:auto;text-transform:none;letter-spacing:0;font-weight:500"></span></div><textarea class="cnh-input cnh-note" data-f="note" maxlength="2000" placeholder="' + esc(tx('notesPh')) + '">' + esc(l.note || '') + '</textarea>';
-    h += '<div class="cnh-eyebrow cnh-row">' + ic('quiz', 'sm') + esc(tx('quizT')) + '</div><div id="cnh-quiz"></div>';
+    if ((l.quiz || []).length) h += '<div class="cnh-eyebrow cnh-row">' + ic('quiz', 'sm') + esc(tx('quizT')) + '</div><div id="cnh-quiz"></div>';
     h += '<div class="cnh-lbar"><button type="button" class="cnh-btn soft cnh-iconbtn" style="flex:0 0 46px;width:46px;padding:0" data-act="tutor" aria-label="' + esc(tx('askT')) + '">' + ic('chat') + '</button>' +
       '<button type="button" class="cnh-btn ' + (l.done ? 'soft' : 'primary') + '" id="cnh-complete" data-act="complete">' + ic('check') + '<span>' + esc(l.done ? tx('completed') : tx('complete')) + '</span></button>' +
       '<button type="button" class="cnh-btn" data-act="next-lesson" style="flex:0 0 auto"><span>' + esc(tx('nextL')) + '</span>' + ic('right') + '</button></div>';
     setRoot(h);
-    paintCard(); paintQuiz();
+    paintCard(); if ((l.quiz || []).length) paintQuiz();
   }
   function paintCard() {
     var c = S.cards[S.card]; if (!c) return;
@@ -628,6 +657,303 @@
     btn.disabled = false;
   }
 
+  /* =====================================================================
+     SUPPORTS DE COURS : voix, vocabulaire, phrases, tableaux, sauvegarde, export
+     ===================================================================== */
+  var UI_TAGS = { fr: 'fr-FR', en: 'en-US', es: 'es-ES', it: 'it-IT', pt: 'pt-PT' };
+  var VO = { rate: 0.9, tok: 0, on: null, warned: {}, rec: null, hideTr: false };
+  function ttsOk() { try { return !!(window.speechSynthesis && window.SpeechSynthesisUtterance); } catch (e) { return false; } }
+  function pickVoice(tag) {
+    try {
+      var vs = window.speechSynthesis.getVoices() || [], t0 = String(tag || '').toLowerCase().replace('_', '-'), b = t0.split('-')[0], best = null, score = -1;
+      vs.forEach(function (v) {
+        var l = String(v.lang || '').toLowerCase().replace('_', '-'), s = -1;
+        if (l === t0) s = 3; else if (l.split('-')[0] === b) s = 2;
+        if (s < 0) return;
+        if (/google|natural|neural|online/i.test(v.name || '')) s += 0.5;
+        if (s > score) { score = s; best = v; }
+      });
+      return { voice: best, any: vs.length > 0 };
+    } catch (e) { return { voice: null, any: false }; }
+  }
+  function speechText(t) { return String(t == null ? '' : t).replace(/```[\s\S]*?```/g, ' ').replace(/[*_`#>|]/g, ' ').replace(/\s+/g, ' ').trim(); }
+  function speechChunks(t) {
+    var out = [], cur = '';
+    speechText(t).replace(/([.!?…:;])\s+/g, '$1\u0001').split('\u0001').forEach(function (s) {
+      if (cur && (cur + ' ' + s).length > 170) { out.push(cur); cur = s; } else cur = cur ? cur + ' ' + s : s;
+    });
+    if (cur) out.push(cur);
+    return out;
+  }
+  function markSpeaking(btn) {
+    [].forEach.call(document.querySelectorAll('.cnh-spk.on,.cnh-chip.on[data-act="speak-lesson"]'), function (b) { b.classList.remove('on'); });
+    VO.on = btn || null;
+    if (btn) btn.classList.add('on');
+  }
+  function stopSpeech() { VO.tok++; try { if (ttsOk()) window.speechSynthesis.cancel(); } catch (e) { /* ignore */ } markSpeaking(null); }
+  function speak(text, tag, btn) {
+    if (!ttsOk()) { toast(tx('ttsNo'), 'info'); return; }
+    var wasOn = !!btn && btn === VO.on;
+    stopSpeech();
+    if (wasOn) return;
+    var parts = speechChunks(text);
+    if (!parts.length) return;
+    var pv = pickVoice(tag), token = VO.tok, i = 0;
+    if (tag && pv.any && !pv.voice && !VO.warned[tag]) { VO.warned[tag] = 1; toast(tx('noVoice', { l: tag }), 'info'); }
+    markSpeaking(btn);
+    (function next() {
+      if (token !== VO.tok) return;
+      if (i >= parts.length) { markSpeaking(null); return; }
+      var u = new SpeechSynthesisUtterance(parts[i++]);
+      u.lang = tag || UI_TAGS[lang()] || 'fr-FR';
+      u.rate = VO.rate;
+      if (pv.voice) u.voice = pv.voice;
+      u.onend = next;
+      u.onerror = function () { if (token === VO.tok) markSpeaking(null); };
+      try { window.speechSynthesis.speak(u); } catch (e) { markSpeaking(null); }
+    })();
+  }
+  if (ttsOk()) { try { window.speechSynthesis.getVoices(); window.speechSynthesis.addEventListener('voiceschanged', function () { /* voix chargées */ }); } catch (e) { /* ignore */ } }
+
+  // Exercice de prononciation : reconnaissance vocale du navigateur (Chrome/Android), score de ressemblance avec la phrase attendue.
+  function recOk() { return !!(window.SpeechRecognition || window.webkitSpeechRecognition); }
+  function normS(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9À-￿ ]+/gi, ' ').replace(/\s+/g, ' ').trim(); }
+  function similarity(a, b) {
+    a = normS(a); b = normS(b);
+    if (!a || !b) return 0;
+    var m = a.length, n = b.length, d = [], i, j;
+    for (i = 0; i <= m; i++) d[i] = [i];
+    for (j = 1; j <= n; j++) d[0][j] = j;
+    for (i = 1; i <= m; i++) for (j = 1; j <= n; j++) d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a.charAt(i - 1) === b.charAt(j - 1) ? 0 : 1));
+    return Math.max(0, Math.round((1 - d[m][n] / Math.max(m, n)) * 100));
+  }
+  function listenTo(text, tag, outEl, btn) {
+    var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR || !outEl) return;
+    stopSpeech();
+    try { if (VO.rec) VO.rec.abort(); } catch (e) { /* ignore */ }
+    var r = new SR(), got = false;
+    VO.rec = r; r.lang = tag || 'en-US'; r.interimResults = false; r.maxAlternatives = 3; r.continuous = false;
+    if (btn) btn.classList.add('on');
+    outEl.className = 'cnh-pron'; outEl.textContent = tx('listening');
+    r.onresult = function (ev) {
+      got = true;
+      var alts = ev.results[0], best = '', sc = -1;
+      for (var k = 0; k < alts.length; k++) { var s = similarity(text, alts[k].transcript); if (s > sc) { sc = s; best = alts[k].transcript; } }
+      outEl.className = 'cnh-pron ' + (sc >= 80 ? 'ok' : sc >= 55 ? 'mid' : 'low');
+      outEl.innerHTML = '<b>' + sc + ' %</b> · ' + esc(tx('heard')) + ' : « ' + esc(best) + ' » — ' + esc(tx(sc >= 80 ? 'pronOk' : sc >= 55 ? 'pronMid' : 'pronLow'));
+    };
+    r.onerror = function (ev) {
+      got = true; outEl.className = 'cnh-pron low';
+      outEl.textContent = tx(ev.error === 'not-allowed' || ev.error === 'service-not-allowed' ? 'micDenied' : ev.error === 'no-speech' ? 'noSpeech' : 'recFail');
+    };
+    r.onend = function () { if (btn) btn.classList.remove('on'); if (!got) { outEl.className = 'cnh-pron low'; outEl.textContent = tx('noSpeech'); } };
+    try { r.start(); } catch (e) { outEl.className = 'cnh-pron low'; outEl.textContent = tx('recFail'); if (btn) btn.classList.remove('on'); }
+  }
+
+  /* ---------------------------- Cours enregistrés (sur cet appareil) ---------------------------- */
+  var SAVE_KEY = 'cnh_saved_v1';
+  function uidKey() { var u = me(); return u && u.uid ? u.uid : 'anon'; }
+  function savedAll() { try { var j = JSON.parse(localStorage.getItem(SAVE_KEY) || '{}'); return j && typeof j === 'object' ? j : {}; } catch (e) { return {}; } }
+  function savedList() { var l = savedAll()[uidKey()]; return Array.isArray(l) ? l : []; }
+  function savedWrite(list) { try { var all = savedAll(); all[uidKey()] = list; localStorage.setItem(SAVE_KEY, JSON.stringify(all)); return true; } catch (e) { return false; } }
+  function savedIndex(list, pid, lid) { for (var i = 0; i < list.length; i++) if (list[i].pathId === pid && list[i].lessonId === lid) return i; return -1; }
+  function savedFind(pid, lid) { var l = savedList(), i = savedIndex(l, pid, lid); return i >= 0 ? l[i] : null; }
+  function slimLesson(l) { var o = {}; for (var k in l) if (Object.prototype.hasOwnProperty.call(l, k) && k !== 'quiz' && k !== 'done' && k !== 'best') o[k] = l[k]; return o; }
+  function paintSaveBtn() {
+    var b = $('cnh-save-btn'); if (!b || !S.path) return;
+    var on = !!savedFind(S.path.id, S.lessonId);
+    b.classList.toggle('on', on);
+    var sp = b.querySelector('span'); if (sp) sp.textContent = tx(on ? 'savedL' : 'saveL');
+  }
+  function toggleSave() {
+    var p = S.path, l = S.lesson; if (!p || !l) return;
+    var list = savedList(), i = savedIndex(list, p.id, S.lessonId);
+    if (i >= 0) { list.splice(i, 1); savedWrite(list); toast(tx('savedRemoved'), 'info'); }
+    else {
+      list.unshift({ pathId: p.id, lessonId: S.lessonId, title: l.title || '', pathTitle: p.title || '', domain: p.domain || '', savedAt: Date.now(), lesson: slimLesson(l) });
+      if (!savedWrite(list.slice(0, 80))) { toast(tx('savedFull'), 'error'); return; }
+      toast(tx('savedOk'), 'success');
+    }
+    paintSaveBtn();
+  }
+
+  /* ---------------------------- Blocs didactiques ---------------------------- */
+  function spkBtn(text, tag, extra) {
+    return '<button type="button" class="cnh-spk' + (extra ? ' ' + extra : '') + '" data-act="speak" data-s="' + esc(text) + '" data-l="' + esc(tag || '') + '" aria-label="' + esc(tx('listen')) + '">' + ic('volume') + '</button>';
+  }
+  function micBtn(text, tag) {
+    return '<button type="button" class="cnh-spk mic" data-act="rec" data-s="' + esc(text) + '" data-l="' + esc(tag || '') + '" aria-label="' + esc(tx('repeatB')) + '">' + ic('mic') + '</button>';
+  }
+  function tablesHtml(l) {
+    return (l.tables || []).map(function (t) {
+      return '<div class="cnh-box"><div class="cnh-box-t">' + ic('book') + esc(t.title || tx('tableT')) + '</div><div class="cnh-scroll"><table class="cnh-tbl"><thead><tr>' +
+        t.headers.map(function (h) { return '<th>' + esc(h) + '</th>'; }).join('') + '</tr></thead><tbody>' +
+        t.rows.map(function (r) { return '<tr>' + r.map(function (c) { return '<td>' + esc(c) + '</td>'; }).join('') + '</tr>'; }).join('') + '</tbody></table></div></div>';
+    }).join('');
+  }
+  function vocabHtml(l) {
+    if (!l.vocabulary || !l.vocabulary.length) return '';
+    var tag = l.speechLang || '';
+    return '<div class="cnh-eyebrow cnh-row">' + ic('book', 'sm') + esc(tx('vocabT')) + '</div><div class="cnh-vocab">' + l.vocabulary.map(function (v) {
+      return '<div class="cnh-vi"><div class="cnh-vi-h"><div class="cnh-grow"><b class="cnh-vt">' + esc(v.term) + '</b>' + (v.phonetic ? ' <span class="cnh-ph">/' + esc(v.phonetic) + '/</span>' : '') + '</div>' + (tag ? spkBtn(v.term, tag) : '') + '</div>' +
+        '<div class="cnh-tr">' + esc(v.meaning) + '</div>' + (v.example ? '<div class="cnh-ve">' + esc(v.example) + (tag ? ' ' + spkBtn(v.example, tag, 'sm') : '') + '</div>' : '') + '</div>';
+    }).join('') + '</div>';
+  }
+  function phrasesHtml(l) {
+    if (!l.phrases || !l.phrases.length) return '';
+    var tag = l.speechLang || '', canRec = tag && recOk();
+    return '<div class="cnh-eyebrow cnh-row">' + ic('volume', 'sm') + esc(tx('phrasesT')) + '</div>' +
+      '<div class="cnh-ctl"><span class="cnh-sub">' + esc(tx('speed')) + '</span>' +
+      '<button type="button" class="cnh-chip' + (VO.rate < 0.8 ? ' on' : '') + '" data-act="rate" data-v="0.7">' + esc(tx('slow')) + '</button>' +
+      '<button type="button" class="cnh-chip' + (VO.rate >= 0.8 ? ' on' : '') + '" data-act="rate" data-v="0.9">' + esc(tx('normal')) + '</button>' +
+      '<button type="button" class="cnh-chip' + (VO.hideTr ? ' on' : '') + '" data-act="trtoggle" style="margin-left:auto">' + esc(tx('hideTr')) + '</button></div>' +
+      '<div class="cnh-phr' + (VO.hideTr ? ' cnh-hidetr' : '') + '" id="cnh-phr">' + l.phrases.map(function (p) {
+        return '<div class="cnh-pi"><div class="cnh-pi-h"><div class="cnh-pt">' + esc(p.text) + '</div><div class="cnh-pbtns">' + (tag ? spkBtn(p.text, tag) : '') + (canRec ? micBtn(p.text, tag) : '') + '</div></div>' +
+          (p.phonetic ? '<div class="cnh-ph">' + esc(p.phonetic) + '</div>' : '') + (p.translation ? '<div class="cnh-tr">' + esc(p.translation) + '</div>' : '') + '<div class="cnh-pron" aria-live="polite"></div></div>';
+      }).join('') + '</div>' + (tag && !recOk() ? '<p class="cnh-hint">' + esc(tx('noRec')) + '</p>' : '');
+  }
+  // Tout le matériel d'étude d'une leçon, de l'objectif au résumé (sans quiz, notes ni cartes interactives).
+  function lessonBodyHtml(l) {
+    var h = '';
+    if (l.objective) h += '<div class="cnh-notice">' + ic('bulb') + '<span>' + esc(l.objective) + '</span></div>';
+    h += '<div class="cnh-md" style="margin:0 0 16px">' + md(l.content) + '</div>';
+    if (l.keyPoints && l.keyPoints.length) h += '<div class="cnh-box key"><div class="cnh-box-t">' + ic('star') + esc(tx('keyT')) + '</div><ul>' + l.keyPoints.map(function (k) { return '<li>' + inline(k) + '</li>'; }).join('') + '</ul></div>';
+    h += tablesHtml(l) + vocabHtml(l) + phrasesHtml(l);
+    if (l.example) h += '<div class="cnh-box ex"><div class="cnh-box-t">' + ic('bulb') + esc(tx('exT')) + '</div><div class="cnh-md" style="font-size:.95rem">' + md(l.example) + '</div></div>';
+    if (l.mnemonic) h += '<div class="cnh-notice">' + ic('spark') + '<span><b>' + esc(tx('mnemoT')) + ' : </b>' + esc(l.mnemonic) + '</span></div>';
+    if (l.exercise && l.exercise.prompt) {
+      h += '<div class="cnh-box"><div class="cnh-box-t">' + ic('code') + esc(tx('exerciseT')) + '</div><div class="cnh-md" style="font-size:.95rem">' + md(l.exercise.prompt) + '</div><div class="cnh-row cnh-wrap" style="margin-top:10px">' +
+        (l.exercise.hint ? '<button type="button" class="cnh-btn soft sm" data-act="reveal" data-t="cnh-hint">' + esc(tx('hint')) + '</button>' : '') +
+        (l.exercise.solution ? '<button type="button" class="cnh-btn soft sm" data-act="reveal" data-t="cnh-sol">' + esc(tx('solution')) + '</button>' : '') + '</div>' +
+        (l.exercise.hint ? '<div id="cnh-hint" hidden class="cnh-notice" style="margin:10px 0 0">' + ic('bulb') + '<span>' + esc(l.exercise.hint) + '</span></div>' : '') +
+        (l.exercise.solution ? '<div id="cnh-sol" hidden class="cnh-md" style="margin-top:10px;padding:12px;border-radius:12px;background:var(--cnh-ok-bg)">' + md(l.exercise.solution) + '</div>' : '') + '</div>';
+    }
+    if (l.summary) h += '<div class="cnh-box sum"><div class="cnh-box-t">' + ic('check') + esc(tx('summaryT')) + '</div><div class="cnh-md" style="font-size:.95rem">' + md(l.summary) + '</div></div>';
+    return h;
+  }
+  function toolbarHtml(saved) {
+    return '<div class="cnh-tools">' +
+      '<button type="button" class="cnh-chip" id="cnh-listen-btn" data-act="speak-lesson">' + ic('volume', 'sm') + '<span>' + esc(tx('listen')) + '</span></button>' +
+      '<button type="button" class="cnh-chip' + (saved ? ' on' : '') + '" id="cnh-save-btn" data-act="save-lesson">' + ic('bookmark', 'sm') + '<span>' + esc(tx(saved ? 'savedL' : 'saveL')) + '</span></button>' +
+      '<button type="button" class="cnh-chip" data-act="export">' + ic('download', 'sm') + '<span>' + esc(tx('exportL')) + '</span></button></div>';
+  }
+  function lessonReadText(l) {
+    var parts = [l.title, l.objective, l.content];
+    if (l.keyPoints && l.keyPoints.length) parts.push(tx('keyT') + '. ' + l.keyPoints.join('. '));
+    if (l.summary) parts.push(tx('summaryT') + '. ' + l.summary);
+    return parts.filter(Boolean).join('. ');
+  }
+
+  /* ---------------------------- Export : texte, fichier, PDF ---------------------------- */
+  function curDoc() {
+    if (S.sv) return { l: S.sv.lesson, title: S.sv.title, pathTitle: S.sv.pathTitle };
+    if (S.lesson) return { l: S.lesson, title: S.lesson.title || '', pathTitle: S.path ? S.path.title : '' };
+    return null;
+  }
+  function plainText(d) {
+    var l = d.l, o = [];
+    o.push((d.title || '').toUpperCase()); if (d.pathTitle) o.push(d.pathTitle); o.push('');
+    if (l.objective) o.push(l.objective, '');
+    o.push(String(l.content || '').replace(/\*\*/g, '').replace(/^#{1,4}\s+/gm, '').trim(), '');
+    if (l.keyPoints && l.keyPoints.length) { o.push(tx('keyT').toUpperCase()); l.keyPoints.forEach(function (k) { o.push('- ' + k); }); o.push(''); }
+    (l.tables || []).forEach(function (t) { o.push((t.title || tx('tableT')).toUpperCase()); o.push(t.headers.join(' | ')); t.rows.forEach(function (r) { o.push(r.join(' | ')); }); o.push(''); });
+    if (l.vocabulary && l.vocabulary.length) { o.push(tx('vocabT').toUpperCase()); l.vocabulary.forEach(function (v) { o.push('- ' + v.term + (v.phonetic ? ' /' + v.phonetic + '/' : '') + ' : ' + v.meaning + (v.example ? ' (' + v.example + ')' : '')); }); o.push(''); }
+    if (l.phrases && l.phrases.length) { o.push(tx('phrasesT').toUpperCase()); l.phrases.forEach(function (p) { o.push('- ' + p.text + (p.phonetic ? ' [' + p.phonetic + ']' : '') + (p.translation ? ' = ' + p.translation : '')); }); o.push(''); }
+    if (l.example) o.push(tx('exT').toUpperCase(), String(l.example).replace(/\*\*/g, ''), '');
+    if (l.mnemonic) o.push(tx('mnemoT') + ' : ' + l.mnemonic, '');
+    if (l.exercise && l.exercise.prompt) { o.push(tx('exerciseT').toUpperCase(), l.exercise.prompt); if (l.exercise.solution) o.push(tx('solution') + ' : ' + l.exercise.solution); o.push(''); }
+    if (l.summary) o.push(tx('summaryT').toUpperCase(), l.summary, '');
+    if (l.flashcards && l.flashcards.length) { o.push(tx('cardsT').toUpperCase()); l.flashcards.forEach(function (c) { o.push('- ' + c.front + ' : ' + c.back); }); o.push(''); }
+    if (l.note) o.push(tx('notesT').toUpperCase(), l.note, '');
+    o.push('Coeurnoh Universe · Académie');
+    return o.join('\n');
+  }
+  function docHtml(d) {
+    var l = d.l, esc2 = esc, rows = '';
+    function sec(title, body) { return body ? '<section><h2>' + esc2(title) + '</h2>' + body + '</section>' : ''; }
+    var tables = (l.tables || []).map(function (t) { return '<h3>' + esc2(t.title || tx('tableT')) + '</h3><table><thead><tr>' + t.headers.map(function (h) { return '<th>' + esc2(h) + '</th>'; }).join('') + '</tr></thead><tbody>' + t.rows.map(function (r) { return '<tr>' + r.map(function (c) { return '<td>' + esc2(c) + '</td>'; }).join('') + '</tr>'; }).join('') + '</tbody></table>'; }).join('');
+    var vocab = l.vocabulary && l.vocabulary.length ? '<table><thead><tr><th>' + esc2(tx('termT')) + '</th><th>' + esc2(tx('phoneticT')) + '</th><th>' + esc2(tx('meaningT')) + '</th><th>' + esc2(tx('exampleT')) + '</th></tr></thead><tbody>' + l.vocabulary.map(function (v) { return '<tr><td><b>' + esc2(v.term) + '</b></td><td>' + esc2(v.phonetic || '') + '</td><td>' + esc2(v.meaning) + '</td><td>' + esc2(v.example || '') + '</td></tr>'; }).join('') + '</tbody></table>' : '';
+    var phr = l.phrases && l.phrases.length ? '<table><thead><tr><th>' + esc2(tx('phraseT')) + '</th><th>' + esc2(tx('phoneticT')) + '</th><th>' + esc2(tx('meaningT')) + '</th></tr></thead><tbody>' + l.phrases.map(function (p) { return '<tr><td><b>' + esc2(p.text) + '</b></td><td>' + esc2(p.phonetic || '') + '</td><td>' + esc2(p.translation || '') + '</td></tr>'; }).join('') + '</tbody></table>' : '';
+    var cards = l.flashcards && l.flashcards.length ? '<table><tbody>' + l.flashcards.map(function (c) { return '<tr><td><b>' + esc2(c.front) + '</b></td><td>' + esc2(c.back) + '</td></tr>'; }).join('') + '</tbody></table>' : '';
+    var ex = l.exercise && l.exercise.prompt ? '<div class="md">' + md(l.exercise.prompt) + '</div>' + (l.exercise.hint ? '<p><i>' + esc2(tx('hint')) + ' : ' + esc2(l.exercise.hint) + '</i></p>' : '') + (l.exercise.solution ? '<div class="sol"><b>' + esc2(tx('solution')) + '</b><div class="md">' + md(l.exercise.solution) + '</div></div>' : '') : '';
+    var css = 'body{font-family:Georgia,"Times New Roman",serif;color:#111;line-height:1.6;margin:0;background:#fff}article{max-width:760px;margin:0 auto;padding:28px 22px}' +
+      '.kick{font:700 11px/1 Arial,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#1d4f91;margin:0 0 10px}h1{font:700 26px/1.25 Arial,sans-serif;margin:0 0 4px}.meta{font:13px Arial,sans-serif;color:#555;margin:0 0 18px;padding-bottom:12px;border-bottom:2px solid #1d4f91}' +
+      'h2{font:700 15px Arial,sans-serif;text-transform:uppercase;letter-spacing:.06em;color:#1d4f91;margin:22px 0 8px}h3{font:700 14px Arial,sans-serif;margin:14px 0 6px}h4{font:700 16px Arial,sans-serif;margin:16px 0 6px}p{margin:0 0 10px}ul,ol{margin:0 0 10px;padding-left:22px}' +
+      'table{border-collapse:collapse;width:100%;margin:6px 0 12px;font:13px Arial,sans-serif}th,td{border:1px solid #c9d2de;padding:6px 8px;text-align:left;vertical-align:top}th{background:#eef3f9}' +
+      '.obj{background:#eef3f9;border-left:4px solid #1d4f91;padding:10px 12px;margin:0 0 14px;font-style:italic}.sol{background:#e8f4ec;padding:8px 12px;border-radius:6px;margin-top:8px}pre{background:#f3f4f6;padding:10px;overflow:auto;font-size:12px}code{font-family:Menlo,monospace}' +
+      'footer{margin-top:28px;padding-top:10px;border-top:1px solid #ccc;font:11px Arial,sans-serif;color:#666}@page{margin:16mm}@media print{article{padding:0}section{break-inside:avoid}}';
+    return '<!doctype html><html lang="' + esc2(lang()) + '"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' + esc2(d.title || 'Cours') + '</title><style>' + css + '</style></head><body><article>' +
+      '<div class="kick">Coeurnoh Universe · Académie</div><h1>' + esc2(d.title || '') + '</h1><div class="meta">' + esc2(d.pathTitle || '') + ' · ' + esc2(fmtDate(Date.now())) + '</div>' +
+      (l.objective ? '<div class="obj">' + esc2(l.objective) + '</div>' : '') + '<div class="md">' + md(l.content) + '</div>' +
+      sec(tx('keyT'), l.keyPoints && l.keyPoints.length ? '<ul>' + l.keyPoints.map(function (k) { return '<li>' + inline(k) + '</li>'; }).join('') + '</ul>' : '') +
+      sec(tx('tableT'), tables) + sec(tx('vocabT'), vocab) + sec(tx('phrasesT'), phr) + sec(tx('exT'), l.example ? '<div class="md">' + md(l.example) + '</div>' : '') +
+      sec(tx('mnemoT'), l.mnemonic ? '<p>' + esc2(l.mnemonic) + '</p>' : '') + sec(tx('exerciseT'), ex) + sec(tx('summaryT'), l.summary ? '<div class="md">' + md(l.summary) + '</div>' : '') +
+      sec(tx('cardsT'), cards) + sec(tx('notesT'), l.note ? '<p>' + esc2(l.note) + '</p>' : '') +
+      '<footer>coeurnohuniverse.com · ' + esc2(tx('docFoot')) + '</footer></article></body></html>';
+  }
+  function slug(s) { return String(s || 'cours').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 50) || 'cours'; }
+  function downloadDoc(d) {
+    try {
+      var blob = new Blob([docHtml(d)], { type: 'text/html;charset=utf-8' }), url = URL.createObjectURL(blob), a = document.createElement('a');
+      a.href = url; a.download = 'cours-' + slug(d.title) + '.html'; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { try { URL.revokeObjectURL(url); } catch (e) { /* ignore */ } }, 4000);
+      toast(tx('dlOk'), 'success'); return true;
+    } catch (e) { return false; }
+  }
+  function printDoc(d) {
+    try {
+      var f = document.createElement('iframe');
+      f.setAttribute('aria-hidden', 'true'); f.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;opacity:0';
+      document.body.appendChild(f);
+      var w = f.contentWindow, doc = w.document;
+      doc.open(); doc.write(docHtml(d)); doc.close();
+      setTimeout(function () {
+        try { w.focus(); w.print(); } catch (e) { toast(tx('printFail'), 'info'); downloadDoc(d); }
+        setTimeout(function () { try { f.remove(); } catch (e) { /* ignore */ } }, 90000);
+      }, 450);
+    } catch (e) { toast(tx('printFail'), 'info'); downloadDoc(d); }
+  }
+  function copyText(txt) {
+    function fallback() {
+      try { var ta = document.createElement('textarea'); ta.value = txt; ta.style.cssText = 'position:fixed;opacity:0'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); toast(tx('copied'), 'success'); } catch (e) { toast(tx('fail'), 'error'); }
+    }
+    try { if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(function () { toast(tx('copied'), 'success'); }, fallback); else fallback(); } catch (e) { fallback(); }
+  }
+  function openExport() {
+    var d = curDoc(); if (!d) return;
+    S.exDoc = d;
+    var row = function (act, icn, t, s) { return '<button type="button" class="cnh-xrow" data-act="' + act + '"><span class="cnh-dom">' + ic(icn) + '</span><span class="cnh-grow"><b>' + esc(t) + '</b><small>' + esc(s) + '</small></span></button>'; };
+    var h = '<div class="cnh-xlist">' + row('ex-pdf', 'print', tx('exPdf'), tx('exPdfS')) + row('ex-file', 'download', tx('exFile'), tx('exFileS')) + row('ex-copy', 'copy', tx('exCopy'), tx('exCopyS')) +
+      (navigator.share ? row('ex-share', 'share', tx('exShare'), tx('exShareS')) : '') + '</div>';
+    sheet(tx('exportT'), h);
+  }
+  function savedRowHtml(e) {
+    return '<div class="cnh-srow"><button type="button" class="cnh-xrow" data-act="saved-open" data-id="' + esc(e.pathId + '|' + e.lessonId) + '"><span class="cnh-dom" style="--t:' + tintOf(e.domain) + '">' + ic('book') + '</span><span class="cnh-grow"><b class="cnh-ellipsis" style="display:block">' + esc(e.title || '') + '</b><small>' + esc(e.pathTitle || '') + ' · ' + esc(fmtDate(e.savedAt)) + '</small></span></button>' +
+      '<button type="button" class="cnh-btn ghost cnh-iconbtn" data-act="saved-del" data-id="' + esc(e.pathId + '|' + e.lessonId) + '" aria-label="' + esc(tx('remove')) + '">' + ic('trash') + '</button></div>';
+  }
+  function openSaved() {
+    S.sv = null;
+    var list = savedList();
+    var h = list.length ? '<p class="cnh-sub" style="margin:0 0 12px">' + esc(tx('savedS')) + '</p><div class="cnh-xlist">' + list.map(savedRowHtml).join('') + '</div>' : '<div class="cnh-empty" style="padding:24px 8px"><span class="cnh-dom">' + ic('bookmark') + '</span><p style="margin:0">' + esc(tx('savedEmpty')) + '</p></div>';
+    sheet(tx('savedT'), h);
+  }
+  function openSavedEntry(key) {
+    var parts = String(key).split('|'), e = savedFind(parts[0], parts[1]); if (!e) return;
+    S.sv = e;
+    var h = '<button type="button" class="cnh-btn ghost" data-act="saved-back" style="margin:-6px 0 6px -8px">' + ic('arrow') + esc(tx('back')) + '</button>' +
+      '<h2 class="cnh-h cnh-h1" style="margin:0 0 4px">' + esc(e.title) + '</h2><p class="cnh-sub" style="margin:0 0 10px">' + esc(e.pathTitle) + '</p>' +
+      '<div class="cnh-tools"><button type="button" class="cnh-chip" data-act="speak-lesson">' + ic('volume', 'sm') + '<span>' + esc(tx('listen')) + '</span></button><button type="button" class="cnh-chip" data-act="export">' + ic('download', 'sm') + '<span>' + esc(tx('exportL')) + '</span></button></div>' +
+      lessonBodyHtml(e.lesson) +
+      ((e.lesson.flashcards || []).length ? '<div class="cnh-eyebrow cnh-row">' + ic('cards', 'sm') + esc(tx('cardsT')) + '</div>' + e.lesson.flashcards.map(function (c) { return '<div class="cnh-box"><b>' + esc(c.front) + '</b><div class="cnh-sub" style="margin-top:4px">' + esc(c.back) + '</div></div>'; }).join('') : '');
+    var b = $('cnh-sheet-b'); if (b) { b.innerHTML = h; b.scrollTop = 0; }
+  }
+  function savedBackToList() {
+    var list = savedList(), b = $('cnh-sheet-b'); S.sv = null; if (!b) return;
+    b.innerHTML = list.length ? '<p class="cnh-sub" style="margin:0 0 12px">' + esc(tx('savedS')) + '</p><div class="cnh-xlist">' + list.map(savedRowHtml).join('') + '</div>' : '<div class="cnh-empty" style="padding:24px 8px"><span class="cnh-dom">' + ic('bookmark') + '</span><p style="margin:0">' + esc(tx('savedEmpty')) + '</p></div>';
+  }
+
+
   /* ---------------------------- Fenêtres ---------------------------- */
   function sheet(title, bodyHtml, footHtml) {
     closeSheet();
@@ -639,7 +965,7 @@
     document.body.appendChild(ov);
     return ov;
   }
-  function closeSheet() { var o = $('cnh-ov'); if (o) o.remove(); }
+  function closeSheet() { var o = $('cnh-ov'); if (o) o.remove(); S.sv = null; }
 
   function openTutor() {
     var h = '<div id="cnh-chat"></div>';
@@ -648,7 +974,7 @@
     function paint() {
       var el = $('cnh-chat'); if (!el) return;
       var x = '<div class="cnh-msg ai"><div class="cnh-md">' + md(tx('tutorHi')) + '</div></div>';
-      S.chat.forEach(function (m) { x += m.role === 'user' ? '<div class="cnh-msg me">' + esc(m.text) + '</div>' : '<div class="cnh-msg ai"><div class="cnh-md">' + md(m.text) + '</div></div>'; });
+      S.chat.forEach(function (m) { x += m.role === 'user' ? '<div class="cnh-msg me">' + esc(m.text) + '</div>' : '<div class="cnh-msg ai"><div class="cnh-md">' + md(m.text) + '</div>' + (ttsOk() ? spkBtn(m.text, '', 'sm') : '') + '</div>'; });
       if (S.chatBusy) x += '<div class="cnh-msg ai cnh-typing"><i></i><i></i><i></i></div>';
       el.innerHTML = x;
       var b = $('cnh-sheet-b'); if (b) b.scrollTop = b.scrollHeight;
@@ -751,6 +1077,22 @@
       case 'delete': doDelete(); break;
       case 'lesson': go('lesson', { id: id }); break;
       case 'tutor': openTutor(); break;
+      case 'speak': speak(el.getAttribute('data-s'), el.getAttribute('data-l') || '', el); break;
+      case 'speak-lesson': var cd = curDoc() || (S.sv ? { l: S.sv.lesson } : null); if (cd) speak(lessonReadText(Object.assign({ title: cd.title }, cd.l)), '', el); break;
+      case 'speak-card': var sc = S.cards[S.card]; if (sc) speak(sc.front, S.lesson && S.lesson.speechLang || '', el); break;
+      case 'rec': var po = el.closest('.cnh-pi'); listenTo(el.getAttribute('data-s'), el.getAttribute('data-l'), po && po.querySelector('.cnh-pron'), el); break;
+      case 'rate': VO.rate = +el.getAttribute('data-v') || 0.9; [].forEach.call(el.parentNode.querySelectorAll('[data-act="rate"]'), function (b) { b.classList.toggle('on', b === el); }); break;
+      case 'trtoggle': VO.hideTr = !VO.hideTr; el.classList.toggle('on', VO.hideTr); var ph = $('cnh-phr'); if (ph) ph.classList.toggle('cnh-hidetr', VO.hideTr); break;
+      case 'save-lesson': toggleSave(); break;
+      case 'export': openExport(); break;
+      case 'ex-pdf': if (S.exDoc) printDoc(S.exDoc); break;
+      case 'ex-file': if (S.exDoc) downloadDoc(S.exDoc); break;
+      case 'ex-copy': if (S.exDoc) copyText(plainText(S.exDoc)); break;
+      case 'ex-share': if (S.exDoc && navigator.share) { try { navigator.share({ title: S.exDoc.title || 'Cours', text: plainText(S.exDoc) }).catch(function () { /* annulé */ }); } catch (x) { /* ignore */ } } break;
+      case 'saved': openSaved(); break;
+      case 'saved-open': openSavedEntry(id); break;
+      case 'saved-back': savedBackToList(); break;
+      case 'saved-del': var kd = String(id).split('|'), ll = savedList(), ki = savedIndex(ll, kd[0], kd[1]); if (ki >= 0) { ll.splice(ki, 1); savedWrite(ll); } savedBackToList(); loadHome(true); break;
       case 'reveal': var t0 = $(el.getAttribute('data-t')); if (t0) t0.hidden = !t0.hidden; break;
       case 'flip': var fc = $('cnh-fc'); if (fc) fc.classList.toggle('flip'); break;
       case 'prevc': S.card = (S.card - 1 + S.cards.length) % S.cards.length; paintCard(); break;
