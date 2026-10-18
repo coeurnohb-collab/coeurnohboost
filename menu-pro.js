@@ -1,3 +1,5 @@
+/* Interrupteur : passer a true une fois la facturation Google AI activee (generation d'image). */
+var MOCKUP_AI_ENABLED = false;
 /* =====================================================================
    menu-pro.js — Menu professionnel de Coeurnoh Universe
 
@@ -1898,12 +1900,14 @@
           : '<p class="mp-hint" id="mp-mockup-drag-hint">' + esc(L('mockup_drag_hint')) + '</p>' +
             '<div class="mp-field"><label>' + esc(L('mockup_scale')) + '</label><input type="range" id="mp-mockup-scale" min="10" max="80" value="' + Math.round(state.scale * 100) + '"></div>' +
             '<div class="mp-field"><label>' + esc(L('mockup_rotation')) + '</label><input type="range" id="mp-mockup-rot" min="-45" max="45" value="' + state.rot + '"></div>' +
+            (MOCKUP_AI_ENABLED ? (
             '<button type="button" class="btn btn-ai" id="mp-mockup-ai-generate" ' + (state.aiLoading ? 'disabled' : '') + '>' +
               (state.aiLoading ? ('⏳ ' + esc(L('mockup_ai_loading'))) : ('✨ ' + esc(L('mockup_ai_generate')))) +
             '</button>' +
             '<p class="mp-hint small">' + esc(L('mockup_ai_hint').replace('{q}', state.pricingQuota).replace('{p}', state.pricingPrice.toFixed(2))) + '</p>' +
             (state.aiError ? '<p class="mp-hint err">' + esc(state.aiError) + '</p>' : '') +
             (state.aiErrorIsBalance ? '<button type="button" class="btn btn-outline" id="mp-mockup-ai-recharge" style="width:100%;justify-content:center;margin-top:6px">💳 ' + esc(L('mockup_ai_recharge_btn')) + '</button>' : '')
+            ) : '')
         ) +
         '<p class="mp-hint err" id="mp-mockup-msg"></p>' +
         '<div class="mp-actions"><button type="button" class="btn btn-primary" id="mp-mockup-dl">' + svg('download', 16) + ' ' + esc(L('download')) + '</button>' +

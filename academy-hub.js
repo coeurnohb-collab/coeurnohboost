@@ -789,7 +789,7 @@
     return (l.tables || []).map(function (t) {
       return '<div class="cnh-box"><div class="cnh-box-t">' + ic('book') + esc(t.title || tx('tableT')) + '</div><div class="cnh-scroll"><table class="cnh-tbl"><thead><tr>' +
         t.headers.map(function (h) { return '<th>' + esc(h) + '</th>'; }).join('') + '</tr></thead><tbody>' +
-        t.rows.map(function (r) { return '<tr>' + r.map(function (c) { return '<td>' + esc(c) + '</td>'; }).join('') + '</tr>'; }).join('') + '</tbody></table></div></div>';
+        t.rows.map(function (r) { r = r.c || r; return '<tr>' + r.map(function (c) { return '<td>' + esc(c) + '</td>'; }).join('') + '</tr>'; }).join('') + '</tbody></table></div></div>';
     }).join('');
   }
   function vocabHtml(l) {
@@ -857,7 +857,7 @@
     if (l.objective) o.push(l.objective, '');
     o.push(String(l.content || '').replace(/\*\*/g, '').replace(/^#{1,4}\s+/gm, '').trim(), '');
     if (l.keyPoints && l.keyPoints.length) { o.push(tx('keyT').toUpperCase()); l.keyPoints.forEach(function (k) { o.push('- ' + k); }); o.push(''); }
-    (l.tables || []).forEach(function (t) { o.push((t.title || tx('tableT')).toUpperCase()); o.push(t.headers.join(' | ')); t.rows.forEach(function (r) { o.push(r.join(' | ')); }); o.push(''); });
+    (l.tables || []).forEach(function (t) { o.push((t.title || tx('tableT')).toUpperCase()); o.push(t.headers.join(' | ')); t.rows.forEach(function (r) { o.push((r.c || r).join(' | ')); }); o.push(''); });
     if (l.vocabulary && l.vocabulary.length) { o.push(tx('vocabT').toUpperCase()); l.vocabulary.forEach(function (v) { o.push('- ' + v.term + (v.phonetic ? ' /' + v.phonetic + '/' : '') + ' : ' + v.meaning + (v.example ? ' (' + v.example + ')' : '')); }); o.push(''); }
     if (l.phrases && l.phrases.length) { o.push(tx('phrasesT').toUpperCase()); l.phrases.forEach(function (p) { o.push('- ' + p.text + (p.phonetic ? ' [' + p.phonetic + ']' : '') + (p.translation ? ' = ' + p.translation : '')); }); o.push(''); }
     if (l.example) o.push(tx('exT').toUpperCase(), String(l.example).replace(/\*\*/g, ''), '');
@@ -872,7 +872,7 @@
   function docHtml(d) {
     var l = d.l, esc2 = esc, rows = '';
     function sec(title, body) { return body ? '<section><h2>' + esc2(title) + '</h2>' + body + '</section>' : ''; }
-    var tables = (l.tables || []).map(function (t) { return '<h3>' + esc2(t.title || tx('tableT')) + '</h3><table><thead><tr>' + t.headers.map(function (h) { return '<th>' + esc2(h) + '</th>'; }).join('') + '</tr></thead><tbody>' + t.rows.map(function (r) { return '<tr>' + r.map(function (c) { return '<td>' + esc2(c) + '</td>'; }).join('') + '</tr>'; }).join('') + '</tbody></table>'; }).join('');
+    var tables = (l.tables || []).map(function (t) { return '<h3>' + esc2(t.title || tx('tableT')) + '</h3><table><thead><tr>' + t.headers.map(function (h) { return '<th>' + esc2(h) + '</th>'; }).join('') + '</tr></thead><tbody>' + t.rows.map(function (r) { r = r.c || r; return '<tr>' + r.map(function (c) { return '<td>' + esc2(c) + '</td>'; }).join('') + '</tr>'; }).join('') + '</tbody></table>'; }).join('');
     var vocab = l.vocabulary && l.vocabulary.length ? '<table><thead><tr><th>' + esc2(tx('termT')) + '</th><th>' + esc2(tx('phoneticT')) + '</th><th>' + esc2(tx('meaningT')) + '</th><th>' + esc2(tx('exampleT')) + '</th></tr></thead><tbody>' + l.vocabulary.map(function (v) { return '<tr><td><b>' + esc2(v.term) + '</b></td><td>' + esc2(v.phonetic || '') + '</td><td>' + esc2(v.meaning) + '</td><td>' + esc2(v.example || '') + '</td></tr>'; }).join('') + '</tbody></table>' : '';
     var phr = l.phrases && l.phrases.length ? '<table><thead><tr><th>' + esc2(tx('phraseT')) + '</th><th>' + esc2(tx('phoneticT')) + '</th><th>' + esc2(tx('meaningT')) + '</th></tr></thead><tbody>' + l.phrases.map(function (p) { return '<tr><td><b>' + esc2(p.text) + '</b></td><td>' + esc2(p.phonetic || '') + '</td><td>' + esc2(p.translation || '') + '</td></tr>'; }).join('') + '</tbody></table>' : '';
     var cards = l.flashcards && l.flashcards.length ? '<table><tbody>' + l.flashcards.map(function (c) { return '<tr><td><b>' + esc2(c.front) + '</b></td><td>' + esc2(c.back) + '</td></tr>'; }).join('') + '</tbody></table>' : '';
