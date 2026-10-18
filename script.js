@@ -6,7 +6,7 @@
 // connexion est sur un autre domaine (firebaseapp.com). Sur Apple UNIQUEMENT, on utilise
 // donc le domaine de l'application elle-meme (relaye par vercel.json -> /__/auth/).
 // Android et ordinateur gardent exactement le fonctionnement actuel.
-const AUTH_PROXY_HOSTS = ['coeurnohboost.vercel.app'];
+const AUTH_PROXY_HOSTS = ['coeurnohboost.vercel.app', 'coeurnohuniverse.com'];
 const IS_IOS_DEVICE = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
   (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 const firebaseConfig = {
@@ -2172,7 +2172,7 @@ function logout() {
 
 /* ================= PARTAGER L'APPLICATION ================= */
 async function shareApp() {
-  const url = 'https://coeurnohboost.vercel.app/';
+  const url = 'https://coeurnohuniverse.com/';
   const shareText = 'Coeurnoh Universe — fais grandir tes réseaux sociaux (TikTok, Instagram, YouTube, Facebook) avec des paiements Mobile Money, crypto ou carte.';
   if (navigator.share) {
     try {
@@ -3421,7 +3421,7 @@ function renderPostCard(item, isLiked, isSaved, hideFollowBtn) {
     </div>`;
   }
 
-  const shareUrl = `https://coeurnohboost.vercel.app/?produit=${item.id}`;
+  const shareUrl = `https://coeurnohuniverse.com/?produit=${item.id}`;
   const isFollowing = item.sellerUid && followingSet.has(item.sellerUid);
   const followBtnHtml = (item.sellerUid && !isOwnPost && !hideFollowBtn) ? `
     <button class="follow-btn ${isFollowing ? 'following' : ''}" data-follow-btn="${item.sellerUid}"
@@ -5136,7 +5136,7 @@ function formatCompactCount(n) {
 }
 
 async function shareShopItem(pubId, title) {
-  const shareUrl = `https://coeurnohboost.vercel.app/?produit=${pubId}`;
+  const shareUrl = `https://coeurnohuniverse.com/?produit=${pubId}`;
   const shareText = `Regarde ça sur Coeurnoh Universe : ${title}`;
 
   if (navigator.share) {
@@ -14087,7 +14087,7 @@ function closePublicSite() {
   } else {
     // Acces via sous-domaine personnalise : pas de parametre a retirer,
     // on renvoie vers l'application principale.
-    window.location.href = 'https://coeurnohboost.vercel.app/';
+    window.location.href = 'https://coeurnohuniverse.com/';
   }
 }
 
@@ -15524,7 +15524,7 @@ function renderResellerApi(secret) {
   const s = resellerState || {};
   if (s.err) { el.innerHTML = `<p class="lead-err">${uiIc('alert', 16)} ${escapeHtml(s.err)}</p>`; return; }
   const k = s.key || { exists: false };
-  const ep = s.endpoint || 'https://coeurnohboost.vercel.app/api/v2';
+  const ep = s.endpoint || 'https://coeurnohuniverse.com/api/v2';
   const KEY = secret || 'VOTRE_CLE_API';
   const e = escapeHtml;
   const keyBlock = secret
