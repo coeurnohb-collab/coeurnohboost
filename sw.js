@@ -120,7 +120,7 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
-const CACHE_NAME = 'coeurnohboost-v17';
+const CACHE_NAME = 'coeurnohboost-v18';
 const APP_SHELL = [
   '/',
   '/index.html',
@@ -128,6 +128,10 @@ const APP_SHELL = [
   '/icon-192-v2.png',
   '/icon-512-v2.png'
 ];
+
+// Seules ces pages publiques sont gardées hors-ligne. Jamais les pages privées ou propres à
+// une personne (factures /p/facture/…, sites /s/…, aperçus) : elles ne sont pas stockées dans le cache.
+const CACHEABLE_PAGES = /^\/(?:|index\.html|legal\.html|about|terms|privacy|refund|contact|aide|services(?:\/[a-z0-9-]+)?)$/;
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -169,11 +173,14 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(event.request)
         .then((response) => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy)).catch(() => {});
+          // On ne garde que les réponses réussies des pages publiques listées (jamais une erreur 404/500).
+          if (response && response.ok && CACHEABLE_PAGES.test(url.pathname)) {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(url.pathname === '/' ? '/' : url.origin + url.pathname, copy)).catch(() => {});
+          }
           return response;
         })
-        .catch(() => caches.match(event.request).then((cached) => cached || caches.match('/index.html')))
+        .catch(() => caches.match(url.origin + url.pathname).then((cached) => cached || caches.match(event.request)).then((cached) => cached || caches.match('/index.html')))
     );
     return;
   }

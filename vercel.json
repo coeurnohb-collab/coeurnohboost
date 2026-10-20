@@ -150,6 +150,18 @@
       "destination": "/api/render-site?sitemap=1"
     },
     {
+      "source": "/services",
+      "destination": "/api/render-site?landing=index"
+    },
+    {
+      "source": "/services/:slug",
+      "destination": "/api/render-site?landing=:slug"
+    },
+    {
+      "source": "/aide",
+      "destination": "/api/render-site?landing=aide"
+    },
+    {
       "source": "/about",
       "destination": "/legal.html?p=about"
     },

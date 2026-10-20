@@ -13,6 +13,7 @@
     fr: {
       kicker: 'Programme de parrainage', h: 'Invite tes amis. Gagne 5 % sur chacune de leurs recharges.', s: 'Chaque personne qui s’inscrit avec ton lien et recharge son portefeuille te rapporte une commission, sans limite de durée ni de nombre.',
       f: 'Filleuls', g: 'Gains reçus', lv: 'Niveau', link: 'Ton lien personnel', copy: 'Copier', copied: 'Lien copié', share: 'Partager mon lien', next: 'Prochain niveau', to: 'filleul(s) pour atteindre', top: 'Niveau maximum atteint',
+      svcH: 'Partager un service', svcS: 'Choisis un service : la page s’ouvre avec un bel aperçu et ton lien de parrainage est conservé.', svcMsg: 'Découvre ce service sur Coeurnoh Universe :',
       msgH: 'Messages prêts à envoyer', msgS: 'Touche un message pour l’envoyer ou le copier avec ton lien.', send: 'Envoyer', copyMsg: 'Copier le message', close: 'Fermer',
       howH: 'Comment ça marche', how: [['Partage ton lien', 'Envoie-le à tes amis, ta famille, tes clients ou publie-le sur tes réseaux.'], ['Ton ami s’inscrit', 'Il crée son compte avec ton lien et découvre tous les services de Coeurnoh Universe.'], ['Tu es récompensé', 'À chaque recharge de ton filleul, 5 % arrivent dans ton portefeuille automatiquement.']],
       histH: 'Derniers bonus reçus', histEmpty: 'Aucun bonus pour l’instant. Partage ton lien pour commencer.', lvNames: ['Débutant', 'Bronze', 'Argent', 'Or', 'Platine'], note: 'Les niveaux récompensent ton engagement d’ambassadeur. Le taux de commission reste de 5 %.',
@@ -22,6 +23,7 @@
     en: {
       kicker: 'Referral programme', h: 'Invite your friends. Earn 5% on every top-up they make.', s: 'Everyone who signs up with your link and tops up their wallet earns you a commission, with no time or number limit.',
       f: 'Referrals', g: 'Earnings', lv: 'Level', link: 'Your personal link', copy: 'Copy', copied: 'Link copied', share: 'Share my link', next: 'Next level', to: 'referral(s) to reach', top: 'Top level reached',
+      svcH: 'Share a service', svcS: 'Pick a service: its page opens with a clean preview and your referral link is kept.', svcMsg: 'Check out this service on Coeurnoh Universe:',
       msgH: 'Ready-to-send messages', msgS: 'Tap a message to send or copy it with your link.', send: 'Send', copyMsg: 'Copy message', close: 'Close',
       howH: 'How it works', how: [['Share your link', 'Send it to friends, family and customers, or post it on your networks.'], ['Your friend signs up', 'They create an account with your link and discover every Coeurnoh Universe service.'], ['You get rewarded', 'On each top-up by your referral, 5% lands in your wallet automatically.']],
       histH: 'Latest bonuses received', histEmpty: 'No bonus yet. Share your link to get started.', lvNames: ['Starter', 'Bronze', 'Silver', 'Gold', 'Platinum'], note: 'Levels recognise your ambassador activity. The commission rate stays at 5%.',
@@ -29,6 +31,8 @@
       m2: 'Want to boost your online business? Coeurnoh Universe brings together shop, jobs, real estate, courses and more. Sign up for free here:',
       m3: 'An invitation to discover Coeurnoh Universe, the platform that simplifies your digital life. Create your account with my link:', mt: ['Personal invitation', 'For entrepreneurs', 'Short invitation'], shareTitle: 'Join Coeurnoh Universe', shareMeta: 'Invitation from ' }
   };
+  var PAGES = [['croissance-reseaux-sociaux', 'Réseaux sociaux', 'Social growth'], ['boutique-en-ligne', 'Boutique', 'Shop'], ['creer-un-site-web', 'Crée ton site', 'Build a website'], ['emploi-et-freelance', 'Emploi', 'Jobs'], ['immobilier', 'Immobilier', 'Real estate'], ['academie-formations', 'Académie', 'Academy'], ['billetterie-evenements', 'Billetterie', 'Events'], ['outils-gratuits', 'Outils gratuits', 'Free tools']];
+  function pageUrl(slug) { var u = me(); return u ? location.origin + '/services/' + slug + '?ref=' + encodeURIComponent(u.uid) : ''; }
   function tx() { return TX[lang()]; }
   var LEVELS = [0, 1, 5, 20, 50];
   var state = { count: null, earned: null, hist: null, loaded: false };
@@ -67,6 +71,7 @@
       '<button type="button" class="rp-main" data-rp="share">' + esc(t.share) + '</button>' +
       '<div class="rp-prog"><div class="rp-bar"><i style="width:' + pct + '%"></i></div><small>' + (nxt ? esc(t.next) + ' : ' + esc(t.lvNames[lv + 1]) + ' (' + Math.max(0, nxt - c) + ' ' + esc(t.to) + ' ' + esc(t.lvNames[lv + 1]) + ')' : esc(t.top)) + '</small></div></div>' +
       '<div class="rp-card"><h3>' + esc(t.msgH) + '</h3><p class="rp-sub">' + esc(t.msgS) + '</p>' + [1, 2, 3].map(function (i) { return '<button type="button" class="rp-msg" data-rp="msg" data-i="' + i + '"><b>' + esc(t.mt[i - 1]) + '</b><span>' + esc(t['m' + i]) + '</span></button>'; }).join('') + '</div>' +
+      '<div class="rp-card"><h3>' + esc(t.svcH) + '</h3><p class="rp-sub">' + esc(t.svcS) + '</p><div class="rp-chips">' + PAGES.map(function (p) { return '<button type="button" data-rp="page" data-s="' + esc(p[0]) + '">' + esc(lang() === 'en' ? p[2] : p[1]) + '</button>'; }).join('') + '</div></div>' +
       '<div class="rp-card"><h3>' + esc(t.howH) + '</h3><ol class="rp-how">' + t.how.map(function (h, i) { return '<li><i>' + (i + 1) + '</i><div><b>' + esc(h[0]) + '</b><span>' + esc(h[1]) + '</span></div></li>'; }).join('') + '</ol></div>' +
       '<div class="rp-card"><h3>' + esc(t.histH) + '</h3>' + hist + '<p class="rp-note">' + esc(t.note) + '</p></div></section>';
   }
@@ -97,6 +102,13 @@
     var act = a.getAttribute('data-rp');
     if (act === 'copy') { try { navigator.clipboard.writeText(url()).then(function () { toast(tx().copied, 'success'); }); } catch (e) { prompt('', url()); } }
     else if (act === 'share') { if (window.CNShare) window.CNShare.open({ kind: 'profile', id: me().uid, url: url(), title: tx().shareTitle, meta: [tx().shareMeta + ((me().username || me().name) || '')], text: tx().m1 }); else if (navigator.share) navigator.share({ title: tx().shareTitle, text: tx().m1, url: url() }).catch(function () { }); }
+    else if (act === 'page') {
+      var sl = a.getAttribute('data-s'), ok = false; PAGES.forEach(function (p) { if (p[0] === sl) ok = true; }); if (!ok) return;
+      var pu = pageUrl(sl), label = a.textContent || '', ptxt = tx().svcMsg + ' ' + label;
+      if (window.CNShare) window.CNShare.open({ kind: 'profile', id: me().uid, url: pu, title: label + ' — Coeurnoh Universe', meta: [], text: ptxt });
+      else if (navigator.share) navigator.share({ title: label, text: ptxt, url: pu }).catch(function () { });
+      else window.open('https://wa.me/?text=' + encodeURIComponent(ptxt + ' ' + pu), '_blank', 'noopener');
+    }
     else if (act === 'msg') {
       var i = a.getAttribute('data-i');
       var sheet = document.createElement('div'); sheet.className = 'rp-sheet';
@@ -120,6 +132,7 @@
     '.rp-link button,.rp-box button{min-height:40px;padding:0 16px;border-radius:10px;border:1px solid var(--cnh-line,#e1e6ed);background:var(--cnh-card,#fff);color:inherit;font:inherit;font-weight:700;font-size:.8125rem;cursor:pointer}',
     'button.rp-main{width:100%;min-height:50px;border-radius:14px;border:0;background:var(--cnh-brand,#1d4f91);color:#fff;font:inherit;font-weight:700;font-size:.9375rem;cursor:pointer}html[data-theme="dark"] button.rp-main{color:#0b1220}',
     '.rp-prog{margin-top:14px}.rp-bar{height:8px;border-radius:99px;background:var(--cnh-soft,#eef3f9);overflow:hidden}.rp-bar i{display:block;height:100%;background:var(--cnh-brand,#1d4f91);border-radius:99px}.rp-prog small{display:block;margin-top:6px;font-size:.75rem;color:var(--cnh-sub,#5a6577)}',
+    '.rp-chips{display:flex;flex-wrap:wrap;gap:8px}.rp-chips button{min-height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--cnh-line,#e1e6ed);background:var(--cnh-soft,#eef3f9);color:inherit;font:inherit;font-weight:700;font-size:.8125rem;cursor:pointer}',
     '.rp-sub{margin:0 0 10px;font-size:.8125rem;color:var(--cnh-sub,#5a6577)}',
     '.rp-msg{display:block;width:100%;text-align:left;background:var(--cnh-soft,#eef3f9);border:0;border-radius:12px;padding:12px 14px;margin-top:8px;color:inherit;font:inherit;cursor:pointer}.rp-msg b{display:block;font-size:.8125rem;margin-bottom:4px}.rp-msg span{display:block;font-size:.8125rem;line-height:1.5;color:var(--cnh-sub,#5a6577)}',
     '.rp-how{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:12px}.rp-how li{display:flex;gap:12px;align-items:flex-start}.rp-how i{flex:0 0 30px;height:30px;border-radius:50%;background:var(--cnh-brand,#1d4f91);color:#fff;font-style:normal;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:.875rem}.rp-how b{display:block;font-size:.9375rem}.rp-how span{display:block;font-size:.8125rem;color:var(--cnh-sub,#5a6577);line-height:1.5}',
