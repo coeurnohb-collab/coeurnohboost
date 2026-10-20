@@ -137,6 +137,10 @@
       "destination": "/api/place-smm-order?mode=reseller"
     },
     {
+      "source": "/panel/:slug",
+      "destination": "/api/render-site?pstore=:slug"
+    },
+    {
       "source": "/s/:slug",
       "destination": "/api/render-site?slug=:slug"
     },

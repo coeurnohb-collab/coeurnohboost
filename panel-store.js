@@ -1,0 +1,199 @@
+/* Coeurnoh Universe — Panel de croissance (boutique du panel + espace propriétaire).
+   1) Boutique cliente : s'ouvre via /?panel=<adresse-du-site> (depuis la page publique /panel/<adresse>).
+      Nouvelle commande · Liste des services · Mes commandes · Aide. Paiement par solde, recharge sans quitter la boutique.
+   2) Espace propriétaire : tuile « Panel de croissance » dans le tableau de bord du site (marge, activation, ventes, gains).
+   Tous les prix et paiements sont calculés par le serveur ; ce fichier n'envoie jamais de prix. */
+(function () {
+  'use strict';
+  if (window.__cnPanelStore) return; window.__cnPanelStore = true;
+  var tries = 0;
+  function go() { if (typeof auth === 'undefined' || typeof escapeHtml !== 'function') { if (++tries < 160) setTimeout(go, 250); return; } main(); }
+  go();
+
+  var S = { slug: '', store: null, tab: 'new', sel: null, rid: '', q: '', busy: false };
+  var LS = 'cn_pm_return';
+  var ST = { pending: ['En attente', 'w'], processing: ['En cours', 'i'], completed: ['Terminé', 'g'], partial: ['Partiel', 'w'], refunded: ['Remboursé', 'n'], pending_review: ['En vérification', 'w'] };
+  var ICON = { tiktok: '♪', instagram: '◎', youtube: '▶', facebook: 'f', twitter: '𝕏', x: '𝕏', telegram: '✈', spotify: '♫', snapchat: '👻', linkedin: 'in' };
+
+  function esc(s) { return escapeHtml(s == null ? '' : String(s)); }
+  function toast(m, t) { try { showToast(m, t || 'info'); } catch (e) { /* ignore */ } }
+  function money(n) { n = Number(n) || 0; return (Math.round(n * 100) / 100).toFixed(2).replace('.', ',') + ' $'; }
+  function money4(n) { n = Number(n) || 0; return (Math.round(n * 10000) / 10000).toFixed(n < 1 ? 3 : 2).replace('.', ',') + ' $'; }
+  function uid() { return (window.crypto && crypto.randomUUID) ? crypto.randomUUID().replace(/-/g, '') : String(Date.now()) + Math.random().toString(16).slice(2); }
+  async function api(action, body) {
+    if (!auth.currentUser) throw new Error('Connecte-toi pour continuer.');
+    var idToken = await auth.currentUser.getIdToken();
+    var r = await fetch('/api/payments-actions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(Object.assign({ idToken: idToken, action: action }, body || {})) });
+    var j = await r.json(); if (!j.success) { var e = new Error(j.error || 'Erreur'); throw e; } return j;
+  }
+  function lsSet(v) { try { localStorage.setItem(LS, v); } catch (e) { /* ignore */ } }
+  function lsGet() { try { return localStorage.getItem(LS) || ''; } catch (e) { return ''; } }
+  function lsDel() { try { localStorage.removeItem(LS); } catch (e) { /* ignore */ } }
+
+  var CSS = '.pm-ov{position:fixed;inset:0;z-index:100000;background:#f3f5f9;color:#14213d;overflow:auto;-webkit-overflow-scrolling:touch;font-family:inherit}' +
+    '.pm-in{max-width:760px;margin:0 auto;padding:0 0 90px}.pm-top{position:sticky;top:0;z-index:2;background:var(--pm-a,#1b4fd8);color:#fff;padding:12px 16px;display:flex;align-items:center;gap:10px}' +
+    '.pm-top img{width:38px;height:38px;border-radius:10px;object-fit:cover;background:#fff}.pm-top h1{font-size:1.02rem;margin:0;line-height:1.2;flex:1;min-width:0}.pm-top small{display:block;font-weight:400;opacity:.85;font-size:.74rem}' +
+    '.pm-x{border:0;background:rgba(255,255,255,.2);color:#fff;border-radius:10px;width:36px;height:36px;font-size:1.1rem;cursor:pointer}' +
+    '.pm-bal{display:flex;gap:10px;align-items:center;justify-content:space-between;background:#fff;margin:12px 14px;border-radius:16px;padding:12px 14px;box-shadow:0 1px 4px rgba(20,33,61,.08)}.pm-bal b{font-size:1.25rem}.pm-bal span{font-size:.75rem;color:#5b6475;display:block}' +
+    '.pm-tabs{display:flex;gap:6px;margin:0 14px 12px;overflow-x:auto}.pm-tabs button{flex:1;white-space:nowrap;border:1px solid #d5dbe6;background:#fff;border-radius:12px;padding:10px 12px;font:inherit;font-weight:700;font-size:.84rem;cursor:pointer;color:inherit}.pm-tabs button.on{background:var(--pm-a,#1b4fd8);border-color:var(--pm-a,#1b4fd8);color:#fff}' +
+    '.pm-card{background:#fff;border-radius:16px;margin:0 14px 12px;padding:14px;box-shadow:0 1px 4px rgba(20,33,61,.08)}.pm-card h2{font-size:.95rem;margin:0 0 8px}.pm-f{margin:11px 0}.pm-f label{display:block;font-size:.78rem;font-weight:700;color:#5b6475;margin-bottom:5px}' +
+    '.pm-f input,.pm-f select,.pm-f textarea{width:100%;box-sizing:border-box;border:1px solid #d5dbe6;border-radius:12px;padding:11px 12px;font:inherit;background:#fff;color:#14213d}' +
+    '.pm-b{border:1px solid #d5dbe6;background:#fff;border-radius:12px;padding:11px 16px;font:inherit;font-weight:700;cursor:pointer;color:inherit}.pm-b.p{background:var(--pm-a,#1b4fd8);border-color:var(--pm-a,#1b4fd8);color:#fff}.pm-b.w{width:100%}.pm-b[disabled]{opacity:.55}' +
+    '.pm-n{font-size:.78rem;color:#5b6475;margin:6px 0}.pm-sum{background:#eef3ff;border-radius:12px;padding:11px 12px;font-size:.86rem;margin:12px 0}.pm-sum b{font-size:1.1rem}.pm-err{color:#b42318;font-size:.84rem;margin:8px 0}' +
+    '.pm-row{display:flex;gap:10px;justify-content:space-between;align-items:flex-start;padding:10px 0;border-bottom:1px solid #e9edf4;font-size:.84rem}.pm-row:last-child{border:0}.pm-row small{display:block;color:#5b6475;font-size:.74rem;margin-top:2px;word-break:break-all}' +
+    '.pm-bd{display:inline-block;border-radius:99px;padding:3px 9px;font-size:.7rem;font-weight:800;white-space:nowrap}.pm-bd.g{background:#dcfce7;color:#166534}.pm-bd.i{background:#dbeafe;color:#1e40af}.pm-bd.w{background:#fef3c7;color:#92400e}.pm-bd.n{background:#e5e7eb;color:#374151}' +
+    '.pm-g{font-size:.74rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:#5b6475;margin:14px 0 4px}.pm-pr{font-weight:800;white-space:nowrap;text-align:right}' +
+    '.pm-tr{display:flex;gap:8px;flex-wrap:wrap;margin:8px 14px 0}.pm-tr span{font-size:.72rem;background:#fff;border-radius:99px;padding:5px 10px;color:#374151;box-shadow:0 1px 3px rgba(20,33,61,.08)}' +
+    '@media(prefers-color-scheme:dark){.pm-ov{background:#0e1424;color:#e6eaf3}.pm-bal,.pm-card,.pm-tabs button,.pm-b,.pm-tr span{background:#182036;color:#e6eaf3;border-color:#2a3553}.pm-f input,.pm-f select,.pm-f textarea{background:#101830;color:#e6eaf3;border-color:#2a3553}.pm-sum{background:#14264d}.pm-row{border-color:#2a3553}.pm-n,.pm-bal span,.pm-row small,.pm-g,.pm-f label{color:#9aa6c0}.pm-tabs button.on,.pm-b.p{color:#fff}}';
+  var st = document.createElement('style'); st.textContent = CSS; document.head.appendChild(st);
+
+  function close() { var o = document.getElementById('pm-ov'); if (o) o.remove(); document.body.style.overflow = ''; try { var u = new URL(location.href); if (u.searchParams.has('panel')) { u.searchParams.delete('panel'); history.replaceState(null, '', u.pathname + (u.search || '') + u.hash); } } catch (e) { /* ignore */ } }
+
+  async function loadStore(slug) {
+    var r = await fetch('/api/render-site?pstore=' + encodeURIComponent(slug) + '&json=1'); var j = await r.json();
+    if (!j.success) throw new Error(j.error || 'Panel introuvable.'); return j;
+  }
+  async function openStore(slug) {
+    slug = String(slug || '').toLowerCase(); if (!/^[a-z0-9-]{3,30}$/.test(slug)) return;
+    S.slug = slug; S.tab = 'new'; S.sel = null; S.rid = uid();
+    var o = document.getElementById('pm-ov'); if (o) o.remove();
+    o = document.createElement('div'); o.className = 'pm-ov'; o.id = 'pm-ov'; o.innerHTML = '<div class="pm-in"><p class="pm-n" style="padding:30px;text-align:center">Chargement du panel…</p></div>';
+    document.body.appendChild(o); document.body.style.overflow = 'hidden';
+    try { S.store = await loadStore(slug); } catch (e) { o.innerHTML = '<div class="pm-in"><div class="pm-card" style="margin-top:30px"><h2>Panel indisponible</h2><p class="pm-n">' + esc(e.message) + '</p><button class="pm-b p" id="pm-close">Fermer</button></div></div>'; o.querySelector('#pm-close').onclick = close; return; }
+    if (S.store.shop.accent) o.style.setProperty('--pm-a', S.store.shop.accent);
+    render();
+  }
+
+  function render() {
+    var o = document.getElementById('pm-ov'); if (!o || !S.store) return; var sh = S.store.shop, logged = !!auth.currentUser;
+    var tabs = [['new', 'Commander'], ['svc', 'Services'], ['ord', 'Mes commandes'], ['help', 'Aide']];
+    o.innerHTML = '<div class="pm-in"><div class="pm-top">' + (sh.logo ? '<img src="' + esc(sh.logo) + '" alt="">' : '') + '<h1>' + esc(sh.name || 'Panel') + '<small>' + esc(S.store.title) + '</small></h1><button class="pm-x" id="pm-close" aria-label="Fermer">✕</button></div>' +
+      '<div class="pm-bal"><div><span>Mon solde</span><b id="pm-bal">' + (logged ? '…' : '—') + '</b></div>' + (logged ? '<button class="pm-b p" id="pm-rech">+ Recharger</button>' : '<button class="pm-b p" id="pm-login">Se connecter</button>') + '</div>' +
+      '<div class="pm-tabs">' + tabs.map(function (t) { return '<button data-t="' + t[0] + '" class="' + (S.tab === t[0] ? 'on' : '') + '">' + t[1] + '</button>'; }).join('') + '</div><div id="pm-pane"></div>' +
+      '<div class="pm-tr"><span>🔒 Paiement sécurisé</span><span>⚡ Démarrage rapide</span><span>♻ Remboursement automatique si échec</span></div></div>';
+    o.querySelector('#pm-close').onclick = close;
+    var rb = o.querySelector('#pm-rech'); if (rb) rb.onclick = function () { lsSet(S.slug + '|' + Date.now()); close(); try { showRecharge(); } catch (e) { toast('Ouvre ton portefeuille pour recharger.'); } };
+    var lb = o.querySelector('#pm-login'); if (lb) lb.onclick = function () { lsSet(S.slug + '|' + Date.now()); close(); try { openAuth('login'); } catch (e) { /* ignore */ } };
+    o.querySelectorAll('.pm-tabs [data-t]').forEach(function (b) { b.onclick = function () { S.tab = b.getAttribute('data-t'); render(); }; });
+    ({ new: paneNew, svc: paneSvc, ord: paneOrd, help: paneHelp })[S.tab](o.querySelector('#pm-pane'));
+    if (logged) refreshBalance();
+  }
+  function refreshBalance() { api('pm_orders', { slug: S.slug }).then(function (r) { var el = document.getElementById('pm-bal'); if (el) el.textContent = money(r.balance); S.bal = r.balance; }).catch(function () { var el = document.getElementById('pm-bal'); if (el) el.textContent = '—'; }); }
+
+  function groups() { var g = {}; (S.store.items || []).forEach(function (x) { (g[x.group] = g[x.group] || []).push(x); }); return g; }
+  function paneNew(pane) {
+    var g = groups(), names = Object.keys(g); if (!names.length) { pane.innerHTML = '<div class="pm-card"><p class="pm-n">Aucun service disponible pour le moment.</p></div>'; return; }
+    var curGroup = S.sel ? S.sel.group : names[0];
+    var svcs = g[curGroup] || [];
+    if (!S.sel || S.sel.group !== curGroup) S.sel = svcs[0];
+    pane.innerHTML = '<div class="pm-card"><h2>Nouvelle commande</h2>' + (S.store.welcome ? '<p class="pm-n">' + esc(S.store.welcome) + '</p>' : '') +
+      '<div class="pm-f"><label for="pm-g">Réseau</label><select id="pm-g">' + names.map(function (n) { return '<option' + (n === curGroup ? ' selected' : '') + '>' + esc(n) + '</option>'; }).join('') + '</select></div>' +
+      '<div class="pm-f"><label for="pm-s">Service</label><select id="pm-s">' + svcs.map(function (x) { return '<option value="' + esc(x.id) + '"' + (S.sel && S.sel.id === x.id ? ' selected' : '') + '>' + esc(x.name) + ' — ' + money(x.per1000) + ' / 1000</option>'; }).join('') + '</select></div>' +
+      '<p class="pm-n" id="pm-info"></p>' +
+      '<div class="pm-f"><label for="pm-l">Lien ou nom du compte</label><input id="pm-l" maxlength="300" placeholder="https://… ou @compte" autocomplete="off" inputmode="url"></div>' +
+      '<div class="pm-f"><label for="pm-q">Quantité</label><input id="pm-q" inputmode="numeric" maxlength="8" placeholder=""></div>' +
+      '<div class="pm-sum">Total à payer : <b id="pm-tot">0,00 $</b><div class="pm-n" id="pm-rng"></div></div><p class="pm-err" id="pm-err"></p>' +
+      '<button class="pm-b p w" id="pm-go">Commander</button><p class="pm-n">Le montant est débité de ton solde. Si le service n’aboutit pas, tu es remboursé automatiquement.</p></div>';
+    var sel = pane.querySelector('#pm-s'), qty = pane.querySelector('#pm-q'), err = pane.querySelector('#pm-err');
+    function upd() { var x = S.sel; if (!x) return; pane.querySelector('#pm-info').textContent = x.info || ''; pane.querySelector('#pm-rng').textContent = 'Min ' + x.min + ' · Max ' + x.max.toLocaleString('fr-FR') + ' · ' + money4(x.per1000) + ' / 1000';
+      var q = parseInt(qty.value, 10), t = (q > 0) ? Math.max(0.01, Math.ceil(x.per1000 * q / 1000 * 100 - 1e-9) / 100) : 0; pane.querySelector('#pm-tot').textContent = money(t); qty.placeholder = String(x.min); }
+    pane.querySelector('#pm-g').onchange = function () { S.sel = (g[this.value] || [])[0]; paneNew(pane); };
+    sel.onchange = function () { S.sel = svcs.filter(function (x) { return String(x.id) === sel.value; })[0]; upd(); };
+    qty.oninput = upd; upd();
+    pane.querySelector('#pm-go').onclick = async function () {
+      var b = this; err.textContent = '';
+      if (!auth.currentUser) { lsSet(S.slug + '|' + Date.now()); close(); try { openAuth('login'); } catch (e) { /* ignore */ } return; }
+      var x = S.sel, q = parseInt(qty.value, 10), link = pane.querySelector('#pm-l').value.trim();
+      if (!link) { err.textContent = 'Indique le lien ou le nom du compte.'; return; }
+      if (!(q >= x.min && q <= x.max)) { err.textContent = 'Quantité : entre ' + x.min + ' et ' + x.max + '.'; return; }
+      var tot = pane.querySelector('#pm-tot').textContent;
+      if (!confirm('Confirmer la commande ?\n' + x.group + ' — ' + x.name + '\nQuantité : ' + q + '\nTotal : ' + tot)) return;
+      b.disabled = true; b.textContent = 'Envoi en cours…';
+      try {
+        var r = await api('pm_order', { slug: S.slug, serviceId: x.id, quantity: q, link: link, requestId: S.rid });
+        S.rid = uid(); toast(r.status === 'refunded' ? (r.message || 'Commande non acceptée — remboursé.') : 'Commande envoyée ✓', r.status === 'refunded' ? 'error' : 'success');
+        S.tab = 'ord'; render();
+      } catch (e) { err.textContent = e.message; b.disabled = false; b.textContent = 'Commander'; if (/solde insuffisant/i.test(e.message)) { err.innerHTML = esc(e.message) + ' <a href="#" id="pm-rc2">Recharger</a>'; var a = pane.querySelector('#pm-rc2'); if (a) a.onclick = function (ev) { ev.preventDefault(); var rb = document.getElementById('pm-rech'); if (rb) rb.click(); }; } }
+    };
+  }
+  function paneSvc(pane) {
+    pane.innerHTML = '<div class="pm-card"><div class="pm-f" style="margin-top:0"><input id="pm-sq" placeholder="Rechercher (ex. TikTok abonnés)" maxlength="40" value="' + esc(S.q) + '"></div><div id="pm-sl"></div></div>';
+    function draw() {
+      var q = S.q.toLowerCase(), g = groups(), h = '';
+      Object.keys(g).forEach(function (n) {
+        var l = g[n].filter(function (x) { return !q || (n + ' ' + x.name).toLowerCase().indexOf(q) >= 0; }); if (!l.length) return;
+        h += '<div class="pm-g">' + (ICON[l[0].platform] || '') + ' ' + esc(n) + '</div>' + l.map(function (x) { return '<div class="pm-row"><div><b>' + esc(x.name) + '</b><small>' + esc(x.info) + ' · Min ' + x.min + ' · Max ' + x.max.toLocaleString('fr-FR') + '</small></div><div class="pm-pr">' + money4(x.per1000) + '<small>/ 1000</small></div></div>'; }).join('');
+      });
+      pane.querySelector('#pm-sl').innerHTML = h || '<p class="pm-n">Aucun résultat.</p>';
+    }
+    pane.querySelector('#pm-sq').oninput = function () { S.q = this.value; draw(); }; draw();
+  }
+  function paneOrd(pane) {
+    if (!auth.currentUser) { pane.innerHTML = '<div class="pm-card"><p class="pm-n">Connecte-toi pour voir tes commandes.</p><button class="pm-b p" id="pm-lg2">Se connecter</button></div>'; pane.querySelector('#pm-lg2').onclick = function () { document.getElementById('pm-login').click(); }; return; }
+    pane.innerHTML = '<div class="pm-card"><h2>Mes commandes</h2><p class="pm-n">Chargement…</p></div>';
+    api('pm_orders', { slug: S.slug }).then(function (r) {
+      var el = document.getElementById('pm-bal'); if (el) el.textContent = money(r.balance);
+      pane.innerHTML = '<div class="pm-card"><h2>Mes commandes</h2>' + (r.orders.length ? r.orders.map(function (o) { var s = ST[o.status] || [o.status, 'n']; return '<div class="pm-row"><div><b>' + esc(o.service) + '</b> × ' + esc(o.quantity) + '<small>' + esc(o.link) + '<br>' + esc(new Date(o.createdAt).toLocaleString('fr-FR')) + (o.remains ? ' · Restant : ' + esc(o.remains) : '') + '</small></div><div style="text-align:right"><span class="pm-bd ' + s[1] + '">' + s[0] + '</span><div class="pm-pr" style="margin-top:4px">' + money(o.price) + '</div></div></div>'; }).join('') : '<p class="pm-n">Aucune commande pour l’instant.</p>') + '<button class="pm-b w" id="pm-rf" style="margin-top:10px">Actualiser</button></div>';
+      pane.querySelector('#pm-rf').onclick = function () { paneOrd(pane); };
+    }).catch(function (e) { pane.innerHTML = '<div class="pm-card"><p class="pm-err">' + esc(e.message) + '</p></div>'; });
+  }
+  function paneHelp(pane) {
+    var wa = (S.store.shop.whatsapp || '').replace(/\D/g, '');
+    pane.innerHTML = '<div class="pm-card"><h2>Comment ça marche</h2><p class="pm-n"><b>1.</b> Recharge ton solde (carte, mobile money ou crypto).<br><b>2.</b> Choisis le réseau et le service, colle ton lien, indique la quantité.<br><b>3.</b> Valide : la commande part automatiquement, sans mot de passe à donner.<br><b>4.</b> Suis l’avancement dans « Mes commandes ».</p></div>' +
+      '<div class="pm-card"><h2>Questions fréquentes</h2><p class="pm-n"><b>Mon compte doit-il être public ?</b> Oui, le temps de la livraison.<br><br><b>Combien de temps ?</b> Le démarrage est généralement rapide ; les grosses quantités sont livrées progressivement.<br><br><b>Et si ça échoue ?</b> Tu es remboursé automatiquement sur ton solde.<br><br><b>Faut-il donner mon mot de passe ?</b> Jamais.</p></div>' +
+      (wa.length > 6 ? '<div class="pm-card"><a class="pm-b p w" style="display:block;text-align:center;text-decoration:none" target="_blank" rel="noopener" href="https://wa.me/' + wa + '">Contacter ' + esc(S.store.shop.name || 'le vendeur') + ' sur WhatsApp</a></div>' : '');
+  }
+
+  /* ================= Espace propriétaire ================= */
+  var OW = null;
+  function openOwner() {
+    if (!auth.currentUser) { toast('Connecte-toi d’abord.'); return; }
+    var o = document.getElementById('pm-ov'); if (o) o.remove();
+    o = document.createElement('div'); o.className = 'pm-ov'; o.id = 'pm-ov'; document.body.appendChild(o); document.body.style.overflow = 'hidden';
+    o.innerHTML = '<div class="pm-in"><div class="pm-top"><h1>Mon panel de croissance<small>Tu vends, nous livrons</small></h1><button class="pm-x" id="pm-close">✕</button></div><div id="pm-pane"><p class="pm-n" style="padding:24px">Chargement…</p></div></div>';
+    o.querySelector('#pm-close').onclick = close;
+    api('pm_owner_get').then(function (r) { OW = r; drawOwner(o.querySelector('#pm-pane')); }).catch(function (e) { o.querySelector('#pm-pane').innerHTML = '<div class="pm-card"><p class="pm-err">' + esc(e.message) + '</p></div>'; });
+  }
+  function drawOwner(pane) {
+    var c = OW.cfg, st = OW.stats, url = OW.slug ? location.origin + '/panel/' + OW.slug : '';
+    pane.innerHTML = '<div class="pm-card"><h2>Résumé</h2><div class="pm-row"><span>Commandes</span><b>' + st.orders + '</b></div><div class="pm-row"><span>Ventes de tes clients</span><b>' + money(st.sales) + '</b></div><div class="pm-row"><span>Tes gains (marge)</span><b>' + money(st.earned) + '</b></div>' + (st.pending ? '<div class="pm-row"><span>Gains en vérification</span><b>' + money(st.pending) + '</b></div>' : '') + '<p class="pm-n">Tes gains sont ajoutés automatiquement à ton solde dès que la commande est acceptée. Tu n’as aucune clé, aucun identifiant de service à gérer : tout est prêt et tenu à jour par Coeurnoh.</p></div>' +
+      '<div class="pm-card"><h2>Réglages</h2><div class="pm-f" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="pm-on" style="width:20px;height:20px"' + (c.on ? ' checked' : '') + '><label for="pm-on" style="margin:0">Activer mon panel</label></div>' +
+      '<div class="pm-f"><label for="pm-t">Titre</label><input id="pm-t" maxlength="80" placeholder="Services de croissance" value="' + esc(c.title) + '"></div>' +
+      '<div class="pm-f"><label for="pm-w">Message d’accueil (facultatif)</label><textarea id="pm-w" rows="2" maxlength="300">' + esc(c.welcome) + '</textarea></div>' +
+      '<div class="pm-f"><label for="pm-m">Ta marge sur le prix de gros (%, max ' + OW.maxMarkup + ')</label><input id="pm-m" inputmode="decimal" maxlength="5" value="' + esc(c.markup) + '"></div><div class="pm-sum" id="pm-ex"></div>' +
+      '<div class="pm-f"><label>Réseaux proposés</label>' + OW.platforms.map(function (p) { return '<label style="display:flex;gap:8px;align-items:center;font-weight:600;margin:6px 0"><input type="checkbox" style="width:18px;height:18px" data-p="' + esc(p.id) + '"' + (c.hiddenPlatforms.indexOf(p.id) < 0 ? ' checked' : '') + '>' + esc(p.name) + '</label>'; }).join('') + '</div>' +
+      '<p class="pm-err" id="pm-err"></p><button class="pm-b p w" id="pm-save">Enregistrer</button></div>' +
+      (url ? '<div class="pm-card"><h2>Ton panel</h2><p class="pm-n" style="word-break:break-all">' + esc(url) + '</p><button class="pm-b w" id="pm-copy">Copier le lien</button>' + (typeof CNShare !== 'undefined' ? '' : '') + '</div>' : '<div class="pm-card"><p class="pm-n">Publie ton site pour obtenir l’adresse de ton panel.</p></div>') +
+      '<div class="pm-card"><h2>Dernières ventes</h2>' + (OW.recent.length ? OW.recent.map(function (o) { var s = ST[o.status] || [o.status, 'n']; return '<div class="pm-row"><div><b>' + esc(o.service) + '</b> × ' + esc(o.quantity) + '<small>' + esc(new Date(o.createdAt).toLocaleString('fr-FR')) + '</small></div><div style="text-align:right"><span class="pm-bd ' + s[1] + '">' + s[0] + '</span><div class="pm-pr">+' + money(o.margin) + '</div></div></div>'; }).join('') : '<p class="pm-n">Aucune vente pour l’instant. Partage le lien de ton panel !</p>') + '</div>';
+    var m = pane.querySelector('#pm-m'), ex = pane.querySelector('#pm-ex');
+    function sample() { var mk = Math.min(Math.max(parseFloat(String(m.value).replace(',', '.')) || 0, 0), OW.maxMarkup), s = OW.sample[0]; if (!s) return; var base = s.per1000 / (1 + (OW.cfg.markup || 0) / 100), price = base * (1 + mk / 100); ex.innerHTML = 'Exemple : ' + esc(s.group + ' ' + s.label) + ' — le client paie <b>' + money4(price) + '</b> / 1000, ton gain <b>' + money4(price - base) + '</b>.'; }
+    m.oninput = sample; sample();
+    var cp = pane.querySelector('#pm-copy'); if (cp) cp.onclick = function () { try { navigator.clipboard.writeText(url); toast('Lien copié', 'success'); } catch (e) { toast(url); } };
+    pane.querySelector('#pm-save').onclick = async function () {
+      var b = this, er = pane.querySelector('#pm-err'); er.textContent = ''; b.disabled = true;
+      var hidden = [].filter.call(pane.querySelectorAll('[data-p]'), function (x) { return !x.checked; }).map(function (x) { return x.getAttribute('data-p'); });
+      try { var r = await api('pm_owner_save', { on: pane.querySelector('#pm-on').checked, title: pane.querySelector('#pm-t').value, welcome: pane.querySelector('#pm-w').value, markup: parseFloat(String(m.value).replace(',', '.')) || 0, hiddenPlatforms: hidden }); toast('Panel enregistré', 'success'); OW.cfg = r.cfg; drawOwner(pane); } catch (e) { er.textContent = e.message; }
+      b.disabled = false;
+    };
+  }
+
+  function main() {
+    window.CNPanel = { open: openStore, owner: openOwner };
+    var orig = window.siteHubHtml;
+    if (typeof orig === 'function') {
+      window.siteHubHtml = function () {
+        var h = orig.apply(this, arguments);
+        var tile = '<button type="button" class="sp-tile" onclick="CNPanel.owner()"><span class="sp-ic">' + (typeof uiIc === 'function' ? uiIc('chart', 20) : '📈') + '</span><b>Panel de croissance</b><small>Vends des services, gagne ta marge</small></button>';
+        return /<\/div>\s*$/.test(h) ? h.replace(/<\/div>\s*$/, tile + '</div>') : h + tile;
+      };
+    }
+    var slug = ''; try { slug = new URL(location.href).searchParams.get('panel') || ''; } catch (e) { /* ignore */ }
+    if (!slug) { var v = lsGet().split('|'); if (v[0] && Date.now() - Number(v[1] || 0) < 7200000) slug = v[0]; }
+    if (slug) {
+      var done = false;
+      var run = function () { if (done) return; done = true; lsDel(); openStore(slug); };
+      try { auth.onAuthStateChanged(function () { setTimeout(run, 600); }); } catch (e) { run(); }
+      setTimeout(run, 6000);
+    }
+  }
+})();
