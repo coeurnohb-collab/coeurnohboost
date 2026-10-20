@@ -2,6 +2,9 @@
   "functions": {
     "api/payments-actions.js": {
       "maxDuration": 60
+    },
+    "api/place-smm-order.js": {
+      "maxDuration": 30
     }
   },
   "crons": [
