@@ -183,7 +183,6 @@
   if (typeof origOpenAuth === 'function') {
     window.openAuth = function () {
       var r = origOpenAuth.apply(this, arguments);
-      try { mountVideo(document.querySelector('.auth-hero'), 'intro-dark'); } catch (e) { /* ignore */ }
       return r;
     };
   }

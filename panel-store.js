@@ -31,7 +31,7 @@
   function lsDel() { try { localStorage.removeItem(LS); } catch (e) { /* ignore */ } }
 
   var CSS = '.pm-ov{position:fixed;inset:0;z-index:100000;background:#f3f5f9;color:#14213d;overflow:auto;-webkit-overflow-scrolling:touch;font-family:inherit}' +
-    '.pm-in{max-width:760px;margin:0 auto;padding:0 0 90px}.pm-top{position:sticky;top:0;z-index:2;background:var(--pm-a,#1b4fd8);color:#fff;padding:12px 16px;display:flex;align-items:center;gap:10px}' +
+    '.pm-in{max-width:760px;margin:0 auto;padding:0 0 96px}.pm-top{position:sticky;top:0;z-index:2;background:var(--pm-a,#1b4fd8);color:#fff;padding:12px 16px;display:flex;align-items:center;gap:10px}' +
     '.pm-top img{width:38px;height:38px;border-radius:10px;object-fit:cover;background:#fff}.pm-top h1{font-size:1.02rem;margin:0;line-height:1.2;flex:1;min-width:0}.pm-top small{display:block;font-weight:400;opacity:.85;font-size:.74rem}' +
     '.pm-x{border:0;background:rgba(255,255,255,.2);color:#fff;border-radius:10px;width:36px;height:36px;font-size:1.1rem;cursor:pointer}' +
     '.pm-bal{display:flex;gap:10px;align-items:center;justify-content:space-between;background:#fff;margin:12px 14px;border-radius:16px;padding:12px 14px;box-shadow:0 1px 4px rgba(20,33,61,.08)}.pm-bal b{font-size:1.25rem}.pm-bal span{font-size:.75rem;color:#5b6475;display:block}' +
@@ -44,7 +44,12 @@
     '.pm-bd{display:inline-block;border-radius:99px;padding:3px 9px;font-size:.7rem;font-weight:800;white-space:nowrap}.pm-bd.g{background:#dcfce7;color:#166534}.pm-bd.i{background:#dbeafe;color:#1e40af}.pm-bd.w{background:#fef3c7;color:#92400e}.pm-bd.n{background:#e5e7eb;color:#374151}' +
     '.pm-g{font-size:.74rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:#5b6475;margin:14px 0 4px}.pm-pr{font-weight:800;white-space:nowrap;text-align:right}' +
     '.pm-tr{display:flex;gap:8px;flex-wrap:wrap;margin:8px 14px 0}.pm-tr span{font-size:.72rem;background:#fff;border-radius:99px;padding:5px 10px;color:#374151;box-shadow:0 1px 3px rgba(20,33,61,.08)}' +
-    '@media(prefers-color-scheme:dark){.pm-ov{background:#0e1424;color:#e6eaf3}.pm-bal,.pm-card,.pm-tabs button,.pm-b,.pm-tr span{background:#182036;color:#e6eaf3;border-color:#2a3553}.pm-f input,.pm-f select,.pm-f textarea{background:#101830;color:#e6eaf3;border-color:#2a3553}.pm-sum{background:#14264d}.pm-row{border-color:#2a3553}.pm-n,.pm-bal span,.pm-row small,.pm-g,.pm-f label{color:#9aa6c0}.pm-tabs button.on,.pm-b.p{color:#fff}}';
+    '.pm-top{gap:8px}.pm-chip{border:0;background:rgba(255,255,255,.2);color:#fff;border-radius:99px;padding:8px 12px;font:inherit;font-weight:800;font-size:.8rem;cursor:pointer;white-space:nowrap}' +
+    '.pm-nav{position:fixed;left:0;right:0;bottom:0;z-index:3;display:flex;background:#fff;border-top:1px solid #d5dbe6;padding:6px 4px calc(6px + env(safe-area-inset-bottom));box-shadow:0 -4px 16px rgba(20,33,61,.08)}.pm-nav button{flex:1;border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;font:inherit;font-size:.66rem;font-weight:700;color:#5b6475;padding:6px 2px;cursor:pointer;min-width:0}.pm-nav button.on{color:var(--pm-a,#1b4fd8)}.pm-nav button span{white-space:nowrap}' +
+    '.pm-hero{background:#1f2f4d;color:#fff}.pm-hero h2{color:#fff;font-size:1.1rem}.pm-hero p{font-size:.88rem;line-height:1.5;margin:6px 0 12px;color:#d7e4f5}.pm-cta{background:var(--pm-a,#1b4fd8);border-color:var(--pm-a,#1b4fd8);color:#fff}.pm-big{font-size:2rem;font-weight:800;margin:4px 0 12px}' +
+    '.pm-stats{display:flex;gap:8px;margin:0 14px 12px}.pm-stats div{flex:1;background:#fff;border-radius:14px;padding:10px 6px;text-align:center;box-shadow:0 1px 4px rgba(20,33,61,.08)}.pm-stats b{display:block;font-size:1.1rem}.pm-stats span{font-size:.7rem;color:#5b6475}' +
+    '.pm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.pm-plat{border:1px solid #d5dbe6;background:#fff;border-radius:14px;padding:12px 4px;font:inherit;cursor:pointer;color:inherit;display:flex;flex-direction:column;align-items:center;gap:4px}.pm-plat span{font-size:1.3rem}.pm-plat b{font-size:.74rem}' +
+'@media(prefers-color-scheme:dark){.pm-ov{background:#0e1424;color:#e6eaf3}.pm-bal,.pm-card,.pm-nav,.pm-stats div,.pm-plat,.pm-b{background:#182036;color:#e6eaf3;border-color:#2a3553}.pm-f input,.pm-f select,.pm-f textarea{background:#101830;color:#e6eaf3;border-color:#2a3553}.pm-sum{background:#14264d}.pm-row{border-color:#2a3553}.pm-n,.pm-bal span,.pm-row small,.pm-g,.pm-f label{color:#9aa6c0}.pm-tabs button.on,.pm-b.p{color:#fff}}';
   var st = document.createElement('style'); st.textContent = CSS; document.head.appendChild(st);
 
   function close() { var o = document.getElementById('pm-ov'); if (o) o.remove(); document.body.style.overflow = ''; try { var u = new URL(location.href); if (u.searchParams.has('panel')) { u.searchParams.delete('panel'); history.replaceState(null, '', u.pathname + (u.search || '') + u.hash); } } catch (e) { /* ignore */ } }
@@ -55,7 +60,7 @@
   }
   async function openStore(slug) {
     slug = String(slug || '').toLowerCase(); if (!/^[a-z0-9-]{3,30}$/.test(slug)) return;
-    S.slug = slug; S.tab = 'new'; S.sel = null; S.rid = uid();
+    S.slug = slug; S.tab = 'home'; S.sel = null; S.rid = uid();
     var o = document.getElementById('pm-ov'); if (o) o.remove();
     o = document.createElement('div'); o.className = 'pm-ov'; o.id = 'pm-ov'; o.innerHTML = '<div class="pm-in"><p class="pm-n" style="padding:30px;text-align:center">Chargement du panel…</p></div>';
     document.body.appendChild(o); document.body.style.overflow = 'hidden';
@@ -64,21 +69,44 @@
     render();
   }
 
+  var NAV = [['home', 'Accueil', 'M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z'], ['svc', 'Services', 'M4 6h16M4 12h16M4 18h16'], ['new', 'Commander', 'M12 5v14M5 12h14'], ['ord', 'Commandes', 'M9 4h6l1 2h3v14H5V6h3zM9 12h6M9 16h4'], ['wal', 'Portefeuille', 'M3 7h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM3 7l2-3h12M16 14h3']];
   function render() {
     var o = document.getElementById('pm-ov'); if (!o || !S.store) return; var sh = S.store.shop, logged = !!auth.currentUser;
-    var tabs = [['new', 'Commander'], ['svc', 'Services'], ['ord', 'Mes commandes'], ['help', 'Aide']];
-    o.innerHTML = '<div class="pm-in"><div class="pm-top">' + (sh.logo ? '<img src="' + esc(sh.logo) + '" alt="">' : '') + '<h1>' + esc(sh.name || 'Panel') + '<small>' + esc(S.store.title) + '</small></h1><button class="pm-x" id="pm-close" aria-label="Fermer">✕</button></div>' +
-      '<div class="pm-bal"><div><span>Mon solde</span><b id="pm-bal">' + (logged ? '…' : '—') + '</b></div>' + (logged ? '<button class="pm-b p" id="pm-rech">+ Recharger</button>' : '<button class="pm-b p" id="pm-login">Se connecter</button>') + '</div>' +
-      '<div class="pm-tabs">' + tabs.map(function (t) { return '<button data-t="' + t[0] + '" class="' + (S.tab === t[0] ? 'on' : '') + '">' + t[1] + '</button>'; }).join('') + '</div><div id="pm-pane"></div>' +
-      '<div class="pm-tr"><span>🔒 Paiement sécurisé</span><span>⚡ Démarrage rapide</span><span>♻ Remboursement automatique si échec</span></div></div>';
+    o.innerHTML = '<div class="pm-in"><div class="pm-top">' + (sh.logo ? '<img src="' + esc(sh.logo) + '" alt="">' : '') + '<h1>' + esc(sh.name || 'Panel') + '<small>' + esc(S.store.title) + '</small></h1>' +
+      (logged ? '<button class="pm-chip" id="pm-balchip" aria-label="Mon solde">…</button>' : '<button class="pm-chip" id="pm-login">Se connecter</button>') + '<button class="pm-x" id="pm-close" aria-label="Fermer">✕</button></div><div id="pm-pane"></div></div>' +
+      '<nav class="pm-nav" aria-label="Menu du panel">' + NAV.map(function (n) { return '<button type="button" data-t="' + n[0] + '" class="' + (S.tab === n[0] ? 'on' : '') + '"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="' + n[2] + '"/></svg><span>' + n[1] + '</span></button>'; }).join('') + '</nav>';
     o.querySelector('#pm-close').onclick = close;
-    var rb = o.querySelector('#pm-rech'); if (rb) rb.onclick = function () { lsSet(S.slug + '|' + Date.now()); close(); try { showRecharge(); } catch (e) { toast('Ouvre ton portefeuille pour recharger.'); } };
     var lb = o.querySelector('#pm-login'); if (lb) lb.onclick = function () { lsSet(S.slug + '|' + Date.now()); close(); try { openAuth('login'); } catch (e) { /* ignore */ } };
-    o.querySelectorAll('.pm-tabs [data-t]').forEach(function (b) { b.onclick = function () { S.tab = b.getAttribute('data-t'); render(); }; });
-    ({ new: paneNew, svc: paneSvc, ord: paneOrd, help: paneHelp })[S.tab](o.querySelector('#pm-pane'));
+    var bc = o.querySelector('#pm-balchip'); if (bc) bc.onclick = function () { S.tab = 'wal'; render(); };
+    o.querySelectorAll('.pm-nav [data-t]').forEach(function (b) { b.onclick = function () { S.tab = b.getAttribute('data-t'); render(); o.scrollTop = 0; }; });
+    ({ home: paneHome, new: paneNew, svc: paneSvc, ord: paneOrd, wal: paneWallet })[S.tab](o.querySelector('#pm-pane'));
     if (logged) refreshBalance();
   }
-  function refreshBalance() { api('pm_orders', { slug: S.slug }).then(function (r) { var el = document.getElementById('pm-bal'); if (el) el.textContent = money(r.balance); S.bal = r.balance; }).catch(function () { var el = document.getElementById('pm-bal'); if (el) el.textContent = '—'; }); }
+  function goRecharge() { lsSet(S.slug + '|' + Date.now()); close(); try { showRecharge(); } catch (e) { toast('Ouvre ton portefeuille pour recharger.'); } }
+  function paneHome(pane) {
+    var g = groups(), names = Object.keys(g), n = (S.store.items || []).length;
+    pane.innerHTML = '<div class="pm-card pm-hero"><h2>' + esc(S.store.title) + '</h2><p>' + esc(S.store.welcome || S.store.shop.tagline || 'Abonnés, likes, vues et plus pour tes réseaux sociaux. Livraison rapide, paiement simple.') + '</p><button class="pm-b w pm-cta" id="pm-h-go">Commander maintenant</button></div>' +
+      '<div class="pm-stats"><div><b>' + names.length + '</b><span>Réseaux</span></div><div><b>' + n + '</b><span>Services</span></div><div><b>24/7</b><span>Automatique</span></div></div>' +
+      '<div class="pm-card"><h2>Choisis un réseau</h2><div class="pm-grid">' + names.map(function (nm) { var pid = g[nm][0].platform; return '<button type="button" class="pm-plat" data-g="' + esc(nm) + '"><span>' + (ICON[pid] || '★') + '</span><b>' + esc(nm) + '</b></button>'; }).join('') + '</div></div>' +
+      '<div class="pm-card"><h2>Comment ça marche</h2><p class="pm-n"><b>1.</b> Recharge ton solde (Portefeuille).<br><b>2.</b> Choisis le service, colle ton lien, indique la quantité.<br><b>3.</b> La commande part automatiquement ; suis-la dans « Commandes ».<br><b>4.</b> Si elle n’aboutit pas, tu es remboursé automatiquement.</p></div>';
+    pane.querySelector('#pm-h-go').onclick = function () { S.tab = 'new'; render(); };
+    pane.querySelectorAll('[data-g]').forEach(function (b) { b.onclick = function () { S.sel = (g[b.getAttribute('data-g')] || [])[0]; S.tab = 'new'; render(); }; });
+    var h = document.createElement('div'); pane.appendChild(h); paneHelp(h);
+  }
+  function paneWallet(pane) {
+    if (!auth.currentUser) { pane.innerHTML = '<div class="pm-card"><h2>Portefeuille</h2><p class="pm-n">Connecte-toi pour voir ton solde et recharger.</p><button class="pm-b p w" id="pm-lg3">Se connecter</button></div>'; pane.querySelector('#pm-lg3').onclick = function () { document.getElementById('pm-login').click(); }; return; }
+    pane.innerHTML = '<div class="pm-card pm-hero"><p style="margin:0;opacity:.85">Solde disponible</p><div class="pm-big" id="pm-wbal">…</div><button class="pm-b w pm-cta" id="pm-w-rc">+ Recharger mon solde</button><p class="pm-n" style="color:#d7e4f5">Mobile Money, carte ou crypto selon ton pays.</p></div><div class="pm-card"><h2>Derniers mouvements</h2><div id="pm-wtx"><p class="pm-n">Chargement…</p></div></div>';
+    pane.querySelector('#pm-w-rc').onclick = goRecharge;
+    api('pm_orders', { slug: S.slug }).then(function (r) { var el = pane.querySelector('#pm-wbal'); if (el) el.textContent = money(r.balance); }).catch(function () { });
+    var LBL = { order_purchase: 'Commande', order_refund: 'Remboursement', panel_income: 'Marge panel', topup: 'Recharge', deposit: 'Recharge' };
+    try {
+      db.collection('wallet_transactions').where('uid', '==', auth.currentUser.uid).limit(60).get().then(function (sn) {
+        var rows = sn.docs.map(function (d) { return d.data(); }).sort(function (a, b) { return String(b.createdAt).localeCompare(String(a.createdAt)); }).slice(0, 15);
+        pane.querySelector('#pm-wtx').innerHTML = rows.length ? rows.map(function (t) { var pos = (t.amount || 0) >= 0; return '<div class="pm-row"><div><b>' + esc(LBL[t.type] || t.type) + '</b><small>' + esc((t.description || '').slice(0, 70)) + '<br>' + esc(new Date(t.createdAt).toLocaleString('fr-FR')) + '</small></div><div class="pm-pr" style="color:' + (pos ? '#166534' : '#b42318') + '">' + (pos ? '+' : '') + money(t.amount) + '</div></div>'; }).join('') : '<p class="pm-n">Aucun mouvement pour l’instant.</p>';
+      }).catch(function () { pane.querySelector('#pm-wtx').innerHTML = '<p class="pm-n">Historique indisponible.</p>'; });
+    } catch (e) { /* ignore */ }
+  }
+  function refreshBalance() { api('pm_orders', { slug: S.slug }).then(function (r) { var el = document.getElementById('pm-balchip'); if (el) el.textContent = money(r.balance); S.bal = r.balance; }).catch(function () { var el = document.getElementById('pm-balchip'); if (el) el.textContent = '—'; }); }
 
   function groups() { var g = {}; (S.store.items || []).forEach(function (x) { (g[x.group] = g[x.group] || []).push(x); }); return g; }
   function paneNew(pane) {
@@ -113,7 +141,7 @@
         var r = await api('pm_order', { slug: S.slug, serviceId: x.id, quantity: q, link: link, requestId: S.rid });
         S.rid = uid(); toast(r.status === 'refunded' ? (r.message || 'Commande non acceptée — remboursé.') : 'Commande envoyée ✓', r.status === 'refunded' ? 'error' : 'success');
         S.tab = 'ord'; render();
-      } catch (e) { err.textContent = e.message; b.disabled = false; b.textContent = 'Commander'; if (/solde insuffisant/i.test(e.message)) { err.innerHTML = esc(e.message) + ' <a href="#" id="pm-rc2">Recharger</a>'; var a = pane.querySelector('#pm-rc2'); if (a) a.onclick = function (ev) { ev.preventDefault(); var rb = document.getElementById('pm-rech'); if (rb) rb.click(); }; } }
+      } catch (e) { err.textContent = e.message; b.disabled = false; b.textContent = 'Commander'; if (/solde insuffisant/i.test(e.message)) { err.innerHTML = esc(e.message) + ' <a href="#" id="pm-rc2">Recharger</a>'; var a = pane.querySelector('#pm-rc2'); if (a) a.onclick = function (ev) { ev.preventDefault(); goRecharge(); }; } }
     };
   }
   function paneSvc(pane) {
@@ -132,15 +160,14 @@
     if (!auth.currentUser) { pane.innerHTML = '<div class="pm-card"><p class="pm-n">Connecte-toi pour voir tes commandes.</p><button class="pm-b p" id="pm-lg2">Se connecter</button></div>'; pane.querySelector('#pm-lg2').onclick = function () { document.getElementById('pm-login').click(); }; return; }
     pane.innerHTML = '<div class="pm-card"><h2>Mes commandes</h2><p class="pm-n">Chargement…</p></div>';
     api('pm_orders', { slug: S.slug }).then(function (r) {
-      var el = document.getElementById('pm-bal'); if (el) el.textContent = money(r.balance);
+      var el = document.getElementById('pm-balchip'); if (el) el.textContent = money(r.balance);
       pane.innerHTML = '<div class="pm-card"><h2>Mes commandes</h2>' + (r.orders.length ? r.orders.map(function (o) { var s = ST[o.status] || [o.status, 'n']; return '<div class="pm-row"><div><b>' + esc(o.service) + '</b> × ' + esc(o.quantity) + '<small>' + esc(o.link) + '<br>' + esc(new Date(o.createdAt).toLocaleString('fr-FR')) + (o.remains ? ' · Restant : ' + esc(o.remains) : '') + '</small></div><div style="text-align:right"><span class="pm-bd ' + s[1] + '">' + s[0] + '</span><div class="pm-pr" style="margin-top:4px">' + money(o.price) + '</div></div></div>'; }).join('') : '<p class="pm-n">Aucune commande pour l’instant.</p>') + '<button class="pm-b w" id="pm-rf" style="margin-top:10px">Actualiser</button></div>';
       pane.querySelector('#pm-rf').onclick = function () { paneOrd(pane); };
     }).catch(function (e) { pane.innerHTML = '<div class="pm-card"><p class="pm-err">' + esc(e.message) + '</p></div>'; });
   }
   function paneHelp(pane) {
     var wa = (S.store.shop.whatsapp || '').replace(/\D/g, '');
-    pane.innerHTML = '<div class="pm-card"><h2>Comment ça marche</h2><p class="pm-n"><b>1.</b> Recharge ton solde (carte, mobile money ou crypto).<br><b>2.</b> Choisis le réseau et le service, colle ton lien, indique la quantité.<br><b>3.</b> Valide : la commande part automatiquement, sans mot de passe à donner.<br><b>4.</b> Suis l’avancement dans « Mes commandes ».</p></div>' +
-      '<div class="pm-card"><h2>Questions fréquentes</h2><p class="pm-n"><b>Mon compte doit-il être public ?</b> Oui, le temps de la livraison.<br><br><b>Combien de temps ?</b> Le démarrage est généralement rapide ; les grosses quantités sont livrées progressivement.<br><br><b>Et si ça échoue ?</b> Tu es remboursé automatiquement sur ton solde.<br><br><b>Faut-il donner mon mot de passe ?</b> Jamais.</p></div>' +
+    pane.innerHTML = '<div class="pm-card"><h2>Questions fréquentes</h2><p class="pm-n"><b>Mon compte doit-il être public ?</b> Oui, le temps de la livraison.<br><br><b>Combien de temps ?</b> Le démarrage est généralement rapide ; les grosses quantités sont livrées progressivement.<br><br><b>Et si ça échoue ?</b> Tu es remboursé automatiquement sur ton solde.<br><br><b>Faut-il donner mon mot de passe ?</b> Jamais.</p></div>' +
       (wa.length > 6 ? '<div class="pm-card"><a class="pm-b p w" style="display:block;text-align:center;text-decoration:none" target="_blank" rel="noopener" href="https://wa.me/' + wa + '">Contacter ' + esc(S.store.shop.name || 'le vendeur') + ' sur WhatsApp</a></div>' : '');
   }
 
@@ -177,8 +204,26 @@
     };
   }
 
+
+  /* ===== Ouvrir un site dans l'application, sans la quitter ===== */
+  function openSiteInApp(url) {
+    var o = document.getElementById('pm-site'); if (o) o.remove();
+    o = document.createElement('div'); o.id = 'pm-site'; o.className = 'pm-ov'; o.style.zIndex = '99990'; o.style.background = '#fff';
+    o.innerHTML = '<div style="position:sticky;top:0;display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#1f2f4d;color:#fff;z-index:2"><b style="font-size:.9rem">Aperçu du site</b><button class="pm-x" id="pm-site-x" aria-label="Fermer">✕</button></div><iframe src="' + esc(url) + '" title="Site" style="border:0;width:100%;height:calc(100% - 52px)" referrerpolicy="same-origin"></iframe>';
+    document.body.appendChild(o); document.body.style.overflow = 'hidden';
+    o.querySelector('#pm-site-x').onclick = function () { o.remove(); document.body.style.overflow = ''; };
+  }
+  window.addEventListener('message', function (e) {
+    if (e.origin !== location.origin || !e.data || !e.data.cnStore) return;
+    var o = document.getElementById('pm-site'); if (o) o.remove(); openStore(String(e.data.cnStore));
+  });
+  document.addEventListener('click', function (ev) {
+    var a = ev.target && ev.target.closest && ev.target.closest('a[target="_blank"]'); if (!a) return;
+    try { var u = new URL(a.href, location.href); if (u.origin === location.origin && /^\/s\/[a-z0-9-]{3,30}\/?$/.test(u.pathname)) { ev.preventDefault(); openSiteInApp(u.pathname); } } catch (e) { /* ignore */ }
+  }, true);
+
   function main() {
-    window.CNPanel = { open: openStore, owner: openOwner };
+    window.CNPanel = { open: openStore, owner: openOwner, site: openSiteInApp };
     var orig = window.siteHubHtml;
     if (typeof orig === 'function') {
       window.siteHubHtml = function () {

@@ -682,3 +682,20 @@ pre.api-code{margin:0;background:#0b1220;color:#d6e2ff;border-radius:14px;paddin
 /* 20. Chaque service s'ouvre en fenêtre entière (plus de demi-feuille) */
 .modal-overlay:not(#auth-modal):not(#tutorial-modal):not(#report-modal):not(#book-form-modal):not(.auth-modal-overlay){padding:0;align-items:stretch;justify-content:stretch;background:var(--white,#fff)}
 .modal-overlay:not(#auth-modal):not(#tutorial-modal):not(#report-modal):not(#book-form-modal):not(.auth-modal-overlay)>*{width:100%;max-width:none;min-height:100%;max-height:100vh;border-radius:0;box-shadow:none;overflow-y:auto;padding-top:max(18px,env(safe-area-inset-top))}
+
+/* 21. Connexion : écran propre et stable, sans la page d'accueil floue derrière, sans vidéo, couleurs sobres */
+html,body{max-width:100%;overflow-x:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%;touch-action:manipulation}
+.auth-modal-overlay{background:#eef1f6!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;padding:0!important;align-items:stretch!important;justify-content:center!important;overflow-y:auto}
+html[data-theme="dark"] .auth-modal-overlay{background:#0f1520!important}
+.modal.auth-modal{width:100%;max-width:460px;max-height:none!important;min-height:100%;border-radius:0;box-shadow:none;overflow:visible;background:var(--white,#fff)}
+@media(min-width:560px){.auth-modal-overlay{align-items:center!important;padding:24px!important}.modal.auth-modal{min-height:0;border-radius:22px;box-shadow:0 18px 50px rgba(20,33,61,.18);overflow:hidden}}
+.auth-hero{background:#1f2f4d!important;background-image:none!important;padding:56px 22px 20px!important}
+.auth-hero::after,.auth-hero .cn-watermark,.auth-hero .cn-bgvideo{display:none!important}
+.auth-brand-tag{color:#aab8d3!important}
+.auth-brand-name span{color:#ffd28a!important}
+.auth-hero-line{max-width:none!important}
+.auth-trust{flex-wrap:wrap!important}
+.auth-trust span{background:rgba(255,255,255,.1)!important;white-space:nowrap}
+.auth-trust svg{color:#ffd28a!important}
+.auth-brand,.auth-hero-line,.auth-trust{animation:none!important}
+.auth-modal input,.auth-modal select,.auth-modal button{font-size:16px}
