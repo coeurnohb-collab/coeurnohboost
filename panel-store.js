@@ -13,7 +13,10 @@
   var S = { slug: '', store: null, tab: 'new', sel: null, rid: '', q: '', busy: false };
   var LS = 'cn_pm_return';
   var ST = { pending: ['En attente', 'w'], processing: ['En cours', 'i'], completed: ['Terminé', 'g'], partial: ['Partiel', 'w'], refunded: ['Remboursé', 'n'], pending_review: ['En vérification', 'w'] };
-  var ICON = { tiktok: '♪', instagram: '◎', youtube: '▶', facebook: 'f', twitter: '𝕏', x: '𝕏', telegram: '✈', spotify: '♫', snapchat: '👻', linkedin: 'in' };
+  function pIcon(pid, nm) {
+    try { var p = (typeof PLATFORMS !== 'undefined' ? PLATFORMS : []).filter(function (x) { return x.id === pid; })[0]; if (p && typeof platformBadgeHTML === 'function') return '<span class="pm-pi">' + platformBadgeHTML(p) + '</span>'; } catch (e) { /* ignore */ }
+    return '<span class="pm-pi"><span class="p-icon" style="background:#1f2f4d;color:#fff">' + esc(String(nm || pid || '?').charAt(0)) + '</span></span>';
+  }
 
   function esc(s) { return escapeHtml(s == null ? '' : String(s)); }
   function toast(m, t) { try { showToast(m, t || 'info'); } catch (e) { /* ignore */ } }
@@ -46,6 +49,8 @@
     '.pm-tr{display:flex;gap:8px;flex-wrap:wrap;margin:8px 14px 0}.pm-tr span{font-size:.72rem;background:#fff;border-radius:99px;padding:5px 10px;color:#374151;box-shadow:0 1px 3px rgba(20,33,61,.08)}' +
     '.pm-top{gap:8px}.pm-chip{border:0;background:rgba(255,255,255,.2);color:#fff;border-radius:99px;padding:8px 12px;font:inherit;font-weight:800;font-size:.8rem;cursor:pointer;white-space:nowrap}' +
     '.pm-nav{position:fixed;left:0;right:0;bottom:0;z-index:3;display:flex;background:#fff;border-top:1px solid #d5dbe6;padding:6px 4px calc(6px + env(safe-area-inset-bottom));box-shadow:0 -4px 16px rgba(20,33,61,.08)}.pm-nav button{flex:1;border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;font:inherit;font-size:.66rem;font-weight:700;color:#5b6475;padding:6px 2px;cursor:pointer;min-width:0}.pm-nav button.on{color:var(--pm-a,#1b4fd8)}.pm-nav button span{white-space:nowrap}' +
+    '.pm-pi{display:inline-flex}.pm-pi .p-icon{width:38px!important;height:38px!important;border-radius:11px!important;display:flex;align-items:center;justify-content:center}.pm-pi .p-icon svg{width:20px;height:20px}.pm-g{display:flex;align-items:center;gap:10px;margin:16px 0 6px!important}.pm-g span{font-size:.8rem}' +
+    '.pm-ref{background:#eef3ff;border-radius:14px;padding:12px 14px;font-size:.84rem;line-height:1.5;margin:10px 0}.pm-link{word-break:break-all;background:#fff;border:1px dashed #9db4e6;border-radius:10px;padding:9px 10px;font-size:.8rem;margin:8px 0}.pm-kpi{display:flex;gap:8px;margin:8px 0}.pm-kpi div{flex:1;background:#fff;border-radius:12px;padding:10px;text-align:center;border:1px solid #e3e8f2}.pm-kpi b{display:block;font-size:1.05rem}.pm-kpi span{font-size:.7rem;color:#5b6475}' +
     '.pm-hero{background:#1f2f4d;color:#fff}.pm-hero h2{color:#fff;font-size:1.1rem}.pm-hero p{font-size:.88rem;line-height:1.5;margin:6px 0 12px;color:#d7e4f5}.pm-cta{background:var(--pm-a,#1b4fd8);border-color:var(--pm-a,#1b4fd8);color:#fff}.pm-big{font-size:2rem;font-weight:800;margin:4px 0 12px}' +
     '.pm-stats{display:flex;gap:8px;margin:0 14px 12px}.pm-stats div{flex:1;background:#fff;border-radius:14px;padding:10px 6px;text-align:center;box-shadow:0 1px 4px rgba(20,33,61,.08)}.pm-stats b{display:block;font-size:1.1rem}.pm-stats span{font-size:.7rem;color:#5b6475}' +
     '.pm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.pm-plat{border:1px solid #d5dbe6;background:#fff;border-radius:14px;padding:12px 4px;font:inherit;cursor:pointer;color:inherit;display:flex;flex-direction:column;align-items:center;gap:4px}.pm-plat span{font-size:1.3rem}.pm-plat b{font-size:.74rem}' +
@@ -61,6 +66,7 @@
   async function openStore(slug) {
     slug = String(slug || '').toLowerCase(); if (!/^[a-z0-9-]{3,30}$/.test(slug)) return;
     S.slug = slug; S.tab = 'home'; S.sel = null; S.rid = uid();
+    try { var rq = new URL(location.href).searchParams.get('ref'); if (rq && /^[A-Za-z0-9_-]{6,128}$/.test(rq)) localStorage.setItem('cn_pm_ref_' + slug, rq); } catch (e) { /* ignore */ }
     var o = document.getElementById('pm-ov'); if (o) o.remove();
     o = document.createElement('div'); o.className = 'pm-ov'; o.id = 'pm-ov'; o.innerHTML = '<div class="pm-in"><p class="pm-n" style="padding:30px;text-align:center">Chargement du panel…</p></div>';
     document.body.appendChild(o); document.body.style.overflow = 'hidden';
@@ -82,23 +88,37 @@
     ({ home: paneHome, new: paneNew, svc: paneSvc, ord: paneOrd, wal: paneWallet })[S.tab](o.querySelector('#pm-pane'));
     if (logged) refreshBalance();
   }
+
+  function refBlock(box) {
+    if (!auth.currentUser) { box.innerHTML = ''; return; }
+    var pct = S.store.refPct || 0;
+    if (!pct) { box.innerHTML = ''; return; }
+    var link = location.origin + '/panel/' + S.slug + '?ref=' + auth.currentUser.uid;
+    box.innerHTML = '<div class="pm-card"><h2>Parrainage</h2><p class="pm-n">Invite tes amis : tu gagnes <b>' + pct + ' %</b> de la marge du panel sur leurs commandes, ajouté à ton solde automatiquement.</p><div class="pm-link" id="pm-rlink">' + esc(link) + '</div>' +
+      '<div class="pm-kpi"><div><b id="pm-rc">…</b><span>Filleuls</span></div><div><b id="pm-re">…</b><span>Gains</span></div></div><button class="pm-b p w" id="pm-rcopy">Copier mon lien</button><button class="pm-b w" id="pm-rshare" style="margin-top:8px">Partager</button></div>';
+    box.querySelector('#pm-rcopy').onclick = function () { try { navigator.clipboard.writeText(link); toast('Lien copié', 'success'); } catch (e) { toast(link); } };
+    box.querySelector('#pm-rshare').onclick = function () { if (navigator.share) { navigator.share({ title: S.store.shop.name, text: 'Commande tes services de croissance ici :', url: link }).catch(function () { }); } else { box.querySelector('#pm-rcopy').click(); } };
+    api('pm_ref', { slug: S.slug }).then(function (r) { var a = box.querySelector('#pm-rc'), b = box.querySelector('#pm-re'); if (a) a.textContent = r.count; if (b) b.textContent = money(r.earned); }).catch(function () { });
+  }
   function goRecharge() { lsSet(S.slug + '|' + Date.now()); close(); try { showRecharge(); } catch (e) { toast('Ouvre ton portefeuille pour recharger.'); } }
   function paneHome(pane) {
     var g = groups(), names = Object.keys(g), n = (S.store.items || []).length;
     pane.innerHTML = '<div class="pm-card pm-hero"><h2>' + esc(S.store.title) + '</h2><p>' + esc(S.store.welcome || S.store.shop.tagline || 'Abonnés, likes, vues et plus pour tes réseaux sociaux. Livraison rapide, paiement simple.') + '</p><button class="pm-b w pm-cta" id="pm-h-go">Commander maintenant</button></div>' +
       '<div class="pm-stats"><div><b>' + names.length + '</b><span>Réseaux</span></div><div><b>' + n + '</b><span>Services</span></div><div><b>24/7</b><span>Automatique</span></div></div>' +
-      '<div class="pm-card"><h2>Choisis un réseau</h2><div class="pm-grid">' + names.map(function (nm) { var pid = g[nm][0].platform; return '<button type="button" class="pm-plat" data-g="' + esc(nm) + '"><span>' + (ICON[pid] || '★') + '</span><b>' + esc(nm) + '</b></button>'; }).join('') + '</div></div>' +
+      '<div class="pm-card"><h2>Choisis un réseau</h2><div class="pm-grid">' + names.map(function (nm) { var pid = g[nm][0].platform; return '<button type="button" class="pm-plat" data-g="' + esc(nm) + '">' + pIcon(pid, nm) + '<b>' + esc(nm) + '</b></button>'; }).join('') + '</div></div>' +
       '<div class="pm-card"><h2>Comment ça marche</h2><p class="pm-n"><b>1.</b> Recharge ton solde (Portefeuille).<br><b>2.</b> Choisis le service, colle ton lien, indique la quantité.<br><b>3.</b> La commande part automatiquement ; suis-la dans « Historique ».<br><b>4.</b> Si elle n’aboutit pas, tu es remboursé automatiquement.</p></div>';
     pane.querySelector('#pm-h-go').onclick = function () { S.tab = 'new'; render(); };
     pane.querySelectorAll('[data-g]').forEach(function (b) { b.onclick = function () { S.sel = (g[b.getAttribute('data-g')] || [])[0]; S.tab = 'new'; render(); }; });
+    var rbx = document.createElement('div'); pane.appendChild(rbx); refBlock(rbx);
     var h = document.createElement('div'); pane.appendChild(h); paneHelp(h);
   }
   function paneWallet(pane) {
     if (!auth.currentUser) { pane.innerHTML = '<div class="pm-card"><h2>Portefeuille</h2><p class="pm-n">Connecte-toi pour voir ton solde et recharger.</p><button class="pm-b p w" id="pm-lg3">Se connecter</button></div>'; pane.querySelector('#pm-lg3').onclick = function () { document.getElementById('pm-login').click(); }; return; }
-    pane.innerHTML = '<div class="pm-card pm-hero"><p style="margin:0;opacity:.85">Solde disponible</p><div class="pm-big" id="pm-wbal">…</div><button class="pm-b w pm-cta" id="pm-w-rc">+ Recharger mon solde</button><p class="pm-n" style="color:#d7e4f5">Mobile Money, carte ou crypto selon ton pays.</p></div><div class="pm-card"><h2>Derniers mouvements</h2><div id="pm-wtx"><p class="pm-n">Chargement…</p></div></div>';
+    pane.innerHTML = '<div class="pm-card pm-hero"><p style="margin:0;opacity:.85">Solde disponible</p><div class="pm-big" id="pm-wbal">…</div><button class="pm-b w pm-cta" id="pm-w-rc">+ Recharger mon solde</button><p class="pm-n" style="color:#d7e4f5">Mobile Money, carte ou crypto selon ton pays.</p></div><div id="pm-refbox"></div><div class="pm-card"><h2>Derniers mouvements</h2><div id="pm-wtx"><p class="pm-n">Chargement…</p></div></div>';
+    refBlock(pane.querySelector('#pm-refbox'));
     pane.querySelector('#pm-w-rc').onclick = goRecharge;
     api('pm_orders', { slug: S.slug }).then(function (r) { var el = pane.querySelector('#pm-wbal'); if (el) el.textContent = money(r.balance); }).catch(function () { });
-    var LBL = { order_purchase: 'Commande', order_refund: 'Remboursement', panel_income: 'Marge panel', topup: 'Recharge', deposit: 'Recharge' };
+    var LBL = { order_purchase: 'Commande', order_refund: 'Remboursement', panel_income: 'Marge panel', panel_referral: 'Parrainage', panel_referral_reversed: 'Parrainage annulé', topup: 'Recharge', deposit: 'Recharge' };
     try {
       db.collection('wallet_transactions').where('uid', '==', auth.currentUser.uid).limit(60).get().then(function (sn) {
         var rows = sn.docs.map(function (d) { return d.data(); }).sort(function (a, b) { return String(b.createdAt).localeCompare(String(a.createdAt)); }).slice(0, 15);
@@ -114,7 +134,7 @@
     var curGroup = S.sel ? S.sel.group : names[0];
     var svcs = g[curGroup] || [];
     if (!S.sel || S.sel.group !== curGroup) S.sel = svcs[0];
-    pane.innerHTML = '<div class="pm-card"><h2>Nouvelle commande</h2>' + (S.store.welcome ? '<p class="pm-n">' + esc(S.store.welcome) + '</p>' : '') +
+    pane.innerHTML = '<div class="pm-card"><h2>Nouvelle commande</h2>' + (S.store.welcome ? '<p class="pm-n">' + esc(S.store.welcome) + '</p>' : '') + '<div class="pm-f" style="margin-top:0">' + (S.sel ? pIcon(S.sel.platform, S.sel.group) : '') + '</div>' +
       '<div class="pm-f"><label for="pm-g">Réseau</label><select id="pm-g">' + names.map(function (n) { return '<option' + (n === curGroup ? ' selected' : '') + '>' + esc(n) + '</option>'; }).join('') + '</select></div>' +
       '<div class="pm-f"><label for="pm-s">Service</label><select id="pm-s">' + svcs.map(function (x) { return '<option value="' + esc(x.id) + '"' + (S.sel && S.sel.id === x.id ? ' selected' : '') + '>' + esc(x.name) + ' — ' + money(x.per1000) + ' / 1000</option>'; }).join('') + '</select></div>' +
       '<p class="pm-n" id="pm-info"></p>' +
@@ -138,7 +158,7 @@
       if (!confirm('Confirmer la commande ?\n' + x.group + ' — ' + x.name + '\nQuantité : ' + q + '\nTotal : ' + tot)) return;
       b.disabled = true; b.textContent = 'Envoi en cours…';
       try {
-        var r = await api('pm_order', { slug: S.slug, serviceId: x.id, quantity: q, link: link, requestId: S.rid });
+        var r = await api('pm_order', { slug: S.slug, serviceId: x.id, quantity: q, link: link, requestId: S.rid, ref: (function () { try { return localStorage.getItem('cn_pm_ref_' + S.slug) || ''; } catch (e) { return ''; } })() });
         S.rid = uid(); toast(r.status === 'refunded' ? (r.message || 'Commande non acceptée — remboursé.') : 'Commande envoyée ✓', r.status === 'refunded' ? 'error' : 'success');
         S.tab = 'ord'; render();
       } catch (e) { err.textContent = e.message; b.disabled = false; b.textContent = 'Commander'; if (/solde insuffisant/i.test(e.message)) { err.innerHTML = esc(e.message) + ' <a href="#" id="pm-rc2">Recharger</a>'; var a = pane.querySelector('#pm-rc2'); if (a) a.onclick = function (ev) { ev.preventDefault(); goRecharge(); }; } }
@@ -150,7 +170,7 @@
       var q = S.q.toLowerCase(), g = groups(), h = '';
       Object.keys(g).forEach(function (n) {
         var l = g[n].filter(function (x) { return !q || (n + ' ' + x.name).toLowerCase().indexOf(q) >= 0; }); if (!l.length) return;
-        h += '<div class="pm-g">' + (ICON[l[0].platform] || '') + ' ' + esc(n) + '</div>' + l.map(function (x) { return '<div class="pm-row"><div><b>' + esc(x.name) + '</b><small>ID ' + esc(x.id) + ' · ' + esc(x.info) + ' · Min ' + x.min + ' · Max ' + x.max.toLocaleString('fr-FR') + '</small></div><div class="pm-pr">' + money4(x.per1000) + '<small>/ 1000</small></div></div>'; }).join('');
+        h += '<div class="pm-g">' + pIcon(l[0].platform, n) + '<span>' + esc(n) + '</span></div>' + l.map(function (x) { return '<div class="pm-row"><div><b>' + esc(x.name) + '</b><small>ID ' + esc(x.id) + ' · ' + esc(x.info) + ' · Min ' + x.min + ' · Max ' + x.max.toLocaleString('fr-FR') + '</small></div><div class="pm-pr">' + money4(x.per1000) + '<small>/ 1000</small></div></div>'; }).join('');
       });
       pane.querySelector('#pm-sl').innerHTML = h || '<p class="pm-n">Aucun résultat.</p>';
     }
@@ -188,6 +208,7 @@
       '<div class="pm-f"><label for="pm-t">Titre</label><input id="pm-t" maxlength="80" placeholder="Services de croissance" value="' + esc(c.title) + '"></div>' +
       '<div class="pm-f"><label for="pm-w">Message d’accueil (facultatif)</label><textarea id="pm-w" rows="2" maxlength="300">' + esc(c.welcome) + '</textarea></div>' +
       '<div class="pm-f"><label for="pm-m">Ta marge sur le prix de gros (%, max ' + OW.maxMarkup + ')</label><input id="pm-m" inputmode="decimal" maxlength="5" value="' + esc(c.markup) + '"></div><div class="pm-sum" id="pm-ex"></div>' +
+      '<div class="pm-f"><label for="pm-rp">Parrainage : part de ta marge reversée au parrain (%, 0 à 50)</label><input id="pm-rp" inputmode="numeric" maxlength="2" value="' + esc(c.refPct != null ? c.refPct : 20) + '"><p class="pm-n">Quand un client parrainé commande, son parrain reçoit ce pourcentage de TA marge. Cela fait venir de nouveaux clients sans te coûter plus que ce que tu gagnes.</p></div>' +
       '<div class="pm-f"><label>Réseaux proposés</label>' + OW.platforms.map(function (p) { return '<label style="display:flex;gap:8px;align-items:center;font-weight:600;margin:6px 0"><input type="checkbox" style="width:18px;height:18px" data-p="' + esc(p.id) + '"' + (c.hiddenPlatforms.indexOf(p.id) < 0 ? ' checked' : '') + '>' + esc(p.name) + '</label>'; }).join('') + '</div>' +
       '<p class="pm-err" id="pm-err"></p><button class="pm-b p w" id="pm-save">Enregistrer</button></div>' +
       (url ? '<div class="pm-card"><h2>Ton panel</h2><p class="pm-n" style="word-break:break-all">' + esc(url) + '</p><button class="pm-b w" id="pm-copy">Copier le lien</button>' + (typeof CNShare !== 'undefined' ? '' : '') + '</div>' : '<div class="pm-card"><p class="pm-n">Publie ton site pour obtenir l’adresse de ton panel.</p></div>') +
@@ -199,7 +220,7 @@
     pane.querySelector('#pm-save').onclick = async function () {
       var b = this, er = pane.querySelector('#pm-err'); er.textContent = ''; b.disabled = true;
       var hidden = [].filter.call(pane.querySelectorAll('[data-p]'), function (x) { return !x.checked; }).map(function (x) { return x.getAttribute('data-p'); });
-      try { var r = await api('pm_owner_save', { on: pane.querySelector('#pm-on').checked, title: pane.querySelector('#pm-t').value, welcome: pane.querySelector('#pm-w').value, markup: parseFloat(String(m.value).replace(',', '.')) || 0, hiddenPlatforms: hidden }); toast('Panel enregistré', 'success'); OW.cfg = r.cfg; drawOwner(pane); } catch (e) { er.textContent = e.message; }
+      try { var r = await api('pm_owner_save', { on: pane.querySelector('#pm-on').checked, title: pane.querySelector('#pm-t').value, welcome: pane.querySelector('#pm-w').value, markup: parseFloat(String(m.value).replace(',', '.')) || 0, refPct: parseInt(pane.querySelector('#pm-rp').value, 10) || 0, hiddenPlatforms: hidden }); toast('Panel enregistré', 'success'); OW.cfg = r.cfg; drawOwner(pane); } catch (e) { er.textContent = e.message; }
       b.disabled = false;
     };
   }
@@ -219,7 +240,12 @@
   });
   document.addEventListener('click', function (ev) {
     var a = ev.target && ev.target.closest && ev.target.closest('a[target="_blank"]'); if (!a) return;
-    try { var u = new URL(a.href, location.href); if (u.origin === location.origin && /^\/s\/[a-z0-9-]{3,30}\/?$/.test(u.pathname)) { ev.preventDefault(); openSiteInApp(u.pathname); } } catch (e) { /* ignore */ }
+    try {
+      var u = new URL(a.href, location.href), m = u.origin === location.origin && u.pathname.match(/^\/s\/([a-z0-9-]{3,30})\/?$/);
+      if (!m) return;
+      ev.preventDefault();
+      fetch('/api/render-site?pstore=' + encodeURIComponent(m[1]) + '&json=1').then(function (r) { return r.json(); }).then(function (j) { if (j && j.success) openStore(m[1]); else openSiteInApp(u.pathname); }).catch(function () { openSiteInApp(u.pathname); });
+    } catch (e) { /* ignore */ }
   }, true);
 
   function main() {
