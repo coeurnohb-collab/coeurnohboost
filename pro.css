@@ -699,3 +699,17 @@ html[data-theme="dark"] .auth-modal-overlay{background:#0f1520!important}
 .auth-trust svg{color:#ffd28a!important}
 .auth-brand,.auth-hero-line,.auth-trust{animation:none!important}
 .auth-modal input,.auth-modal select,.auth-modal button{font-size:16px}
+
+/* 22. Écran d'accueil : fond blanc propre, texte toujours lisible (plus d'orange sur orange) */
+#view-home .hero{background:#fff!important;background-image:none!important;padding:48px 0 36px;border-bottom:1px solid #e6eaf2}
+#view-home .hero::after,#view-home .hero .cn-watermark,#view-home .hero .cn-bgvideo{display:none!important}
+#view-home .hero .eyebrow{color:#1b4fd8!important;letter-spacing:.12em;font-weight:800}
+#view-home .hero h1{color:#14213d!important}
+#view-home .hero h1 em{color:#1b4fd8!important}
+#view-home .hero .lead{color:#4a5568!important}
+#view-home .hero .btn-primary{background:#14213d!important;color:#fff!important;border-color:#14213d!important;box-shadow:0 6px 18px rgba(20,33,61,.22)}
+html[data-theme="dark"] #view-home .hero{background:#0f1520!important;border-color:#222c40}
+html[data-theme="dark"] #view-home .hero h1{color:#f1f4fa!important}
+html[data-theme="dark"] #view-home .hero h1 em,html[data-theme="dark"] #view-home .hero .eyebrow{color:#7ea3ff!important}
+html[data-theme="dark"] #view-home .hero .lead{color:#b4bfd3!important}
+html[data-theme="dark"] #view-home .hero .btn-primary{background:#fff!important;color:#14213d!important}

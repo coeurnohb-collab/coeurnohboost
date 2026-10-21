@@ -13229,6 +13229,7 @@ async function saveSiteSettings() {
   const isPremium = siteIsPremiumActive(mySiteCache, 'look');
   const canPub = siteIsPremiumActive(mySiteCache, 'publish');
   const customDomain = cleanCustomDomainInput(v('ss-domain'));
+  if (customDomain && !isValidDomainName(customDomain)) { showToast('Nom de domaine invalide. Exemple : monsite.com (sans espace).', 'error'); return; }
   const socialLinks = {};
   for (const [k] of SITE_SOCIALS) {
     const val = v('ss-' + k);
@@ -13346,10 +13347,11 @@ function renderDomainPurchaseBlock() {
 async function purchaseSiteDomain() {
   const input = document.getElementById('site-domain-purchase-input');
   const planSelect = document.getElementById('site-domain-purchase-plan');
-  const desiredDomain = input ? input.value.trim().toLowerCase() : '';
+  const desiredDomain = input ? cleanCustomDomainInput(input.value) : '';
   const months = planSelect ? parseInt(planSelect.value, 10) : 12;
   const plan = getSiteDomainPlans().find(p => p.months === months) || getSiteDomainPlans()[getSiteDomainPlans().length - 1];
   if (!desiredDomain) { showToast(t('site_domain_missing_toast'), 'error'); return; }
+  if (!isValidDomainName(desiredDomain)) { showToast('Nom de domaine invalide. Exemple : monsite.com (lettres, chiffres et tirets, sans espace).', 'error'); return; }
   if (!confirm(`${t('site_domain_confirm_prefix')} ${desiredDomain} (${plan.price}$ — ${plan.label})${t('site_domain_confirm_suffix')}`)) return;
   try {
     const idToken = await auth.currentUser.getIdToken();
@@ -13830,7 +13832,11 @@ function handleSiteCoverFileChange(event) {
 // l'erreur ne s'affiche plus que si le resultat est vide ou trop court.
 function cleanCustomDomainInput(raw) {
   return (raw || '').toString().trim().toLowerCase()
-    .replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/.*$/, '');
+    .replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/[\/?#].*$/, '')
+    .replace(/:\d+$/, '').replace(/\s+/g, '').replace(/\.+$/, '');
+}
+function isValidDomainName(d) {
+  return /^(?!-)[a-z0-9-]{1,63}(?<!-)(\.(?!-)[a-z0-9-]{1,63}(?<!-))*\.[a-z]{2,24}$/.test(d || '') && d.length <= 100;
 }
 
 function slugifySiteAddress(raw) {
@@ -13893,6 +13899,7 @@ async function saveMySite() {
   };
   ['youtube', 'linkedin', 'x'].forEach(k => { const prevSoc = editingSiteExisting && editingSiteExisting.socialLinks; if (prevSoc && prevSoc[k]) socialLinks[k] = prevSoc[k]; });
   const customDomain = cleanCustomDomainInput(document.getElementById('site-domain').value);
+  if (customDomain && !isValidDomainName(customDomain)) { showToast('Nom de domaine invalide. Exemple : monsite.com (sans espace).', 'error'); return; }
   const faq = Array.from(document.querySelectorAll('#site-faq-rows .invoice-item-row')).map(row => ({
     question: row.querySelector('.site-faq-question').value.trim(),
     answer: row.querySelector('.site-faq-answer').value.trim()
