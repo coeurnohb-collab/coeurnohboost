@@ -225,7 +225,8 @@ const ADMIN_GROUPS = [
   { title: "Ventes & argent", tabs: [
     { id: "orders", label: "Commandes", icon: "🛒" },
     { id: "deposits", label: "Dépôts", icon: "💰" },
-    { id: "withdrawals", label: "Retraits vendeurs", icon: "💸" } ] },
+    { id: "withdrawals", label: "Retraits vendeurs", icon: "💸" },
+    { id: "panels", label: "Panels clients", icon: "📈" } ] },
   { title: "Prix & offres", tabs: [
     { id: "pricing", label: "Tarifs SMM", icon: "🏷️" },
     { id: "packages", label: "Packages", icon: "📦" },
@@ -292,6 +293,7 @@ function showAdminTab(tab) {
   if (tab === 'academy') loadAcademyAiConfig();
   if (tab === 'shop') loadShopAdmin();
   if (tab === 'withdrawals') loadWithdrawalsAdmin();
+  if (tab === 'panels' && window.loadPanelsAdmin) window.loadPanelsAdmin();
   if (tab === 'domains') loadDomainsAdmin();
   if (tab === 'reports') loadReportsAdmin();
   if (tab === 'errors') loadErrorsAdmin();
@@ -1568,8 +1570,9 @@ async function loadWithdrawalsAdmin() {
       <div class="admin-row">
         <div class="admin-row-top">
           <div>
-            <div class="admin-row-title">${w.amountUSD.toFixed(2)}$ — ${escapeHtml(w.sellerName || 'Vendeur')}</div>
+            <div class="admin-row-title">${w.source === 'panel' && w.netUSD != null ? `À envoyer : ${Number(w.netUSD).toFixed(2)}$ net <small class="muted">(demandé ${w.amountUSD.toFixed(2)}$ − commission ${Number(w.feeUSD || 0).toFixed(2)}$)</small>` : `${w.amountUSD.toFixed(2)}$`} — ${escapeHtml(w.sellerName || 'Vendeur')}${w.source === 'panel' ? ' <small class="muted">· Panel ' + escapeHtml(w.panelSlug || '') + '</small>' : ''}</div>
             <div class="admin-row-meta">${escapeHtml(methodLabels[w.method] || w.method)} · ${escapeHtml(w.accountDetails)}</div>
+            ${w.risk && w.risk.level === 'review' ? `<div class="admin-row-meta" style="color:#b45309">⚠️ À vérifier : ${escapeHtml((w.risk.reasons || []).join(' · '))}</div>` : (w.source === 'panel' && w.status === 'pending' ? '<div class="admin-row-meta" style="color:#166534">✓ Aucun signal de risque</div>' : '')}
           </div>
           <span class="admin-badge ${w.status}">${w.status}</span>
         </div>

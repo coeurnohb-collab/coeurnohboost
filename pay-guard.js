@@ -13,18 +13,7 @@
   // Pays et opérateurs réellement pris en charge par MboтePay (même liste que api/payment-initiate.js,
   // vérifiée sur docs.mbotepay.com : 12 pays, 22 opérateurs)
   var COVERED = {
-    CD: ['Vodacom M-Pesa', 'Airtel Money', 'Orange Money'],
-    BJ: ['MTN Mobile Money', 'Moov Money'],
-    CI: ['MTN Mobile Money', 'Orange Money'],
-    CM: ['MTN Mobile Money'],
-    CG: ['Airtel Money', 'MTN Mobile Money'],
-    GA: ['Airtel Money'],
-    SN: ['Orange Money', 'Free Money'],
-    KE: ['M-Pesa (Safaricom)'],
-    RW: ['Airtel Money', 'MTN Mobile Money'],
-    UG: ['Airtel Money', 'MTN Mobile Money'],
-    ZM: ['Airtel Money', 'MTN Mobile Money', 'Zamtel Kwacha'],
-    SL: ['Orange Money']
+    CD: ['Vodacom M-Pesa', 'Airtel Money', 'Orange Money']
   };
 
   var TXT = {
