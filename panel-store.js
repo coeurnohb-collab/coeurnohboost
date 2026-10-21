@@ -69,7 +69,7 @@
     render();
   }
 
-  var NAV = [['home', 'Accueil', 'M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z'], ['svc', 'Services', 'M4 6h16M4 12h16M4 18h16'], ['new', 'Commander', 'M12 5v14M5 12h14'], ['ord', 'Commandes', 'M9 4h6l1 2h3v14H5V6h3zM9 12h6M9 16h4'], ['wal', 'Portefeuille', 'M3 7h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM3 7l2-3h12M16 14h3']];
+  var NAV = [['home', 'Accueil', 'M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z'], ['svc', 'Services', 'M4 6h16M4 12h16M4 18h16'], ['new', 'Commander', 'M12 5v14M5 12h14'], ['ord', 'Historique', 'M9 4h6l1 2h3v14H5V6h3zM9 12h6M9 16h4'], ['wal', 'Portefeuille', 'M3 7h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM3 7l2-3h12M16 14h3']];
   function render() {
     var o = document.getElementById('pm-ov'); if (!o || !S.store) return; var sh = S.store.shop, logged = !!auth.currentUser;
     o.innerHTML = '<div class="pm-in"><div class="pm-top">' + (sh.logo ? '<img src="' + esc(sh.logo) + '" alt="">' : '') + '<h1>' + esc(sh.name || 'Panel') + '<small>' + esc(S.store.title) + '</small></h1>' +
@@ -88,7 +88,7 @@
     pane.innerHTML = '<div class="pm-card pm-hero"><h2>' + esc(S.store.title) + '</h2><p>' + esc(S.store.welcome || S.store.shop.tagline || 'Abonnés, likes, vues et plus pour tes réseaux sociaux. Livraison rapide, paiement simple.') + '</p><button class="pm-b w pm-cta" id="pm-h-go">Commander maintenant</button></div>' +
       '<div class="pm-stats"><div><b>' + names.length + '</b><span>Réseaux</span></div><div><b>' + n + '</b><span>Services</span></div><div><b>24/7</b><span>Automatique</span></div></div>' +
       '<div class="pm-card"><h2>Choisis un réseau</h2><div class="pm-grid">' + names.map(function (nm) { var pid = g[nm][0].platform; return '<button type="button" class="pm-plat" data-g="' + esc(nm) + '"><span>' + (ICON[pid] || '★') + '</span><b>' + esc(nm) + '</b></button>'; }).join('') + '</div></div>' +
-      '<div class="pm-card"><h2>Comment ça marche</h2><p class="pm-n"><b>1.</b> Recharge ton solde (Portefeuille).<br><b>2.</b> Choisis le service, colle ton lien, indique la quantité.<br><b>3.</b> La commande part automatiquement ; suis-la dans « Commandes ».<br><b>4.</b> Si elle n’aboutit pas, tu es remboursé automatiquement.</p></div>';
+      '<div class="pm-card"><h2>Comment ça marche</h2><p class="pm-n"><b>1.</b> Recharge ton solde (Portefeuille).<br><b>2.</b> Choisis le service, colle ton lien, indique la quantité.<br><b>3.</b> La commande part automatiquement ; suis-la dans « Historique ».<br><b>4.</b> Si elle n’aboutit pas, tu es remboursé automatiquement.</p></div>';
     pane.querySelector('#pm-h-go').onclick = function () { S.tab = 'new'; render(); };
     pane.querySelectorAll('[data-g]').forEach(function (b) { b.onclick = function () { S.sel = (g[b.getAttribute('data-g')] || [])[0]; S.tab = 'new'; render(); }; });
     var h = document.createElement('div'); pane.appendChild(h); paneHelp(h);
@@ -150,7 +150,7 @@
       var q = S.q.toLowerCase(), g = groups(), h = '';
       Object.keys(g).forEach(function (n) {
         var l = g[n].filter(function (x) { return !q || (n + ' ' + x.name).toLowerCase().indexOf(q) >= 0; }); if (!l.length) return;
-        h += '<div class="pm-g">' + (ICON[l[0].platform] || '') + ' ' + esc(n) + '</div>' + l.map(function (x) { return '<div class="pm-row"><div><b>' + esc(x.name) + '</b><small>' + esc(x.info) + ' · Min ' + x.min + ' · Max ' + x.max.toLocaleString('fr-FR') + '</small></div><div class="pm-pr">' + money4(x.per1000) + '<small>/ 1000</small></div></div>'; }).join('');
+        h += '<div class="pm-g">' + (ICON[l[0].platform] || '') + ' ' + esc(n) + '</div>' + l.map(function (x) { return '<div class="pm-row"><div><b>' + esc(x.name) + '</b><small>ID ' + esc(x.id) + ' · ' + esc(x.info) + ' · Min ' + x.min + ' · Max ' + x.max.toLocaleString('fr-FR') + '</small></div><div class="pm-pr">' + money4(x.per1000) + '<small>/ 1000</small></div></div>'; }).join('');
       });
       pane.querySelector('#pm-sl').innerHTML = h || '<p class="pm-n">Aucun résultat.</p>';
     }
@@ -158,10 +158,10 @@
   }
   function paneOrd(pane) {
     if (!auth.currentUser) { pane.innerHTML = '<div class="pm-card"><p class="pm-n">Connecte-toi pour voir tes commandes.</p><button class="pm-b p" id="pm-lg2">Se connecter</button></div>'; pane.querySelector('#pm-lg2').onclick = function () { document.getElementById('pm-login').click(); }; return; }
-    pane.innerHTML = '<div class="pm-card"><h2>Mes commandes</h2><p class="pm-n">Chargement…</p></div>';
+    pane.innerHTML = '<div class="pm-card"><h2>Historique</h2><p class="pm-n">Chargement…</p></div>';
     api('pm_orders', { slug: S.slug }).then(function (r) {
       var el = document.getElementById('pm-balchip'); if (el) el.textContent = money(r.balance);
-      pane.innerHTML = '<div class="pm-card"><h2>Mes commandes</h2>' + (r.orders.length ? r.orders.map(function (o) { var s = ST[o.status] || [o.status, 'n']; return '<div class="pm-row"><div><b>' + esc(o.service) + '</b> × ' + esc(o.quantity) + '<small>' + esc(o.link) + '<br>' + esc(new Date(o.createdAt).toLocaleString('fr-FR')) + (o.remains ? ' · Restant : ' + esc(o.remains) : '') + '</small></div><div style="text-align:right"><span class="pm-bd ' + s[1] + '">' + s[0] + '</span><div class="pm-pr" style="margin-top:4px">' + money(o.price) + '</div></div></div>'; }).join('') : '<p class="pm-n">Aucune commande pour l’instant.</p>') + '<button class="pm-b w" id="pm-rf" style="margin-top:10px">Actualiser</button></div>';
+      pane.innerHTML = '<div class="pm-card"><h2>Historique des commandes</h2>' + (r.orders.length ? r.orders.map(function (o) { var s = ST[o.status] || [o.status, 'n']; return '<div class="pm-row"><div><b>' + esc(o.service) + '</b> × ' + esc(o.quantity) + '<small>' + esc(o.link) + '<br>' + esc(new Date(o.createdAt).toLocaleString('fr-FR')) + (o.remains ? ' · Restant : ' + esc(o.remains) : '') + '</small></div><div style="text-align:right"><span class="pm-bd ' + s[1] + '">' + s[0] + '</span><div class="pm-pr" style="margin-top:4px">' + money(o.price) + '</div></div></div>'; }).join('') : '<p class="pm-n">Aucune commande pour l’instant.</p>') + '<button class="pm-b w" id="pm-rf" style="margin-top:10px">Actualiser</button></div>';
       pane.querySelector('#pm-rf').onclick = function () { paneOrd(pane); };
     }).catch(function (e) { pane.innerHTML = '<div class="pm-card"><p class="pm-err">' + esc(e.message) + '</p></div>'; });
   }

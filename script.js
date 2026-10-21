@@ -12779,6 +12779,8 @@ function selectSiteType(ty) {
   if (label) label.textContent = siteTypeText(ty, 2);
   const bn = document.getElementById('site-type-banner'); if (bn) { bn.style.setProperty('--g', siteTypeGrad(ty)); bn.innerHTML = siteTypeBannerInner(ty); }
   const imp = document.getElementById('site-smm-import'); if (imp) imp.classList.toggle('hidden', ty !== 'smm');
+  const man = document.getElementById('site-manual-items'); if (man) man.classList.toggle('hidden', ty === 'smm');
+  const lab = document.getElementById('site-items-label'); if (lab) lab.classList.toggle('hidden', ty === 'smm');
   document.querySelectorAll('#site-service-rows .site-service-name').forEach(inp => { inp.placeholder = siteTypeText(ty, 3); });
 }
 
@@ -13499,11 +13501,14 @@ function openSiteForm() {
         <div style="height:10px"></div>
         <label class="field-label" style="display:block" id="site-items-label">${siteTypeText(chosenType, 2)}</label>
         <div id="site-smm-import" class="${chosenType === 'smm' ? '' : 'hidden'}">
-          <p class="muted small" style="margin:-2px 0 8px">${t('smm_import_hint')}</p>
-          <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin-bottom:8px" onclick="openSmmImport()">${uiIc('download', 16)} ${t('smm_import_btn')}</button>
+          <div style="background:#eef3ff;border-radius:14px;padding:12px 14px;font-size:.86rem;line-height:1.5;margin-bottom:10px">
+            <b>Services, prix et numéros : tout est automatique.</b><br>Ton panel de croissance est prêt : catalogue complet, mis à jour par Coeurnoh, paiement par solde et livraison automatique. Après avoir publié ton site, ouvre « Panel de croissance » dans ton espace pour fixer ta marge et l'activer.
+          </div>
         </div>
+        <div id="site-manual-items" class="${chosenType === 'smm' ? 'hidden' : ''}">
         <div id="site-service-rows"></div>
         <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin:6px 0 14px" onclick="addSiteServiceRow()">${t('site_add_service_btn')}</button>
+        </div>
 
         <label class="field-label" style="display:block">${isPremium
           ? `${t('site_field_photos_prefix')} ${t('site_unlimited_label')})`
