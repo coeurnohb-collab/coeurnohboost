@@ -113,6 +113,7 @@
       '<div class="pm-card"><h2>Comment ça marche</h2><p class="pm-n"><b>1.</b> Recharge ton solde (Portefeuille).<br><b>2.</b> Choisis le service, colle ton lien, indique la quantité.<br><b>3.</b> La commande part automatiquement ; suis-la dans « Historique ».<br><b>4.</b> Si elle n’aboutit pas, tu es remboursé automatiquement.</p></div>';
     pane.querySelector('#pm-h-go').onclick = function () { S.tab = 'new'; render(); };
     pane.querySelectorAll('[data-g]').forEach(function (b) { b.onclick = function () { S.sel = (g[b.getAttribute('data-g')] || [])[0]; S.tab = 'new'; render(); }; });
+    var ibx = document.createElement('div'); pane.appendChild(ibx); installCard(ibx);
     var rbx = document.createElement('div'); pane.appendChild(rbx); refBlock(rbx);
     var h = document.createElement('div'); pane.appendChild(h); paneHelp(h);
   }
@@ -163,7 +164,9 @@
       b.disabled = true; b.textContent = 'Envoi en cours…';
       try {
         var r = await api('pm_order', { slug: S.slug, serviceId: x.id, quantity: q, link: link, requestId: S.rid, ref: (function () { try { return localStorage.getItem('cn_pm_ref_' + S.slug) || ''; } catch (e) { return ''; } })() });
-        S.rid = uid(); toast(r.status === 'refunded' ? (r.message || 'Commande non acceptée — remboursé.') : 'Commande envoyée ✓', r.status === 'refunded' ? 'error' : 'success');
+        S.rid = uid();
+        if (r.status === 'refunded') { err.textContent = r.message || 'Commande non acceptée — tu as été remboursé.'; b.disabled = false; b.textContent = 'Commander'; refreshBalance(); return; }
+        toast('Commande envoyée ✓', 'success');
         S.tab = 'ord'; render();
       } catch (e) { err.textContent = e.message; b.disabled = false; b.textContent = 'Commander'; if (/solde insuffisant/i.test(e.message)) { err.innerHTML = esc(e.message) + ' <a href="#" id="pm-rc2">Recharger</a>'; var a = pane.querySelector('#pm-rc2'); if (a) a.onclick = function (ev) { ev.preventDefault(); goRecharge(); }; } }
     };
@@ -227,6 +230,7 @@
       try { var r = await api('pm_owner_save', { on: pane.querySelector('#pm-on').checked, title: pane.querySelector('#pm-t').value, welcome: pane.querySelector('#pm-w').value, markup: parseFloat(String(m.value).replace(',', '.')) || 0, refPct: parseInt(pane.querySelector('#pm-rp').value, 10) || 0, hiddenPlatforms: hidden }); toast('Panel enregistré', 'success'); OW.cfg = r.cfg; drawOwner(pane); } catch (e) { er.textContent = e.message; }
       b.disabled = false;
     };
+    var ib = document.createElement('div'); pane.appendChild(ib); installCard(ib);
   }
 
 
@@ -238,6 +242,26 @@
     try { if (S.store && S.store.shop.accent) m.style.setProperty('--pm-a', S.store.shop.accent); } catch (e) { /* ignore */ }
     m.addEventListener('click', function (e) { if (e.target === m) m.remove(); });
     document.body.appendChild(m); return m;
+  }
+  /* ===== Installation sur l'écran d'accueil (Android, iPhone/iPad, Windows, Mac, Linux) ===== */
+  var DIP = null;
+  window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); DIP = e; });
+  window.addEventListener('appinstalled', function () { DIP = null; toast('Panel installé sur ton écran d’accueil ✓', 'success'); var m = document.getElementById('pm-modal'); if (m) m.remove(); if (S.store) render(); });
+  function isInstalled() { try { return (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true; } catch (e) { return false; } }
+  function installApp() {
+    if (DIP) { var d = DIP; DIP = null; d.prompt(); d.userChoice.then(function () { }).catch(function () { }); return; }
+    var ua = navigator.userAgent, ios = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1), android = /Android/.test(ua), safariMac = /Macintosh/.test(ua) && /Safari/.test(ua) && !/Chrome|Chromium|Edg/.test(ua), ff = /Firefox/.test(ua);
+    var steps = ios ? 'Appuie sur le bouton <b>Partager</b> (carré avec une flèche) de Safari, puis sur <b>Sur l’écran d’accueil</b>, puis <b>Ajouter</b>.'
+      : android ? 'Ouvre le menu <b>⋮</b> de ton navigateur, puis appuie sur <b>Installer l’application</b> (ou <b>Ajouter à l’écran d’accueil</b>).'
+      : safariMac ? 'Dans le menu <b>Fichier</b> de Safari, choisis <b>Ajouter au Dock</b>.'
+      : ff ? 'Firefox ordinateur ne permet pas l’installation : ajoute cette page à tes favoris (<b>Ctrl + D</b>) ou ouvre-la avec Chrome ou Edge.'
+      : 'Clique sur l’icône <b>Installer</b> à droite de la barre d’adresse (Chrome, Edge, Brave), ou ouvre le menu du navigateur puis <b>Installer ' + esc(S.store ? S.store.shop.name : 'le panel') + '</b>.';
+    modal('<h2>Ajouter à l’écran d’accueil</h2><p class="pm-n">Retrouve ' + esc(S.store ? S.store.shop.name : 'ce panel') + ' en un geste, comme une application, sans jamais perdre le lien.</p><p style="font-size:.9rem;line-height:1.5">' + steps + '</p><button class="pm-b p" style="width:100%" onclick="document.getElementById(\'pm-modal\').remove()">Compris</button>');
+  }
+  function installCard(box) {
+    if (!SA || isInstalled()) { box.innerHTML = ''; return; }
+    box.innerHTML = '<div class="pm-card" style="display:flex;gap:12px;align-items:center"><div style="flex:1"><h2 style="margin:0 0 4px">Garde ce panel sous la main</h2><p class="pm-n" style="margin:0">Ajoute-le à ton écran d’accueil : tu ne perds plus le lien.</p></div><button class="pm-b p" id="pm-inst">Installer</button></div>';
+    box.querySelector('#pm-inst').onclick = installApp;
   }
   function loginModal() {
     if (window.__CN_PREVIEW_STORE) { modal('<h2>Aperçu</h2><p class="pm-n">La connexion est désactivée dans l’aperçu. Publie ton site, puis ouvre-le avec son lien pour te connecter et commander.</p><button class="pm-b p" style="width:100%" onclick="document.getElementById(\'pm-modal\').remove()">OK</button>'); return; }
@@ -308,7 +332,7 @@
   }, true);
 
   function main() {
-    window.CNPanel = { open: openStore, owner: openOwner, site: openSiteInApp };
+    window.CNPanel = { open: openStore, owner: openOwner, site: openSiteInApp, install: installApp };
     if (SA) {
       openStore(window.__CN_STANDALONE);
       try { auth.onAuthStateChanged(function () { S.isOwner = undefined; if (S.store) render(); }); } catch (e) { /* ignore */ }

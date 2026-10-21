@@ -1123,7 +1123,14 @@ async function submitOrder() {
       errEl.classList.remove('hidden');
       return;
     }
-    currentUser.balance = data.newBalance;
+    if (typeof data.newBalance === 'number') currentUser.balance = data.newBalance;
+    if (data.automated === false) {
+      // Refus du fournisseur (ex. une commande est déjà en cours sur ce lien) : on reste sur le formulaire avec la raison.
+      errEl.textContent = data.message || 'Commande non acceptée. Tu as été remboursé.';
+      errEl.classList.remove('hidden');
+      onOrderInputChange();
+      return;
+    }
 
     showDashboard();
     showDashTab('orders');
@@ -1138,35 +1145,60 @@ async function submitOrder() {
   }
 }
 
-async function loadOrders() {
+const ORDER_STATUS_UI = {
+  pending: ['En attente', '#92400e', '#fef3c7'], processing: ['En cours', '#1e40af', '#dbeafe'], completed: ['Terminé', '#166534', '#dcfce7'],
+  partial: ['Partiel', '#92400e', '#fef3c7'], refunded: ['Remboursé', '#374151', '#e5e7eb'], canceled: ['Annulé', '#374151', '#e5e7eb'],
+  pending_review: ['En vérification', '#92400e', '#fef3c7']
+};
+let ordersTimer = null;
+function ordersRowHtml(o) {
+  const p = PLATFORMS.find(x => x.id === o.platform);
+  const st = ORDER_STATUS_UI[o.status] || [String(o.status || ''), '#374151', '#e5e7eb'];
+  const when = o.createdAt ? new Date(o.createdAt).toLocaleString('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
+  const qty = Number(o.quantity) || 0, price = Number(o.price) || 0;
+  const link = o.link ? escapeHtml(String(o.link)).slice(0, 80) : '';
+  return `<div class="order-box" style="margin-bottom:10px">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px">
+      <strong>${escapeHtml(p ? p.name : (o.platform || ''))} — ${escapeHtml(String(o.service || '').replace(/^.*? — /, ''))}</strong>
+      <span style="background:${st[2]};color:${st[1]};border-radius:99px;padding:3px 10px;font-size:.72rem;font-weight:800;white-space:nowrap">${st[0]}</span>
+    </div>
+    <p class="muted small" style="margin:0">${escapeHtml(String(o.quality || o.tier || ''))} · Qté ${qty.toLocaleString('fr-FR')} · ${price.toFixed(2)}$${when ? ' · ' + when : ''}</p>
+    ${link ? `<p class="muted small" style="margin:4px 0 0;word-break:break-all">${link}</p>` : ''}
+    ${o.status === 'processing' ? '<p class="muted small" style="margin:6px 0 0">Livraison en cours — tu peux déjà commander d’autres services (avec un autre lien).</p>' : ''}
+    ${o.status === 'pending_review' ? '<p class="muted small" style="margin:6px 0 0">Notre équipe vérifie cette commande ; tu seras remboursé si elle ne peut pas être livrée.</p>' : ''}
+  </div>`;
+}
+async function loadOrders(silent) {
   if (!currentUser) return;
   const container = document.getElementById('dash-tab-orders');
+  if (!container) return;
+  const head = `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:14px"><h2 style="margin:0">${t('tab_orders')}</h2><div style="display:flex;gap:8px"><button class="btn btn-outline btn-sm" onclick="loadOrders()">Actualiser</button><button class="btn btn-primary btn-sm" onclick="showServices()">+ Nouvelle commande</button></div></div>`;
+  if (!silent) container.innerHTML = head + '<p class="muted">' + t('common_loading') + '</p>';
+  let orders = null;
   try {
-    const snap = await db.collection('orders').where('uid', '==', currentUser.uid).limit(200).get();
-    const orders = [];
-    snap.forEach(doc => orders.push(doc.data()));
-    orders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-
-    if (orders.length === 0) {
-      container.innerHTML = `
-        <h2 style="margin-bottom:14px">${t('tab_orders')}</h2>
-        <div class="order-box">
-          <p class="muted">${t('orders_empty')}</p>
-          <button class="btn btn-primary" style="margin-top:12px" onclick="showServices()">${t('dash_orders_cta')}</button>
-        </div>`;
-      return;
+    // Le serveur met aussi à jour l'état des commandes en cours auprès du fournisseur (Terminé, Partiel…).
+    const idToken = await auth.currentUser.getIdToken();
+    const r = await fetch('/api/payments-actions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ idToken, action: 'pm_orders', all: true }) });
+    const j = await r.json();
+    if (j && j.success && Array.isArray(j.orders)) orders = j.orders.map(o => Object.assign({}, o, { platform: o.platform || (String(o.service || '').split(' — ')[0]) }));
+  } catch (e) { /* repli ci-dessous */ }
+  try {
+    if (!orders) {
+      const snap = await db.collection('orders').where('uid', '==', currentUser.uid).limit(200).get();
+      orders = [];
+      snap.forEach(doc => orders.push(doc.data()));
+      orders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     }
-    container.innerHTML = `<h2 style="margin-bottom:14px">${t('tab_orders')}</h2>` + orders.map(o => {
-      const p = PLATFORMS.find(x => x.id === o.platform);
-      return `
-        <div class="order-box">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-            <strong>${p ? p.name : o.platform} — ${o.service}</strong>
-            <span class="order-status">${o.status}</span>
-          </div>
-          <p class="muted small">${o.quality} · Qté ${o.quantity.toLocaleString('fr-FR')} · ${o.price.toFixed(2)}$</p>
-        </div>`;
-    }).join('');
+    if (!document.getElementById('dash-tab-orders')) return;
+    if (orders.length === 0) {
+      container.innerHTML = head + `<div class="order-box"><p class="muted">${t('orders_empty')}</p><button class="btn btn-primary" style="margin-top:12px" onclick="showServices()">${t('dash_orders_cta')}</button></div>`;
+    } else {
+      container.innerHTML = head + orders.map(ordersRowHtml).join('');
+    }
+    clearTimeout(ordersTimer);
+    if (orders.some(o => o.status === 'processing' || o.status === 'pending')) {
+      ordersTimer = setTimeout(() => { const el = document.getElementById('dash-tab-orders'); if (el && el.offsetParent !== null) loadOrders(true); }, 45000);
+    }
   } catch (e) {
     console.error("Erreur chargement commandes :", e.message);
   }
