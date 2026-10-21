@@ -24,6 +24,7 @@
   function money4(n) { n = Number(n) || 0; return (Math.round(n * 10000) / 10000).toFixed(n < 1 ? 3 : 2).replace('.', ',') + ' $'; }
   function uid() { return (window.crypto && crypto.randomUUID) ? crypto.randomUUID().replace(/-/g, '') : String(Date.now()) + Math.random().toString(16).slice(2); }
   async function api(action, body) {
+    if (window.__CN_PREVIEW_STORE) throw new Error('Aperçu : publie ton panel pour recevoir de vraies commandes.');
     if (!auth.currentUser) throw new Error('Connecte-toi pour continuer.');
     var idToken = await auth.currentUser.getIdToken();
     var r = await fetch('/api/payments-actions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(Object.assign({ idToken: idToken, action: action }, body || {})) });
@@ -70,7 +71,7 @@
     var o = document.getElementById('pm-ov'); if (o) o.remove();
     o = document.createElement('div'); o.className = 'pm-ov'; o.id = 'pm-ov'; o.innerHTML = '<div class="pm-in"><p class="pm-n" style="padding:30px;text-align:center">Chargement du panel…</p></div>';
     document.body.appendChild(o); document.body.style.overflow = 'hidden';
-    try { S.store = await loadStore(slug); } catch (e) { o.innerHTML = '<div class="pm-in"><div class="pm-card" style="margin-top:30px"><h2>Panel indisponible</h2><p class="pm-n">' + esc(e.message) + '</p><button class="pm-b p" id="pm-close">Fermer</button></div></div>'; o.querySelector('#pm-close').onclick = close; return; }
+    try { S.store = window.__CN_PREVIEW_STORE || await loadStore(slug); } catch (e) { o.innerHTML = '<div class="pm-in"><div class="pm-card" style="margin-top:30px"><h2>Panel indisponible</h2><p class="pm-n">' + esc(e.message) + '</p><button class="pm-b p" id="pm-close">Fermer</button></div></div>'; o.querySelector('#pm-close').onclick = close; return; }
     if (S.store.shop.accent) o.style.setProperty('--pm-a', S.store.shop.accent);
     render();
   }
