@@ -208,9 +208,57 @@
     o.querySelector('#pm-close').onclick = close;
     api('pm_owner_get').then(function (r) { OW = r; drawOwner(o.querySelector('#pm-pane')); }).catch(function (e) { o.querySelector('#pm-pane').innerHTML = '<div class="pm-card"><p class="pm-err">' + esc(e.message) + '</p></div>'; });
   }
+
+  /* ===== Retrait des gains du propriétaire ===== */
+  var WD_ST = { pending: ['En cours de paiement', 'w'], paid: ['Payé', 'g'], rejected: ['Refusé (remboursé)', 'n'] };
+  function wdBlock(box) {
+    box.innerHTML = '<div class="pm-card"><h2>Mes gains</h2><p class="pm-n">Chargement…</p></div>';
+    api('pm_wd_info').then(function (r) { drawWd(box, r); }).catch(function (e) { box.innerHTML = '<div class="pm-card"><h2>Mes gains</h2><p class="pm-err">' + esc(e.message) + '</p></div>'; });
+  }
+  function drawWd(box, r) {
+    var st = r.settings, h = '<div class="pm-card"><h2>Mes gains</h2><div class="pm-stats" style="margin:8px 0"><div><b>' + money(r.available) + '</b><span>Retirable</span></div><div><b>' + money(r.onHold) + '</b><span>En sécurisation</span></div><div><b>' + money(r.withdrawn) + '</b><span>Déjà retiré</span></div></div>' +
+      '<p class="pm-n">Tes gains (marges + parrainage) deviennent retirables quand la commande est terminée, ou après ' + esc(st.holdHours) + ' h. L’argent rechargé pour commander n’est pas retirable. Commission : ' + esc(st.feePct) + ' % · minimum ' + money(st.minUsd) + '.</p>';
+    if (!st.enabled) h += '<p class="pm-err">Les retraits sont momentanément suspendus.</p>';
+    else if (r.hasPending) h += '<p class="pm-n"><b>Une demande est en cours de paiement.</b> Tu pourras en faire une nouvelle une fois qu’elle sera payée.</p>';
+    else if (r.available < st.minUsd) h += '<p class="pm-n">Il te faut au moins ' + money(st.minUsd) + ' de gains retirables pour faire une demande.</p>';
+    else {
+      h += '<div class="pm-f"><label for="pm-wm">Moyen de retrait</label><select id="pm-wm">' + r.methods.map(function (m) { return '<option value="' + esc(m.id) + '" data-k="' + esc(m.kind) + '">' + esc(m.label) + '</option>'; }).join('') + '</select></div>' +
+        '<div class="pm-f" id="pm-wnamebox"><label for="pm-wn">Nom inscrit sur le compte</label><input id="pm-wn" maxlength="60" autocomplete="name"></div>' +
+        '<div class="pm-f"><label for="pm-wa" id="pm-wal">Numéro (avec indicatif, ex. 243812345678)</label><input id="pm-wa" maxlength="80" autocomplete="off"></div>' +
+        '<div class="pm-f"><label for="pm-wv">Montant à retirer ($)</label><input id="pm-wv" inputmode="decimal" maxlength="8" value="' + esc(Math.floor(r.available * 100) / 100) + '"></div>' +
+        '<div class="pm-sum" id="pm-wsum"></div><div class="pm-err" id="pm-werr"></div><button class="pm-b p" id="pm-wgo" style="width:100%">Demander le retrait</button>' +
+        '<p class="pm-n">Vérifie bien tes coordonnées : un paiement envoyé à un mauvais numéro ou une mauvaise adresse ne peut pas être récupéré.</p>';
+    }
+    h += '</div>';
+    if (r.history && r.history.length) h += '<div class="pm-card"><h2>Mes retraits</h2>' + r.history.map(function (w) { var b = WD_ST[w.status] || [w.status, 'n']; return '<div class="pm-row"><div><b>' + money(w.net) + ' net</b><small>' + esc(w.method) + ' · ' + esc(String(w.createdAt || '').slice(0, 10)) + (w.fee ? ' · commission ' + money(w.fee) : '') + '</small></div><span class="pm-bd ' + b[1] + '">' + b[0] + '</span></div>'; }).join('') + '</div>';
+    box.innerHTML = h;
+    var go = box.querySelector('#pm-wgo'); if (!go) return;
+    var sel = box.querySelector('#pm-wm'), val = box.querySelector('#pm-wv'), sum = box.querySelector('#pm-wsum'), err = box.querySelector('#pm-werr'), rid = uid();
+    function upd() {
+      var k = sel.options[sel.selectedIndex].getAttribute('data-k'), phone = k === 'phone';
+      box.querySelector('#pm-wnamebox').style.display = phone ? '' : 'none';
+      box.querySelector('#pm-wal').textContent = phone ? 'Numéro (avec indicatif, ex. 243812345678)' : (k === 'trc20' ? 'Adresse USDT TRC20 (commence par T)' : 'Adresse USDT BEP20 (commence par 0x)');
+      var a = Number(String(val.value).replace(',', '.')) || 0, fee = Math.round(a * st.feePct) / 100;
+      sum.innerHTML = 'Tu reçois <b>' + money(Math.max(0, a - fee)) + '</b> <span class="pm-n">(' + money(a) + ' − commission ' + money(fee) + ')</span>';
+    }
+    sel.onchange = upd; val.oninput = upd; upd();
+    go.onclick = async function () {
+      err.textContent = '';
+      var a = Number(String(val.value).replace(',', '.')) || 0;
+      if (!(a >= st.minUsd)) { err.textContent = 'Montant minimum : ' + money(st.minUsd) + '.'; return; }
+      if (a > r.available + 0.001) { err.textContent = 'Maximum retirable : ' + money(r.available) + '.'; return; }
+      if (!confirm('Confirmer le retrait de ' + money(a) + ' ?\n' + sel.options[sel.selectedIndex].text + '\n' + box.querySelector('#pm-wa').value)) return;
+      go.disabled = true; go.textContent = 'Envoi…';
+      try {
+        var res = await api('pm_wd_request', { method: sel.value, account: box.querySelector('#pm-wa').value, holderName: box.querySelector('#pm-wn').value, amount: a, requestId: rid });
+        toast('Demande envoyée : ' + money(res.net) + ' net à recevoir.', 'success'); wdBlock(box);
+      } catch (e) { err.textContent = e.message; go.disabled = false; go.textContent = 'Demander le retrait'; }
+    };
+  }
+
   function drawOwner(pane) {
     var c = OW.cfg, st = OW.stats, url = OW.slug ? location.origin + '/panel/' + OW.slug : '';
-    pane.innerHTML = '<div class="pm-card"><h2>Résumé</h2><div class="pm-row"><span>Commandes</span><b>' + st.orders + '</b></div><div class="pm-row"><span>Ventes de tes clients</span><b>' + money(st.sales) + '</b></div><div class="pm-row"><span>Tes gains (marge)</span><b>' + money(st.earned) + '</b></div>' + (st.pending ? '<div class="pm-row"><span>Gains en vérification</span><b>' + money(st.pending) + '</b></div>' : '') + '<p class="pm-n">Tes gains sont ajoutés automatiquement à ton solde dès que la commande est acceptée. Tu n’as aucune clé, aucun identifiant de service à gérer : tout est prêt et tenu à jour par Coeurnoh.</p></div>' +
+    pane.innerHTML = '<div class="pm-card"><h2>Résumé</h2><div class="pm-row"><span>Commandes</span><b>' + st.orders + '</b></div><div class="pm-row"><span>Ventes de tes clients</span><b>' + money(st.sales) + '</b></div><div class="pm-row"><span>Tes gains (marge)</span><b>' + money(st.earned) + '</b></div>' + (st.pending ? '<div class="pm-row"><span>Gains en vérification</span><b>' + money(st.pending) + '</b></div>' : '') + '<p class="pm-n">Tes gains sont ajoutés à ton solde ; ils deviennent retirables après sécurisation (voir « Mes gains » ci-dessous). Tu n’as aucune clé, aucun identifiant de service à gérer : tout est prêt et tenu à jour par Coeurnoh.</p></div>' +
       '<div class="pm-card"><h2>Réglages</h2><div class="pm-f" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="pm-on" style="width:20px;height:20px"' + (c.on ? ' checked' : '') + '><label for="pm-on" style="margin:0">Activer mon panel</label></div>' +
       '<div class="pm-f"><label for="pm-t">Titre</label><input id="pm-t" maxlength="80" placeholder="Services de croissance" value="' + esc(c.title) + '"></div>' +
       '<div class="pm-f"><label for="pm-w">Message d’accueil (facultatif)</label><textarea id="pm-w" rows="2" maxlength="300">' + esc(c.welcome) + '</textarea></div>' +
@@ -231,6 +279,7 @@
       b.disabled = false;
     };
     var ib = document.createElement('div'); pane.appendChild(ib); installCard(ib);
+    var wb = document.createElement('div'); pane.insertBefore(wb, pane.firstChild ? pane.children[1] || null : null); wdBlock(wb);
   }
 
 
@@ -289,7 +338,7 @@
     if (!auth.currentUser) { loginModal(); return; }
     var amt = 10, method = 'card';
     var m = modal('<h2>Recharger mon solde</h2><p class="pm-n">Le solde sert à payer tes commandes. Il est crédité automatiquement après paiement.</p><div class="pm-f"><label>Montant (USD)</label><div id="pm-am" style="display:flex;gap:6px;flex-wrap:wrap"></div><input id="pm-ac" type="number" min="2" max="1000" step="1" placeholder="Autre montant" style="margin-top:8px"></div>' +
-      '<div class="pm-f"><label>Moyen de paiement</label><select id="pm-mt"><option value="card">Carte bancaire / Mobile Money</option><option value="crypto">Crypto (USDT, BTC…)</option></select></div><div class="pm-err" id="pm-re2"></div><button class="pm-b p" id="pm-pay" style="width:100%">Payer</button><p class="pm-n" style="text-align:center">Paiement sécurisé, hébergé chez nos partenaires. Minimum 2 $.</p>');
+      '<div class="pm-f"><label>Moyen de paiement</label><select id="pm-mt"><option value="card">Carte bancaire / Mobile Money</option><option value="crypto">Crypto (USDT recommandé, BTC…)</option></select></div><div class="pm-err" id="pm-re2"></div><button class="pm-b p" id="pm-pay" style="width:100%">Payer</button><p class="pm-n" style="text-align:center">Paiement sécurisé, hébergé chez nos partenaires. Minimum 2 $.</p>');
     var box = m.querySelector('#pm-am');
     function chips() { box.innerHTML = [5, 10, 20, 50].map(function (a) { return '<button type="button" class="pm-b' + (a === amt ? ' p' : '') + '" data-a="' + a + '">' + a + ' $</button>'; }).join(''); box.querySelectorAll('[data-a]').forEach(function (b) { b.onclick = function () { amt = Number(b.getAttribute('data-a')); m.querySelector('#pm-ac').value = ''; chips(); }; }); }
     chips(); m.querySelector('#pm-ac').oninput = function (e) { amt = Number(e.target.value) || 0; chips(); };

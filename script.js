@@ -1272,7 +1272,7 @@ function selectPayMethod(m) {
   renderPayPanel();
 }
 // Pays où le Mobile Money (MbotePay) fonctionne réellement : même liste que api/payment-initiate.js et pay-guard.js.
-const MOBILE_COVERED_CODES = ['CD','BJ','CI','CM','CG','GA','SN','KE','RW','UG','ZM','SL'];
+const MOBILE_COVERED_CODES = ['CD'];
 function renderPayCountrySelect() {
   const sel = document.getElementById('pay-country-select');
   const opt = c => `<option value="${c.code}">${c.flag} ${c.name}</option>`;
