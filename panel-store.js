@@ -8,8 +8,8 @@
   if (window.__cnPanelStore) return; window.__cnPanelStore = true;
   var tries = 0;
   function go() { if (typeof auth === 'undefined' || typeof escapeHtml !== 'function') { if (++tries < 160) setTimeout(go, 250); return; } main(); }
-  go();
 
+  var SA = !!window.__CN_STANDALONE; // page autonome du panel (hors application)
   var S = { slug: '', store: null, tab: 'new', sel: null, rid: '', q: '', busy: false };
   var LS = 'cn_pm_return';
   var ST = { pending: ['En attente', 'w'], processing: ['En cours', 'i'], completed: ['Terminé', 'g'], partial: ['Partiel', 'w'], refunded: ['Remboursé', 'n'], pending_review: ['En vérification', 'w'] };
@@ -57,7 +57,7 @@
 '@media(prefers-color-scheme:dark){.pm-ov{background:#0e1424;color:#e6eaf3}.pm-bal,.pm-card,.pm-nav,.pm-stats div,.pm-plat,.pm-b{background:#182036;color:#e6eaf3;border-color:#2a3553}.pm-f input,.pm-f select,.pm-f textarea{background:#101830;color:#e6eaf3;border-color:#2a3553}.pm-sum{background:#14264d}.pm-row{border-color:#2a3553}.pm-n,.pm-bal span,.pm-row small,.pm-g,.pm-f label{color:#9aa6c0}.pm-tabs button.on,.pm-b.p{color:#fff}}';
   var st = document.createElement('style'); st.textContent = CSS; document.head.appendChild(st);
 
-  function close() { var o = document.getElementById('pm-ov'); if (o) o.remove(); document.body.style.overflow = ''; try { var u = new URL(location.href); if (u.searchParams.has('panel')) { u.searchParams.delete('panel'); history.replaceState(null, '', u.pathname + (u.search || '') + u.hash); } } catch (e) { /* ignore */ } }
+  function close() { if (SA && S.slug) { openStore(S.slug); return; } var o = document.getElementById('pm-ov'); if (o) o.remove(); document.body.style.overflow = ''; try { var u = new URL(location.href); if (u.searchParams.has('panel')) { u.searchParams.delete('panel'); history.replaceState(null, '', u.pathname + (u.search || '') + u.hash); } } catch (e) { /* ignore */ } }
 
   async function loadStore(slug) {
     var r = await fetch('/api/render-site?pstore=' + encodeURIComponent(slug) + '&json=1'); var j = await r.json();
@@ -79,14 +79,17 @@
   function render() {
     var o = document.getElementById('pm-ov'); if (!o || !S.store) return; var sh = S.store.shop, logged = !!auth.currentUser;
     o.innerHTML = '<div class="pm-in"><div class="pm-top">' + (sh.logo ? '<img src="' + esc(sh.logo) + '" alt="">' : '') + '<h1>' + esc(sh.name || 'Panel') + '<small>' + esc(S.store.title) + '</small></h1>' +
-      (logged ? '<button class="pm-chip" id="pm-balchip" aria-label="Mon solde">…</button>' : '<button class="pm-chip" id="pm-login">Se connecter</button>') + '<button class="pm-x" id="pm-close" aria-label="Fermer">✕</button></div><div id="pm-pane"></div></div>' +
+      (logged ? '<button class="pm-chip" id="pm-balchip" aria-label="Mon solde">…</button>' : '<button class="pm-chip" id="pm-login">Se connecter</button>') + (SA ? (logged ? (S.isOwner ? '<button class="pm-chip" id="pm-admin">Admin</button>' : '') + '<button class="pm-chip" id="pm-out">Quitter</button>' : '') : '<button class="pm-x" id="pm-close" aria-label="Fermer">✕</button>') + '</div><div id="pm-pane"></div></div>' +
       '<nav class="pm-nav" aria-label="Menu du panel">' + NAV.map(function (n) { return '<button type="button" data-t="' + n[0] + '" class="' + (S.tab === n[0] ? 'on' : '') + '"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="' + n[2] + '"/></svg><span>' + n[1] + '</span></button>'; }).join('') + '</nav>';
-    o.querySelector('#pm-close').onclick = close;
-    var lb = o.querySelector('#pm-login'); if (lb) lb.onclick = function () { lsSet(S.slug + '|' + Date.now()); close(); try { openAuth('login'); } catch (e) { /* ignore */ } };
+    var cl = o.querySelector('#pm-close'); if (cl) cl.onclick = close;
+    var ad = o.querySelector('#pm-admin'); if (ad) ad.onclick = openOwner;
+    var ou = o.querySelector('#pm-out'); if (ou) ou.onclick = function () { S.isOwner = undefined; auth.signOut().then(render); };
+    var lb = o.querySelector('#pm-login'); if (lb) lb.onclick = function () { if (SA) { loginModal(); return; } lsSet(S.slug + '|' + Date.now()); close(); try { openAuth('login'); } catch (e) { /* ignore */ } };
     var bc = o.querySelector('#pm-balchip'); if (bc) bc.onclick = function () { S.tab = 'wal'; render(); };
     o.querySelectorAll('.pm-nav [data-t]').forEach(function (b) { b.onclick = function () { S.tab = b.getAttribute('data-t'); render(); o.scrollTop = 0; }; });
     ({ home: paneHome, new: paneNew, svc: paneSvc, ord: paneOrd, wal: paneWallet })[S.tab](o.querySelector('#pm-pane'));
     if (logged) refreshBalance();
+    if (SA && logged && S.isOwner === undefined) { S.isOwner = false; api('pm_owner_get').then(function (r) { if (r && r.slug === S.slug && r.cfg && r.cfg.on) { S.isOwner = true; render(); } }).catch(function () { }); }
   }
 
   function refBlock(box) {
@@ -100,7 +103,7 @@
     box.querySelector('#pm-rshare').onclick = function () { if (navigator.share) { navigator.share({ title: S.store.shop.name, text: 'Commande tes services de croissance ici :', url: link }).catch(function () { }); } else { box.querySelector('#pm-rcopy').click(); } };
     api('pm_ref', { slug: S.slug }).then(function (r) { var a = box.querySelector('#pm-rc'), b = box.querySelector('#pm-re'); if (a) a.textContent = r.count; if (b) b.textContent = money(r.earned); }).catch(function () { });
   }
-  function goRecharge() { lsSet(S.slug + '|' + Date.now()); close(); try { showRecharge(); } catch (e) { toast('Ouvre ton portefeuille pour recharger.'); } }
+  function goRecharge() { if (SA) { rechargeModal(); return; } lsSet(S.slug + '|' + Date.now()); close(); try { showRecharge(); } catch (e) { toast('Ouvre ton portefeuille pour recharger.'); } }
   function paneHome(pane) {
     var g = groups(), names = Object.keys(g), n = (S.store.items || []).length;
     pane.innerHTML = '<div class="pm-card pm-hero"><h2>' + esc(S.store.title) + '</h2><p>' + esc(S.store.welcome || S.store.shop.tagline || 'Abonnés, likes, vues et plus pour tes réseaux sociaux. Livraison rapide, paiement simple.') + '</p><button class="pm-b w pm-cta" id="pm-h-go">Commander maintenant</button></div>' +
@@ -226,6 +229,60 @@
   }
 
 
+  /* ===== Page autonome : connexion et recharge sans l'application ===== */
+  function modal(inner) {
+    var m = document.getElementById('pm-modal'); if (m) m.remove();
+    m = document.createElement('div'); m.id = 'pm-modal'; m.style.cssText = 'position:fixed;inset:0;z-index:100010;background:rgba(10,16,32,.6);display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto';
+    m.innerHTML = '<div class="pm-card" style="margin:0;max-width:400px;width:100%;position:relative">' + inner + '</div>';
+    try { if (S.store && S.store.shop.accent) m.style.setProperty('--pm-a', S.store.shop.accent); } catch (e) { /* ignore */ }
+    m.addEventListener('click', function (e) { if (e.target === m) m.remove(); });
+    document.body.appendChild(m); return m;
+  }
+  function loginModal() {
+    var reg = false;
+    var m = modal('<h2 id="pm-lt">Connexion</h2><p class="pm-n">Utilise ton compte Coeurnoh Universe, ou crée-en un gratuitement : le même compte fonctionne partout.</p>' +
+      '<button class="pm-b w" id="pm-g" style="display:flex;align-items:center;justify-content:center;gap:8px"><svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.6 5.9c4.4-4.1 7-10.1 7-17.6z"/><path fill="#FBBC05" d="M10.5 28.7c-.5-1.4-.8-3-.8-4.7s.3-3.2.8-4.7l-7.9-6.1C.9 16.4 0 20.1 0 24s.9 7.6 2.6 10.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.6-5.9c-2.1 1.4-4.8 2.3-8.3 2.3-6.3 0-11.6-4.1-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>Continuer avec Google</button>' +
+      '<p class="pm-n" style="text-align:center">ou avec ton e-mail</p><div class="pm-f"><input id="pm-em" type="email" autocomplete="email" placeholder="Adresse e-mail"></div><div class="pm-f"><input id="pm-pw" type="password" autocomplete="current-password" placeholder="Mot de passe (6 caractères min.)"></div>' +
+      '<div class="pm-err" id="pm-le"></div><button class="pm-b p w" id="pm-ls" style="width:100%">Se connecter</button><p class="pm-n" style="text-align:center"><a href="#" id="pm-sw">Créer un compte</a> · <a href="#" id="pm-fp">Mot de passe oublié</a></p>');
+    var err = m.querySelector('#pm-le'), done = function () { m.remove(); };
+    function fail(e) { var c = (e && e.code) || ''; err.textContent = /wrong-password|invalid-credential|user-not-found/.test(c) ? 'E-mail ou mot de passe incorrect.' : /email-already/.test(c) ? 'Un compte existe déjà avec cet e-mail : connecte-toi.' : /weak-password/.test(c) ? 'Mot de passe trop court (6 minimum).' : /invalid-email/.test(c) ? 'Adresse e-mail invalide.' : /popup-closed|cancelled/.test(c) ? '' : /network/.test(c) ? 'Connexion internet indisponible.' : 'Connexion impossible, réessaie.'; }
+    m.querySelector('#pm-g').onclick = function () {
+      err.textContent = ''; var pr = new firebase.auth.GoogleAuthProvider();
+      var ios = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      (ios ? auth.signInWithRedirect(pr) : auth.signInWithPopup(pr).then(done)).catch(function (e) { if (e && /popup-blocked/.test(e.code || '')) auth.signInWithRedirect(pr); else fail(e); });
+    };
+    m.querySelector('#pm-sw').onclick = function (ev) { ev.preventDefault(); reg = !reg; m.querySelector('#pm-lt').textContent = reg ? 'Créer un compte' : 'Connexion'; m.querySelector('#pm-ls').textContent = reg ? 'Créer mon compte' : 'Se connecter'; ev.target.textContent = reg ? 'J’ai déjà un compte' : 'Créer un compte'; };
+    m.querySelector('#pm-fp').onclick = function (ev) { ev.preventDefault(); var em = m.querySelector('#pm-em').value.trim(); if (!em) { err.textContent = 'Saisis ton e-mail ci-dessus.'; return; } auth.sendPasswordResetEmail(em).then(function () { err.style.color = '#166534'; err.textContent = 'E-mail de réinitialisation envoyé.'; }).catch(fail); };
+    m.querySelector('#pm-ls').onclick = function () {
+      var em = m.querySelector('#pm-em').value.trim(), pw = m.querySelector('#pm-pw').value; err.style.color = ''; err.textContent = '';
+      if (!em || !pw) { err.textContent = 'E-mail et mot de passe requis.'; return; }
+      (reg ? auth.createUserWithEmailAndPassword(em, pw) : auth.signInWithEmailAndPassword(em, pw)).then(done).catch(fail);
+    };
+  }
+  function rechargeModal() {
+    if (!auth.currentUser) { loginModal(); return; }
+    var amt = 10, method = 'card';
+    var m = modal('<h2>Recharger mon solde</h2><p class="pm-n">Le solde sert à payer tes commandes. Il est crédité automatiquement après paiement.</p><div class="pm-f"><label>Montant (USD)</label><div id="pm-am" style="display:flex;gap:6px;flex-wrap:wrap"></div><input id="pm-ac" type="number" min="2" max="1000" step="1" placeholder="Autre montant" style="margin-top:8px"></div>' +
+      '<div class="pm-f"><label>Moyen de paiement</label><select id="pm-mt"><option value="card">Carte bancaire / Mobile Money</option><option value="crypto">Crypto (USDT, BTC…)</option></select></div><div class="pm-err" id="pm-re2"></div><button class="pm-b p" id="pm-pay" style="width:100%">Payer</button><p class="pm-n" style="text-align:center">Paiement sécurisé, hébergé chez nos partenaires. Minimum 2 $.</p>');
+    var box = m.querySelector('#pm-am');
+    function chips() { box.innerHTML = [5, 10, 20, 50].map(function (a) { return '<button type="button" class="pm-b' + (a === amt ? ' p' : '') + '" data-a="' + a + '">' + a + ' $</button>'; }).join(''); box.querySelectorAll('[data-a]').forEach(function (b) { b.onclick = function () { amt = Number(b.getAttribute('data-a')); m.querySelector('#pm-ac').value = ''; chips(); }; }); }
+    chips(); m.querySelector('#pm-ac').oninput = function (e) { amt = Number(e.target.value) || 0; chips(); };
+    m.querySelector('#pm-mt').onchange = function (e) { method = e.target.value; };
+    m.querySelector('#pm-pay').onclick = async function () {
+      var b = this, err = m.querySelector('#pm-re2'); err.textContent = '';
+      if (!(amt >= 2 && amt <= 1000)) { err.textContent = 'Montant : entre 2 et 1000 $.'; return; }
+      b.disabled = true; b.textContent = 'Redirection…';
+      try {
+        var tok = await auth.currentUser.getIdToken();
+        var body = method === 'crypto' ? { provider: 'crypto', amount: amt } : { provider: 'optgateway', amountUSD: amt, onlyMethod: 'card' };
+        body.idToken = tok; body.returnSlug = S.slug;
+        var r = await fetch('/api/payment-initiate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); var j = await r.json();
+        if (!r.ok || !j.success || !/^https:\/\//.test(j.paymentUrl || '')) throw new Error(j.error || 'Paiement indisponible pour le moment.');
+        location.href = j.paymentUrl;
+      } catch (e) { err.textContent = e.message; b.disabled = false; b.textContent = 'Payer'; }
+    };
+  }
+
   /* ===== Ouvrir un site dans l'application, sans la quitter ===== */
   function openSiteInApp(url) {
     var o = document.getElementById('pm-site'); if (o) o.remove();
@@ -250,6 +307,12 @@
 
   function main() {
     window.CNPanel = { open: openStore, owner: openOwner, site: openSiteInApp };
+    if (SA) {
+      openStore(window.__CN_STANDALONE);
+      try { auth.onAuthStateChanged(function () { S.isOwner = undefined; if (S.store) render(); }); } catch (e) { /* ignore */ }
+      try { var pq = new URL(location.href).searchParams.get('payment'); if (pq) { toast(pq === 'success' ? 'Paiement reçu : ton solde est mis à jour dans quelques instants.' : 'Paiement annulé.', pq === 'success' ? 'success' : 'info'); if (pq === 'success') S.tab = 'wal'; var u2 = new URL(location.href); u2.searchParams.delete('payment'); history.replaceState(null, '', u2.pathname + (u2.search || '')); } } catch (e) { /* ignore */ }
+      return;
+    }
     var orig = window.siteHubHtml;
     if (typeof orig === 'function') {
       window.siteHubHtml = function () {
@@ -267,4 +330,5 @@
       setTimeout(run, 6000);
     }
   }
+  go();
 })();
