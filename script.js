@@ -1900,6 +1900,7 @@ function openNotifTargetIfAny() {
   const tab = params.get('openTab');
   const profileUid = params.get('profile');
   const leadsKind = params.get('leads');
+  if (params.get('mysite')) { window.history.replaceState({}, '', window.location.pathname); try { openMainMenu(); openSiteBuilderScreen(); } catch (e) { /* écran indisponible */ } return; }
   if (leadsKind) { openLeadsManager(leadsKind === 'biz' ? 'biz' : 'site', 'appointment'); window.history.replaceState({}, '', window.location.pathname); return; }
   if (pubId) {
     openPostDetail(pubId);
@@ -12689,7 +12690,7 @@ async function purchaseSitePremium() {
    en mode POST) : ce que le propriétaire voit ici = ce que ses clients verront.
    Il fonctionne aussi pour un brouillon non publié et peut simuler le Pack Pro
    (rien n'est débité) pour montrer, avant paiement, ce que donne chaque modèle. */
-const SITE_TYPES = ['smm', 'entreprise', 'boutique', 'restaurant', 'portfolio', 'musique', 'education', 'sante', 'immobilier', 'evenement', 'association', 'beaute', 'media', 'agence'];
+const SITE_TYPES = ['smm', 'entreprise', 'boutique', 'restaurant', 'portfolio', 'musique', 'education', 'sante', 'immobilier', 'evenement', 'association', 'beaute', 'media', 'agence', 'hotel', 'voyage', 'auto', 'sport', 'juridique', 'tech'];
 const SITE_SOCIALS = [
   ['facebook', 'site_field_facebook', 'https://facebook.com/...'],
   ['instagram', 'site_field_instagram', 'https://instagram.com/...'],
@@ -12712,7 +12713,13 @@ const SITE_TYPE_ICONS = {
   association: '<circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M15 14.5c3 0 6 1.5 6 5"/>',
   beaute: '<path d="M12 3l1.8 4.7L18.5 9l-4.7 1.8L12 15.5l-1.8-4.7L5.5 9l4.7-1.3L12 3zM18 16l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8.8-2z"/>',
   media: '<path d="M4 4h13v16H6a2 2 0 0 1-2-2V4zM17 8h3v10a2 2 0 0 1-2 2h-1M8 8h5M8 12h5M8 16h3"/>',
-  agence: '<path d="M3 11v3a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1zM15 9a4 4 0 0 1 0 6M18 6.5a8 8 0 0 1 0 11"/>'
+  agence: '<path d="M3 11v3a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1zM15 9a4 4 0 0 1 0 6M18 6.5a8 8 0 0 1 0 11"/>',
+  hotel: '<path d="M3 20V6M3 14h18v6M21 14v-2a3 3 0 0 0-3-3h-7v5"/><circle cx="7" cy="10.5" r="1.7"/>',
+  voyage: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 4 6 4 9s-1 6-4 9c-3-3-4-6-4-9s1-6 4-9z"/>',
+  auto: '<path d="M5 16l1.5-5a2 2 0 0 1 1.9-1.4h7.2a2 2 0 0 1 1.9 1.4L19 16M3 16h18v3H3zM7 19v1.5M17 19v1.5"/>',
+  sport: '<path d="M6 7v10M18 7v10M3 9.5v5M21 9.5v5M6 12h12"/>',
+  juridique: '<path d="M12 3v18M5 21h14M6 7h12M6 7l-3 7a3.5 3.5 0 0 0 6 0L6 7zM18 7l-3 7a3.5 3.5 0 0 0 6 0l-3-7z"/>',
+  tech: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4M9 8.5l-2 2 2 2M15 8.5l2 2-2 2"/>'
 };
 /* Textes des marques de site : [nom, description, titre de la liste, exemple] par langue */
 const SITE_TYPE_TEXT = {
@@ -12729,6 +12736,12 @@ const SITE_TYPE_TEXT = {
   association: { fr: ['Église / Association', 'Cultes, dons, activités', 'Vos activités', 'Ex : Culte du dimanche'], en: ['Church / Association', 'Services, donations, activities', 'Your activities', 'Eg: Sunday service'], es: ['Iglesia / Asociación', 'Cultos, donaciones, actividades', 'Tus actividades', 'Ej: Culto dominical'], it: ['Chiesa / Associazione', 'Funzioni, donazioni, attività', 'Le tue attività', 'Es: Funzione domenicale'], pt: ['Igreja / Associação', 'Cultos, doações, atividades', 'Suas atividades', 'Ex: Culto de domingo'] },
   beaute: { fr: ['Beauté / Coiffure', 'Salon, soins, rendez-vous', 'Vos prestations', 'Ex : Tresses africaines'], en: ['Beauty / Hair', 'Salon, care, appointments', 'Your services', 'Eg: Braids'], es: ['Belleza / Peluquería', 'Salón, cuidados, citas', 'Tus servicios', 'Ej: Trenzas'], it: ['Bellezza / Parrucchiere', 'Salone, trattamenti, appuntamenti', 'I tuoi servizi', 'Es: Treccine'], pt: ['Beleza / Cabelo', 'Salão, cuidados, agendamentos', 'Seus serviços', 'Ex: Tranças'] },
   media: { fr: ['Blog / Média', 'Actualités et articles', 'Vos rubriques et offres', 'Ex : Publicité sur le site'], en: ['Blog / Media', 'News and articles', 'Your sections and offers', 'Eg: Ad placement'], es: ['Blog / Medio', 'Noticias y artículos', 'Tus secciones y ofertas', 'Ej: Publicidad en el sitio'], it: ['Blog / Media', 'Notizie e articoli', 'Le tue rubriche e offerte', 'Es: Spazio pubblicitario'], pt: ['Blog / Mídia', 'Notícias e artigos', 'Suas seções e ofertas', 'Ex: Publicidade no site'] },
+  hotel: { fr: ['Hôtel / Hébergement', 'Chambres, réservation, galerie', 'Vos chambres et offres', 'Ex : Chambre double'], en: ['Hotel / Lodging', 'Rooms, booking, gallery', 'Your rooms and offers', 'Eg: Double room'], es: ['Hotel / Alojamiento', 'Habitaciones, reserva, galería', 'Tus habitaciones y ofertas', 'Ej: Habitación doble'], it: ['Hotel / Alloggio', 'Camere, prenotazione, galleria', 'Le tue camere e offerte', 'Es: Camera doppia'], pt: ['Hotel / Hospedagem', 'Quartos, reserva, galeria', 'Seus quartos e ofertas', 'Ex: Quarto duplo'] },
+  voyage: { fr: ['Voyage / Tourisme', 'Circuits, excursions, devis', 'Vos circuits', 'Ex : Safari 3 jours'], en: ['Travel / Tourism', 'Tours, trips, quotes', 'Your tours', 'Eg: 3-day safari'], es: ['Viajes / Turismo', 'Circuitos, excursiones, presupuesto', 'Tus circuitos', 'Ej: Safari 3 días'], it: ['Viaggi / Turismo', 'Tour, escursioni, preventivi', 'I tuoi tour', 'Es: Safari 3 giorni'], pt: ['Viagens / Turismo', 'Roteiros, passeios, orçamento', 'Seus roteiros', 'Ex: Safári 3 dias'] },
+  auto: { fr: ['Auto / Garage', 'Entretien, réparation, vente', 'Vos prestations', 'Ex : Vidange complète'], en: ['Auto / Garage', 'Maintenance, repair, sales', 'Your services', 'Eg: Full oil change'], es: ['Auto / Taller', 'Mantenimiento, reparación, venta', 'Tus servicios', 'Ej: Cambio de aceite'], it: ['Auto / Officina', 'Manutenzione, riparazione, vendita', 'I tuoi servizi', 'Es: Cambio olio'], pt: ['Auto / Oficina', 'Manutenção, reparo, venda', 'Seus serviços', 'Ex: Troca de óleo'] },
+  sport: { fr: ['Sport / Fitness', 'Abonnements, cours, coaching', 'Vos abonnements', 'Ex : Abonnement mensuel'], en: ['Sport / Fitness', 'Memberships, classes, coaching', 'Your memberships', 'Eg: Monthly membership'], es: ['Deporte / Fitness', 'Cuotas, clases, coaching', 'Tus cuotas', 'Ej: Cuota mensual'], it: ['Sport / Fitness', 'Abbonamenti, corsi, coaching', 'I tuoi abbonamenti', 'Es: Abbonamento mensile'], pt: ['Esporte / Fitness', 'Planos, aulas, coaching', 'Seus planos', 'Ex: Plano mensal'] },
+  juridique: { fr: ['Juridique / Conseil', 'Cabinet, expertise, rendez-vous', 'Vos domaines', 'Ex : Création de société'], en: ['Legal / Consulting', 'Firm, expertise, appointments', 'Your practice areas', 'Eg: Company formation'], es: ['Jurídico / Consultoría', 'Despacho, experiencia, citas', 'Tus áreas', 'Ej: Creación de sociedad'], it: ['Legale / Consulenza', 'Studio, competenze, appuntamenti', 'Le tue aree', 'Es: Costituzione società'], pt: ['Jurídico / Consultoria', 'Escritório, expertise, consultas', 'Suas áreas', 'Ex: Abertura de empresa'] },
+  tech: { fr: ['Tech / Application', 'Produit, plans, démo', 'Vos offres et plans', 'Ex : Plan Business'], en: ['Tech / App', 'Product, plans, demo', 'Your offers and plans', 'Eg: Business plan'], es: ['Tecnología / App', 'Producto, planes, demo', 'Tus ofertas y planes', 'Ej: Plan Business'], it: ['Tech / App', 'Prodotto, piani, demo', 'Le tue offerte e piani', 'Es: Piano Business'], pt: ['Tech / App', 'Produto, planos, demo', 'Suas ofertas e planos', 'Ex: Plano Business'] },
   agence: { fr: ['Agence / Studio', 'Marketing, design, digital', 'Vos offres', 'Ex : Gestion de page'], en: ['Agency / Studio', 'Marketing, design, digital', 'Your offers', 'Eg: Page management'], es: ['Agencia / Estudio', 'Marketing, diseño, digital', 'Tus ofertas', 'Ej: Gestión de página'], it: ['Agenzia / Studio', 'Marketing, design, digitale', 'Le tue offerte', 'Es: Gestione pagina'], pt: ['Agência / Estúdio', 'Marketing, design, digital', 'Suas ofertas', 'Ex: Gestão de página'] }
 };
 function siteTypeText(ty, idx) {
@@ -12742,7 +12755,8 @@ const SITE_TYPE_COLORS = {
   smm: ['#0ea5a4', '#0b4f6c'], entreprise: ['#2563eb', '#1e3a8a'], boutique: ['#e11d48', '#7f1d3a'], restaurant: ['#f59e0b', '#92400e'],
   portfolio: ['#7c3aed', '#3b1b86'], musique: ['#9333ea', '#4a1d96'], education: ['#3b82f6', '#1e40af'], sante: ['#0d9488', '#115e59'],
   immobilier: ['#0f766e', '#134e4a'], evenement: ['#c026d3', '#701a75'], association: ['#d97706', '#78350f'], beaute: ['#ec4899', '#9d174d'],
-  media: ['#ef4444', '#7f1d1d'], agence: ['#6366f1', '#312e81']
+  media: ['#ef4444', '#7f1d1d'], agence: ['#6366f1', '#312e81'],
+  hotel: ['#ca8a04', '#713f12'], voyage: ['#0284c7', '#0c4a6e'], auto: ['#dc2626', '#7f1d1d'], sport: ['#ea580c', '#7c2d12'], juridique: ['#9a3412', '#431407'], tech: ['#6366f1', '#1e1b4b']
 };
 function siteTypeGrad(ty) { const c = SITE_TYPE_COLORS[ty] || SITE_TYPE_COLORS.entreprise; return `linear-gradient(135deg,${c[0]},${c[1]})`; }
 function siteTypeBannerInner(ty) {
@@ -13036,7 +13050,7 @@ async function sitePreviewRefresh() {
     const siteData = Object.assign({}, st.site, { template: st.template });
     const res = await fetch('/api/render-site', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ site: siteData, premium: !!st.proView })
+      body: JSON.stringify({ site: siteData, premium: !!st.proView, lang: (typeof currentLang === 'string' ? currentLang : 'fr') })
     });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const html = await res.text();
@@ -15514,9 +15528,78 @@ function siteHubHtml(site, isPremium) {
     ${tile(uiIc('clock', 20), t('sp_timeline'), n('timeline'), "openSiteListManager('timeline')")}
     ${tile(uiIc('tag', 20), t('sp_cat_title'), n('categories'), 'openSiteCategoriesManager()')}
     ${tile(uiIc('calendar', 20), t('bk_title'), t((site.booking && site.booking.enabled) ? 'lead_on' : 'lead_off'), "openLeadsManager('site','appointment')")}
+    ${tile(uiIc('shield', 20), sxT('space'), sxT('space_sub'), 'openSiteSpace()')}
+    ${tile(uiIc('chat', 20), sxT('help'), sxT('help_sub'), 'openSiteHelp()')}
     ${tile(uiIc('plug', 20), t('svc_api'), t('api_tile_sub'), 'openResellerApiScreen()')}
     ${tile(uiIc('mail', 20), t('nl_title'), t((site.newsletter && site.newsletter.enabled) ? 'lead_on' : 'lead_off'), "openLeadsManager('site','newsletter')")}
   </div>`;
+}
+
+
+/* ====================== Espace propriétaire + « Aide pour mon site » (v-site30) ====================== */
+const SX_T = {
+  fr: { space: 'Mon espace', space_sub: 'Administration du site', help: 'Aide pour mon site', help_sub: 'Écris-nous', notpub: 'Publie d’abord ton site (Pack Pro) pour ouvrir ton espace en ligne. Tu peux déjà nous écrire dans « Aide pour mon site ».', h_intro: 'Écris ici ce dont ton site a besoin : modification, nom de domaine, paiement, problème… L’équipe te répond ici et par notification.', cat: { modification: 'Modification du site', domaine: 'Nom de domaine', paiement: 'Paiement / abonnement', bug: 'Problème technique', autre: 'Autre demande' }, ph: 'Décris ce que tu veux…', send: 'Envoyer', sent: 'Message envoyé ✓', empty: 'Aucun message pour le moment.', you: 'Toi', team: 'Équipe Coeurnoh', short: 'Écris ton message (3 caractères minimum).', st: { open: 'En attente de réponse', answered: 'Répondu', closed: 'Résolu' }, nosite: 'Crée d’abord ton site.' },
+  en: { space: 'My space', space_sub: 'Site administration', help: 'Help for my site', help_sub: 'Write to us', notpub: 'Publish your site first (Pro Pack) to open your online space. You can already write to us in “Help for my site”.', h_intro: 'Write here what your site needs: changes, domain name, payment, a problem… The team replies here and by notification.', cat: { modification: 'Site change', domaine: 'Domain name', paiement: 'Payment / subscription', bug: 'Technical problem', autre: 'Other request' }, ph: 'Describe what you need…', send: 'Send', sent: 'Message sent ✓', empty: 'No messages yet.', you: 'You', team: 'Coeurnoh team', short: 'Write your message (3 characters minimum).', st: { open: 'Waiting for a reply', answered: 'Answered', closed: 'Resolved' }, nosite: 'Create your site first.' },
+  es: { space: 'Mi espacio', space_sub: 'Administración del sitio', help: 'Ayuda para mi sitio', help_sub: 'Escríbenos', notpub: 'Publica primero tu sitio (Pack Pro) para abrir tu espacio en línea. Ya puedes escribirnos en «Ayuda para mi sitio».', h_intro: 'Escribe aquí lo que necesita tu sitio: cambios, dominio, pago, un problema… El equipo responde aquí y por notificación.', cat: { modification: 'Cambio en el sitio', domaine: 'Nombre de dominio', paiement: 'Pago / suscripción', bug: 'Problema técnico', autre: 'Otra solicitud' }, ph: 'Describe lo que necesitas…', send: 'Enviar', sent: 'Mensaje enviado ✓', empty: 'Aún no hay mensajes.', you: 'Tú', team: 'Equipo Coeurnoh', short: 'Escribe tu mensaje (mínimo 3 caracteres).', st: { open: 'Esperando respuesta', answered: 'Respondido', closed: 'Resuelto' }, nosite: 'Crea primero tu sitio.' },
+  it: { space: 'Il mio spazio', space_sub: 'Amministrazione del sito', help: 'Aiuto per il mio sito', help_sub: 'Scrivici', notpub: 'Pubblica prima il sito (Pack Pro) per aprire il tuo spazio online. Puoi già scriverci in «Aiuto per il mio sito».', h_intro: 'Scrivi qui di cosa ha bisogno il tuo sito: modifiche, dominio, pagamento, problemi… Il team risponde qui e con una notifica.', cat: { modification: 'Modifica del sito', domaine: 'Nome di dominio', paiement: 'Pagamento / abbonamento', bug: 'Problema tecnico', autre: 'Altra richiesta' }, ph: 'Descrivi di cosa hai bisogno…', send: 'Invia', sent: 'Messaggio inviato ✓', empty: 'Nessun messaggio per ora.', you: 'Tu', team: 'Team Coeurnoh', short: 'Scrivi il messaggio (minimo 3 caratteri).', st: { open: 'In attesa di risposta', answered: 'Risposto', closed: 'Risolto' }, nosite: 'Crea prima il tuo sito.' },
+  pt: { space: 'Meu espaço', space_sub: 'Administração do site', help: 'Ajuda para o meu site', help_sub: 'Escreva para nós', notpub: 'Publique primeiro seu site (Pack Pro) para abrir seu espaço online. Você já pode nos escrever em «Ajuda para o meu site».', h_intro: 'Escreva aqui o que seu site precisa: alterações, domínio, pagamento, um problema… A equipe responde aqui e por notificação.', cat: { modification: 'Alteração no site', domaine: 'Nome de domínio', paiement: 'Pagamento / assinatura', bug: 'Problema técnico', autre: 'Outro pedido' }, ph: 'Descreva o que você precisa…', send: 'Enviar', sent: 'Mensagem enviada ✓', empty: 'Nenhuma mensagem por enquanto.', you: 'Você', team: 'Equipe Coeurnoh', short: 'Escreva sua mensagem (mínimo 3 caracteres).', st: { open: 'Aguardando resposta', answered: 'Respondido', closed: 'Resolvido' }, nosite: 'Crie primeiro seu site.' }
+};
+function sxT(k) { const d = SX_T[currentLang] || SX_T.fr; return d[k] != null ? d[k] : SX_T.fr[k]; }
+function openSiteSpace(tab) {
+  const s = mySiteCache;
+  if (!s || !s.slug || s.status !== 'published') { showToast(sxT('notpub'), 'info'); return; }
+  window.location.href = '/s/' + encodeURIComponent(s.slug) + '?espace=1' + (tab ? '&tab=' + encodeURIComponent(tab) : '');
+}
+async function siteHelpCall(body) {
+  const tok = await auth.currentUser.getIdToken();
+  const r = await fetch('/api/render-site', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + tok }, body: JSON.stringify(body) });
+  const j = await r.json().catch(() => null);
+  if (!r.ok || !j || j.success === false) throw new Error((j && j.error) || 'Erreur');
+  return j;
+}
+async function openSiteHelp() {
+  if (!currentUser) { openAuth('login'); return; }
+  if (!mySiteCache) { showToast(sxT('nosite'), 'info'); return; }
+  const old = document.getElementById('site-help-modal'); if (old) old.remove();
+  document.body.insertAdjacentHTML('beforeend', `
+    <div class="fs-page" id="site-help-modal">
+      <div class="fs-bar"><button type="button" class="fs-back" onclick="closeSiteHelp()" aria-label="Retour">${uiIc('back', 22)}</button>
+        <div class="fs-title"><b>${escapeHtml(sxT('help'))}</b><small>${escapeHtml(sxT('help_sub'))}</small></div></div>
+      <div class="fs-body" id="site-help-body"><p class="sbx-hint">…</p></div>
+    </div>`);
+  document.body.classList.add('fs-open');
+  await renderSiteHelp();
+}
+function closeSiteHelp() {
+  const m = document.getElementById('site-help-modal'); if (m) m.remove();
+  if (!document.querySelector('.fs-page')) document.body.classList.remove('fs-open');
+}
+async function renderSiteHelp() {
+  const body = document.getElementById('site-help-body'); if (!body) return;
+  let th = { messages: [], status: 'none' };
+  try { th = await siteHelpCall({ action: 'site_help_thread' }); } catch (e) { /* fil vide */ }
+  const when = (iso) => { try { return new Date(iso).toLocaleString(currentLang, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); } catch (e) { return ''; } };
+  const bubbles = (th.messages || []).map(m => {
+    const me = m.from === 'owner';
+    return `<div style="max-width:88%;margin:0 0 8px ${me ? 'auto' : '0'};padding:10px 12px;border-radius:14px;background:${me ? 'var(--brand,#1d4f91)' : 'var(--card,#fff)'};color:${me ? '#fff' : 'inherit'};border:1px solid rgba(128,128,128,.25);white-space:pre-wrap;word-break:break-word"><small style="display:block;opacity:.7;font-weight:700;font-size:.7rem">${escapeHtml(me ? sxT('you') : sxT('team'))} · ${escapeHtml(when(m.at))}</small>${escapeHtml(m.text || '')}</div>`;
+  }).join('');
+  const cats = ['modification', 'domaine', 'paiement', 'bug', 'autre'].map(k => `<option value="${k}">${escapeHtml(sxT('cat')[k])}</option>`).join('');
+  body.innerHTML = `<p class="sbx-hint" style="margin:0 0 10px">${escapeHtml(sxT('h_intro'))}</p>
+    ${th.status && th.status !== 'none' ? `<p style="margin:0 0 10px"><b style="font-size:.78rem">${escapeHtml(sxT('st')[th.status] || '')}</b></p>` : ''}
+    <div id="site-help-list" style="margin:0 0 14px">${bubbles || `<p class="sbx-hint">${escapeHtml(sxT('empty'))}</p>`}</div>
+    <select id="site-help-cat" class="select-input" style="margin-bottom:10px">${cats}</select>
+    <textarea id="site-help-text" class="select-input" rows="4" maxlength="1000" placeholder="${escapeHtml(sxT('ph'))}" style="width:100%;margin-bottom:10px"></textarea>
+    <button type="button" class="btn btn-primary" style="width:100%;justify-content:center" id="site-help-send" onclick="sendSiteHelp()">${escapeHtml(sxT('send'))}</button>`;
+}
+async function sendSiteHelp() {
+  const ta = document.getElementById('site-help-text'), btn = document.getElementById('site-help-send');
+  const v = ta ? ta.value.trim() : '';
+  if (v.length < 3) { showToast(sxT('short'), 'info'); return; }
+  btn.disabled = true;
+  try {
+    await siteHelpCall({ action: 'site_help_send', message: v, category: document.getElementById('site-help-cat').value });
+    showToast(sxT('sent'), 'success'); await renderSiteHelp();
+  } catch (e) { btn.disabled = false; showToast(friendlyErrorMessage(e), 'error'); }
 }
 
 /* ====================== API revendeur (v-pro23) ====================== */
@@ -17789,6 +17872,8 @@ function openNotifRow(id, isAnnouncement) {
       const tab = params.get('openTab');
       const profileUid = params.get('profile');
       const leadsKind = params.get('leads');
+      if (params.get('espace')) { window.location.href = n.url; return; }
+      if (params.get('mysite')) { openMainMenu(); openSiteBuilderScreen(); return; }
       if (leadsKind) { openLeadsManager(leadsKind === 'biz' ? 'biz' : 'site', 'appointment'); return; }
       if (pubId) { openPostDetail(pubId); return; }
       if (profileUid) { openSharedProfile(profileUid); return; }

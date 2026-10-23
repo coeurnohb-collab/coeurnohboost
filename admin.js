@@ -236,6 +236,7 @@ const ADMIN_GROUPS = [
     { id: "resellers", label: "API revendeurs", icon: "🔌" } ] },
   { title: "Sites & Entreprises", tabs: [
     { id: "sites", label: "Sites créés", icon: "🖥️" },
+    { id: "sitehelp", label: "Messages sites", icon: "📩" },
     { id: "businesses", label: "Entreprises", icon: "🏢" } ] },
   { title: "Communauté", tabs: [
     { id: "users", label: "Utilisateurs", icon: "👤" },
@@ -294,6 +295,7 @@ function showAdminTab(tab) {
   if (tab === 'shop') loadShopAdmin();
   if (tab === 'withdrawals') loadWithdrawalsAdmin();
   if (tab === 'panels' && window.loadPanelsAdmin) window.loadPanelsAdmin();
+  if (tab === 'sitehelp' && window.loadSiteHelpAdmin) window.loadSiteHelpAdmin();
   if (tab === 'domains') loadDomainsAdmin();
   if (tab === 'reports') loadReportsAdmin();
   if (tab === 'errors') loadErrorsAdmin();

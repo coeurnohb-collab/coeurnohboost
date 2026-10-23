@@ -94,7 +94,7 @@
     '.pm-top h1{font-size:1rem;margin:0;line-height:1.2;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pm-top small{display:block;font-weight:500;color:var(--mu);font-size:.72rem;overflow:hidden;text-overflow:ellipsis}' +
     '.pm-chip{border:1px solid var(--bd);background:var(--cd);color:var(--tx);border-radius:99px;padding:7px 11px;font:inherit;font-weight:800;font-size:.78rem;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:5px}.pm-chip.a{background:var(--pm-a,#1b4fd8);border-color:var(--pm-a,#1b4fd8);color:#fff}' +
     '.pm-x{border:1px solid var(--bd);background:var(--cd);color:var(--tx);border-radius:11px;width:36px;height:36px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}' +
-    '.pm-lang{border:1px solid var(--bd);background:var(--cd);color:var(--tx);border-radius:99px;padding:7px 8px;font:inherit;font-weight:800;font-size:.76rem;cursor:pointer}' +
+    '@media(max-width:430px){.pm-chip .tx{display:none}.pm-top small{display:none}}.pm-lang{border:1px solid var(--bd);background:var(--cd);color:var(--tx);border-radius:99px;padding:7px 8px;font:inherit;font-weight:800;font-size:.76rem;cursor:pointer}' +
     '.pm-card{background:var(--cd);border-radius:18px;margin:12px 14px 0;padding:16px;box-shadow:0 1px 3px rgba(20,33,61,.06),0 6px 18px rgba(20,33,61,.04);border:1px solid var(--bd)}.pm-card h2{font-size:.98rem;margin:0 0 10px;display:flex;align-items:center;gap:8px}' +
     '.pm-f{margin:12px 0}.pm-f label{display:block;font-size:.76rem;font-weight:800;color:var(--mu);margin-bottom:6px}' +
     '.pm-f input,.pm-f select,.pm-f textarea{width:100%;box-sizing:border-box;border:1.5px solid var(--bd);border-radius:12px;padding:12px;font:inherit;background:var(--in);color:var(--tx);outline:none}.pm-f input:focus,.pm-f select:focus,.pm-f textarea:focus{border-color:var(--pm-a,#1b4fd8)}.pm-f input[disabled],.pm-f select[disabled]{opacity:.55}' +
@@ -117,7 +117,7 @@
     /* recharge : onglets 2x2 + pastilles */
     '.pm-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:4px 0 12px}.pm-tab{border:1.5px solid var(--bd);background:var(--cd);color:var(--tx);border-radius:14px;padding:10px;font:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:flex-start;gap:7px;text-align:left}.pm-tab b{font-size:.8rem}.pm-tab .lgs{display:flex;gap:4px;min-height:28px;align-items:center}.pm-tab.on{border-color:var(--pm-a,#1b4fd8);box-shadow:0 0 0 3px rgba(27,79,216,.12)}' +
     '.pm-lg{display:inline-flex;align-items:center;justify-content:center;height:28px;min-width:28px;border-radius:8px;font-style:normal;font-weight:800;line-height:1;box-shadow:0 0 0 1px rgba(15,23,42,.09),0 1px 2px rgba(15,23,42,.08);overflow:hidden}' +
-    '.lg-mpesa{background:#e60000;color:#fff;font-size:7px;padding:0 4px}.lg-orange{background:#ff7900;color:#fff;font-size:7.5px;padding:0 4px}.lg-airtel{background:#ed1c24;color:#fff;font-size:7.5px;padding:0 4px}.lg-visa{background:#fff;color:#1a1f71;font-size:12.5px;font-style:italic;font-weight:900;padding:0 7px;letter-spacing:-.03em}.lg-mc{background:#fff;padding:0 6px}.lg-mc b{width:15px;height:15px;border-radius:50%;background:#eb001b}.lg-mc b+b{background:#f79e1b;margin-left:-6px;mix-blend-mode:multiply}.lg-illico{background:#fff3d6;color:#d97706;padding:0 6px}.lg-illico svg{width:18px;height:18px}.lg-coin{border-radius:50%;width:28px;padding:0;color:#fff;font-size:15px}' +
+    '.lg-mpesa{background:#e60000;color:#fff;font-size:7px;padding:0 4px}.lg-orange{background:#ff7900;color:#fff;font-size:7.5px;padding:0 4px}.lg-airtel{background:#ed1c24;color:#fff;font-size:7.5px;padding:0 4px}.lg-visa{background:#fff;color:#1a1f71;font-size:12.5px;font-style:italic;font-weight:900;padding:0 7px;letter-spacing:-.03em}.lg-mc{background:#fff;padding:0 6px}.lg-mc b{width:15px;height:15px;border-radius:50%;background:#eb001b}.lg-mc b+b{background:#f79e1b;margin-left:-6px;mix-blend-mode:multiply}.lg-illico{background:#fff3d6;color:#d97706;padding:0 6px}.lg-illico svg{width:18px;height:18px}.lg-mtn{background:#ffcc00;color:#111;font-size:8px;padding:0 5px}.lg-gen{background:#475569;color:#fff;font-size:7px;padding:0 4px}.lg-coin{border-radius:50%;width:28px;padding:0;color:#fff;font-size:15px}' +
     '.pm-ops{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.pm-op{border:1.5px solid var(--bd);background:var(--cd);color:var(--tx);border-radius:14px;padding:12px 4px;font:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:7px}.pm-op b{font-size:.7rem}.pm-op.on{border-color:var(--pm-a,#1b4fd8);box-shadow:0 0 0 3px rgba(27,79,216,.12)}' +
     '.pm-amts{display:flex;gap:6px;flex-wrap:wrap}.pm-amts .pm-b{padding:9px 14px;font-size:.84rem;border-radius:99px}' +
     '.pm-sheet{position:fixed;inset:0;z-index:100010;background:rgba(10,16,32,.55);display:flex;align-items:flex-end;justify-content:center;overflow:auto}.pm-sheet .box{--cd:#fff;--tx:#14213d;--mu:#5b6475;--bd:#e3e8f2;--in:#fff;background:var(--cd);color:var(--tx);width:100%;max-width:480px;border-radius:22px 22px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom));max-height:94vh;overflow:auto;position:relative}@media(min-width:560px){.pm-sheet{align-items:center;padding:16px}.pm-sheet .box{border-radius:22px}}' +
@@ -150,14 +150,15 @@
     var o = document.getElementById('pm-ov'); if (!o || !S.store) return; var sh = S.store.shop, logged = !!auth.currentUser, keep = o.scrollTop;
     var showInst = SA && !isInstalled();
     o.innerHTML = '<div class="pm-in"><div class="pm-top">' + (sh.logo ? '<img src="' + esc(sh.logo) + '" alt="">' : '<span class="pm-lo">' + esc(String(sh.name || 'P').charAt(0).toUpperCase()) + '</span>') + '<h1>' + esc(sh.name || 'Panel') + '<small>' + esc(S.store.title) + '</small></h1>' + langSel() +
-      (showInst ? '<button class="pm-chip" id="pm-instchip" aria-label="' + esc(T('in_title')) + '">' + ico('down', 15) + esc(T('install')) + '</button>' : '') +
-      (logged ? '<button class="pm-chip a" id="pm-balchip" aria-label="' + esc(T('balance')) + '">…</button>' : '<button class="pm-chip a" id="pm-login">' + esc(T('login')) + '</button>') +
+      (showInst ? '<button class="pm-chip" id="pm-instchip" aria-label="' + esc(T('in_title')) + '">' + ico('down', 15) + '<span class="tx">' + esc(T('install')) + '</span></button>' : '') +
+      (S.isOwner ? '<button class="pm-chip" id="pm-adm" aria-label="' + esc(T('admin')) + '">' + ico('cog', 15) + '<span class="tx">' + esc(T('admin')) + '</span></button>' : '') + (logged ? '<button class="pm-chip a" id="pm-balchip" aria-label="' + esc(T('balance')) + '">…</button>' : '<button class="pm-chip a" id="pm-login">' + esc(T('login')) + '</button>') +
       (SA ? (logged ? '<button class="pm-x" id="pm-menu" aria-label="Menu">' + ico('user', 18) + '</button>' : '') : '<button class="pm-x" id="pm-close" aria-label="' + esc(T('close')) + '">' + ico('x', 18) + '</button>') + '</div>' +
       '<div id="pm-instbn"></div><div id="pm-pane"></div></div>' +
       '<nav class="pm-nav" aria-label="Menu">' + NAV.map(function (n) { return '<button type="button" data-t="' + n[0] + '" class="' + (S.tab === n[0] ? 'on' : '') + '">' + ico(n[2], 22) + '<span>' + esc(T(n[1])) + '</span></button>'; }).join('') + '</nav>';
     var cl = o.querySelector('#pm-close'); if (cl) cl.onclick = close;
     o.querySelector('#pm-lang').onchange = function () { setLang(this.value); render(); };
     var ic = o.querySelector('#pm-instchip'); if (ic) ic.onclick = installApp;
+    var ad = o.querySelector('#pm-adm'); if (ad) ad.onclick = function () { openOwner(); };
     var mn = o.querySelector('#pm-menu'); if (mn) mn.onclick = accountMenu;
     var lb = o.querySelector('#pm-login'); if (lb) lb.onclick = function () { if (SA) { loginModal(); return; } lsSet(S.slug + '|' + Date.now()); close(); try { openAuth('login'); } catch (e) { /* ignore */ } };
     var bc = o.querySelector('#pm-balchip'); if (bc) bc.onclick = function () { S.tab = 'wal'; render(); };
@@ -166,7 +167,7 @@
     if (showInst) installBanner(o.querySelector('#pm-instbn'));
     o.scrollTop = keep;
     if (logged) refreshBalance();
-    if (SA && logged && S.isOwner === undefined) { S.isOwner = false; api('pm_owner_get').then(function (r) { if (r && r.slug === S.slug) { S.isOwner = true; render(); } }).catch(function () { }); }
+    if (logged && S.isOwner === undefined) { S.isOwner = false; api('pm_owner_get').then(function (r) { if (r && String(r.slug || '').toLowerCase() === S.slug) { S.isOwner = true; render(); } }).catch(function () { }); }
   }
   function accountMenu() {
     var m = sheet('<div class="hd"><h2>' + esc((auth.currentUser && (auth.currentUser.displayName || auth.currentUser.email)) || T('login')) + '</h2><button class="pm-x" data-x aria-label="' + esc(T('close')) + '">' + ico('x', 18) + '</button></div>' +
@@ -188,16 +189,18 @@
     box.querySelector('#pm-rshare').onclick = function () { if (navigator.share) { navigator.share({ title: S.store.shop.name, text: T('ref_msg'), url: link }).catch(function () { }); } else { box.querySelector('#pm-rcopy').click(); } };
     api('pm_ref', { slug: S.slug }).then(function (r) { var a = box.querySelector('#pm-rc'), b = box.querySelector('#pm-re'); if (a) a.textContent = r.count; if (b) b.textContent = money(r.earned); }).catch(function () { });
   }
-  function goRecharge() { if (SA) { rechargeModal(); return; } lsSet(S.slug + '|' + Date.now()); close(); try { showRecharge(); } catch (e) { toast(T('w_login')); } }
+  function goRecharge() { rechargeModal(); }
 
   function groups() { var g = {}; (S.store.items || []).forEach(function (x) { (g[x.group] = g[x.group] || []).push(x); }); return g; }
   function paneHome(pane) {
     var g = groups(), names = Object.keys(g), n = (S.store.items || []).length;
-    pane.innerHTML = '<div class="pm-card pm-hero"><h2>' + esc(S.store.title) + '</h2><p>' + esc(S.store.welcome || S.store.shop.tagline || T('h_default')) + '</p><button class="pm-b p w" id="pm-h-go">' + ico('bolt', 17) + esc(T('h_order')) + '</button></div>' +
+    var ownCard = S.isOwner ? '<div class="pm-card" style="border-color:var(--pm-a,#1b4fd8)"><h2>' + ico('cog', 18) + esc(T('ow_title')) + '</h2><p class="pm-n" style="margin-top:0">' + esc(T('ow_home')) + '</p><div style="display:flex;gap:8px"><button class="pm-b p w" id="pm-oh-a">' + esc(T('admin')) + '</button><button class="pm-b w" id="pm-oh-w">' + ico('up', 16) + esc(T('w_wd')) + '</button></div></div>' : '';
+    pane.innerHTML = ownCard + '<div class="pm-card pm-hero"><h2>' + esc(S.store.title) + '</h2><p>' + esc(S.store.welcome || S.store.shop.tagline || T('h_default')) + '</p><button class="pm-b p w" id="pm-h-go">' + ico('bolt', 17) + esc(T('h_order')) + '</button></div>' +
       '<div class="pm-trust"><span>' + ico('shield', 14) + esc(T('t_secure')) + '</span><span>' + ico('refresh', 14) + esc(T('t_refund')) + '</span><span>' + ico('lock', 14) + esc(T('t_nopass')) + '</span></div>' +
       '<div class="pm-stats"><div><b>' + names.length + '</b><span>' + esc(T('h_nets')) + '</span></div><div><b>' + n + '</b><span>' + esc(T('h_svcs')) + '</span></div><div><b>24/7</b><span>' + esc(T('h_auto')) + '</span></div></div>' +
       '<div class="pm-card"><h2>' + esc(T('h_pick')) + '</h2><div class="pm-grid">' + names.map(function (nm) { var pid = g[nm][0].platform; return '<button type="button" class="pm-plat" data-g="' + esc(nm) + '">' + pIcon(pid, nm) + '<b>' + esc(nm) + '</b></button>'; }).join('') + '</div></div>' +
       '<div class="pm-card"><h2>' + esc(T('h_how')) + '</h2><ol class="pm-steps"><li><i>1</i><span>' + esc(T('h_how1')) + '</span></li><li><i>2</i><span>' + esc(T('h_how2')) + '</span></li><li><i>3</i><span>' + esc(T('h_how3')) + '</span></li><li><i>4</i><span>' + esc(T('h_how4')) + '</span></li></ol></div>';
+    var oa = pane.querySelector('#pm-oh-a'); if (oa) { oa.onclick = function () { openOwner(); }; pane.querySelector('#pm-oh-w').onclick = function () { openOwner(true); }; }
     pane.querySelector('#pm-h-go').onclick = function () { S.tab = 'new'; render(); };
     pane.querySelectorAll('[data-g]').forEach(function (b) { b.onclick = function () { S.sel = (g[b.getAttribute('data-g')] || [])[0]; S.tab = 'new'; render(); }; });
     var rbx = document.createElement('div'); pane.appendChild(rbx); refBlock(rbx);
@@ -439,10 +442,26 @@
 
   /* ===== Recharge complète (mêmes moyens que l'application) ===== */
   var MIN_USD = 2, MAX_USD = 1000;
-  var OPS = [['Vodacom M-Pesa', 'mpesa', 'M-Pesa'], ['Airtel Money', 'airtel', 'Airtel'], ['Orange Money', 'orange', 'Orange']];
+  var COVERED = ['CD']; // pays où le Mobile Money direct est actif (comme l'application)
+  var CTRY = [
+    ['CD', '🇨🇩', 'RDC (Congo)', ['CDF', 'USD'], ['Vodacom M-Pesa', 'Airtel Money', 'Orange Money']],
+    ['CG', '🇨🇬', 'Congo-Brazzaville', ['XAF'], ['Airtel Money', 'MTN Mobile Money']],
+    ['CM', '🇨🇲', 'Cameroun', ['XAF'], ['MTN Mobile Money']],
+    ['CI', '🇨🇮', 'Côte d’Ivoire', ['XOF'], ['Orange Money', 'MTN Mobile Money']],
+    ['SN', '🇸🇳', 'Sénégal', ['XOF'], ['Orange Money', 'Free Money']],
+    ['BJ', '🇧🇯', 'Bénin', ['XOF'], ['MTN Mobile Money']],
+    ['GA', '🇬🇦', 'Gabon', ['XAF'], ['Airtel Money']],
+    ['KE', '🇰🇪', 'Kenya', ['KES'], ['M-Pesa (Safaricom)']],
+    ['RW', '🇷🇼', 'Rwanda', ['RWF'], ['Airtel Money', 'MTN Mobile Money']],
+    ['UG', '🇺🇬', 'Uganda', ['UGX'], ['Airtel Money', 'MTN Mobile Money']],
+    ['ZM', '🇿🇲', 'Zambia', ['ZMW'], ['Airtel Money', 'MTN Mobile Money', 'Zamtel Kwacha']],
+    ['SL', '🇸🇱', 'Sierra Leone', ['SLE'], ['Orange Money']]
+  ];
+  function opPill(n) { return /pesa/i.test(n) ? LG.mpesa : /airtel/i.test(n) ? LG.airtel : /orange/i.test(n) ? LG.orange : /mtn/i.test(n) ? '<i class="pm-lg lg-mtn">MTN</i>' : '<i class="pm-lg lg-gen">' + esc(String(n).slice(0, 5)) + '</i>'; }
+  function opLabel(n) { return String(n).replace('Vodacom ', '').replace(' Mobile Money', '').replace(' (Safaricom)', ''); }
   function rechargeModal() {
     if (!auth.currentUser) { loginModal(); return; }
-    var amt = 10, method = 'mobile', op = '', busy = false;
+    var amt = 10, method = 'mobile', op = '', cc = 'CD', busy = false;
     var m = sheet('<div id="pm-rcb"></div>');
     var box = m.querySelector('#pm-rcb');
     function tabs() {
@@ -450,20 +469,29 @@
       return '<div class="pm-tabs">' + T4.map(function (t) { return '<button type="button" class="pm-tab' + (method === t[0] ? ' on' : '') + '" data-m="' + t[0] + '"><span class="lgs">' + t[2] + '</span><b>' + esc(T(t[1])) + '</b></button>'; }).join('') + '</div>';
     }
     function how() {
-      var l = method === 'mobile' ? ['rc_m1', 'rc_m2', 'rc_m3'] : ['rc_o1', 'rc_o2', 'rc_o3'], note = method === 'illico' ? T('rc_illico_note') : method === 'card' ? T('rc_card_note') : method === 'crypto' ? T('rc_crypto_note') : T('rc_drc_only');
+      var l = method === 'mobile' ? ['rc_m1', 'rc_m2', 'rc_m3'] : method === 'crypto' ? ['rc_c1', 'rc_c2', 'rc_c3'] : ['rc_o1', 'rc_o2', 'rc_o3'], note = method === 'illico' ? T('rc_illico_note') : method === 'card' ? T('rc_card_note') : method === 'crypto' ? T('rc_crypto_note') : T('rc_drc_only');
       return '<p class="pm-n">' + esc(note) + '</p><div class="pm-f" style="margin-bottom:0"><label>' + esc(T('rc_how')) + '</label><ol class="pm-steps">' + l.map(function (k, i) { return '<li><i>' + (i + 1) + '</i><span>' + esc(T(k)) + '</span></li>'; }).join('') + '</ol></div>';
     }
+    function cty() { return CTRY.filter(function (c) { return c[0] === cc; })[0] || CTRY[0]; }
+    function mobileBlock(keepPhone, keepCur) {
+      var c = cty(), ok = COVERED.indexOf(c[0]) >= 0;
+      var h = '<div class="pm-f"><label for="pm-cc">' + esc(T('rc_country')) + '</label><select id="pm-cc">' + CTRY.map(function (x) { return '<option value="' + x[0] + '"' + (x[0] === cc ? ' selected' : '') + '>' + x[1] + ' ' + esc(x[2]) + (COVERED.indexOf(x[0]) >= 0 ? '' : ' — ' + esc(T('rc_soon'))) + '</option>'; }).join('') + '</select></div>';
+      if (!ok) return h + '<div class="pm-ref">' + esc(T('rc_soon_msg', { c: c[2] })) + '</div><div style="display:flex;gap:8px"><button type="button" class="pm-b w" data-m="card">' + LG.visa + esc(T('rc_card')) + '</button><button type="button" class="pm-b w" data-m="crypto">' + LG.usdt + esc(T('rc_crypto')) + '</button></div>';
+      if (c[4].indexOf(op) < 0) op = '';
+      return h + '<div class="pm-f"><label>' + esc(T('rc_op')) + '</label><div class="pm-ops">' + c[4].map(function (o) { return '<button type="button" class="pm-op' + (op === o ? ' on' : '') + '" data-o="' + esc(o) + '">' + opPill(o) + '<b>' + esc(opLabel(o)) + '</b></button>'; }).join('') + '</div></div>' +
+        '<div class="pm-f"><label for="pm-ph">' + esc(T('rc_phone')) + '</label><input id="pm-ph" type="tel" inputmode="tel" autocomplete="tel" placeholder="243…" value="' + esc(keepPhone) + '"></div>' + (c[3].length > 1 ? '<div class="pm-f"><label for="pm-cur">' + esc(T('rc_cur')) + '</label><select id="pm-cur">' + c[3].map(function (u) { return '<option value="' + u + '"' + (keepCur === u ? ' selected' : '') + '>' + u + '</option>'; }).join('') + '</select></div>' : '');
+    }
     function draw() {
-      var keepPhone = (box.querySelector('#pm-ph') || {}).value || '', keepCur = (box.querySelector('#pm-cur') || {}).value || 'CDF';
+      var keepPhone = (box.querySelector('#pm-ph') || {}).value || '', keepCur = (box.querySelector('#pm-cur') || {}).value || '';
       box.innerHTML = '<div class="hd"><h2>' + esc(T('rc_title')) + '</h2><button class="pm-x" data-x aria-label="' + esc(T('close')) + '">' + ico('x', 18) + '</button></div><p class="pm-n" style="margin-top:0">' + esc(T('rc_sub')) + '</p>' + tabs() +
         '<div class="pm-f"><label>' + esc(T('rc_amount')) + '</label><div class="pm-amts">' + [2, 5, 10, 20, 50].map(function (a) { return '<button type="button" class="pm-b' + (a === amt ? ' p' : '') + '" data-a="' + a + '">' + a + ' $</button>'; }).join('') + '</div><input id="pm-ac" type="number" min="' + MIN_USD + '" max="' + MAX_USD + '" step="1" placeholder="' + esc(T('rc_other')) + '" style="margin-top:8px" value="' + ([2, 5, 10, 20, 50].indexOf(amt) >= 0 ? '' : amt) + '"></div>' +
-        (method === 'mobile' ? '<div class="pm-f"><label>' + esc(T('rc_country')) + '</label><select disabled><option>' + esc(T('rc_drc')) + '</option></select></div><div class="pm-f"><label>' + esc(T('rc_op')) + '</label><div class="pm-ops">' + OPS.map(function (o) { return '<button type="button" class="pm-op' + (op === o[0] ? ' on' : '') + '" data-o="' + esc(o[0]) + '">' + LG[o[1]] + '<b>' + o[2] + '</b></button>'; }).join('') + '</div></div>' +
-          '<div class="pm-f"><label for="pm-ph">' + esc(T('rc_phone')) + '</label><input id="pm-ph" type="tel" inputmode="tel" autocomplete="tel" placeholder="243…" value="' + esc(keepPhone) + '"></div><div class="pm-f"><label for="pm-cur">' + esc(T('rc_cur')) + '</label><select id="pm-cur"><option value="CDF"' + (keepCur === 'CDF' ? ' selected' : '') + '>CDF (Franc congolais)</option><option value="USD"' + (keepCur === 'USD' ? ' selected' : '') + '>USD</option></select></div>' : '') +
+        (method === 'mobile' ? mobileBlock(keepPhone, keepCur) : '') +
         how() + '<div class="pm-err" id="pm-re2"></div><button class="pm-b p w" id="pm-pay">' + esc(T('rc_pay')) + ' ' + (amt > 0 ? amt + ' $' : '') + '</button><div class="pm-secure">' + ico('shield', 16) + '<span>' + esc(T('rc_secure')) + '</span></div>';
       box.querySelectorAll('[data-x]').forEach(function (b) { b.onclick = function () { m.remove(); }; });
       box.querySelectorAll('[data-m]').forEach(function (b) { b.onclick = function () { method = b.getAttribute('data-m'); draw(); }; });
       box.querySelectorAll('[data-a]').forEach(function (b) { b.onclick = function () { amt = Number(b.getAttribute('data-a')); draw(); }; });
       box.querySelectorAll('[data-o]').forEach(function (b) { b.onclick = function () { op = b.getAttribute('data-o'); draw(); }; });
+      var ccs = box.querySelector('#pm-cc'); if (ccs) ccs.onchange = function () { cc = ccs.value; op = ''; draw(); };
       box.querySelector('#pm-ac').oninput = function (e) { amt = Number(e.target.value) || 0; var p = box.querySelector('#pm-pay'); if (p) p.textContent = T('rc_pay') + ' ' + (amt > 0 ? amt + ' $' : ''); box.querySelectorAll('[data-a]').forEach(function (b) { b.className = 'pm-b' + (Number(b.getAttribute('data-a')) === amt ? ' p' : ''); }); };
       box.querySelector('#pm-pay').onclick = pay;
     }
@@ -483,7 +511,8 @@
         var ph = (box.querySelector('#pm-ph').value || '').replace(/\D/g, '');
         if (!op) { err.textContent = T('rc_e_op'); return; }
         if (ph.length < 8) { err.textContent = T('rc_e_phone'); return; }
-        body = { provider: 'mobile', amountUSD: amt, countryCode: 'CD', operatorName: op, phone: ph, chargeCurrency: box.querySelector('#pm-cur').value };
+        if (COVERED.indexOf(cc) < 0) { err.textContent = T('rc_soon_msg', { c: cty()[2] }); return; }
+        var curEl = box.querySelector('#pm-cur'); body = { provider: 'mobile', amountUSD: amt, countryCode: cc, operatorName: op, phone: ph, chargeCurrency: curEl ? curEl.value : cty()[3][0] };
       } else if (method === 'crypto') body = { provider: 'crypto', amount: amt };
       else body = { provider: 'optgateway', amountUSD: amt, onlyMethod: method === 'illico' ? 'illicocash' : 'card' };
       busy = true; b.disabled = true; b.textContent = T('rc_paying');

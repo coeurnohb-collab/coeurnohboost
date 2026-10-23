@@ -54,3 +54,52 @@
     };
   }
 })();
+
+/* ---- Messages sites : demandes « Aide pour mon site » (api/render-site, actions site_help_admin_*) ---- */
+(function () {
+  'use strict';
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  async function call(action, body) {
+    var tok = await auth.currentUser.getIdToken();
+    var r = await fetch('/api/render-site', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + tok }, body: JSON.stringify(Object.assign({ action: action }, body || {})) });
+    var j = await r.json().catch(function () { return {}; }); if (!r.ok || j.success === false) throw new Error(j.error || 'Erreur'); return j;
+  }
+  function when(iso) { try { return new Date(iso).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); } catch (e) { return ''; } }
+  var ST = { open: 'À répondre', answered: 'Répondu', closed: 'Résolu' };
+  window.loadSiteHelpAdmin = async function () {
+    var el = document.getElementById('admin-sitehelp-box'); if (!el) return;
+    el.innerHTML = '<p class="admin-empty">Chargement…</p>';
+    try {
+      var j = await call('site_help_admin_list');
+      if (!j.items.length) { el.innerHTML = '<p class="admin-empty">Aucun message pour l’instant.</p>'; return; }
+      el.innerHTML = j.items.map(function (x) {
+        return '<div class="admin-row" data-id="' + esc(x.id) + '" style="cursor:pointer"><div class="admin-row-top"><div><div class="admin-row-title">' + esc(x.siteName || x.slug || x.id) + (x.unread ? ' <b style="color:#b42318">●</b>' : '') + ' <small class="muted">/s/' + esc(x.slug) + '</small></div>' +
+          '<div class="admin-row-meta">' + (x.lastFrom === 'admin' ? 'Toi : ' : '') + esc(x.last) + '</div><div class="admin-row-meta">' + x.count + ' message(s) · ' + esc(when(x.updatedAt)) + '</div></div>' +
+          '<span class="admin-badge ' + (x.status === 'open' ? 'pending' : 'paid') + '">' + esc(ST[x.status] || x.status) + '</span></div></div>';
+      }).join('');
+      Array.prototype.forEach.call(el.querySelectorAll('[data-id]'), function (r) { r.onclick = function () { openThread(r.getAttribute('data-id')); }; });
+    } catch (e) { el.innerHTML = '<p class="admin-empty">Erreur : ' + esc(e.message) + '</p>'; }
+  };
+  async function openThread(id) {
+    var el = document.getElementById('admin-sitehelp-box'); if (!el) return;
+    try {
+      var j = await call('site_help_admin_get', { id: id });
+      el.innerHTML = '<button class="btn btn-outline btn-sm" id="sh-back">← Retour</button><h3 style="margin:12px 0 4px">' + esc(j.siteName || j.slug) + '</h3>' +
+        '<p class="muted small" style="margin:0 0 10px">' + (j.slug ? '<a target="_blank" rel="noopener" href="/s/' + esc(j.slug) + '">Ouvrir le site</a> · ' : '') + esc(ST[j.status] || j.status) + '</p>' +
+        '<div style="margin-bottom:12px">' + j.messages.map(function (m) {
+          var me = m.from === 'admin';
+          return '<div style="max-width:90%;margin:0 0 8px ' + (me ? 'auto' : '0') + ';padding:10px 12px;border-radius:12px;background:' + (me ? '#1d4f91' : 'rgba(128,128,128,.14)') + ';color:' + (me ? '#fff' : 'inherit') + ';white-space:pre-wrap;word-break:break-word"><small style="display:block;opacity:.75;font-weight:700;font-size:.7rem">' + (me ? 'Toi' : 'Propriétaire' + (m.category ? ' · ' + esc(m.category) : '')) + ' · ' + esc(when(m.at)) + '</small>' + esc(m.text) + '</div>';
+        }).join('') + '</div>' +
+        '<textarea id="sh-txt" class="text-input" rows="4" maxlength="1000" placeholder="Ta réponse…" style="width:100%"></textarea>' +
+        '<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"><button class="btn btn-primary btn-sm" id="sh-send">Répondre</button><button class="btn btn-outline btn-sm" id="sh-close">Répondre et marquer résolu</button></div><div id="sh-msg" class="muted small" style="margin-top:6px"></div>';
+      document.getElementById('sh-back').onclick = window.loadSiteHelpAdmin;
+      var send = function (close) {
+        var v = document.getElementById('sh-txt').value.trim(), m = document.getElementById('sh-msg');
+        if (!v) { m.style.color = '#b42318'; m.textContent = 'Écris une réponse.'; return; }
+        call('site_help_admin_reply', { id: id, message: v, close: !!close }).then(function () { openThread(id); }).catch(function (e) { m.style.color = '#b42318'; m.textContent = e.message; });
+      };
+      document.getElementById('sh-send').onclick = function () { send(false); };
+      document.getElementById('sh-close').onclick = function () { send(true); };
+    } catch (e) { el.innerHTML = '<p class="admin-empty">Erreur : ' + esc(e.message) + '</p>'; }
+  }
+})();
