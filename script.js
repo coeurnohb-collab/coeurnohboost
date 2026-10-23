@@ -1894,13 +1894,22 @@ async function openSharedProductIfAny() {
 // Ouvre automatiquement le bon contenu quand on arrive depuis le clic sur
 // une notification (ex: ?open=ID_PUBLICATION ou ?openTab=orders). Avant,
 // cliquer sur une notification ouvrait toujours juste l'accueil.
+// Lien « Modifier dans l'application » (depuis l'espace propriétaire du site) ou notification de réponse : ouvre l'écran du site, et le formulaire si demandé.
+async function openMySiteFromLink(edit) {
+  try {
+    const old = document.getElementById('pm-site'); if (old) old.remove();
+    openMainMenu(); showMenuScreen('site');
+    await loadMySite();
+    if (edit && mySiteCache) openSiteForm();
+  } catch (e) { /* écran indisponible */ }
+}
 function openNotifTargetIfAny() {
   const params = new URLSearchParams(window.location.search);
   const pubId = params.get('open');
   const tab = params.get('openTab');
   const profileUid = params.get('profile');
   const leadsKind = params.get('leads');
-  if (params.get('mysite')) { window.history.replaceState({}, '', window.location.pathname); try { openMainMenu(); openSiteBuilderScreen(); } catch (e) { /* écran indisponible */ } return; }
+  if (params.get('mysite')) { window.history.replaceState({}, '', window.location.pathname); openMySiteFromLink(params.get('edit') === '1'); return; }
   if (leadsKind) { openLeadsManager(leadsKind === 'biz' ? 'biz' : 'site', 'appointment'); window.history.replaceState({}, '', window.location.pathname); return; }
   if (pubId) {
     openPostDetail(pubId);
@@ -14090,6 +14099,9 @@ async function saveMySite() {
       }
     });
 
+    // Nouveau site : il démarre avec le contenu du modèle choisi (textes, services et illustrations d'exemple, sans faux avis ni faux chiffres).
+    // Le serveur ne remplit que les champs encore vides ; si cet appel échoue, le site reste tout à fait utilisable.
+    if (!editingSiteExisting) { try { await siteHelpCall({ action: 'site_owner_seed' }); } catch (e) { /* facultatif */ } }
     document.getElementById('site-form-modal').remove();
     showToast(t('site_saved_toast'), 'success');
     editingSiteExisting = null;
@@ -17873,7 +17885,7 @@ function openNotifRow(id, isAnnouncement) {
       const profileUid = params.get('profile');
       const leadsKind = params.get('leads');
       if (params.get('espace')) { window.location.href = n.url; return; }
-      if (params.get('mysite')) { openMainMenu(); openSiteBuilderScreen(); return; }
+      if (params.get('mysite')) { openMySiteFromLink(params.get('edit') === '1'); return; }
       if (leadsKind) { openLeadsManager(leadsKind === 'biz' ? 'biz' : 'site', 'appointment'); return; }
       if (pubId) { openPostDetail(pubId); return; }
       if (profileUid) { openSharedProfile(profileUid); return; }

@@ -105,6 +105,8 @@
   }, true);
   function isSeen() { try { return !!localStorage.getItem(SEEN_KEY); } catch (e) { return true; } }
   function markSeen() { try { localStorage.setItem(SEEN_KEY, '1'); } catch (e) { /* ignore */ } }
+  // Ouverture par un lien précis (notification, espace du site, partage) : on va droit au but, sans l'écran d'accueil.
+  var DEEP = /[?&](mysite|open|openTab|profile|leads|panel|product|contest|biz|espace)=/.test(location.search);
   var origTour = window.openTutorial;
   function closeWelcome() { var w = document.getElementById('cn-welcome'); if (w) { w.classList.remove('on'); setTimeout(function () { if (w.parentNode) w.parentNode.removeChild(w); }, 400); } }
   function showWelcome() {
@@ -124,7 +126,7 @@
   }
   if (typeof origTour === 'function') {
     window.openTutorial = function () {
-      if (!manual && !isSeen()) { showWelcome(); return undefined; }
+      if (!manual && !isSeen()) { if (DEEP) return undefined; showWelcome(); return undefined; }
       return origTour.apply(this, arguments);
     };
   }
