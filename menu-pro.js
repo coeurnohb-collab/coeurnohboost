@@ -2122,6 +2122,7 @@ var MOCKUP_AI_ENABLED = false;
   function loadAuthGuard() {
     loadHelper('auth-guard.js', 'data-cn-ag');   // connexion plus stable
     loadHelper('pay-guard.js', 'data-cn-pg');    // message clair quand le Mobile Money ne couvre pas le pays
+    loadHelper('messaging-pro.js?v=20261052', 'data-cn-ms');   // messagerie privée en temps réel (chargée à part : jamais bloquante)
   }
   function promptLoginForLink() {
     var note = pending ? 'Connecte-toi pour voir la position partagée avec toi.' : 'Connecte-toi pour ouvrir ce contenu.';

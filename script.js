@@ -544,10 +544,12 @@ function showDashTab(tab) {
   // fonction de s'executer (chargement des sections du compte, etc.).
   const navBtn = document.getElementById('bnav-' + tab);
   if (navBtn) navBtn.classList.add('active');
-  else if (tab === 'account') {
+  else if (tab === 'account' || tab === 'orders') {
+    // « Réseau » (onglet "orders") est maintenant dans Menu > Services : c'est Menu qui reste allumé.
     const menuBtn = document.getElementById('bnav-menu');
     if (menuBtn) menuBtn.classList.add('active');
   }
+  if (tab === 'messages' && window.CNMessages) window.CNMessages.showList();
   if (tab === 'orders') loadOrders();
   if (tab === 'home') {
     renderFAQ();
@@ -1903,12 +1905,22 @@ async function openMySiteFromLink(edit) {
     if (edit && mySiteCache) openSiteForm();
   } catch (e) { /* écran indisponible */ }
 }
+// Lien d'une notification de message (?msg=ID_CONVERSATION) : ouvre la conversation, même si le module de messagerie se charge encore.
+function openMessagesFromLink(chatId) {
+  let tries = 0;
+  (function go() {
+    if (window.CNMessages && currentUser) { window.CNMessages.openChatById(chatId); return; }
+    if (++tries < 60) setTimeout(go, 250);
+  })();
+}
 function openNotifTargetIfAny() {
   const params = new URLSearchParams(window.location.search);
   const pubId = params.get('open');
   const tab = params.get('openTab');
   const profileUid = params.get('profile');
   const leadsKind = params.get('leads');
+  const msgChat = params.get('msg');
+  if (msgChat) { window.history.replaceState({}, '', window.location.pathname); openMessagesFromLink(msgChat); return; }
   if (params.get('mysite')) { window.history.replaceState({}, '', window.location.pathname); openMySiteFromLink(params.get('edit') === '1'); return; }
   if (leadsKind) { openLeadsManager(leadsKind === 'biz' ? 'biz' : 'site', 'appointment'); window.history.replaceState({}, '', window.location.pathname); return; }
   if (pubId) {
@@ -2782,10 +2794,13 @@ function closeTopmostOverlay() {
     'post-options-overlay': () => closePostOptionsMenu(),
     'notif-options-overlay': () => closeNotifOptionsMenu(),
     'media-viewer': () => closeMediaViewer(),
-    'public-site-overlay': () => closePublicSite()
+    'public-site-overlay': () => closePublicSite(),
+    'cn-chat': () => { if (window.CNMessages) window.CNMessages.closeChat(); else document.getElementById('cn-chat')?.remove(); },
+    'cn-story-reply': () => { if (window.CNMessages) window.CNMessages.closeStoryReply(); else document.getElementById('cn-story-reply')?.remove(); },
+    'cn-picker': () => document.getElementById('cn-picker')?.remove()
   };
   const overlays = document.querySelectorAll(
-    '.modal-overlay:not(.hidden), .action-sheet-overlay:not(.hidden), .media-viewer:not(.hidden), #public-site-overlay:not(.hidden)'
+    '.modal-overlay:not(.hidden), .action-sheet-overlay:not(.hidden), .media-viewer:not(.hidden), #public-site-overlay:not(.hidden), #cn-chat, #cn-story-reply, #cn-picker'
   );
   if (overlays.length === 0) return false;
   const top = overlays[overlays.length - 1];
@@ -5496,7 +5511,8 @@ function renderStoryViewerFrame() {
            ${ICON_EYE} <span id="story-views-count-${s.id}">…</span>
          </button>
        </div>`
-    : `<div class="story-viewer-footer">
+    : `<div class="story-viewer-footer story-footer-reply">
+         <button class="story-reply-btn" onclick="window.replyToCurrentStory && window.replyToCurrentStory()" aria-label="Répondre à la story">${escapeHtml(window.CNMessages ? window.CNMessages.T('reply_btn', { n: s.name || 'Coeurnoh' }) : 'Répondre…')}</button>
          <button class="story-reaction-heart-btn ${s.myReaction ? 'story-reaction-active' : ''}" onclick="handleStoryReactionTap('${s.id}', this)"
            onmousedown="startStoryReactionHold('${s.id}', this)" onmouseup="cancelStoryReactionHold()" onmouseleave="cancelStoryReactionHold()"
            ontouchstart="startStoryReactionHold('${s.id}', this)" ontouchend="cancelStoryReactionHold()" ontouchmove="cancelStoryReactionHold()"
@@ -5948,6 +5964,14 @@ async function loadFollowingSet() {
 }
 
 /* ================= PROFIL PUBLIC (mini version) ================= */
+// Bouton « Message » du profil : ferme la fiche et ouvre la conversation privée avec cette personne.
+function openMessageFromProfile(uid, name) {
+  if (!currentUser) { showToast('Connecte-toi pour envoyer un message.', 'info'); return; }
+  if (!window.CNMessages) { showToast('La messagerie se charge, réessaie dans un instant.', 'info'); return; }
+  try { closeProfileModal(); } catch (e) { /* ignore */ }
+  window.CNMessages.openChat(uid, name);
+}
+
 async function openProfileModal(sellerUid, sellerName, sellerVerified) {
   const modal = document.getElementById('profile-modal');
   const body = document.getElementById('profile-modal-body');
@@ -6046,11 +6070,18 @@ async function openProfileModal(sellerUid, sellerName, sellerVerified) {
       console.log('[presence] non bloquant :', e.message);
     }
 
+    // « Abonné » + « Message » côte à côte (comme chez les autres utilisateurs). Le bouton Message ouvre la messagerie privée.
     const followBtnHtml = !isOwn ? `
-      <button class="follow-btn ${isFollowing ? 'following' : ''}" data-follow-btn="${sellerUid}"
-        onclick="toggleFollow('${sellerUid}','${escapeForJs(displayName)}')" style="margin:14px 0 0 0">
-        <span data-follow-label="${sellerUid}" data-i18n="${isFollowing ? 'btn_following' : 'btn_follow'}">${isFollowing ? t('btn_following') : t('btn_follow')}</span>
-      </button>` : '';
+      <div class="profile-action-row">
+        <button class="follow-btn ${isFollowing ? 'following' : ''}" data-follow-btn="${sellerUid}"
+          onclick="toggleFollow('${sellerUid}','${escapeForJs(displayName)}')" style="margin:0">
+          <span data-follow-label="${sellerUid}" data-i18n="${isFollowing ? 'btn_following' : 'btn_follow'}">${isFollowing ? t('btn_following') : t('btn_follow')}</span>
+        </button>
+        <button class="profile-msg-btn" onclick="openMessageFromProfile('${sellerUid}','${escapeForJs(displayName)}')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8.5 8.5 0 0 1-12.4 7.5L3 21l1.6-5.2A8.5 8.5 0 1 1 21 12Z"/></svg>
+          <span>${window.CNMessages ? window.CNMessages.T('msg_btn') : 'Message'}</span>
+        </button>
+      </div>` : '';
 
     const blockLinkHtml = !isOwn ? `
       <p style="margin-top:8px">
@@ -17884,6 +17915,7 @@ function openNotifRow(id, isAnnouncement) {
       const tab = params.get('openTab');
       const profileUid = params.get('profile');
       const leadsKind = params.get('leads');
+      if (params.get('msg')) { openMessagesFromLink(params.get('msg')); return; }
       if (params.get('espace')) { window.location.href = n.url; return; }
       if (params.get('mysite')) { openMySiteFromLink(params.get('edit') === '1'); return; }
       if (leadsKind) { openLeadsManager(leadsKind === 'biz' ? 'biz' : 'site', 'appointment'); return; }
