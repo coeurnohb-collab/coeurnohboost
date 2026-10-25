@@ -945,12 +945,12 @@ async function loadUsersAdmin() {
   const el = document.getElementById('admin-users-list');
   el.innerHTML = `<p class="admin-empty">Chargement...</p>`;
   try {
-    const snap = await db.collection('users').orderBy('createdAt', 'desc').limit(50).get();
+    const snap = await db.collection('users').orderBy('createdAt', 'desc').limit(100).get();
     if (snap.empty) { el.innerHTML = `<p class="admin-empty">Aucun utilisateur.</p>`; return; }
     el.innerHTML = snap.docs.map(doc => {
       const d = doc.data();
       return `
-      <div class="admin-row">
+      <div class="admin-row" data-q="${escapeHtml(((d.name || '') + ' ' + (d.email || '') + ' ' + (d.username || '')).toLowerCase())}">
         <div class="admin-row-top">
           <div>
             <div class="admin-row-title">${d.verified ? '✔️ ' : ''}${escapeHtml(d.name || '—')}</div>
@@ -961,6 +961,7 @@ async function loadUsersAdmin() {
           <button class="btn btn-outline btn-sm" onclick="toggleUserVerified('${doc.id}', ${!d.verified})">
             ${d.verified ? '❌ Retirer la vérification' : '✔️ Vérifier ce vendeur'}
           </button>
+          <button class="btn btn-primary btn-sm" onclick="openAdminMessage('${escapeForJs(doc.id)}', '${escapeForJs(d.name || d.email || '')}')">💬 Message</button>
           <button class="btn btn-outline btn-sm" onclick="diagnoseUserNotifs('${doc.id}')">🔍 Diagnostic notifs</button>
         </div>
         <div id="notif-diag-${doc.id}"></div>

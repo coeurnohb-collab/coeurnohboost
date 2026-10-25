@@ -69,7 +69,7 @@ async function showRichNotification({ title, body, category, url, tag, image, ic
     }
   } catch (e) { /* pas grave */ }
 
-  const urgent = category === 'sos';
+  const urgent = category === 'sos' || category === 'call'; // un appel entrant : un seul bouton « Ouvrir », vibration longue
   const options = {
     body: count > 1 ? (count + ' nouvelles notifications · ' + body) : body,
     icon: icon || ICON,
@@ -77,7 +77,7 @@ async function showRichNotification({ title, body, category, url, tag, image, ic
     tag,
     renotify: true, // « tag » est toujours défini ci-dessus : obligatoire avec renotify
     timestamp: Date.now(),
-    vibrate: urgent ? [400, 150, 400, 150, 400, 150, 800] : [300, 120, 300, 120, 500],
+    vibrate: category === 'call' ? [600, 250, 600, 250, 600, 250, 600, 250, 600] : (urgent ? [400, 150, 400, 150, 400, 150, 800] : [300, 120, 300, 120, 500]),
     requireInteraction: true, // reste affichée (écran verrouillé) jusqu'à ce qu'on la touche
     silent: false,
     data: { url, count, category },
