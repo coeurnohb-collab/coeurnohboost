@@ -1,5 +1,5 @@
 /* pull-refresh.js — « tirer pour actualiser » partout dans l'application (comme les grandes applications).
-   Tire l'écran vers le bas depuis le haut : l'écran de service ouvert est rechargé, sinon la page se recharge. Jamais bloquant. */
+   Tire l'écran vers le bas depuis le haut : l'écran ouvert est actualisé sur place (on reste exactement là où on est). La page ne se recharge que si on n'est pas connecté. Jamais bloquant. */
 (function () {
   'use strict';
   if (window.__cnPtr) return; window.__cnPtr = true;
@@ -19,7 +19,7 @@
     return null;
   }
   function blocked(t) {
-    return !!(t.closest && t.closest('input,textarea,select,.leaflet-container,video,[data-no-ptr],.cnc-strip,.cnc-cats,.cnc-chips'));
+    return !!(t.closest && t.closest('input,textarea,select,.leaflet-container,video,[data-no-ptr],.cnc-strip,.cnc-cats,.cnc-chips,.cn-chat,.cn-call-ov,#cn-chat,#cn-call-ov'));
   }
   document.addEventListener('touchstart', function (e) {
     if (busy || e.touches.length !== 1 || blocked(e.target)) { pulling = false; return; }
@@ -48,6 +48,8 @@
         if (typeof fn === 'function') { fn(); return true; }
       }
     } catch (e) { }
+    // Sinon : on actualise l'onglet courant SUR PLACE (sans recharger la page, sans retour a l'intro ni a l'Accueil)
+    try { if (typeof window.cnRefreshInPlace === 'function' && window.cnRefreshInPlace()) return true; } catch (e) { }
     return false;
   }
   document.addEventListener('touchend', function () {

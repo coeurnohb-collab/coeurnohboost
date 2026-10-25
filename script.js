@@ -29,7 +29,9 @@ const FCM_VAPID_KEY = "BCwBF4M8jxL1uYPBERZvSFz0lYZk34m7vNLUtBby1lUwfoYVLFgY4c23O
 // (voir hideAppSplash()) : l'entree reste toujours visible un minimum de
 // temps, peu importe la vitesse de la connexion.
 const APP_SPLASH_START = Date.now();
-const APP_SPLASH_MIN_MS = 1600;
+// Quand on ACTUALISE l'ecran (tirer pour actualiser, bouton actualiser du navigateur), on ne repasse pas par
+// l'ecran d'intro : un petit voile sans logo (class "cn-quick" posee dans index.html) disparait des que le compte est reconnu.
+const APP_SPLASH_MIN_MS = window.__cnQuick ? 0 : 1600;
 
 /* ================= NOTIFICATIONS "TOAST" (bannieres discretes) =================
    Remplace les alert() bloquants pour les messages courts (succes, erreur,
@@ -246,7 +248,7 @@ function uploadFileToStorage(file, folder, options = {}) {
     // (PDF, etc.) passe par "raw" pour garder le fichier tel quel.
     let resourceType = 'raw';
     if (file.type.startsWith('image/')) resourceType = 'image';
-    else if (file.type.startsWith('video/')) resourceType = 'video';
+    else if (file.type.startsWith('video/') || file.type.startsWith('audio/')) resourceType = 'video'; // Cloudinary range l'audio (messages vocaux) avec les vidéos
 
     const endpoint = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${resourceType}/upload`;
     const formData = new FormData();
@@ -522,12 +524,94 @@ function showHome() {
   document.body.classList.remove('app-mode');
   document.getElementById('view-home').classList.remove('hidden');
 }
-function showDashboard() {
+function showDashboard(initialTab) {
   hideAllViews();
   document.getElementById('view-dashboard').classList.remove('hidden');
-  showDashTab('home');
+  showDashTab(initialTab || 'home');
   updateNotifBadge();
 }
+
+/* ================= ACTUALISATION SANS RETOUR A L'INTRO =================
+   On memorise (sessionStorage, propre a l'onglet) ou la personne se trouve : onglet du bas, defilement, conversation
+   ouverte, ecran du menu. Apres une actualisation, l'application la ramene exactement la, sans passer par l'intro ni
+   par l'Accueil. Une ouverture normale (nouvelle ouverture de l'appli, lien de notification) repart comme avant. */
+const CN_RESUME_KEY = 'cn_resume';
+let cnResumeBoot = null;
+let cnResumeArmed = false;
+try {
+  const rr = JSON.parse(sessionStorage.getItem(CN_RESUME_KEY) || 'null');
+  if (rr && rr.tab && window.__cnQuick && Date.now() - (rr.t || 0) < 12 * 3600 * 1000) cnResumeBoot = rr;
+} catch (e) { /* pas de reprise */ }
+
+const CN_MENU_OPENERS = { contests: 'openContestsScreen', jobs: 'openJobsScreen', events: 'openEventsScreen', travel: 'openTravelScreen', booking: 'openBookingScreen', immo: 'openImmoScreen', srequests: 'openServiceRequestScreen', academy: 'openAcademyScreen', business: 'openBusinessScreen', nearby: 'openNearbyScreen', invoices: 'openInvoiceScreen', alerts: 'openAlertsScreen', site: 'openSiteBuilderScreen' };
+
+function cnCurrentTab() {
+  const t = document.querySelector('.dash-tab:not(.hidden)');
+  return t ? t.id.replace('dash-tab-', '') : '';
+}
+function cnSaveResume() {
+  try {
+    if (!cnResumeArmed || !currentUser) return;
+    const dash = document.getElementById('view-dashboard');
+    if (!dash || dash.classList.contains('hidden')) return;
+    const modal = document.getElementById('main-menu-modal');
+    const sc = modal && !modal.classList.contains('hidden') ? modal.querySelector('[id^="menu-screen-"]:not(.hidden)') : null;
+    const o = {
+      tab: cnCurrentTab() || 'home',
+      y: Math.round(window.scrollY || document.documentElement.scrollTop || 0),
+      chat: (window.CNMessages && window.CNMessages.getResume && window.CNMessages.getResume().peer) || '',
+      menu: sc ? sc.id.replace('menu-screen-', '') : '',
+      t: Date.now()
+    };
+    sessionStorage.setItem(CN_RESUME_KEY, JSON.stringify(o));
+  } catch (e) { /* non bloquant */ }
+}
+function cnTakeResume() {
+  const r = cnResumeBoot; cnResumeBoot = null;
+  // Un lien precis (notification de message, d'appel, de publication…) garde la priorite sur la reprise.
+  if (r && /[?&](msg|call|open|openTab|profile|mysite|leads|produit|concours|business|espace|loc|tab)=/.test(window.location.search)) return null;
+  return r;
+}
+function cnApplyResume(r) {
+  try {
+    if (r.y > 0) [300, 800, 1500].forEach((ms) => setTimeout(() => { if (!cnUserScrolled && Math.abs((window.scrollY || 0) - r.y) > 4) window.scrollTo(0, r.y); }, ms));
+    if (r.menu && CN_MENU_OPENERS[r.menu]) {
+      let tries = 0;
+      (function go() {
+        const fn = window[CN_MENU_OPENERS[r.menu]];
+        if (typeof fn === 'function') { fn(); return; }
+        if (++tries < 30) setTimeout(go, 300);
+      })();
+    }
+    if (r.chat) {
+      let tries = 0;
+      (function go() {
+        if (window.CNMessages && currentUser) { window.CNMessages.openChat(r.chat, null); return; }
+        if (++tries < 40) setTimeout(go, 250);
+      })();
+    }
+  } catch (e) { console.log('[reprise] non bloquant :', e && e.message); }
+}
+let cnUserScrolled = false;
+window.addEventListener('touchstart', () => { cnUserScrolled = true; }, { passive: true, once: true });
+window.addEventListener('wheel', () => { cnUserScrolled = true; }, { passive: true, once: true });
+// Actualisation « sur place » (tirer pour actualiser) : on recharge les donnees de l'onglet courant, sans recharger la page.
+function cnRefreshInPlace() {
+  try {
+    if (!currentUser) return false;
+    if (document.getElementById('cn-chat') || document.getElementById('cn-call-ov')) return true;
+    if (document.querySelector('.modal-overlay:not(.hidden)')) return true;
+    const dash = document.getElementById('view-dashboard');
+    if (dash && !dash.classList.contains('hidden')) { showDashTab(cnCurrentTab() || 'home'); return true; }
+  } catch (e) { /* retombe sur le rechargement classique */ }
+  return false;
+}
+window.cnSaveResume = cnSaveResume;
+window.cnRefreshInPlace = cnRefreshInPlace;
+document.addEventListener('visibilitychange', () => { if (document.hidden) cnSaveResume(); });
+window.addEventListener('pagehide', cnSaveResume);
+window.addEventListener('beforeunload', cnSaveResume);
+setInterval(cnSaveResume, 4000);
 
 function showDashTab(tab) {
   document.querySelectorAll('.dash-tab').forEach(el => el.classList.add('hidden'));
@@ -1913,6 +1997,15 @@ function openMessagesFromLink(chatId) {
     if (++tries < 60) setTimeout(go, 250);
   })();
 }
+// Lien d'une notification d'appel (?call=ID_APPEL) : l'ecran d'appel entrant s'affiche si l'appel sonne encore.
+function openCallFromLink(callId) {
+  let tries = 0;
+  (function go() {
+    if (window.CNCalls && currentUser) { window.CNCalls.openFromLink(callId); return; }
+    if (window.CNMessages && window.CNMessages.ensureCalls) window.CNMessages.ensureCalls();
+    if (++tries < 60) setTimeout(go, 250);
+  })();
+}
 function openNotifTargetIfAny() {
   const params = new URLSearchParams(window.location.search);
   const pubId = params.get('open');
@@ -1921,6 +2014,8 @@ function openNotifTargetIfAny() {
   const leadsKind = params.get('leads');
   const msgChat = params.get('msg');
   if (msgChat) { window.history.replaceState({}, '', window.location.pathname); openMessagesFromLink(msgChat); return; }
+  const callLink = params.get('call');
+  if (callLink) { window.history.replaceState({}, '', window.location.pathname); openCallFromLink(callLink); return; }
   if (params.get('mysite')) { window.history.replaceState({}, '', window.location.pathname); openMySiteFromLink(params.get('edit') === '1'); return; }
   if (leadsKind) { openLeadsManager(leadsKind === 'biz' ? 'biz' : 'site', 'appointment'); window.history.replaceState({}, '', window.location.pathname); return; }
   if (pubId) {
@@ -2673,16 +2768,21 @@ if (fbReady) {
         : '—';
       document.getElementById('profile-loyalty').textContent = currentUser.loyaltyPoints || 0;
 
-      showDashboard();
+      const cnResume = cnTakeResume();
+      showDashboard(cnResume ? cnResume.tab : undefined);
       openSharedProductIfAny();
       openSharedContestIfAny();
       openSharedBusinessIfAny();
       openNotifTargetIfAny();
       registerPushNotifications();
       installBackTrap();
+      if (cnResume) cnApplyResume(cnResume);
+      cnResumeArmed = true;
       hideAppSplash();
     } else {
       currentUser = null;
+      cnResumeArmed = false; cnResumeBoot = null;
+      try { sessionStorage.removeItem(CN_RESUME_KEY); } catch (e) { /* ignore */ }
       renderLoggedOutNav();
       showHome();
       // CORRECTIF : un lien de produit partage (?produit=ID) doit pouvoir
@@ -2741,7 +2841,7 @@ function hideAppSplash() {
   const remaining = Math.max(0, APP_SPLASH_MIN_MS - elapsed);
   setTimeout(() => {
     splash.classList.add('splash-hide');
-    setTimeout(() => splash.classList.add('hidden'), 380);
+    setTimeout(() => splash.classList.add('hidden'), window.__cnQuick ? 170 : 380);
   }, remaining);
 }
 
@@ -17916,6 +18016,7 @@ function openNotifRow(id, isAnnouncement) {
       const profileUid = params.get('profile');
       const leadsKind = params.get('leads');
       if (params.get('msg')) { openMessagesFromLink(params.get('msg')); return; }
+      if (params.get('call')) { openCallFromLink(params.get('call')); return; }
       if (params.get('espace')) { window.location.href = n.url; return; }
       if (params.get('mysite')) { openMySiteFromLink(params.get('edit') === '1'); return; }
       if (leadsKind) { openLeadsManager(leadsKind === 'biz' ? 'biz' : 'site', 'appointment'); return; }

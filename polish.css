@@ -46,6 +46,10 @@ input:focus-visible, textarea:focus-visible, select:focus-visible { outline-offs
 #nav.cn-scrolled { box-shadow: 0 6px 24px rgba(20, 26, 38, .08); }
 
 /* ---------- 4. Ouverture animée (écran de démarrage) ---------- */
+/* Actualisation de l'ecran : pas d'intro, juste un voile discret le temps de reconnaitre le compte */
+html.cn-quick #app-splash { background: var(--bg, #f3f5f9); transition-duration: .16s; }
+html.cn-quick #app-splash::before, html.cn-quick #app-splash::after { display: none; }
+html.cn-quick #app-splash-inner > :not(#app-splash-spinner), html.cn-quick #app-splash-foot { display: none; }
 #app-splash { background: radial-gradient(120% 90% at 50% 0%, #ffffff 0%, #eef1f6 58%, #e4e9f2 100%); overflow: hidden; }
 html[data-theme="dark"] #app-splash { background: radial-gradient(120% 90% at 50% 0%, #232a36 0%, #171b22 70%); }
 #app-splash::before {

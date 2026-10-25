@@ -373,6 +373,9 @@
     try {
       var u = new URL(rel || '/', location.origin), p = u.searchParams;
       var leads = p.get('leads');
+      var msg = p.get('msg'), call = p.get('call');
+      if (msg && typeof openMessagesFromLink === 'function') { openMessagesFromLink(msg); return; }
+      if (call && typeof openCallFromLink === 'function') { openCallFromLink(call); return; }
       if (leads && typeof openLeadsManager === 'function') { openLeadsManager(leads === 'biz' ? 'biz' : 'site', 'appointment'); return; }
       var open = p.get('open'), prof = p.get('profile'), loc = p.get('loc'), tab = p.get('openTab') || p.get('tab');
       if (open && typeof openPostDetail === 'function') { openPostDetail(open); return; }
