@@ -92,7 +92,7 @@
     s.textContent =
       '#cn-push-ask{position:fixed;left:12px;right:12px;bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:9500;max-width:460px;margin:0 auto;background:var(--card,#fff);color:var(--ink,#1a2436);border-radius:18px;box-shadow:0 12px 40px rgba(10,20,40,.28);padding:16px;display:flex;gap:12px;align-items:flex-start;transform:translateY(140%);transition:transform .35s cubic-bezier(.2,.8,.2,1)}' +
       '#cn-push-ask.on{transform:translateY(0)}' +
-      '#cn-push-ask .pi{flex:0 0 auto;width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;color:#fff;background:linear-gradient(135deg,#f39c1f,#d7263d)}' +
+      '#cn-push-ask .pi{flex:0 0 auto;width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;color:#fff;background:#d9820a}' +
       '#cn-push-ask .pi svg{width:23px;height:23px}' +
       '#cn-push-ask b{display:block;font-size:1rem;margin-bottom:3px}' +
       '#cn-push-ask p{margin:0 0 10px;font-size:.88rem;line-height:1.4;opacity:.8}' +
@@ -336,6 +336,7 @@
   /* ---------- Remplacement de l'enregistrement automatique ---------- */
   window.registerPushNotifications = async function () {
     if (!cu()) return;
+    try { setTimeout(flushPending, 700); } catch (e) { /* ignore */ }
     try {
       var st = deviceState();
       if (st === 'granted') await syncToken();
@@ -368,8 +369,31 @@
   }
 
   /* ---------- Ouverture du bon écran ---------- */
+  // Lien en attente : si, au moment du toucher, la personne n'est pas encore reconnue (page en cours de
+  // chargement, session en cours de restauration) ou n'est réellement plus connectée, on GARDE le lien et on
+  // l'ouvre dès que le compte est prêt. Jamais de déconnexion, jamais de redirection forcée vers la connexion.
+  var PENDING_KEY = 'cn_pending_open', pendTimer = null;
+  function setPending(rel) { try { sessionStorage.setItem(PENDING_KEY, JSON.stringify({ u: String(rel || '/'), t: Date.now() })); } catch (e) { /* ignore */ } }
+  function takePending() {
+    try {
+      var o = JSON.parse(sessionStorage.getItem(PENDING_KEY) || 'null');
+      sessionStorage.removeItem(PENDING_KEY);
+      if (o && o.u && Date.now() - o.t < 30 * 60 * 1000) return o.u;
+    } catch (e) { /* ignore */ }
+    return null;
+  }
+  function flushPending() { if (!cu()) return; var u = takePending(); if (u) openUrl(u); }
+  function waitForUser() {
+    if (pendTimer) return;
+    var tries = 0;
+    pendTimer = setInterval(function () {
+      tries++;
+      if (cu()) { clearInterval(pendTimer); pendTimer = null; flushPending(); }
+      else if (tries > 60) { clearInterval(pendTimer); pendTimer = null; } // 15 s ; le lien reste gardé jusqu'à la prochaine connexion
+    }, 250);
+  }
   function openUrl(rel) {
-    if (!cu()) return;
+    if (!cu()) { setPending(rel); waitForUser(); return; }
     try {
       var u = new URL(rel || '/', location.origin), p = u.searchParams;
       var leads = p.get('leads');
@@ -388,7 +412,11 @@
   }
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.addEventListener('message', function (e) {
-      if (e && e.data && e.data.type === 'cn-open') openUrl(e.data.url);
+      if (e && e.data && e.data.type === 'cn-open') {
+        // Accusé de réception : le service worker sait que la page est bien vivante et n'a pas besoin de la recharger.
+        try { if (e.ports && e.ports[0]) e.ports[0].postMessage('ok'); } catch (x) { /* ignore */ }
+        openUrl(e.data.url);
+      }
     });
   }
   // Ouverture à froid (l'app était fermée) : gère aussi ?tab=… , ?openTab=notifs et ?loc=sos|share

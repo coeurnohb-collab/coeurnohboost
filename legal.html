@@ -6,7 +6,19 @@
 <title>Coeurnoh Universe — Informations légales</title>
 <meta name="description" content="À propos, conditions d'utilisation, politique de confidentialité, remboursement et contact de Coeurnoh Universe, édité par Coeurnoh Business.">
 <meta name="theme-color" content="#14213a">
-<link rel="icon" href="icon-192-v2.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192-v2.png">
+<link rel="apple-touch-icon" href="/icon-192-v2.png">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<link rel="canonical" href="https://coeurnohuniverse.com/about" id="cn-canonical">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Coeurnoh Universe">
+<meta property="og:locale" content="fr_FR">
+<meta property="og:title" content="À propos — Coeurnoh Universe" id="cn-og-title">
+<meta property="og:description" content="À propos, conditions d'utilisation, politique de confidentialité, remboursement et contact de Coeurnoh Universe, édité par Coeurnoh Business." id="cn-og-desc">
+<meta property="og:url" content="https://coeurnohuniverse.com/about" id="cn-og-url">
+<meta property="og:image" content="https://coeurnohuniverse.com/og-image.jpg">
+<meta property="og:image:alt" content="Coeurnoh Universe">
+<meta name="twitter:card" content="summary_large_image">
 <style>
 :root{--bg:#eef0f4;--card:#fff;--ink:#141a26;--muted:#5d6779;--line:#e2e6ee;--slate:#28374f;--amber:#f39c1f;--amber-d:#d9820a}
 @media (prefers-color-scheme:dark){:root{--bg:#0f1218;--card:#1b1f26;--ink:#eef1f5;--muted:#9aa3b2;--line:#2a2f38;--slate:#9db4d8}}
@@ -197,6 +209,14 @@ footer{max-width:760px;margin:0 auto;padding:0 16px 40px;text-align:center;color
     document.querySelectorAll('#tabs a').forEach(function(a){a.classList.toggle('on',a.getAttribute('data-p')===x)});
     var s=document.getElementById(x);document.getElementById('h1').textContent=s.getAttribute('data-title');
     document.title=s.getAttribute('data-title')+' — Coeurnoh Universe';
+    // Chaque page légale a sa propre adresse officielle (évite les doublons /legal.html?p=… pour les moteurs de recherche).
+    var url='https://coeurnohuniverse.com/'+x;
+    var set=function(id,attr,v){var el=document.getElementById(id);if(el)el.setAttribute(attr,v)};
+    set('cn-canonical','href',url);set('cn-og-url','content',url);
+    set('cn-og-title','content',document.title);
+    var first=s.querySelector('p');
+    var d=first?first.textContent.replace(/\s+/g,' ').trim().slice(0,200):'';
+    if(d){set('cn-og-desc','content',d);var md=document.querySelector('meta[name="description"]');if(md)md.setAttribute('content',d);}
   }
   show(p);
   document.getElementById('tabs').addEventListener('click',function(e){

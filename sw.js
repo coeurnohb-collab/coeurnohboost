@@ -1,4 +1,4 @@
-// sw.js — Service Worker de Coeurnoh Universe (v15).
+// sw.js — Service Worker de Coeurnoh Universe (v16).
 // 1) Rend le site installable (PWA / Google Play via TWA) + copie de secours hors-ligne.
 // 2) Affiche les notifications push MÊME QUAND L'APP EST FERMÉE, comme Facebook /
 //    WhatsApp / TikTok : icône, grande image, boutons « Ouvrir / Plus tard »,
@@ -101,26 +101,60 @@ async function showRichNotification({ title, body, category, url, tag, image, ic
 
 // Clic sur la notification (ou sur « Ouvrir ») ; « Plus tard » la range simplement :
 // elle reste disponible dans le centre de notifications de l'app.
+// Garanties :
+//  1) le lien est toujours un chemin interne de CE site (jamais un autre domaine) ;
+//  2) si l'app est déjà ouverte, on lui transmet le lien et on attend sa confirmation ; sans réponse
+//     (page gelée par le téléphone, encore en chargement), on la dirige directement vers la bonne adresse ;
+//  3) rien ici ne touche à la session de la personne : aucune déconnexion, aucun effacement de stockage.
+function internalTarget(raw) {
+  try {
+    const u = new URL(String(raw || '/'), self.location.origin);
+    if (u.origin !== self.location.origin) return '/';
+    return u.pathname + u.search + u.hash;
+  } catch (e) { return '/'; }
+}
+
+function askClientToOpen(client, rel) {
+  return new Promise((resolve) => {
+    let done = false, channel = null;
+    const finish = (ok) => {
+      if (done) return;
+      done = true;
+      try { if (channel) channel.port1.close(); } catch (e) { /* ignore */ }
+      resolve(ok);
+    };
+    try {
+      channel = new MessageChannel();
+      channel.port1.onmessage = () => finish(true);
+      client.postMessage({ type: 'cn-open', url: rel }, [channel.port2]);
+    } catch (e) { finish(false); return; }
+    setTimeout(() => finish(false), 1500);
+  });
+}
+
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   if (event.action === 'later') return;
-  const relativeUrl = (event.notification.data && event.notification.data.url) || '/';
-  const targetUrl = new URL(relativeUrl, self.location.origin).href;
-  event.waitUntil(
-    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-      for (const client of clientList) {
-        if (client.url.startsWith(self.location.origin) && 'focus' in client) {
-          // L'app est déjà ouverte : on lui dit où aller, SANS recharger la page.
-          client.postMessage({ type: 'cn-open', url: relativeUrl });
-          return client.focus();
-        }
-      }
-      if (self.clients.openWindow) return self.clients.openWindow(targetUrl);
-    })
-  );
+  const rel = internalTarget(event.notification.data && event.notification.data.url);
+  const targetUrl = new URL(rel, self.location.origin).href;
+  event.waitUntil((async () => {
+    let list = [];
+    try { list = await self.clients.matchAll({ type: 'window', includeUncontrolled: true }); } catch (e) { list = []; }
+    const mine = list.filter((c) => { try { return new URL(c.url).origin === self.location.origin; } catch (e) { return false; } });
+    const client = mine.find((c) => c.visibilityState === 'visible') || mine[0];
+    if (client) {
+      // L'app est déjà ouverte : on la ramène au premier plan SANS la recharger.
+      try { if ('focus' in client) await client.focus(); } catch (e) { /* certains navigateurs refusent : on continue */ }
+      if (await askClientToOpen(client, rel)) return;
+      try { if ('navigate' in client) { await client.navigate(targetUrl); return; } } catch (e) { /* page non contrôlée : on ouvre une fenêtre */ }
+    }
+    if (self.clients.openWindow) {
+      try { await self.clients.openWindow(targetUrl); } catch (e) { /* ignore */ }
+    }
+  })());
 });
 
-const CACHE_NAME = 'coeurnohboost-v18';
+const CACHE_NAME = 'coeurnohboost-v19';
 const APP_SHELL = [
   '/',
   '/index.html',

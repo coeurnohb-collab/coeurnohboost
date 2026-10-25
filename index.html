@@ -14,6 +14,38 @@
   if(nav.type==='reload'||nav.type==='back_forward'||fresh){window.__cnQuick=true;document.documentElement.classList.add('cn-quick');}
 }catch(e){}})();
 </script>
+<script>
+/* Ancienne adresse (coeurnohboost.vercel.app). Règle : on ne coupe JAMAIS une session déjà ouverte ici.
+   Une connexion est propre à chaque adresse : envoyer d'un coup une personne connectée ici vers
+   coeurnohuniverse.com la ferait apparaître déconnectée (notamment au clic sur une notification).
+   - application installée (écran d'accueil, Google Play) ou personne déjà connectée sur cette adresse : on reste ;
+   - nouveau visiteur ou moteur de recherche : renvoi vers l'adresse officielle (même chemin, mêmes paramètres). */
+(function(){try{
+  if(location.hostname!=='coeurnohboost.vercel.app')return;
+  var go=function(){location.replace('https://coeurnohuniverse.com'+location.pathname+location.search+location.hash);};
+  var standalone=(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true||(document.referrer||'').indexOf('android-app://')===0;
+  if(standalone)return;
+  try{for(var i=0;i<localStorage.length;i++){if((localStorage.key(i)||'').indexOf('firebase:authUser:')===0)return;}}catch(e){}
+  if(!window.indexedDB){go();return;}
+  var fresh=false,req=indexedDB.open('firebaseLocalStorageDb');
+  // Base absente = aucune session : on annule sa création pour ne pas gêner la connexion qui la créera elle-même.
+  req.onupgradeneeded=function(){fresh=true;try{req.transaction.abort();}catch(e){}};
+  req.onerror=function(){if(fresh)go();};
+  req.onsuccess=function(){
+    var db=req.result,found=false;
+    try{
+      if(!db.objectStoreNames.contains('firebaseLocalStorage')){db.close();go();return;}
+      var cur=db.transaction('firebaseLocalStorage','readonly').objectStore('firebaseLocalStorage').openCursor();
+      cur.onsuccess=function(){
+        var c=cur.result;
+        if(c){if(String(c.key).indexOf('firebase:authUser:')===0)found=true;else c.continue();if(found){db.close();}}
+        else{db.close();if(!found)go();}
+      };
+      cur.onerror=function(){try{db.close();}catch(e){}};
+    }catch(e){try{db.close();}catch(x){}}
+  };
+}catch(e){}})();
+</script>
 <title>Coeurnoh Universe — Réseaux sociaux, boutique & services multiples</title>
 
 <!-- SEO -->
@@ -2505,13 +2537,19 @@
   </div>
 </div>
 
-<script src="app.min.js?v=945f665733" defer onerror="(function(){function f(){['translations','catalog-data','script','polish','menu-pro','push-center'].forEach(function(n){var x=document.createElement('script');x.src=n+'.js';x.async=false;document.body.appendChild(x)})}document.readyState==='loading'?document.addEventListener('DOMContentLoaded',f):f()})()"></script>
+<script src="app.min.js?v=b53f33ffcb" defer onerror="(function(){function f(){['translations','catalog-data','script','polish','menu-pro','push-center'].forEach(function(n){var x=document.createElement('script');x.src=n+'.js';x.async=false;document.body.appendChild(x)})}document.readyState==='loading'?document.addEventListener('DOMContentLoaded',f):f()})()"></script>
 
 <!-- PWA : activation du service worker (installation en app) -->
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch((err) => {
+    navigator.serviceWorker.register('/sw.js').then((reg) => {
+      // Après une longue période d'inactivité, l'application cherche elle-même une nouvelle version
+      // quand la personne revient (évite de rester bloqué sur une ancienne version).
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') reg.update().catch(() => {});
+      });
+    }).catch((err) => {
       console.log('Service worker non enregistre :', err.message);
     });
   });

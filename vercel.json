@@ -79,6 +79,34 @@
       ]
     },
     {
+      "source": "/.well-known/assetlinks.json",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json; charset=utf-8"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "coeurnohboost.vercel.app"
+        }
+      ],
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
+      ]
+    },
+    {
       "source": "/(sw.js|manifest.json)",
       "headers": [
         {
@@ -112,7 +140,7 @@
   ],
   "redirects": [
     {
-      "source": "/:path((?!api/|__/).*)",
+      "source": "/:path((?!api/|__/|[.]well-known/|$|index[.]html$|[^/]+[.](?:js|css|png|jpe?g|webp|svg|ico|woff2?|mp4|webm|json)$).*)",
       "has": [
         {
           "type": "host",
