@@ -109,7 +109,17 @@
   var DEEP = /[?&](mysite|open|openTab|profile|leads|panel|product|contest|biz|espace)=/.test(location.search);
   var origTour = window.openTutorial;
   function closeWelcome() { var w = document.getElementById('cn-welcome'); if (w) { w.classList.remove('on'); setTimeout(function () { if (w.parentNode) w.parentNode.removeChild(w); }, 400); } }
-  function showWelcome() {
+  // L'écran d'accueil attend la fin de l'intro animée (sinon son fond sombre la recouvre au bout de 0,9 s).
+  function whenSplashGone(fn) {
+    var n = 0;
+    (function check() {
+      var sp = document.getElementById('app-splash');
+      if (!sp || sp.classList.contains('hidden') || ++n > 50) { fn(); return; }
+      setTimeout(check, 150);
+    })();
+  }
+  function showWelcome() { whenSplashGone(buildWelcome); }
+  function buildWelcome() {
     if (document.getElementById('cn-welcome')) return;
     var w = document.createElement('div');
     w.id = 'cn-welcome'; w.setAttribute('role', 'dialog'); w.setAttribute('aria-modal', 'true');

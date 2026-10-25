@@ -5,13 +5,23 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
 <script>
-/* Actualisation de l'ecran : si la page est rechargee (bouton actualiser, mise a jour de l'appli...) ou si on a deja une
-   position memorisee dans cet onglet, on saute l'ecran d'intro (voile court sans logo) et on revient la ou on etait. */
+/* Ouverture de l'application.
+   - Intro animée COMPLÈTE : à chaque ouverture (icône, lien, notification) et dès que la personne revient après
+     plus de 2 minutes d'absence.
+   - Voile discret sans logo : seulement quand on actualise l'écran (tirer pour actualiser, bouton actualiser,
+     bouton retour) moins de 2 minutes après la dernière ouverture.
+   - Dans tous les cas, si une position est mémorisée (onglet, défilement, conversation), on y revient (__cnResume). */
 (function(){try{
+  var now=Date.now(),last=0;
+  try{last=parseInt(localStorage.getItem('cn_intro_at')||'0',10)||0;}catch(e){}
   var nav=(performance.getEntriesByType&&performance.getEntriesByType('navigation')[0])||{};
   var r=null;try{r=JSON.parse(sessionStorage.getItem('cn_resume')||'null');}catch(e){}
-  var fresh=r&&r.tab&&(Date.now()-(r.t||0))<12*3600*1000;
-  if(nav.type==='reload'||nav.type==='back_forward'||fresh){window.__cnQuick=true;document.documentElement.classList.add('cn-quick');}
+  var fresh=r&&r.tab&&(now-(r.t||0))<12*3600*1000;
+  var refresh=nav.type==='reload'||nav.type==='back_forward';
+  var recent=(now-last)<2*60*1000;
+  if(refresh||fresh){window.__cnResume=true;}
+  if(recent&&(refresh||fresh)){window.__cnQuick=true;document.documentElement.classList.add('cn-quick');}
+  try{localStorage.setItem('cn_intro_at',String(now));}catch(e){}
 }catch(e){}})();
 </script>
 <script>
@@ -191,7 +201,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="app.min.css?v=ef1d50aa2b" onerror="['style','polish','menu-pro','pro'].forEach(function(n){var l=document.createElement('link');l.rel='stylesheet';l.href=n+'.css';document.head.appendChild(l)})">
+<link rel="stylesheet" href="app.min.css?v=a92124876b" onerror="['style','polish','menu-pro','pro'].forEach(function(n){var l=document.createElement('link');l.rel='stylesheet';l.href=n+'.css';document.head.appendChild(l)})">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check-compat.js" defer></script>
 <script src="app-check.js" defer></script>
@@ -2537,7 +2547,7 @@
   </div>
 </div>
 
-<script src="app.min.js?v=b53f33ffcb" defer onerror="(function(){function f(){['translations','catalog-data','script','polish','menu-pro','push-center'].forEach(function(n){var x=document.createElement('script');x.src=n+'.js';x.async=false;document.body.appendChild(x)})}document.readyState==='loading'?document.addEventListener('DOMContentLoaded',f):f()})()"></script>
+<script src="app.min.js?v=58c859a086" defer onerror="(function(){function f(){['translations','catalog-data','script','polish','menu-pro','push-center'].forEach(function(n){var x=document.createElement('script');x.src=n+'.js';x.async=false;document.body.appendChild(x)})}document.readyState==='loading'?document.addEventListener('DOMContentLoaded',f):f()})()"></script>
 
 <!-- PWA : activation du service worker (installation en app) -->
 <script>

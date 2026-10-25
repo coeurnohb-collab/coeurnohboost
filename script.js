@@ -29,9 +29,10 @@ const FCM_VAPID_KEY = "BCwBF4M8jxL1uYPBERZvSFz0lYZk34m7vNLUtBby1lUwfoYVLFgY4c23O
 // (voir hideAppSplash()) : l'entree reste toujours visible un minimum de
 // temps, peu importe la vitesse de la connexion.
 const APP_SPLASH_START = Date.now();
-// Quand on ACTUALISE l'ecran (tirer pour actualiser, bouton actualiser du navigateur), on ne repasse pas par
-// l'ecran d'intro : un petit voile sans logo (class "cn-quick" posee dans index.html) disparait des que le compte est reconnu.
-const APP_SPLASH_MIN_MS = window.__cnQuick ? 0 : 1600;
+// Quand on ACTUALISE l'ecran (tirer pour actualiser, bouton actualiser du navigateur) moins de 2 minutes apres la derniere
+// ouverture, on ne repasse pas par l'ecran d'intro : un petit voile sans logo (class "cn-quick" posee dans index.html)
+// disparait des que le compte est reconnu. Toute autre ouverture joue l'intro complete (2 s minimum).
+const APP_SPLASH_MIN_MS = window.__cnQuick ? 0 : 2000;
 
 /* ================= NOTIFICATIONS "TOAST" (bannieres discretes) =================
    Remplace les alert() bloquants pour les messages courts (succes, erreur,
@@ -540,7 +541,7 @@ let cnResumeBoot = null;
 let cnResumeArmed = false;
 try {
   const rr = JSON.parse(sessionStorage.getItem(CN_RESUME_KEY) || 'null');
-  if (rr && rr.tab && window.__cnQuick && Date.now() - (rr.t || 0) < 12 * 3600 * 1000) cnResumeBoot = rr;
+  if (rr && rr.tab && (window.__cnResume || window.__cnQuick) && Date.now() - (rr.t || 0) < 12 * 3600 * 1000) cnResumeBoot = rr;
 } catch (e) { /* pas de reprise */ }
 
 const CN_MENU_OPENERS = { contests: 'openContestsScreen', jobs: 'openJobsScreen', events: 'openEventsScreen', travel: 'openTravelScreen', booking: 'openBookingScreen', immo: 'openImmoScreen', srequests: 'openServiceRequestScreen', academy: 'openAcademyScreen', business: 'openBusinessScreen', nearby: 'openNearbyScreen', invoices: 'openInvoiceScreen', alerts: 'openAlertsScreen', site: 'openSiteBuilderScreen' };
@@ -18017,7 +18018,12 @@ function openNotifRow(id, isAnnouncement) {
       const leadsKind = params.get('leads');
       if (params.get('msg')) { openMessagesFromLink(params.get('msg')); return; }
       if (params.get('call')) { openCallFromLink(params.get('call')); return; }
-      if (params.get('espace')) { window.location.href = n.url; return; }
+      if (params.get('espace')) {
+        // Sécurité : on n'ouvre que des pages de CETTE application (jamais javascript:, ni un autre site).
+        let dest = null;
+        try { const u = new URL(String(n.url), window.location.origin); if (u.origin === window.location.origin) dest = u.pathname + u.search + u.hash; } catch (e) { /* lien invalide */ }
+        if (dest) { window.location.href = dest; return; }
+      }
       if (params.get('mysite')) { openMySiteFromLink(params.get('edit') === '1'); return; }
       if (leadsKind) { openLeadsManager(leadsKind === 'biz' ? 'biz' : 'site', 'appointment'); return; }
       if (pubId) { openPostDetail(pubId); return; }
