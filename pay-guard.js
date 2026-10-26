@@ -16,6 +16,12 @@
     CD: ['Vodacom M-Pesa', 'Airtel Money', 'Orange Money']
   };
 
+  // Pays où le Mobile Money passe par la page de paiement sécurisée OPTGateway (hors RDC, qui reste en direct).
+  // Liste unique définie dans script.js (OPT_MOBILE_CODES), même liste que api/payment-initiate.js.
+  function isOptMobile(code) {
+    try { return typeof OPT_MOBILE_CODES !== 'undefined' && code !== 'CD' && OPT_MOBILE_CODES.indexOf(code) >= 0; } catch (e) { return false; }
+  }
+
   var TXT = {
     fr: { country: "Le Mobile Money n'est pas encore disponible dans ton pays. Pas de souci : tu peux payer par carte bancaire ou par crypto, ça fonctionne partout.", operator: "{op} n'est pas encore disponible dans ce pays. Pour recharger tout de suite, choisis {ops}, ou paie par carte ou par crypto : c'est rapide et sécurisé.", cta: 'Payer par crypto', card: 'Payer par carte' },
     en: { country: 'Mobile Money is not available in your country yet. No worries: you can pay by bank card or crypto, both work everywhere.', operator: '{op} is not available in this country yet. To top up right away, choose {ops}, or pay by card or crypto: fast and secure.', cta: 'Pay with crypto', card: 'Pay by card' },
@@ -69,6 +75,7 @@
     if (typeof payMethod === 'undefined' || payMethod !== 'mobile') { hide(); return; }
     var code = (typeof payCountryCode !== 'undefined') ? payCountryCode : null;
     if (!code) { hide(); return; }
+    if (isOptMobile(code)) { hide(); return; }
     if (!COVERED[code]) { show(esc(tx('country'))); setUncovered(true); setSubmit(false); return; }
     setUncovered(false);
     var op = (typeof payOperator !== 'undefined') ? payOperator : null;
@@ -119,7 +126,8 @@
   if (typeof origSubmit === 'function') {
     window.submitRecharge = function () {
       try {
-        if (typeof payMethod !== 'undefined' && payMethod === 'mobile' && typeof payCountryCode !== 'undefined' && payCountryCode) {
+        // Pays OPTGateway : aucun blocage, l'opérateur se choisit sur la page de paiement sécurisée.
+        if (typeof payMethod !== 'undefined' && payMethod === 'mobile' && typeof payCountryCode !== 'undefined' && payCountryCode && !isOptMobile(payCountryCode)) {
           var ops = COVERED[payCountryCode];
           if (!ops || (typeof payOperator !== 'undefined' && payOperator && ops.indexOf(payOperator) < 0)) {
             evaluate();

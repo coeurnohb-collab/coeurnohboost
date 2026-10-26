@@ -443,6 +443,10 @@
   /* ===== Recharge complète (mêmes moyens que l'application) ===== */
   var MIN_USD = 2, MAX_USD = 1000;
   var COVERED = ['CD']; // pays où le Mobile Money direct est actif (comme l'application)
+  // Mobile Money via la page de paiement sécurisée OPTGateway (hors RDC) : mêmes 20 pays que l'application (script.js, OPT_MOBILE_CODES).
+  var OPT_MOBILE = ['CD', 'BJ', 'BF', 'CM', 'CG', 'CI', 'ET', 'GA', 'GH', 'KE', 'LS', 'MW', 'MZ', 'NG', 'UG', 'SN', 'SL', 'TZ', 'ZM', 'ZW'];
+  function optMob(code) { return code !== 'CD' && OPT_MOBILE.indexOf(code) >= 0; }
+  function mobOk(code) { return COVERED.indexOf(code) >= 0 || optMob(code); }
   var CTRY = [
     ['CD', '🇨🇩', 'RDC (Congo)', ['CDF', 'USD'], ['Vodacom M-Pesa', 'Airtel Money', 'Orange Money']],
     ['CG', '🇨🇬', 'Congo-Brazzaville', ['XAF'], ['Airtel Money', 'MTN Mobile Money']],
@@ -455,7 +459,16 @@
     ['RW', '🇷🇼', 'Rwanda', ['RWF'], ['Airtel Money', 'MTN Mobile Money']],
     ['UG', '🇺🇬', 'Uganda', ['UGX'], ['Airtel Money', 'MTN Mobile Money']],
     ['ZM', '🇿🇲', 'Zambia', ['ZMW'], ['Airtel Money', 'MTN Mobile Money', 'Zamtel Kwacha']],
-    ['SL', '🇸🇱', 'Sierra Leone', ['SLE'], ['Orange Money']]
+    ['SL', '🇸🇱', 'Sierra Leone', ['SLE'], ['Orange Money']],
+    ['BF', '🇧🇫', 'Burkina Faso', ['XOF'], ['Orange Money', 'Moov Money']],
+    ['ET', '🇪🇹', 'Ethiopia', ['ETB'], ['Telebirr']],
+    ['GH', '🇬🇭', 'Ghana', ['GHS'], ['MTN Mobile Money', 'Telecel Cash', 'AirtelTigo Money']],
+    ['LS', '🇱🇸', 'Lesotho', ['LSL'], ['M-Pesa', 'EcoCash']],
+    ['MW', '🇲🇼', 'Malawi', ['MWK'], ['Airtel Money', 'TNM Mpamba']],
+    ['MZ', '🇲🇿', 'Mozambique', ['MZN'], ['M-Pesa', 'e-Mola', 'mKesh']],
+    ['NG', '🇳🇬', 'Nigeria', ['NGN'], ['MTN MoMo', 'Airtel Money', 'Opay']],
+    ['TZ', '🇹🇿', 'Tanzania', ['TZS'], ['M-Pesa', 'Airtel Money', 'Tigo Pesa']],
+    ['ZW', '🇿🇼', 'Zimbabwe', ['ZWG'], ['EcoCash', 'OneMoney']]
   ];
   function opPill(n) { return /pesa/i.test(n) ? LG.mpesa : /airtel/i.test(n) ? LG.airtel : /orange/i.test(n) ? LG.orange : /mtn/i.test(n) ? '<i class="pm-lg lg-mtn">MTN</i>' : '<i class="pm-lg lg-gen">' + esc(String(n).slice(0, 5)) + '</i>'; }
   function opLabel(n) { return String(n).replace('Vodacom ', '').replace(' Mobile Money', '').replace(' (Safaricom)', ''); }
@@ -469,14 +482,15 @@
       return '<div class="pm-tabs">' + T4.map(function (t) { return '<button type="button" class="pm-tab' + (method === t[0] ? ' on' : '') + '" data-m="' + t[0] + '"><span class="lgs">' + t[2] + '</span><b>' + esc(T(t[1])) + '</b></button>'; }).join('') + '</div>';
     }
     function how() {
-      var l = method === 'mobile' ? ['rc_m1', 'rc_m2', 'rc_m3'] : method === 'crypto' ? ['rc_c1', 'rc_c2', 'rc_c3'] : ['rc_o1', 'rc_o2', 'rc_o3'], note = method === 'illico' ? T('rc_illico_note') : method === 'card' ? T('rc_card_note') : method === 'crypto' ? T('rc_crypto_note') : T('rc_drc_only');
+      var l = method === 'mobile' && !optMob(cc) ? ['rc_m1', 'rc_m2', 'rc_m3'] : method === 'crypto' ? ['rc_c1', 'rc_c2', 'rc_c3'] : ['rc_o1', 'rc_o2', 'rc_o3'], note = method === 'illico' ? T('rc_illico_note') : method === 'card' ? T('rc_card_note') : method === 'crypto' ? T('rc_crypto_note') : method === 'mobile' && optMob(cc) ? T('rc_opt_note') : T('rc_drc_only');
       return '<p class="pm-n">' + esc(note) + '</p><div class="pm-f" style="margin-bottom:0"><label>' + esc(T('rc_how')) + '</label><ol class="pm-steps">' + l.map(function (k, i) { return '<li><i>' + (i + 1) + '</i><span>' + esc(T(k)) + '</span></li>'; }).join('') + '</ol></div>';
     }
     function cty() { return CTRY.filter(function (c) { return c[0] === cc; })[0] || CTRY[0]; }
     function mobileBlock(keepPhone, keepCur) {
-      var c = cty(), ok = COVERED.indexOf(c[0]) >= 0;
-      var h = '<div class="pm-f"><label for="pm-cc">' + esc(T('rc_country')) + '</label><select id="pm-cc">' + CTRY.map(function (x) { return '<option value="' + x[0] + '"' + (x[0] === cc ? ' selected' : '') + '>' + x[1] + ' ' + esc(x[2]) + (COVERED.indexOf(x[0]) >= 0 ? '' : ' — ' + esc(T('rc_soon'))) + '</option>'; }).join('') + '</select></div>';
+      var c = cty(), ok = mobOk(c[0]);
+      var h = '<div class="pm-f"><label for="pm-cc">' + esc(T('rc_country')) + '</label><select id="pm-cc">' + CTRY.map(function (x) { return '<option value="' + x[0] + '"' + (x[0] === cc ? ' selected' : '') + '>' + x[1] + ' ' + esc(x[2]) + (mobOk(x[0]) ? '' : ' — ' + esc(T('rc_soon'))) + '</option>'; }).join('') + '</select></div>';
       if (!ok) return h + '<div class="pm-ref">' + esc(T('rc_soon_msg', { c: c[2] })) + '</div><div style="display:flex;gap:8px"><button type="button" class="pm-b w" data-m="card">' + LG.visa + esc(T('rc_card')) + '</button><button type="button" class="pm-b w" data-m="crypto">' + LG.usdt + esc(T('rc_crypto')) + '</button></div>';
+      if (optMob(c[0])) return h; // OPTGateway : opérateur et numéro se saisissent sur la page de paiement sécurisée
       if (c[4].indexOf(op) < 0) op = '';
       return h + '<div class="pm-f"><label>' + esc(T('rc_op')) + '</label><div class="pm-ops">' + c[4].map(function (o) { return '<button type="button" class="pm-op' + (op === o ? ' on' : '') + '" data-o="' + esc(o) + '">' + opPill(o) + '<b>' + esc(opLabel(o)) + '</b></button>'; }).join('') + '</div></div>' +
         '<div class="pm-f"><label for="pm-ph">' + esc(T('rc_phone')) + '</label><input id="pm-ph" type="tel" inputmode="tel" autocomplete="tel" placeholder="243…" value="' + esc(keepPhone) + '"></div>' + (c[3].length > 1 ? '<div class="pm-f"><label for="pm-cur">' + esc(T('rc_cur')) + '</label><select id="pm-cur">' + c[3].map(function (u) { return '<option value="' + u + '"' + (keepCur === u ? ' selected' : '') + '>' + u + '</option>'; }).join('') + '</select></div>' : '');
@@ -508,11 +522,14 @@
       if (amt > MAX_USD) { err.textContent = T('rc_e_amount'); return; }
       var body;
       if (method === 'mobile') {
-        var ph = (box.querySelector('#pm-ph').value || '').replace(/\D/g, '');
+        var phEl = box.querySelector('#pm-ph'), ph = ((phEl && phEl.value) || '').replace(/\D/g, '');
+        if (!mobOk(cc)) { err.textContent = T('rc_soon_msg', { c: cty()[2] }); return; }
+        if (optMob(cc)) body = { provider: 'optgateway', amountUSD: amt, onlyMethod: 'mobile_money', countryCode: cc };
+        else {
         if (!op) { err.textContent = T('rc_e_op'); return; }
         if (ph.length < 8) { err.textContent = T('rc_e_phone'); return; }
-        if (COVERED.indexOf(cc) < 0) { err.textContent = T('rc_soon_msg', { c: cty()[2] }); return; }
         var curEl = box.querySelector('#pm-cur'); body = { provider: 'mobile', amountUSD: amt, countryCode: cc, operatorName: op, phone: ph, chargeCurrency: curEl ? curEl.value : cty()[3][0] };
+        }
       } else if (method === 'crypto') body = { provider: 'crypto', amount: amt };
       else body = { provider: 'optgateway', amountUSD: amt, onlyMethod: method === 'illico' ? 'illicocash' : 'card' };
       busy = true; b.disabled = true; b.textContent = T('rc_paying');
@@ -520,7 +537,7 @@
         var tok = await auth.currentUser.getIdToken(), prev = Number(S.bal) || 0;
         body.idToken = tok; body.returnSlug = S.slug;
         var r = await fetch('/api/payment-initiate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); var j = await r.json();
-        if (method === 'mobile') {
+        if (method === 'mobile' && !optMob(cc)) {
           if (!j.success) throw new Error(j.error || T('rc_e_gen'));
           box.innerHTML = '<div class="hd"><h2>' + esc(T('rc_title')) + '</h2><button class="pm-x" data-x>' + ico('x', 18) + '</button></div><div class="pm-ref" style="margin-top:12px">' + esc(T('rc_sent')) + '</div><button class="pm-b p w" data-x>' + esc(T('ok')) + '</button>';
           box.querySelectorAll('[data-x]').forEach(function (x) { x.onclick = function () { m.remove(); }; });

@@ -766,7 +766,12 @@ const COUNTRIES = [
   { code:"ET", name:"Éthiopie",              flag:"🇪🇹", currency:"ETB",  rate:120,   ops:["Telebirr"] },
   { code:"SL", name:"Sierra Leone",          flag:"🇸🇱", currency:"SLE",  rate:22.5,  ops:["Orange Money","Africell Money"] },
   { code:"ZA", name:"Afrique du Sud",        flag:"🇿🇦", currency:"ZAR",  rate:18,    ops:["MTN MoMo","Vodacom"] },
-  { code:"MG", name:"Madagascar",            flag:"🇲🇬", currency:"MGA",  rate:4500,  ops:["Orange Money","Telma Mvola","Airtel Money"] }
+  { code:"MG", name:"Madagascar",            flag:"🇲🇬", currency:"MGA",  rate:4500,  ops:["Orange Money","Telma Mvola","Airtel Money"] },
+  { code:"GA", name:"Gabon",                 flag:"🇬🇦", currency:"XAF",  rate:600,   ops:["Airtel Money","Moov Money"] },
+  { code:"LS", name:"Lesotho",               flag:"🇱🇸", currency:"LSL",  rate:18,    ops:["M-Pesa","EcoCash"] },
+  { code:"MW", name:"Malawi",                flag:"🇲🇼", currency:"MWK",  rate:1750,  ops:["Airtel Money","TNM Mpamba"] },
+  { code:"MZ", name:"Mozambique",            flag:"🇲🇿", currency:"MZN",  rate:64,    ops:["M-Pesa","e-Mola","mKesh"] },
+  { code:"ZW", name:"Zimbabwe",              flag:"🇿🇼", currency:"ZWG",  rate:26,    ops:["EcoCash","OneMoney"] }
 ];
 
 const CRYPTOS = [
@@ -1323,8 +1328,8 @@ function payFriendlyError(response, data) {
   return t('pay_err_generic');
 }
 const ICON_ILLICO = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2"/><path d="M3 7v11a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2H5a2 2 0 0 1-2-2z"/><circle cx="16.5" cy="14.5" r="1.2" fill="currentColor"/></svg>`;
-// Moyens payés via la page hébergée OPTGateway (carte, illicocash) : même flux, une seule méthode imposée.
-function isOptMethod() { return CARD_VIA_OPT && (payMethod === 'card' || payMethod === 'illicocash'); }
+// Moyens payés via la page hébergée OPTGateway (carte, illicocash, Mobile Money hors RDC) : même flux, une seule méthode imposée.
+function isOptMethod() { return CARD_VIA_OPT && (payMethod === 'card' || payMethod === 'illicocash' || payUsesOptMobile()); }
 // Mini-logos de confiance affichés dans chaque onglet (pastilles de marques de paiement).
 const CN_LG = {
   mpesa:  '<i class="cn-lg lg-mpesa">M-PESA</i>',
@@ -1337,8 +1342,8 @@ const CN_LG = {
   usdt:   '<i class="cn-lg lg-coin lg-usdt">₮</i>',
   trx:    '<i class="cn-lg lg-coin lg-trx">T</i>'
 };
-// Moyens payés via la page hébergée OPTGateway (carte, illicocash) : même flux, une seule méthode imposée.
-function isOptMethod() { return CARD_VIA_OPT && (payMethod === 'card' || payMethod === 'illicocash'); }
+// Moyens payés via la page hébergée OPTGateway (carte, illicocash, Mobile Money hors RDC) : même flux, une seule méthode imposée.
+function isOptMethod() { return CARD_VIA_OPT && (payMethod === 'card' || payMethod === 'illicocash' || payUsesOptMobile()); }
 function renderPayMethodTabs() {
   const methods = [
     { id: "mobile",     label: t('pay_mobile'),    logos: CN_LG.mpesa + CN_LG.orange + CN_LG.airtel },
@@ -1358,8 +1363,29 @@ function selectPayMethod(m) {
   renderPayMethodTabs();
   renderPayPanel();
 }
-// Pays où le Mobile Money (MbotePay) fonctionne réellement : même liste que api/payment-initiate.js et pay-guard.js.
-const MOBILE_COVERED_CODES = ['CD'];
+// Pays où le Mobile Money fonctionne : la RDC en direct (MbotePay) et les 20 pays d'OPTGateway (page de paiement
+// sécurisée où la personne choisit son opérateur). Même liste que api/payment-initiate.js, pay-guard.js et panel-store.js.
+const OPT_MOBILE_CODES = ['CD', 'BJ', 'BF', 'CM', 'CG', 'CI', 'ET', 'GA', 'GH', 'KE', 'LS', 'MW', 'MZ', 'NG', 'UG', 'SN', 'SL', 'TZ', 'ZM', 'ZW'];
+const MOBILE_COVERED_CODES = OPT_MOBILE_CODES;
+// Mobile Money via OPTGateway : tous ces pays sauf la RDC (qui garde le Mobile Money direct, sans quitter l'application).
+function payUsesOptMobile() {
+  return CARD_VIA_OPT && payMethod === 'mobile' && !!payCountryCode && payCountryCode !== 'CD' && OPT_MOBILE_CODES.includes(payCountryCode);
+}
+// Pays OPTGateway : pas d'opérateur ni de numéro à saisir ici, la personne les choisit sur la page de paiement sécurisée.
+function renderPayOptNote() {
+  const on = payUsesOptMobile();
+  const note = document.getElementById('pay-opt-note');
+  const phone = document.getElementById('pay-phone-block');
+  const ops = document.getElementById('pay-operators');
+  if (note) { note.classList.toggle('hidden', !on); if (on) note.textContent = t('pay_opt_note'); }
+  if (phone) phone.classList.toggle('hidden', on);
+  if (ops) ops.classList.toggle('hidden', on);
+  // Bouton « Payer » (et non « Envoyer la demande ») dès qu'un pays OPTGateway est choisi, et pas de mention de validation manuelle.
+  const subBtn = document.getElementById('recharge-submit-btn');
+  if (subBtn && !subBtn.disabled) { const k = isOptMethod() ? 'pay_btn_pay' : 'pay_submit'; subBtn.setAttribute('data-i18n', k); subBtn.textContent = t(k); }
+  const manualNote = document.getElementById('pay-manual-note');
+  if (manualNote) manualNote.classList.toggle('hidden', isOptMethod());
+}
 function renderPayCountrySelect() {
   const sel = document.getElementById('pay-country-select');
   const opt = c => `<option value="${c.code}">${c.flag} ${c.name}</option>`;
@@ -1389,6 +1415,7 @@ function onPayCountryChange() {
   payCurrency = "USD";
   document.getElementById('recharge-amount').value = '';
   renderPayOperators();
+  renderPayOptNote();
   renderPayCurrencyToggle();
   updateRechargeEquivalent();
 }
@@ -1592,13 +1619,14 @@ function renderPayPanel() {
   if (payMethod === 'crypto') renderPayCryptoOptions();
   renderDirectPay();
   const dbox = document.getElementById('pay-direct-box'); if (dbox && payMethod !== 'crypto') dbox.classList.add('hidden');
+  renderPayOptNote();
   renderPayCurrencyToggle();
 }
 function updateRechargeEquivalent() {
   const amount = parseFloat(document.getElementById('recharge-amount').value || 0);
   const country = COUNTRIES.find(c => c.code === payCountryCode);
   const hint = document.getElementById('recharge-equivalent');
-  if (payMethod === 'mobile' && country && amount > 0) {
+  if (payMethod === 'mobile' && country && amount > 0 && !payUsesOptMobile()) {
     const liveRate = LIVE_RATES && LIVE_RATES[country.currency];
     const rate = liveRate || country.rate;
     const sourceTag = liveRate ? t('pay_rate_live') : t('pay_rate_indicative');
@@ -1628,13 +1656,13 @@ async function submitRecharge() {
     errEl.classList.remove('hidden');
     return;
   }
-  if (payMethod === 'mobile' && (!payCountryCode || !payOperator)) {
+  if (payMethod === 'mobile' && (!payCountryCode || (!payOperator && !payUsesOptMobile()))) {
     errEl.textContent = t('pay_err_operator');
     errEl.classList.remove('hidden');
     return;
   }
   const phone = document.getElementById('recharge-phone').value.trim();
-  if (payMethod === 'mobile' && !phone) {
+  if (payMethod === 'mobile' && !phone && !payUsesOptMobile()) {
     errEl.textContent = t('pay_err_phone');
     errEl.classList.remove('hidden');
     return;
@@ -1696,7 +1724,7 @@ async function submitRecharge() {
     }
 
     // Mobile Money : on tente MboтePay (pays couverts), sinon flux manuel comme avant
-    if (payMethod === 'mobile') {
+    if (payMethod === 'mobile' && !payUsesOptMobile()) {
       const idToken = await auth.currentUser.getIdToken();
       const response = await fetch('/api/payment-initiate', {
         method: 'POST',
@@ -1751,7 +1779,7 @@ async function submitRecharge() {
       const response = await fetch('/api/payment-initiate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ idToken, provider: 'optgateway', amountUSD: amount, onlyMethod: payMethod === 'illicocash' ? 'illicocash' : 'card' })
+        body: JSON.stringify({ idToken, provider: 'optgateway', amountUSD: amount, onlyMethod: payMethod === 'illicocash' ? 'illicocash' : (payMethod === 'mobile' ? 'mobile_money' : 'card'), countryCode: payMethod === 'mobile' ? payCountryCode : undefined })
       });
       const data = await response.json();
       if (!response.ok || !data.success || typeof data.paymentUrl !== 'string' || !/^https:\/\//.test(data.paymentUrl)) {
