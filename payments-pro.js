@@ -66,11 +66,23 @@
       });
       if (kind === 'success') poll(o);
     }
+    // Filet de sécurité (Mobile Money SasPay) : demande au serveur de revérifier nos recharges en attente,
+    // au cas où la notification automatique tarde. Le serveur ne crédite qu'après contrôle auprès de SasPay.
+    async function syncSaspay() {
+      try {
+        var a = (typeof auth !== 'undefined' && auth) || (window.firebase && window.firebase.auth && window.firebase.auth());
+        if (!a || !a.currentUser) return;
+        var tk = await a.currentUser.getIdToken();
+        await fetch('/api/payment-webhook?provider=saspay-sync', { method: 'POST', headers: { Authorization: 'Bearer ' + tk } });
+      } catch (e) { /* la notification automatique reste le chemin principal */ }
+    }
     async function poll(o) {
       var before = null, n = 0;
       try { before = await getBalance(); setBalanceUi(before); } catch (e) { return; }
+      syncSaspay();
       var iv = setInterval(async function () {
         n++;
+        if (n === 2 || n === 6 || n === 10) syncSaspay();
         if (!document.body.contains(o)) { clearInterval(iv); return; }
         try {
           var now = await getBalance();
