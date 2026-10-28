@@ -161,44 +161,6 @@
     try { console.warn('[cn] promesse rejetée :', ev.reason && (ev.reason.message || ev.reason.code || ev.reason)); } catch (e) { /* ignore */ }
   });
 
-  /* ---------- 4 bis. Ambiance vidéo (accueil et connexion) + logo en filigrane ---------- */
-  function videoAllowed() {
-    try {
-      if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return false;
-      var c = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-      if (c && (c.saveData || /(^|-)2g$/.test(c.effectiveType || ''))) return false;
-    } catch (e) { /* ignore */ }
-    return true;
-  }
-  function safePlay(v) { try { var p = v.play(); if (p && p.catch) p.catch(function () { /* lecture auto refusée : l'image fixe reste */ }); } catch (e) { /* ignore */ } }
-  function mountVideo(host, base) {
-    if (!host || host.querySelector('.cn-bgvideo')) return;
-    var wm = document.createElement('div'); wm.className = 'cn-watermark'; wm.setAttribute('aria-hidden', 'true');
-    host.insertBefore(wm, host.firstChild);
-    if (!videoAllowed()) return;
-    var v = document.createElement('video');
-    v.className = 'cn-bgvideo'; v.muted = true; v.loop = true; v.autoplay = true; v.playsInline = true; v.preload = 'auto'; v.tabIndex = -1; v.disablePictureInPicture = true;
-    v.setAttribute('muted', ''); v.setAttribute('playsinline', ''); v.setAttribute('aria-hidden', 'true'); v.poster = base + '-poster.jpg';
-    v.innerHTML = '<source src="' + base + '.mp4" type="video/mp4"><source src="' + base + '.webm" type="video/webm">';
-    v.addEventListener('playing', function () { v.classList.add('on'); });
-    // Seule l'erreur de la vidéo elle-même compte (toutes les sources ont échoué) : une source non lue (ex. MP4) laisse la suivante (WebM) essayer.
-    v.addEventListener('error', function (ev) { if (ev.target === v && v.parentNode) v.parentNode.removeChild(v); });
-    host.insertBefore(v, host.firstChild);
-    safePlay(v);
-    // Batterie et données : pause dès que le bloc n'est plus visible ou que l'onglet est caché
-    if ('IntersectionObserver' in window) {
-      new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) safePlay(v); else v.pause(); }); }, { threshold: 0.01 }).observe(host);
-    }
-    document.addEventListener('visibilitychange', function () { if (document.hidden) v.pause(); else if (host.offsetParent !== null) safePlay(v); });
-  }
-  var origOpenAuth = window.openAuth;
-  if (typeof origOpenAuth === 'function') {
-    window.openAuth = function () {
-      var r = origOpenAuth.apply(this, arguments);
-      return r;
-    };
-  }
-  function mountHome() { try { mountVideo(document.querySelector('.hero'), 'intro-light'); } catch (e) { /* ignore */ } }
 
   /* ---------- 4 ter. Journal d'erreurs : les erreurs réelles des utilisateurs connectés sont consignées (30 jours) ---------- */
   var errSent = 0, errSeen = {};
@@ -245,8 +207,6 @@
   var fitTimer = null;
   function onReady() {
     fitLogo();
-    var idle = window.requestIdleCallback || function (f) { return setTimeout(f, 700); };
-    setTimeout(function () { idle(mountHome); }, 900);
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitLogo);
     window.addEventListener('resize', function () { clearTimeout(fitTimer); fitTimer = setTimeout(fitLogo, 120); });
     window.addEventListener('orientationchange', function () { setTimeout(fitLogo, 250); });

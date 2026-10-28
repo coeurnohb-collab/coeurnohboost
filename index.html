@@ -201,7 +201,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="app.min.css?v=666b45619e" onerror="['style','polish','menu-pro','pro'].forEach(function(n){var l=document.createElement('link');l.rel='stylesheet';l.href=n+'.css';document.head.appendChild(l)})">
+<link rel="stylesheet" href="app.min.css?v=51398c84ac" onerror="['style','polish','menu-pro','pro'].forEach(function(n){var l=document.createElement('link');l.rel='stylesheet';l.href=n+'.css';document.head.appendChild(l)})">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check-compat.js" defer></script>
 <script src="app-check.js" defer></script>
@@ -299,120 +299,196 @@
 
 <!-- ================= PUBLIC HOME ================= -->
 <div id="view-home" class="hidden">
-  <section class="hero">
+
+  <section class="hm-hero" aria-labelledby="hm-h1">
+    <div class="wrap hm-hero-grid">
+      <div class="hm-hero-copy">
+        <span class="hm-eyebrow" data-i18n="hn_eyebrow">Plateforme tout-en-un</span>
+        <h1 class="hm-title" id="hm-h1"><span data-i18n="hn_title">Développez votre activité</span> <em data-i18n="hn_title_em">depuis une seule application.</em></h1>
+        <p class="hm-lead" data-i18n="hn_lead">Créez votre site, trouvez des clients, facturez, formez-vous et boostez vos réseaux sociaux. Paiement par mobile money, crypto ou carte, partout en Afrique francophone.</p>
+        <div class="hm-actions">
+          <button type="button" class="hm-btn hm-btn-primary" onclick="openAuth('register')" data-i18n="hn_cta">Créer mon compte gratuit</button>
+          <button type="button" class="hm-btn hm-btn-ghost" onclick="openAuth('login')" data-i18n="nav_login">Se connecter</button>
+        </div>
+      </div>
+      <aside class="hm-pay" aria-labelledby="hm-pay-t">
+        <h2 class="hm-pay-title" id="hm-pay-t" data-i18n="hn_pay_title">Moyens de paiement acceptés</h2>
+        <div class="pay-icons" id="hero-pay-icons"></div>
+        <p class="hm-pay-note" data-i18n="hn_pay_note">Rechargez votre solde avec les moyens que vous utilisez déjà.</p>
+      </aside>
+    </div>
+    <div class="wrap"><ul class="hm-trust">
+      <li><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg><span data-i18n="hn_trust1">Mobile money, crypto et carte</span></li>
+      <li><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span data-i18n="hn_trust2">Support actif 24h/24</span></li>
+      <li><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M11 18h2"/></svg><span data-i18n="hn_trust3">Application installable</span></li>
+      <li><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18Z"/></svg><span data-i18n="hn_trust4">Disponible en 5 langues</span></li>
+    </ul>
+    </div>
+  </section>
+
+  <section class="hm-metrics" aria-label="Coeurnoh Universe">
+    <div class="wrap hm-metrics-grid">
+      <div class="hm-metric"><strong>14+</strong><span data-i18n="stat_platforms">Plateformes</span></div>
+      <div class="hm-metric"><strong>24/7</strong><span data-i18n="stat_support">Support actif</span></div>
+      <div class="hm-metric"><strong>3</strong><span data-i18n="stat_quality">Niveaux de qualité</span></div>
+      <div class="hm-metric"><strong>20+</strong><span data-i18n="stat_countries">Pays couverts</span></div>
+    </div>
+  </section>
+
+  <section class="hm-section" id="hm-services">
     <div class="wrap">
-      <span class="eyebrow" data-i18n="hero_eyebrow">Panel de croissance réseaux sociaux</span>
-      <h1><span data-i18n="hero_title">Boost réel, paiement mobile,</span><br><em data-i18n="hero_title_em">résultats qui comptent.</em></h1>
-      <p class="lead" data-i18n="hero_lead">TikTok, Instagram, YouTube, Facebook, Spotify et plus — followers, vues, likes, commentaires. Paiement mobile money, crypto et carte, partout en Afrique francophone.</p>
-      <div class="hero-actions">
-        <button class="btn btn-primary btn-lg" data-i18n="hero_cta" onclick="openAuth('register')">Créer mon compte gratuit →</button>
+      <div class="hm-head">
+        <span class="hm-kicker" data-i18n="home_multi_eyebrow">Bien plus qu'un panel SMM</span>
+        <h2 class="hm-h2" data-i18n="home_multi_title">Un seul compte, des services multiples</h2>
+        <p class="hm-sub" data-i18n="home_multi_sub">Boutique, factures, emploi, académie, immobilier, voyages, événements et plus encore — tout Coeurnoh Universe dans une seule application.</p>
       </div>
-      <div class="pay-icons" id="hero-pay-icons"></div>
+      <div class="hm-cards">
+        <button type="button" class="hm-card" onclick="openAuth('register')">
+          <span class="hm-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L2 19l3 3 7.3-7.3a4 4 0 0 0 5.4-5.4l-2.8 2.8-2-2Z"/></svg></span>
+          <span class="hm-card-body"><span class="hm-card-t" data-i18n="svc_pro">Trouver un professionnel</span><span class="hm-card-d" data-i18n="hn_d_pro">Trouvez des artisans et des experts près de chez vous.</span></span>
+          <svg class="hm-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+        </button>
+        <button type="button" class="hm-card" onclick="openAuth('register')">
+          <span class="hm-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10Z"/></svg></span>
+          <span class="hm-card-body"><span class="hm-card-t" data-i18n="hn_t_site">Créer votre site</span><span class="hm-card-d" data-i18n="hn_d_site">Un site professionnel en ligne en quelques minutes.</span></span>
+          <svg class="hm-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+        </button>
+        <button type="button" class="hm-card" onclick="openAuth('register')">
+          <span class="hm-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="2" width="16" height="20" rx="1.5"/><path d="M9 7h.01M15 7h.01M9 11h.01M15 11h.01"/><path d="M9 15h6"/></svg></span>
+          <span class="hm-card-body"><span class="hm-card-t" data-i18n="svc_business">Entreprises</span><span class="hm-card-d" data-i18n="hn_d_business">Présentez votre entreprise et gagnez de nouveaux clients.</span></span>
+          <svg class="hm-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+        </button>
+        <button type="button" class="hm-card" onclick="openAuth('register')">
+          <span class="hm-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h8"/></svg></span>
+          <span class="hm-card-body"><span class="hm-card-t" data-i18n="svc_invoices">Factures &amp; Reçus</span><span class="hm-card-d" data-i18n="hn_d_invoices">Des factures et reçus clairs, prêts à envoyer.</span></span>
+          <svg class="hm-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+        </button>
+        <button type="button" class="hm-card" onclick="openAuth('register')">
+          <span class="hm-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></span>
+          <span class="hm-card-body"><span class="hm-card-t" data-i18n="svc_jobs">Emploi &amp; Freelance</span><span class="hm-card-d" data-i18n="hn_d_jobs">Publiez ou trouvez des offres, contrats et missions.</span></span>
+          <svg class="hm-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+        </button>
+        <button type="button" class="hm-card" onclick="openAuth('register')">
+          <span class="hm-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 10 12 5 2 10l10 5 10-5Z"/><path d="M6 12v5c0 1.5 3 3 6 3s6-1.5 6-3v-5"/></svg></span>
+          <span class="hm-card-body"><span class="hm-card-t" data-i18n="svc_academy">Académie</span><span class="hm-card-d" data-i18n="hn_d_academy">Cours et auto-études avec certificat à la clé.</span></span>
+          <svg class="hm-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+        </button>
+        <button type="button" class="hm-card" onclick="openAuth('register')">
+          <span class="hm-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10"/></svg></span>
+          <span class="hm-card-body"><span class="hm-card-t" data-i18n="svc_immo">Immobilier</span><span class="hm-card-d" data-i18n="hn_d_immo">Louez, achetez ou vendez un bien.</span></span>
+          <svg class="hm-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+        </button>
+        <button type="button" class="hm-card" onclick="openAuth('register')">
+          <span class="hm-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5Z"/></svg></span>
+          <span class="hm-card-body"><span class="hm-card-t" data-i18n="svc_travel">Voyages</span><span class="hm-card-d" data-i18n="hn_d_travel">Préparez vos voyages et vos séjours.</span></span>
+          <svg class="hm-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+        </button>
+        <button type="button" class="hm-card" onclick="openAuth('register')">
+          <span class="hm-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span>
+          <span class="hm-card-body"><span class="hm-card-t" data-i18n="svc_booking">Réservation en ligne</span><span class="hm-card-d" data-i18n="hn_d_booking">Prenez ou recevez des rendez-vous en ligne.</span></span>
+          <svg class="hm-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+        </button>
+        <button type="button" class="hm-card" onclick="openAuth('register')">
+          <span class="hm-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg></span>
+          <span class="hm-card-body"><span class="hm-card-t" data-i18n="svc_nearby">Près de chez vous</span><span class="hm-card-d" data-i18n="hn_d_nearby">Commerces et services autour de vous.</span></span>
+          <svg class="hm-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+        </button>
+        <button type="button" class="hm-card" onclick="openAuth('register')">
+          <span class="hm-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 9a3 3 0 0 1 0 6v3a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-3a3 3 0 0 1 0-6V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2M13 17v2M13 11v2"/></svg></span>
+          <span class="hm-card-body"><span class="hm-card-t" data-i18n="svc_events">Événements &amp; Billetterie</span><span class="hm-card-d" data-i18n="hn_d_events">Créez un événement et vendez vos billets.</span></span>
+          <svg class="hm-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+        </button>
+        <button type="button" class="hm-card" onclick="openAuth('register')">
+          <span class="hm-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M17 5h2a2 2 0 0 1 2 2 4 4 0 0 1-4 4"/><path d="M7 5H5a2 2 0 0 0-2 2 4 4 0 0 0 4 4"/></svg></span>
+          <span class="hm-card-body"><span class="hm-card-t" data-i18n="svc_contests">Concours &amp; Récompenses</span><span class="hm-card-d" data-i18n="hn_d_contests">Participez et gagnez des récompenses.</span></span>
+          <svg class="hm-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+        </button>
+        <button type="button" class="hm-card" onclick="openAuth('register')">
+          <span class="hm-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></span>
+          <span class="hm-card-body"><span class="hm-card-t" data-i18n="svc_alerts">Alertes</span><span class="hm-card-d" data-i18n="hn_d_alerts">Restez informé en temps réel sur votre téléphone.</span></span>
+          <svg class="hm-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+        </button>
+      </div>
+      <div class="hm-center">
+        <button type="button" class="hm-btn hm-btn-solid" onclick="openAuth('register')" data-i18n="home_multi_cta">Découvrir tous les services</button>
+      </div>
     </div>
   </section>
 
-  <section class="stats-bar">
-    <div class="wrap stats-grid">
-      <div class="stat"><strong>14+</strong><span data-i18n="stat_platforms">Plateformes</span></div>
-      <div class="stat"><strong>24/7</strong><span data-i18n="stat_support">Support actif</span></div>
-      <div class="stat"><strong>3</strong><span data-i18n="stat_quality">Niveaux de qualité</span></div>
-      <div class="stat"><strong>20+</strong><span data-i18n="stat_countries">Pays couverts</span></div>
-    </div>
-  </section>
-
-  <section class="wrap multi-services">
-    <span class="eyebrow" data-i18n="home_multi_eyebrow">Bien plus qu'un panel SMM</span>
-    <h2 data-i18n="home_multi_title">Un seul compte, des services multiples</h2>
-    <p class="lead" data-i18n="home_multi_sub">Boutique, factures, emploi, académie, immobilier, voyages, événements et plus encore — tout Coeurnoh Universe dans une seule application.</p>
-    <div class="multi-service-grid">
-      <div class="multi-service-card">
-        <span class="multi-service-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L2 19l3 3 7.3-7.3a4 4 0 0 0 5.4-5.4l-2.8 2.8-2-2Z"/></svg></span>
-        <span data-i18n="svc_pro">Trouver un professionnel</span>
-      </div>
-      <div class="multi-service-card">
-        <span class="multi-service-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10Z"/></svg></span>
-        <span data-i18n="svc_site">Crée ton site</span>
-      </div>
-      <div class="multi-service-card">
-        <span class="multi-service-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="1"/><line x1="9" y1="7" x2="9" y2="7.01"/><line x1="15" y1="7" x2="15" y2="7.01"/><line x1="9" y1="11" x2="9" y2="11.01"/><line x1="15" y1="11" x2="15" y2="11.01"/><line x1="9" y1="15" x2="15" y2="15"/></svg></span>
-        <span data-i18n="svc_business">Entreprises</span>
-      </div>
-      <div class="multi-service-card">
-        <span class="multi-service-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg></span>
-        <span data-i18n="svc_invoices">Factures &amp; Reçus</span>
-      </div>
-      <div class="multi-service-card">
-        <span class="multi-service-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></span>
-        <span data-i18n="svc_jobs">Emploi &amp; Freelance</span>
-      </div>
-      <div class="multi-service-card">
-        <span class="multi-service-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5Z"/><path d="M6 12v5c0 1.5 3 3 6 3s6-1.5 6-3v-5"/></svg></span>
-        <span data-i18n="svc_academy">Académie</span>
-      </div>
-      <div class="multi-service-card">
-        <span class="multi-service-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10"/></svg></span>
-        <span data-i18n="svc_immo">Immobilier</span>
-      </div>
-      <div class="multi-service-card">
-        <span class="multi-service-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5Z"/></svg></span>
-        <span data-i18n="svc_travel">Voyages</span>
-      </div>
-      <div class="multi-service-card">
-        <span class="multi-service-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
-        <span data-i18n="svc_booking">Réservation en ligne</span>
-      </div>
-      <div class="multi-service-card">
-        <span class="multi-service-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg></span>
-        <span data-i18n="svc_nearby">Près de chez vous</span>
-      </div>
-      <div class="multi-service-card">
-        <span class="multi-service-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v3a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-3a3 3 0 0 1 0-6V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/></svg></span>
-        <span data-i18n="svc_events">Événements &amp; Billetterie</span>
-      </div>
-      <div class="multi-service-card">
-        <span class="multi-service-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M17 5h2a2 2 0 0 1 2 2 4 4 0 0 1-4 4"/><path d="M7 5H5a2 2 0 0 0-2 2 4 4 0 0 0 4 4"/></svg></span>
-        <span data-i18n="svc_contests">Concours &amp; Récompenses</span>
-      </div>
-      <div class="multi-service-card">
-        <span class="multi-service-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>
-        <span data-i18n="svc_alerts">Alertes</span>
-      </div>
-    </div>
-    <div class="multi-services-cta">
-      <button class="btn btn-primary" data-i18n="home_multi_cta" onclick="openAuth('register')">Découvrir tous les services</button>
-    </div>
-  </section>
-
-  <section class="wrap services-teaser">
-    <h2 class="page-title" data-i18n="services_title">Services populaires</h2>
-    <p class="muted" style="text-align:center;margin-bottom:20px" data-i18n="catalog_public_sub">Découvre nos tarifs — crée ton compte pour commander.</p>
-
-    <input type="text" id="home-platform-search" class="text-input" data-i18n-placeholder="search_placeholder" placeholder="Rechercher un réseau..." style="margin-bottom:16px" oninput="filterPlatformGrid('home-platform-grid', this.value)">
-    <div class="platform-grid" id="home-platform-grid"></div>
-  </section>
-
-  <section class="wrap how-it-works">
-    <h2 class="page-title" data-i18n="how_title">Comment ça marche</h2>
-    <div class="steps-grid">
-      <div class="step"><span class="step-num">1</span><h3 data-i18n="how_step1_title">Crée ton compte</h3><p data-i18n="how_step1_text">Inscription en moins d'une minute, par email ou Google.</p></div>
-      <div class="step"><span class="step-num">2</span><h3 data-i18n="how_step2_title">Recharge ton solde</h3><p data-i18n="how_step2_text">Mobile money, crypto ou carte virtuelle.</p></div>
-      <div class="step"><span class="step-num">3</span><h3 data-i18n="how_step3_title">Lance ta commande</h3><p data-i18n="how_step3_text">Choisis ton service, ta quantité, et regarde les résultats arriver.</p></div>
-    </div>
-  </section>
-
-  <footer class="footer">
+  <section class="hm-section hm-band" id="hm-platforms">
     <div class="wrap">
-      <p>© 2026 Coeurnoh Business — Coeurnoh Universe. <span data-i18n="footer_rights">Tous droits réservés</span>.</p>
-      <div class="footer-links">
-        <a href="/services">Services</a>
-        <a href="/aide">Aide</a>
-        <a href="/about">À propos</a>
-        <a href="/terms">Conditions</a>
-        <a href="/privacy">Confidentialité</a>
-        <a href="/contact">Contact</a>
-        <a href="https://wa.me/243825001290">WhatsApp</a>
+      <div class="hm-head">
+        <span class="hm-kicker" data-i18n="hn_smm_eyebrow">Croissance réseaux sociaux</span>
+        <h2 class="hm-h2" data-i18n="hn_smm_title">Boostez votre présence en ligne</h2>
+        <p class="hm-sub" data-i18n="hn_smm_sub">Consultez les tarifs, puis créez votre compte pour commander.</p>
       </div>
-      <p id="cn-recaptcha-legal" class="muted small" style="display:none;margin-top:8px;font-size:.72rem;opacity:.7">Protégé par reCAPTCHA — la <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">politique de confidentialité</a> et les <a href="https://policies.google.com/terms" target="_blank" rel="noopener">conditions d'utilisation</a> de Google s'appliquent.</p>
+      <input type="text" id="home-platform-search" class="text-input hm-search" data-i18n-placeholder="search_placeholder" placeholder="Rechercher un réseau..." aria-label="Rechercher un réseau" oninput="filterPlatformGrid('home-platform-grid', this.value)">
+      <div class="platform-grid" id="home-platform-grid"></div>
+    </div>
+  </section>
+
+  <section class="hm-section" id="hm-how">
+    <div class="wrap">
+      <div class="hm-head">
+        <h2 class="hm-h2" data-i18n="how_title">Comment ça marche</h2>
+      </div>
+      <ol class="hm-steps">
+        <li><span class="hm-num">1</span><h3 data-i18n="hn_s1_t">Créez votre compte</h3><p data-i18n="hn_s1_d">Inscription en moins d'une minute, par e-mail ou avec Google.</p></li>
+        <li><span class="hm-num">2</span><h3 data-i18n="hn_s2_t">Rechargez votre solde</h3><p data-i18n="hn_s2_d">Mobile money, crypto ou carte virtuelle.</p></li>
+        <li><span class="hm-num">3</span><h3 data-i18n="hn_s3_t">Passez votre commande</h3><p data-i18n="hn_s3_d">Choisissez le service et la quantité, puis suivez l'avancement depuis votre compte.</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="hm-section hm-band" id="hm-why">
+    <div class="wrap">
+      <div class="hm-head">
+        <h2 class="hm-h2" data-i18n="hn_why_title">Pensé pour l'Afrique francophone</h2>
+      </div>
+      <div class="hm-why">
+        <div class="hm-why-item">
+          <span class="hm-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></span>
+          <h3 data-i18n="hn_why1_t">Paiements locaux</h3><p data-i18n="hn_why1_d">Mobile money, crypto et carte : payez comme vous en avez l'habitude.</p>
+        </div>
+        <div class="hm-why-item">
+          <span class="hm-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+          <h3 data-i18n="hn_why2_t">Une équipe à l'écoute</h3><p data-i18n="hn_why2_d">Un support actif 24h/24 pour vous répondre rapidement.</p>
+        </div>
+        <div class="hm-why-item">
+          <span class="hm-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12"/><path d="m7 11 5 5 5-5"/><path d="M5 21h14"/></svg></span>
+          <h3 data-i18n="hn_why3_t">Installable sur téléphone</h3><p data-i18n="hn_why3_d">Ajoutez l'application à votre écran d'accueil, sans passer par une boutique d'applications.</p>
+        </div>
+        <div class="hm-why-item">
+          <span class="hm-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4.5 6v5.5c0 4.5 3.2 8 7.5 9.5 4.3-1.5 7.5-5 7.5-9.5V6L12 3Z"/><path d="m9 12 2 2 4-4"/></svg></span>
+          <h3 data-i18n="hn_why4_t">Connexion sécurisée</h3><p data-i18n="hn_why4_d">Accédez à votre compte avec votre e-mail ou votre compte Google.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="hm-section hm-final-wrap">
+    <div class="wrap">
+      <div class="hm-final">
+        <h2 data-i18n="hn_final_title">Prêt à commencer ?</h2>
+        <p data-i18n="hn_final_sub">Créez votre compte gratuitement en moins d'une minute.</p>
+        <button type="button" class="hm-btn hm-btn-primary" onclick="openAuth('register')" data-i18n="hn_cta">Créer mon compte gratuit</button>
+      </div>
+    </div>
+  </section>
+
+  <footer class="hm-footer">
+    <div class="wrap">
+      <nav class="hm-footer-links" aria-label="Coeurnoh Universe">
+        <a href="/services" data-i18n="hn_f_services">Services</a>
+        <a href="/aide" data-i18n="hn_f_help">Aide</a>
+        <a href="/about" data-i18n="hn_f_about">À propos</a>
+        <a href="/terms" data-i18n="hn_f_terms">Conditions</a>
+        <a href="/privacy" data-i18n="hn_f_privacy">Confidentialité</a>
+        <a href="/contact" data-i18n="hn_f_contact">Contact</a>
+        <a href="https://wa.me/243825001290" rel="noopener">WhatsApp</a>
+      </nav>
+      <p class="hm-copy">© 2026 Coeurnoh Business — Coeurnoh Universe. <span data-i18n="footer_rights">Tous droits réservés</span>.</p>
+      <p id="cn-recaptcha-legal" class="hm-legal" style="display:none">Protégé par reCAPTCHA — la <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">politique de confidentialité</a> et les <a href="https://policies.google.com/terms" target="_blank" rel="noopener">conditions d'utilisation</a> de Google s'appliquent.</p>
     </div>
   </footer>
 </div>
@@ -607,14 +683,14 @@
         <button class="btn btn-outline" onclick="saveAccountPassword()">Changer le mot de passe</button>
         <p class="muted small" id="account-pass-msg" style="margin-top:6px"></p>
 
-        <button class="btn btn-outline" style="margin-top:18px;color:var(--red);border-color:var(--red)" onclick="logoutAllDevices()"><svg class="ico" aria-hidden="true"><use href="#i-lock"/></svg> Se déconnecter de tous les appareils</button>
+        <button class="btn btn-outline" style="margin-top:18px;color:var(--red-text);border-color:var(--red-text)" onclick="logoutAllDevices()"><svg class="ico" aria-hidden="true"><use href="#i-lock"/></svg> Se déconnecter de tous les appareils</button>
 
         <p class="muted small" style="margin:18px 0 10px"><svg class="ico" aria-hidden="true"><use href="#i-alert"/></svg> Supprimer ton compte est <strong>définitif</strong> : tu perdras ton solde restant et tes publications.</p>
         <div class="field">
           <label for="delete-account-pass">Mot de passe actuel (pour confirmer la suppression)</label>
           <input type="password" id="delete-account-pass">
         </div>
-        <button class="btn btn-outline" style="color:var(--red);border-color:var(--red)" onclick="deleteMyAccount()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:4px"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>Supprimer mon compte définitivement</button>
+        <button class="btn btn-outline" style="color:var(--red-text);border-color:var(--red-text)" onclick="deleteMyAccount()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:4px"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>Supprimer mon compte définitivement</button>
         <p class="muted small" id="delete-account-msg" style="margin-top:6px"></p>
       </div>
 
@@ -657,6 +733,9 @@
         </div>
         <div class="profile-row"><span>Nouveaux contenus &amp; promos</span>
           <label class="switch"><input type="checkbox" id="notifpref-content" onchange="saveNotifPrefs()"><span class="slider"></span></label>
+        </div>
+        <div class="profile-row"><span>Messages privés</span>
+          <label class="switch"><input type="checkbox" id="notifpref-message" onchange="saveNotifPrefs()"><span class="slider"></span></label>
         </div>
         <div class="profile-row"><span>Activité (likes, commentaires, partages)</span>
           <label class="switch"><input type="checkbox" id="notifpref-activity" onchange="saveNotifPrefs()"><span class="slider"></span></label>
@@ -2550,7 +2629,7 @@
   </div>
 </div>
 
-<script src="app.min.js?v=74d250b197" defer onerror="(function(){function f(){['translations','catalog-data','script','polish','menu-pro','push-center'].forEach(function(n){var x=document.createElement('script');x.src=n+'.js';x.async=false;document.body.appendChild(x)})}document.readyState==='loading'?document.addEventListener('DOMContentLoaded',f):f()})()"></script>
+<script src="app.min.js?v=3b34e23526" defer onerror="(function(){function f(){['translations','catalog-data','script','polish','menu-pro','push-center'].forEach(function(n){var x=document.createElement('script');x.src=n+'.js';x.async=false;document.body.appendChild(x)})}document.readyState==='loading'?document.addEventListener('DOMContentLoaded',f):f()})()"></script>
 
 <!-- PWA : activation du service worker (installation en app) -->
 <script>

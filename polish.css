@@ -50,12 +50,11 @@ input:focus-visible, textarea:focus-visible, select:focus-visible { outline-offs
 html.cn-quick #app-splash { background: var(--bg, #f3f5f9); transition-duration: .16s; }
 html.cn-quick #app-splash::before, html.cn-quick #app-splash::after { display: none; }
 html.cn-quick #app-splash-inner > :not(#app-splash-spinner), html.cn-quick #app-splash-foot { display: none; }
-#app-splash { background: radial-gradient(120% 90% at 50% 0%, #ffffff 0%, #eef1f6 58%, #e4e9f2 100%); overflow: hidden; }
-html[data-theme="dark"] #app-splash { background: radial-gradient(120% 90% at 50% 0%, #232a36 0%, #171b22 70%); }
+#app-splash { background: #f3f5f9; overflow: hidden; }
+html[data-theme="dark"] #app-splash { background: #171b22; }
 #app-splash::before {
   content: ""; position: absolute; inset: -30%;
-  background: conic-gradient(from 0deg at 50% 50%, rgba(243,156,31,.20), rgba(40,55,79,.14), rgba(215,38,61,.14), rgba(243,156,31,.20));
-  filter: blur(70px); animation: cnSplashSpin 16s linear infinite;
+  display: none;
 }
 #app-splash::after {
   content: ""; position: absolute; left: 50%; top: 50%; width: 220px; height: 220px; margin: -150px 0 0 -110px; border-radius: 50%;
@@ -68,7 +67,7 @@ html[data-theme="dark"] #app-splash { background: radial-gradient(120% 90% at 50
 }
 #app-splash-spinner::after {
   content: ""; position: absolute; inset: 0; width: 42%; border-radius: 99px;
-  background: linear-gradient(90deg, #f39c1f, #d7263d); animation: cnSplashBar 1.25s ease-in-out infinite;
+  background: #f39c1f; animation: cnSplashBar 1.25s ease-in-out infinite;
 }
 @keyframes cnSplashSpin { to { transform: rotate(360deg); } }
 @keyframes cnSplashPulse { 0% { transform: scale(.7); opacity: .9; } 100% { transform: scale(1.9); opacity: 0; } }
@@ -108,12 +107,12 @@ html[data-theme="dark"] #app-splash { background: radial-gradient(120% 90% at 50
 #cn-inapp-notif {
   position: fixed; left: 50%; top: max(12px, env(safe-area-inset-top)); transform: translate(-50%, -140%); z-index: 10001;
   width: min(calc(100% - 24px), 440px); display: flex; gap: 12px; align-items: flex-start; text-align: left; cursor: pointer;
-  background: #fff; color: var(--ink, #141a26); border: 0; border-radius: 20px; padding: 14px 16px; font: inherit;
+  background: var(--white); color: var(--ink, #141a26); border: 0; border-radius: 20px; padding: 14px 16px; font: inherit;
   box-shadow: 0 18px 50px rgba(10, 14, 22, .28); transition: transform .45s cubic-bezier(.2,.9,.2,1);
 }
 html[data-theme="dark"] #cn-inapp-notif { background: #232a36; color: #f2f4f8; }
 #cn-inapp-notif.on { transform: translate(-50%, 0); }
-#cn-inapp-notif .ni { flex: 0 0 auto; width: 40px; height: 40px; border-radius: 13px; display: flex; align-items: center; justify-content: center; color: #fff; background: linear-gradient(135deg, #f39c1f, #d7263d); }
+#cn-inapp-notif .ni { flex: 0 0 auto; width: 40px; height: 40px; border-radius: 13px; display: flex; align-items: center; justify-content: center; color: #fff; background: var(--green-dark); }
 #cn-inapp-notif .ni svg { width: 21px; height: 21px; }
 #cn-inapp-notif b { display: block; font-size: .92rem; margin-bottom: 2px; }
 #cn-inapp-notif span.nb { display: block; font-size: .84rem; color: var(--muted, #5d6779); line-height: 1.4; }
@@ -137,8 +136,8 @@ html[data-theme="dark"] #cn-welcome .cw { background: #1f242d; color: #f2f4f8; }
 #cn-welcome .cw-later { background: transparent; color: var(--muted, #5d6779); }
 
 /* ---------- 9. Images en échec : jamais d'icône « cassée » ---------- */
-img.cn-img-fail { background: linear-gradient(135deg, #eef1f6, #dde3ed); color: transparent; font-size: 0; object-fit: cover; }
-html[data-theme="dark"] img.cn-img-fail { background: linear-gradient(135deg, #2a313c, #232933); }
+img.cn-img-fail { background: var(--soft-2); color: transparent; font-size: 0; object-fit: cover; }
+html[data-theme="dark"] img.cn-img-fail { background: #2a313c; }
 
 /* ---------- 10. Accessibilité : respect de « réduire les animations » ---------- */
 @media (prefers-reduced-motion: reduce) {
@@ -148,30 +147,12 @@ html[data-theme="dark"] img.cn-img-fail { background: linear-gradient(135deg, #2
 /* Quand le bandeau de notification est affiché, les bulles descendent dessous (jamais l'une sur l'autre) */
 body.cn-banner-on #toast-container { top: calc(max(12px, env(safe-area-inset-top)) + 96px); }
 
-/* ---------- 11. Ambiance « vidéo » de la page d'accueil et de la connexion ----------
-   Deux petites vidéos en boucle parfaite (≈ 125 Ko et ≈ 205 Ko), un voile pour garder le texte lisible,
-   et le logo de l'application en filigrane derrière le contenu. Sans vidéo (économie de données,
-   « réduire les animations »), l'image fixe prend le relais. */
-.hero { position: relative; isolation: isolate; overflow: hidden; background-image: url(intro-light-poster.jpg); background-size: cover; background-position: center; }
-.hero::after { content: ""; position: absolute; inset: 0; z-index: -2; pointer-events: none;
-  background: linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,.04) 55%, rgba(255,255,255,.34)); }
-.cn-bgvideo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -3; opacity: 0; transition: opacity 1.4s ease; pointer-events: none; }
-.cn-bgvideo.on { opacity: 1; }
-.cn-watermark { position: absolute; left: 50%; top: 50%; width: min(78vw, 420px); aspect-ratio: 720 / 335; transform: translate(-50%, -50%); z-index: -1; pointer-events: none;
-  background: url(logo-mark.png) center / contain no-repeat; opacity: .20; animation: cnMark 9s ease-in-out infinite; }
-@keyframes cnMark { 0%, 100% { transform: translate(-50%, -50%) scale(1) rotate(-2deg); } 50% { transform: translate(-50%, -53%) scale(1.045) rotate(2deg); } }
-.auth-hero { isolation: isolate; background-image: url(intro-dark-poster.jpg); background-size: cover; background-position: center; }
-.auth-hero .cn-bgvideo { z-index: -3; }
-.auth-hero::after { content: ""; position: absolute; inset: 0; z-index: -2; pointer-events: none; background: linear-gradient(180deg, rgba(12,16,24,.30), rgba(12,16,24,.45)); }
-.auth-hero .cn-watermark { background-image: url(logo-mark-white.png); left: auto; right: -40px; top: auto; bottom: 16px; width: 310px; opacity: .22; transform: none; animation-name: cnMarkR; }
-@keyframes cnMarkR { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-10px) rotate(2deg); } }
-@media (prefers-reduced-motion: reduce) { .cn-bgvideo { display: none; } .cn-watermark { animation: none; } }
 
 /* ---------- 12. Ouverture : logo qui apparaît avec un halo, nom qui scintille ---------- */
 #app-splash-logo-img { animation: cnLogoIn .95s cubic-bezier(.2,.9,.2,1) both, cnLogoGlow 3.4s ease-in-out .95s infinite; }
 @keyframes cnLogoIn { from { opacity: 0; transform: scale(.68) translateY(14px); } to { opacity: 1; transform: none; } }
 @keyframes cnLogoGlow { 0%, 100% { filter: drop-shadow(0 8px 18px rgba(243,156,31,0)); } 50% { filter: drop-shadow(0 12px 34px rgba(243,156,31,.5)); } }
-#app-splash-name { background: linear-gradient(100deg, currentColor 35%, rgba(243,156,31,1) 50%, currentColor 65%); background-size: 250% 100%; -webkit-background-clip: text; background-clip: text; animation: cnShine 2.6s ease-in-out .6s infinite; }
+#app-splash-name { background: none; animation: none; }
 #app-splash-name .app-splash-name-red, #app-splash-name .app-splash-name-green { -webkit-text-fill-color: initial; }
 @keyframes cnShine { 0% { background-position: 120% 0; } 100% { background-position: -120% 0; } }
 #app-splash-tagline { letter-spacing: .42em; animation: cnTag 1.2s ease .5s both; }
@@ -213,7 +194,7 @@ textarea.text-input { min-height: 0; }
 .bz-tools .btn, .bz-tools .btn-sm { min-height: 0; }
 .sp-tile { gap: 4px; }
 .sp-tile .sp-ic { width: 34px; height: 34px; border-radius: 10px; font-size: 1rem; }
-.lead-err { color: #b42318; background: #fdecec; border-radius: 10px; padding: 9px 11px; font-size: .8rem; font-weight: 600; }
+.lead-err { color: var(--tint-red-ink); background: var(--tint-red); border-radius: 10px; padding: 9px 11px; font-size: .8rem; font-weight: 600; }
 .toast, #toast { font-size: .86rem; border-radius: 14px; padding: 12px 14px; }
 
 /* ---------- 16. Coque de l'app : navigation du bas et cartes (v-pro22) ---------- */

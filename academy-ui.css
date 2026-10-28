@@ -100,7 +100,7 @@ html[data-theme="dark"] .cnh-chip.on{color:#0b1220}
 .cnh-stat span{display:block;font-size:var(--cnh-fs-xs);color:var(--cnh-sub);margin-top:6px}
 
 /* ---------- Bandeau principal (clair, translucide) ---------- */
-.cnh-hero{position:relative;overflow:hidden;border-radius:var(--cnh-r-lg);padding:20px;margin:0 0 14px;color:var(--cnh-ink);background:linear-gradient(180deg,var(--cnh-brand-tint),transparent 120%),var(--cnh-card);border:1px solid var(--cnh-line)}
+.cnh-hero{position:relative;overflow:hidden;border-radius:var(--cnh-r-lg);padding:20px;margin:0 0 14px;color:var(--cnh-ink);background:var(--cnh-brand-tint);border:1px solid var(--cnh-line)}
 .cnh-hero h2,.cnh-hero h3{margin:0 0 6px;color:var(--cnh-ink);font-size:var(--cnh-fs-xl);line-height:1.25}
 .cnh-hero p{margin:0;color:var(--cnh-sub);font-size:var(--cnh-fs);line-height:1.55}
 .cnh-new{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:6px;font-size:.62rem;font-weight:700;letter-spacing:.05em;background:var(--cnh-brand);color:#fff;vertical-align:middle}
