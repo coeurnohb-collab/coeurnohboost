@@ -2042,7 +2042,7 @@ function openNotifTargetIfAny() {
   const profileUid = params.get('profile');
   const leadsKind = params.get('leads');
   const msgChat = params.get('msg');
-  if (msgChat) { window.history.replaceState({}, '', window.location.pathname); openMessagesFromLink(msgChat); return; }
+  if (msgChat) { window.__cnFocusReply = params.get('reply') === '1'; window.history.replaceState({}, '', window.location.pathname); openMessagesFromLink(msgChat); return; }
   const callLink = params.get('call');
   if (callLink) { window.history.replaceState({}, '', window.location.pathname); openCallFromLink(callLink); return; }
   if (params.get('mysite')) { window.history.replaceState({}, '', window.location.pathname); openMySiteFromLink(params.get('edit') === '1'); return; }
@@ -2963,6 +2963,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 /* Bandeau "moyens de paiement" de la page d'accueil publique — pastilles
    colorées + icône (même design pro que les badges opérateur du wallet). */
+/* Texte noir ou blanc selon la couleur de la tuile : toujours lisible (norme WCAG 4,5:1). */
+function payTileInk(hex) {
+  const m = /^#?([0-9a-f]{6})$/i.exec(String(hex || ''));
+  if (!m) return '#fff';
+  const lin = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+  const n = parseInt(m[1], 16);
+  const L = 0.2126 * lin((n >> 16) & 255) + 0.7152 * lin((n >> 8) & 255) + 0.0722 * lin(n & 255);
+  return (1.05 / (L + 0.05)) >= ((L + 0.05) / 0.0594) ? '#fff' : '#111827';
+}
 function renderHeroPayIcons() {
   const el = document.getElementById('hero-pay-icons');
   if (!el) return;
@@ -2976,7 +2985,7 @@ function renderHeroPayIcons() {
     { label: 'USDT', badge: { bg:'#26A17B', bg2:'#1E8A69', code:'₮ USDT', fg:'#fff', slug:'usdt' } }
   ];
   el.innerHTML = items.map(it => `
-    <span class="pay-tile" title="${escapeHtml(it.label)}" role="img" aria-label="${escapeHtml(it.label)}" style="background:linear-gradient(135deg,${it.badge.bg},${it.badge.bg2 || it.badge.bg});color:${it.badge.fg || '#fff'}">${escapeHtml(it.badge.code)}${it.badge.slug ? `<img src="logos/${it.badge.slug}.png" alt="" loading="lazy" onerror="this.remove()">` : ''}</span>`).join('');
+    <span class="pay-tile" title="${escapeHtml(it.label)}" role="img" aria-label="${escapeHtml(it.label)}" style="background:${it.badge.bg};color:${payTileInk(it.badge.bg)}">${escapeHtml(it.badge.code)}${it.badge.slug ? `<img src="logos/${it.badge.slug}.png" alt="" loading="lazy" onerror="this.remove()">` : ''}</span>`).join('');
 }
 
 /* ================= TUTORIEL / GUIDE D'UTILISATION ================= */
@@ -17514,12 +17523,12 @@ async function broadcastPush(title, body, category = 'content', url = null) {
 /* ================= PREFERENCES DE NOTIFICATIONS (page Parametres) ================= */
 // Par defaut tout est active, pour ne rien changer au comportement des
 // comptes existants qui n'ont jamais touche a ces reglages.
-const DEFAULT_NOTIF_PREFS = { push: true, email: true, content: true, activity: true, orders: true };
+const DEFAULT_NOTIF_PREFS = { push: true, email: true, content: true, message: true, activity: true, orders: true };
 
 function applyNotifPrefsToUI() {
   if (!currentUser) return;
   const prefs = { ...DEFAULT_NOTIF_PREFS, ...(currentUser.notifPrefs || {}) };
-  ['push', 'email', 'content', 'activity', 'orders'].forEach((key) => {
+  ['push', 'email', 'content', 'message', 'activity', 'orders'].forEach((key) => {
     const el = document.getElementById('notifpref-' + key);
     if (el) el.checked = !!prefs[key];
   });
@@ -17528,7 +17537,7 @@ function applyNotifPrefsToUI() {
 async function saveNotifPrefs() {
   if (!currentUser) return;
   const prefs = {};
-  ['push', 'email', 'content', 'activity', 'orders'].forEach((key) => {
+  ['push', 'email', 'content', 'message', 'activity', 'orders'].forEach((key) => {
     const el = document.getElementById('notifpref-' + key);
     if (el) prefs[key] = el.checked;
   });
