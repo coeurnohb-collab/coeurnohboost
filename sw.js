@@ -1,4 +1,4 @@
-// sw.js — Service Worker de Coeurnoh Universe (v16).
+// sw.js — Service Worker de Coeurnoh Universe (v21).
 // 1) Rend le site installable (PWA / Google Play via TWA) + copie de secours hors-ligne.
 // 2) Affiche les notifications push MÊME QUAND L'APP EST FERMÉE, comme Facebook /
 //    WhatsApp / TikTok : icône, grande image, boutons « Ouvrir / Plus tard »,
@@ -36,14 +36,31 @@ self.addEventListener('push', (event) => {
     tag: d.tag || ('cn-' + category),
     image: d.image || '',
     icon: d.icon || ICON,
-    badgeCount: d.badgeCount
+    badgeCount: d.badgeCount,
+    chatId: d.chatId || ''
   }));
 });
 
 const messaging = firebase.messaging();
 
 const ICON = '/icon-192-v2.png';
-const BADGE = '/badge-96.png';
+// Deux petites icônes différentes dans la barre d'état du téléphone : une bulle pour les messages, une cloche pour le reste.
+const BADGE_MSG = '/badge-msg-96.png';
+const BADGE_NOTIF = '/badge-notif-96.png';
+
+// Textes des boutons de la notification (la langue du téléphone décide).
+const REPLY_TXT = {
+  fr: { reply: 'Répondre', ph: 'Écrire une réponse…', open: 'Ouvrir', later: 'Plus tard', n: ' nouveaux messages' },
+  en: { reply: 'Reply', ph: 'Write a reply…', open: 'Open', later: 'Later', n: ' new messages' },
+  es: { reply: 'Responder', ph: 'Escribe una respuesta…', open: 'Abrir', later: 'Más tarde', n: ' mensajes nuevos' },
+  it: { reply: 'Rispondi', ph: 'Scrivi una risposta…', open: 'Apri', later: 'Più tardi', n: ' nuovi messaggi' },
+  pt: { reply: 'Responder', ph: 'Escreve uma resposta…', open: 'Abrir', later: 'Mais tarde', n: ' novas mensagens' }
+};
+function txt() {
+  let l = 'fr';
+  try { l = String((self.navigator && self.navigator.language) || 'fr').slice(0, 2).toLowerCase(); } catch (e) { l = 'fr'; }
+  return REPLY_TXT[l] || REPLY_TXT.fr;
+}
 
 // Le serveur envoie des messages « données seules » : c'est ICI qu'on décide de l'affichage.
 messaging.onBackgroundMessage((payload) => {
@@ -54,40 +71,46 @@ messaging.onBackgroundMessage((payload) => {
   const category = d.category || 'activity';
   const url = d.url || '/';
   const tag = d.tag || ('cn-' + category);
-  return showRichNotification({ title, body, category, url, tag, image: d.image || '', icon: d.icon || ICON, badgeCount: d.badgeCount });
+  return showRichNotification({ title, body, category, url, tag, image: d.image || '', icon: d.icon || ICON, badgeCount: d.badgeCount, chatId: d.chatId || '' });
 });
 
-async function showRichNotification({ title, body, category, url, tag, image, icon, badgeCount }) {
-  // Regroupement par sujet : si une notification du même sujet est déjà affichée,
-  // on la remplace par une seule ligne « 3 nouvelles notifications » (comme WhatsApp).
-  let count = 1;
+async function showRichNotification({ title, body, category, url, tag, image, icon, badgeCount, chatId }) {
+  const isMsg = category === 'message';
+  const T = txt();
+  // Regroupement par sujet : si une notification du même sujet est déjà affichée, on la remplace.
+  // Messages : une seule notification PAR CONVERSATION qui montre les derniers messages (comme WhatsApp).
+  // Autres sujets : une seule ligne « 3 nouvelles notifications ».
+  let count = 1, lines = [body];
   try {
     const existing = await self.registration.getNotifications({ tag });
     if (existing.length > 0) {
-      const prev = existing[0].data && existing[0].data.count ? existing[0].data.count : 1;
-      count = prev + 1;
+      const pd = existing[0].data || {};
+      count = (pd.count ? pd.count : 1) + 1;
+      if (isMsg) lines = (Array.isArray(pd.lines) ? pd.lines : []).concat([body]).slice(-5);
     }
   } catch (e) { /* pas grave */ }
 
   const urgent = category === 'sos' || category === 'call'; // un appel entrant : un seul bouton « Ouvrir », vibration longue
   const options = {
-    body: count > 1 ? (count + ' nouvelles notifications · ' + body) : body,
+    body: isMsg ? lines.join('\n') : (count > 1 ? (count + ' nouvelles notifications · ' + body) : body),
     icon: icon || ICON,
-    badge: BADGE,
+    badge: isMsg ? BADGE_MSG : BADGE_NOTIF,
     tag,
     renotify: true, // « tag » est toujours défini ci-dessus : obligatoire avec renotify
     timestamp: Date.now(),
-    vibrate: category === 'call' ? [600, 250, 600, 250, 600, 250, 600, 250, 600] : (urgent ? [400, 150, 400, 150, 400, 150, 800] : [300, 120, 300, 120, 500]),
-    requireInteraction: true, // reste affichée (écran verrouillé) jusqu'à ce qu'on la touche
+    vibrate: isMsg ? [160, 90, 160] : (category === 'call' ? [600, 250, 600, 250, 600, 250, 600, 250, 600] : (urgent ? [400, 150, 400, 150, 400, 150, 800] : [300, 120, 300, 120, 500])),
+    requireInteraction: !isMsg, // les messages se rangent d'eux-mêmes ; le reste reste affiché jusqu'à ce qu'on le touche
     silent: false,
-    data: { url, count, category },
+    data: { url, count, category, chatId: chatId || '', lines: isMsg ? lines : undefined },
     actions: urgent
-      ? [{ action: 'open', title: 'Ouvrir' }]
-      : [{ action: 'open', title: 'Ouvrir' }, { action: 'later', title: 'Plus tard' }]
+      ? [{ action: 'open', title: T.open }]
+      : (isMsg && chatId
+        ? [{ action: 'reply', type: 'text', title: T.reply, placeholder: T.ph }, { action: 'open', title: T.open }]
+        : [{ action: 'open', title: T.open }, { action: 'later', title: T.later }])
   };
   if (image) options.image = image;
 
-  await self.registration.showNotification(title, options);
+  await self.registration.showNotification(isMsg && count > 1 ? (title + ' · ' + count + T.n) : title, options);
 
   // Pastille sur l'icône de l'app (écran d'accueil), comme WhatsApp/Facebook.
   try {
@@ -132,16 +155,66 @@ function askClientToOpen(client, rel) {
   });
 }
 
+// Réponse tapée directement dans la notification (Android / Chrome) : on la remet à l'application ouverte ;
+// si l'application est fermée, on la garde au chaud puis on ouvre la conversation, qui l'envoie dès que la session est prête.
+function askClientToReply(client, chatId, text) {
+  return new Promise((resolve) => {
+    let done = false, channel = null;
+    const finish = (ok) => {
+      if (done) return;
+      done = true;
+      try { if (channel) channel.port1.close(); } catch (e) { /* ignore */ }
+      resolve(ok);
+    };
+    try {
+      channel = new MessageChannel();
+      channel.port1.onmessage = (ev) => finish(ev && ev.data === 'ok');
+      client.postMessage({ type: 'cn-reply', chatId, text }, [channel.port2]);
+    } catch (e) { finish(false); return; }
+    setTimeout(() => finish(false), 9000);
+  });
+}
+
+async function keepReplyForLater(chatId, text) {
+  try {
+    const cache = await caches.open('cn-pending');
+    const key = '/__pending-reply/' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
+    await cache.put(key, new Response(JSON.stringify({ chatId, text: String(text).slice(0, 2000), at: Date.now() }), { headers: { 'Content-Type': 'application/json' } }));
+    return true;
+  } catch (e) { return false; }
+}
+
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   if (event.action === 'later') return;
-  const rel = internalTarget(event.notification.data && event.notification.data.url);
+  const data = event.notification.data || {};
+  let rel = internalTarget(data.url);
+  const replyText = event.action === 'reply' && typeof event.reply === 'string' ? event.reply.trim() : '';
+  const chatId = /^[A-Za-z0-9_-]{3,300}$/.test(String(data.chatId || '')) ? String(data.chatId) : '';
+  // Bouton « Répondre » sans zone de texte (navigateur qui ne la gère pas) : on ouvre la conversation, clavier prêt.
+  if (event.action === 'reply' && !replyText && chatId) rel = '/?msg=' + encodeURIComponent(chatId) + '&reply=1';
   const targetUrl = new URL(rel, self.location.origin).href;
   event.waitUntil((async () => {
     let list = [];
     try { list = await self.clients.matchAll({ type: 'window', includeUncontrolled: true }); } catch (e) { list = []; }
     const mine = list.filter((c) => { try { return new URL(c.url).origin === self.location.origin; } catch (e) { return false; } });
     const client = mine.find((c) => c.visibilityState === 'visible') || mine[0];
+
+    if (replyText && chatId) {
+      // 1) L'application est ouverte : elle envoie la réponse tout de suite, sans rien afficher de plus.
+      if (client && await askClientToReply(client, chatId, replyText)) return;
+      // 2) Sinon : on garde la réponse, puis on ouvre la conversation (elle part dès que la session est prête).
+      await keepReplyForLater(chatId, replyText);
+      const go = new URL('/?msg=' + encodeURIComponent(chatId) + '&sendreply=1', self.location.origin);
+      if (client) {
+        try { if ('focus' in client) await client.focus(); } catch (e) { /* ignore */ }
+        if (await askClientToOpen(client, go.pathname + go.search)) return;
+        try { if ('navigate' in client) { await client.navigate(go.href); return; } } catch (e) { /* ignore */ }
+      }
+      if (self.clients.openWindow) { try { await self.clients.openWindow(go.href); } catch (e) { /* ignore */ } }
+      return;
+    }
+
     if (client) {
       // L'app est déjà ouverte : on la ramène au premier plan SANS la recharger.
       try { if ('focus' in client) await client.focus(); } catch (e) { /* certains navigateurs refusent : on continue */ }
@@ -154,13 +227,16 @@ self.addEventListener('notificationclick', (event) => {
   })());
 });
 
-const CACHE_NAME = 'coeurnohboost-v20';
+const CACHE_NAME = 'coeurnohboost-v21';
 const APP_SHELL = [
   '/',
   '/index.html',
   '/legal.html',
   '/icon-192-v2.png',
-  '/icon-512-v2.png'
+  '/icon-512-v2.png',
+  '/cn-inter-400.woff2',
+  '/cn-inter-600.woff2',
+  '/cn-display-700.woff2'
 ];
 
 // Seules ces pages publiques sont gardées hors-ligne. Jamais les pages privées ou propres à
@@ -179,7 +255,7 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
+      Promise.all(keys.filter((k) => k !== CACHE_NAME && k !== 'cn-pending').map((k) => caches.delete(k)))
     )
   );
   self.clients.claim();

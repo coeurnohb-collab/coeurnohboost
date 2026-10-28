@@ -56,7 +56,7 @@
     older: ['Voir les messages précédents', 'Show earlier messages', 'Ver mensajes anteriores', 'Mostra messaggi precedenti', 'Ver mensagens anteriores'],
     today: ['Aujourd’hui', 'Today', 'Hoy', 'Oggi', 'Hoje'],
     yesterday: ['Hier', 'Yesterday', 'Ayer', 'Ieri', 'Ontem'],
-    say_hi: ['Dis bonjour 👋', 'Say hello 👋', 'Saluda 👋', 'Saluta 👋', 'Diz olá 👋'],
+    say_hi: ['Dis bonjour', 'Say hello', 'Saluda', 'Saluta', 'Diz olá'],
     profile: ['Voir le profil', 'View profile', 'Ver perfil', 'Vedi profilo', 'Ver perfil'],
     del: ['Supprimer', 'Delete', 'Eliminar', 'Elimina', 'Apagar'],
     del_q: ['Supprimer ce message pour tout le monde ?', 'Delete this message for everyone?', '¿Eliminar este mensaje para todos?', 'Eliminare questo messaggio per tutti?', 'Apagar esta mensagem para todos?'],
@@ -98,6 +98,9 @@
     call_back: ['Rappeler', 'Call back', 'Devolver', 'Richiama', 'Ligar de volta'],
     call_unavail: ['Les appels ne sont pas disponibles pour le moment.', 'Calls are not available right now.', 'Las llamadas no están disponibles ahora.', 'Le chiamate non sono disponibili ora.', 'As chamadas não estão disponíveis agora.'],
     new_msgs: ['{n} nouveau(x)', '{n} new', '{n} nuevo(s)', '{n} nuovo/i', '{n} novo(s)'],
+    retry: ['Réessayer', 'Retry', 'Reintentar', 'Riprova', 'Tentar de novo'],
+    reply_fail: ['Réponse non envoyée. Ouvre la conversation et réessaie.', 'Reply not sent. Open the conversation and try again.', 'Respuesta no enviada. Abre la conversación e inténtalo de nuevo.', 'Risposta non inviata. Apri la conversazione e riprova.', 'Resposta não enviada. Abre a conversa e tenta de novo.'],
+    code_lbl: ['Code', 'Code', 'Código', 'Codice', 'Código'],
     down: ['Aller en bas', 'Go to bottom', 'Ir al final', 'Vai in fondo', 'Ir para o fim']
   };
   var LOCALES = { fr: 'fr-FR', en: 'en-GB', es: 'es-ES', it: 'it-IT', pt: 'pt-PT' };
@@ -443,7 +446,7 @@
         var next = new Map();
         snap.forEach(function (doc) { var c = doc.data() || {}; c.id = doc.id; next.set(doc.id, c); });
         var prev = st.chats;
-        st.chats = next; st.listError = false;
+        st.chats = next; st.listError = false; st.listTries = 0;
         trackTyping(prev, next, u.uid);
         if (st.listResolve) { st.listResolve(true); st.listResolve = null; }
         updateBadge();
@@ -452,11 +455,18 @@
         if (st.openId) onChatDocChanged();
       }, function (err) {
         console.log('[messages] liste :', err && err.code);
-        st.listError = true;
+        st.listError = true; st.listCode = (err && err.code) || 'erreur';
+        st.unsubList = null; // l'écoute est arrêtée par Firestore : on pourra la relancer
         if (st.listResolve) { st.listResolve(false); st.listResolve = null; }
         if (listVisible()) renderList();
+        // Nouvelle tentative automatique (réseau lent, session qui se rétablit...) : 3 s, 8 s, 20 s, puis bouton « Réessayer ».
+        var tries = st.listTries = (st.listTries || 0) + 1;
+        if (tries <= 3 && st.uid === u.uid) {
+          clearTimeout(st.listRetryT);
+          st.listRetryT = setTimeout(function () { if (me() && me().uid === u.uid && !st.unsubList) { st.uid = null; startList(); } }, [3000, 8000, 20000][tries - 1]);
+        }
       });
-    } catch (e) { st.listError = true; }
+    } catch (e) { st.listError = true; st.listCode = (e && e.code) || 'erreur'; }
   }
   function stopList() {
     if (st.unsubList) { try { st.unsubList(); } catch (e) { /* ignore */ } }
@@ -509,13 +519,13 @@
 
   function preview(c, uid) {
     var lm = c.lastMessage || {}, t;
-    if (lm.type === 'image') t = '📷 ' + (lm.text || T('photo'));
-    else if (lm.type === 'video') t = '🎥 ' + (lm.text || T('video'));
-    else if (lm.type === 'audio') t = '🎤 ' + T('voice') + (lm.dur ? ' (' + fmtDur(lm.dur) + ')' : '');
-    else if (lm.type === 'file') t = '📄 ' + (lm.text || T('document'));
-    else if (lm.type === 'call') t = '📞 ' + callLabel({ call: { kind: lm.kind, status: lm.call, duration: lm.dur }, senderId: lm.senderId }, uid);
+    if (lm.type === 'image') t = T('photo') + (lm.text ? ' · ' + lm.text : '');
+    else if (lm.type === 'video') t = T('video') + (lm.text ? ' · ' + lm.text : '');
+    else if (lm.type === 'audio') t = T('voice') + (lm.dur ? ' (' + fmtDur(lm.dur) + ')' : '');
+    else if (lm.type === 'file') t = lm.text || T('document');
+    else if (lm.type === 'call') t = callLabel({ call: { kind: lm.kind, status: lm.call, duration: lm.dur }, senderId: lm.senderId }, uid);
     else t = String(lm.text || '');
-    if (lm.story) t = '↩ ' + (lm.senderId === uid ? T('story_out') : T('story_in')) + (lm.text ? ' · ' + lm.text : '');
+    if (lm.story) t = (lm.senderId === uid ? T('story_out') : T('story_in')) + (lm.text ? ' · ' + lm.text : '');
     return t;
   }
   function tickKind(c, uid) {
@@ -532,7 +542,7 @@
   function renderList() {
     var r = root(), u = me(); if (!r) return;
     if (!u) { r.innerHTML = '<div class="cn-empty">' + IC.chat + '<p>' + esc(T('login')) + '</p></div>'; return; }
-    if (!st.unsubList) startList();
+    if (!st.unsubList && !st.listError) startList();
     var rows = Array.from(st.chats.values()).sort(function (a, b) { return String(b.lastAt || '').localeCompare(String(a.lastAt || '')); });
     var peers = rows.map(function (c) { return otherOf(c, u.uid); });
     loadProfiles(peers).then(function (changed) { if (changed) renderListSoon(); });
@@ -541,7 +551,7 @@
     var head = '<div class="cn-lh"><h2 class="page-title" style="margin:0">' + esc(T('messages')) + '</h2><button class="cn-ib" data-act="compose" aria-label="' + esc(T('compose')) + '">' + IC.edit + '</button></div>';
     var searchHtml = st.chats.size > 4 ? '<input class="cn-s" id="cn-s" type="search" placeholder="' + esc(T('search')) + '" value="' + esc(st.filter) + '" autocomplete="off">' : '';
     var body;
-    if (st.listError && !st.chats.size) body = '<div class="cn-empty">' + IC.chat + '<p>' + esc(T('list_denied')) + '</p></div>';
+    if (st.listError && !st.chats.size) body = '<div class="cn-empty">' + IC.chat + '<p>' + esc(T('list_denied')) + '</p><p style="font-size:.74rem;opacity:.7;margin:0 0 10px">' + esc(T('code_lbl')) + ' : ' + esc(st.listCode || '') + '</p><button class="cn-btn" data-act="retry">' + esc(T('retry')) + '</button></div>';
     else if (!rows.length && !f) body = '<div class="cn-empty">' + IC.chat + '<h3>' + esc(T('empty_t')) + '</h3><p>' + esc(T('empty_p')) + '</p><button class="cn-btn" data-act="compose">' + esc(T('write')) + '</button></div>';
     else body = '<div class="cn-rows">' + rows.map(function (c) {
       var peer = otherOf(c, u.uid), p = prof(peer), n = unreadOf(c, u.uid), pc = st.pres.get(peer), ty = isTyping(c.id);
@@ -561,6 +571,7 @@
     var row = e.target.closest('.cn-row[data-chat]');
     if (row) { openChat(row.getAttribute('data-peer'), null); return; }
     if (e.target.closest('[data-act="compose"]')) openPicker();
+    if (e.target.closest('[data-act="retry"]')) { st.listTries = 0; st.uid = null; stopList(); startList(); renderList(); }
   });
   document.addEventListener('input', function (e) {
     if (e.target && e.target.id === 'cn-s') { st.filter = e.target.value || ''; renderListSoon(); }
@@ -636,7 +647,7 @@
   function closePicker() { var p = document.getElementById('cn-picker'); if (p) p.remove(); }
 
   /* ---------------------------------------------------------------- écran de chat */
-  async function openChat(peer, nameHint) {
+  async function openChat(peer, nameHint, expect) {
     var u = me(), d = fdb();
     if (!u || !d) { toast(T('login')); return; }
     if (!peer || peer === u.uid) return;
@@ -646,7 +657,7 @@
     if (st.openId === id && document.getElementById('cn-chat')) return;
     closeChat(true);
     startList();
-    if (st.listReady) { try { await Promise.race([st.listReady, new Promise(function (r) { setTimeout(r, 4000); })]); } catch (e) { /* ignore */ } }
+    if (st.listReady && !st.chats.has(id)) { try { await Promise.race([st.listReady, new Promise(function (r) { setTimeout(r, 1500); })]); } catch (e) { /* ignore */ } }
     var known = st.chats.get(id);
     await loadProfiles([peer]);
     st.openId = id; st.peer = peer; st.msgs = []; st.limit = PAGE; st.file = null; st.fileKind = ''; st.chatExists = !!known;
@@ -654,9 +665,27 @@
     if (known) st.typingSeen[id] = (known.typing && known.typing[peer]) || '';
     buildChat();
     subscribePresence();
-    if (known) subscribeMessages(); else drawMessages();
+    if (known) subscribeMessages(); else { drawMessages(); probeChat(id, !!expect); }
     try { if (typeof touchPresence === 'function') touchPresence(); } catch (e) { /* ignore */ }
     saveResume();
+  }
+  // La liste des conversations peut arriver en retard (réseau lent). Au lieu d'afficher une conversation vide, on va
+  // chercher la conversation elle-même : si elle existe déjà, ses messages s'affichent aussitôt.
+  // expect = true quand on arrive depuis une notification : la conversation existe forcément, une erreur est donc montrée.
+  function probeChat(id, expect, attempt) {
+    var d = fdb(); if (!d) return;
+    attempt = attempt || 0;
+    d.collection('chats').doc(id).get().then(function (snap) {
+      if (st.openId !== id) return;
+      if (snap.exists) { st.chatExists = true; if (!st.unsubMsgs) subscribeMessages(); }
+      else if (expect && attempt < 3) setTimeout(function () { if (st.openId === id && !st.chatExists) probeChat(id, expect, attempt + 1); }, 2500 * (attempt + 1));
+    }).catch(function (err) {
+      if (st.openId !== id) return;
+      var code = (err && err.code) || '';
+      if (expect && attempt < 2) { setTimeout(function () { if (st.openId === id && !st.chatExists) probeChat(id, expect, attempt + 1); }, 2500); return; }
+      // Une conversation toute neuve n'existe pas encore : un refus n'est une erreur que si on sait qu'elle existe.
+      if (expect && code) drawMessages(T('denied') + ' (' + T('code_lbl') + ' : ' + code + ')');
+    });
   }
   function chatEl() { return document.getElementById('cn-chat'); }
   function buildChat() {
@@ -925,11 +954,11 @@
   }
   function msgLabel(m) {
     if (!m) return '';
-    if (m.type === 'image') return '📷 ' + (m.text || T('photo'));
-    if (m.type === 'video') return '🎥 ' + (m.text || T('video'));
-    if (m.type === 'audio') return '🎤 ' + T('voice');
-    if (m.type === 'file') return '📄 ' + (m.fileName || T('document'));
-    if (m.type === 'call') return '📞 ' + callLabel(m, me() && me().uid);
+    if (m.type === 'image') return m.text || T('photo');
+    if (m.type === 'video') return m.text || T('video');
+    if (m.type === 'audio') return T('voice');
+    if (m.type === 'file') return m.fileName || T('document');
+    if (m.type === 'call') return callLabel(m, me() && me().uid);
     return String(m.text || '');
   }
   function callLabel(m, uid) {
@@ -1503,7 +1532,9 @@
     if (m.length === 2) peer = m[0] === u.uid ? m[1] : (m[1] === u.uid ? m[0] : null);
     if (!peer) { try { showDashTab('messages'); } catch (e) { /* ignore */ } return; }
     try { showDashTab('messages'); } catch (e) { /* ignore */ }
-    openChat(peer, null);
+    flushPendingReplies();
+    await openChat(peer, null, true);
+    if (window.__cnFocusReply) { window.__cnFocusReply = false; setTimeout(function () { var i = document.getElementById('cn-in'); if (i) i.focus(); }, 200); }
   }
   // Journal d'appel dans la conversation (écrit par calls-pro.js, une seule fois par appel, côté appelant).
   async function writeCallLog(peer, info) {
@@ -1511,8 +1542,59 @@
     var call = { kind: info && info.kind === 'video' ? 'video' : 'audio', status: String(info && info.status || 'ended'), duration: Math.max(0, Math.round(info && info.duration || 0)) };
     try { await sendMsg({ chatId: pair(u.uid, peer), peer: peer, type: 'call', call: call, noPush: true }); } catch (e) { /* le journal est un plus */ }
   }
+  /* ---------------------------------------------------------------- réponse tapée dans la notification */
+  // Le service worker (sw.js) nous transmet le texte tapé dans la notification du téléphone. On l'envoie comme n'importe quel
+  // message de la conversation. Si l'application était fermée, le texte a été gardé (cache « cn-pending ») : on l'envoie dès que la session est prête.
+  function peerFromChatId(chatId, uid) {
+    var m = String(chatId || '').split('_');
+    if (m.length !== 2) return null;
+    return m[0] === uid ? m[1] : (m[1] === uid ? m[0] : null);
+  }
+  function whenReady(ms) {
+    return new Promise(function (res) {
+      var t0 = Date.now();
+      (function w() { if (me() && fdb()) { res(true); return; } if (Date.now() - t0 > ms) { res(false); return; } setTimeout(w, 300); })();
+    });
+  }
+  async function sendReplyTo(chatId, text) {
+    text = String(text || '').replace(/\n{3,}/g, '\n\n').trim().slice(0, 2000);
+    if (!text || !(await whenReady(12000))) return false;
+    var u = me(), peer = peerFromChatId(chatId, u.uid);
+    if (!peer || isBlocked(peer)) return false;
+    try { await sendMsg({ chatId: pair(u.uid, peer), peer: peer, type: 'text', text: text }); return true; }
+    catch (e) { return false; }
+  }
+  var flushing = false;
+  async function flushPendingReplies() {
+    if (flushing || !window.caches) return;
+    flushing = true;
+    try {
+      var cache = await caches.open('cn-pending'), keys = await cache.keys(), sent = 0, failed = 0;
+      for (var i = 0; i < keys.length; i++) {
+        var r = await cache.match(keys[i]), job = null;
+        try { job = r ? await r.json() : null; } catch (e) { job = null; }
+        if (!job || !job.chatId || Date.now() - (job.at || 0) > 24 * 3600 * 1000) { await cache.delete(keys[i]); continue; }
+        if (await sendReplyTo(job.chatId, job.text)) { await cache.delete(keys[i]); sent++; } else failed++;
+      }
+      if (sent) toast(T('reply_sent'), 'success');
+      else if (failed) toast(T('reply_fail'), 'error');
+    } catch (e) { /* ignore */ }
+    flushing = false;
+  }
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.addEventListener('message', function (e) {
+      var d = e && e.data;
+      if (!d || d.type !== 'cn-reply' || !d.chatId) return;
+      var port = e.ports && e.ports[0];
+      sendReplyTo(d.chatId, d.text).then(function (ok) {
+        try { if (port) port.postMessage(ok ? 'ok' : 'fail'); } catch (x) { /* ignore */ }
+        if (ok) toast(T('reply_sent'), 'success'); else toast(T('reply_fail'), 'error');
+      });
+    });
+  }
   window.CNMessages = {
     T: T, showList: showList, openChat: openChat, openChatById: openChatById, closeChat: closeChat, replyToStory: replyToStory,
+    sendReplyTo: sendReplyTo, flushPendingReplies: flushPendingReplies,
     unreadCount: unreadCount, writeCallLog: writeCallLog, getResume: getResume, prof: prof, loadProfiles: loadProfiles, ensureCalls: ensureCalls,
     isChatOpen: function () { return !!chatEl(); }, _state: st, _pair: pair,
     closeStoryReply: function () { var b = document.getElementById('cn-story-reply'); if (b && b.__close) b.__close(); else if (b) b.remove(); }
@@ -1534,6 +1616,7 @@
     } catch (e) { /* ignore */ }
     if (me()) { startList(); setTimeout(ensureCalls, 1200); }
     if (listVisible()) renderList();
+    setTimeout(flushPendingReplies, 2500);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
 })();
