@@ -201,7 +201,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="app.min.css?v=51398c84ac" onerror="['style','polish','menu-pro','pro'].forEach(function(n){var l=document.createElement('link');l.rel='stylesheet';l.href=n+'.css';document.head.appendChild(l)})">
+<link rel="stylesheet" href="app.min.css?v=63d5c76b2f" onerror="['style','polish','menu-pro','pro'].forEach(function(n){var l=document.createElement('link');l.rel='stylesheet';l.href=n+'.css';document.head.appendChild(l)})">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check-compat.js" defer></script>
 <script src="app-check.js" defer></script>
@@ -854,23 +854,23 @@
 
     <div class="order-box">
 
-      <!-- Mobile Money -->
+      <!-- Mobile Money (SasPay) : pays détecté automatiquement ; opérateur et numéro se saisissent sur la page de paiement sécurisée -->
       <div id="pay-panel-mobile">
-        <label class="field-label" data-i18n="pay_country_label" for="pay-country-select">Pays</label>
-        <select id="pay-country-select" class="select-input" onchange="onPayCountryChange()"></select>
-        <div class="op-grid" id="pay-operators" style="margin-top:12px"></div>
-        <p class="pay-opt-note hidden" id="pay-opt-note" role="status"></p>
-        <div id="pay-phone-block">
-          <label class="field-label" style="margin-top:16px" data-i18n="pay_phone_label" for="recharge-phone">Numéro de téléphone</label>
-          <input type="tel" id="recharge-phone" class="text-input" data-i18n-placeholder="pay_phone_ph" placeholder="+243 8xx xxx xxx">
+        <div class="pay-sp-country" id="pay-sp-country">
+          <span class="pay-sp-flag" id="pay-sp-flag" aria-hidden="true">🌍</span>
+          <span class="pay-sp-cname" id="pay-sp-cname"></span>
+          <button type="button" class="pay-sp-change hidden" id="pay-sp-change" aria-expanded="false" onclick="togglePayCountryPicker()" data-i18n="pay_sp_change">Changer</button>
         </div>
+        <select id="pay-country-select" class="select-input hidden" onchange="onPayCountryChange()"></select>
+        <p class="pay-sp-other"><span data-i18n="pay_sp_other">Ton pays n'est pas dans la liste ?</span> <button type="button" onclick="selectPayMethod('card')" data-i18n="pay_card_tab">Carte</button> <button type="button" onclick="selectPayMethod('crypto')" data-i18n="pay_crypto">Crypto</button></p>
+        <p class="pay-opt-note" id="pay-opt-note" role="status" data-i18n="pay_opt_note">Tu seras redirigé vers la page de paiement sécurisée pour choisir ton opérateur Mobile Money et confirmer. Ton solde est crédité automatiquement dès que le paiement est confirmé.</p>
       </div>
 
       <!-- Crypto -->
       <div id="pay-panel-crypto" class="hidden">
         <label class="field-label" data-i18n="pay_crypto_label">Choisis ta crypto</label>
         <div class="op-grid" id="pay-crypto-list"></div>
-        <p class="muted small" data-i18n="pay_crypto_note">L'adresse de paiement te sera envoyée par WhatsApp après ta demande.</p>
+        <p class="muted small" data-i18n="pay_crypto_note">Tu es redirigé vers une page sécurisée pour payer en crypto. Ton solde est crédité automatiquement dès que le paiement est confirmé.</p>
         <p class="muted small" id="pay-crypto-browser-tip">Si la page de paiement affiche une erreur, copie le lien et ouvre-le dans un autre navigateur (Firefox, Edge…).</p>
         <div id="pay-direct-box" class="hidden"></div>
       </div>
@@ -914,7 +914,6 @@
 
       <div id="recharge-amount-block">
         <label class="field-label" style="margin-top:16px" id="recharge-amount-label" data-i18n="pay_amount_label">Montant (USD)</label>
-        <div class="segmented" id="pay-currency-toggle" style="margin-bottom:10px"></div>
         <input type="number" id="recharge-amount" class="text-input" placeholder="Ex: 5" inputmode="decimal" oninput="updateRechargeEquivalent()">
         <div class="cn-amt-chips" role="group" aria-label="Montants rapides">
           <button type="button" onclick="cnSetAmount(2)">2 $</button>
@@ -929,11 +928,10 @@
       <div class="modal-error hidden" id="recharge-error"></div>
       <div class="modal-loading hidden" id="recharge-success"></div>
 
-      <button class="btn btn-primary" id="recharge-submit-btn" style="width:100%;justify-content:center;margin-top:14px" data-i18n="pay_submit" onclick="submitRecharge()">Envoyer la demande</button>
+      <button class="btn btn-primary" id="recharge-submit-btn" style="width:100%;justify-content:center;margin-top:14px" data-i18n="pay_btn_pay" onclick="submitRecharge()">Payer maintenant</button>
       <p class="cn-secure" data-i18n="pay_secure">Paiement sécurisé · crédit automatique après confirmation</p>
     </div>
 
-    <p id="pay-manual-note" class="muted small" style="text-align:center;margin-top:12px" data-i18n="pay_manual_note">Chaque demande est validée manuellement après réception du paiement (généralement sous quelques minutes).</p>
   </div>
 </div>
 
@@ -2629,7 +2627,7 @@
   </div>
 </div>
 
-<script src="app.min.js?v=3b34e23526" defer onerror="(function(){function f(){['translations','catalog-data','script','polish','menu-pro','push-center'].forEach(function(n){var x=document.createElement('script');x.src=n+'.js';x.async=false;document.body.appendChild(x)})}document.readyState==='loading'?document.addEventListener('DOMContentLoaded',f):f()})()"></script>
+<script src="app.min.js?v=023327bcb8" defer onerror="(function(){function f(){['translations','catalog-data','script','polish','menu-pro','push-center'].forEach(function(n){var x=document.createElement('script');x.src=n+'.js';x.async=false;document.body.appendChild(x)})}document.readyState==='loading'?document.addEventListener('DOMContentLoaded',f):f()})()"></script>
 
 <!-- PWA : activation du service worker (installation en app) -->
 <script>
