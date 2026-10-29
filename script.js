@@ -42,7 +42,7 @@ function cnIco(name) {
   return '<svg class="ico" aria-hidden="true"><use href="#i-' + name + '"/></svg>';
 }
 
-function showToast(message, type = 'info') {
+function showToast(message, type = 'info', ms) {
   const container = document.getElementById('toast-container');
   if (!container) { alert(message); return; }
   const toast = document.createElement('div');
@@ -53,7 +53,7 @@ function showToast(message, type = 'info') {
   setTimeout(() => {
     toast.classList.remove('show');
     setTimeout(() => toast.remove(), 300);
-  }, 3200);
+  }, ms || 3200);
 }
 
 /* ================= DETECTION HORS-LIGNE =================
@@ -543,6 +543,17 @@ try {
   const rr = JSON.parse(sessionStorage.getItem(CN_RESUME_KEY) || 'null');
   if (rr && rr.tab && (window.__cnResume || window.__cnQuick) && Date.now() - (rr.t || 0) < 12 * 3600 * 1000) cnResumeBoot = rr;
 } catch (e) { /* pas de reprise */ }
+/* Billet de retour (choix d'une photo / d'un fichier) : si le telephone a ferme la page pendant ce choix, le billet
+   (localStorage, 10 minutes) permet de revenir exactement au meme ecran, meme si sessionStorage a ete perdu. */
+const CN_TICKET_KEY = 'cn_ticket';
+try {
+  const tk = JSON.parse(localStorage.getItem(CN_TICKET_KEY) || 'null');
+  localStorage.removeItem(CN_TICKET_KEY);
+  if (tk && tk.r && tk.r.tab && Date.now() - (tk.t || 0) < 10 * 60 * 1000) {
+    if (!cnResumeBoot) cnResumeBoot = tk.r;
+    else cnResumeBoot = Object.assign({}, cnResumeBoot, { picker: tk.r.picker || cnResumeBoot.picker, section: cnResumeBoot.section || tk.r.section, cat: cnResumeBoot.cat || tk.r.cat });
+  }
+} catch (e) { /* pas de billet */ }
 
 const CN_MENU_OPENERS = { contests: 'openContestsScreen', jobs: 'openJobsScreen', events: 'openEventsScreen', travel: 'openTravelScreen', booking: 'openBookingScreen', immo: 'openImmoScreen', srequests: 'openServiceRequestScreen', academy: 'openAcademyScreen', business: 'openBusinessScreen', nearby: 'openNearbyScreen', invoices: 'openInvoiceScreen', alerts: 'openAlertsScreen', site: 'openSiteBuilderScreen' };
 
@@ -564,6 +575,15 @@ function cnSaveResume() {
       menu: sc ? sc.id.replace('menu-screen-', '') : '',
       t: Date.now()
     };
+    // Ecran « contenu » du menu (Reglages > Compte, Parrainage...) : on retient quelle section est ouverte.
+    if (o.menu === 'content') {
+      const slot = document.getElementById('menu-content-slot');
+      const secEl = slot && slot.firstElementChild;
+      o.section = secEl && secEl.id ? secEl.id : '';
+      o.cat = menuCurrentCategoryScreen || 'categories';
+      if (!o.section) o.menu = '';
+    }
+    if (cnPickerOpenId) o.picker = cnPickerOpenId;
     sessionStorage.setItem(CN_RESUME_KEY, JSON.stringify(o));
   } catch (e) { /* non bloquant */ }
 }
@@ -583,7 +603,22 @@ function cnApplyResume(r) {
         if (typeof fn === 'function') { fn(); return; }
         if (++tries < 30) setTimeout(go, 300);
       })();
+    } else if (r.menu === 'content' && r.section) {
+      // Section du menu (ex. Reglages > Compte) : on rouvre le menu puis la section, comme avant l'actualisation.
+      let tries = 0;
+      (function go() {
+        if (typeof goToAccountSection === 'function' && document.getElementById(r.section) && currentUser) {
+          openMainMenu();
+          if (r.cat) menuCurrentCategoryScreen = r.cat;
+          goToAccountSection(r.section);
+          return;
+        }
+        if (++tries < 30) setTimeout(go, 250);
+      })();
+    } else if (r.menu === 'categories' || /^items-/.test(r.menu || '')) {
+      setTimeout(() => { try { openMainMenu(); showMenuScreen(r.menu); } catch (e) { /* ignore */ } }, 400);
     }
+    if (r.picker) cnAfterPicker(r);
     if (r.chat) {
       let tries = 0;
       (function go() {
@@ -593,6 +628,73 @@ function cnApplyResume(r) {
     }
   } catch (e) { console.log('[reprise] non bloquant :', e && e.message); }
 }
+/* ---- Choix d'un fichier / d'une photo : le « billet de retour » ----
+   Sur certains telephones (peu de memoire), ouvrir la galerie ou l'appareil photo fait fermer la page en arriere-plan :
+   au retour, l'application se rechargeait sur l'Accueil. On pose donc un billet avant d'ouvrir le choix ; au retour,
+   l'application rouvre l'ecran ou on etait et explique simplement quoi faire. */
+let cnPickerOpenId = '';
+let cnPickerHidden = false;
+let cnPickerTimer = null;
+function cnPickerTicket(inp) {
+  try {
+    if (!cnResumeArmed || !currentUser) return;
+    cnPickerOpenId = (inp && inp.id) || 'file';
+    cnSaveResume();
+    const r = JSON.parse(sessionStorage.getItem(CN_RESUME_KEY) || 'null');
+    if (!r || Date.now() - (r.t || 0) > 3000) return;
+    r.picker = cnPickerOpenId;
+    localStorage.setItem(CN_TICKET_KEY, JSON.stringify({ t: Date.now(), r }));
+    cnPickerHidden = false;
+    // Filet : si rien ne s'est passe apres 2 minutes (choix annule sans evenement), le billet est retire.
+    clearTimeout(cnPickerTimer); cnPickerTimer = setTimeout(cnPickerDone, 120000);
+  } catch (e) { /* non bloquant */ }
+}
+function cnPickerDone() {
+  cnPickerOpenId = ''; cnPickerHidden = false; clearTimeout(cnPickerTimer);
+  try { localStorage.removeItem(CN_TICKET_KEY); } catch (e) { /* ignore */ }
+}
+const CN_PICKER_TEXT = {
+  fr: "Le téléphone avait fermé l'application pendant le choix. Vous êtes revenu au bon endroit : choisissez la photo ou le fichier de nouveau.",
+  en: 'Your phone closed the app while you were choosing. You are back where you were: please choose the photo or file again.',
+  es: 'El teléfono cerró la aplicación durante la selección. Has vuelto al mismo sitio: elige la foto o el archivo de nuevo.',
+  it: "Il telefono ha chiuso l'app durante la scelta. Sei tornato al punto giusto: scegli di nuovo la foto o il file.",
+  pt: 'O telemóvel fechou a aplicação durante a escolha. Voltou ao sítio certo: escolha a foto ou o ficheiro de novo.'
+};
+function cnAfterPicker(r) {
+  try {
+    setTimeout(() => {
+      const inp = document.getElementById(r.picker);
+      const lab = inp && (document.querySelector('label[for="' + r.picker + '"]') || inp.parentElement);
+      if (lab && lab.scrollIntoView && lab.offsetParent) lab.scrollIntoView({ block: 'center' });
+      showToast(CN_PICKER_TEXT[currentLang] || CN_PICKER_TEXT.fr, 'info', 6500);
+    }, 1400);
+  } catch (e) { /* ignore */ }
+}
+document.addEventListener('click', (e) => {
+  try {
+    const el = e.target && e.target.closest ? e.target.closest('input[type="file"], label[for]') : null;
+    if (!el) return;
+    if (el.tagName === 'LABEL') {
+      const inp = document.getElementById(el.getAttribute('for'));
+      if (inp && inp.type === 'file') cnPickerTicket(inp);
+    } else cnPickerTicket(el);
+  } catch (err) { /* ignore */ }
+}, true);
+try {
+  const cnOrigClick = HTMLInputElement.prototype.click;
+  HTMLInputElement.prototype.click = function () {
+    if (this.type === 'file') cnPickerTicket(this);
+    return cnOrigClick.apply(this, arguments);
+  };
+} catch (e) { /* ignore */ }
+// Retour normal (la page n'a PAS ete fermee) : le billet ne sert plus.
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) { if (cnPickerOpenId) cnPickerHidden = true; return; }
+  if (cnPickerHidden) setTimeout(cnPickerDone, 1500);
+});
+document.addEventListener('change', (e) => { if (e.target && e.target.type === 'file') setTimeout(cnPickerDone, 500); }, true);
+window.addEventListener('focus', () => { if (cnPickerHidden) setTimeout(cnPickerDone, 1500); });
+
 let cnUserScrolled = false;
 window.addEventListener('touchstart', () => { cnUserScrolled = true; }, { passive: true, once: true });
 window.addEventListener('wheel', () => { cnUserScrolled = true; }, { passive: true, once: true });
@@ -1722,12 +1824,14 @@ async function submitRecharge() {
   let redirecting = false;
   try {
     if (btn) { btn.disabled = true; btn.textContent = t('sending_in_progress'); }
+    // Ecran d'etapes immediat (payments-pro.js) : la personne voit tout de suite quoi faire (choisir l'operateur, puis entrer son code secret).
+    try { if (window.cnPayFlow) window.cnPayFlow.start(payMethod, amount); } catch (e) { /* facultatif */ }
     const idToken = await auth.currentUser.getIdToken();
     // Crypto : facture Cryptomus. Tout le reste : page hébergée (Mobile Money → SasPay, choisi par le serveur ; carte et illicocash → OPTGateway).
     // Dans tous les cas le serveur enregistre la demande avec un montant fiable, et le solde n'est crédité que par le webhook vérifié.
     const body = payMethod === 'crypto'
-      ? { idToken, provider: 'crypto', amount: amount, currency: 'USD' }
-      : { idToken, provider: 'optgateway', amountUSD: amount,
+      ? { idToken, provider: 'crypto', amount: amount, currency: 'USD', returnOrigin: window.location.origin }
+      : { idToken, provider: 'optgateway', amountUSD: amount, returnOrigin: window.location.origin,
           onlyMethod: payMethod === 'illicocash' ? 'illicocash' : (payMethod === 'mobile' ? 'mobile_money' : 'card'),
           countryCode: payMethod === 'mobile' ? payCountryCode : undefined };
     const response = await fetch('/api/payment-initiate', {
@@ -1745,14 +1849,15 @@ async function submitRecharge() {
     }
     redirecting = true;
     if (btn) btn.textContent = t('pay_redirecting');
-    window.location.href = data.paymentUrl;
+    if (window.cnPayFlow && window.cnPayFlow.go) window.cnPayFlow.go(data.paymentUrl);
+    else window.location.href = data.paymentUrl;
     // Si la redirection n'a pas lieu (navigateur qui la bloque), on rend le bouton après quelques secondes.
     setTimeout(payResetSubmitBtn, 15000);
   } catch (e) {
     console.error('Erreur demande recharge :', e.message);
     fail(t('pay_err_generic') + (e && e.message ? ' (' + String(e.message).slice(0, 80) + ')' : ''));
   } finally {
-    if (!redirecting) payResetSubmitBtn();
+    if (!redirecting) { payResetSubmitBtn(); try { if (window.cnPayFlow) window.cnPayFlow.stop(); } catch (e) { /* ignore */ } }
   }
 }
 
@@ -2599,6 +2704,15 @@ function openOwnProfile() {
   openProfileModal(currentUser.uid, currentUser.name || 'Utilisateur', !!currentUser.verified);
 }
 
+// Bouton « retour » du telephone dans le menu : on remonte d'un ecran (comme la fleche en haut), puis on ferme.
+// Avant, un seul retour fermait tout le menu, ce qui donnait l'impression d'etre « sorti » de l'application.
+function cnMenuBack() {
+  const modal = document.getElementById('main-menu-modal');
+  const sc = modal && modal.querySelector('[id^="menu-screen-"]:not(.hidden)');
+  const back = sc && sc.id !== 'menu-screen-categories' ? sc.querySelector('.menu-back-btn') : null;
+  if (back) back.click(); else closeMainMenu();
+}
+
 function closeMainMenu() {
   // Si une section est actuellement affichee dans "contenu", la remettre
   // a sa place d'origine avant de fermer, pour ne jamais la perdre.
@@ -2845,7 +2959,7 @@ function closeTopmostOverlay() {
   const STATIC_MODAL_CLOSERS = {
     'auth-modal': () => closeAuth(),
     'tutorial-modal': () => closeTutorial(),
-    'main-menu-modal': () => closeMainMenu(),
+    'main-menu-modal': () => cnMenuBack(),
     'post-detail-modal': () => closePostDetail(),
     'profile-modal': () => closeProfileModal(),
     'follow-list-modal': () => closeFollowListModal(),
@@ -17379,8 +17493,9 @@ async function registerPushNotifications() {
       return;
     }
 
-    const permission = await Notification.requestPermission();
-    if (permission !== 'granted') {
+    // La demande d'autorisation se fait uniquement apres un geste de la personne (push-center.js) :
+    // une demande automatique a l'ouverture est souvent ignoree ou bloquee par le telephone.
+    if (Notification.permission !== 'granted') {
       return;
     }
 
