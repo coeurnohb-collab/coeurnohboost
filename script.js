@@ -2115,21 +2115,10 @@ function updateAuthModalMode() {
   if (legal) legal.textContent = isReg ? t('auth_legal') : '';
   const strength = document.getElementById('auth-pw-strength');
   if (strength) strength.classList.add('hidden');
-  // Onglets « Créer un compte | Se connecter » (l'onglet actif suit le mode).
-  ['register', 'login'].forEach((m) => {
-    const tab = document.getElementById('auth-tab-' + m);
-    if (!tab) return;
-    tab.classList.toggle('active', m === authMode);
-    tab.setAttribute('aria-selected', String(m === authMode));
-  });
   // Le téléphone propose un mot de passe fort à l'inscription, et remplit le mot de passe enregistré à la connexion.
   const pw = document.getElementById('auth-password');
   if (pw) pw.setAttribute('autocomplete', isReg ? 'new-password' : 'current-password');
   hideAuthError();
-}
-function setAuthMode(mode) {
-  if (mode !== 'register' && mode !== 'login') return;
-  if (authMode !== mode) { authMode = mode; updateAuthModalMode(); }
 }
 function togglePasswordVisibility() {
   const input = document.getElementById('auth-password');

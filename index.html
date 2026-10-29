@@ -201,7 +201,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="app.min.css?v=b538e81b08" onerror="['style','polish','menu-pro','pro'].forEach(function(n){var l=document.createElement('link');l.rel='stylesheet';l.href=n+'.css';document.head.appendChild(l)})">
+<link rel="stylesheet" href="app.min.css?v=ca410147d5" onerror="['style','polish','menu-pro','pro'].forEach(function(n){var l=document.createElement('link');l.rel='stylesheet';l.href=n+'.css';document.head.appendChild(l)})">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check-compat.js" defer></script>
 <script src="app-check.js" defer></script>
@@ -1056,10 +1056,6 @@
     </div>
 
     <div class="auth-body">
-      <div class="auth-tabs" role="tablist">
-        <button type="button" role="tab" id="auth-tab-register" class="active" aria-selected="true" onclick="setAuthMode('register')" data-i18n="auth_title_register">Créer un compte</button>
-        <button type="button" role="tab" id="auth-tab-login" aria-selected="false" onclick="setAuthMode('login')" data-i18n="auth_title_login">Se connecter</button>
-      </div>
       <h2 id="auth-title" data-i18n="auth_title_register">Créer un compte</h2>
       <p class="sub" data-i18n="auth_sub">Rejoins Coeurnoh Universe en moins d'une minute.</p>
       <div class="modal-error hidden" id="auth-error" role="alert"></div>
@@ -1073,6 +1069,10 @@
       <div class="divider-or" data-i18n="auth_or">ou</div>
 
       <form id="auth-form" novalidate onsubmit="submitAuth(); return false;">
+      <div class="field" id="auth-name-field">
+        <label for="auth-name" data-i18n="auth_name_label">Nom / Pseudo</label>
+        <div class="auth-input"><svg class="lead" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><input type="text" id="auth-name" autocomplete="name" enterkeyhint="go" data-i18n-placeholder="auth_name_ph" placeholder="Ton nom"></div>
+      </div>
       <div class="field">
         <label for="auth-email" data-i18n="auth_email_label">Email</label>
         <div class="auth-input"><svg class="lead" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="m22 7-10 6L2 7"/></svg><input type="email" id="auth-email" autocomplete="email" inputmode="email" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="next" data-i18n-placeholder="auth_email_ph" placeholder="toi@email.com"></div>
@@ -1083,10 +1083,6 @@
           <button type="button" class="password-toggle" id="password-toggle-btn" onclick="togglePasswordVisibility()" aria-label="Afficher le mot de passe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg></button>
         </div>
         <div id="auth-pw-strength" class="hidden"><div class="pw-meter"><i id="auth-pw-bar"></i></div><div class="pw-hint" id="auth-pw-hint"></div></div>
-      </div>
-      <div class="field" id="auth-name-field">
-        <label for="auth-name" data-i18n="auth_name_label">Nom / Pseudo</label>
-        <div class="auth-input"><svg class="lead" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><input type="text" id="auth-name" autocomplete="name" enterkeyhint="go" data-i18n-placeholder="auth_name_ph" placeholder="Ton nom"></div>
       </div>
       <div class="auth-row hidden" id="auth-forgot-row"><button type="button" class="auth-link" id="auth-forgot-btn" onclick="forgotPassword()" data-i18n="auth_forgot">Mot de passe oublié ?</button></div>
       <button class="btn btn-primary" id="auth-submit" type="submit" data-i18n="auth_submit_register">Créer mon compte</button>
@@ -2633,7 +2629,7 @@
   </div>
 </div>
 
-<script src="app.min.js?v=8543fd05d6" defer onerror="(function(){function f(){['translations','catalog-data','script','polish','menu-pro','push-center'].forEach(function(n){var x=document.createElement('script');x.src=n+'.js';x.async=false;document.body.appendChild(x)})}document.readyState==='loading'?document.addEventListener('DOMContentLoaded',f):f()})()"></script>
+<script src="app.min.js?v=494f7a65e3" defer onerror="(function(){function f(){['translations','catalog-data','script','polish','menu-pro','push-center'].forEach(function(n){var x=document.createElement('script');x.src=n+'.js';x.async=false;document.body.appendChild(x)})}document.readyState==='loading'?document.addEventListener('DOMContentLoaded',f):f()})()"></script>
 
 <!-- PWA : activation du service worker (installation en app) -->
 <script>

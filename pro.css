@@ -666,6 +666,9 @@ html[data-theme="dark"] .auth-modal-overlay{background:#0f1520!important}
 .auth-trust svg{color:#ffd28a!important}
 .auth-brand,.auth-hero-line,.auth-trust{animation:none!important}
 .auth-modal input,.auth-modal select,.auth-modal button{font-size:16px}
+/* Les icônes de l'écran de connexion ne se superposent plus au texte saisi (la règle générale des champs prenait le dessus) */
+.auth-modal .field .auth-input input{padding-left:44px;padding-top:13px;padding-bottom:13px;min-height:48px}
+.auth-modal .field .auth-input.password-wrap input{padding-right:50px}
 
 
 /* ============ Accueil public : sobre, couleurs unies, thème clair et sombre ============ */
@@ -784,17 +787,3 @@ html[data-theme="dark"] #view-home{--hm-dark:#131923;--hm-dark-2:#1a2230;--hm-da
   .hm-why{grid-template-columns:repeat(4,minmax(0,1fr))}
   .hm-final{padding:52px 40px}
 }
-
-/* ===== Connexion simplifiée : en-tête compact, onglets « Créer un compte | Se connecter », champs visibles tout de suite ===== */
-.auth-modal .auth-hero{padding:18px 58px 14px 20px}
-.auth-modal .auth-hero-line,.auth-modal .auth-trust{display:none}
-.auth-modal .auth-brand .brand-mark{width:38px;height:38px;border-radius:12px}
-.auth-modal .auth-brand-name{font-size:1.15rem}
-.auth-modal .auth-body{padding:16px 20px 22px}
-.auth-tabs{display:flex;gap:4px;padding:4px;background:var(--cream);border:1.5px solid var(--line);border-radius:14px;margin:0 0 14px}
-.auth-tabs button{flex:1;border:0;background:transparent;color:var(--muted);font:inherit;font-weight:700;font-size:.9rem;padding:10px 8px;border-radius:10px;cursor:pointer;transition:background .15s,color .15s,box-shadow .15s}
-.auth-tabs button.active{background:var(--white);color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.14)}
-.auth-tabs button:focus-visible{outline:3px solid rgba(243,156,31,.55);outline-offset:1px}
-.auth-modal #auth-title,.auth-modal .auth-body>.sub{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-.auth-modal .modal-switch{display:none}
-.auth-modal .divider-or{margin:10px 0}
