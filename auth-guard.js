@@ -108,12 +108,52 @@
     input.setAttribute('placeholder', reg ? base.replace(/\b6\b/, '8') : base);
   }
   document.addEventListener('click', function (ev) { if (ev.target && ev.target.closest && ev.target.closest('#auth-modal')) setTimeout(function () { syncPlaceholder(); renderMeter(); }, 40); });
+  /* ---------- 1 ter. Faute de frappe dans l'email (inscription uniquement) ----------
+     Un compte créé avec un email faux (« gmial.com ») ne pourra jamais récupérer son mot de passe. On corrige
+     les fautes évidentes et on demande de vérifier d'un coup d'œil : aucune étape de plus si l'email est juste. */
+  var TYPO = {
+    'gmial.com': 'gmail.com', 'gmai.com': 'gmail.com', 'gamil.com': 'gmail.com', 'gmil.com': 'gmail.com', 'gmaill.com': 'gmail.com',
+    'gmail.con': 'gmail.com', 'gmail.cm': 'gmail.com', 'gmail.om': 'gmail.com', 'gmail.comm': 'gmail.com',
+    'yahou.com': 'yahoo.com', 'yaho.com': 'yahoo.com', 'yahoo.con': 'yahoo.com',
+    'hotmial.com': 'hotmail.com', 'hotmai.com': 'hotmail.com', 'hotmail.con': 'hotmail.com', 'hotamil.com': 'hotmail.com',
+    'outlok.com': 'outlook.com', 'outloook.com': 'outlook.com', 'outlook.con': 'outlook.com', 'icloud.con': 'icloud.com'
+  };
+  var TYMSG = {
+    fr: 'Email corrigé en {e} — vérifie, puis touche « Créer mon compte ».',
+    en: 'Email corrected to {e} — check it, then tap “Create my account”.',
+    es: 'Email corregido a {e} — compruébalo y pulsa «Crear mi cuenta».',
+    it: 'Email corretta in {e} — controlala, poi tocca «Crea il mio account».',
+    pt: 'Email corrigido para {e} — confira e toque em «Criar minha conta».'
+  };
+  function emailFix(email) {
+    var m = /^([^@\s]+)@([^@\s]+)$/.exec(String(email || '').trim());
+    if (!m) return null;
+    var good = TYPO[m[2].toLowerCase()];
+    return good ? m[1] + '@' + good : null;
+  }
+  function typoMsg(e) {
+    var l = 'fr'; try { if (typeof currentLang !== 'undefined' && TYMSG[currentLang]) l = currentLang; } catch (x) { /* ignore */ }
+    return TYMSG[l].replace('{e}', e);
+  }
+  // « Mot de passe oublié » sans email saisi : on place le curseur dans le champ email au lieu de laisser la personne chercher.
+  var origForgot = window.forgotPassword;
+  if (typeof origForgot === 'function') {
+    window.forgotPassword = function () {
+      var r = origForgot.apply(this, arguments);
+      try { var em = document.getElementById('auth-email'); if (em && !String(em.value).trim()) em.focus(); } catch (e) { /* ignore */ }
+      return r;
+    };
+  }
+
   var origSubmitAuth = window.submitAuth;
   if (typeof origSubmitAuth === 'function') {
     window.submitAuth = function () {
       try {
         var reg = (typeof authMode !== 'undefined' && authMode === 'register');
         if (reg) {
+          var emEl = document.getElementById('auth-email');
+          var fixed = emEl ? emailFix(emEl.value) : null;
+          if (fixed) { emEl.value = fixed; try { showAuthError(typoMsg(fixed)); } catch (e) { /* ignore */ } return undefined; }
           var bad = pwProblem((document.getElementById('auth-password') || {}).value, (document.getElementById('auth-email') || {}).value);
           if (bad) { try { showAuthError(bad); } catch (e) { /* ignore */ } return undefined; }
         }
