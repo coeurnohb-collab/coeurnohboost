@@ -329,8 +329,9 @@ html[data-theme="dark"] .pay-opt-note { background: #16233b; border-color: #2a3f
 #pay-country-select { margin-top: 10px; width: 100%; }
 .pay-sp-other { margin: 12px 2px 0; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: .86rem; color: var(--muted); }
 .pay-sp-other > span { flex: 1 1 100%; }
-.pay-sp-other button { border: 1.5px solid var(--line); background: var(--white); color: var(--ink-2); border-radius: 999px; padding: 6px 14px; min-height: 34px; font: inherit; font-size: .85rem; font-weight: 600; cursor: pointer; }
-.pay-sp-other button:hover, .pay-sp-other button:focus-visible { border-color: #2563eb; background: var(--tint-blue); color: var(--link); outline: none; }
+.pay-err-alt { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.pay-sp-other button, .pay-err-alt button { border: 1.5px solid var(--line); background: var(--white); color: var(--ink-2); border-radius: 999px; padding: 6px 14px; min-height: 34px; font: inherit; font-size: .85rem; font-weight: 600; cursor: pointer; }
+.pay-sp-other button:hover, .pay-sp-other button:focus-visible, .pay-err-alt button:hover, .pay-err-alt button:focus-visible { border-color: #2563eb; background: var(--tint-blue); color: var(--link); outline: none; }
 
 @media (prefers-reduced-motion: reduce) { .cn-tab, .cn-amt-chips button { transition: none; } }
 

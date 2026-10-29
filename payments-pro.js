@@ -3,7 +3,7 @@
    - Relevé du portefeuille : résumé entrées/sorties, filtres, recherche, regroupement par jour,
      détail de chaque mouvement, reçu imprimable / PDF, export CSV.
    - Suivi des recharges (en attente, en vérification, créditée, échouée).
-   - Écran de recharge : récapitulatif du montant, alerte si une recharge est déjà en cours, aide.
+   - Écran de recharge : récapitulatif du montant, aide. Départ DIRECT vers la page de paiement (aucun écran d'attente), aucune alerte « recharge en cours ».
    Aucun changement serveur : lit les mêmes collections que l'application (wallet_transactions, topup_requests). */
 (function () {
   'use strict';
@@ -43,11 +43,7 @@
     /* ================= TEXTES (5 langues) ================= */
     var P = {
       fr: {
-        head: 'Recharge du portefeuille', go_title: 'Paiement sécurisé', go_sub: 'La page de paiement s’ouvre dans un instant.',
-        go_s1: 'Choisissez votre opérateur et entrez votre numéro', go_s2: 'Une demande de paiement arrive sur votre téléphone', go_s3: 'Entrez votre code secret (PIN) pour confirmer',
-        go_o1: 'Choisissez votre moyen de paiement sur la page sécurisée', go_o2: 'Renseignez vos informations et confirmez', go_o3: 'Revenez ici : votre solde est crédité automatiquement',
-        go_pin: 'Gardez votre téléphone à portée de main : vous devrez entrer votre code secret M‑Pesa, Airtel Money, Orange Money ou MTN MoMo.',
-        go_open: 'Ouverture de la page sécurisée…', go_now: 'Continuer maintenant', go_stuck: 'La page ne s’ouvre pas ? Touchez ici.', go_safe: 'Le paiement se fait sur la page sécurisée du prestataire. Ne fermez pas l’application.',
+        head: 'Recharge du portefeuille',
         w_title: 'Confirmez sur votre téléphone', w_body: 'Une demande de paiement a été envoyée à votre téléphone. Entrez votre code secret (PIN) M‑Pesa, Airtel Money, Orange Money ou MTN MoMo pour la confirmer.',
         w_title2: 'Paiement reçu', w_body2: 'Nous vérifions la confirmation de votre paiement. Votre solde sera mis à jour automatiquement, sans rien faire de votre côté.',
         w_s1: 'Demande envoyée', w_s2: 'Confirmation avec votre code secret', w_s3: 'Solde crédité', w_auto: 'Vérification automatique en cours',
@@ -59,11 +55,7 @@
         how_t: 'Comment ça se passe', how_1: 'Touchez « Payer » : la page de paiement sécurisée s’ouvre. Choisissez votre opérateur et entrez votre numéro.', how_2: 'Une demande de paiement arrive sur votre téléphone.', how_3: 'Entrez votre code secret (PIN) M‑Pesa, Airtel Money, Orange Money ou MTN MoMo pour confirmer. Votre solde est crédité automatiquement.'
       },
       en: {
-        head: 'Wallet top-up', go_title: 'Secure payment', go_sub: 'The payment page opens in a moment.',
-        go_s1: 'Choose your operator and enter your number', go_s2: 'A payment request arrives on your phone', go_s3: 'Enter your secret code (PIN) to confirm',
-        go_o1: 'Choose your payment method on the secure page', go_o2: 'Fill in your details and confirm', go_o3: 'Come back here: your balance is credited automatically',
-        go_pin: 'Keep your phone at hand: you will need to enter your M‑Pesa, Airtel Money, Orange Money or MTN MoMo secret code.',
-        go_open: 'Opening the secure page…', go_now: 'Continue now', go_stuck: 'The page does not open? Tap here.', go_safe: 'Payment is made on the provider’s secure page. Do not close the app.',
+        head: 'Wallet top-up',
         w_title: 'Confirm on your phone', w_body: 'A payment request was sent to your phone. Enter your secret code (PIN) for M‑Pesa, Airtel Money, Orange Money or MTN MoMo to confirm it.',
         w_title2: 'Payment received', w_body2: 'We are checking your payment confirmation. Your balance will update automatically, you do not need to do anything.',
         w_s1: 'Request sent', w_s2: 'Confirmation with your secret code', w_s3: 'Balance credited', w_auto: 'Automatic check in progress',
@@ -75,11 +67,7 @@
         how_t: 'How it works', how_1: 'Tap “Pay”: the secure payment page opens. Choose your operator and enter your number.', how_2: 'A payment request arrives on your phone.', how_3: 'Enter your secret code (PIN) for M‑Pesa, Airtel Money, Orange Money or MTN MoMo to confirm. Your balance is credited automatically.'
       },
       es: {
-        head: 'Recarga de la cartera', go_title: 'Pago seguro', go_sub: 'La página de pago se abre en un instante.',
-        go_s1: 'Elige tu operador e introduce tu número', go_s2: 'Llega una solicitud de pago a tu teléfono', go_s3: 'Introduce tu código secreto (PIN) para confirmar',
-        go_o1: 'Elige tu medio de pago en la página segura', go_o2: 'Completa tus datos y confirma', go_o3: 'Vuelve aquí: tu saldo se acredita automáticamente',
-        go_pin: 'Ten el teléfono a mano: tendrás que introducir tu código secreto de M‑Pesa, Airtel Money, Orange Money o MTN MoMo.',
-        go_open: 'Abriendo la página segura…', go_now: 'Continuar ahora', go_stuck: '¿La página no se abre? Toca aquí.', go_safe: 'El pago se realiza en la página segura del proveedor. No cierres la aplicación.',
+        head: 'Recarga de la cartera',
         w_title: 'Confirma en tu teléfono', w_body: 'Se envió una solicitud de pago a tu teléfono. Introduce tu código secreto (PIN) de M‑Pesa, Airtel Money, Orange Money o MTN MoMo para confirmarla.',
         w_title2: 'Pago recibido', w_body2: 'Estamos verificando la confirmación de tu pago. Tu saldo se actualizará automáticamente, sin que hagas nada.',
         w_s1: 'Solicitud enviada', w_s2: 'Confirmación con tu código secreto', w_s3: 'Saldo acreditado', w_auto: 'Verificación automática en curso',
@@ -91,11 +79,7 @@
         how_t: 'Cómo funciona', how_1: 'Toca «Pagar»: se abre la página de pago segura. Elige tu operador e introduce tu número.', how_2: 'Llega una solicitud de pago a tu teléfono.', how_3: 'Introduce tu código secreto (PIN) de M‑Pesa, Airtel Money, Orange Money o MTN MoMo para confirmar. Tu saldo se acredita automáticamente.'
       },
       it: {
-        head: 'Ricarica del portafoglio', go_title: 'Pagamento sicuro', go_sub: 'La pagina di pagamento si apre tra un istante.',
-        go_s1: 'Scegli il tuo operatore e inserisci il tuo numero', go_s2: 'Una richiesta di pagamento arriva sul tuo telefono', go_s3: 'Inserisci il tuo codice segreto (PIN) per confermare',
-        go_o1: 'Scegli il metodo di pagamento sulla pagina sicura', go_o2: 'Inserisci i tuoi dati e conferma', go_o3: 'Torna qui: il saldo viene accreditato automaticamente',
-        go_pin: 'Tieni il telefono a portata di mano: dovrai inserire il tuo codice segreto M‑Pesa, Airtel Money, Orange Money o MTN MoMo.',
-        go_open: 'Apertura della pagina sicura…', go_now: 'Continua ora', go_stuck: 'La pagina non si apre? Tocca qui.', go_safe: 'Il pagamento avviene sulla pagina sicura del fornitore. Non chiudere l’app.',
+        head: 'Ricarica del portafoglio',
         w_title: 'Conferma sul telefono', w_body: 'Una richiesta di pagamento è stata inviata al tuo telefono. Inserisci il tuo codice segreto (PIN) M‑Pesa, Airtel Money, Orange Money o MTN MoMo per confermarla.',
         w_title2: 'Pagamento ricevuto', w_body2: 'Stiamo verificando la conferma del pagamento. Il saldo si aggiornerà automaticamente, senza che tu faccia nulla.',
         w_s1: 'Richiesta inviata', w_s2: 'Conferma con il tuo codice segreto', w_s3: 'Saldo accreditato', w_auto: 'Verifica automatica in corso',
@@ -107,11 +91,7 @@
         how_t: 'Come funziona', how_1: 'Tocca «Paga»: si apre la pagina di pagamento sicura. Scegli il tuo operatore e inserisci il tuo numero.', how_2: 'Una richiesta di pagamento arriva sul tuo telefono.', how_3: 'Inserisci il tuo codice segreto (PIN) M‑Pesa, Airtel Money, Orange Money o MTN MoMo per confermare. Il saldo viene accreditato automaticamente.'
       },
       pt: {
-        head: 'Recarga da carteira', go_title: 'Pagamento seguro', go_sub: 'A página de pagamento abre num instante.',
-        go_s1: 'Escolha o seu operador e introduza o seu número', go_s2: 'Chega um pedido de pagamento ao seu telemóvel', go_s3: 'Introduza o seu código secreto (PIN) para confirmar',
-        go_o1: 'Escolha o meio de pagamento na página segura', go_o2: 'Preencha os seus dados e confirme', go_o3: 'Volte aqui: o saldo é creditado automaticamente',
-        go_pin: 'Tenha o telemóvel à mão: terá de introduzir o seu código secreto M‑Pesa, Airtel Money, Orange Money ou MTN MoMo.',
-        go_open: 'A abrir a página segura…', go_now: 'Continuar agora', go_stuck: 'A página não abre? Toque aqui.', go_safe: 'O pagamento é feito na página segura do prestador. Não feche a aplicação.',
+        head: 'Recarga da carteira',
         w_title: 'Confirme no seu telemóvel', w_body: 'Foi enviado um pedido de pagamento ao seu telemóvel. Introduza o seu código secreto (PIN) M‑Pesa, Airtel Money, Orange Money ou MTN MoMo para o confirmar.',
         w_title2: 'Pagamento recebido', w_body2: 'Estamos a verificar a confirmação do pagamento. O saldo será atualizado automaticamente, sem que precise de fazer nada.',
         w_s1: 'Pedido enviado', w_s2: 'Confirmação com o seu código secreto', w_s3: 'Saldo creditado', w_auto: 'Verificação automática em curso',
@@ -147,7 +127,6 @@
       '.pf-meta{display:flex;justify-content:space-between;gap:10px;font-size:.78rem;color:var(--muted,#5d6779);margin:0 0 14px}' +
       '.pf-amt{font-family:var(--font-head,inherit);font-size:2rem;font-weight:700;letter-spacing:-.02em;margin:2px 0 10px;color:var(--tint-green-ink,#15693a)}' +
       '.pf-acts{display:grid;gap:8px;margin-top:4px}.pf-acts .btn{width:100%;justify-content:center}' +
-      '.pf-stuck{display:none;text-align:center;margin-top:12px;font-size:.85rem}.pf-stuck a{color:var(--link,#1d4ed8);font-weight:600}' +
       '#pay-panel-mobile .pay-opt-note{display:none}';
     var pfs = document.createElement('style'); pfs.textContent = PF_CSS; document.head.appendChild(pfs);
 
@@ -172,43 +151,17 @@
       }).join('') + '</ol>';
     }
 
-    /* ================= AVANT LE PAIEMENT : ÉCRAN D'ÉTAPES ================= */
-    var GO = null;
-    function goClose() { if (GO && GO.el) { GO.el.remove(); } GO = null; }
+    /* ================= AVANT LE PAIEMENT : AUCUN ÉCRAN INTERMÉDIAIRE ================= */
+    // La personne part DIRECTEMENT vers la page de paiement sécurisée (choix du réseau, numéro, code secret) : plus
+    // d'écran d'attente ni de délai artificiel. Cette fonction ne fait plus que mémoriser le moyen choisi, pour
+    // adapter l'écran de retour (Mobile Money ou non), puis rediriger sans attendre.
     window.cnPayFlow = {
       start: function (method, amount) {
-        try {
-          goClose();
-          try { localStorage.setItem(LAST_KEY, JSON.stringify({ m: method || '', a: Number(amount) || 0, t: Date.now() })); } catch (e) { /* ignore */ }
-          var mobile = method === 'mobile', o = document.createElement('div'); o.className = 'pf-ov'; o.id = 'pf-go';
-          o.setAttribute('role', 'dialog'); o.setAttribute('aria-modal', 'true');
-          var steps = mobile ? [T('go_s1'), T('go_s2'), T('go_s3')] : [T('go_o1'), T('go_o2'), T('go_o3')];
-          o.innerHTML = '<div class="pf-card"><div class="pf-ico">' + I_LOCK + '</div><h3>' + esc(T('go_title')) + '</h3><p>' + esc(T('go_sub')) + '</p>' +
-            (mobile ? opsHtml() : '') + stepsHtml(steps, -1) + (mobile ? '<div class="pf-note"><b>' + esc(T('go_s3')) + '</b>' + esc(T('go_pin')) + '</div>' : '') +
-            '<div class="pf-meta"><span id="pf-state" role="status" aria-live="polite">' + esc(T('go_open')) + '</span></div>' +
-            '<div class="pf-acts"><button type="button" class="btn btn-primary" id="pf-now" style="display:none">' + esc(T('go_now')) + '</button></div>' +
-            '<div class="pf-stuck" id="pf-stuck"><a href="#" id="pf-link" target="_self" rel="noopener">' + esc(T('go_stuck')) + '</a></div>' +
-            '<p style="margin:12px 0 0;font-size:.78rem;color:var(--muted,#5d6779)">' + esc(T('go_safe')) + '</p></div>';
-          document.body.appendChild(o);
-          GO = { el: o, t0: Date.now(), url: '' };
-        } catch (e) { GO = null; }
+        try { localStorage.setItem(LAST_KEY, JSON.stringify({ m: method || '', a: Number(amount) || 0, t: Date.now() })); } catch (e) { /* ignore */ }
       },
-      go: function (url) {
-        var finish = function () { try { window.location.href = url; } catch (e) { /* ignore */ } };
-        if (!GO || !GO.el) { finish(); return; }
-        GO.url = url;
-        var wait = Math.max(0, 2200 - (Date.now() - GO.t0)), done = false;
-        var now = document.getElementById('pf-now'), link = document.getElementById('pf-link'), stuck = document.getElementById('pf-stuck');
-        if (link) link.setAttribute('href', url);
-        var run = function () { if (done) return; done = true; var s = document.getElementById('pf-state'); if (s) s.textContent = T('go_open'); finish(); setTimeout(function () { if (stuck) stuck.style.display = 'block'; }, 3500); setTimeout(goClose, 20000); };
-        if (now) { now.style.display = ''; now.onclick = run; }
-        setTimeout(run, wait);
-      },
-      stop: function () { goClose(); }
+      go: function (url) { try { window.location.href = url; } catch (e) { /* ignore */ } },
+      stop: function () { /* rien à fermer */ }
     };
-    // Retour par la flèche « précédent » depuis la page de paiement : on retire l'écran d'attente.
-    window.addEventListener('pageshow', function (e) { if (e.persisted) goClose(); });
-    document.addEventListener('visibilitychange', function () { if (!document.hidden && GO && GO.url && Date.now() - GO.t0 > 4000) goClose(); });
 
     /* ================= RETOUR DE PAIEMENT ================= */
     function readReturn() {
@@ -504,17 +457,6 @@
         var how = document.createElement('div'); how.id = 'pp-mm-how'; how.className = 'cn-how';
         how.innerHTML = '<div class="cn-how-title">' + esc(T('how_t')) + '</div><ol><li>' + esc(T('how_1')) + '</li><li>' + esc(T('how_2')) + '</li><li>' + esc(T('how_3')) + '</li></ol>';
         mm.appendChild(how);
-      }
-      // alerte : recharge déjà en cours
-      var old = $('pp-pending'); if (old) old.remove();
-      if (typeof currentUser !== 'undefined' && currentUser) {
-        fetchTopups().then(function (list) {
-          var cut = Date.now() - 3 * 3600000;
-          var p = list.filter(function (r) { return (r.status === 'pending_payment' || r.status === 'pending' || r.status === 'pending_admin_review') && new Date(r.createdAt).getTime() > cut; })[0];
-          if (!p || $('pp-pending')) return;
-          var d = document.createElement('div'); d.id = 'pp-pending'; d.className = 'pp-ban wait'; d.innerHTML = '<b>Une recharge est déjà en cours</b>' + usd(p.amountUSD != null ? p.amountUSD : p.amount) + ' · ' + esc(METHOD[p.method] || 'Recharge') + ' · ' + esc(fmtDate(p.createdAt, true)) + '. Vérifiez son état avant d’en créer une nouvelle pour éviter un double paiement.';
-          var h = view.querySelector('.page-title'); if (h) h.insertAdjacentElement('beforebegin', d);
-        }).catch(function () { /* lecture non autorisée : pas d'alerte */ });
       }
     }
     function sumUpdate() {

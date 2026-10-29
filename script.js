@@ -1420,13 +1420,30 @@ function showRecharge() {
 // Message clair quand le serveur refuse (ex. « trop de demandes en peu de temps ») au lieu d'une erreur vague.
 function payFriendlyError(response, data) {
   if (response && response.status === 429) {
-    const wait = Math.max(1, Math.ceil(((data && data.retryAfterSec) || 60) / 60));
-    return 'Trop d\'essais en peu de temps. Patiente environ ' + wait + ' min, puis réessaie.';
+    // Garde-fou anti-script, très large (une vraie personne ne l'atteint pas) : durée exacte, en secondes quand c'est court.
+    const raw = data && Number(data.retryAfterSec);
+    if (!(raw > 0) && data && typeof data.error === 'string' && data.error.length <= 160) return data.error;
+    const sec = Math.max(1, Math.ceil(raw || 30));
+    return sec <= 90 ? t('pay_err_wait_sec').replace('{n}', sec) : t('pay_err_wait_min').replace('{n}', Math.ceil(sec / 60));
   }
   // Le serveur renvoie des messages courts et maîtrisés (ex. « Session invalide », « Configuration serveur manquante ») : on les montre.
   const msg = data && typeof data.error === 'string' ? data.error.trim() : '';
   if (msg && msg.length <= 160) return t('pay_err_generic') + ' (' + msg + ')';
   return t('pay_err_generic');
+}
+// Pays sans Mobile Money (ou service momentanément coupé) : sous le message, deux boutons mènent tout de suite à Carte ou Crypto.
+function payAddAltButtons(el) {
+  if (!el) return;
+  const box = document.createElement('div');
+  box.className = 'pay-err-alt';
+  [['card', 'pay_card_tab'], ['crypto', 'pay_crypto']].forEach(([m, k]) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = t(k);
+    b.addEventListener('click', () => selectPayMethod(m));
+    box.appendChild(b);
+  });
+  el.appendChild(box);
 }
 const ICON_ILLICO = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2"/><path d="M3 7v11a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2H5a2 2 0 0 1-2-2z"/><circle cx="16.5" cy="14.5" r="1.2" fill="currentColor"/></svg>`;
 // Mini-logos de confiance affichés dans chaque onglet (pastilles de marques de paiement).
@@ -1824,7 +1841,8 @@ async function submitRecharge() {
   let redirecting = false;
   try {
     if (btn) { btn.disabled = true; btn.textContent = t('sending_in_progress'); }
-    // Ecran d'etapes immediat (payments-pro.js) : la personne voit tout de suite quoi faire (choisir l'operateur, puis entrer son code secret).
+    // Aucun ecran intermediaire : des que le serveur repond, la personne part DIRECTEMENT vers la page de paiement (choix du reseau).
+    // cnPayFlow.start ne fait que memoriser le moyen choisi pour l'ecran de retour (payments-pro.js).
     try { if (window.cnPayFlow) window.cnPayFlow.start(payMethod, amount); } catch (e) { /* facultatif */ }
     const idToken = await auth.currentUser.getIdToken();
     // Crypto : facture Cryptomus. Tout le reste : page hébergée (Mobile Money → SasPay, choisi par le serveur ; carte et illicocash → OPTGateway).
@@ -1843,7 +1861,7 @@ async function submitRecharge() {
     if (!response.ok || !data.success || typeof data.paymentUrl !== 'string' || !/^https:\/\//.test(data.paymentUrl)) {
       console.error('Erreur creation paiement :', data && data.error);
       // Messages « Mobile Money » du serveur (pays non ouvert, service momentanément indisponible) : déjà courts et clairs, affichés tels quels.
-      if (data && typeof data.error === 'string' && /^mobile_/.test(String(data.code || ''))) fail(data.error);
+      if (data && typeof data.error === 'string' && /^mobile_/.test(String(data.code || ''))) { fail(data.error); payAddAltButtons(errEl); }
       else fail(payFriendlyError(response, data));
       return;
     }
