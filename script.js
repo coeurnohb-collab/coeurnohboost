@@ -1313,6 +1313,7 @@ function showRecharge() {
   renderPayPanel();
   // Les taux en direct ne servent qu'à afficher « ≈ X en monnaie locale » : on rafraîchit l'indication quand ils arrivent.
   if (!LIVE_RATES) fetchLiveRates().then(updateRechargeEquivalent);
+  refinePayCountryByIp();
 }
 // Message clair quand le serveur refuse (ex. « trop de demandes en peu de temps ») au lieu d'une erreur vague.
 function payFriendlyError(response, data) {
@@ -1385,9 +1386,30 @@ const PAY_TZ_COUNTRY = {
   'Africa/Libreville': 'GA', 'Africa/Maseru': 'LS', 'Africa/Blantyre': 'MW', 'Africa/Maputo': 'MZ',
   'Africa/Harare': 'ZW', 'Africa/Bangui': 'CF', 'Africa/Malabo': 'GQ', 'Africa/Bissau': 'GW'
 };
-function isSaspayCountry(code) { return typeof code === 'string' && Object.prototype.hasOwnProperty.call(SASPAY_CURRENCY, code); }
+// TOUS les pays de la liste SasPay (codes ISO). Pour chaque pays, la page de paiement SasPay affiche elle-même les moyens qui
+// existent là-bas (Mobile Money, carte bancaire, crypto) ; le serveur reste seul juge et refuse proprement un pays que SasPay
+// n'a pas activé. SASPAY_CURRENCY (ci-dessus) ne sert qu'à l'indication « ≈ montant local » pour les pays africains connus.
+const PAY_COUNTRY_CODES = ('AD AE AF AG AL AM AO AR AT AU AZ BA BB BD BE BF BG BH BI BJ BN BO BR BS BT BW BY BZ CA CD CF CG CH CI CL CM CN CO CR CU CV CY CZ ' +
+  'DE DJ DK DM DO DZ EC EE EG ER ES ET FI FJ FM FR GA GB GD GE GH GM GN GQ GR GT GW GY HK HN HR HT HU ID IE IL IN IQ IR IS IT JM JO JP KE KG KH KI KM KN KP KR ' +
+  'KW KZ LA LB LC LI LK LR LS LT LU LV LY MA MC MD ME MG MH MK ML MM MN MO MR MT MU MV MW MX MY MZ NA NE NG NI NL NO NP NR NZ OM PA PE PG PH PK PL PS PT PW PY ' +
+  'QA RO RS RU RW SA SB SC SD SE SG SI SK SL SM SN SO SR SS ST SV SY SZ TD TG TH TJ TL TM TN TO TR TT TV TW TZ UA UG US UY UZ VA VC VE VN VU WS XK YE ZA ZM ZW').split(' ');
+const PAY_COUNTRY_SET = new Set(PAY_COUNTRY_CODES);
+function isSaspayCountry(code) { return typeof code === 'string' && PAY_COUNTRY_SET.has(code); }
+// Pays par défaut = position RÉELLE de la personne, jamais un pays fixé d'avance : 1) adresse IP (demandée au serveur, voir
+// refinePayCountryByIp), 2) fuseau horaire du téléphone, 3) langue du téléphone. Sans aucun indice : la liste s'ouvre directement.
+// Un choix fait à la main (« Changer ») est gardé pour la session en cours seulement : à la prochaine visite on redétecte.
+function payManualChoice() {
+  try { const c = sessionStorage.getItem('cn_pay_country'); return isSaspayCountry(c) ? c : null; } catch (e) { return null; }
+}
+function payCachedIpCountry() {
+  try { const c = sessionStorage.getItem('cn_ip_country'); return isSaspayCountry(c) ? c : null; } catch (e) { return null; }
+}
 function detectPayCountry() {
-  try { const saved = localStorage.getItem('cn_pay_country'); if (isSaspayCountry(saved)) return saved; } catch (e) { /* stockage indisponible : on détecte autrement */ }
+  try { localStorage.removeItem('cn_pay_country'); } catch (e) { /* ancien choix mémorisé pour toujours : on l'oublie */ }
+  const manual = payManualChoice();
+  if (manual) return manual;
+  const ip = payCachedIpCountry();
+  if (ip) return ip;
   try {
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
     if (tz && isSaspayCountry(PAY_TZ_COUNTRY[tz])) return PAY_TZ_COUNTRY[tz];
@@ -1399,13 +1421,39 @@ function detectPayCountry() {
       if (m && isSaspayCountry(m[1].toUpperCase())) return m[1].toUpperCase();
     }
   } catch (e) { /* ignore */ }
-  return null; // pays inconnu : la liste s'affiche directement
+  return null; // aucun indice : la liste des pays s'affiche directement
+}
+// Pays d'après l'adresse IP, demandé au serveur UNE fois par session (aucun service tiers, aucune donnée personnelle envoyée).
+function getIpCountry() {
+  try { const c = sessionStorage.getItem('cn_ip_country'); if (c !== null) return Promise.resolve(isSaspayCountry(c) ? c : null); } catch (e) { /* on interroge le serveur */ }
+  const ctl = typeof AbortController === 'function' ? new AbortController() : null;
+  const timer = ctl ? setTimeout(() => ctl.abort(), 3500) : null;
+  return fetch('/api/payment-initiate?geo=1', { cache: 'no-store', signal: ctl ? ctl.signal : undefined })
+    .then((r) => (r.ok ? r.json() : null))
+    .then((d) => {
+      const c = d && typeof d.country === 'string' && isSaspayCountry(d.country) ? d.country : '';
+      try { sessionStorage.setItem('cn_ip_country', c); } catch (e) { /* ignore */ }
+      return c || null;
+    })
+    .catch(() => null)
+    .then((c) => { if (timer) clearTimeout(timer); return c; });
+}
+// Quand la réponse de l'adresse IP arrive : elle PRIME sur le fuseau horaire et la langue, sauf si la personne a déjà choisi à la main.
+function refinePayCountryByIp() {
+  getIpCountry().then((cc) => {
+    if (!cc || payManualChoice() || cc === payCountryCode) return;
+    if (document.getElementById('view-recharge').classList.contains('hidden')) return;
+    payCountryCode = cc;
+    renderPayMobile();
+    updateRechargeEquivalent();
+  });
 }
 function payCountryFlag(code) {
   try { return String.fromCodePoint(...String(code).toUpperCase().split('').map((ch) => 127397 + ch.charCodeAt(0))); } catch (e) { return '🌍'; }
 }
 // Les deux « Congo » portent des noms que les gens reconnaissent mieux que ceux du navigateur.
 const PAY_NAME_OVERRIDE = {
+  XK: { fr: 'Kosovo', en: 'Kosovo', es: 'Kosovo', it: 'Kosovo', pt: 'Kosovo' },
   CD: { fr: 'RD Congo', en: 'DR Congo', es: 'RD del Congo', it: 'RD del Congo', pt: 'RD Congo' },
   CG: { fr: 'Congo-Brazzaville', en: 'Congo-Brazzaville', es: 'Congo-Brazzaville', it: 'Congo-Brazzaville', pt: 'Congo-Brazzaville' }
 };
@@ -1424,7 +1472,8 @@ function renderPayMobile() {
   const sel = document.getElementById('pay-country-select');
   if (!sel) return;
   const lang = currentLang || 'fr';
-  const codes = Object.keys(SASPAY_CURRENCY).sort((a, b) => payCountryName(a).localeCompare(payCountryName(b), lang));
+  // Tous les pays de la liste SasPay, par ordre alphabétique (aucun pays n'est mis en avant d'avance).
+  const codes = PAY_COUNTRY_CODES.slice().sort((a, b) => payCountryName(a).localeCompare(payCountryName(b), lang));
   sel.innerHTML = `<option value="">${escapeHtml(t('pay_choose_country'))}</option>` +
     codes.map((c) => `<option value="${c}">${payCountryFlag(c)} ${escapeHtml(payCountryName(c))}</option>`).join('');
   sel.value = payCountryCode || '';
@@ -1452,7 +1501,7 @@ function togglePayCountryPicker() {
 function onPayCountryChange() {
   const sel = document.getElementById('pay-country-select');
   payCountryCode = sel && isSaspayCountry(sel.value) ? sel.value : null;
-  if (payCountryCode) { try { localStorage.setItem('cn_pay_country', payCountryCode); } catch (e) { /* ignore */ } }
+  if (payCountryCode) { try { sessionStorage.setItem('cn_pay_country', payCountryCode); } catch (e) { /* ignore */ } }
   document.getElementById('recharge-error').classList.add('hidden');
   renderPayMobile();
   updateRechargeEquivalent();
@@ -2066,7 +2115,21 @@ function updateAuthModalMode() {
   if (legal) legal.textContent = isReg ? t('auth_legal') : '';
   const strength = document.getElementById('auth-pw-strength');
   if (strength) strength.classList.add('hidden');
+  // Onglets « Créer un compte | Se connecter » (l'onglet actif suit le mode).
+  ['register', 'login'].forEach((m) => {
+    const tab = document.getElementById('auth-tab-' + m);
+    if (!tab) return;
+    tab.classList.toggle('active', m === authMode);
+    tab.setAttribute('aria-selected', String(m === authMode));
+  });
+  // Le téléphone propose un mot de passe fort à l'inscription, et remplit le mot de passe enregistré à la connexion.
+  const pw = document.getElementById('auth-password');
+  if (pw) pw.setAttribute('autocomplete', isReg ? 'new-password' : 'current-password');
   hideAuthError();
+}
+function setAuthMode(mode) {
+  if (mode !== 'register' && mode !== 'login') return;
+  if (authMode !== mode) { authMode = mode; updateAuthModalMode(); }
 }
 function togglePasswordVisibility() {
   const input = document.getElementById('auth-password');
