@@ -475,30 +475,91 @@ function safeDateLabel(value) {
   const d = new Date(value);
   return isNaN(d.getTime()) ? 'Date inconnue' : d.toLocaleString('fr-FR');
 }
+// ---- Recharges Mobile Money SasPay : voir la raison, revérifier, créditer à la main ----
+const SASPAY_LABELS = { pending_payment: 'En attente de paiement', completed: 'Crédité', failed: 'Échoué', expired: 'Expiré', pending_admin_review: 'À vérifier' };
+const SASPAY_BADGE = { pending_payment: 'pending', completed: 'completed', failed: 'rejected', expired: 'rejected', pending_admin_review: 'processing' };
+const SASPAY_OUTCOME = { credited: 'Crédité', already: 'Déjà crédité', failed: 'Échoué', pending: 'Pas encore payé', review: 'À vérifier', skip: 'Impossible de contrôler', error: 'SasPay ne répond pas' };
+async function saspayAdminCall(payload) {
+  const idToken = await auth.currentUser.getIdToken();
+  const r = await fetch('/api/payment-webhook?provider=saspay-admin', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + idToken },
+    body: JSON.stringify(payload)
+  });
+  let j = null;
+  try { j = await r.json(); } catch (e) { /* réponse illisible */ }
+  if (!j) throw new Error('Réponse illisible du serveur (HTTP ' + r.status + ').');
+  if (j.success === false) throw new Error(j.error || 'Erreur du serveur');
+  return j;
+}
+async function recheckSaspay(id) {
+  try {
+    const j = await saspayAdminCall({ action: 'recheck', id });
+    alert((SASPAY_OUTCOME[j.outcome] || j.outcome) + (j.note ? '\n\n' + j.note : ''));
+  } catch (e) { alert('Erreur : ' + e.message); }
+  loadDepositsAdmin();
+}
+async function recheckAllSaspay() {
+  const box = document.getElementById('saspay-recheck-result');
+  if (box) box.textContent = 'Contrôle en cours chez SasPay…';
+  try {
+    const j = await saspayAdminCall({ action: 'recheck_all' });
+    const t = j.tally || {};
+    if (box) box.textContent = 'Terminé : ' + (t.credited || 0) + ' créditée(s), ' + (t.pending || 0) + ' pas encore payée(s), ' + (t.failed || 0) + ' échouée(s), ' + (t.review || 0) + ' à vérifier, ' + ((t.error || 0) + (t.skip || 0)) + ' non contrôlable(s).';
+    if (t.credited) loadDepositsAdmin();
+  } catch (e) { if (box) box.textContent = 'Erreur : ' + e.message; }
+}
+async function creditSaspayByHand(id, amount) {
+  if (!confirm('Créditer ' + Number(amount).toFixed(2) + ' $ à cette personne ?\n\nFaites-le seulement si vous voyez bien cet argent dans votre tableau de bord SasPay.')) return;
+  try {
+    const j = await saspayAdminCall({ action: 'credit', id });
+    alert(j.note || 'Recharge créditée.');
+  } catch (e) { alert('Erreur : ' + e.message); }
+  loadDepositsAdmin();
+}
 async function loadDepositsAdmin() {
   const el = document.getElementById('admin-deposits-list');
   el.innerHTML = `<p class="admin-empty">Chargement...</p>`;
   try {
     const snap = await db.collection('topup_requests').orderBy('createdAt', 'desc').limit(50).get();
     if (snap.empty) { el.innerHTML = `<p class="admin-empty">Aucune demande pour l'instant.</p>`; return; }
-    el.innerHTML = snap.docs.map(doc => {
+    const toolbar = `
+      <div class="admin-row">
+        <div class="admin-row-meta">Recharges Mobile Money : si de l'argent est arrivé chez SasPay mais pas dans le portefeuille, appuyez ici.</div>
+        <div class="admin-row-actions"><button class="btn btn-primary btn-sm" onclick="recheckAllSaspay()">Revérifier tous les paiements SasPay</button></div>
+        <div class="admin-row-meta" id="saspay-recheck-result"></div>
+      </div>`;
+    el.innerHTML = toolbar + snap.docs.map(doc => {
       try {
         const d = doc.data();
         const status = escapeHtml(d.status || 'pending');
         const amount = safeAmount(d.amountUSD);
         const uidAttr = escapeForJs(String(d.uid || ''));
-        const detail = d.method === 'mobile'
-          ? `${escapeHtml(d.country || '')} · ${escapeHtml(d.operator || '')} · ${escapeHtml(d.phone || '')}`
-          : (d.method === 'crypto' ? escapeHtml(d.crypto || '') : 'Carte bancaire');
+        const isSp = d.method === 'saspay';
+        const detail = isSp
+          ? `Mobile Money (SasPay) · ${escapeHtml(d.country || '')} · ${escapeHtml(String(d.saspayAmount || ''))} ${escapeHtml(d.saspayCurrency || '')}`
+          : (d.method === 'mobile'
+            ? `${escapeHtml(d.country || '')} · ${escapeHtml(d.operator || '')} · ${escapeHtml(d.phone || '')}`
+            : (d.method === 'crypto' ? escapeHtml(d.crypto || '') : 'Carte bancaire'));
+        const spNote = isSp && d.status !== 'completed'
+          ? ((d.saspayCheck && d.saspayCheck.note) || d.saspayNote || '')
+          : '';
+        const spOpen = isSp && ['pending_payment', 'failed', 'expired', 'pending_admin_review'].indexOf(d.status) >= 0;
+        const idAttr = escapeForJs(String(doc.id));
         return `
       <div class="admin-row">
         <div class="admin-row-top">
           <div>
             <div class="admin-row-title">${amount.toFixed(2)}$ — ${escapeHtml(d.email || '')}</div>
-            <div class="admin-row-meta">${detail}<br>${safeDateLabel(d.createdAt)}</div>
+            <div class="admin-row-meta">${detail}<br>${safeDateLabel(d.createdAt)}${spNote ? `<br><i>Dernier contrôle : ${escapeHtml(String(spNote))}</i>` : ''}</div>
           </div>
-          <span class="admin-badge ${status}">${status}</span>
+          <span class="admin-badge ${isSp ? (SASPAY_BADGE[d.status] || 'pending') : status}">${isSp ? escapeHtml(SASPAY_LABELS[d.status] || String(d.status || '')) : status}</span>
         </div>
+        ${spOpen ? `
+        <div class="admin-row-actions">
+          <button class="btn btn-primary btn-sm" onclick="recheckSaspay('${idAttr}')">Revérifier chez SasPay</button>
+          <button class="btn btn-outline btn-sm" onclick="creditSaspayByHand('${idAttr}',${amount})">Créditer à la main</button>
+        </div>` : ''}
         ${d.status === 'pending' || !d.status ? `
         <div class="admin-row-actions">
           <button class="btn btn-primary btn-sm" onclick="approveDeposit('${doc.id}','${uidAttr}',${amount})">✓ Valider et créditer</button>

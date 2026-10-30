@@ -309,6 +309,40 @@
     }
     if (ret) setTimeout(function () { showReturn(ret); }, 0);
 
+    /* ================= REVÉRIFICATION AUTOMATIQUE ================= */
+    // Une recharge Mobile Money payée mais pas encore créditée (notification tardive, application fermée pendant le
+    // paiement, retour dans un autre navigateur) est retrouvée par le serveur dès que la personne rouvre l'application.
+    // Le serveur ne crédite qu'après contrôle auprès de SasPay ; s'il n'y a rien en attente, il ne se passe rien.
+    var AUTO_KEY = 'cn_pay_auto';
+    async function autoSync() {
+      if (RET) return; // l'écran de retour fait déjà ce contrôle lui-même
+      try {
+        var gap = lastPay() ? 90 * 1000 : 10 * 60 * 1000;
+        if (Date.now() - (Number(localStorage.getItem(AUTO_KEY)) || 0) < gap) return;
+        localStorage.setItem(AUTO_KEY, String(Date.now()));
+      } catch (e) { /* sans stockage : on contrôle quand même */ }
+      try {
+        var a = (typeof auth !== 'undefined' && auth) || (window.firebase && window.firebase.auth && window.firebase.auth());
+        if (!a || !a.currentUser) return;
+        var tk = await a.currentUser.getIdToken();
+        var r = await fetch('/api/payment-webhook?provider=saspay-sync', { method: 'POST', headers: { Authorization: 'Bearer ' + tk } });
+        var j = await r.json();
+        if (j && j.credited > 0) {
+          try { setBalanceUi(await getBalance()); } catch (e) { /* ignore */ }
+          try { window.loadWalletHistory(); } catch (e) { /* ignore */ }
+        }
+      } catch (e) { /* la notification automatique reste le chemin principal */ }
+    }
+    (function () {
+      var n = 0, iv = setInterval(function () {
+        n++;
+        var ok = false;
+        try { var a = (typeof auth !== 'undefined' && auth) || (window.firebase && window.firebase.auth && window.firebase.auth()); ok = !!(a && a.currentUser); } catch (e) { ok = false; }
+        if (ok) { clearInterval(iv); setTimeout(autoSync, 2500); } else if (n > 90) clearInterval(iv);
+      }, 1000);
+      document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') autoSync(); });
+    })();
+
     /* ================= RELEVÉ DU PORTEFEUILLE ================= */
     var TX = [], FILTER = 'all', PERIOD = 'all', QUERY = '';
     function inRange(t) {
