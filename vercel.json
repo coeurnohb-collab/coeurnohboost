@@ -5,6 +5,9 @@
     },
     "api/place-smm-order.js": {
       "maxDuration": 30
+    },
+    "api/payment-webhook.js": {
+      "maxDuration": 30
     }
   },
   "crons": [
@@ -166,6 +169,10 @@
     },
     {
       "source": "/api/saspay-webhook",
+      "destination": "/api/payment-webhook?provider=saspay"
+    },
+    {
+      "source": "/api/webhooks/saspay",
       "destination": "/api/payment-webhook?provider=saspay"
     },
     {

@@ -509,6 +509,13 @@ async function recheckAllSaspay() {
     if (t.credited) loadDepositsAdmin();
   } catch (e) { if (box) box.textContent = 'Erreur : ' + e.message; }
 }
+async function closeSaspayDone(id) {
+  if (!confirm("Cette personne a DÉJÀ reçu son argent par un autre moyen ?\n\nLa demande sera fermée sans rien créditer (pour éviter un double crédit).")) return;
+  try {
+    await db.collection('topup_requests').doc(id).update({ status: 'approved', saspayNote: 'deja credite par l\'admin (sans nouveau credit)' });
+  } catch (e) { alert('Erreur : ' + e.message); }
+  loadDepositsAdmin();
+}
 async function creditSaspayByHand(id, amount) {
   if (!confirm('Créditer ' + Number(amount).toFixed(2) + ' $ à cette personne ?\n\nFaites-le seulement si vous voyez bien cet argent dans votre tableau de bord SasPay.')) return;
   try {
@@ -559,6 +566,7 @@ async function loadDepositsAdmin() {
         <div class="admin-row-actions">
           <button class="btn btn-primary btn-sm" onclick="recheckSaspay('${idAttr}')">Revérifier chez SasPay</button>
           <button class="btn btn-outline btn-sm" onclick="creditSaspayByHand('${idAttr}',${amount})">Créditer à la main</button>
+          <button class="btn btn-outline btn-sm" onclick="closeSaspayDone('${idAttr}')">Déjà réglé</button>
         </div>` : ''}
         ${d.status === 'pending' || !d.status ? `
         <div class="admin-row-actions">
