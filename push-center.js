@@ -63,42 +63,28 @@
     it: { subfail: 'Il servizio di notifiche ha rifiutato la registrazione di questo dispositivo.', notreg: 'Consentite, ma questo dispositivo non è ancora registrato', fix: 'Ripara', fixok: 'Dispositivo registrato', fixfail: 'Registrazione non riuscita', netblock: 'Impossibile raggiungere il servizio di notifiche. Controlla la connessione e riprova.' },
     pt: { subfail: 'O serviço de notificações recusou o registro deste aparelho.', notreg: 'Permitidas, mas este aparelho ainda não está registrado', fix: 'Reparar', fixok: 'Aparelho registrado', fixfail: 'Falha no registro', netblock: 'Não foi possível acessar o serviço de notificações. Verifique a conexão e tente de novo.' }
   };
-  /* Guide « autoriser les notifications » : 3 gestes simples, détection automatique au retour dans l'application. */
+  /* Notifications : un seul geste. Si le téléphone les bloque, un message calme (jamais une erreur rouge, jamais une liste de gestes) ;
+     seul le navigateur intégré (WhatsApp, TikTok…) propose un bouton « Ouvrir dans Chrome ». */
   var L10N3 = {
-    fr: { g_t: 'Autorisez les notifications', g_i_denied: 'Elles sont bloquées sur ce téléphone. Pas de souci : trois gestes suffisent.', g_i_blocked: 'Le téléphone n’a pas affiché la demande. Autorisez-les vous-même en trois gestes.',
-      g_web: ['Touchez le cadenas à côté de l’adresse (ou ⋮ puis « Informations sur la page »).', 'Touchez « Autorisations » (ou « Paramètres du site »).', 'Touchez « Notifications » puis « Autoriser ».'],
-      g_app: ['Maintenez le doigt sur l’icône de l’application, sur l’écran d’accueil.', 'Touchez « Infos sur l’application » (le i).', 'Touchez « Notifications » puis activez-les.'],
-      g_back: 'Revenez ensuite ici : l’application le détecte toute seule.', g_check: 'J’ai terminé, vérifier', g_later: 'Plus tard', g_still: 'C’est encore bloqué. Suivez les trois gestes, puis revenez ici.',
-      g_inapp_t: 'Ouvrez dans Chrome', g_inapp_b: 'Les notifications ne fonctionnent pas dans ce navigateur intégré (WhatsApp, Facebook, TikTok…). Ouvrez Coeurnoh Universe dans Chrome, puis activez-les.',
-      g_chrome: 'Ouvrir dans Chrome', g_copy: 'Copier le lien', g_copied: 'Lien copié. Collez-le dans Chrome.', g_how: 'Comment faire ?',
+    fr: { g_inapp_t: 'Ouvrez dans Chrome', g_inapp_b: 'Les notifications ne fonctionnent pas dans ce navigateur intégré (WhatsApp, Facebook, TikTok…). Ouvrez Coeurnoh Universe dans Chrome, puis activez-les.',
+      g_chrome: 'Ouvrir dans Chrome', g_copy: 'Copier le lien', g_copied: 'Lien copié. Collez-le dans Chrome.', g_later: 'Plus tard',
+      g_blocked: 'Ton téléphone bloque les notifications pour le moment. Ce n’est pas grave : tout fonctionne. Tu pourras les activer plus tard.',
       g_later_toast: 'D’accord. Vous pourrez les activer quand vous voulez, depuis Notifications.', g_fail: 'L’activation n’a pas abouti. Vérifiez votre connexion internet puis touchez « Réparer ».', g_ok: 'Notifications activées. Merci !' },
-    en: { g_t: 'Allow notifications', g_i_denied: 'They are blocked on this phone. No problem: three taps are enough.', g_i_blocked: 'Your phone did not show the request. Allow them yourself in three taps.',
-      g_web: ['Tap the padlock next to the address (or ⋮ then “Page info”).', 'Tap “Permissions” (or “Site settings”).', 'Tap “Notifications” then “Allow”.'],
-      g_app: ['Press and hold the app icon on your home screen.', 'Tap “App info” (the i).', 'Tap “Notifications” and turn them on.'],
-      g_back: 'Then come back here: the app detects it by itself.', g_check: 'I am done, check', g_later: 'Later', g_still: 'It is still blocked. Follow the three taps, then come back here.',
-      g_inapp_t: 'Open in Chrome', g_inapp_b: 'Notifications do not work in this built-in browser (WhatsApp, Facebook, TikTok…). Open Coeurnoh Universe in Chrome, then turn them on.',
-      g_chrome: 'Open in Chrome', g_copy: 'Copy the link', g_copied: 'Link copied. Paste it in Chrome.', g_how: 'How to do it?',
+    en: { g_inapp_t: 'Open in Chrome', g_inapp_b: 'Notifications do not work in this built-in browser (WhatsApp, Facebook, TikTok…). Open Coeurnoh Universe in Chrome, then turn them on.',
+      g_chrome: 'Open in Chrome', g_copy: 'Copy the link', g_copied: 'Link copied. Paste it in Chrome.', g_later: 'Later',
+      g_blocked: 'Your phone is blocking notifications for now. No problem: everything works. You can turn them on later.',
       g_later_toast: 'OK. You can turn them on whenever you like, from Notifications.', g_fail: 'Activation did not work. Check your internet connection then tap “Repair”.', g_ok: 'Notifications are on. Thank you!' },
-    es: { g_t: 'Permite las notificaciones', g_i_denied: 'Están bloqueadas en este teléfono. No pasa nada: bastan tres toques.', g_i_blocked: 'El teléfono no mostró la solicitud. Permítelas tú mismo en tres toques.',
-      g_web: ['Toca el candado junto a la dirección (o ⋮ y «Información de la página»).', 'Toca «Permisos» (o «Ajustes del sitio»).', 'Toca «Notificaciones» y luego «Permitir».'],
-      g_app: ['Mantén pulsado el icono de la aplicación en la pantalla de inicio.', 'Toca «Información de la aplicación» (la i).', 'Toca «Notificaciones» y actívalas.'],
-      g_back: 'Vuelve después aquí: la aplicación lo detecta sola.', g_check: 'Ya está, comprobar', g_later: 'Más tarde', g_still: 'Sigue bloqueado. Sigue los tres toques y vuelve aquí.',
-      g_inapp_t: 'Abrir en Chrome', g_inapp_b: 'Las notificaciones no funcionan en este navegador integrado (WhatsApp, Facebook, TikTok…). Abre Coeurnoh Universe en Chrome y actívalas.',
-      g_chrome: 'Abrir en Chrome', g_copy: 'Copiar el enlace', g_copied: 'Enlace copiado. Pégalo en Chrome.', g_how: '¿Cómo hacerlo?',
+    es: { g_inapp_t: 'Abrir en Chrome', g_inapp_b: 'Las notificaciones no funcionan en este navegador integrado (WhatsApp, Facebook, TikTok…). Abre Coeurnoh Universe en Chrome y actívalas.',
+      g_chrome: 'Abrir en Chrome', g_copy: 'Copiar el enlace', g_copied: 'Enlace copiado. Pégalo en Chrome.', g_later: 'Más tarde',
+      g_blocked: 'Tu teléfono bloquea las notificaciones por ahora. No pasa nada: todo funciona. Podrás activarlas más tarde.',
       g_later_toast: 'De acuerdo. Podrás activarlas cuando quieras, desde Notificaciones.', g_fail: 'La activación no funcionó. Comprueba tu conexión a internet y toca «Reparar».', g_ok: 'Notificaciones activadas. ¡Gracias!' },
-    it: { g_t: 'Consenti le notifiche', g_i_denied: 'Sono bloccate su questo telefono. Nessun problema: bastano tre tocchi.', g_i_blocked: 'Il telefono non ha mostrato la richiesta. Consentile tu stesso in tre tocchi.',
-      g_web: ['Tocca il lucchetto accanto all’indirizzo (o ⋮ poi «Informazioni sulla pagina»).', 'Tocca «Autorizzazioni» (o «Impostazioni sito»).', 'Tocca «Notifiche» poi «Consenti».'],
-      g_app: ['Tieni premuta l’icona dell’app nella schermata Home.', 'Tocca «Info app» (la i).', 'Tocca «Notifiche» e attivale.'],
-      g_back: 'Poi torna qui: l’app lo rileva da sola.', g_check: 'Fatto, controlla', g_later: 'Più tardi', g_still: 'È ancora bloccato. Segui i tre tocchi, poi torna qui.',
-      g_inapp_t: 'Apri in Chrome', g_inapp_b: 'Le notifiche non funzionano in questo browser integrato (WhatsApp, Facebook, TikTok…). Apri Coeurnoh Universe in Chrome, poi attivale.',
-      g_chrome: 'Apri in Chrome', g_copy: 'Copia il link', g_copied: 'Link copiato. Incollalo in Chrome.', g_how: 'Come fare?',
+    it: { g_inapp_t: 'Apri in Chrome', g_inapp_b: 'Le notifiche non funzionano in questo browser integrato (WhatsApp, Facebook, TikTok…). Apri Coeurnoh Universe in Chrome, poi attivale.',
+      g_chrome: 'Apri in Chrome', g_copy: 'Copia il link', g_copied: 'Link copiato. Incollalo in Chrome.', g_later: 'Più tardi',
+      g_blocked: 'Il tuo telefono blocca le notifiche per ora. Nessun problema: tutto funziona. Potrai attivarle più tardi.',
       g_later_toast: 'D’accordo. Potrai attivarle quando vuoi, da Notifiche.', g_fail: 'L’attivazione non è riuscita. Controlla la connessione internet e tocca «Ripara».', g_ok: 'Notifiche attivate. Grazie!' },
-    pt: { g_t: 'Permita as notificações', g_i_denied: 'Estão bloqueadas neste telemóvel. Sem problema: bastam três toques.', g_i_blocked: 'O telemóvel não mostrou o pedido. Permita-as você mesmo em três toques.',
-      g_web: ['Toque no cadeado ao lado do endereço (ou ⋮ e «Informações da página»).', 'Toque em «Permissões» (ou «Definições do site»).', 'Toque em «Notificações» e depois «Permitir».'],
-      g_app: ['Mantenha premido o ícone da aplicação no ecrã inicial.', 'Toque em «Informações da aplicação» (o i).', 'Toque em «Notificações» e ative-as.'],
-      g_back: 'Depois volte aqui: a aplicação deteta sozinha.', g_check: 'Já fiz, verificar', g_later: 'Mais tarde', g_still: 'Ainda está bloqueado. Siga os três toques e volte aqui.',
-      g_inapp_t: 'Abrir no Chrome', g_inapp_b: 'As notificações não funcionam neste navegador integrado (WhatsApp, Facebook, TikTok…). Abra o Coeurnoh Universe no Chrome e ative-as.',
-      g_chrome: 'Abrir no Chrome', g_copy: 'Copiar o link', g_copied: 'Link copiado. Cole-o no Chrome.', g_how: 'Como fazer?',
+    pt: { g_inapp_t: 'Abrir no Chrome', g_inapp_b: 'As notificações não funcionam neste navegador integrado (WhatsApp, Facebook, TikTok…). Abra o Coeurnoh Universe no Chrome e ative-as.',
+      g_chrome: 'Abrir no Chrome', g_copy: 'Copiar o link', g_copied: 'Link copiado. Cole-o no Chrome.', g_later: 'Mais tarde',
+      g_blocked: 'O teu telemóvel está a bloquear as notificações por agora. Sem problema: tudo funciona. Podes ativá-las mais tarde.',
       g_later_toast: 'Certo. Pode ativá-las quando quiser, em Notificações.', g_fail: 'A ativação não funcionou. Verifique a ligação à internet e toque em «Reparar».', g_ok: 'Notificações ativadas. Obrigado!' }
   };
   function tx3(k) { var o = L10N3[lang()] || L10N3.fr; return o[k] != null ? o[k] : L10N3.fr[k]; }
@@ -159,9 +145,6 @@
       '#cn-push-guide .gi{width:46px;height:46px;border-radius:14px;background:var(--btn,#28374f);color:var(--on-primary,#fff);display:flex;align-items:center;justify-content:center;margin-bottom:12px}#cn-push-guide .gi svg{width:22px;height:22px}' +
       '#cn-push-guide h3{font-family:var(--font-head,inherit);font-size:1.25rem;line-height:1.25;font-weight:700;margin:0 0 6px}' +
       '#cn-push-guide p{margin:0 0 10px;color:var(--ink-2,#38435a);font-size:.93rem;line-height:1.55}' +
-      '#cn-push-guide ol{list-style:none;margin:6px 0 12px;padding:0;counter-reset:g}#cn-push-guide li{counter-increment:g;display:flex;gap:12px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--line,#e2e6ee);font-size:.93rem;line-height:1.45;color:var(--ink,#141a26)}#cn-push-guide li:last-child{border-bottom:0}' +
-      '#cn-push-guide li:before{content:counter(g);flex:none;width:28px;height:28px;border-radius:50%;border:1.5px solid var(--btn,#28374f);color:var(--btn,#28374f);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.82rem;box-sizing:border-box}' +
-      '#cn-push-guide .gn{font-size:.85rem;color:var(--muted,#5d6779);margin:0 0 12px}' +
       '#cn-push-guide .ga{display:grid;gap:8px}#cn-push-guide .ga .btn{width:100%;justify-content:center}';
     document.head.appendChild(s);
   }
@@ -285,36 +268,24 @@
     try { if (supported()) await firebase.messaging().deleteToken(); } catch (e) { /* ignore */ }
   }
 
-  /* ---------- Guide d'autorisation (3 gestes, détection automatique) ---------- */
+  /* ---------- Navigateur intégré + retour automatique ---------- */
   function inAppBrowser() { return /FBAN|FBAV|FB_IAB|Instagram|WhatsApp|Line\/|Snapchat|TikTok|musical_ly|MicroMessenger|Telegram|Twitter|; wv\)/i.test(navigator.userAgent || ''); }
-  function guideOpen() { return !!document.getElementById('cn-push-guide'); }
   function closeGuide() { var g = document.getElementById('cn-push-guide'); if (g && g.parentNode) g.parentNode.removeChild(g); }
-  function showGuide(kind) {
+  // Seul cas où une fenêtre s'ouvre : les notifications sont IMPOSSIBLES dans le navigateur intégré (WhatsApp, TikTok…) ;
+  // un bouton ouvre l'application dans Chrome. Dans tous les autres cas : aucune fenêtre, aucune liste de gestes.
+  function showGuide() {
     closeGuide(); injectCss();
     var el = document.createElement('div'); el.id = 'cn-push-guide'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true');
-    var h;
-    if (kind === 'inapp') {
-      var android = /Android/i.test(navigator.userAgent || '');
-      h = '<div class="pg"><div class="gi">' + BELL + '</div><h3>' + esc(tx3('g_inapp_t')) + '</h3><p>' + esc(tx3('g_inapp_b')) + '</p><div class="ga">' +
-        (android ? '<button type="button" class="btn btn-primary" data-g="chrome">' + esc(tx3('g_chrome')) + '</button>' : '') +
-        '<button type="button" class="btn ' + (android ? 'btn-outline' : 'btn-primary') + '" data-g="copy">' + esc(tx3('g_copy')) + '</button>' +
-        '<button type="button" class="btn btn-outline" data-g="later">' + esc(tx3('g_later')) + '</button></div></div>';
-    } else {
-      var steps = isStandalone() ? tx3('g_app') : tx3('g_web');
-      h = '<div class="pg"><div class="gi">' + BELL + '</div><h3>' + esc(tx3('g_t')) + '</h3><p>' + esc(tx3(kind === 'blocked' ? 'g_i_blocked' : 'g_i_denied')) + '</p><ol>' +
-        steps.map(function (x) { return '<li><span>' + esc(x) + '</span></li>'; }).join('') + '</ol><p class="gn">' + esc(tx3('g_back')) + '</p><div class="ga">' +
-        '<button type="button" class="btn btn-primary" data-g="check">' + esc(tx3('g_check')) + '</button><button type="button" class="btn btn-outline" data-g="later">' + esc(tx3('g_later')) + '</button></div></div>';
-    }
-    el.innerHTML = h;
+    var android = /Android/i.test(navigator.userAgent || '');
+    el.innerHTML = '<div class="pg"><div class="gi">' + BELL + '</div><h3>' + esc(tx3('g_inapp_t')) + '</h3><p>' + esc(tx3('g_inapp_b')) + '</p><div class="ga">' +
+      (android ? '<button type="button" class="btn btn-primary" data-g="chrome">' + esc(tx3('g_chrome')) + '</button>' : '') +
+      '<button type="button" class="btn ' + (android ? 'btn-outline' : 'btn-primary') + '" data-g="copy">' + esc(tx3('g_copy')) + '</button>' +
+      '<button type="button" class="btn btn-outline" data-g="later">' + esc(tx3('g_later')) + '</button></div></div>';
     el.addEventListener('click', function (e) {
       var b = e.target.closest && e.target.closest('[data-g]');
       if (!b) { if (e.target === el) closeGuide(); return; }
       var a = b.getAttribute('data-g');
       if (a === 'later') { snooze(); closeGuide(); }
-      else if (a === 'check') {
-        if (Notification.permission === 'granted') { closeGuide(); finishEnable(); }
-        else toast(tx3('g_still'), 'error');
-      }
       else if (a === 'chrome') { try { location.href = 'intent://' + location.host + location.pathname + location.search + '#Intent;scheme=https;package=com.android.chrome;end'; } catch (x) { /* ignore */ } }
       else if (a === 'copy') {
         var url = location.origin + '/';
@@ -323,12 +294,28 @@
     });
     document.body.appendChild(el);
   }
-  // Retour dans l'application après avoir changé le réglage : on termine l'activation sans rien demander de plus.
+  // Le téléphone bloque : UN message calme (pas d'erreur rouge), plus aucune invitation avant 7 jours. Si la personne autorise
+  // ensuite dans les réglages de son téléphone, l'application le voit dès son retour et termine l'activation toute seule.
+  var waitGrant = false;
+  function blockedCalm() {
+    waitGrant = true;
+    toast(tx3('g_blocked'), 'info');
+    ls('cn_push_snooze', String(Date.now() + 7 * DAY));
+  }
+  // Retour dans l'application : activation terminée sans rien demander de plus ; la carte des Paramètres se met à jour.
   function autoFinish() {
-    if (guideOpen() && typeof Notification !== 'undefined' && Notification.permission === 'granted') { closeGuide(); finishEnable(); }
+    if (typeof Notification === 'undefined') return;
+    if (waitGrant && Notification.permission === 'granted') { waitGrant = false; closeGuide(); finishEnable(); }
+    else if (document.getElementById('cn-push-card')) refreshCard();
   }
   document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') autoFinish(); });
   window.addEventListener('focus', autoFinish);
+  // Bouton « Vérifier à nouveau » : un seul geste, sans message d'erreur.
+  function recheck() {
+    if (typeof Notification !== 'undefined' && Notification.permission === 'granted') { waitGrant = false; return finishEnable(); }
+    toast(tx3('g_blocked'), 'info'); refreshCard();
+    return Promise.resolve();
+  }
 
   /* ---------- Activation (toujours déclenchée par un toucher) ---------- */
   async function finishEnable() {
@@ -350,16 +337,15 @@
   async function enable() {
     var st = deviceState();
     if (st === 'ios-install') { showIosHelp(); return 'ios-install'; }
-    if (st === 'unsupported') { if (inAppBrowser()) showGuide('inapp'); else toast(tx('cardnosup'), 'error'); refreshCard(); return 'unsupported'; }
-    if (st === 'denied') { hideAsk(); showGuide('denied'); refreshCard(); return 'denied'; }
+    if (st === 'unsupported') { if (inAppBrowser()) showGuide(); else toast(tx('cardnosup'), 'info'); refreshCard(); return 'unsupported'; }
+    if (st === 'denied') { hideAsk(); blockedCalm(); refreshCard(); return 'denied'; }
     var perm = Notification.permission, t0 = Date.now();
     if (perm !== 'granted') { try { perm = await Notification.requestPermission(); } catch (e) { perm = Notification.permission; } }
     hideAsk();
     if (perm !== 'granted') {
-      // « Fermé sans répondre » n'est PAS un refus : on ne parle pas de réglages, on laisse la personne choisir son moment.
-      // Réponse immédiate sans fenêtre affichée = le téléphone a bloqué la demande : on guide en 3 gestes.
-      if (perm === 'denied') showGuide('denied');
-      else if (Date.now() - t0 < 700) showGuide('blocked');
+      // « Fermé sans répondre » n'est PAS un refus : on laisse la personne choisir son moment (aucun réglage évoqué).
+      // Refus, ou réponse immédiate sans fenêtre affichée (le téléphone a bloqué la demande) : message calme, sans liste de gestes.
+      if (perm === 'denied' || Date.now() - t0 < 700) blockedCalm();
       else { toast(tx3('g_later_toast'), 'info'); snooze(); }
       refreshCard(); return perm;
     }
@@ -426,7 +412,7 @@
       var intro = host.querySelector('p.muted'); if (intro && intro.parentNode) intro.parentNode.insertBefore(card, intro.nextSibling); else host.appendChild(card);
       card.addEventListener('click', function (e) {
         var b = e.target.closest('button'); if (!b) return;
-        if (b.id === 'cn-push-enable') enable(); else if (b.id === 'cn-push-guide-btn') showGuide('denied'); else if (b.id === 'cn-push-inapp-btn') showGuide('inapp'); else if (b.id === 'cn-push-test') sendTest(); else if (b.id === 'cn-push-retry') { syncToken().catch(function () {}).then(refreshCard); }
+        if (b.id === 'cn-push-enable') enable(); else if (b.id === 'cn-push-inapp-btn') showGuide(); else if (b.id === 'cn-push-test') sendTest(); else if (b.id === 'cn-push-retry') recheck();
         else if (b.id === 'cn-push-fix') { b.disabled = true; syncToken().then(function (ok) { toast(ok ? tx2('fixok') : tx2('fixfail'), ok ? 'success' : 'error'); }).catch(function (e) { toast(tx2('fixfail') + ' — ' + humanErr(e), 'error'); }).then(function () { refreshCard(); }); }
       });
     }
@@ -435,7 +421,7 @@
     if (st === 'granted' && registered) h = '<div class="st">' + ico('bell') + ' ' + esc(tx('cardon')) + '</div><div class="row"><button type="button" class="btn btn-outline btn-sm" id="cn-push-test">' + esc(tx('test')) + '</button></div>';
     else if (st === 'granted') h = '<div class="st">' + ico('alert') + ' ' + esc(tx2('notreg')) + '</div><div class="row"><button type="button" class="btn btn-primary btn-sm" id="cn-push-fix">' + esc(tx2('fix')) + '</button></div>';
     else if (st === 'default') h = '<div class="st">' + ico('bellOff') + ' ' + esc(tx('cardoff')) + '</div><div class="row"><button type="button" class="btn btn-primary btn-sm" id="cn-push-enable">' + esc(tx('enable')) + '</button></div>';
-    else if (st === 'denied') h = '<div class="st">' + ico('ban') + ' ' + esc(tx('cardden')) + '</div><div class="hp">' + esc(tx3('g_i_denied')) + '</div><div class="row"><button type="button" class="btn btn-primary btn-sm" id="cn-push-guide-btn">' + esc(tx3('g_how')) + '</button><button type="button" class="btn btn-outline btn-sm" id="cn-push-retry">' + esc(tx('retry')) + '</button></div>';
+    else if (st === 'denied') h = '<div class="st">' + ico('ban') + ' ' + esc(tx('cardden')) + '</div><div class="hp">' + esc(tx('denhelp')) + '</div><div class="row"><button type="button" class="btn btn-outline btn-sm" id="cn-push-retry">' + esc(tx('retry')) + '</button></div>';
     else if (st === 'ios-install') h = '<div class="st">' + ico('bellOff') + ' ' + esc(tx('iostitle')) + '</div><div class="hp">' + esc(tx('iostext')) + '</div>';
     else h = '<div class="st">' + ico('bellOff') + ' ' + esc(tx('cardnosup')) + '</div>' + (inAppBrowser() ? '<div class="row"><button type="button" class="btn btn-primary btn-sm" id="cn-push-inapp-btn">' + esc(tx3('g_chrome')) + '</button></div>' : '');
     card.innerHTML = h;
@@ -610,13 +596,14 @@
         var b = e.target.closest('button'); if (!b) return;
         var act = b.getAttribute('data-a');
         if (act === 'fix') { b.disabled = true; syncToken().catch(function () {}).then(function () { drawStrip(bar); }); }
-        else if (act === 'guide') showGuide(deviceState() === 'unsupported' ? 'inapp' : 'denied');
+        else if (act === 'guide') showGuide();
+        else if (act === 'recheck') recheck().then(function () { drawStrip(bar); });
         else enable();
       });
     }
-    var txt = st === 'denied' ? tx('cardden') : (inapp ? tx3('g_inapp_t') : (st === 'granted' ? tx2('notreg') : tx('ptext')));
-    var btn = (st === 'denied' || inapp) ? '<button type="button" data-a="guide">' + esc(inapp ? tx3('g_chrome') : tx3('g_how')) + '</button>' :
-      '<button type="button" data-a="' + (st === 'granted' ? 'fix' : 'on') + '">' + esc(st === 'granted' ? tx2('fix') : tx('enable')) + '</button>';
+    var txt = st === 'denied' ? tx('denhelp') : (inapp ? tx3('g_inapp_t') : (st === 'granted' ? tx2('notreg') : tx('ptext')));
+    var btn = inapp ? '<button type="button" data-a="guide">' + esc(tx3('g_chrome')) + '</button>' :
+      '<button type="button" data-a="' + (st === 'denied' ? 'recheck' : (st === 'granted' ? 'fix' : 'on')) + '">' + esc(st === 'denied' ? tx('retry') : (st === 'granted' ? tx2('fix') : tx('enable'))) + '</button>';
     strip.innerHTML = '<span class="si">' + BELL + '</span><p>' + esc(txt) + '</p>' + btn;
   }
   function drawTools() {
