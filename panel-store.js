@@ -11,7 +11,7 @@
   function go() {
     if (typeof auth === 'undefined' || typeof escapeHtml !== 'function') { if (++tries < 160) setTimeout(go, 250); return; }
     if (window.CN_PANEL_I18N) { main(); return; }
-    var s = document.createElement('script'); s.src = '/panel-i18n.js'; s.onload = main; s.onerror = main; document.head.appendChild(s);
+    var s = document.createElement('script'); s.src = '/panel-i18n.js?v=20261065'; s.onload = main; s.onerror = main; document.head.appendChild(s);
   }
 
   var SA = !!window.__CN_STANDALONE; // page autonome du panel (hors application)
@@ -106,7 +106,7 @@
     '.pm-nav{position:fixed;left:0;right:0;bottom:0;z-index:4;display:flex;background:var(--cd);border-top:1px solid var(--bd);padding:6px 4px calc(6px + env(safe-area-inset-bottom));box-shadow:0 -6px 20px rgba(20,33,61,.07)}.pm-nav button{flex:1;border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:3px;font:inherit;font-size:.65rem;font-weight:800;color:var(--mu);padding:6px 2px;cursor:pointer;min-width:0}.pm-nav button.on{color:var(--pm-a,#1b4fd8)}.pm-nav button span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}' +
     '.pm-pi{display:inline-flex}.pm-pi .p-icon{width:38px!important;height:38px!important;border-radius:11px!important;display:flex;align-items:center;justify-content:center}.pm-pi .p-icon svg{width:20px;height:20px}' +
     '.pm-hero{background:var(--cd)}.pm-hero h2{font-size:1.25rem;margin:0 0 6px;color:var(--tx)}.pm-hero p{font-size:.9rem;line-height:1.55;margin:0 0 14px;color:var(--mu)}' +
-    '.pm-wal{background:linear-gradient(135deg,#1f2f4d,#16233b);color:#fff;border:0}.pm-wal .l{font-size:.78rem;opacity:.8;display:flex;align-items:center;gap:6px}.pm-wal .v{font-size:2.2rem;font-weight:800;margin:6px 0 14px;letter-spacing:-.02em}.pm-wal .btns{display:flex;gap:8px}.pm-wal .btns .pm-b{flex:1;padding:12px 8px;font-size:.86rem}.pm-wal .pm-b.g{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.28);color:#fff}' +
+    '.pm-wal{background:#1f2f4d;color:#fff;border:0}.pm-wal .l{font-size:.78rem;opacity:.8;display:flex;align-items:center;gap:6px}.pm-wal .v{font-size:2.2rem;font-weight:800;margin:6px 0 14px;letter-spacing:-.02em}.pm-wal .btns{display:flex;gap:8px}.pm-wal .btns .pm-b{flex:1;padding:12px 8px;font-size:.86rem}.pm-wal .pm-b.g{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.28);color:#fff}' +
     '.pm-stats{display:flex;gap:8px;margin:12px 14px 0}.pm-stats div{flex:1;background:var(--cd);border-radius:14px;padding:12px 6px;text-align:center;border:1px solid var(--bd)}.pm-stats b{display:block;font-size:1.05rem}.pm-stats span{font-size:.68rem;color:var(--mu)}' +
     '.pm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.pm-plat{border:1px solid var(--bd);background:var(--cd);border-radius:14px;padding:12px 4px;font:inherit;cursor:pointer;color:inherit;display:flex;flex-direction:column;align-items:center;gap:6px}.pm-plat b{font-size:.72rem}' +
     '.pm-trust{display:flex;gap:8px;flex-wrap:wrap;margin:12px 14px 0}.pm-trust span{font-size:.72rem;background:var(--cd);border:1px solid var(--bd);border-radius:99px;padding:6px 11px;color:var(--tx);display:inline-flex;align-items:center;gap:5px;font-weight:700}.pm-trust svg{color:#16a34a}' +
@@ -122,7 +122,7 @@
     '.pm-amts{display:flex;gap:6px;flex-wrap:wrap}.pm-amts .pm-b{padding:9px 14px;font-size:.84rem;border-radius:99px}' +
     '.pm-sheet{position:fixed;inset:0;z-index:100010;background:rgba(10,16,32,.55);display:flex;align-items:flex-end;justify-content:center;overflow:auto}.pm-sheet .box{--cd:#fff;--tx:#14213d;--mu:#5b6475;--bd:#e3e8f2;--in:#fff;background:var(--cd);color:var(--tx);width:100%;max-width:480px;border-radius:22px 22px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom));max-height:94vh;overflow:auto;position:relative}@media(min-width:560px){.pm-sheet{align-items:center;padding:16px}.pm-sheet .box{border-radius:22px}}' +
     '.pm-sheet .hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}.pm-sheet h2{margin:0;font-size:1.1rem}' +
-    '.pm-secure{display:flex;gap:8px;align-items:flex-start;font-size:.74rem;color:var(--mu);margin-top:12px;line-height:1.45}.pm-secure svg{flex:none;color:#16a34a;margin-top:1px}' +
+    '.pm-ph{display:flex;gap:8px;align-items:stretch}.pm-ph input{flex:1;min-width:0}.pm-dial{display:flex;align-items:center;padding:0 12px;border:1.5px solid var(--bd);border-radius:12px;background:var(--in);font-weight:800;font-size:.95rem}.pm-ph .pm-b{padding:0 16px}.pm-acts2{display:grid;gap:8px}.pm-secure{display:flex;gap:8px;align-items:flex-start;font-size:.74rem;color:var(--mu);margin-top:12px;line-height:1.45}.pm-secure svg{flex:none;color:#16a34a;margin-top:1px}' +
     '@media(prefers-color-scheme:dark){.pm-ov,.pm-sheet .box{--bg:#0e1424;--cd:#182036;--tx:#e6eaf3;--mu:#9aa6c0;--bd:#2a3553;--in:#101830}.pm-hero h2{color:#e6eaf3}.pm-sum,.pm-ref{background:rgba(120,150,255,.12)}.pm-lg.lg-visa,.pm-lg.lg-mc{background:#fff}}';
   var st = document.createElement('style'); st.textContent = CSS; document.head.appendChild(st);
 
@@ -252,7 +252,7 @@
       if (!link) { err.textContent = T('o_e_link'); return; }
       if (!(q >= x.min && q <= x.max)) { err.textContent = T('o_e_qty', { min: x.min, max: x.max }); return; }
       var tot = pane.querySelector('#pm-tot').textContent;
-      if (!confirm(T('o_confirm') + '\n' + x.group + ' — ' + x.name + '\n' + T('o_qty') + ' : ' + q + '\n' + T('o_total') + ' : ' + tot)) return;
+      if (!(await askSheet(T('o_confirm'), [[T('o_svc'), x.group + ' — ' + x.name], [T('o_qty'), String(q)], [T('o_total'), tot]], T('o_go'), T('g_cf_edit')))) return;
       b.disabled = true; b.textContent = T('o_sending');
       try {
         var r = await api('pm_order', { slug: S.slug, serviceId: x.id, quantity: q, link: link, requestId: S.rid, ref: (function () { try { return localStorage.getItem('cn_pm_ref_' + S.slug) || ''; } catch (e) { return ''; } })() });
@@ -313,41 +313,108 @@
     box.innerHTML = '<div class="pm-card"><h2>' + ico('up', 18) + esc(T('g_title')) + '</h2><p class="pm-n">' + esc(T('loading')) + '</p></div>';
     api('pm_wd_info').then(function (r) { drawWd(box, r); }).catch(function (e) { box.innerHTML = '<div class="pm-card"><h2>' + esc(T('g_title')) + '</h2><p class="pm-err">' + esc(errMsg(e)) + '</p></div>'; });
   }
+  // Pays de retrait Mobile Money : [code, indicatif, opérateurs courants]. Liste vide = on propose tous les opérateurs.
+  var WD_C = [['CD', '243', ['mpesa', 'airtel', 'orange']], ['CG', '242', ['airtel', 'mtn']], ['CM', '237', ['mtn', 'orange']], ['CI', '225', ['orange', 'mtn']], ['SN', '221', ['orange']], ['ML', '223', ['orange']],
+    ['BF', '226', ['orange']], ['BJ', '229', ['mtn']], ['TG', '228', []], ['NE', '227', ['airtel', 'orange']], ['GN', '224', ['orange', 'mtn']], ['GA', '241', ['airtel']], ['TD', '235', ['airtel']],
+    ['CF', '236', []], ['BI', '257', []], ['RW', '250', ['mtn', 'airtel']], ['UG', '256', ['mtn', 'airtel']], ['KE', '254', ['mpesa', 'airtel']], ['TZ', '255', ['mpesa', 'airtel']], ['ZM', '260', ['mtn', 'airtel']],
+    ['MW', '265', ['airtel']], ['MZ', '258', ['mpesa']], ['ZW', '263', []], ['ET', '251', []], ['GH', '233', ['mtn']], ['NG', '234', []], ['MG', '261', ['orange', 'airtel']], ['SL', '232', ['orange', 'airtel']], ['LS', '266', ['mpesa']]];
+  var WD_LAST = 'cn_pm_wd_last';
+  function wdCountry(c) { for (var i = 0; i < WD_C.length; i++) if (WD_C[i][0] === c) return WD_C[i]; return null; }
+  // Numéro complet (chiffres seulement) : indicatif + numéro local, sans zéro de tête ni indicatif en double.
+  function wdDigits(dial, raw) {
+    var d = String(raw || '').replace(/[^\d]/g, '');
+    if (!dial) return d;
+    if (d.indexOf(dial) === 0 && d.length >= dial.length + 8) return d;
+    return dial + d.replace(/^0+/, '');
+  }
   function drawWd(box, r) {
     var st = r.settings, can = !!st.enabled && !r.hasPending && r.available >= st.minUsd, dis = can ? '' : ' disabled';
     var reason = !st.enabled ? '<p class="pm-err">' + esc(T('g_off')) + '</p>' : r.hasPending ? '<p class="pm-n"><b>' + esc(T('g_pend')) + '</b></p>' : r.available < st.minUsd ? '<p class="pm-n"><b>' + esc(T('g_need', { min: money(st.minUsd) })) + '</b></p>' : '';
+    var label = {}, kindOf = {}; r.methods.forEach(function (m) { label[m.id] = m.label; kindOf[m.id] = m.kind; });
+    var phoneIds = r.methods.filter(function (m) { return m.kind === 'phone'; }).map(function (m) { return m.id; });
+    var cryptoIds = r.methods.filter(function (m) { return m.kind !== 'phone'; }).map(function (m) { return m.id; });
+    var last = {}; try { last = JSON.parse(localStorage.getItem(WD_LAST) || '{}') || {}; } catch (e) { last = {}; }
+    var gc = wdCountry(last.cc) ? last.cc : (wdCountry(guessCountry()) ? guessCountry() : '');
+    var ST = { tab: phoneIds.length ? 'mm' : 'usdt', cc: gc, op: last.op || '', crypto: cryptoIds[0] || '' };
+    var rid = uid();
     var h = '<div class="pm-card" id="pm-wd"><h2>' + ico('up', 18) + esc(T('g_title')) + '</h2><div class="pm-kpi"><div><b>' + money(r.available) + '</b><span>' + esc(T('g_avail')) + '</span></div><div><b>' + money(r.onHold) + '</b><span>' + esc(T('g_hold')) + '</span></div><div><b>' + money(r.withdrawn) + '</b><span>' + esc(T('g_done')) + '</span></div></div>' +
       '<p class="pm-n">' + esc(T('g_note', { h: st.holdHours, fee: st.feePct, min: money(st.minUsd) })) + '</p>' + reason +
-      '<div class="pm-f"><label for="pm-wm">' + esc(T('g_method')) + '</label><select id="pm-wm"' + dis + '>' + r.methods.map(function (m) { return '<option value="' + esc(m.id) + '" data-k="' + esc(m.kind) + '">' + esc(m.label) + '</option>'; }).join('') + '</select></div>' +
-      '<div class="pm-f" id="pm-wnamebox"><label for="pm-wn">' + esc(T('g_name')) + '</label><input id="pm-wn" maxlength="60" autocomplete="name"' + dis + '></div>' +
-      '<div class="pm-f"><label for="pm-wa" id="pm-wal"></label><input id="pm-wa" maxlength="80" autocomplete="off"' + dis + '></div>' +
-      '<div class="pm-f"><label for="pm-wv">' + esc(T('g_amt')) + '</label><input id="pm-wv" inputmode="decimal" maxlength="8" value="' + esc(Math.floor(r.available * 100) / 100) + '"' + dis + '></div>' +
-      '<div class="pm-sum" id="pm-wsum"></div><div class="pm-err" id="pm-werr"></div><button class="pm-b p w" id="pm-wgo"' + dis + '>' + esc(T('g_go')) + '</button>' +
-      '<p class="pm-n">' + esc(T('g_warn')) + '</p></div>';
-    if (r.history && r.history.length) h += '<div class="pm-card"><h2>' + esc(T('g_hist')) + '</h2>' + r.history.map(function (w) { var b = WDC[w.status] || [w.status, 'n']; return '<div class="pm-row"><div><b>' + money(w.net) + ' ' + esc(T('g_net')) + '</b><small>' + esc(w.method) + ' · ' + esc(String(w.createdAt || '').slice(0, 10)) + (w.fee ? ' · ' + esc(T('g_fee')) + ' ' + money(w.fee) : '') + '</small></div><span class="pm-bd ' + b[1] + '">' + esc(WDC[w.status] ? T(b[0]) : b[0]) + '</span></div>'; }).join('') + '</div>';
+      '<div id="pm-wdform"></div></div>';
+    if (r.history && r.history.length) h += '<div class="pm-card"><h2>' + esc(T('g_hist')) + '</h2>' + r.history.map(function (w) { var b = WDC[w.status] || [w.status, 'n']; return '<div class="pm-row"><div><b>' + money(w.net) + ' ' + esc(T('g_net')) + '</b><small>' + esc(w.method) + ' · ' + esc(String(w.createdAt || '').slice(0, 10)) + (w.fee ? ' · ' + esc(T('g_fee')) + ' ' + money(w.fee) : '') + '</small></div><span class="pm-st ' + b[1] + '">' + esc(T(b[0])) + '</span></div>'; }).join('') + '</div>';
     box.innerHTML = h;
-    var go = box.querySelector('#pm-wgo');
-    var sel = box.querySelector('#pm-wm'), val = box.querySelector('#pm-wv'), sum = box.querySelector('#pm-wsum'), err = box.querySelector('#pm-werr'), rid = uid();
-    function upd() {
-      var k = sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].getAttribute('data-k') : 'phone', phone = k === 'phone';
-      box.querySelector('#pm-wnamebox').style.display = phone ? '' : 'none';
-      box.querySelector('#pm-wal').textContent = phone ? T('g_phone') : (k === 'trc20' ? T('g_trc') : T('g_bep'));
-      var a = Number(String(val.value).replace(',', '.')) || 0, fee = Math.round(a * st.feePct) / 100;
-      sum.innerHTML = esc(T('g_recv', { net: '@@N@@', amt: '@@A@@', fee: '@@F@@' })).replace('@@N@@', '<b>' + money(Math.max(0, a - fee)) + '</b>').replace('@@A@@', money(a)).replace('@@F@@', money(fee));
+    var fm = box.querySelector('#pm-wdform'), amt = Math.floor(r.available * 100) / 100;
+    function opsFor() { var c = wdCountry(ST.cc), l = c && c[2].length ? c[2].filter(function (x) { return phoneIds.indexOf(x) >= 0; }) : phoneIds; return l.length ? l : phoneIds; }
+    function draw() {
+      var mm = ST.tab === 'mm', c = wdCountry(ST.cc), ops = opsFor(); if (mm && ops.indexOf(ST.op) < 0) ST.op = ops.length === 1 ? ops[0] : '';
+      var tabs = '<div class="pm-tabs" style="grid-template-columns:1fr 1fr">' + (phoneIds.length ? '<button type="button" class="pm-tab' + (mm ? ' on' : '') + '" data-t="mm"' + dis + '><span class="lgs">' + LG.mpesa + LG.airtel + LG.orange + '</span><b>' + esc(T('g_tab_mm')) + '</b></button>' : '') +
+        (cryptoIds.length ? '<button type="button" class="pm-tab' + (!mm ? ' on' : '') + '" data-t="usdt"' + dis + '><span class="lgs">' + LG.usdt + '</span><b>' + esc(T('g_tab_usdt')) + '</b></button>' : '') + '</div>';
+      var body;
+      if (mm) {
+        body = '<div class="pm-f"><label for="pm-wc">' + esc(T('g_country')) + '</label><select id="pm-wc"' + dis + '>' + (ST.cc ? '' : '<option value="">' + esc(T('g_pick')) + '</option>') +
+          WD_C.map(function (x) { return [x[0], cname(x[0])]; }).sort(function (a, b) { return a[1].localeCompare(b[1], LOC[lang()]); }).map(function (x) { return '<option value="' + x[0] + '"' + (x[0] === ST.cc ? ' selected' : '') + '>' + flagOf(x[0]) + ' ' + esc(x[1]) + '</option>'; }).join('') +
+          '<option value="XX"' + (ST.cc === 'XX' ? ' selected' : '') + '>' + esc(T('g_other')) + '</option></select></div>' +
+          '<div class="pm-f"><label for="pm-wo">' + esc(T('g_op')) + '</label><select id="pm-wo"' + dis + '>' + (ST.op ? '' : '<option value="">' + esc(T('g_pick_op')) + '</option>') + ops.map(function (id) { return '<option value="' + esc(id) + '"' + (id === ST.op ? ' selected' : '') + '>' + esc(label[id]) + '</option>'; }).join('') + '</select></div>' +
+          '<div class="pm-f"><label for="pm-wn">' + esc(T('g_name')) + '</label><input id="pm-wn" maxlength="60" autocomplete="name"' + dis + '></div>' +
+          '<div class="pm-f"><label for="pm-wa">' + esc(c ? T('g_num') : T('g_num_full')) + '</label><div class="pm-ph">' + (c ? '<span class="pm-dial">+' + c[1] + '</span>' : '') + '<input id="pm-wa" type="tel" inputmode="tel" maxlength="20" autocomplete="tel-national" placeholder="' + esc(c ? T('g_num_ph') : '243812345678') + '"' + dis + '></div></div>';
+      } else {
+        body = '<div class="pm-f"><label for="pm-wk">' + esc(T('g_net_t')) + '</label><select id="pm-wk"' + dis + '>' + cryptoIds.map(function (id) { return '<option value="' + esc(id) + '"' + (id === ST.crypto ? ' selected' : '') + '>' + esc(label[id]) + '</option>'; }).join('') + '</select></div>' +
+          '<div class="pm-f"><label for="pm-wa">' + esc(kindOf[ST.crypto] === 'trc20' ? T('g_trc') : T('g_bep')) + '</label><input id="pm-wa" maxlength="80" autocomplete="off" autocapitalize="off" spellcheck="false"' + dis + '></div>';
+      }
+      fm.innerHTML = tabs + body + '<div class="pm-f"><label for="pm-wv">' + esc(T('g_amt')) + '</label><div class="pm-ph"><input id="pm-wv" inputmode="decimal" maxlength="8" value="' + esc(amt) + '"' + dis + '><button type="button" class="pm-b" id="pm-wall"' + dis + '>' + esc(T('g_all')) + '</button></div></div>' +
+        '<div class="pm-sum" id="pm-wsum"></div><div class="pm-err" id="pm-werr"></div><button class="pm-b p w" id="pm-wgo"' + dis + '>' + esc(T('g_continue')) + '</button><p class="pm-n">' + esc(T('g_warn')) + '</p>';
+      fm.querySelectorAll('[data-t]').forEach(function (b) { b.onclick = function () { keep(); ST.tab = b.getAttribute('data-t'); draw(); }; });
+      var sc = fm.querySelector('#pm-wc'); if (sc) sc.onchange = function () { keep(); ST.cc = sc.value; ST.op = ''; draw(); };
+      var so = fm.querySelector('#pm-wo'); if (so) so.onchange = function () { ST.op = so.value; };
+      var sk = fm.querySelector('#pm-wk'); if (sk) sk.onchange = function () { keep(); ST.crypto = sk.value; draw(); };
+      fm.querySelector('#pm-wv').oninput = sum; fm.querySelector('#pm-wall').onclick = function () { fm.querySelector('#pm-wv').value = amt; sum(); };
+      fm.querySelector('#pm-wgo').onclick = next; sum(); restore();
     }
-    sel.onchange = upd; val.oninput = upd; upd();
-    go.onclick = async function () {
-      err.textContent = '';
-      var a = Number(String(val.value).replace(',', '.')) || 0;
+    var KEEP = { n: '', a: '' };
+    function keep() { var n = fm.querySelector('#pm-wn'), a = fm.querySelector('#pm-wa'), v = fm.querySelector('#pm-wv'); if (n) KEEP.n = n.value; if (a) KEEP.a = a.value; if (v) amt = Number(String(v.value).replace(',', '.')) || 0; }
+    function restore() { var n = fm.querySelector('#pm-wn'), a = fm.querySelector('#pm-wa'); if (n) n.value = KEEP.n; if (a) a.value = KEEP.a; }
+    function cur() { var v = fm.querySelector('#pm-wv'); return Number(String(v.value).replace(',', '.')) || 0; }
+    function sum() { var a = cur(), fee = Math.round(a * st.feePct) / 100, el = fm.querySelector('#pm-wsum'); el.innerHTML = esc(T('g_recv', { net: '@@N@@', amt: '@@A@@', fee: '@@F@@' })).replace('@@N@@', '<b>' + money(Math.max(0, a - fee)) + '</b>').replace('@@A@@', money(a)).replace('@@F@@', money(fee)); }
+    function next() {
+      var err = fm.querySelector('#pm-werr'); err.textContent = ''; keep();
+      var a = cur(), mm = ST.tab === 'mm', method, account, holder = '', shown;
       if (!(a >= st.minUsd)) { err.textContent = T('g_e_min', { min: money(st.minUsd) }); return; }
       if (a > r.available + 0.001) { err.textContent = T('g_e_max', { max: money(r.available) }); return; }
-      if (!confirm(T('g_confirm', { amt: money(a) }) + '\n' + sel.options[sel.selectedIndex].text + '\n' + box.querySelector('#pm-wa').value)) return;
-      go.disabled = true; go.textContent = T('o_sending');
-      try {
-        var res = await api('pm_wd_request', { method: sel.value, account: box.querySelector('#pm-wa').value, holderName: box.querySelector('#pm-wn').value, amount: a, requestId: rid });
-        toast(T('g_sent', { net: money(res.net) }), 'success'); wdBlock(box);
-      } catch (e) { err.textContent = errMsg(e); go.disabled = false; go.textContent = T('g_go'); }
-    };
+      if (mm) {
+        var c = wdCountry(ST.cc);
+        if (!ST.cc) { err.textContent = T('g_e_country'); return; }
+        if (!ST.op) { err.textContent = T('g_e_op'); return; }
+        holder = (fm.querySelector('#pm-wn').value || '').trim(); if (holder.length < 2) { err.textContent = T('g_e_name'); return; }
+        var raw = fm.querySelector('#pm-wa').value; account = wdDigits(c ? c[1] : '', raw);
+        if (account.length < 9 || account.length > 15 || (c && account.length - c[1].length < 7)) { err.textContent = T('g_e_num'); return; }
+        method = ST.op; shown = '+' + account + ' — ' + holder;
+      } else {
+        method = ST.crypto; account = (fm.querySelector('#pm-wa').value || '').trim();
+        if (kindOf[method] === 'trc20' ? !/^T[1-9A-HJ-NP-Za-km-z]{33}$/.test(account) : !/^0x[0-9a-fA-F]{40}$/.test(account)) { err.textContent = T('g_e_addr'); return; }
+        shown = account;
+      }
+      confirmSheet({ method: method, account: account, holder: holder, amount: a, label: label[method], shown: shown });
+    }
+    function confirmSheet(q) {
+      var fee = Math.round(q.amount * st.feePct) / 100, net = Math.max(0, Math.round((q.amount - fee) * 100) / 100);
+      var m = sheet('<div id="pm-wcf"></div>'), b = m.querySelector('#pm-wcf'), busy = false;
+      function row(k, v, strong) { return '<div class="pm-row"><span>' + esc(k) + '</span><' + (strong ? 'b' : 'span') + ' style="text-align:right;word-break:break-all;max-width:62%">' + esc(v) + '</' + (strong ? 'b' : 'span') + '></div>'; }
+      b.innerHTML = '<div class="hd"><h2>' + esc(T('g_cf_t')) + '</h2><button class="pm-x" data-x aria-label="' + esc(T('close')) + '">' + ico('x', 18) + '</button></div>' +
+        row(T('g_cf_amt'), money(q.amount)) + row(T('g_cf_fee'), '− ' + money(fee)) + row(T('g_cf_net'), money(net), true) + row(T('g_method'), q.label) + row(T('g_cf_to'), q.shown) +
+        '<p class="pm-n">' + esc(T('g_warn')) + '</p><div class="pm-err" id="pm-cerr"></div><div class="pm-acts2"><button class="pm-b p w" id="pm-cok">' + esc(T('g_cf_go')) + '</button><button class="pm-b w" id="pm-cno">' + esc(T('g_cf_edit')) + '</button></div>';
+      b.querySelector('[data-x]').onclick = b.querySelector('#pm-cno').onclick = function () { if (!busy) m.remove(); };
+      b.querySelector('#pm-cok').onclick = async function () {
+        if (busy) return; busy = true; var ok = this, er = b.querySelector('#pm-cerr'); er.textContent = ''; ok.disabled = true; ok.textContent = T('o_sending');
+        try {
+          var res = await api('pm_wd_request', { method: q.method, account: q.account, holderName: q.holder, amount: q.amount, requestId: rid });
+          try { localStorage.setItem(WD_LAST, JSON.stringify({ cc: ST.cc, op: ST.op })); } catch (e) { /* ignore */ }
+          b.innerHTML = '<div class="hd"><h2>' + esc(T('g_ok_t')) + '</h2></div><p class="pm-n" style="font-size:.9rem">' + esc(T('g_ok_b', { net: money(res.net) })) + '</p><button class="pm-b p w" id="pm-cfin">' + esc(T('g_ok_close')) + '</button>';
+          b.querySelector('#pm-cfin').onclick = function () { m.remove(); wdBlock(box); };
+        } catch (e) { er.textContent = errMsg(e); busy = false; ok.disabled = false; ok.textContent = T('g_cf_go'); }
+      };
+    }
+    draw();
+    // Pays proposé d'après l'adresse IP si la personne n'en a pas encore choisi (une seule demande par session).
+    if (!ST.cc && can) ipCountry().then(function (c) { if (c && wdCountry(c) && !ST.cc && ST.tab === 'mm' && document.body.contains(fm)) { keep(); ST.cc = c; draw(); } });
   }
 
   function drawOwner(pane, toWd) {
@@ -380,6 +447,19 @@
   }
 
   /* ===== Fenêtres (feuille du bas sur mobile) ===== */
+  // Confirmation dans une feuille du même style que le reste (remplace la fenêtre grise du navigateur). Répond true / false.
+  function askSheet(title, rows, okLabel, noLabel) {
+    return new Promise(function (resolve) {
+      var m = sheet('<div id="pm-ask"></div>'), b = m.querySelector('#pm-ask'), done = false;
+      function fin(v) { if (done) return; done = true; m.remove(); resolve(v); }
+      b.innerHTML = '<div class="hd"><h2>' + esc(title) + '</h2><button class="pm-x" data-x aria-label="' + esc(T('close')) + '">' + ico('x', 18) + '</button></div>' +
+        rows.map(function (r) { return '<div class="pm-row"><span>' + esc(r[0]) + '</span><b style="text-align:right;word-break:break-word;max-width:62%">' + esc(r[1]) + '</b></div>'; }).join('') +
+        '<div class="pm-acts2" style="margin-top:14px"><button type="button" class="pm-b p w" data-y>' + esc(okLabel) + '</button><button type="button" class="pm-b w" data-n>' + esc(noLabel) + '</button></div>';
+      b.querySelector('[data-y]').onclick = function () { fin(true); };
+      b.querySelector('[data-n]').onclick = b.querySelector('[data-x]').onclick = function () { fin(false); };
+      m.addEventListener('click', function (e) { if (e.target === m) fin(false); });
+    });
+  }
   function sheet(inner) {
     var m = document.getElementById('pm-modal'); if (m) m.remove();
     m = document.createElement('div'); m.id = 'pm-modal'; m.className = 'pm-sheet';
@@ -406,7 +486,7 @@
   function installBanner(box) {
     var dis = ''; try { dis = localStorage.getItem(LSD) || ''; } catch (e) { /* ignore */ }
     if (!box || dis) return;
-    box.innerHTML = '<div class="pm-inst"><div class="t">' + esc(T('in_banner', { name: S.store.shop.name || 'panel' })) + '<small>' + esc(T('in_card_s')) + '</small></div><button class="go" id="pm-ib-go">' + esc(T('install')) + '</button><button class="no" id="pm-ib-no" aria-label="' + esc(T('close')) + '">✕</button></div>';
+    box.innerHTML = '<div class="pm-inst"><div class="t">' + esc(T('in_banner', { name: S.store.shop.name || 'panel' })) + '<small>' + esc(T('in_card_s')) + '</small></div><button class="go" id="pm-ib-go">' + esc(T('install')) + '</button><button class="no" id="pm-ib-no" aria-label="' + esc(T('close')) + '">' + ico('x', 14) + '</button></div>';
     box.querySelector('#pm-ib-go').onclick = installApp;
     box.querySelector('#pm-ib-no').onclick = function () { try { localStorage.setItem(LSD, '1'); } catch (e) { /* ignore */ } box.innerHTML = ''; };
   }
@@ -440,41 +520,156 @@
     };
   }
 
-  /* ===== Recharge complète (mêmes moyens que l'application) ===== */
+  /* ===== Recharge complète : même système que l'application (SasPay, tous les pays, envoi direct) ===== */
   var MIN_USD = 2, MAX_USD = 1000;
-  var COVERED = ['CD']; // pays où le Mobile Money direct est actif (comme l'application)
-  // Mobile Money via la page de paiement sécurisée OPTGateway (hors RDC) : mêmes 20 pays que l'application (script.js, OPT_MOBILE_CODES).
-  var OPT_MOBILE = ['CD', 'BJ', 'BF', 'CM', 'CG', 'CI', 'ET', 'GA', 'GH', 'KE', 'LS', 'MW', 'MZ', 'NG', 'UG', 'SN', 'SL', 'TZ', 'ZM', 'ZW'];
-  function optMob(code) { return code !== 'CD' && OPT_MOBILE.indexOf(code) >= 0; }
-  function mobOk(code) { return COVERED.indexOf(code) >= 0 || optMob(code); }
-  var CTRY = [
-    ['CD', '🇨🇩', 'RDC (Congo)', ['CDF', 'USD'], ['Vodacom M-Pesa', 'Airtel Money', 'Orange Money']],
-    ['CG', '🇨🇬', 'Congo-Brazzaville', ['XAF'], ['Airtel Money', 'MTN Mobile Money']],
-    ['CM', '🇨🇲', 'Cameroun', ['XAF'], ['MTN Mobile Money']],
-    ['CI', '🇨🇮', 'Côte d’Ivoire', ['XOF'], ['Orange Money', 'MTN Mobile Money']],
-    ['SN', '🇸🇳', 'Sénégal', ['XOF'], ['Orange Money', 'Free Money']],
-    ['BJ', '🇧🇯', 'Bénin', ['XOF'], ['MTN Mobile Money']],
-    ['GA', '🇬🇦', 'Gabon', ['XAF'], ['Airtel Money']],
-    ['KE', '🇰🇪', 'Kenya', ['KES'], ['M-Pesa (Safaricom)']],
-    ['RW', '🇷🇼', 'Rwanda', ['RWF'], ['Airtel Money', 'MTN Mobile Money']],
-    ['UG', '🇺🇬', 'Uganda', ['UGX'], ['Airtel Money', 'MTN Mobile Money']],
-    ['ZM', '🇿🇲', 'Zambia', ['ZMW'], ['Airtel Money', 'MTN Mobile Money', 'Zamtel Kwacha']],
-    ['SL', '🇸🇱', 'Sierra Leone', ['SLE'], ['Orange Money']],
-    ['BF', '🇧🇫', 'Burkina Faso', ['XOF'], ['Orange Money', 'Moov Money']],
-    ['ET', '🇪🇹', 'Ethiopia', ['ETB'], ['Telebirr']],
-    ['GH', '🇬🇭', 'Ghana', ['GHS'], ['MTN Mobile Money', 'Telecel Cash', 'AirtelTigo Money']],
-    ['LS', '🇱🇸', 'Lesotho', ['LSL'], ['M-Pesa', 'EcoCash']],
-    ['MW', '🇲🇼', 'Malawi', ['MWK'], ['Airtel Money', 'TNM Mpamba']],
-    ['MZ', '🇲🇿', 'Mozambique', ['MZN'], ['M-Pesa', 'e-Mola', 'mKesh']],
-    ['NG', '🇳🇬', 'Nigeria', ['NGN'], ['MTN MoMo', 'Airtel Money', 'Opay']],
-    ['TZ', '🇹🇿', 'Tanzania', ['TZS'], ['M-Pesa', 'Airtel Money', 'Tigo Pesa']],
-    ['ZW', '🇿🇼', 'Zimbabwe', ['ZWG'], ['EcoCash', 'OneMoney']]
-  ];
-  function opPill(n) { return /pesa/i.test(n) ? LG.mpesa : /airtel/i.test(n) ? LG.airtel : /orange/i.test(n) ? LG.orange : /mtn/i.test(n) ? '<i class="pm-lg lg-mtn">MTN</i>' : '<i class="pm-lg lg-gen">' + esc(String(n).slice(0, 5)) + '</i>'; }
-  function opLabel(n) { return String(n).replace('Vodacom ', '').replace(' Mobile Money', '').replace(' (Safaricom)', ''); }
+  // Tous les pays de la liste SasPay (identique à l'application, script.js : PAY_COUNTRY_CODES). Le serveur reste seul juge :
+  // il refuse proprement un pays que SasPay n'a pas activé, et le solde n'est jamais crédité d'après ce que dit le navigateur.
+  var PAY_CODES = ('AD AE AF AG AL AM AO AR AT AU AZ BA BB BD BE BF BG BH BI BJ BN BO BR BS BT BW BY BZ CA CD CF CG CH CI CL CM CN CO CR CU CV CY CZ ' +
+    'DE DJ DK DM DO DZ EC EE EG ER ES ET FI FJ FM FR GA GB GD GE GH GM GN GQ GR GT GW GY HK HN HR HT HU ID IE IL IN IQ IR IS IT JM JO JP KE KG KH KI KM KN KP KR ' +
+    'KW KZ LA LB LC LI LK LR LS LT LU LV LY MA MC MD ME MG MH MK ML MM MN MO MR MT MU MV MW MX MY MZ NA NE NG NI NL NO NP NR NZ OM PA PE PG PH PK PL PS PT PW PY ' +
+    'QA RO RS RU RW SA SB SC SD SE SG SI SK SL SM SN SO SR SS ST SV SY SZ TD TG TH TJ TL TM TN TO TR TT TV TW TZ UA UG US UY UZ VA VC VE VN VU WS XK YE ZA ZM ZW').split(' ');
+  var PAY_SET = {}; PAY_CODES.forEach(function (c) { PAY_SET[c] = 1; });
+  var PAY_TZ = {
+    'Africa/Kinshasa': 'CD', 'Africa/Lubumbashi': 'CD', 'Africa/Brazzaville': 'CG', 'Africa/Douala': 'CM', 'Africa/Abidjan': 'CI', 'Africa/Dakar': 'SN', 'Africa/Bamako': 'ML', 'Africa/Ouagadougou': 'BF',
+    'Africa/Lome': 'TG', 'Africa/Porto-Novo': 'BJ', 'Africa/Conakry': 'GN', 'Africa/Niamey': 'NE', 'Africa/Kampala': 'UG', 'Africa/Kigali': 'RW', 'Africa/Bujumbura': 'BI', 'Africa/Dar_es_Salaam': 'TZ',
+    'Africa/Lusaka': 'ZM', 'Africa/Nairobi': 'KE', 'Africa/Accra': 'GH', 'Africa/Lagos': 'NG', 'Africa/Ndjamena': 'TD', 'Africa/Addis_Ababa': 'ET', 'Africa/Freetown': 'SL', 'Indian/Antananarivo': 'MG',
+    'Africa/Libreville': 'GA', 'Africa/Maseru': 'LS', 'Africa/Blantyre': 'MW', 'Africa/Maputo': 'MZ', 'Africa/Harare': 'ZW', 'Africa/Bangui': 'CF', 'Africa/Malabo': 'GQ', 'Africa/Bissau': 'GW'
+  };
+  var CN_OVR = { XK: 'Kosovo', CD: { fr: 'RD Congo', en: 'DR Congo', es: 'RD del Congo', it: 'RD del Congo', pt: 'RD Congo' }, CG: 'Congo-Brazzaville' };
+  function flagOf(c) { try { return String.fromCodePoint.apply(null, String(c).toUpperCase().split('').map(function (ch) { return 127397 + ch.charCodeAt(0); })); } catch (e) { return ''; } }
+  var DN = null;
+  function cname(c) {
+    var o = CN_OVR[c]; if (o) return typeof o === 'string' ? o : (o[lang()] || o.fr);
+    try { if (!DN || DN.l !== lang()) DN = { l: lang(), f: new Intl.DisplayNames([LOC[lang()]], { type: 'region' }) }; var n = DN.f.of(c); if (n && n !== c) return n; } catch (e) { /* ignore */ }
+    return c;
+  }
+  function payCountries() { return PAY_CODES.map(function (c) { return [c, cname(c)]; }).sort(function (a, b) { return a[1].localeCompare(b[1], LOC[lang()]); }); }
+  function ssGet(k) { try { return sessionStorage.getItem(k) || ''; } catch (e) { return ''; } }
+  function ssSet(k, v) { try { sessionStorage.setItem(k, v); } catch (e) { /* ignore */ } }
+  // Pays proposé d'office : dernier choix de la session, adresse IP (déjà demandée), fuseau horaire, langue du téléphone.
+  function guessCountry() {
+    var m = ssGet('cn_pay_country'); if (PAY_SET[m]) return m;
+    var ip = ssGet('cn_ip_country'); if (PAY_SET[ip]) return ip;
+    try { var tz = Intl.DateTimeFormat().resolvedOptions().timeZone; if (tz && PAY_SET[PAY_TZ[tz]]) return PAY_TZ[tz]; } catch (e) { /* ignore */ }
+    try { var ls = [].concat(navigator.languages || [], navigator.language || []); for (var i = 0; i < ls.length; i++) { var x = /[-_]([A-Za-z]{2})$/.exec(String(ls[i] || '')); if (x && PAY_SET[x[1].toUpperCase()]) return x[1].toUpperCase(); } } catch (e) { /* ignore */ }
+    return '';
+  }
+  // Pays d'après l'adresse IP, demandé UNE fois par session au serveur (aucune donnée personnelle envoyée).
+  function ipCountry() {
+    var c = ssGet('cn_ip_country'); if (c) return Promise.resolve(PAY_SET[c] ? c : '');
+    var ctl = typeof AbortController === 'function' ? new AbortController() : null, tm = ctl ? setTimeout(function () { ctl.abort(); }, 3500) : null;
+    return fetch('/api/payment-initiate?geo=1', { cache: 'no-store', signal: ctl ? ctl.signal : undefined }).then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) { var k = d && typeof d.country === 'string' && PAY_SET[d.country] ? d.country : ''; ssSet('cn_ip_country', k); return k; })
+      .catch(function () { return ''; }).then(function (k) { if (tm) clearTimeout(tm); return k; });
+  }
+
+  /* --- Envoi direct vers la page de paiement : voile discret, aucune attente volontaire --- */
+  var PQ_CSS = '.pq-ov{--cd:#fff;--tx:#14213d;--mu:#5b6475;--bd:#e3e8f2;--so:#f3f5f9;position:fixed;inset:0;z-index:100030;background:rgba(10,16,32,.55);display:flex;align-items:flex-end;justify-content:center;font-family:inherit;color:var(--tx)}' +
+    '.pq-card{background:var(--cd);width:100%;max-width:480px;border-radius:22px 22px 0 0;padding:20px 18px max(20px,env(safe-area-inset-bottom));max-height:92vh;overflow:auto}' +
+    '@media(min-width:600px){.pq-ov{align-items:center}.pq-card{border-radius:22px}}' +
+    '.pq-mini{align-items:center}.pq-mini .pq-card{border-radius:18px;margin:0 20px;max-width:340px;display:flex;flex-wrap:wrap;gap:14px;align-items:center}' +
+    '.pq-card h3{margin:0 0 6px;font-size:1.15rem}.pq-card p{margin:0 0 12px;font-size:.9rem;line-height:1.55;color:var(--mu)}.pq-card b{display:block}.pq-card small{display:block;color:var(--mu);font-size:.78rem;margin-top:3px}' +
+    '.pq-sp{width:26px;height:26px;flex:none;border:3px solid var(--bd);border-top-color:var(--pm-a,#1b4fd8);border-radius:50%;animation:pqs .8s linear infinite;display:inline-block}.pq-sp.s{width:14px;height:14px;border-width:2px}@keyframes pqs{to{transform:rotate(360deg)}}@media(prefers-reduced-motion:reduce){.pq-sp{animation:none}}' +
+    '.pq-ic{width:46px;height:46px;border-radius:14px;background:var(--pm-a,#1b4fd8);color:#fff;display:flex;align-items:center;justify-content:center;margin-bottom:12px}.pq-ic.ok{background:#166534}.pq-ic.bad{background:#b42318}.pq-ic.late{background:#92400e}' +
+    '.pq-chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}.pq-chips span{border:1px solid var(--bd);background:var(--so);border-radius:99px;padding:6px 12px;font-size:.78rem;font-weight:700}' +
+    '.pq-steps{list-style:none;margin:6px 0 12px;padding:0}.pq-steps li{display:flex;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--bd);font-size:.88rem}.pq-steps li:last-child{border:0}' +
+    '.pq-steps i{flex:none;width:28px;height:28px;border-radius:50%;border:1.5px solid var(--bd);display:flex;align-items:center;justify-content:center;font-style:normal;font-size:.78rem;font-weight:800;color:var(--mu)}.pq-steps li.d i{background:#dcfce7;border-color:#86efac;color:#166534}.pq-steps li.n{font-weight:700}.pq-steps li.n i{border-color:var(--pm-a,#1b4fd8)}' +
+    '.pq-tip{background:var(--so);border:1px solid var(--bd);border-radius:12px;padding:12px 14px;font-size:.84rem;line-height:1.5;margin:0 0 12px}.pq-meta{display:flex;justify-content:space-between;font-size:.76rem;color:var(--mu);margin:0 0 12px}' +
+    '.pq-amt{font-size:2rem;font-weight:800;color:#166534;margin:2px 0 10px}.pq-alt{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.pq-alt .pm-b{padding:8px 14px;border-radius:99px;font-size:.84rem}.pq-acts{display:grid;gap:8px}.pq-acts .pm-b{width:100%}.pq-stuck{display:none;flex-basis:100%;font-size:.84rem}.pq-stuck a{color:var(--pm-a,#1b4fd8);font-weight:700}' +
+    '@media(prefers-color-scheme:dark){.pq-ov{--cd:#182036;--tx:#e6eaf3;--mu:#9aa6c0;--bd:#2a3553;--so:#101830}.pq-steps li.d i{background:#14532d;border-color:#166534;color:#bbf7d0}.pq-amt{color:#86efac}}';
+  var pqs = document.createElement('style'); pqs.textContent = PQ_CSS; document.head.appendChild(pqs);
+  var PQ_LAST = 'cn_pay_last', QK = null, RT = null;
+  function qClose() { if (QK && QK.el) QK.el.remove(); QK = null; }
+  function qStart(method, amount) {
+    try {
+      qClose();
+      try { localStorage.setItem(PQ_LAST, JSON.stringify({ m: method || '', a: Number(amount) || 0, t: Date.now() })); } catch (e) { /* ignore */ }
+      var o = document.createElement('div'); o.className = 'pq-ov pq-mini'; o.setAttribute('role', 'status');
+      o.innerHTML = '<div class="pq-card"><i class="pq-sp"></i><div><b>' + esc(T('pf_title')) + '</b><span style="font-size:.88rem;color:var(--mu)">' + esc(T('pf_sub')) + '</span>' + (method === 'mobile' ? '<small>' + esc(T('pf_hint')) + '</small>' : '') + '</div><div class="pq-stuck" id="pq-stuck"><a href="#" id="pq-link" rel="noopener">' + esc(T('pf_stuck')) + '</a></div></div>';
+      document.body.appendChild(o); QK = { el: o };
+    } catch (e) { QK = null; }
+  }
+  function qGo(url) {
+    try { var l = document.getElementById('pq-link'), s = document.getElementById('pq-stuck'); if (l) l.setAttribute('href', url); setTimeout(function () { if (s && QK) s.style.display = 'block'; }, 3500); setTimeout(qClose, 25000); } catch (e) { /* ignore */ }
+    try { location.href = url; } catch (e) { /* ignore */ }
+  }
+  window.addEventListener('pageshow', function (e) { if (e.persisted) qClose(); });
+
+  /* --- Retour de paiement : message clair, suivi du solde en direct --- */
+  function lastPay() { try { var o = JSON.parse(localStorage.getItem(PQ_LAST) || 'null'); return o && Date.now() - (o.t || 0) < 6 * 3600 * 1000 ? o : null; } catch (e) { return null; } }
+  function rClose() { if (RT) { try { clearInterval(RT.iv); clearInterval(RT.tick); if (RT.unsub) RT.unsub(); } catch (e) { /* ignore */ } if (RT.el) RT.el.remove(); } RT = null; }
+  function rHtml(state, d) {
+    var mobile = RT && RT.mobile, h = '<div class="pq-card"><div class="pq-ic' + (state === 'ok' ? ' ok' : state === 'bad' ? ' bad' : state === 'late' ? ' late' : '') + '">' + ico(state === 'ok' ? 'check' : state === 'bad' ? 'x' : mobile ? 'phone' : 'lock', 22) + '</div>', acts = '';
+    if (state === 'ok') {
+      h += '<h3>' + esc(T('pf_ok_title')) + '</h3><div class="pq-amt">' + esc(money(d.gain)) + '</div><p>' + esc(T('pf_ok_body', { b: money(d.balance) })) + '</p>';
+      acts = '<button type="button" class="pm-b p" data-q="wallet">' + esc(T('pf_wallet')) + '</button><button type="button" class="pm-b" data-q="close">' + esc(T('pf_done')) + '</button>';
+    } else if (state === 'bad') {
+      h += '<h3>' + esc(T('pf_bad_title')) + '</h3><p>' + esc(T('pf_bad_body')) + '</p>';
+      acts = '<button type="button" class="pm-b p" data-q="retry">' + esc(T('pf_retry')) + '</button><button type="button" class="pm-b" data-q="close">' + esc(T('pf_close')) + '</button>';
+    } else {
+      var late = state === 'late';
+      h += '<h3>' + esc(late ? T('pf_late_title') : (mobile ? T('pf_w_title') : T('pf_w_title2'))) + '</h3><p>' + esc(late ? T('pf_late_body') : (mobile ? T('pf_w_body') : T('pf_w_body2'))) + '</p>';
+      if (mobile && !late) h += '<div class="pq-chips" aria-hidden="true"><span>M‑Pesa</span><span>Airtel Money</span><span>Orange Money</span><span>MTN MoMo</span></div>';
+      if (mobile) h += '<ol class="pq-steps"><li class="d"><i>' + ico('check', 14) + '</i>' + esc(T('pf_s1')) + '</li><li class="n"><i>' + (late ? '2' : '<span class="pq-sp s"></span>') + '</i>' + esc(T('pf_s2')) + '</li><li><i>3</i>' + esc(T('pf_s3')) + '</li></ol><div class="pq-tip"><b>' + esc(T('pf_tip_t')) + '</b>' + esc(T('pf_tip')) + '</div>';
+      h += '<div class="pq-meta"><span>' + esc(late ? '' : T('pf_auto')) + '</span><span id="pq-el"></span></div>';
+      acts = (late ? '<button type="button" class="pm-b p" data-q="check">' + esc(T('pf_check')) + '</button><button type="button" class="pm-b" data-q="retry">' + esc(T('pf_retry')) + '</button>' : '') +
+        '<button type="button" class="pm-b' + (late ? '' : ' p') + '" data-q="wallet">' + esc(T('pf_wallet')) + '</button><button type="button" class="pm-b" data-q="close">' + esc(T('pf_close')) + '</button>';
+    }
+    return h + '<div class="pq-acts">' + acts + '</div></div>';
+  }
+  function rDraw(state, d) { if (RT && RT.el) { RT.state = state; RT.el.innerHTML = rHtml(state, d || {}); } }
+  function rSync() {
+    try { auth.currentUser.getIdToken().then(function (tk) { return fetch('/api/payment-webhook?provider=saspay-sync', { method: 'POST', headers: { Authorization: 'Bearer ' + tk } }); }).catch(function () { /* l'avis automatique reste le chemin principal */ }); } catch (e) { /* ignore */ }
+  }
+  function rCredited(now) {
+    if (!RT) return; var before = RT.before == null ? now : RT.before, gain = now - before; if (gain <= 0.0001 && RT.amount) gain = RT.amount;
+    try { clearInterval(RT.iv); clearInterval(RT.tick); if (RT.unsub) RT.unsub(); } catch (e) { /* ignore */ }
+    S.bal = now; rDraw('ok', { gain: gain, balance: now }); try { render(); } catch (e) { /* ignore */ }
+  }
+  var SYNC_AT = { 1: 1, 3: 1, 6: 1, 10: 1, 15: 1, 20: 1, 30: 1, 45: 1 };
+  function rPoller() {
+    if (!RT) return; clearInterval(RT.iv); RT.n = 0;
+    RT.iv = setInterval(function () {
+      if (!RT) return; RT.n++; if (SYNC_AT[RT.n]) rSync();
+      api('pm_orders', { slug: S.slug }).then(function (r) {
+        if (!RT) return;
+        if (typeof r.balance === 'number' && RT.before != null && r.balance > RT.before + 0.0001) { rCredited(r.balance); return; }
+        if (RT.n >= 60) { clearInterval(RT.iv); clearInterval(RT.tick); rDraw('late'); }
+      }).catch(function () { if (RT && RT.n >= 60) { clearInterval(RT.iv); rDraw('late'); } });
+    }, 3000);
+  }
+  function rStart() {
+    api('pm_orders', { slug: S.slug }).then(function (r) {
+      if (!RT) return; RT.before = typeof r.balance === 'number' ? r.balance : 0; S.bal = RT.before;
+      rSync();
+      try { RT.unsub = db.collection('users').doc(auth.currentUser.uid).onSnapshot(function (s) { if (!RT || !s || !s.exists) return; var b = Number(s.data().balance) || 0; if (RT.before != null && b > RT.before + 0.0001) rCredited(b); }, function () { /* le contrôle régulier prend le relais */ }); } catch (e) { /* ignore */ }
+      rPoller();
+    }).catch(function () { /* hors ligne : on réessaie au prochain affichage */ });
+  }
+  function showPayReturn(kind) {
+    rClose();
+    var lp = lastPay(), o = document.createElement('div'); o.className = 'pq-ov'; o.setAttribute('role', 'dialog'); o.setAttribute('aria-modal', 'true');
+    RT = { el: o, mobile: !lp || lp.m === 'mobile', amount: lp ? lp.a : 0, t0: Date.now(), before: null, n: 0 };
+    document.body.appendChild(o);
+    o.addEventListener('click', function (e) {
+      var b = e.target.closest && e.target.closest('[data-q]'); if (!b) return; var a = b.getAttribute('data-q');
+      if (a === 'check') { if (RT) { rDraw('wait'); rSync(); rPoller(); } return; }
+      rClose();
+      if (a === 'wallet') { S.tab = 'wal'; try { render(); } catch (er) { /* ignore */ } }
+      else if (a === 'retry') { try { rechargeModal(); } catch (er) { /* ignore */ } }
+    });
+    if (kind === 'failed') { rDraw('bad'); return; }
+    rDraw('wait');
+    RT.tick = setInterval(function () { var el = document.getElementById('pq-el'); if (el && RT) { var s = Math.floor((Date.now() - RT.t0) / 1000); el.textContent = Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2); } }, 1000);
+    var w = 0, wi = setInterval(function () {
+      w++; if (!RT || RT.el !== o) { clearInterval(wi); return; }
+      if (auth.currentUser && S.store) { clearInterval(wi); rStart(); } else if (w > 80) { clearInterval(wi); }
+    }, 400);
+  }
+
   function rechargeModal() {
     if (!auth.currentUser) { loginModal(); return; }
-    var amt = 10, method = 'mobile', op = '', cc = 'CD', busy = false;
+    var amt = 10, method = 'mobile', cc = guessCountry(), busy = false;
     var m = sheet('<div id="pm-rcb"></div>');
     var box = m.querySelector('#pm-rcb');
     function tabs() {
@@ -482,38 +677,26 @@
       return '<div class="pm-tabs">' + T4.map(function (t) { return '<button type="button" class="pm-tab' + (method === t[0] ? ' on' : '') + '" data-m="' + t[0] + '"><span class="lgs">' + t[2] + '</span><b>' + esc(T(t[1])) + '</b></button>'; }).join('') + '</div>';
     }
     function how() {
-      var l = method === 'mobile' && !optMob(cc) ? ['rc_m1', 'rc_m2', 'rc_m3'] : method === 'crypto' ? ['rc_c1', 'rc_c2', 'rc_c3'] : ['rc_o1', 'rc_o2', 'rc_o3'], note = method === 'illico' ? T('rc_illico_note') : method === 'card' ? T('rc_card_note') : method === 'crypto' ? T('rc_crypto_note') : method === 'mobile' && optMob(cc) ? T('rc_opt_note') : T('rc_drc_only');
+      var l = method === 'mobile' ? ['rc_m1', 'rc_m2', 'rc_m3'] : method === 'crypto' ? ['rc_c1', 'rc_c2', 'rc_c3'] : ['rc_o1', 'rc_o2', 'rc_o3'];
+      var note = method === 'illico' ? T('rc_illico_note') : method === 'card' ? T('rc_card_note') : method === 'crypto' ? T('rc_crypto_note') : T('rc_opt_note');
       return '<p class="pm-n">' + esc(note) + '</p><div class="pm-f" style="margin-bottom:0"><label>' + esc(T('rc_how')) + '</label><ol class="pm-steps">' + l.map(function (k, i) { return '<li><i>' + (i + 1) + '</i><span>' + esc(T(k)) + '</span></li>'; }).join('') + '</ol></div>';
     }
-    function cty() { return CTRY.filter(function (c) { return c[0] === cc; })[0] || CTRY[0]; }
-    function mobileBlock(keepPhone, keepCur) {
-      var c = cty(), ok = mobOk(c[0]);
-      var h = '<div class="pm-f"><label for="pm-cc">' + esc(T('rc_country')) + '</label><select id="pm-cc">' + CTRY.map(function (x) { return '<option value="' + x[0] + '"' + (x[0] === cc ? ' selected' : '') + '>' + x[1] + ' ' + esc(x[2]) + (mobOk(x[0]) ? '' : ' — ' + esc(T('rc_soon'))) + '</option>'; }).join('') + '</select></div>';
-      if (!ok) return h + '<div class="pm-ref">' + esc(T('rc_soon_msg', { c: c[2] })) + '</div><div style="display:flex;gap:8px"><button type="button" class="pm-b w" data-m="card">' + LG.visa + esc(T('rc_card')) + '</button><button type="button" class="pm-b w" data-m="crypto">' + LG.usdt + esc(T('rc_crypto')) + '</button></div>';
-      if (optMob(c[0])) return h; // OPTGateway : opérateur et numéro se saisissent sur la page de paiement sécurisée
-      if (c[4].indexOf(op) < 0) op = '';
-      return h + '<div class="pm-f"><label>' + esc(T('rc_op')) + '</label><div class="pm-ops">' + c[4].map(function (o) { return '<button type="button" class="pm-op' + (op === o ? ' on' : '') + '" data-o="' + esc(o) + '">' + opPill(o) + '<b>' + esc(opLabel(o)) + '</b></button>'; }).join('') + '</div></div>' +
-        '<div class="pm-f"><label for="pm-ph">' + esc(T('rc_phone')) + '</label><input id="pm-ph" type="tel" inputmode="tel" autocomplete="tel" placeholder="243…" value="' + esc(keepPhone) + '"></div>' + (c[3].length > 1 ? '<div class="pm-f"><label for="pm-cur">' + esc(T('rc_cur')) + '</label><select id="pm-cur">' + c[3].map(function (u) { return '<option value="' + u + '"' + (keepCur === u ? ' selected' : '') + '>' + u + '</option>'; }).join('') + '</select></div>' : '');
+    // Mobile Money : seul le PAYS se choisit ici (détecté tout seul). Réseau et numéro se saisissent sur la page de paiement sécurisée.
+    function mobileBlock() {
+      return '<div class="pm-f"><label for="pm-cc">' + esc(T('rc_country')) + '</label><select id="pm-cc">' + (cc ? '' : '<option value="">' + esc(T('rc_choose')) + '</option>') +
+        payCountries().map(function (x) { return '<option value="' + x[0] + '"' + (x[0] === cc ? ' selected' : '') + '>' + flagOf(x[0]) + ' ' + esc(x[1]) + '</option>'; }).join('') + '</select></div>';
     }
     function draw() {
-      var keepPhone = (box.querySelector('#pm-ph') || {}).value || '', keepCur = (box.querySelector('#pm-cur') || {}).value || '';
       box.innerHTML = '<div class="hd"><h2>' + esc(T('rc_title')) + '</h2><button class="pm-x" data-x aria-label="' + esc(T('close')) + '">' + ico('x', 18) + '</button></div><p class="pm-n" style="margin-top:0">' + esc(T('rc_sub')) + '</p>' + tabs() +
-        '<div class="pm-f"><label>' + esc(T('rc_amount')) + '</label><div class="pm-amts">' + [2, 5, 10, 20, 50].map(function (a) { return '<button type="button" class="pm-b' + (a === amt ? ' p' : '') + '" data-a="' + a + '">' + a + ' $</button>'; }).join('') + '</div><input id="pm-ac" type="number" min="' + MIN_USD + '" max="' + MAX_USD + '" step="1" placeholder="' + esc(T('rc_other')) + '" style="margin-top:8px" value="' + ([2, 5, 10, 20, 50].indexOf(amt) >= 0 ? '' : amt) + '"></div>' +
-        (method === 'mobile' ? mobileBlock(keepPhone, keepCur) : '') +
+        '<div class="pm-f"><label>' + esc(T('rc_amount')) + '</label><div class="pm-amts">' + [2, 5, 10, 20, 50].map(function (a) { return '<button type="button" class="pm-b' + (a === amt ? ' p' : '') + '" data-a="' + a + '">' + a + ' $</button>'; }).join('') + '</div><input id="pm-ac" type="number" min="' + MIN_USD + '" max="' + MAX_USD + '" step="1" inputmode="decimal" placeholder="' + esc(T('rc_other')) + '" style="margin-top:8px" value="' + (amt > 0 ? amt : '') + '"></div>' +
+        (method === 'mobile' ? mobileBlock() : '') +
         how() + '<div class="pm-err" id="pm-re2"></div><button class="pm-b p w" id="pm-pay">' + esc(T('rc_pay')) + ' ' + (amt > 0 ? amt + ' $' : '') + '</button><div class="pm-secure">' + ico('shield', 16) + '<span>' + esc(T('rc_secure')) + '</span></div>';
       box.querySelectorAll('[data-x]').forEach(function (b) { b.onclick = function () { m.remove(); }; });
       box.querySelectorAll('[data-m]').forEach(function (b) { b.onclick = function () { method = b.getAttribute('data-m'); draw(); }; });
       box.querySelectorAll('[data-a]').forEach(function (b) { b.onclick = function () { amt = Number(b.getAttribute('data-a')); draw(); }; });
-      box.querySelectorAll('[data-o]').forEach(function (b) { b.onclick = function () { op = b.getAttribute('data-o'); draw(); }; });
-      var ccs = box.querySelector('#pm-cc'); if (ccs) ccs.onchange = function () { cc = ccs.value; op = ''; draw(); };
+      var ccs = box.querySelector('#pm-cc'); if (ccs) ccs.onchange = function () { cc = ccs.value; if (PAY_SET[cc]) ssSet('cn_pay_country', cc); };
       box.querySelector('#pm-ac').oninput = function (e) { amt = Number(e.target.value) || 0; var p = box.querySelector('#pm-pay'); if (p) p.textContent = T('rc_pay') + ' ' + (amt > 0 ? amt + ' $' : ''); box.querySelectorAll('[data-a]').forEach(function (b) { b.className = 'pm-b' + (Number(b.getAttribute('data-a')) === amt ? ' p' : ''); }); };
       box.querySelector('#pm-pay').onclick = pay;
-    }
-    function pollBalance(prev) {
-      var n = 0, iv = setInterval(function () {
-        if (++n > 30 || !document.getElementById('pm-ov')) { clearInterval(iv); return; }
-        api('pm_orders', { slug: S.slug }).then(function (r) { if (typeof r.balance === 'number' && r.balance > prev + 0.0001) { clearInterval(iv); S.bal = r.balance; toast(T('rc_paid'), 'success'); var mm = document.getElementById('pm-modal'); if (mm) mm.remove(); render(); } }).catch(function () { });
-      }, 5000);
     }
     async function pay() {
       if (busy) return; var b = box.querySelector('#pm-pay'), err = box.querySelector('#pm-re2'); err.className = 'pm-err'; err.textContent = '';
@@ -522,33 +705,30 @@
       if (amt > MAX_USD) { err.textContent = T('rc_e_amount'); return; }
       var body;
       if (method === 'mobile') {
-        var phEl = box.querySelector('#pm-ph'), ph = ((phEl && phEl.value) || '').replace(/\D/g, '');
-        if (!mobOk(cc)) { err.textContent = T('rc_soon_msg', { c: cty()[2] }); return; }
-        if (optMob(cc)) body = { provider: 'optgateway', amountUSD: amt, onlyMethod: 'mobile_money', countryCode: cc };
-        else {
-        if (!op) { err.textContent = T('rc_e_op'); return; }
-        if (ph.length < 8) { err.textContent = T('rc_e_phone'); return; }
-        var curEl = box.querySelector('#pm-cur'); body = { provider: 'mobile', amountUSD: amt, countryCode: cc, operatorName: op, phone: ph, chargeCurrency: curEl ? curEl.value : cty()[3][0] };
-        }
+        if (!PAY_SET[cc]) { err.textContent = T('rc_e_country'); return; }
+        body = { provider: 'optgateway', amountUSD: amt, onlyMethod: 'mobile_money', countryCode: cc };
       } else if (method === 'crypto') body = { provider: 'crypto', amount: amt };
       else body = { provider: 'optgateway', amountUSD: amt, onlyMethod: method === 'illico' ? 'illicocash' : 'card' };
       busy = true; b.disabled = true; b.textContent = T('rc_paying');
+      qStart(method, amt); // voile immédiat : la personne voit que ça part
+      var sent = false;
       try {
-        var tok = await auth.currentUser.getIdToken(), prev = Number(S.bal) || 0;
+        var tok = await auth.currentUser.getIdToken();
         body.idToken = tok; body.returnSlug = S.slug;
         var r = await fetch('/api/payment-initiate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); var j = await r.json();
-        if (method === 'mobile' && !optMob(cc)) {
-          if (!j.success) throw new Error(j.error || T('rc_e_gen'));
-          box.innerHTML = '<div class="hd"><h2>' + esc(T('rc_title')) + '</h2><button class="pm-x" data-x>' + ico('x', 18) + '</button></div><div class="pm-ref" style="margin-top:12px">' + esc(T('rc_sent')) + '</div><button class="pm-b p w" data-x>' + esc(T('ok')) + '</button>';
-          box.querySelectorAll('[data-x]').forEach(function (x) { x.onclick = function () { m.remove(); }; });
-          pollBalance(prev); return;
-        }
         if (r.status === 429) throw new Error(j.error || T('rc_e_many'));
-        if (!r.ok || !j.success || !/^https:\/\//.test(j.paymentUrl || '')) throw new Error(j.error || T('rc_e_gen'));
-        location.href = j.paymentUrl;
-      } catch (e) { err.textContent = errMsg(e); busy = false; b.disabled = false; b.textContent = T('rc_pay') + ' ' + amt + ' $'; }
+        if (!r.ok || !j.success || !/^https:\/\//.test(j.paymentUrl || '')) { var ge = new Error(j.error || T('rc_e_gen')); ge.mobile = /^mobile_/.test(String(j.code || '')); throw ge; }
+        sent = true; qGo(j.paymentUrl);
+      } catch (e) {
+        qClose(); err.textContent = errMsg(e);
+        // Pays sans Mobile Money (ou service coupé un instant) : deux boutons mènent tout de suite à la carte ou à la crypto.
+        if (e && e.mobile) { var alt = document.createElement('div'); alt.className = 'pq-alt'; alt.innerHTML = '<button type="button" class="pm-b" data-alt="card">' + esc(T('rc_card')) + '</button><button type="button" class="pm-b" data-alt="crypto">' + esc(T('rc_crypto')) + '</button>'; err.appendChild(alt); alt.onclick = function (ev) { var bb = ev.target.closest && ev.target.closest('[data-alt]'); if (bb) { method = bb.getAttribute('data-alt'); draw(); } }; }
+        busy = false; b.disabled = false; b.textContent = T('rc_pay') + ' ' + amt + ' $'; }
+      if (sent) setTimeout(function () { busy = false; b.disabled = false; b.textContent = T('rc_pay') + ' ' + amt + ' $'; }, 15000);
     }
     draw();
+    // L'adresse IP donne le pays le plus fiable : elle prime sur le fuseau horaire, sauf si la personne a déjà choisi elle-même.
+    if (!ssGet('cn_pay_country')) ipCountry().then(function (c) { if (c && c !== cc && !ssGet('cn_pay_country') && document.body.contains(box) && method === 'mobile') { cc = c; draw(); } });
   }
 
   /* ===== Ouvrir un site dans l'application, sans la quitter ===== */
@@ -576,7 +756,7 @@
   function main() {
     window.CNPanel = { open: openStore, owner: openOwner, site: openSiteInApp, install: installApp };
     if (SA) {
-      try { var pq = new URL(location.href).searchParams.get('payment'); if (pq) { toast(pq === 'success' ? T('rc_return_ok') : T('rc_return_ko'), pq === 'success' ? 'success' : 'info'); if (pq === 'success') S.tab = 'wal'; var u2 = new URL(location.href); u2.searchParams.delete('payment'); history.replaceState(null, '', u2.pathname + (u2.search || '')); } } catch (e) { /* ignore */ }
+      try { var pq = new URL(location.href).searchParams.get('payment'); if (pq === 'success' || pq === 'failed') { if (pq === 'success') S.tab = 'wal'; var u2 = new URL(location.href); u2.searchParams.delete('payment'); history.replaceState(null, '', u2.pathname + (u2.search || '')); setTimeout(function () { showPayReturn(pq); }, 0); } } catch (e) { /* ignore */ }
       openStore(window.__CN_STANDALONE);
       try { auth.onAuthStateChanged(function () { S.isOwner = undefined; if (S.store) render(); }); } catch (e) { /* ignore */ }
       return;
@@ -585,7 +765,7 @@
     if (typeof orig === 'function') {
       window.siteHubHtml = function () {
         var h = orig.apply(this, arguments);
-        var tile = '<button type="button" class="sp-tile" onclick="CNPanel.owner()"><span class="sp-ic">' + (typeof uiIc === 'function' ? uiIc('chart', 20) : '📈') + '</span><b>' + esc(T('ow_title')) + '</b><small>' + esc(T('ow_sub')) + '</small></button>';
+        var tile = '<button type="button" class="sp-tile" onclick="CNPanel.owner()"><span class="sp-ic">' + (typeof uiIc === 'function' ? uiIc('chart', 20) : ico('up', 20)) + '</span><b>' + esc(T('ow_title')) + '</b><small>' + esc(T('ow_sub')) + '</small></button>';
         return /<\/div>\s*$/.test(h) ? h.replace(/<\/div>\s*$/, tile + '</div>') : h + tile;
       };
     }
