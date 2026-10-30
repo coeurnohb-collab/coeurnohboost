@@ -374,3 +374,78 @@ html[data-theme="dark"] .cnh-spk.on{color:#0b1220}
 .cnh-srow{display:flex;align-items:center;gap:6px}.cnh-srow .cnh-xrow{flex:1;min-width:0}
 .cnh-msg.ai .cnh-spk{margin-top:6px}
 @media print{.cnh-tools,.cnh-spk,.cnh-lbar,.cnh-chip{display:none!important}}
+
+/* =====================================================================
+   ACADÉMIE — NOUVELLE INTERFACE (v2)
+   Typographie éditoriale (titres en CN Serif, texte en CN Inter), couleurs unies, aucun dégradé, aucun emoji.
+   Tout est limité à l'Académie (#menu-screen-academy, #course-detail-modal, .cnh-*) : le reste de l'application ne change pas.
+   ===================================================================== */
+@font-face{font-family:'CN Serif';font-style:normal;font-weight:400 700;font-display:swap;src:url(cn-serif.woff2) format('woff2')}
+@font-face{font-family:'CN Serif';font-style:italic;font-weight:400 700;font-display:swap;src:url(cn-serif-italic.woff2) format('woff2')}
+:root{--cnh-serif:'CN Serif','Lora',Georgia,'Times New Roman',serif;--cnh-hero:#16294a;--cnh-hero-line:rgba(255,255,255,.22)}
+html[data-theme="dark"]{--cnh-hero:#1b2b48;--cnh-hero-line:rgba(255,255,255,.18)}
+
+/* Titres : police à empattements, texte courant : CN Inter */
+.cnh-h1,.cnh-h2,.cnh-root .cnh-h1,.cnh-root .cnh-h2{font-family:var(--cnh-serif);font-weight:600;letter-spacing:-.01em}
+#menu-screen-academy .menu-page-header h2{font-family:var(--cnh-serif);font-weight:600;font-size:1.45rem;letter-spacing:-.01em}
+
+/* Bloc d'accueil : couleur unie, texte clair */
+#menu-screen-academy .cn-acad-hero{background:var(--cnh-hero);color:#fff;border:0;border-radius:18px;padding:24px 20px 22px;margin:0 0 18px;box-shadow:none}
+#menu-screen-academy .cn-acad-hero h3{font-family:var(--cnh-serif);font-weight:600;font-size:1.7rem;line-height:1.18;letter-spacing:-.012em;color:#fff;margin:0 0 10px}
+#menu-screen-academy .cn-acad-hero p{color:rgba(255,255,255,.8);font-size:.95rem;line-height:1.6;margin:0 0 18px}
+#menu-screen-academy .cn-acad-chips{display:flex;flex-wrap:wrap;gap:8px}
+#menu-screen-academy .cn-acad-chip{display:inline-flex;align-items:center;gap:7px;background:transparent;border:1px solid var(--cnh-hero-line);color:#fff;border-radius:999px;padding:7px 13px;font-size:.78rem;font-weight:600;line-height:1.2}
+#menu-screen-academy .cn-acad-chip svg{width:15px;height:15px;opacity:.9}
+
+/* Onglets : commutateur segmenté */
+#menu-screen-academy .shop-filter-tabs{display:flex;gap:2px;background:var(--cnh-soft);border:1px solid var(--cnh-line);border-radius:13px;padding:4px;overflow:visible;margin-bottom:14px}
+#menu-screen-academy .shop-filter-tabs button{flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;text-align:center;border:0;background:transparent;border-radius:10px;padding:11px 4px;font:inherit;font-weight:600;font-size:.86rem;line-height:1.1;color:var(--cnh-sub);box-shadow:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#menu-screen-academy .shop-filter-tabs button:hover:not(.active){background:transparent;border-color:transparent;color:var(--cnh-ink)}
+#menu-screen-academy .shop-filter-tabs button.active{background:var(--cnh-card);color:var(--cnh-ink);box-shadow:0 0 0 1px var(--cnh-line),0 1px 2px rgba(17,24,39,.08)}
+html[data-theme="dark"] #menu-screen-academy .shop-filter-tabs button.active{background:#2b3649;box-shadow:none;color:var(--cnh-ink)}
+
+/* Bouton « Créer un cours », recherche, filtres */
+#academy-courses-section > .btn.btn-primary{min-height:50px;border-radius:12px;font-weight:600;font-size:.95rem;box-shadow:none}
+#academy-search-input{height:50px;border-radius:12px;border:1px solid var(--cnh-line);background:var(--cnh-card) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%238a94a6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-3.5-3.5'/%3E%3C/svg%3E") no-repeat 15px center;padding:0 14px 0 44px;font-size:.93rem}
+#academy-search-input:focus{outline:3px solid color-mix(in srgb,var(--cnh-brand) 30%,transparent);border-color:var(--cnh-brand)}
+#menu-screen-academy .cnh-chips{padding:2px 0 10px;margin:0 0 4px}
+#menu-screen-academy .cnh-chip{min-height:38px;padding:0 16px;font-size:.84rem}
+
+/* Cartes de cours */
+#menu-screen-academy .cnh-courses{display:grid;gap:14px}
+#menu-screen-academy .cnh-course{border-radius:16px;box-shadow:none;border:1px solid var(--cnh-line);background:var(--cnh-card);transition:border-color .15s}
+#menu-screen-academy .cnh-cover{height:100px;padding:14px 16px;background:var(--t);color:#fff;border-bottom:0}
+#menu-screen-academy .cnh-cover svg.bg{width:72px;height:72px;right:12px;top:14px;opacity:.22;color:#fff}
+#menu-screen-academy .cnh-cover .cnh-pill{background:#fff;color:#14213d;border:0;font-weight:700;font-size:.72rem;letter-spacing:.02em;border-radius:6px;padding:4px 9px}
+#menu-screen-academy .cnh-price-tag{background:#fff;color:#14213d;border:0;border-radius:6px;font-weight:800;font-size:.8rem;padding:4px 10px}
+#menu-screen-academy .cnh-course-b{padding:16px 18px 16px}
+#menu-screen-academy .cnh-course-t{font-family:var(--cnh-serif);font-weight:600;font-size:1.125rem;line-height:1.3;letter-spacing:-.005em;margin:0 0 6px;color:var(--cnh-ink)}
+#menu-screen-academy .cnh-course .cnh-sub{font-size:.82rem}
+#menu-screen-academy .cnh-course .cnh-meta{margin-top:12px;padding-top:12px;border-top:1px solid var(--cnh-line);gap:6px 16px;font-size:.76rem}
+
+/* Page d'un cours : plus d'espace en haut (la flèche ne cache plus le titre), titre éditorial, chapitres en liste */
+#course-detail-body{padding:62px 20px 30px}
+#course-detail-body h3{font-family:var(--cnh-serif);font-weight:600;font-size:1.65rem;line-height:1.2;letter-spacing:-.012em;color:var(--cnh-ink);margin:0}
+#course-detail-body > div:first-child{align-items:flex-start;margin-bottom:10px}
+#course-detail-body .shop-card-category{background:var(--cnh-soft);color:var(--cnh-brand-ink);border:0;border-radius:6px;font-size:.72rem;font-weight:700;padding:4px 9px;white-space:nowrap}
+#course-detail-body h4{font-size:.74rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--cnh-sub);margin:26px 0 6px}
+#course-detail-body .order-box{border:0;border-bottom:1px solid var(--cnh-line);border-radius:0;background:transparent;box-shadow:none;padding:15px 2px;margin:0!important}
+#course-detail-body .order-box:last-of-type{border-bottom:0}
+#course-detail-body .order-box > strong{font-family:var(--cnh-serif);font-weight:600;font-size:1.02rem;color:var(--cnh-ink)}
+#course-detail-body > .btn-primary{min-height:54px;border-radius:12px;font-size:1rem;font-weight:700;margin-top:18px!important}
+#course-detail-body p[style*="pre-wrap"]{font-size:.98rem;line-height:1.7;color:var(--cnh-ink)}
+
+/* Pages intérieures (auto-études, leçons) : lecture confortable */
+.cnh-root .cnh-md p,.cnh-root .cnh-md li{line-height:1.72}
+
+/* Exemples de fiches : même typographie que les cours */
+#menu-screen-academy .cnx-h h4{font-family:var(--cnh-serif);font-weight:600;font-size:1.15rem;letter-spacing:-.005em;text-transform:none;color:var(--cnh-ink)}
+#menu-screen-academy .cnx-t{font-family:var(--cnh-serif);font-weight:600;font-size:1.04rem;line-height:1.3}
+
+/* Auto-études : chiffres et titres éditoriaux, leçons en police de lecture (le tuteur et le code restent en CN Inter) */
+.cnh-root .cnh-stat b{font-family:var(--cnh-serif);font-weight:600;font-size:1.5rem;letter-spacing:-.01em}
+.cnh-root .cnh-h3{font-family:var(--cnh-serif);font-weight:600;letter-spacing:-.005em}
+.cnh-root .cnh-md{font-family:var(--cnh-serif);font-size:1.0625rem;line-height:1.75}
+.cnh-root .cnh-md h4{font-family:var(--cnh-serif);font-weight:600;font-size:1.25rem}
+.cnh-root .cnh-msg .cnh-md{font-family:var(--cnh-font);font-size:var(--cnh-fs);line-height:1.6}
+.cnh-root .cnh-msg .cnh-md h4{font-family:var(--cnh-font);font-weight:700;font-size:var(--cnh-fs-md)}
