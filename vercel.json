@@ -184,6 +184,34 @@
       "destination": "/api/render-site?slug=:slug"
     },
     {
+      "source": "/s/:slug/manifest.webmanifest",
+      "destination": "/api/render-site?slug=:slug&manifest=1"
+    },
+    {
+      "source": "/s/:slug/sw.js",
+      "destination": "/api/render-site?slug=:slug&sw=1"
+    },
+    {
+      "source": "/api/v1/:path*",
+      "destination": "/api/render-site?v1=:path*"
+    },
+    {
+      "source": "/s/:slug/sitemap.xml",
+      "destination": "/api/render-site?slug=:slug&sitemap=site"
+    },
+    {
+      "source": "/s/:slug/produit/:p",
+      "destination": "/api/render-site?slug=:slug&detail=produit&item=:p"
+    },
+    {
+      "source": "/s/:slug/service/:p",
+      "destination": "/api/render-site?slug=:slug&detail=service&item=:p"
+    },
+    {
+      "source": "/s/:slug/article/:p",
+      "destination": "/api/render-site?slug=:slug&detail=article&item=:p"
+    },
+    {
       "source": "/p/:kind/:id",
       "destination": "/api/render-site?share=:kind&id=:id"
     },
@@ -194,6 +222,10 @@
     {
       "source": "/sitemap-sites.xml",
       "destination": "/api/render-site?sitemap=1"
+    },
+    {
+      "source": "/sitemap-pages.xml",
+      "destination": "/api/render-site?sitemap=pages"
     },
     {
       "source": "/services",
