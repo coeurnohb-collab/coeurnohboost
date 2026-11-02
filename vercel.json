@@ -1,5 +1,8 @@
 {
   "functions": {
+    "api/render-site.js": {
+      "maxDuration": 30
+    },
     "api/payments-actions.js": {
       "maxDuration": 60
     },

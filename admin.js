@@ -1769,8 +1769,66 @@ const SITE_DOMAIN_DURATIONS_MONTHS_ADMIN = [
 ];
 
 async function loadDomainsAdmin() {
+  await loadDomainAutoSetup();
   await loadSitePricingEditor();
   await loadDomainRequestsList();
+}
+
+/* ---- Achat automatique de domaines : état de la connexion à Vercel + coordonnées du titulaire ----
+   Les noms sont achetés par l'API de Vercel (carte bancaire de ton compte Vercel) et enregistrés au nom
+   des coordonnées ci-dessous. Même e-mail que ton compte Vercel = confirmation automatique du titulaire.
+   Les coordonnées sont gardées côté serveur uniquement (jamais lisibles par les utilisateurs). */
+const DOMAIN_CONTACT_FIELDS = [
+  ['firstName', 'Prénom', 'Coeurnoh'], ['lastName', 'Nom', 'Universe'], ['email', 'E-mail (le même que ton compte Vercel)', 'toi@exemple.com'],
+  ['phone', 'Téléphone avec indicatif', '+243990000000'], ['address1', 'Adresse', 'Avenue de la Paix 1'], ['city', 'Ville', 'Kinshasa'],
+  ['state', 'Province / région', 'Kinshasa'], ['zip', 'Code postal (mets 00000 si tu n\'en as pas)', '00000'], ['country', 'Pays (2 lettres)', 'CD']
+];
+async function domainAdminCall(body) {
+  const idToken = await auth.currentUser.getIdToken();
+  const res = await fetch('/api/render-site', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idToken }, body: JSON.stringify(body) });
+  const j = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(j.error || 'Erreur');
+  return j;
+}
+async function loadDomainAutoSetup() {
+  const el = document.getElementById('admin-domain-auto');
+  if (!el) return;
+  el.innerHTML = '<p class="admin-empty">Chargement...</p>';
+  try { renderDomainAutoSetup(await domainAdminCall({ action: 'site_domain_admin_get' })); }
+  catch (e) { el.innerHTML = '<p class="admin-empty">Erreur de chargement : ' + escapeHtml(e.message) + '</p>'; }
+}
+function renderDomainAutoSetup(j) {
+  const el = document.getElementById('admin-domain-auto');
+  const row = (label, ok, hint) => `<div class="admin-row-meta" style="margin-bottom:4px"><strong style="color:${ok ? '#067647' : '#b42318'}">${ok ? 'Prêt' : 'À faire'}</strong> — ${label}${ok ? '' : ' <span class="muted">(' + hint + ')</span>'}</div>`;
+  const c = j.contact || {};
+  const fields = DOMAIN_CONTACT_FIELDS.map(([k, label, ph]) => `
+    <label class="pricing-service-label" style="display:block;margin-top:8px">${label}</label>
+    <input type="text" class="text-input" id="dm-ct-${k}" maxlength="120" placeholder="${escapeHtml(ph)}" value="${escapeHtml(c[k] || '')}">`).join('');
+  el.innerHTML = `
+    <div class="order-box">
+      <div class="pricing-service-block">
+        <label class="pricing-service-label">Achat automatique de domaines</label>
+        <p class="muted small" style="margin:-4px 0 8px">Le client choisit son nom, paie avec son portefeuille, et tout se fait seul : achat, connexion au site, HTTPS. Prix payé par le client = prix par mois ci-dessous × 12 (1 an), jamais moins que le coût réel + 1 $.</p>
+        ${row('Clé Vercel (VERCEL_TOKEN)', j.vercel && j.vercel.token, 'à ajouter dans Vercel, Settings, Environment Variables')}
+        ${row('Projet Vercel (VERCEL_PROJECT_ID)', j.vercel && j.vercel.project, 'à ajouter dans Vercel, Settings, Environment Variables')}
+        ${row('Coordonnées du titulaire', j.contactOk, 'à remplir ci-dessous')}
+        <p style="margin:10px 0 0"><strong style="color:${j.ready ? '#067647' : '#b42318'}">${j.ready ? 'Achat automatique actif' : 'Achat automatique pas encore actif'}</strong></p>
+        <label class="pricing-service-label" style="display:block;margin-top:14px">Coordonnées du titulaire des domaines</label>
+        <p class="muted small" style="margin:-2px 0 4px">Obligatoires pour enregistrer un domaine. Jamais montrées aux utilisateurs.</p>
+        ${fields}
+        <button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="saveDomainContact()">Enregistrer les coordonnées</button>
+        <span id="dm-ct-msg" class="muted small hidden" style="margin-left:8px">Enregistré</span>
+      </div>
+    </div>`;
+}
+async function saveDomainContact() {
+  const contact = {};
+  DOMAIN_CONTACT_FIELDS.forEach(([k]) => { contact[k] = (document.getElementById('dm-ct-' + k) || {}).value || ''; });
+  try {
+    renderDomainAutoSetup(await domainAdminCall({ action: 'site_domain_admin_save', contact }));
+    const msg = document.getElementById('dm-ct-msg');
+    if (msg) { msg.classList.remove('hidden'); setTimeout(() => msg.classList.add('hidden'), 2500); }
+  } catch (e) { alert(e.message); }
 }
 
 async function loadSitePricingEditor() {

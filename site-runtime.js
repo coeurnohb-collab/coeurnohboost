@@ -389,6 +389,27 @@
     dm_t: ['Nom de domaine', 'Domain name'], dm_i: ['Utilisez votre propre adresse, sans « www » et sans mention de la plateforme : par exemple monsite.com.', 'Use your own address, without “www” and without any platform mention: for example mysite.com.'],
     dm_save: ['Enregistrer le domaine', 'Save domain'], dm_dns: ['Ajoutez ces réglages chez votre fournisseur de domaine :', 'Add these settings at your domain provider:'], dm_wait: ['L’activation peut prendre jusqu’à 24 heures.', 'Activation can take up to 24 hours.'],
     dm_manual: ['Notre équipe a été prévenue et active votre domaine.', 'Our team has been notified and will activate your domain.'], dm_auto: ['Domaine ajouté.', 'Domain added.'], dm_none: ['Aucun domaine personnalisé pour le moment.', 'No custom domain yet.'], dm_remove: ['Retirer le domaine', 'Remove domain'],
+    dm_go: ['Continuer', 'Continue'], dm_chk: ['Vérification…', 'Checking…'], dm_av: ['est disponible', 'is available'], dm_yr: ['pour 1 an', 'for 1 year'],
+    dm_inc1: ['Achat et connexion automatiques, rien à configurer', 'Automatic purchase and connection, nothing to set up'],
+    dm_inc2: ['Site sécurisé (HTTPS) et rapide, sur votre propre adresse', 'Secure (HTTPS), fast site on your own address'],
+    dm_inc3: ['Ajouté au plan du site pour les moteurs de recherche', 'Added to the sitemap for search engines'],
+    dm_bal: ['Votre solde', 'Your balance'], dm_low: ['Solde insuffisant. Rechargez votre portefeuille dans l’application, puis revenez ici.', 'Insufficient balance. Top up your wallet in the app, then come back.'],
+    dm_buy: ['Acheter et activer', 'Buy and activate'], dm_cf: ['Acheter {d} pour {p} $ ? Le montant est débité de votre portefeuille.', 'Buy {d} for ${p}? The amount is taken from your wallet.'],
+    dm_off: ['L’achat automatique n’est pas encore activé. Si vous avez déjà ce nom, connectez-le plus bas.', 'Automatic purchase is not enabled yet. If you already own this name, connect it below.'],
+    dm_taken: ['Ce nom est déjà pris. Essayez une autre orthographe ou une autre extension (.com, .shop, .online).', 'This name is taken. Try another spelling or extension (.com, .shop, .online).'],
+    dm_unsup: ['Cette extension ne peut pas être achetée ici. Si vous possédez déjà ce nom, connectez-le plus bas.', 'This extension cannot be bought here. If you already own this name, connect it below.'],
+    dm_unr: ['Vérification impossible pour le moment. Réessayez dans un instant.', 'Cannot check right now. Try again in a moment.'],
+    dm_own_t: ['Vous avez déjà ce domaine ?', 'Already own this domain?'], dm_own_i: ['Connectez-le ici, puis faites les 2 réglages chez votre fournisseur.', 'Connect it here, then make the 2 settings at your provider.'],
+    dm_own_b: ['Connecter mon domaine', 'Connect my domain'], dm_none_in: ['Écrivez d’abord votre nom de domaine.', 'Enter your domain name first.'],
+    dm_p_t: ['Achat en cours', 'Purchase in progress'], dm_p_i: ['Ne fermez pas cette page : cela prend en général moins de 2 minutes.', 'Keep this page open: it usually takes under 2 minutes.'],
+    dm_s1: ['Paiement reçu', 'Payment received'], dm_s2: ['Achat du nom de domaine', 'Registering the domain'], dm_s3: ['Connexion à votre site', 'Connecting to your site'], dm_s4: ['Mise en ligne sécurisée (HTTPS)', 'Going live securely (HTTPS)'],
+    dm_rev: ['Nous vérifions votre commande. Si elle n’aboutit pas, votre paiement vous est rendu. Vous serez prévenu(e).', 'We are checking your order. If it does not complete, your payment is returned. You will be notified.'],
+    dm_fail: ['Dernier achat annulé et remboursé :', 'Last purchase cancelled and refunded:'],
+    dm_pend_h: ['Connexion de votre domaine', 'Connecting your domain'], dm_pend: ['En cours', 'In progress'], dm_pend_i: ['Cela prend en général quelques minutes, parfois jusqu’à 24 heures.', 'This usually takes a few minutes, sometimes up to 24 hours.'],
+    dm_man_h: ['Activation par notre équipe', 'Activation by our team'], dm_exp: ['Domaine acheté ici, valable jusqu’au', 'Domain bought here, valid until'],
+    dm_renew: ['Renouveler 1 an', 'Renew for 1 year'], dm_renew_cf: ['Renouveler {d} pour 1 an ({p} $) ? Le montant est débité de votre portefeuille.', 'Renew {d} for 1 year (${p})? The amount is taken from your wallet.'], dm_renewed: ['Domaine renouvelé.', 'Domain renewed.'],
+    dm_verify: ['Vérifier maintenant', 'Check now'], dm_view: ['Voir mon site', 'View my site'], dm_keep: ['Un domaine acheté ici reste réservé pour vous : vous pouvez le remettre en ligne quand vous voulez.', 'A domain bought here stays reserved for you: you can put it back online anytime.'],
+    dm_seo: ['Pour être trouvé plus vite : ouvrez Visibilité et envoyez votre site aux moteurs de recherche.', 'To be found faster: open Visibility and send your site to search engines.'], dm_seo_b: ['Ouvrir Visibilité', 'Open Visibility'],
     dm_now: ['Votre site est en ligne sur', 'Your site is live at'], dm_removed: ['Domaine retiré.', 'Domain removed.'],
     mo_t: ['Mes commandes', 'My orders', 'Mis pedidos', 'I miei ordini', 'Meus pedidos'], mo_none: ['Aucune commande pour le moment.', 'No orders yet.', 'Aún no hay pedidos.', 'Nessun ordine per ora.', 'Nenhum pedido por enquanto.'], mo_paid: ['Payée', 'Paid', 'Pagado', 'Pagato', 'Pago'], mo_unpaid: ['À payer', 'To pay', 'Por pagar', 'Da pagare', 'A pagar'], mo_order: ['Commande', 'Order', 'Pedido', 'Ordine', 'Pedido'],
     ins_t: ['Installer sur mon écran', 'Install on my screen', 'Instalar en mi pantalla', 'Installa sulla schermata', 'Instalar no meu ecrã'], ins_ios: ['Sur iPhone : touchez le bouton Partager, puis « Sur l’écran d’accueil ».', 'On iPhone: tap the Share button, then “Add to Home Screen”.', 'En iPhone: toca el botón Compartir y luego «Añadir a pantalla de inicio».', 'Su iPhone: tocca Condividi, poi «Aggiungi alla schermata Home».', 'No iPhone: toque em Partilhar e depois em «Adicionar ao ecrã principal».'], ins_ok: ['Site installé sur votre écran.', 'Site installed on your screen.', 'Sitio instalado en tu pantalla.', 'Sito installato sulla schermata.', 'Site instalado no seu ecrã.'],
@@ -706,6 +727,15 @@
     '.cn-chk{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border,#e4e8ef);font-size:.88rem}.cn-chk:last-child{border-bottom:0}' +
     '.cn-chk>svg{flex:0 0 auto}.cn-chk.ok>svg{color:#16a34a}.cn-chk.no>svg{color:#b42318}.cn-chk span{flex:1;min-width:0}.cn-chk em{font-style:normal;color:var(--muted,#5b6678);font-size:.74rem;font-weight:700}' +
     '.cn-cnt{float:right;font-weight:600;color:var(--muted,#5b6678)}' +
+    '.cn-dm{border:1px solid var(--border,#e4e8ef);background:var(--card,#fff);border-radius:16px;padding:16px;margin:0 0 12px}.cn-dm h4{margin:0 0 2px;font-size:1rem}' +
+    '.cn-dmd{font-size:.8rem;color:var(--muted,#5b6678);margin:0 0 10px;word-break:break-all}.cn-dmbox{margin:12px 0 4px}' +
+    '.cn-price{display:flex;align-items:baseline;gap:6px;margin:6px 0 12px}.cn-price b{font-size:1.8rem;letter-spacing:-.02em}.cn-price span{color:var(--muted,#5b6678);font-size:.85rem}' +
+    '.cn-ul{list-style:none;margin:0 0 12px;padding:0}.cn-ul li{display:flex;gap:8px;align-items:flex-start;font-size:.84rem;margin:0 0 7px}.cn-ul li svg{flex:0 0 auto;color:#067647;margin-top:2px}' +
+    '.cn-steps{list-style:none;margin:6px 0 12px;padding:0}.cn-steps li{display:flex;align-items:center;gap:10px;padding:10px 0;font-size:.88rem;color:var(--muted,#5b6678);border-bottom:1px solid var(--border,#e4e8ef)}.cn-steps li:last-child{border-bottom:0}' +
+    '.cn-steps li i{flex:0 0 auto;width:22px;height:22px;border-radius:50%;border:2px solid var(--border,#cbd5e1);display:inline-flex;align-items:center;justify-content:center;color:#fff}' +
+    '.cn-steps li.ok{color:var(--ink,#0f172a)}.cn-steps li.ok i{background:#067647;border-color:#067647}.cn-steps li.on{color:var(--ink,#0f172a);font-weight:700}' +
+    '.cn-steps li.on i{border-color:var(--accent,#2563eb);border-top-color:transparent;animation:cn-spin .8s linear infinite}@keyframes cn-spin{to{transform:rotate(360deg)}}' +
+    'a.cn-b{font-size:.83rem;font-weight:700;text-decoration:none}.cn-bd{display:inline-block;font-weight:700;font-size:.72rem;line-height:1;padding:6px 10px;border-radius:999px;background:#fef3c7;color:#92400e;margin:0 0 8px}.cn-bd.ok{background:#dcfce7;color:#067647}' +
     '.cn-code{display:block;background:#0f172a;color:#e2e8f0;border-radius:12px;padding:12px;font:500 .74rem/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre-wrap;word-break:break-all;margin:0 0 10px}' +
     '.cn-key{display:flex;align-items:center;gap:8px;background:var(--accent-soft,#e8efff);border:1px solid var(--border,#e4e8ef);border-radius:12px;padding:10px 12px;margin:0 0 10px;font:600 .78rem ui-monospace,Menlo,monospace;word-break:break-all}' +
     '.cn-key span{flex:1;min-width:0}' +
@@ -773,7 +803,7 @@
         if (isManager && !b.siteId && /^(site_owner_|leads_)/.test(action)) b.siteId = C.id;
         return fetch('/api/render-site', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + t }, body: JSON.stringify(b) });
       }).then(function (r) {
-        return r.json().catch(function () { return {}; }).then(function (j) { if (r.ok && j && j.success !== false) resolve(j); else reject(new Error((j && j.error) ? (window.cnT ? window.cnT(j.error) : j.error) : U('err'))); });
+        return r.json().catch(function () { return {}; }).then(function (j) { if (r.ok && j && j.success !== false) resolve(j); else { var er = new Error((j && j.error) ? (window.cnT ? window.cnT(j.error) : j.error) : U('err')); er.data = j || {}; reject(er); } });
       }).catch(function (e) { reject(e && e.message ? e : new Error(U('e_net'))); });
     });
   }
@@ -941,7 +971,7 @@
     spaceEl = E('div', 'cn-rt cn-os'); spaceEl.setAttribute('role', 'dialog'); spaceEl.setAttribute('aria-modal', 'true');
     document.body.appendChild(spaceEl); document.documentElement.style.overflow = 'hidden'; spaceOpen = true;
     ovData = null; leadsData = null; helpData = null; tab = 'ov'; pubMode = ''; pubFlash = ''; shopList = null; shopPay = null; shopEdit = null;
-    editSub = 'gen'; cxData = null; cxSecret = ''; cxKey = ''; accData = null; accLink = ''; dmInfo = null;
+    editSub = 'gen'; cxData = null; cxSecret = ''; cxKey = ''; accData = null; accLink = ''; dmInfo = null; dmReset();
     var tm = /[?&]tab=(\w+)/.exec(location.search);
     if (tm) { var tt = tm[1] === 'sec' ? 'edit' : tm[1]; if (tabsNow().indexOf(tt) >= 0) tab = tt; }
     var sm = /[?&]sub=(\w+)/.exec(location.search);
@@ -1408,7 +1438,7 @@
     var chips = E('div', 'cn-chips');
     subsNow().forEach(function (s) {
       var c = E('button', 'cn-chip' + (s[0] === editSub ? ' on' : ''), U(s[1])); c.type = 'button';
-      c.onclick = function () { editSub = s[0]; renderSpace(); }; chips.appendChild(c);
+      c.onclick = function () { editSub = s[0]; if (s[0] === 'dm') dmReset(); renderSpace(); }; chips.appendChild(c);
     });
     w.appendChild(chips);
     if (editSub === 'brand') return drawBrand(w);
@@ -1622,24 +1652,127 @@
     }
   }
 
-  // --- Domaine ---
+  // --- Domaine : vérifier le nom, acheter (portefeuille), suivre, connecter, renouveler ---
+  var dmSt = null, dmChk = null, dmVal = '', dmBusy = false, dmTimer = 0;
+  function dmFill(k, o) { var t = U(k); Object.keys(o).forEach(function (x) { t = t.split('{' + x + '}').join(o[x]); }); return t; }
+  function dmDate(iso) { try { return new Date(iso).toLocaleDateString(({ fr: 'fr-FR', en: 'en-GB', es: 'es-ES', it: 'it-IT', pt: 'pt-BR' })[lang], { day: 'numeric', month: 'long', year: 'numeric' }); } catch (e) { return String(iso || '').slice(0, 10); } }
+  function dmOnTab() { return spaceOpen && tab === 'edit' && editSub === 'dm'; }
+  function dmRefresh() {
+    clearTimeout(dmTimer);
+    return call('site_owner_domain_status', {}).then(function (r) {
+      dmSt = r; if (ovData) ovData.domain = r.domain || '';
+      if (!dmOnTab()) return;
+      renderSpace();
+      if (r.state === 'purchasing') dmTimer = setTimeout(dmRefresh, 4000);
+    }).catch(function (e) {
+      if (!dmSt) dmSt = { state: 'none', enabled: false };
+      if (dmOnTab()) { renderSpace(); if (dmSt.state === 'purchasing') dmTimer = setTimeout(dmRefresh, 8000); }
+      toast(e.message || U('err'));
+    });
+  }
+  function dmReset() { clearTimeout(dmTimer); dmSt = null; dmChk = null; dmVal = ''; dmBusy = false; }
+
   function drawDomain(w) {
     A(w, E('h3', '', U('dm_t')), E('p', 'cn-p', U('dm_i')));
-    var cur = ovData.domain || '';
-    if (cur) { var n = E('div', 'cn-note'), nb = E('div'); A(nb, E('b', '', U('dm_now')), E('p', '', 'https://' + cur)); A(n, icon(IC.globe, 20), nb); w.appendChild(n); } else w.appendChild(E('p', 'cn-p', U('dm_none')));
-    var inp = field(w, U('dm_t'), 'text', cur, 100, 'monsite.com'); inp.autocapitalize = 'none'; inp.autocomplete = 'off';
-    var sv = E('button', 'cn-b p', U('dm_save')); sv.type = 'button';
-    sv.onclick = function () {
-      sv.disabled = true;
-      call('site_owner_domain_save', { domain: inp.value }).then(function (r) { ovData.domain = r.domain; dmInfo = r.connect; dirty = true; toast(U(r.domain ? (r.connect && r.connect.mode === 'auto' ? 'dm_auto' : 'dm_manual') : 'dm_removed')); renderSpace(); }).catch(function (e) { sv.disabled = false; toast(e.message || U('err')); });
+    if (!dmSt) { loading(w); dmRefresh(); return; }
+    if (dmSt.state === 'purchasing') return dmDrawProgress(w);
+    if (dmSt.domain) return dmDrawCurrent(w);
+    dmDrawStart(w);
+  }
+
+  function dmDrawStart(w) {
+    var o = dmSt.order;
+    if (o && o.status === 'refunded' && o.error) { var n = E('div', 'cn-note'), nb = E('div'); A(nb, E('p', '', U('dm_fail') + ' ' + o.error)); A(n, icon(IC.globe, 20), nb); w.appendChild(n); }
+    var inp = field(w, U('dm_t'), 'text', dmVal, 100, 'monsite.com');
+    inp.autocapitalize = 'none'; inp.autocomplete = 'off'; inp.spellcheck = false; inp.setAttribute('autocorrect', 'off'); inp.setAttribute('inputmode', 'url');
+    var box = E('div', 'cn-dmbox');
+    var go = E('button', 'cn-b p', U('dm_go')); go.type = 'button';
+    go.onclick = function () {
+      var v = String(inp.value || '').trim(); if (!v) { toast(U('dm_none_in')); return; }
+      dmVal = v; go.disabled = true; go.textContent = U('dm_chk');
+      call('site_owner_domain_check', { domain: v }).then(function (r) { dmChk = r; renderSpace(); }).catch(function (e) { go.disabled = false; go.textContent = U('dm_go'); toast(e.message || U('err')); });
     };
-    w.appendChild(sv);
-    if (cur) { var rm = E('button', 'cn-b s', U('dm_remove')); rm.type = 'button'; rm.onclick = function () { if (!confirm(U('dm_remove') + ' ?')) return; call('site_owner_domain_save', { domain: '' }).then(function () { ovData.domain = ''; dmInfo = null; renderSpace(); }).catch(function (e) { toast(e.message || U('err')); }); }; w.appendChild(rm); }
-    if (cur) {
-      w.appendChild(E('p', 'cn-sub', U('dm_dns')));
-      w.appendChild(E('div', 'cn-code', 'A      @      76.76.21.21\nCNAME  www    cname.vercel-dns.com'));
-      w.appendChild(E('p', 'cn-sub', U('dm_wait')));
+    inp.addEventListener('input', function () { dmVal = inp.value; if (dmChk) { dmChk = null; box.textContent = ''; } });
+    inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); go.click(); } });
+    w.appendChild(go); w.appendChild(box);
+    if (dmChk) dmDrawCheck(box);
+    A(w, E('h3', '', U('dm_own_t')), E('p', 'cn-p', U('dm_own_i')));
+    var own = E('button', 'cn-b', U('dm_own_b')); own.type = 'button';
+    own.onclick = function () {
+      var v = String(inp.value || '').trim(); if (!v) { toast(U('dm_none_in')); return; }
+      own.disabled = true;
+      call('site_owner_domain_save', { domain: v }).then(function (r) { dirty = true; dmReset(); toast(U(r.connect && r.connect.mode === 'auto' ? 'dm_auto' : 'dm_manual')); renderSpace(); }).catch(function (e) { own.disabled = false; toast(e.message || U('err')); });
+    };
+    w.appendChild(own);
+  }
+
+  function dmDrawCheck(box) {
+    var c = dmChk, d = c.domain;
+    if (c.state !== 'available') { var m = { taken: 'dm_taken', unsupported: 'dm_unsup', unreachable: 'dm_unr' }[c.state] || 'dm_unr'; var n = E('div', 'cn-note'), nb = E('div'); A(nb, E('b', '', d), E('p', '', U(m))); A(n, icon(IC.globe, 20), nb); box.appendChild(n); return; }
+    var card = E('div', 'cn-dm'), pr = E('div', 'cn-price'), ul = E('ul', 'cn-ul'), low = c.balance < c.price;
+    A(pr, E('b', '', c.price + ' $'), E('span', '', U('dm_yr')));
+    A(card, E('h4', '', d + ' ' + U('dm_av')), pr);
+    ['dm_inc1', 'dm_inc2', 'dm_inc3'].forEach(function (k) { var li = E('li'); A(li, icon(IC.check, 16), E('span', '', U(k))); ul.appendChild(li); });
+    card.appendChild(ul);
+    card.appendChild(E('p', 'cn-dmd', U('dm_bal') + ' : ' + c.balance + ' $'));
+    if (!c.enabled) card.appendChild(E('p', 'cn-p', U('dm_off'))); else if (low) card.appendChild(E('p', 'cn-p', U('dm_low')));
+    var bb = E('button', 'cn-b p', U('dm_buy') + ' — ' + c.price + ' $'); bb.type = 'button'; bb.disabled = !c.enabled || low;
+    bb.onclick = function () {
+      if (dmBusy || !confirm(dmFill('dm_cf', { d: d, p: c.price }))) return;
+      dmBusy = true; bb.disabled = true;
+      call('site_owner_domain_buy', { domain: d, price: c.price }).then(function () { dirty = true; dmReset(); renderSpace(); }).catch(function (e) {
+        dmBusy = false; var x = (e && e.data) || {};
+        if (x.code === 'price_changed' && x.price) { c.price = x.price; renderSpace(); } else bb.disabled = false;
+        toast(e.message || U('err'));
+      });
+    };
+    card.appendChild(bb); box.appendChild(card);
+  }
+
+  function dmDrawProgress(w) {
+    var o = dmSt.order || {}, card = E('div', 'cn-dm'), ol = E('ul', 'cn-steps');
+    A(card, E('h4', '', U('dm_p_t')), E('p', 'cn-dmd', o.domain || ''));
+    [['dm_s1', 'ok'], ['dm_s2', 'on'], ['dm_s3', ''], ['dm_s4', '']].forEach(function (x) {
+      var li = E('li', x[1]), ic = E('i'); if (x[1] === 'ok') ic.appendChild(icon(IC.check, 13)); A(li, ic, E('span', '', U(x[0]))); ol.appendChild(li);
+    });
+    card.appendChild(ol); card.appendChild(E('p', 'cn-p', U(o.status === 'review' ? 'dm_rev' : 'dm_p_i')));
+    w.appendChild(card);
+  }
+
+  function dmDrawCurrent(w) {
+    var s = dmSt, d = s.domain, live = s.state === 'live', card = E('div', 'cn-dm');
+    A(card, E('span', 'cn-bd' + (live ? ' ok' : ''), live ? U('live') : U(s.state === 'manual' ? 'dm_man_h' : 'dm_pend')),
+      E('h4', '', U(live ? 'dm_now' : (s.state === 'manual' ? 'dm_man_h' : 'dm_pend_h'))), E('p', 'cn-dmd', 'https://' + d));
+    if (s.state === 'pending' && !s.dns) card.appendChild(E('p', 'cn-p', U('dm_pend_i')));
+    if (s.state === 'manual') card.appendChild(E('p', 'cn-p', U('dm_manual')));
+    if (s.owned && s.expiresAt) card.appendChild(E('p', 'cn-p', U('dm_exp') + ' ' + dmDate(s.expiresAt)));
+    if (s.canRenew && s.renewPrice) {
+      var rn = E('button', 'cn-b p', U('dm_renew') + ' — ' + s.renewPrice + ' $'); rn.type = 'button';
+      rn.onclick = function () {
+        if (!confirm(dmFill('dm_renew_cf', { d: d, p: s.renewPrice }))) return; rn.disabled = true;
+        call('site_owner_domain_renew', { price: s.renewPrice }).then(function () { toast(U('dm_renewed')); dmSt = null; renderSpace(); }).catch(function (e) {
+          var x = (e && e.data) || {}; if (x.code === 'price_changed' && x.price) { s.renewPrice = x.price; renderSpace(); } else rn.disabled = false; toast(e.message || U('err'));
+        });
+      };
+      card.appendChild(rn);
     }
+    if (s.dns) {
+      A(card, E('p', 'cn-sub', U('dm_dns')), E('div', 'cn-code', 'A      @      ' + s.dns.a.value + '\nCNAME  www    ' + s.dns.cname.value), E('p', 'cn-p', U('dm_wait')));
+    }
+    if (s.state === 'pending' || s.state === 'manual') { var vf = E('button', 'cn-b', U('dm_verify')); vf.type = 'button'; vf.onclick = function () { vf.disabled = true; dmRefresh(); }; card.appendChild(vf); }
+    if (live) {
+      var vw = E('a', 'cn-b', U('dm_view')); vw.href = 'https://' + d; vw.target = '_blank'; vw.rel = 'noopener'; card.appendChild(vw);
+      card.appendChild(E('p', 'cn-p', U('dm_seo')));
+      var sb = E('button', 'cn-b', U('dm_seo_b')); sb.type = 'button'; sb.onclick = function () { editSub = 'seo'; renderSpace(); }; card.appendChild(sb);
+    }
+    w.appendChild(card);
+    var rm = E('button', 'cn-b s', U('dm_remove')); rm.type = 'button';
+    rm.onclick = function () {
+      if (!confirm(U('dm_remove') + ' ?')) return; rm.disabled = true;
+      call('site_owner_domain_save', { domain: '' }).then(function () { dirty = true; dmReset(); toast(U('dm_removed')); renderSpace(); }).catch(function (e) { rm.disabled = false; toast(e.message || U('err')); });
+    };
+    w.appendChild(rm);
+    if (s.owned) w.appendChild(E('p', 'cn-sub', U('dm_keep')));
   }
 
   function drawGeneral(w) {

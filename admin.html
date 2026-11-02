@@ -383,9 +383,11 @@
     <!-- ---- Achats de domaine ("Crée ton site") ---- -->
     <div class="admin-tab hidden" id="admin-tab-domains">
       <h2 class="page-title">Prix Site, Entreprise & domaines</h2>
-      <p class="muted" style="margin-bottom:14px">Le paiement a déjà été débité du portefeuille du propriétaire. Achète réellement le nom de domaine chez un registrar (ex: Namecheap, OVH), connecte-le au projet Vercel, puis marque la demande comme active. Si le nom n'est pas disponible, rejette : le montant est remboursé automatiquement.</p>
+      <p class="muted" style="margin-bottom:14px">Les noms de domaine sont maintenant achetés et connectés automatiquement (carte ci-dessous). Le prix payé par le client est celui que tu fixes ici.</p>
+      <div id="admin-domain-auto" style="margin-bottom:20px"></div>
       <div id="admin-site-pricing-editor" style="margin-bottom:20px"></div>
-      <h3 style="margin-bottom:10px">Demandes d'achat de domaine</h3>
+      <h3 style="margin-bottom:10px">Anciennes demandes d'achat de domaine (traitement manuel)</h3>
+      <p class="muted" style="margin-bottom:10px">Ces demandes viennent de l'ancien système : le paiement a déjà été débité. Achète le nom, connecte-le au projet Vercel, puis marque la demande comme active. Si le nom n'est pas disponible, rejette : le montant est remboursé automatiquement.</p>
       <div id="admin-domains-list"></div>
     </div>
 
@@ -507,7 +509,7 @@
 </div>
 
 <script src="catalog-data.js"></script>
-<script src="admin.js?v=20261067"></script>
+<script src="admin.js?v=20261103"></script>
 <script src="admin-panels.js?v=3"></script>
 <script src="academy-spend-admin.js?v=1"></script>
 <script src="ops-admin.js?v=2"></script>
