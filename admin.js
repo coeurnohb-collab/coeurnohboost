@@ -1797,29 +1797,120 @@ async function loadDomainAutoSetup() {
   try { renderDomainAutoSetup(await domainAdminCall({ action: 'site_domain_admin_get' })); }
   catch (e) { el.innerHTML = '<p class="admin-empty">Erreur de chargement : ' + escapeHtml(e.message) + '</p>'; }
 }
+let DM_LAST = null;
+// Même formule que le serveur (api/_lib/site-domain.js, customerPrice) : sert à l'aperçu en direct du bénéfice.
+function dmPrice(base, cost, st) {
+  const c = Number(cost) || 0;
+  return Math.max(Math.round(base * 100) / 100, Math.ceil(c + Math.max(st.marginMin, c * st.marginPct / 100)), Math.ceil(c) + 1);
+}
+function dmReadSettings() {
+  const num = (id, d, lo, hi) => { const v = parseFloat((document.getElementById(id) || {}).value); return isFinite(v) ? Math.min(hi, Math.max(lo, v)) : d; };
+  const on = document.getElementById('dm-st-on');
+  return { marginMin: num('dm-st-min', 5, 0, 100), marginPct: num('dm-st-pct', 30, 0, 300), maxPerDay: Math.round(num('dm-st-max', 10, 1, 500)), on: on ? !!on.checked : true };
+}
+function dmDrawPreview() {
+  const el = document.getElementById('dm-st-preview');
+  if (!el || !DM_LAST) return;
+  const st = dmReadSettings(), base = Number(DM_LAST.base) || 48;
+  el.innerHTML = [10, 15, 25, 40, 55].map((cost) => {
+    const price = dmPrice(base, cost, st);
+    return `<div class="admin-row-meta" style="margin-bottom:3px">Coût réel ${cost} $ &rarr; le client paie <strong>${price} $</strong> &rarr; votre bénéfice <strong style="color:#067647">${Math.round((price - cost) * 100) / 100} $</strong></div>`;
+  }).join('');
+}
 function renderDomainAutoSetup(j) {
+  DM_LAST = j;
   const el = document.getElementById('admin-domain-auto');
   const row = (label, ok, hint) => `<div class="admin-row-meta" style="margin-bottom:4px"><strong style="color:${ok ? '#067647' : '#b42318'}">${ok ? 'Prêt' : 'À faire'}</strong> — ${label}${ok ? '' : ' <span class="muted">(' + hint + ')</span>'}</div>`;
   const c = j.contact || {};
+  const st = j.settings || { marginMin: 5, marginPct: 30, maxPerDay: 10, on: true };
+  const stats = j.stats || { count: 0, revenue: 0, cost: 0, profit: 0, last: [] };
   const fields = DOMAIN_CONTACT_FIELDS.map(([k, label, ph]) => `
     <label class="pricing-service-label" style="display:block;margin-top:8px">${label}</label>
     <input type="text" class="text-input" id="dm-ct-${k}" maxlength="120" placeholder="${escapeHtml(ph)}" value="${escapeHtml(c[k] || '')}">`).join('');
+  const reviews = (j.reviews || []).length ? `
+    <div class="order-box" style="margin-bottom:14px;border-color:#b42318">
+      <div class="pricing-service-block">
+        <label class="pricing-service-label" style="color:#b42318">Domaines à vérifier (${j.reviews.length})</label>
+        <p class="muted small" style="margin:-4px 0 8px">Le registre n'a pas répondu clairement. Le système revérifie seul et rembourse automatiquement après 1 heure si le nom n'existe pas. Vous pouvez aussi décider tout de suite.</p>
+        ${j.reviews.map((r) => `
+          <div class="admin-row" style="margin-bottom:8px">
+            <div class="admin-row-title">${escapeHtml(r.domain)} <span class="muted small">(${r.kind === 'renew' ? 'renouvellement' : 'achat'}, ${r.price} $)</span></div>
+            <div class="admin-row-meta">${escapeHtml(r.error || '')}</div>
+            <div class="admin-row-actions">
+              <button class="btn btn-outline btn-sm" onclick="resolveDomainOrder('${escapeForJs(r.uid)}','refund')">Rembourser le client</button>
+              <button class="btn btn-outline btn-sm" onclick="resolveDomainOrder('${escapeForJs(r.uid)}','done')">Le domaine est bien acheté</button>
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>` : '';
+  const sales = (stats.last || []).slice(0, 5).map((x) => `<div class="admin-row-meta" style="margin-bottom:3px">${escapeHtml(new Date(x.at).toLocaleDateString('fr-FR'))} · ${escapeHtml(x.domain)} (${x.kind === 'renew' ? 'renouvellement' : 'achat'}) · payé ${x.price} $ · coût ${x.cost} $ · <strong style="color:#067647">bénéfice ${x.profit} $</strong></div>`).join('');
+  const state = !j.ready ? ['Achat automatique pas encore actif', '#b42318'] : (j.paused ? ['Achats en pause (renouvellements toujours possibles)', '#b54708'] : ['Achat automatique actif', '#067647']);
   el.innerHTML = `
+    ${reviews}
     <div class="order-box">
       <div class="pricing-service-block">
         <label class="pricing-service-label">Achat automatique de domaines</label>
-        <p class="muted small" style="margin:-4px 0 8px">Le client choisit son nom, paie avec son portefeuille, et tout se fait seul : achat, connexion au site, HTTPS. Prix payé par le client = prix par mois ci-dessous × 12 (1 an), jamais moins que le coût réel + 1 $.</p>
+        <p class="muted small" style="margin:-4px 0 8px">Le client choisit son nom, paie avec son portefeuille, et tout se fait seul : achat, connexion au site, HTTPS. Si l'achat échoue, il est remboursé automatiquement.</p>
         ${row('Clé Vercel (VERCEL_TOKEN)', j.vercel && j.vercel.token, 'à ajouter dans Vercel, Settings, Environment Variables')}
         ${row('Projet Vercel (VERCEL_PROJECT_ID)', j.vercel && j.vercel.project, 'à ajouter dans Vercel, Settings, Environment Variables')}
         ${row('Coordonnées du titulaire', j.contactOk, 'à remplir ci-dessous')}
-        <p style="margin:10px 0 0"><strong style="color:${j.ready ? '#067647' : '#b42318'}">${j.ready ? 'Achat automatique actif' : 'Achat automatique pas encore actif'}</strong></p>
-        <label class="pricing-service-label" style="display:block;margin-top:14px">Coordonnées du titulaire des domaines</label>
+        <p style="margin:10px 0 0"><strong style="color:${state[1]}">${state[0]}</strong></p>
+      </div>
+    </div>
+
+    <div class="order-box" style="margin-top:14px">
+      <div class="pricing-service-block">
+        <label class="pricing-service-label">Mes gains sur les domaines</label>
+        <div class="admin-row-meta" style="margin-bottom:3px">Ventes : <strong>${stats.count}</strong></div>
+        <div class="admin-row-meta" style="margin-bottom:3px">Payé par les clients : <strong>${stats.revenue} $</strong></div>
+        <div class="admin-row-meta" style="margin-bottom:3px">Coût réel chez Vercel : <strong>${stats.cost} $</strong></div>
+        <div class="admin-row-meta" style="margin-bottom:8px">Bénéfice : <strong style="color:#067647">${stats.profit} $</strong> <span class="muted small">(avant frais éventuels de votre carte)</span></div>
+        ${sales || '<p class="muted small" style="margin:0">Aucune vente pour le moment.</p>'}
+      </div>
+    </div>
+
+    <div class="order-box" style="margin-top:14px">
+      <div class="pricing-service-block">
+        <label class="pricing-service-label">Prix, marge et sécurité</label>
+        <p class="muted small" style="margin:-4px 0 8px">Le client paie le plus élevé entre : le prix de base (${j.base} $ par an = prix par mois ci-dessous × 12) et le coût réel + votre marge. Il ne paie jamais moins que le coût réel + 1 $, donc vous ne perdez pas d'argent.</p>
+        <label class="pricing-service-label" style="display:block;margin-top:8px">Marge minimale ($)</label>
+        <input type="number" step="0.5" min="0" max="100" class="text-input" id="dm-st-min" value="${st.marginMin}" oninput="dmDrawPreview()">
+        <label class="pricing-service-label" style="display:block;margin-top:8px">Marge en pourcentage du coût (%)</label>
+        <input type="number" step="1" min="0" max="300" class="text-input" id="dm-st-pct" value="${st.marginPct}" oninput="dmDrawPreview()">
+        <label class="pricing-service-label" style="display:block;margin-top:8px">Achats maximum par jour</label>
+        <input type="number" step="1" min="1" max="500" class="text-input" id="dm-st-max" value="${st.maxPerDay}">
+        <p class="muted small" style="margin:2px 0 0">Limite de sécurité : au-delà, les achats s'arrêtent jusqu'au lendemain.</p>
+        <label style="display:flex;align-items:flex-start;gap:8px;margin-top:12px;font-size:.9rem"><input type="checkbox" id="dm-st-on" style="margin-top:3px" ${st.on ? 'checked' : ''}> Autoriser les achats de domaines (décochez pour mettre en pause)</label>
+        <p class="pricing-service-label" style="margin:14px 0 6px">Aperçu de votre bénéfice</p>
+        <div id="dm-st-preview"></div>
+        <button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="saveDomainSettings()">Enregistrer</button>
+        <span id="dm-st-msg" class="muted small hidden" style="margin-left:8px">Enregistré</span>
+      </div>
+    </div>
+
+    <div class="order-box" style="margin-top:14px">
+      <div class="pricing-service-block">
+        <label class="pricing-service-label">Coordonnées du titulaire des domaines</label>
         <p class="muted small" style="margin:-2px 0 4px">Obligatoires pour enregistrer un domaine. Jamais montrées aux utilisateurs.</p>
         ${fields}
         <button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="saveDomainContact()">Enregistrer les coordonnées</button>
         <span id="dm-ct-msg" class="muted small hidden" style="margin-left:8px">Enregistré</span>
       </div>
     </div>`;
+  dmDrawPreview();
+}
+async function saveDomainSettings() {
+  try {
+    renderDomainAutoSetup(await domainAdminCall({ action: 'site_domain_admin_save', settings: dmReadSettings() }));
+    const msg = document.getElementById('dm-st-msg');
+    if (msg) { msg.classList.remove('hidden'); setTimeout(() => msg.classList.add('hidden'), 2500); }
+  } catch (e) { alert(e.message); }
+}
+async function resolveDomainOrder(uid, decision) {
+  const ask = decision === 'refund' ? 'Rembourser ce client ? Le montant sera remis dans son portefeuille.' : 'Confirmer que ce domaine est bien acheté ? Il sera connecté au site du client.';
+  if (!confirm(ask)) return;
+  try { renderDomainAutoSetup(await domainAdminCall({ action: 'site_domain_admin_resolve', uid, decision })); }
+  catch (e) { alert(e.message); }
 }
 async function saveDomainContact() {
   const contact = {};
