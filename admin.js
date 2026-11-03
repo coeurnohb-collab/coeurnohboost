@@ -1844,6 +1844,16 @@ function renderDomainAutoSetup(j) {
       </div>
     </div>` : '';
   const sales = (stats.last || []).slice(0, 5).map((x) => `<div class="admin-row-meta" style="margin-bottom:3px">${escapeHtml(new Date(x.at).toLocaleDateString('fr-FR'))} · ${escapeHtml(x.domain)} (${x.kind === 'renew' ? 'renouvellement' : 'achat'}) · payé ${x.price} $ · coût ${x.cost} $ · <strong style="color:#067647">bénéfice ${x.profit} $</strong></div>`).join('');
+  const lv = (j.vercel && j.vercel.live) || { state: 'none' };
+  const liveRow = lv.state === 'ok'
+    ? `<div class="admin-row-meta" style="margin-bottom:4px"><strong style="color:#067647">Prêt</strong> — Connexion à Vercel vérifiée${lv.project ? ' (projet « ' + escapeHtml(lv.project) + ' »)' : ''}</div>`
+    : lv.state === 'token'
+      ? `<div class="admin-row-meta" style="margin-bottom:4px"><strong style="color:#b42318">À faire</strong> — Vercel refuse la clé <span class="muted">(créez une nouvelle clé en « Compte complet » et remplacez VERCEL_TOKEN)</span></div>`
+      : lv.state === 'project'
+        ? `<div class="admin-row-meta" style="margin-bottom:4px"><strong style="color:#b42318">À faire</strong> — Vercel ne trouve pas ce projet <span class="muted">(vérifiez VERCEL_PROJECT_ID)</span></div>`
+        : lv.state === 'unreachable'
+          ? `<div class="admin-row-meta" style="margin-bottom:4px"><strong style="color:#b54708">Attente</strong> — Vercel ne répond pas pour le moment <span class="muted">(rouvrez cet écran dans un instant)</span></div>`
+          : '';
   const state = !j.ready ? ['Achat automatique pas encore actif', '#b42318'] : (j.paused ? ['Achats en pause (renouvellements toujours possibles)', '#b54708'] : ['Achat automatique actif', '#067647']);
   el.innerHTML = `
     ${reviews}
@@ -1853,6 +1863,7 @@ function renderDomainAutoSetup(j) {
         <p class="muted small" style="margin:-4px 0 8px">Le client choisit son nom, paie avec son portefeuille, et tout se fait seul : achat, connexion au site, HTTPS. Si l'achat échoue, il est remboursé automatiquement.</p>
         ${row('Clé Vercel (VERCEL_TOKEN)', j.vercel && j.vercel.token, 'à ajouter dans Vercel, Settings, Environment Variables')}
         ${row('Projet Vercel (VERCEL_PROJECT_ID)', j.vercel && j.vercel.project, 'à ajouter dans Vercel, Settings, Environment Variables')}
+        ${liveRow}
         ${row('Coordonnées du titulaire', j.contactOk, 'à remplir ci-dessous')}
         <p style="margin:10px 0 0"><strong style="color:${state[1]}">${state[0]}</strong></p>
       </div>
