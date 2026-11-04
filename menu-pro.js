@@ -361,6 +361,8 @@ var MOCKUP_AI_ENABLED = false;
     api_row: ['API revendeur', 'Reseller API', 'API de revendedor', 'API rivenditore', 'API de revendedor'],
     tools_row: ['Boîte à outils gratuite', 'Free toolbox', 'Herramientas gratuitas', 'Strumenti gratuiti', 'Ferramentas gratuitas'],
     svc_domains: ['Achat Domaine', 'Buy a domain', 'Comprar dominio', 'Acquista dominio', 'Comprar domínio'],
+    dom_search: ['Acheter le domaine « {0} »', 'Buy the domain “{0}”', 'Comprar el dominio «{0}»', 'Acquista il dominio «{0}»', 'Comprar o domínio «{0}»'],
+    dom_search_sub: ['Vérifier la disponibilité et le prix', 'Check availability and price', 'Ver disponibilidad y precio', 'Verifica disponibilità e prezzo', 'Ver disponibilidade e preço'],
     plans_row: ['Plans & tarifs', 'Plans & pricing', 'Planes y precios', 'Piani e prezzi', 'Planos e preços'],
     badge_free: ['Gratuit', 'Free', 'Gratis', 'Gratis', 'Grátis'],
     badge_premium: ['Gratuit + Premium', 'Free + Premium', 'Gratis + Premium', 'Gratis + Premium', 'Grátis + Premium'],
@@ -824,7 +826,10 @@ var MOCKUP_AI_ENABLED = false;
     });
     $('mp-search-results').addEventListener('click', function (ev) {
       var b = ev.target.closest ? ev.target.closest('[data-id]') : null;
-      if (b) runEntry(BY_ID[b.getAttribute('data-id')]);
+      if (!b) return;
+      var dq = b.getAttribute('data-q');
+      if (dq) { openDomainShopScreen(dq); return; }
+      runEntry(BY_ID[b.getAttribute('data-id')]);
     });
     bindGrid($('mp-services-hub'));
     bindGrid($('mp-tools-list'));
@@ -941,15 +946,31 @@ var MOCKUP_AI_ENABLED = false;
       return an - bn;
     });
     res.classList.remove('hidden');
-    if (!found.length) {
+    // Un nom qui ressemble à une adresse (monsite.com) : on propose de l'acheter tout de suite.
+    var guess = domainGuess($('mp-search').value);
+    var domRow = '';
+    if (guess && (guess.hasTld || !found.length)) {
+      var de = BY_ID.domains;
+      domRow = '<button type="button" class="mp-row" data-id="domains" data-q="' + esc(guess.name) + '">' + ico(de, 20) +
+        '<span class="mp-row-label">' + esc(L('dom_search').replace('{0}', guess.name)) +
+        '<span class="mp-row-desc">' + esc(L('dom_search_sub')) + '</span></span>' + badgeHtml(de.b) + '</button>';
+    }
+    if (!found.length && !domRow) {
       res.innerHTML = '<div class="mp-empty">' + esc(L('no_result')) + ' «&nbsp;' + esc($('mp-search').value.trim()) + '&nbsp;»</div>';
       return;
     }
-    res.innerHTML = '<div class="mp-rows">' + found.map(function (e) {
+    var list = found.map(function (e) {
       var desc = e.dk ? '<span class="mp-row-desc">' + esc(L(e.dk)) + '</span>' : '';
       return '<button type="button" class="mp-row" data-id="' + e.id + '">' + ico(e, 20) +
         '<span class="mp-row-label">' + esc(labelOf(e)) + desc + '</span>' + badgeHtml(e.b) + '</button>';
-    }).join('') + '</div>';
+    }).join('');
+    res.innerHTML = '<div class="mp-rows">' + (guess && guess.hasTld ? domRow + list : list + domRow) + '</div>';
+  }
+  // Transforme ce que la personne tape (« www.Mon Site.com », « https://monsite.com/ ») en nom de domaine propre.
+  function domainGuess(raw) {
+    var t = norm(raw).replace(/\s+/g, '').replace(/^[a-z]+:\/\//, '').replace(/^www\./, '').replace(/[\/?#].*$/, '');
+    if (!/^[a-z0-9][a-z0-9-]{1,61}(\.[a-z]{2,24})?$/.test(t)) return null;
+    return { name: t, hasTld: t.indexOf('.') > 0 };
   }
 
   /* ---------- Ouverture d'écrans ---------- */
@@ -963,11 +984,12 @@ var MOCKUP_AI_ENABLED = false;
     call('showMenuScreen', 'tools');
   }
   // « Achat Domaine » : l'écran est un fichier à part, chargé seulement quand on l'ouvre.
-  var DOMAIN_JS = 'domain-shop.js?v=20261106';
-  function openDomainShopScreen() {
+  var DOMAIN_JS = 'domain-shop.js?v=20261107';
+  function openDomainShopScreen(q) {
     if (!getUser()) { call('closeMainMenu'); call('openAuth', 'login'); return; }
     ensureMenuOpen();
-    function run() { try { root.CNDomainShop.open(); } catch (e) { toast(L('unavailable')); } }
+    var opts = (typeof q === 'string' && q) ? { q: q } : undefined;
+    function run() { try { root.CNDomainShop.open(opts); } catch (e) { toast(L('unavailable')); } }
     if (root.CNDomainShop) { run(); return; }
     var sc = document.querySelector('script[data-cn-ds]');
     if (!sc) {

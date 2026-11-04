@@ -33,7 +33,17 @@
       need_site: 'Pour connecter ce domaine, créez d’abord votre site.', create_site: 'Créer mon site',
       need_pro: 'Le Pack Pro est nécessaire pour mettre votre site en ligne sur votre propre domaine. Activez-le dans l’application, puis revenez ici.',
       how: 'Comment ça marche', how1: 'Cherchez le nom que vous voulez et choisissez l’extension.', how2: 'Payez avec votre portefeuille : le prix affiché est le prix final.', how3: 'Connectez le domaine à votre site Coeurnoh en un clic (Pack Pro).',
-      err: 'Une erreur est survenue. Réessayez.', err_net: 'Pas de connexion. Réessayez.', loading: 'Chargement…'
+      err: 'Une erreur est survenue. Réessayez.', err_net: 'Pas de connexion. Réessayez.', loading: 'Chargement…',
+      partial: 'Certaines extensions n’ont pas répondu. Touchez « Chercher » pour réessayer.', noans: 'Pas de réponse',
+      c_connect: 'Connecter ce domaine à mon site dès que l’achat est terminé',
+      c_nosite: 'Vous n’avez pas encore de site. Après l’achat, créez-le avec « Crée ton site », puis connectez le domaine en un clic.',
+      c_nopro: 'Pour mettre votre site en ligne sur ce domaine, activez le Pack Pro dans l’application.',
+      c_hasdom: 'Votre site utilise déjà « {0} ». Après l’achat, vous pourrez choisir de le remplacer.',
+      next_ok: '{0} est à vous. Dernière étape : le connecter à votre site.', next_nosite: '{0} est à vous. Créez votre site pour l’utiliser.', next_nopro: '{0} est à vous. Activez le Pack Pro pour mettre votre site en ligne sur ce nom.',
+      linked: '{0} est connecté à votre site.', linked_sub: 'Il peut falloir quelques minutes avant qu’il s’ouvre partout.',
+      ready_t: 'Tout est déjà prêt pour votre domaine', ready_auto: 'Inclus automatiquement',
+      ready_1: 'Connexion à votre site en un clic, sans réglage technique', ready_2: 'Cadenas HTTPS (site sécurisé) et redirection de « www » gérés pour vous', ready_3: 'Renouvellement en un clic depuis « Mes domaines », quand l’échéance approche',
+      ready_site: 'Crée ton site : votre site sur votre propre adresse, avec commandes, rendez-vous, articles, newsletter et référencement Google.', open_builder: 'Ouvrir Crée ton site'
     },
     en: {
       title: 'Buy a domain', back: 'Back',
@@ -61,7 +71,17 @@
       need_site: 'To connect this domain, create your site first.', create_site: 'Create my site',
       need_pro: 'The Pro Pack is needed to put your site online on your own domain. Activate it in the app, then come back here.',
       how: 'How it works', how1: 'Search the name you want and pick the extension.', how2: 'Pay with your wallet: the price shown is the final price.', how3: 'Connect the domain to your Coeurnoh site in one tap (Pro Pack).',
-      err: 'Something went wrong. Please try again.', err_net: 'No connection. Please try again.', loading: 'Loading…'
+      err: 'Something went wrong. Please try again.', err_net: 'No connection. Please try again.', loading: 'Loading…',
+      partial: 'Some extensions did not answer. Tap “Search” to try again.', noans: 'No answer',
+      c_connect: 'Connect this domain to my site as soon as the purchase is done',
+      c_nosite: 'You do not have a site yet. After the purchase, create it with “Create your site”, then connect the domain in one tap.',
+      c_nopro: 'To put your site online on this domain, activate the Pro Pack in the app.',
+      c_hasdom: 'Your site already uses “{0}”. After the purchase you can choose to replace it.',
+      next_ok: '{0} is yours. Last step: connect it to your site.', next_nosite: '{0} is yours. Create your site to use it.', next_nopro: '{0} is yours. Activate the Pro Pack to put your site online on this name.',
+      linked: '{0} is connected to your site.', linked_sub: 'It can take a few minutes before it opens everywhere.',
+      ready_t: 'Everything is already set up for your domain', ready_auto: 'Included automatically',
+      ready_1: 'Connection to your site in one tap, no technical setup', ready_2: 'HTTPS padlock (secure site) and “www” redirect handled for you', ready_3: 'One-tap renewal from “My domains” when the expiry date approaches',
+      ready_site: 'Create your site: your site on your own address, with orders, appointments, articles, newsletter and Google search visibility.', open_builder: 'Open Create your site'
     }
   };
 
@@ -142,6 +162,14 @@
       '#menu-screen-domains .ds-banner b{display:block;margin-bottom:2px}' +
       '#menu-screen-domains .ds-banner.info{background:var(--tint-blue);border-color:var(--tint-blue-line);color:var(--tint-blue-ink)}' +
       '#menu-screen-domains .ds-banner.wait{background:var(--tint-amber);border-color:var(--tint-amber-line);color:var(--tint-amber-ink)}' +
+      '#menu-screen-domains .ds-banner.ok{background:var(--tint-green);border-color:var(--tint-green-line);color:var(--tint-green-ink)}' +
+      '#menu-screen-domains .ds-banner .btn{margin-top:8px}' +
+      '#menu-screen-domains .ds-list{margin:0 0 10px;padding:0;list-style:none}' +
+      '#menu-screen-domains .ds-list li{display:flex;gap:8px;align-items:flex-start;font-size:.86rem;line-height:1.45;color:var(--ink-2);padding:4px 0}' +
+      '#menu-screen-domains .ds-list svg{flex:none;margin-top:2px;color:var(--tint-green-ink)}' +
+      '#ds-sheet .ds-opt{display:flex;gap:10px;align-items:flex-start;margin:12px 0 0;font-size:.9rem;color:var(--ink);line-height:1.4}' +
+      '#ds-sheet .ds-opt input{margin-top:3px;width:18px;height:18px;flex:none}' +
+      '#ds-sheet .ds-tip{font-size:.82rem;color:var(--tint-blue-ink);background:var(--tint-blue);border:1px solid var(--tint-blue-line);border-radius:10px;padding:9px 11px;margin:12px 0 0;line-height:1.4}' +
       '#menu-screen-domains .ds-banner.bad{background:var(--tint-red);border-color:var(--tint-red-line);color:var(--tint-red-ink)}' +
       '#menu-screen-domains .ds-banner svg{flex:none;margin-top:1px}' +
       '#menu-screen-domains .ds-mine{padding:12px 0;border-top:1px solid var(--line)}' +
@@ -205,6 +233,10 @@
         '<div id="ds-results"></div>' +
         '<div class="ds-card" id="ds-mine"></div>' +
         '<div class="ds-card"><div class="ds-h">' + esc(L('how')) + '</div><ol class="ds-how"><li>' + esc(L('how1')) + '</li><li>' + esc(L('how2')) + '</li><li>' + esc(L('how3')) + '</li></ol></div>' +
+        '<div class="ds-card"><div class="ds-h">' + esc(L('ready_t')) + '</div><div class="ds-lab" style="margin:0 0 6px">' + esc(L('ready_auto')) + '</div><ul class="ds-list">' +
+          [L('ready_1'), L('ready_2'), L('ready_3')].map(function (x) { return '<li>' + ic(I.check, 16) + '<span>' + esc(x) + '</span></li>'; }).join('') + '</ul>' +
+          '<p class="ds-hint" style="margin:0 0 10px">' + esc(L('ready_site')) + '</p>' +
+          '<button type="button" class="btn btn-outline btn-sm" data-ds="mksite">' + esc(L('open_builder')) + '</button></div>' +
       '</div>';
   }
 
@@ -225,6 +257,18 @@
     return '<div class="ds-banner ' + kind + '">' + ic(icon, 18) + '<div><b>' + esc(title) + '</b>' + (sub ? esc(sub) : '') + '</div></div>';
   }
   function openOrder(o) { return !!(o && (o.status === 'paid' || o.status === 'purchasing' || o.status === 'review')); }
+  // Après un achat : dit clairement quelle est la dernière étape, avec le bouton qui la fait.
+  function nextStep(l, o) {
+    var d = l.domains.filter(function (x) { return x.domain === o.domain; })[0];
+    if (!d) return '';
+    if (d.connected) return banner('ok', I.check, L('linked', o.domain), L('linked_sub'));
+    var btn = function (act, label) { return '<button type="button" class="btn btn-primary btn-sm" data-ds="' + act + '" data-d="' + esc(o.domain) + '">' + esc(label) + '</button>'; };
+    var msg, act, label;
+    if (!l.hasSite) { msg = 'next_nosite'; act = 'mksite'; label = 'create_site'; }
+    else if (!l.proOk) { msg = 'next_nopro'; act = ''; }
+    else { msg = 'next_ok'; act = 'connect'; label = 'connect'; }
+    return '<div class="ds-banner ok">' + ic(I.check, 18) + '<div><b>' + esc(L(msg, o.domain)) + '</b>' + (act ? btn(act, L(label)) : '') + '</div></div>';
+  }
   function renderOrder() {
     var el = document.getElementById('ds-order'); if (!el) return;
     var l = S.list, o = l && l.order, h = '';
@@ -233,7 +277,7 @@
     else if (o && o.status === 'review') h += banner('wait', I.clock, L('review', o.domain), L('review_sub'));
     else if (o && o.status === 'refunded' && o.kind !== 'renew' && seen() !== (o.at || '') && Date.now() - (Date.parse(o.at) || 0) < 86400000) {
       h += banner('bad', I.info, L('refunded', o.domain), o.error ? tr(o.error) : '');
-    }
+    } else if (o && o.status === 'done' && o.kind === 'buy' && Date.now() - (Date.parse(o.at) || 0) < 3 * 86400000) h += nextStep(l, o);
     el.innerHTML = h;
   }
 
@@ -253,11 +297,12 @@
         rows += '<div class="ds-row"><div class="ds-dom">' + domHtml(x.domain) + '</div><div class="ds-price">' + esc(money(x.price)) + '<small>' + esc(L('per_year')) + '</small></div>' +
           (canBuy ? '<button type="button" class="btn btn-primary btn-sm" data-ds="buy" data-d="' + esc(x.domain) + '" data-p="' + esc(x.price) + '">' + esc(L('buy')) + '</button>' : '') + '</div>';
       } else {
-        rows += '<div class="ds-row off"><div class="ds-dom">' + domHtml(x.domain) + '</div><span class="ds-chip no">' + esc(x.state === 'taken' ? L('taken') : L('unsup')) + '</span></div>';
+        rows += '<div class="ds-row off"><div class="ds-dom">' + domHtml(x.domain) + '</div><span class="ds-chip ' + (x.state === 'unknown' ? 'wait' : 'no') + '">' + esc(x.state === 'taken' ? L('taken') : (x.state === 'unknown' ? L('noans') : L('unsup'))) + '</span></div>';
       }
     });
     el.innerHTML = '<div class="ds-card"><div class="ds-h">' + esc(L('res_for', r.label)) + '</div>' +
       (r.typed ? '<p class="ds-hint" style="margin:0 2px 8px">' + esc(L('typed_tld', r.typed)) + '</p>' : '') +
+      (r.partial ? '<p class="ds-hint" style="margin:0 2px 8px">' + esc(L('partial')) + '</p>' : '') +
       (any ? '' : '<p class="ds-empty" style="margin-bottom:8px">' + esc(L('no_res')) + '</p>') + rows + '</div>';
   }
 
@@ -292,6 +337,14 @@
     if (!s) { s = document.createElement('div'); s.id = 'ds-sheet'; s.setAttribute('role', 'dialog'); s.setAttribute('aria-modal', 'true'); s.addEventListener('click', onClick); document.body.appendChild(s); }
     s.innerHTML = '<div class="ds-box">' + html + '</div>';
   }
+  // Dans la fenêtre d'achat : cocher « connecter à mon site » (si c'est possible) ou expliquer la suite.
+  function connectOption(sh) {
+    var l = S.list; if (!l) return '';
+    if (!l.hasSite) return '<div class="ds-tip">' + esc(L('c_nosite')) + '</div>';
+    if (!l.proOk) return '<div class="ds-tip">' + esc(L('c_nopro')) + '</div>';
+    if (l.siteDomain) return '<div class="ds-tip">' + esc(L('c_hasdom', l.siteDomain)) + '</div>';
+    return '<label class="ds-opt"><input type="checkbox" id="ds-conn"' + (sh.connect === false ? '' : ' checked') + '><span>' + esc(L('c_connect')) + '</span></label>';
+  }
   function renderSheet() {
     var sh = S.sheet; if (!sh) { closeSheet(); return; }
     var bal = S.list ? S.list.balance : (me() ? Number(me().balance) || 0 : 0), h = '';
@@ -301,7 +354,7 @@
         '<div class="ds-kv"><span>' + esc(L('price_1y')) + '</span><b>' + esc(money(sh.price)) + '</b></div>' +
         '<div class="ds-kv"><span>' + esc(L('bal_now')) + '</span><b>' + esc(money(bal)) + '</b></div>' +
         (short > 0 ? '' : '<div class="ds-kv"><span>' + esc(L('bal_after')) + '</span><b>' + esc(money(bal - sh.price)) + '</b></div>') +
-        (sh.type === 'buy' ? '<p class="ds-note">' + esc(L('notice')) + '</p>' : '') +
+        (sh.type === 'buy' ? connectOption(sh) + '<p class="ds-note">' + esc(L('notice')) + '</p>' : '') +
         (sh.err ? '<div class="ds-warn">' + esc(sh.err) + '</div>' : '') +
         (short > 0 ? '<div class="ds-warn">' + esc(L('missing', money(short))) + '</div>' : '') +
         '<div class="ds-btns"><button type="button" class="btn btn-outline" data-ds="close">' + esc(L('cancel')) + '</button>' +
@@ -350,18 +403,34 @@
     var inp = document.getElementById('ds-q'), q = inp ? inp.value.trim() : S.q;
     S.q = q;
     if (!q) { if (inp) inp.focus(); return; }
+    try { localStorage.setItem('cn_ds_q', q); } catch (e) { /* ignore */ }
+    var prev = S.res && !S.res.loading ? S.res : null, token = (S.searchId = (S.searchId || 0) + 1);
     S.res = { loading: true }; renderResults();
-    call('domain_shop_search', { name: q }).then(function (r) { S.res = r; syncBalance(r.balance); if (S.list) { S.list.balance = r.balance; renderWallet(); } renderResults(); })
-      .catch(function (e) { S.res = null; renderResults(); toast(e.message || L('err'), 'error'); });
+    function ask(again) {
+      call('domain_shop_search', { name: q }).then(function (r) {
+        if (token !== S.searchId) return;
+        S.res = r; syncBalance(r.balance); if (S.list) { S.list.balance = r.balance; renderWallet(); } renderResults();
+      }).catch(function (e) {
+        if (token !== S.searchId) return;
+        // Panne passagère du registre : un seul nouvel essai automatique ; ensuite on garde les anciens résultats à l'écran.
+        if (again && (e.status === 503 || e.status === 502 || e.status === 504 || !e.status)) { setTimeout(function () { if (token === S.searchId) ask(false); }, 1500); return; }
+        S.res = prev; renderResults(); toast(e.message || L('err'), 'error');
+      });
+    }
+    ask(true);
   }
 
   function findDomain(d) { var l = S.list; return l ? l.domains.filter(function (x) { return x.domain === d; })[0] : null; }
 
   function pay() {
     var sh = S.sheet; if (!sh || S.busy) return;
+    // On lit la case AVANT de redessiner la fenêtre (sinon le choix de la personne serait effacé).
+    if (sh.type === 'buy') { var cb = document.getElementById('ds-conn'); sh.connect = cb ? cb.checked : false; }
     S.busy = true; sh.err = ''; renderSheet();
     var act = sh.type === 'buy' ? 'domain_shop_buy' : 'domain_shop_renew';
-    call(act, { domain: sh.domain, price: sh.price }).then(function (r) {
+    var body = { domain: sh.domain, price: sh.price };
+    if (sh.type === 'buy') body.connect = sh.connect;
+    call(act, body).then(function (r) {
       S.busy = false; closeSheet();
       toast(sh.type === 'buy' ? L('started') : L('renewed'), 'success');
       if (sh.type === 'buy') S.res = null;
@@ -412,15 +481,18 @@
     else if (a === 'mksite') { closeSheet(); go('openSiteBuilderScreen'); }
   }
 
-  function open() {
+  function open(opts) {
     css();
     if (!ensureScreen()) return;
+    var wanted = opts && typeof opts.q === 'string' ? opts.q.trim().slice(0, 70) : '';
+    if (wanted) S.q = wanted; else if (!S.q) { try { S.q = localStorage.getItem('cn_ds_q') || ''; } catch (e) { /* ignore */ } }
     skeleton();
     S.res = null; S.sheet = null; closeSheet();
     go('showMenuScreen', 'domains');
     if (S.list) { renderAll(); } else { renderLogin(); renderWallet(); renderOrder(); renderMine(); }
     markSeen();
     load(false);
+    if (wanted && me()) doSearch();
     try { var q = document.getElementById('ds-q'); if (q && !q.value && me() && !('ontouchstart' in window)) q.focus(); } catch (e) { /* ignore */ }
   }
 
