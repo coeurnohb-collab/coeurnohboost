@@ -360,6 +360,7 @@ var MOCKUP_AI_ENABLED = false;
     no_result: ['Aucun résultat pour', 'No results for', 'Sin resultados para', 'Nessun risultato per', 'Nenhum resultado para'],
     api_row: ['API revendeur', 'Reseller API', 'API de revendedor', 'API rivenditore', 'API de revendedor'],
     tools_row: ['Boîte à outils gratuite', 'Free toolbox', 'Herramientas gratuitas', 'Strumenti gratuiti', 'Ferramentas gratuitas'],
+    svc_domains: ['Achat Domaine', 'Buy a domain', 'Comprar dominio', 'Acquista dominio', 'Comprar domínio'],
     plans_row: ['Plans & tarifs', 'Plans & pricing', 'Planes y precios', 'Piani e prezzi', 'Planos e preços'],
     badge_free: ['Gratuit', 'Free', 'Gratis', 'Gratis', 'Grátis'],
     badge_premium: ['Gratuit + Premium', 'Free + Premium', 'Gratis + Premium', 'Gratis + Premium', 'Grátis + Premium'],
@@ -576,6 +577,7 @@ var MOCKUP_AI_ENABLED = false;
     ticket: '<path d="M2 9a3 3 0 0 1 0 6v3a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-3a3 3 0 0 1 0-6V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><line x1="13" y1="5" x2="13" y2="19" stroke-dasharray="2 2"/>',
     trophy: '<path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M17 5h2a2 2 0 0 1 2 2 4 4 0 0 1-4 4"/><path d="M7 5H5a2 2 0 0 0-2 2 4 4 0 0 0 4 4"/>',
     bell: '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>',
+    domain: '<rect x="3" y="4" width="18" height="16" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="6.5" y1="6.5" x2="6.51" y2="6.5"/><line x1="9.5" y1="6.5" x2="9.51" y2="6.5"/><path d="M8 15h8"/>',
     wallet: '<path d="M20 12V8H6a2 2 0 0 1 0-4h12v4"/><path d="M4 6v12a2 2 0 0 0 2 2h14v-4"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/>',
     bag: '<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/>',
     network: '<circle cx="12" cy="12" r="3"/><circle cx="5" cy="6" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="5" cy="18" r="2"/><circle cx="19" cy="18" r="2"/><path d="M7 7l3 3M17 7l-3 3M7 17l3-3M17 17l-3-3"/>',
@@ -625,6 +627,7 @@ var MOCKUP_AI_ENABLED = false;
     { id: 'site', grp: 'service', sec: 'business', tk: 'svc_site', ic: 'globe', c: ['#4dabf7', '#1971c2'], b: 'premium', fn: 'openSiteBuilderScreen', kw: 'site web mini site vitrine page website landing creer' },
     { id: 'business', grp: 'service', sec: 'business', tk: 'svc_business', ic: 'building', c: ['#9775fa', '#6741d9'], b: 'pro', fn: 'openBusinessScreen', kw: 'entreprise societe commerce catalogue coupon clients company shop crm' },
     { id: 'invoices', grp: 'service', sec: 'business', tk: 'svc_invoices', ic: 'file', c: ['#38d9a9', '#0ca678'], b: 'free', fn: 'openInvoiceScreen', kw: 'facture recu devis invoice receipt pdf' },
+    { id: 'domains', grp: 'service', sec: 'business', lk: 'svc_domains', ic: 'domain', c: ['#12b886', '#087f5b'], b: 'new', go: function () { openDomainShopScreen(); }, kw: 'domaine nom de domaine achat acheter domain buy com adresse site web hebergement dns monsite extension' },
     { id: 'jobs', grp: 'service', sec: 'jobs', tk: 'svc_jobs', ic: 'briefcase', c: ['#ffd43b', '#f08c00'], b: 'free', fn: 'openJobsScreen', kw: 'emploi travail freelance offre cv job work hiring recrutement' },
     { id: 'academy', grp: 'service', sec: 'jobs', tk: 'svc_academy', ic: 'cap', c: ['#748ffc', '#3b5bdb'], b: 'paid', fn: 'openAcademyScreen', kw: 'academie formation cours apprendre course learn training ecole' },
     { id: 'immo', grp: 'service', sec: 'immo', tk: 'svc_immo', ic: 'home', c: ['#f783ac', '#d6336c'], b: 'free', fn: 'openImmoScreen', kw: 'immobilier maison terrain louer vendre appartement real estate rent house' },
@@ -767,6 +770,7 @@ var MOCKUP_AI_ENABLED = false;
       var rows = card.querySelectorAll('.menu-category-row');
       var ref = rows.length >= 3 ? rows[3] : null; // avant "Aide & informations"
       var extra = [
+        { id: 'domains', lab: 'mp-row-domains' },
         { id: 'apirow', lab: 'mp-row-api' },
         { id: 'toolbox', lab: 'mp-row-tools' },
         { id: 'plans', lab: 'mp-row-plans' }
@@ -890,6 +894,8 @@ var MOCKUP_AI_ENABLED = false;
     var st = $('mp-shortcuts-title'); if (st) st.textContent = L('shortcuts');
     var pt = $('mp-promo-title'); if (pt) pt.textContent = L('promo_title');
     var ps = $('mp-promo-sub'); if (ps) ps.textContent = L('promo_sub');
+    var dr = $('mp-row-domains'); if (dr) dr.textContent = L('svc_domains');
+    var drb = $('mp-row-domains-badge'); if (drb) drb.textContent = L('badge_new');
     var ar = $('mp-row-api'); if (ar) ar.textContent = L('api_row');
     var arb = $('mp-row-api-badge'); if (arb) arb.textContent = L('badge_new');
     var a = $('mp-row-tools'); if (a) a.textContent = L('tools_row');
@@ -955,6 +961,22 @@ var MOCKUP_AI_ENABLED = false;
     if (!enhanced) return;
     renderChrome(); renderToolsList();
     call('showMenuScreen', 'tools');
+  }
+  // « Achat Domaine » : l'écran est un fichier à part, chargé seulement quand on l'ouvre.
+  var DOMAIN_JS = 'domain-shop.js?v=20261106';
+  function openDomainShopScreen() {
+    if (!getUser()) { call('closeMainMenu'); call('openAuth', 'login'); return; }
+    ensureMenuOpen();
+    function run() { try { root.CNDomainShop.open(); } catch (e) { toast(L('unavailable')); } }
+    if (root.CNDomainShop) { run(); return; }
+    var sc = document.querySelector('script[data-cn-ds]');
+    if (!sc) {
+      sc = document.createElement('script');
+      sc.src = DOMAIN_JS; sc.async = true; sc.setAttribute('data-cn-ds', '1');
+      sc.onerror = function () { if (sc.parentNode) sc.parentNode.removeChild(sc); toast(L('unavailable')); };
+      document.head.appendChild(sc);
+    }
+    sc.addEventListener('load', run);
   }
   function openPlansScreen() {
     if (!enhanced) return;
@@ -2160,14 +2182,32 @@ var MOCKUP_AI_ENABLED = false;
     }, 500);
   }
 
+  // Lien de notification ?domaines=1 (domaine acheté, renouvelé) : ouvre « Achat Domaine ».
+  var domLink = false;
+  try { domLink = !!new URLSearchParams(location.search).get('domaines'); } catch (e) { /* ignore */ }
+  function handleDomainLink() {
+    if (!domLink) return;
+    var tries = 0;
+    var iv = setInterval(function () {
+      tries++;
+      if (getUser() && typeof root.openMainMenu === 'function') {
+        clearInterval(iv);
+        setTimeout(function () {
+          try { openDomainShopScreen(); if (window.history && history.replaceState) history.replaceState({}, '', location.pathname); } catch (e) { console.warn('[menu-pro] lien domaines', e); }
+        }, 700);
+      } else if (tries > 60) clearInterval(iv);
+    }, 400);
+  }
+
   function init() {
     try { enhanceMenu(); refresh(); } catch (e) { console.warn('[menu-pro] init', e); }
     hookOpenMainMenu();
     handleDeepLink();
+    handleDomainLink();
     handleLocationStartup();
   }
 
-  root.MenuPro = { openLocation: openLocationCenter, openTools: function () { ensureMenuOpen(); openToolsScreen(); }, openPlans: function () { ensureMenuOpen(); openPlansScreen(); }, openTool: openTool, refresh: refresh };
+  root.MenuPro = { openDomains: openDomainShopScreen, openLocation: openLocationCenter, openTools: function () { ensureMenuOpen(); openToolsScreen(); }, openPlans: function () { ensureMenuOpen(); openPlansScreen(); }, openTool: openTool, refresh: refresh };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();

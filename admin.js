@@ -1817,13 +1817,51 @@ function dmDrawPreview() {
     return `<div class="admin-row-meta" style="margin-bottom:3px">Coût réel ${cost} $ &rarr; le client paie <strong>${price} $</strong> &rarr; votre bénéfice <strong style="color:#067647">${Math.round((price - cost) * 100) / 100} $</strong></div>`;
   }).join('');
 }
+// Réglages du service Achat Domaine (prix à part de Crée ton site).
+function dmReadShop() {
+  const num = (id, d, lo, hi) => { const v = parseFloat((document.getElementById(id) || {}).value); return isFinite(v) ? Math.min(hi, Math.max(lo, v)) : d; };
+  const on = document.getElementById('dm-sh-on');
+  return { on: on ? !!on.checked : true, base: num('dm-sh-base', 15, 0, 500), marginMin: num('dm-sh-min', 5, 0, 100), marginPct: num('dm-sh-pct', 30, 0, 300) };
+}
+// Une ligne par extension : coût réel chez Vercel, prix payé par le client dans Achat Domaine et dans Crée ton site, bénéfice.
+function dmDrawShopPreview() {
+  const el = document.getElementById('dm-sh-preview');
+  if (!el || !DM_LAST) return;
+  const sh = dmReadShop(), st = dmReadSettings(), base = Number(DM_LAST.base) || 48, costs = DM_LAST.tldCosts || {};
+  const tlds = Object.keys(costs);
+  if (!tlds.length) {
+    el.innerHTML = '<p class="muted small" style="margin:0 0 6px">Les prix réels de Vercel ne sont pas disponibles pour le moment (rouvrez cet écran dans un instant). Exemples :</p>' + [10, 15, 25, 40].map((cost) => {
+      const price = dmPrice(sh.base, cost, sh);
+      return `<div class="admin-row-meta" style="margin-bottom:3px">Coût ${cost} $ &rarr; client <strong>${price} $</strong> &rarr; bénéfice <strong style="color:#067647">${Math.round((price - cost) * 100) / 100} $</strong></div>`;
+    }).join('');
+    return;
+  }
+  el.innerHTML = tlds.map((t) => {
+    const c = costs[t], price = dmPrice(sh.base, c.buy, sh), renew = dmPrice(sh.base, c.renew, sh), site = dmPrice(base, c.buy, st);
+    return `<div class="admin-row" style="margin-bottom:6px;padding:8px 10px">
+      <div class="admin-row-title">.${escapeHtml(t)}</div>
+      <div class="admin-row-meta">Coût réel chez Vercel : <strong>${c.buy} $</strong> par an (renouvellement ${c.renew} $)</div>
+      <div class="admin-row-meta">Achat Domaine : le client paie <strong>${price} $</strong> &rarr; bénéfice <strong style="color:#067647">${Math.round((price - c.buy) * 100) / 100} $</strong> (renouvellement ${renew} $)</div>
+      <div class="admin-row-meta muted">Crée ton site : le client paie ${site} $</div>
+    </div>`;
+  }).join('');
+}
+async function saveShopSettings() {
+  try {
+    renderDomainAutoSetup(await domainAdminCall({ action: 'site_domain_admin_save', settings: { shop: dmReadShop() } }));
+    const msg = document.getElementById('dm-sh-msg');
+    if (msg) { msg.classList.remove('hidden'); setTimeout(() => msg.classList.add('hidden'), 2500); }
+  } catch (e) { alert(e.message); }
+}
 function renderDomainAutoSetup(j) {
   DM_LAST = j;
   const el = document.getElementById('admin-domain-auto');
   const row = (label, ok, hint) => `<div class="admin-row-meta" style="margin-bottom:4px"><strong style="color:${ok ? '#067647' : '#b42318'}">${ok ? 'Prêt' : 'À faire'}</strong> — ${label}${ok ? '' : ' <span class="muted">(' + hint + ')</span>'}</div>`;
   const c = j.contact || {};
   const st = j.settings || { marginMin: 5, marginPct: 30, maxPerDay: 10, on: true };
+  const sh = st.shop || { on: true, base: 15, marginMin: 5, marginPct: 30 };
   const stats = j.stats || { count: 0, revenue: 0, cost: 0, profit: 0, last: [] };
+  const shopStats = stats.shop || { count: 0, revenue: 0, profit: 0 };
   const fields = DOMAIN_CONTACT_FIELDS.map(([k, label, ph]) => `
     <label class="pricing-service-label" style="display:block;margin-top:8px">${label}</label>
     <input type="text" class="text-input" id="dm-ct-${k}" maxlength="120" placeholder="${escapeHtml(ph)}" value="${escapeHtml(c[k] || '')}">`).join('');
@@ -1843,7 +1881,7 @@ function renderDomainAutoSetup(j) {
           </div>`).join('')}
       </div>
     </div>` : '';
-  const sales = (stats.last || []).slice(0, 5).map((x) => `<div class="admin-row-meta" style="margin-bottom:3px">${escapeHtml(new Date(x.at).toLocaleDateString('fr-FR'))} · ${escapeHtml(x.domain)} (${x.kind === 'renew' ? 'renouvellement' : 'achat'}) · payé ${x.price} $ · coût ${x.cost} $ · <strong style="color:#067647">bénéfice ${x.profit} $</strong></div>`).join('');
+  const sales = (stats.last || []).slice(0, 5).map((x) => `<div class="admin-row-meta" style="margin-bottom:3px">${escapeHtml(new Date(x.at).toLocaleDateString('fr-FR'))} · ${escapeHtml(x.domain)} (${x.kind === 'renew' ? 'renouvellement' : 'achat'}${x.via === 'shop' ? ', Achat Domaine' : ''}) · payé ${x.price} $ · coût ${x.cost} $ · <strong style="color:#067647">bénéfice ${x.profit} $</strong></div>`).join('');
   const lv = (j.vercel && j.vercel.live) || { state: 'none' };
   const liveRow = lv.state === 'ok'
     ? `<div class="admin-row-meta" style="margin-bottom:4px"><strong style="color:#067647">Prêt</strong> — Connexion à Vercel vérifiée${lv.project ? ' (projet « ' + escapeHtml(lv.project) + ' »)' : ''}</div>`
@@ -1875,14 +1913,15 @@ function renderDomainAutoSetup(j) {
         <div class="admin-row-meta" style="margin-bottom:3px">Ventes : <strong>${stats.count}</strong></div>
         <div class="admin-row-meta" style="margin-bottom:3px">Payé par les clients : <strong>${stats.revenue} $</strong></div>
         <div class="admin-row-meta" style="margin-bottom:3px">Coût réel chez Vercel : <strong>${stats.cost} $</strong></div>
-        <div class="admin-row-meta" style="margin-bottom:8px">Bénéfice : <strong style="color:#067647">${stats.profit} $</strong> <span class="muted small">(avant frais éventuels de votre carte)</span></div>
+        <div class="admin-row-meta" style="margin-bottom:3px">Bénéfice : <strong style="color:#067647">${stats.profit} $</strong> <span class="muted small">(avant frais éventuels de votre carte)</span></div>
+        <div class="admin-row-meta" style="margin-bottom:8px">dont Achat Domaine : <strong>${shopStats.count}</strong> vente(s), <strong style="color:#067647">${shopStats.profit} $</strong> de bénéfice</div>
         ${sales || '<p class="muted small" style="margin:0">Aucune vente pour le moment.</p>'}
       </div>
     </div>
 
     <div class="order-box" style="margin-top:14px">
       <div class="pricing-service-block">
-        <label class="pricing-service-label">Prix, marge et sécurité</label>
+        <label class="pricing-service-label">Crée ton site : prix, marge et sécurité</label>
         <p class="muted small" style="margin:-4px 0 8px">Le client paie le plus élevé entre : le prix de base (${j.base} $ par an = prix par mois ci-dessous × 12) et le coût réel + votre marge. Il ne paie jamais moins que le coût réel + 1 $, donc vous ne perdez pas d'argent.</p>
         <label class="pricing-service-label" style="display:block;margin-top:8px">Marge minimale ($)</label>
         <input type="number" step="0.5" min="0" max="100" class="text-input" id="dm-st-min" value="${st.marginMin}" oninput="dmDrawPreview()">
@@ -1901,6 +1940,24 @@ function renderDomainAutoSetup(j) {
 
     <div class="order-box" style="margin-top:14px">
       <div class="pricing-service-block">
+        <label class="pricing-service-label">Achat Domaine : prix de vente</label>
+        <p class="muted small" style="margin:-4px 0 8px">Service « Achat Domaine » du menu et des Services : les clients y achètent un nom seul. Ses prix sont séparés de Crée ton site. Le client paie le plus élevé entre le prix minimum et le coût réel + votre marge, jamais moins que le coût réel + 1 $. La limite d'achats par jour et la pause générale ci-dessus s'appliquent aussi ici.</p>
+        <label class="pricing-service-label" style="display:block;margin-top:8px">Prix minimum par an ($)</label>
+        <input type="number" step="0.5" min="0" max="500" class="text-input" id="dm-sh-base" value="${sh.base}" oninput="dmDrawShopPreview()">
+        <label class="pricing-service-label" style="display:block;margin-top:8px">Marge minimale ($)</label>
+        <input type="number" step="0.5" min="0" max="100" class="text-input" id="dm-sh-min" value="${sh.marginMin}" oninput="dmDrawShopPreview()">
+        <label class="pricing-service-label" style="display:block;margin-top:8px">Marge en pourcentage du coût (%)</label>
+        <input type="number" step="1" min="0" max="300" class="text-input" id="dm-sh-pct" value="${sh.marginPct}" oninput="dmDrawShopPreview()">
+        <label style="display:flex;align-items:flex-start;gap:8px;margin-top:12px;font-size:.9rem"><input type="checkbox" id="dm-sh-on" style="margin-top:3px" ${sh.on ? 'checked' : ''}> Autoriser Achat Domaine (décochez pour fermer ce service)</label>
+        <p class="pricing-service-label" style="margin:14px 0 6px">Prix de chaque extension et votre bénéfice</p>
+        <div id="dm-sh-preview"></div>
+        <button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="saveShopSettings()">Enregistrer</button>
+        <span id="dm-sh-msg" class="muted small hidden" style="margin-left:8px">Enregistré</span>
+      </div>
+    </div>
+
+    <div class="order-box" style="margin-top:14px">
+      <div class="pricing-service-block">
         <label class="pricing-service-label">Coordonnées du titulaire des domaines</label>
         <p class="muted small" style="margin:-2px 0 4px">Obligatoires pour enregistrer un domaine. Jamais montrées aux utilisateurs.</p>
         ${fields}
@@ -1909,6 +1966,7 @@ function renderDomainAutoSetup(j) {
       </div>
     </div>`;
   dmDrawPreview();
+  dmDrawShopPreview();
 }
 async function saveDomainSettings() {
   try {
