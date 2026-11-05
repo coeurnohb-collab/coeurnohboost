@@ -412,6 +412,17 @@
     dm_seo: ['Pour être trouvé plus vite : ouvrez Visibilité et envoyez votre site aux moteurs de recherche.', 'To be found faster: open Visibility and send your site to search engines.'], dm_seo_b: ['Ouvrir Visibilité', 'Open Visibility'],
     dm_now: ['Votre site est en ligne sur', 'Your site is live at'], dm_removed: ['Domaine retiré.', 'Domain removed.'],
     mo_t: ['Mes commandes', 'My orders', 'Mis pedidos', 'I miei ordini', 'Meus pedidos'], mo_none: ['Aucune commande pour le moment.', 'No orders yet.', 'Aún no hay pedidos.', 'Nessun ordine per ora.', 'Nenhum pedido por enquanto.'], mo_paid: ['Payée', 'Paid', 'Pagado', 'Pagato', 'Pago'], mo_unpaid: ['À payer', 'To pay', 'Por pagar', 'Da pagare', 'A pagar'], mo_order: ['Commande', 'Order', 'Pedido', 'Ordine', 'Pedido'],
+    ins_bar: ['Installer {n}', 'Install {n}', 'Instalar {n}', 'Installa {n}', 'Instalar {n}'],
+    ins_bar_sub: ['Accès direct, comme une application', 'Direct access, like an app', 'Acceso directo, como una aplicación', 'Accesso diretto, come un’app', 'Acesso direto, como uma aplicação'],
+    ins_go: ['Installer', 'Install', 'Instalar', 'Installa', 'Instalar'],
+    ins_help_t: ['Ajouter à l’écran d’accueil', 'Add to home screen', 'Añadir a la pantalla de inicio', 'Aggiungi alla schermata Home', 'Adicionar ao ecrã principal'],
+    ins_i1: ['Touchez le bouton Partager (le carré avec une flèche vers le haut).', 'Tap the Share button (the square with an arrow pointing up).', 'Toca el botón Compartir (el cuadrado con una flecha hacia arriba).', 'Tocca il pulsante Condividi (il quadrato con la freccia verso l’alto).', 'Toque no botão Partilhar (o quadrado com uma seta para cima).'],
+    ins_i2: ['Faites défiler et touchez « Sur l’écran d’accueil ».', 'Scroll down and tap “Add to Home Screen”.', 'Desplázate y toca «Añadir a pantalla de inicio».', 'Scorri e tocca «Aggiungi alla schermata Home».', 'Deslize e toque em «Adicionar ao ecrã principal».'],
+    ins_i3: ['Touchez « Ajouter » : l’icône du site apparaît sur votre écran.', 'Tap “Add”: the site icon appears on your screen.', 'Toca «Añadir»: el icono del sitio aparece en tu pantalla.', 'Tocca «Aggiungi»: l’icona del sito appare sulla schermata.', 'Toque em «Adicionar»: o ícone do site aparece no ecrã.'],
+    ins_a1: ['Ouvrez le menu de votre navigateur (les trois points en haut à droite).', 'Open your browser menu (the three dots at the top right).', 'Abre el menú del navegador (los tres puntos arriba a la derecha).', 'Apri il menu del browser (i tre puntini in alto a destra).', 'Abra o menu do navegador (os três pontos no canto superior direito).'],
+    ins_a2: ['Touchez « Installer l’application » ou « Ajouter à l’écran d’accueil ».', 'Tap “Install app” or “Add to Home screen”.', 'Toca «Instalar aplicación» o «Añadir a pantalla de inicio».', 'Tocca «Installa app» o «Aggiungi a schermata Home».', 'Toque em «Instalar aplicação» ou «Adicionar ao ecrã principal».'],
+    ins_a3: ['Confirmez : le site s’ouvre ensuite directement depuis son icône.', 'Confirm: the site then opens directly from its icon.', 'Confirma: el sitio se abrirá directamente desde su icono.', 'Conferma: il sito si aprirà direttamente dalla sua icona.', 'Confirme: o site abre depois diretamente a partir do ícone.'],
+    ins_tip: ['Astuce : si vous êtes dans Facebook, Instagram ou WhatsApp, ouvrez d’abord ce site dans Chrome ou Safari.', 'Tip: if you are inside Facebook, Instagram or WhatsApp, open this site in Chrome or Safari first.', 'Consejo: si estás en Facebook, Instagram o WhatsApp, abre primero este sitio en Chrome o Safari.', 'Suggerimento: se sei in Facebook, Instagram o WhatsApp, apri prima questo sito in Chrome o Safari.', 'Dica: se estiver no Facebook, Instagram ou WhatsApp, abra primeiro este site no Chrome ou Safari.'],
     ins_t: ['Installer sur mon écran', 'Install on my screen', 'Instalar en mi pantalla', 'Installa sulla schermata', 'Instalar no meu ecrã'], ins_ios: ['Sur iPhone : touchez le bouton Partager, puis « Sur l’écran d’accueil ».', 'On iPhone: tap the Share button, then “Add to Home Screen”.', 'En iPhone: toca el botón Compartir y luego «Añadir a pantalla de inicio».', 'Su iPhone: tocca Condividi, poi «Aggiungi alla schermata Home».', 'No iPhone: toque em Partilhar e depois em «Adicionar ao ecrã principal».'], ins_ok: ['Site installé sur votre écran.', 'Site installed on your screen.', 'Sitio instalado en tu pantalla.', 'Sito installato sulla schermata.', 'Site instalado no seu ecrã.'],
     co_track: ['Connectez-vous pour retrouver vos commandes.', 'Sign in to find your orders.', 'Inicia sesión para ver tus pedidos.', 'Accedi per ritrovare i tuoi ordini.', 'Entre para ver os seus pedidos.'],
     f_tagline: ['Slogan', 'Tagline', 'Eslogan', 'Slogan', 'Slogan'],
@@ -626,7 +637,13 @@
     '.cn-pop button:hover,.cn-pop a:hover{background:var(--accent-soft,rgba(37,99,235,.1))}' +
     '.cn-pop button.on{color:var(--accent,#2563eb)}' +
     '.cn-pop .who{padding:8px 12px 6px;font-size:.76rem;color:var(--muted,#5b6678);word-break:break-all}' +
-    '.cn-fab{position:fixed;left:14px;bottom:14px;z-index:60;box-shadow:0 12px 30px -10px rgba(0,0,0,.45);height:44px;padding:0 16px}' +
+    '.cn-ibar{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--card,#fff);color:var(--ink,#0f172a);border-bottom:1px solid var(--border,#e4e8ef);font-family:inherit}' +
+    '.cn-ibar .ic{flex:0 0 auto;width:34px;height:34px;border-radius:8px;object-fit:cover;background:var(--accent,#2563eb);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.95rem}' +
+    '.cn-ibar .tx{flex:1;min-width:0;line-height:1.25}.cn-ibar .tx b{display:block;font-size:.8rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cn-ibar .tx span{display:block;font-size:.72rem;color:var(--muted,#5b6678);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}' +
+    '.cn-ibar .go{flex:0 0 auto;border:0;border-radius:8px;background:var(--accent,#2563eb);color:#fff;font:700 .78rem/1 inherit;font-family:inherit;padding:9px 14px;cursor:pointer}' +
+    '.cn-ibar .no{flex:0 0 auto;border:0;background:none;color:var(--muted,#5b6678);width:30px;height:30px;border-radius:50%;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}' +
+    '.cn-steps{list-style:none;margin:6px 0 4px;padding:0;display:grid;gap:10px;counter-reset:s}.cn-steps li{counter-increment:s;display:flex;gap:12px;align-items:flex-start;font-size:.92rem;line-height:1.45}' +
+    '.cn-steps li::before{content:counter(s);flex:0 0 auto;width:24px;height:24px;border-radius:50%;background:var(--accent,#2563eb);color:#fff;font-size:.78rem;font-weight:700;display:flex;align-items:center;justify-content:center;margin-top:1px}' +
     '.cn-ov{position:fixed;inset:0;z-index:200;background:rgba(2,6,23,.55);display:flex;align-items:flex-end;justify-content:center;animation:cnfade .18s}' +
     '@keyframes cnfade{from{opacity:0}to{opacity:1}}' +
     '.cn-sheet{width:100%;max-width:520px;max-height:92vh;overflow:auto;background:var(--card,#fff);color:var(--ink,#0f172a);border-radius:22px 22px 0 0;padding:18px 18px 22px;font-family:inherit;-webkit-overflow-scrolling:touch}' +
@@ -809,7 +826,7 @@
   }
 
   /* ------------------------------------------------------------------ 6. BARRE D'OUTILS : langue + connexion + « Mon espace » */
-  var tools, langBtn, langPop, accBtn, accPop, fab;
+  var tools, langBtn, langPop, accBtn, accPop;
   function closePops() { if (langPop) langPop.classList.remove('open'); if (accPop) accPop.classList.remove('open'); }
   function buildTools() {
     var row = document.querySelector('.topbar-row');
@@ -853,7 +870,6 @@
     if (!user) { A(accBtn, icon(IC.user, 16), E('span', 't', U('login'))); accBtn.setAttribute('aria-label', U('login')); }
     else if (isOwner || isManager) { accBtn.className = 'cn-btn pri keep'; A(accBtn, icon(IC.grid, 16), E('span', 't', U('myspace')), ownerBadge ? E('i', 'dot') : null); accBtn.setAttribute('aria-label', U('myspace')); }
     else { var ini = E('span', 't', (user.displayName || user.email || '?').trim().charAt(0).toUpperCase()); ini.style.display = 'inline'; A(accBtn, icon(IC.user, 16), ini); accBtn.setAttribute('aria-label', U('signed')); }
-    if (fab) { fab.textContent = ''; A(fab, icon(IC.grid, 18), E('span', '', U('myspace')), ownerBadge ? E('i', 'dot') : null); }
   }
   function drawAccPop() {
     accPop.textContent = '';
@@ -872,7 +888,6 @@
     try { window.dispatchEvent(new CustomEvent('cnlang', { detail: l })); } catch (e) { /* ignore */ }
   }
   function enterSpaceUser() {
-    if (!fab) { fab = E('button', 'cn-rt cn-btn pri cn-fab keep'); fab.type = 'button'; fab.onclick = openSpace; document.body.appendChild(fab); }
     drawAcc();
     call('site_owner_overview', {}).then(function (j) { ownerBadge = !!((j.leads && j.leads.fresh) || (j.help && j.help.unread)); drawAcc(); }).catch(function () { });
     if (/[?&]espace=1\b/.test(location.search) && !spaceOpen && !autoOpened) { autoOpened = true; openSpace(); }
@@ -897,7 +912,6 @@
     drawAcc();
     if (isOwner) { inviteToken = ''; enterSpaceUser(); }
     else {
-      if (fab) { fab.remove(); fab = null; }
       if (user && C.kind === 'site' && C.id && !C.sample && !C.preview) { if (inviteToken) acceptInvite(); else checkManager(); }
     }
     if (!user && spaceOpen) closeSpace();
@@ -1834,7 +1848,7 @@
   /* ------------------------------------------------------------------ 8b. VISITEUR : mes commandes, installation sur l'écran */
   window.cnAuthToken = function () { return auth && auth.currentUser ? auth.currentUser.getIdToken() : ''; };
   var coHint = null, deferredInstall = null;
-  window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); deferredInstall = e; var b = document.getElementById('cn-install'); if (b) b.hidden = false; });
+  window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); deferredInstall = e; var b = document.getElementById('cn-install'); if (b) b.hidden = false; if (typeof scheduleInsBar === 'function' && !isStandalone()) scheduleInsBar(); });
   function drawCoHint() {
     var f = document.getElementById('co-form'); if (!f || !C.co || C.preview) return;
     if (user) { if (coHint) { coHint.remove(); coHint = null; } return; }
@@ -1857,17 +1871,61 @@
       });
     }).catch(function (e) { box.textContent = ''; box.appendChild(E('p', 'cn-p', e.message || U('err'))); });
   }
-  function initInstall() {
-    var b = document.getElementById('cn-install'); if (!b || !C.pwa || C.preview || C.sample) return;
-    if ((window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone) return;
-    b.textContent = ''; b.appendChild(icon(IC.download, 16)); b.appendChild(document.createTextNode(U('ins_t')));
-    if ('serviceWorker' in navigator) { try { navigator.serviceWorker.register((C.base || '') + '/sw.js', { scope: (C.base || '') + '/' }).catch(function () { }); } catch (e) { /* ignore */ } }
-    var ios = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-    window.addEventListener('appinstalled', function () { b.hidden = true; deferredInstall = null; toast(U('ins_ok')); });
-    if (ios || deferredInstall) b.hidden = false;
-    b.onclick = function () {
-      if (deferredInstall) { var d = deferredInstall; deferredInstall = null; d.prompt(); if (d.userChoice) d.userChoice.then(function () { b.hidden = true; }); } else toast(U('ins_ios'));
+  // Installation sur l'écran d'accueil : bandeau discret en haut de page (une fois, puis plus pendant 14 jours),
+  // bouton dans le pied de page, et explications pas à pas quand le navigateur ne propose pas l'installation lui-même.
+  function isStandalone() { return !!((window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone); }
+  function insEnv() {
+    var ua = navigator.userAgent || '';
+    return {
+      ios: /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1),
+      inApp: /FBAN|FBAV|Instagram|Line\/|MicroMessenger|WhatsApp|TikTok|musical_ly|; wv\)/i.test(ua)
     };
+  }
+  var insBar = null, insTimer = 0;
+  function insKey() { return 'cn_ins_x_' + (C.slug || C.host || 's'); }
+  function hideInsBar() { if (insBar) { insBar.remove(); insBar = null; } }
+  function openInstallHelp() {
+    var env = insEnv(), ov = overlay(), s = ov.s;
+    var hd = E('div', 'cn-hd'), x = E('button', 'cn-x'); x.type = 'button'; x.setAttribute('aria-label', U('close')); x.appendChild(icon(IC.x, 16)); x.onclick = function () { ov.o.remove(); };
+    A(hd, E('h2', '', U('ins_help_t')), x); A(s, hd);
+    var ol = E('ol', 'cn-steps');
+    (env.ios ? ['ins_i1', 'ins_i2', 'ins_i3'] : ['ins_a1', 'ins_a2', 'ins_a3']).forEach(function (k) { ol.appendChild(E('li', '', U(k))); });
+    A(s, ol);
+    if (env.inApp) A(s, E('p', 'cn-p', U('ins_tip')));
+  }
+  function installNow() {
+    if (deferredInstall) {
+      var d = deferredInstall; deferredInstall = null; d.prompt();
+      if (d.userChoice) d.userChoice.then(function (r) { if (r && r.outcome === 'accepted') hideInsBar(); });
+      return;
+    }
+    openInstallHelp();
+  }
+  function showInsBar() {
+    if (insBar || isStandalone() || !C.pwa || C.preview || C.sample) return;
+    if (!(window.matchMedia && matchMedia('(max-width: 760px)').matches)) return;
+    var env = insEnv();
+    if (!(deferredInstall || (env.ios && !env.inApp))) return;
+    try { var t = parseInt(localStorage.getItem(insKey()) || '0', 10); if (t && Date.now() - t < 14 * 86400000) return; } catch (e) { /* ignore */ }
+    var m = document.querySelector('meta[property="og:site_name"]'), name = (m && m.content) || document.title || '';
+    var lg = document.querySelector('.topbar .brand-logo'), ic;
+    if (lg && lg.tagName === 'IMG' && lg.src) { ic = E('img', 'ic'); ic.src = lg.src; ic.alt = ''; } else ic = E('span', 'ic', (name.trim().charAt(0) || '?').toUpperCase());
+    var tx = E('div', 'tx'); A(tx, E('b', '', U('ins_bar').replace('{n}', name)), E('span', '', U('ins_bar_sub')));
+    var go = E('button', 'go', U('ins_go')); go.type = 'button'; go.onclick = installNow;
+    var no = E('button', 'no'); no.type = 'button'; no.setAttribute('aria-label', U('close')); no.appendChild(icon(IC.x, 14));
+    no.onclick = function () { try { localStorage.setItem(insKey(), String(Date.now())); } catch (e) { /* ignore */ } hideInsBar(); };
+    insBar = E('div', 'cn-rt cn-ibar'); A(insBar, ic, tx, go, no);
+    document.body.insertBefore(insBar, document.body.firstChild);
+  }
+  function scheduleInsBar() { clearTimeout(insTimer); insTimer = setTimeout(showInsBar, 2500); }
+  function initInstall() {
+    if (!C.pwa || C.preview || C.sample) return;
+    if ('serviceWorker' in navigator) { try { navigator.serviceWorker.register((C.base || '') + '/sw.js', { scope: (C.base || '') + '/' }).catch(function () { }); } catch (e) { /* ignore */ } }
+    if (isStandalone()) return;
+    window.addEventListener('appinstalled', function () { var b = document.getElementById('cn-install'); if (b) b.hidden = true; hideInsBar(); deferredInstall = null; toast(U('ins_ok')); });
+    var b = document.getElementById('cn-install');
+    if (b) { b.textContent = ''; b.appendChild(icon(IC.download, 16)); b.appendChild(document.createTextNode(U('ins_t'))); b.hidden = false; b.onclick = installNow; }
+    scheduleInsBar();
   }
 
   /* ------------------------------------------------------------------ 9. DÉMARRAGE */

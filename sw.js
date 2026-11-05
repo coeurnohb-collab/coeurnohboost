@@ -270,6 +270,9 @@ self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET' || url.origin !== self.location.origin || url.pathname.startsWith('/api/') || url.pathname.startsWith('/__/')) {
     return;
   }
+  // Les sites des utilisateurs (/s/…) et les boutiques (/panel/…) ne sont JAMAIS gérés ici : sinon, hors connexion, le visiteur verrait
+  // l'écran de l'application Coeurnoh au lieu de la page du site. Chaque site a son propre service worker (scope /s/<nom>/).
+  if (/^\/(?:s|panel)\//.test(url.pathname)) return;
   // Vidéos d'ambiance et requêtes partielles (Range) : le navigateur les gère seul.
   if (event.request.headers.has('range') || /\.(mp4|webm)$/i.test(url.pathname)) {
     return;
