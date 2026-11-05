@@ -784,7 +784,10 @@ const WALLET_TX_LABELS = {
   business_pro_income: { label: 'Revenu Business Pro', icon: 'briefcase' },
   withdrawal_request: { label: 'Demande de retrait', icon: 'bank' },
   withdrawal_rejected_refund: { label: 'Retrait refusé, remboursé', icon: 'undo' },
-  referral_bonus: { label: 'Bonus de parrainage', icon: 'gift' }
+  referral_bonus: { label: 'Bonus de parrainage', icon: 'gift' },
+  client_site_transfer: { label: 'Solde ajouté à un site client', icon: 'card' },
+  client_site_transfer_in: { label: 'Solde reçu pour la préparation du site', icon: 'card' },
+  client_site_refund: { label: 'Solde récupéré (projet client supprimé)', icon: 'undo' }
 };
 
 async function loadWalletHistory() {
@@ -2883,6 +2886,7 @@ if (fbReady) {
       if (cnResume) cnApplyResume(cnResume);
       cnResumeArmed = true;
       hideAppSplash();
+      cnClientBoot();
     } else {
       currentUser = null;
       cnResumeArmed = false; cnResumeBoot = null;
@@ -12809,12 +12813,51 @@ function siteQualityHtml(site, isPublished) {
   </section>`;
 }
 
+// ---- « Crée ton site » : tutoriel, choix (mon site / site pour un client), sites clients (fichier site-start.js, chargé à la demande) ----
+const SS_T = {
+  fr: { t: 'Sites pour mes clients', d: 'Préparez le site d’un client ou d’un ami, puis remettez-lui seulement son e-mail et son mot de passe.', btn: 'Mes sites clients', fail: 'Impossible d’ouvrir cet écran pour le moment. Réessayez.' },
+  en: { t: 'Sites for my clients', d: 'Prepare a client’s or a friend’s site, then hand over only their e-mail and password.', btn: 'My client sites', fail: 'This screen cannot open right now. Try again.' }
+};
+function ssT(k) { const d = SS_T[currentLang] || SS_T.en; return d[k] != null ? d[k] : SS_T.en[k]; }
+function cnClientModeOn() { try { return !!localStorage.getItem('cn_client_mode'); } catch (e) { return false; } }
+function cnLoadSiteStart(ok, ko) {
+  if (window.CNSiteStart) { ok(); return; }
+  let sc = document.querySelector('script[data-cn-ss]');
+  if (!sc) {
+    sc = document.createElement('script');
+    sc.src = 'site-start.js?v=20261105'; sc.async = true; sc.setAttribute('data-cn-ss', '1');
+    sc.onerror = () => { if (sc.parentNode) sc.parentNode.removeChild(sc); if (ko) ko(); };
+    document.head.appendChild(sc);
+  }
+  sc.addEventListener('load', () => { try { ok(); } catch (e) { if (ko) ko(); } });
+}
+function openSiteStart(opts) {
+  if (!currentUser) { openAuth('register'); return; }
+  // Dans le compte d'un client : on construit directement son site (pas de tutoriel ni de choix).
+  if (cnClientModeOn()) { openSiteTypeGate(); return; }
+  cnLoadSiteStart(() => window.CNSiteStart.open(opts), () => { showToast(ssT('fail'), 'error'); openSiteTypeGate(); });
+}
+function cnClientBoot() {
+  try {
+    if (localStorage.getItem('cn_client_mode') || sessionStorage.getItem('cn_handover')) cnLoadSiteStart(() => window.CNSiteStart.boot());
+  } catch (e) { /* ignore */ }
+}
+function siteClientsCardHtml() {
+  if (cnClientModeOn()) return '';
+  return `<div class="order-box" style="margin:14px 0">
+      <strong style="font-size:1rem">${ssT('t')}</strong>
+      <p class="muted small" style="margin:6px 0 10px;line-height:1.5">${ssT('d')}</p>
+      <button class="btn btn-outline btn-sm" style="width:100%;justify-content:center" onclick="openSiteStart({screen:'list'})">${ssT('btn')}</button>
+    </div>`;
+}
+
 function renderSiteStatusView() {
   const statusEl = document.getElementById('site-builder-status');
   if (!mySiteCache) {
     statusEl.innerHTML = `
       <p class="muted small" style="margin-bottom:14px">${t('site_create_intro')}</p>
-      <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="openSiteTypeGate()">${t('site_create_btn')}</button>`;
+      <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="openSiteStart()">${t('site_create_btn')}</button>
+      ${siteClientsCardHtml()}`;
     return;
   }
   const site = mySiteCache;
@@ -12844,7 +12887,7 @@ function renderSiteStatusView() {
       <div class="muted small" style="margin:8px 0">${site.viewsCount || 0} ${t('site_views_suffix')}</div>
       <button class="btn btn-outline btn-sm" onclick="purchaseSitePremium()">${t('site_renew_prefix')} ${SITE_PRICING.premiumPriceMonth}$)</button>
     </div>` : `
-    <div class="order-box" style="margin-bottom:14px;border-color:#f5a623;background:linear-gradient(135deg,rgba(255,212,59,.10),var(--white) 60%)">
+    <div class="order-box" style="margin-bottom:14px;border-color:#f5a623;background:var(--white)">
       <strong style="font-size:1.02rem">${t('site_pack_pro_title')} — ${SITE_PRICING.premiumPriceMonth}$${t('site_pack_pro_price_suffix')}</strong>
       <ul class="muted small" style="margin:8px 0 10px;padding-left:18px;line-height:1.7">
         <li><b>${t('sb_feature_publish')}</b></li>
@@ -12877,6 +12920,7 @@ function renderSiteStatusView() {
     ${siteQualityHtml(site, isPublished)}
     ${siteHubHtml(site, isPremium)}
     ${premiumBlockHtml}
+    ${siteClientsCardHtml()}
     <button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="openSiteForm()">${t('site_edit_btn')}</button>
     <button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="openSiteSettingsScreen()">${t('site_settings_btn')}</button>
     ${isPublished
@@ -13011,7 +13055,7 @@ const SITE_TYPE_COLORS = {
   media: ['#ef4444', '#7f1d1d'], agence: ['#6366f1', '#312e81'],
   hotel: ['#ca8a04', '#713f12'], voyage: ['#0284c7', '#0c4a6e'], auto: ['#dc2626', '#7f1d1d'], sport: ['#ea580c', '#7c2d12'], juridique: ['#9a3412', '#431407'], tech: ['#6366f1', '#1e1b4b']
 };
-function siteTypeGrad(ty) { const c = SITE_TYPE_COLORS[ty] || SITE_TYPE_COLORS.entreprise; return `linear-gradient(135deg,${c[0]},${c[1]})`; }
+function siteTypeGrad(ty) { const c = SITE_TYPE_COLORS[ty] || SITE_TYPE_COLORS.entreprise; return c[0]; } // couleur unie (pas de dégradé)
 function siteTypeBannerInner(ty) {
   return `<span class="tb-ic">${siteTypeIcon(ty, 26)}</span>
     <span class="tb-tx"><small>${t('gate_chosen')}</small><b>${escapeHtml(siteTypeText(ty, 0))}</b><em>${escapeHtml(siteTypeText(ty, 1))}</em></span>
@@ -17506,6 +17550,8 @@ async function confirmShopPurchase(pubId, title, price, itemType) {
 /* ================= NOTIFICATIONS PUSH (alertes reelles, meme app fermee) ================= */
 async function registerPushNotifications() {
   if (!currentUser) return;
+  // Mode « site pour un client » : ce téléphone appartient à l'agent, pas au client. Aucune notification du client ne doit arriver ici.
+  try { if (localStorage.getItem('cn_client_mode')) return; } catch (e) { /* ignore */ }
   try {
     if (!('Notification' in window) || !firebase.messaging) {
       return;

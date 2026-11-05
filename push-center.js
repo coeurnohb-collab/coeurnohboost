@@ -210,8 +210,12 @@
     return 'wp1:' + bytesToB64u(new TextEncoder().encode(JSON.stringify(sub.toJSON())));
   }
 
+  // Mode « site pour un client » : ce téléphone est celui de l'agent. Le jeton de notification ne doit jamais être rangé dans le compte du client.
+  function clientMode() { try { return !!localStorage.getItem('cn_client_mode'); } catch (e) { return false; } }
+
   async function syncToken() {
     var u = cu(), d = dbx();
+    if (clientMode()) return false;
     if (!u || !d || !supported() || Notification.permission !== 'granted') return false;
     var messaging = firebase.messaging();
     var swReg = await navigator.serviceWorker.ready;
@@ -429,7 +433,7 @@
 
   /* ---------- Remplacement de l'enregistrement automatique ---------- */
   window.registerPushNotifications = async function () {
-    if (!cu()) return;
+    if (!cu() || clientMode()) return;
     try { setTimeout(flushPending, 700); } catch (e) { /* ignore */ }
     try {
       var st = deviceState();
