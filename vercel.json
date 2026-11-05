@@ -195,6 +195,22 @@
       "destination": "/api/render-site?slug=:slug&sw=1"
     },
     {
+      "source": "/s/:slug/site-icon-192.png",
+      "destination": "/api/render-site?slug=:slug&icon=192"
+    },
+    {
+      "source": "/s/:slug/site-icon-512.png",
+      "destination": "/api/render-site?slug=:slug&icon=512"
+    },
+    {
+      "source": "/s/:slug/site-icon-180.png",
+      "destination": "/api/render-site?slug=:slug&icon=180"
+    },
+    {
+      "source": "/s/:slug/site-icon-maskable.png",
+      "destination": "/api/render-site?slug=:slug&icon=maskable"
+    },
+    {
       "source": "/api/v1/:path*",
       "destination": "/api/render-site?v1=:path*"
     },
