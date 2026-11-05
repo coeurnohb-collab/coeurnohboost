@@ -415,6 +415,7 @@
     ins_bar: ['Installer {n}', 'Install {n}', 'Instalar {n}', 'Installa {n}', 'Instalar {n}'],
     ins_bar_sub: ['Accès direct, comme une application', 'Direct access, like an app', 'Acceso directo, como una aplicación', 'Accesso diretto, come un’app', 'Acesso direto, como uma aplicação'],
     ins_go: ['Installer', 'Install', 'Instalar', 'Installa', 'Instalar'],
+    ins_prev: ['Aperçu : vos visiteurs verront ici le bouton pour installer votre site sur leur écran d’accueil, dès qu’il sera publié.', 'Preview: your visitors will see the button to install your site on their home screen here, once it is published.', 'Vista previa: tus visitantes verán aquí el botón para instalar tu sitio en su pantalla de inicio, cuando esté publicado.', 'Anteprima: i tuoi visitatori vedranno qui il pulsante per installare il tuo sito sulla schermata Home, una volta pubblicato.', 'Pré-visualização: os seus visitantes verão aqui o botão para instalar o seu site no ecrã principal, quando estiver publicado.'],
     ins_help_t: ['Ajouter à l’écran d’accueil', 'Add to home screen', 'Añadir a la pantalla de inicio', 'Aggiungi alla schermata Home', 'Adicionar ao ecrã principal'],
     ins_i1: ['Touchez le bouton Partager (le carré avec une flèche vers le haut).', 'Tap the Share button (the square with an arrow pointing up).', 'Toca el botón Compartir (el cuadrado con una flecha hacia arriba).', 'Tocca il pulsante Condividi (il quadrato con la freccia verso l’alto).', 'Toque no botão Partilhar (o quadrado com uma seta para cima).'],
     ins_i2: ['Faites défiler et touchez « Sur l’écran d’accueil ».', 'Scroll down and tap “Add to Home Screen”.', 'Desplázate y toca «Añadir a pantalla de inicio».', 'Scorri e tocca «Aggiungi alla schermata Home».', 'Deslize e toque em «Adicionar ao ecrã principal».'],
@@ -626,6 +627,7 @@
     '.cn-tools.cn-float{position:fixed;top:10px;right:10px;z-index:90}' +
     '.cn-btn{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 11px;border-radius:999px;border:1px solid rgba(100,116,139,.45);background:rgba(255,255,255,.55);color:#334155;font:700 .8rem/1 inherit;font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}' +
     '.cn-btn:hover{border-color:var(--accent,#2563eb);color:var(--accent,#2563eb)}' +
+    '.cn-btn.ins{border-color:var(--accent,#2563eb);color:var(--accent,#2563eb)}' +
     '.cn-btn.pri{background:var(--accent,#2563eb);border-color:var(--accent,#2563eb);color:#fff}' +
     '.cn-btn.pri:hover{color:#fff;filter:brightness(1.08)}' +
     '.cn-btn .dot{width:8px;height:8px;border-radius:50%;background:#ef4444;box-shadow:0 0 0 2px #fff}' +
@@ -826,7 +828,7 @@
   }
 
   /* ------------------------------------------------------------------ 6. BARRE D'OUTILS : langue + connexion + « Mon espace » */
-  var tools, langBtn, langPop, accBtn, accPop;
+  var tools, langBtn, langPop, accBtn, accPop, insBtn;
   function closePops() { if (langPop) langPop.classList.remove('open'); if (accPop) accPop.classList.remove('open'); }
   function buildTools() {
     var row = document.querySelector('.topbar-row');
@@ -836,6 +838,13 @@
     var lw = E('div'); lw.style.position = 'relative'; A(lw, langBtn, langPop);
     langBtn.onclick = function (e) { e.stopPropagation(); var o = langPop.classList.contains('open'); closePops(); if (!o) langPop.classList.add('open'); };
     A(tools, lw);
+    if (canInstallUi() && !isStandalone()) {
+      insBtn = E('button', 'cn-btn ins'); insBtn.type = 'button'; insBtn.setAttribute('data-cn-install', 'head');
+      insBtn.setAttribute('aria-label', U('ins_t'));
+      A(insBtn, icon(IC.download, 16), E('span', 't', U('ins_go')));
+      insBtn.onclick = function (e) { e.stopPropagation(); installNow(); };
+      A(tools, insBtn);
+    }
     if (!(C.preview && !C.sample)) {
       accBtn = E('button', 'cn-btn'); accBtn.type = 'button'; accBtn.setAttribute('aria-haspopup', 'true');
       accPop = E('div', 'cn-pop');
@@ -883,7 +892,7 @@
     lang = l; try { localStorage.setItem('cn_site_lang', l); } catch (e) { /* ignore */ }
     document.documentElement.lang = l;
     walk(document.body);
-    drawLang(); drawAcc();
+    drawLang(); drawAcc(); drawInstallLabels();
     if (spaceOpen) renderSpace();
     try { window.dispatchEvent(new CustomEvent('cnlang', { detail: l })); } catch (e) { /* ignore */ }
   }
@@ -1848,7 +1857,7 @@
   /* ------------------------------------------------------------------ 8b. VISITEUR : mes commandes, installation sur l'écran */
   window.cnAuthToken = function () { return auth && auth.currentUser ? auth.currentUser.getIdToken() : ''; };
   var coHint = null, deferredInstall = null;
-  window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); deferredInstall = e; var b = document.getElementById('cn-install'); if (b) b.hidden = false; if (typeof scheduleInsBar === 'function' && !isStandalone()) scheduleInsBar(); });
+  window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); deferredInstall = e; if (typeof scheduleInsBar === 'function' && !isStandalone()) scheduleInsBar(); });
   function drawCoHint() {
     var f = document.getElementById('co-form'); if (!f || !C.co || C.preview) return;
     if (user) { if (coHint) { coHint.remove(); coHint = null; } return; }
@@ -1884,6 +1893,8 @@
   var insBar = null, insTimer = 0;
   function insKey() { return 'cn_ins_x_' + (C.slug || C.host || 's'); }
   function hideInsBar() { if (insBar) { insBar.remove(); insBar = null; } }
+  // Le bouton « Installer » existe sur tous les sites publiés, et aussi dans l'aperçu du propriétaire (là, il explique seulement).
+  function canInstallUi() { return !!(C.pwa || C.preview || C.sample); }
   function openInstallHelp() {
     var env = insEnv(), ov = overlay(), s = ov.s;
     var hd = E('div', 'cn-hd'), x = E('button', 'cn-x'); x.type = 'button'; x.setAttribute('aria-label', U('close')); x.appendChild(icon(IC.x, 16)); x.onclick = function () { ov.o.remove(); };
@@ -1894,6 +1905,7 @@
     if (env.inApp) A(s, E('p', 'cn-p', U('ins_tip')));
   }
   function installNow() {
+    if (!C.pwa) { toast(U('ins_prev')); return; }
     if (deferredInstall) {
       var d = deferredInstall; deferredInstall = null; d.prompt();
       if (d.userChoice) d.userChoice.then(function (r) { if (r && r.outcome === 'accepted') hideInsBar(); });
@@ -1901,11 +1913,10 @@
     }
     openInstallHelp();
   }
+  // Bandeau en haut de page : pour tout visiteur sur téléphone qui n'a pas encore installé le site (fermable, puis silence 14 jours).
   function showInsBar() {
     if (insBar || isStandalone() || !C.pwa || C.preview || C.sample) return;
     if (!(window.matchMedia && matchMedia('(max-width: 760px)').matches)) return;
-    var env = insEnv();
-    if (!(deferredInstall || (env.ios && !env.inApp))) return;
     try { var t = parseInt(localStorage.getItem(insKey()) || '0', 10); if (t && Date.now() - t < 14 * 86400000) return; } catch (e) { /* ignore */ }
     var m = document.querySelector('meta[property="og:site_name"]'), name = (m && m.content) || document.title || '';
     var lg = document.querySelector('.topbar .brand-logo'), ic;
@@ -1917,14 +1928,33 @@
     insBar = E('div', 'cn-rt cn-ibar'); A(insBar, ic, tx, go, no);
     document.body.insertBefore(insBar, document.body.firstChild);
   }
-  function scheduleInsBar() { clearTimeout(insTimer); insTimer = setTimeout(showInsBar, 2500); }
+  function scheduleInsBar() { clearTimeout(insTimer); insTimer = setTimeout(showInsBar, 1500); }
+  function drawInstallLabels() {
+    if (insBtn) { insBtn.setAttribute('aria-label', U('ins_t')); var t = insBtn.querySelector('.t'); if (t) t.textContent = U('ins_go'); }
+    var list = document.querySelectorAll('#cn-install, .hero-install');
+    for (var i = 0; i < list.length; i++) { var b = list[i]; if (b.hidden || !b.firstChild) continue; b.lastChild.textContent = U(b.classList.contains('hero-install') ? 'ins_help_t' : 'ins_t'); }
+    if (insBar) { hideInsBar(); showInsBar(); }
+  }
+  function wireInstallButtons() {
+    // Pied de page (#cn-install) et bouton d'accueil (.hero-install) : même fonctionnement.
+    var list = document.querySelectorAll('#cn-install, .hero-install');
+    for (var i = 0; i < list.length; i++) {
+      (function (b) {
+        var hero = b.classList.contains('hero-install');
+        b.textContent = ''; b.appendChild(icon(IC.download, 16)); b.appendChild(document.createTextNode(U(hero ? 'ins_help_t' : 'ins_t')));
+        b.hidden = false; b.onclick = installNow;
+      })(list[i]);
+    }
+  }
   function initInstall() {
-    if (!C.pwa || C.preview || C.sample) return;
-    if ('serviceWorker' in navigator) { try { navigator.serviceWorker.register((C.base || '') + '/sw.js', { scope: (C.base || '') + '/' }).catch(function () { }); } catch (e) { /* ignore */ } }
+    if (!canInstallUi()) return;
+    if (C.pwa && 'serviceWorker' in navigator) { try { navigator.serviceWorker.register((C.base || '') + '/sw.js', { scope: (C.base || '') + '/' }).catch(function () { }); } catch (e) { /* ignore */ } }
     if (isStandalone()) return;
-    window.addEventListener('appinstalled', function () { var b = document.getElementById('cn-install'); if (b) b.hidden = true; hideInsBar(); deferredInstall = null; toast(U('ins_ok')); });
-    var b = document.getElementById('cn-install');
-    if (b) { b.textContent = ''; b.appendChild(icon(IC.download, 16)); b.appendChild(document.createTextNode(U('ins_t'))); b.hidden = false; b.onclick = installNow; }
+    window.addEventListener('appinstalled', function () {
+      var l = document.querySelectorAll('#cn-install, .hero-install'); for (var i = 0; i < l.length; i++) l[i].hidden = true;
+      if (insBtn) insBtn.remove(); hideInsBar(); deferredInstall = null; toast(U('ins_ok'));
+    });
+    wireInstallButtons();
     scheduleInsBar();
   }
 

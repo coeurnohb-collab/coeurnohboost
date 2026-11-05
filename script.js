@@ -12727,6 +12727,58 @@ const SITE_TEMPLATES = {
   doux: { label: 'site_template_doux', accent: '#db2777', premium: true },
   nature: { label: 'site_template_nature', accent: '#15803d', premium: true }
 };
+// Modèles de site supplémentaires (même identifiants que le rendu serveur api/render-site.js) : [couleur, Pro ? 1 : 0, noms fr/en/es/it/pt].
+// Ils sont enregistrés ici, au démarrage, pour que la liste des modèles et les noms traduits soient toujours complets (créateur, modification, page « Modèles »).
+const SITE_TEMPLATE_EXTRA = {
+  corporate: ["#1d4ed8", 0, "Corporate", "Corporate", "Corporativo", "Corporate", "Corporativo"],
+  ocean: ["#0369a1", 0, "Océan", "Ocean", "Océano", "Oceano", "Oceano"],
+  lagon: ["#0891b2", 0, "Lagon", "Lagoon", "Laguna", "Laguna", "Lagoa"],
+  foret: ["#166534", 0, "Forêt", "Forest", "Bosque", "Foresta", "Floresta"],
+  savane: ["#a16207", 0, "Savane", "Savanna", "Sabana", "Savana", "Savana"],
+  sable: ["#b45309", 0, "Sable", "Sand", "Arena", "Sabbia", "Areia"],
+  atelier: ["#b45309", 0, "Atelier", "Workshop", "Taller", "Atelier", "Ateliê"],
+  studio: ["#0f172a", 0, "Studio", "Studio", "Estudio", "Studio", "Estúdio"],
+  minimal: ["#111827", 0, "Minimal", "Minimal", "Minimal", "Minimal", "Minimal"],
+  ardoise: ["#334155", 0, "Ardoise", "Slate", "Pizarra", "Ardesia", "Ardósia"],
+  corail: ["#e8590c", 0, "Corail", "Coral", "Coral", "Corallo", "Coral"],
+  violet: ["#6d28d9", 1, "Violet", "Violet", "Violeta", "Viola", "Violeta"],
+  aurora: ["#8b5cf6", 1, "Aurore", "Aurora", "Aurora", "Aurora", "Aurora"],
+  cyber: ["#10b981", 1, "Cyber", "Cyber", "Cyber", "Cyber", "Cyber"],
+  nuit: ["#22d3ee", 1, "Nuit", "Night", "Noche", "Notte", "Noite"],
+  royal: ["#c9a227", 1, "Royal", "Royal", "Real", "Reale", "Real"],
+  or: ["#c9a227", 1, "Or", "Gold", "Oro", "Oro", "Ouro"],
+  emeraude: ["#047857", 1, "Émeraude", "Emerald", "Esmeralda", "Smeraldo", "Esmeralda"],
+  magazine: ["#be123c", 1, "Magazine", "Magazine", "Revista", "Rivista", "Revista"],
+  rubis: ["#be123c", 1, "Rubis", "Ruby", "Rubí", "Rubino", "Rubi"],
+  poster: ["#ef4444", 1, "Affiche", "Poster", "Cartel", "Locandina", "Pôster"],
+  festival: ["#f59e0b", 1, "Festival", "Festival", "Festival", "Festival", "Festival"],
+  congo: ["#007fff", 1, "Congo", "Congo", "Congo", "Congo", "Congo"],
+  kinshasa: ["#f5b400", 1, "Kinshasa", "Kinshasa", "Kinshasa", "Kinshasa", "Kinshasa"],
+  goma: ["#ea580c", 1, "Goma", "Goma", "Goma", "Goma", "Goma"],
+  kivu: ["#0e7490", 0, "Kivu", "Kivu", "Kivu", "Kivu", "Kivu"],
+  katanga: ["#b45f06", 0, "Katanga", "Katanga", "Katanga", "Katanga", "Katanga"],
+  virunga: ["#16a34a", 1, "Virunga", "Virunga", "Virunga", "Virunga", "Virunga"],
+  okapi: ["#7c3f1d", 0, "Okapi", "Okapi", "Okapi", "Okapi", "Okapi"],
+  ebene: ["#d6b88a", 1, "Ébène", "Ebony", "Ébano", "Ebano", "Ébano"],
+  ivoire: ["#9a7b4f", 0, "Ivoire", "Ivory", "Marfil", "Avorio", "Marfim"],
+  saphir: ["#3b82f6", 1, "Saphir", "Sapphire", "Zafiro", "Zaffiro", "Safira"],
+  amethyste: ["#a21caf", 0, "Améthyste", "Amethyst", "Amatista", "Ametista", "Ametista"],
+  tanganyika: ["#0f766e", 0, "Tanganyika", "Tanganyika", "Tanganyika", "Tanganyika", "Tanganyika"],
+  leopard: ["#ca8a04", 0, "Léopard", "Leopard", "Leopardo", "Leopardo", "Leopardo"],
+  equateur: ["#2f855a", 0, "Équateur", "Equator", "Ecuador", "Equatore", "Equador"],
+  lualaba: ["#4338ca", 0, "Lualaba", "Lualaba", "Lualaba", "Lualaba", "Lualaba"],
+  kasai: ["#be185d", 1, "Kasaï", "Kasaï", "Kasaï", "Kasaï", "Kasaï"]
+};
+(function registerSiteTemplates() {
+  try {
+    const LG = ['fr', 'en', 'es', 'it', 'pt'];
+    Object.keys(SITE_TEMPLATE_EXTRA).forEach((k) => {
+      const d = SITE_TEMPLATE_EXTRA[k], key = 'site_template_' + k;
+      if (!SITE_TEMPLATES[k]) { const e = { label: key, accent: d[0] }; if (d[1]) e.premium = true; SITE_TEMPLATES[k] = e; }
+      LG.forEach((l, i) => { if (typeof TRANSLATIONS === 'object' && TRANSLATIONS[l] && !TRANSLATIONS[l][key]) TRANSLATIONS[l][key] = d[2 + i]; });
+    });
+  } catch (e) { /* ignore */ }
+})();
 const SITE_PREMIUM_PRICE = 20; // en $, par mois -- Pack Site Professionnel
 const SITE_DOMAIN_PRICE_MONTH = 4; // en $, par mois -- base du calcul automatique des formules d'achat de domaine (distinct des 20$/mois Premium ci-dessus ; doit rester identique à SITE_DOMAIN_PRICE_MONTH dans api/payments-actions.js)
 const SITE_FREE_PHOTO_LIMIT = 6;
@@ -13087,13 +13139,25 @@ function closeSiteTypeGate() {
   const m = document.getElementById('site-gate-modal'); if (m) m.remove();
   if (!document.querySelector('.fs-page')) document.body.classList.remove('fs-open');
 }
+// Étape « modèles » : après la marque, la page des modèles de cette marque (fichier site-models.js, chargé à la demande).
+// Si elle ne peut pas s'ouvrir (réseau coupé…), on passe directement au formulaire : la création n'est jamais bloquée.
+function cnLoadSiteModels(ok, ko) {
+  if (window.CNSiteModels) { ok(); return; }
+  let sc = document.querySelector('script[data-cn-sm]');
+  if (!sc) {
+    sc = document.createElement('script');
+    sc.src = 'site-models.js?v=20261106'; sc.async = true; sc.setAttribute('data-cn-sm', '1');
+    sc.onerror = () => { if (sc.parentNode) sc.parentNode.removeChild(sc); if (ko) ko(); };
+    document.head.appendChild(sc);
+  }
+  sc.addEventListener('load', () => { try { ok(); } catch (e) { if (ko) ko(); } });
+}
 function chooseSiteType(ty) {
   if (SITE_TYPES.indexOf(ty) < 0) return;
   const inline = siteGateInline;
-  closeSiteTypeGate();
-  if (inline && document.getElementById('site-type')) { selectSiteType(ty); return; }
-  pendingSiteType = ty;
-  openSiteForm();
+  if (inline && document.getElementById('site-type')) { closeSiteTypeGate(); selectSiteType(ty); return; }
+  const direct = () => { closeSiteTypeGate(); pendingSiteType = ty; openSiteForm(); };
+  cnLoadSiteModels(() => { if (!window.CNSiteModels.open(ty)) direct(); }, direct);
 }
 function siteTypeIcon(type, size) {
   return `<svg viewBox="0 0 24 24" width="${size || 22}" height="${size || 22}" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${SITE_TYPE_ICONS[type] || SITE_TYPE_ICONS.entreprise}</svg>`;
@@ -13842,7 +13906,7 @@ function openSiteForm() {
         </div>
         <label class="field-label" style="display:block">${t('sb_stats_label')}</label>
         <p class="muted small" style="margin:-4px 0 8px">${t('sb_stats_hint')}</p>
-        <div id="site-stat-rows">${[0, 1, 2, 3].map(i => { const st = (Array.isArray(s.stats) && s.stats[i]) || {}; return `<div class="sbx-stat-row"><input type="text" class="text-input site-stat-value" maxlength="12" placeholder="${t('sb_stat_value_ph')}" value="${escapeHtml(st.value || '')}"><input type="text" class="text-input site-stat-label" maxlength="30" placeholder="${t('sb_stat_label_ph')}" value="${escapeHtml(st.label || '')}"></div>`; }).join('')}</div>
+        <div id="site-stat-rows">${[0, 1, 2, 3].map(i => { const st = (Array.isArray(s.stats) && s.stats[i]) || {}; const ph = String(t('sb_stat_ph' + (i + 1)) || '').split('|'); return `<div class="sbx-stat-row"><input type="text" class="text-input site-stat-value" maxlength="12" placeholder="${escapeHtml(ph[0] || t('sb_stat_value_ph'))}" value="${escapeHtml(st.value || '')}"><input type="text" class="text-input site-stat-label" maxlength="30" placeholder="${escapeHtml(ph[1] || t('sb_stat_label_ph'))}" value="${escapeHtml(st.label || '')}"></div>`; }).join('')}</div>
         <div style="height:10px"></div>
         <label class="field-label" style="display:block" id="site-items-label">${siteTypeText(chosenType, 2)}</label>
         <div id="site-smm-import" class="${chosenType === 'smm' ? '' : 'hidden'}">
