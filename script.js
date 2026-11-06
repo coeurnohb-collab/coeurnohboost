@@ -13146,7 +13146,7 @@ function cnLoadSiteModels(ok, ko) {
   let sc = document.querySelector('script[data-cn-sm]');
   if (!sc) {
     sc = document.createElement('script');
-    sc.src = 'site-models.js?v=20261106'; sc.async = true; sc.setAttribute('data-cn-sm', '1');
+    sc.src = 'site-models.js?v=20261106b'; sc.async = true; sc.setAttribute('data-cn-sm', '1');
     sc.onerror = () => { if (sc.parentNode) sc.parentNode.removeChild(sc); if (ko) ko(); };
     document.head.appendChild(sc);
   }

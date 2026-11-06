@@ -415,6 +415,9 @@
     ins_bar: ['Installer {n}', 'Install {n}', 'Instalar {n}', 'Installa {n}', 'Instalar {n}'],
     ins_bar_sub: ['Accès direct, comme une application', 'Direct access, like an app', 'Acceso directo, como una aplicación', 'Accesso diretto, come un’app', 'Acesso direto, como uma aplicação'],
     ins_go: ['Installer', 'Install', 'Instalar', 'Installa', 'Instalar'],
+    shell_t: ['Ce site est ouvert dans une autre application', 'This site is open inside another app', 'Este sitio está abierto en otra aplicación', 'Questo sito è aperto in un’altra app', 'Este site está aberto noutra aplicação'],
+    shell_sub: ['Ouvrez-le dans le navigateur pour l’installer avec sa propre icône.', 'Open it in the browser to install it with its own icon.', 'Ábralo en el navegador para instalarlo con su propio icono.', 'Aprilo nel browser per installarlo con la sua icona.', 'Abra-o no navegador para o instalar com o seu próprio ícone.'],
+    shell_go: ['Ouvrir', 'Open', 'Abrir', 'Apri', 'Abrir'],
     ins_prev: ['Aperçu : vos visiteurs verront ici le bouton pour installer votre site sur leur écran d’accueil, dès qu’il sera publié.', 'Preview: your visitors will see the button to install your site on their home screen here, once it is published.', 'Vista previa: tus visitantes verán aquí el botón para instalar tu sitio en su pantalla de inicio, cuando esté publicado.', 'Anteprima: i tuoi visitatori vedranno qui il pulsante per installare il tuo sito sulla schermata Home, una volta pubblicato.', 'Pré-visualização: os seus visitantes verão aqui o botão para instalar o seu site no ecrã principal, quando estiver publicado.'],
     ins_help_t: ['Ajouter à l’écran d’accueil', 'Add to home screen', 'Añadir a la pantalla de inicio', 'Aggiungi alla schermata Home', 'Adicionar ao ecrã principal'],
     ins_i1: ['Touchez le bouton Partager (le carré avec une flèche vers le haut).', 'Tap the Share button (the square with an arrow pointing up).', 'Toca el botón Compartir (el cuadrado con una flecha hacia arriba).', 'Tocca il pulsante Condividi (il quadrato con la freccia verso l’alto).', 'Toque no botão Partilhar (o quadrado com uma seta para cima).'],
@@ -633,6 +636,7 @@
     '.cn-btn .dot{width:8px;height:8px;border-radius:50%;background:#ef4444;box-shadow:0 0 0 2px #fff}' +
     '.tpl-dark .cn-btn{background:rgba(255,255,255,.08);color:#e2e8f0;border-color:rgba(255,255,255,.25)}' +
     '@media(max-width:520px){.cn-btn .t{display:none}.cn-btn{padding:0 10px}.cn-btn.keep .t{display:inline}}' +
+    '@media(min-width:861px) and (max-width:1180px){.cn-btn.ins .t{display:none}.cn-btn.ins{padding:0 10px}}' +
     '.cn-pop{position:absolute;right:0;top:44px;min-width:190px;background:var(--card,#fff);color:var(--ink,#0f172a);border:1px solid var(--border,#e4e8ef);border-radius:14px;box-shadow:0 18px 50px -12px rgba(15,23,42,.35);padding:6px;display:none;z-index:95}' +
     '.cn-pop.open{display:block}' +
     '.cn-pop button,.cn-pop a{display:flex;width:100%;align-items:center;gap:8px;text-align:left;border:0;background:none;color:inherit;font:600 .88rem inherit;font-family:inherit;padding:10px 12px;border-radius:9px;cursor:pointer;text-decoration:none}' +
@@ -1946,10 +1950,37 @@
       })(list[i]);
     }
   }
+  // Sur Android, une application installée du même nom de domaine (ex. la plateforme) capte les liens du site et l'ouvre dans sa propre fenêtre :
+  // le site n'y est alors pas installable. On le détecte (fenêtre « application » sans lancement du site lui-même) et on propose le navigateur.
+  function ownLaunch() {
+    var k = 'cn_own_' + (C.slug || C.host || 's');
+    try { if (/[?&]source=pwa(&|$)/.test(location.search)) { sessionStorage.setItem(k, '1'); return true; } return sessionStorage.getItem(k) === '1'; } catch (e) { return true; }
+  }
+  function shellKey() { return 'cn_shell_x_' + (C.slug || C.host || 's'); }
+  function showShellBar() {
+    if (document.querySelector('.cn-shellbar') || !isStandalone() || !C.pwa || C.preview || C.sample) return;
+    if (!/Android/i.test(navigator.userAgent || '') || ownLaunch()) return;
+    try { var t = parseInt(localStorage.getItem(shellKey()) || '0', 10); if (t && Date.now() - t < 3 * 86400000) return; } catch (e) { /* ignore */ }
+    var m = document.querySelector('meta[property="og:site_name"]'), name = (m && m.content) || document.title || '';
+    var lg = document.querySelector('.topbar .brand-logo'), ic;
+    if (lg && lg.tagName === 'IMG' && lg.src) { ic = E('img', 'ic'); ic.src = lg.src; ic.alt = ''; } else ic = E('span', 'ic', (name.trim().charAt(0) || '?').toUpperCase());
+    var tx = E('div', 'tx'); A(tx, E('b', '', U('shell_t')), E('span', '', U('shell_sub')));
+    var go = E('button', 'go', U('shell_go')); go.type = 'button';
+    go.onclick = function () {
+      var clean = location.search.replace(/([?&])source=pwa(&|$)/, '$1').replace(/[?&]$/, '');
+      var path = location.pathname + clean + location.hash, full = location.origin + path;
+      // Chrome est désigné par son nom : Android ne laisse pas l'autre application reprendre le lien.
+      location.href = 'intent://' + location.host + path + '#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=' + encodeURIComponent(full) + ';end';
+    };
+    var no = E('button', 'no'); no.type = 'button'; no.setAttribute('aria-label', U('close')); no.appendChild(icon(IC.x, 14));
+    var bar = E('div', 'cn-rt cn-ibar cn-shellbar'); A(bar, ic, tx, go, no);
+    no.onclick = function () { try { localStorage.setItem(shellKey(), String(Date.now())); } catch (e) { /* ignore */ } bar.remove(); };
+    document.body.insertBefore(bar, document.body.firstChild);
+  }
   function initInstall() {
     if (!canInstallUi()) return;
     if (C.pwa && 'serviceWorker' in navigator) { try { navigator.serviceWorker.register((C.base || '') + '/sw.js', { scope: (C.base || '') + '/' }).catch(function () { }); } catch (e) { /* ignore */ } }
-    if (isStandalone()) return;
+    if (isStandalone()) { ownLaunch(); setTimeout(showShellBar, 900); return; }
     window.addEventListener('appinstalled', function () {
       var l = document.querySelectorAll('#cn-install, .hero-install'); for (var i = 0; i < l.length; i++) l[i].hidden = true;
       if (insBtn) insBtn.remove(); hideInsBar(); deferredInstall = null; toast(U('ins_ok'));

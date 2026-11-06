@@ -56,7 +56,7 @@
   function nameOf(k) { var o = tpl(k); try { if (o && typeof t === 'function') { var s = t(o.label); if (s && s !== o.label) return s; } } catch (e) { } return k.charAt(0).toUpperCase() + k.slice(1); }
   function accentOf(k) { var o = tpl(k); return (o && o.accent) || '#2563eb'; }
   function isPro(k) { var o = tpl(k); return !!(o && o.premium); }
-  function sampleUrl(ty, k) { return '/api/render-site?sample=' + encodeURIComponent(ty) + '&tpl=' + encodeURIComponent(k) + '&lang=' + lang(); }
+  function sampleUrl(ty, k) { return '/api/render-site?sample=' + encodeURIComponent(ty) + '&tpl=' + encodeURIComponent(k) + '&lang=' + lang() + '&v=20261106'; }
   function models(ty) {
     var rec = (REC[ty] || []).filter(function (k) { return ALL.indexOf(k) >= 0; });
     return rec.concat(ALL.filter(function (k) { return rec.indexOf(k) < 0; }));
