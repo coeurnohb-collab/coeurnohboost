@@ -6,11 +6,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
 <script>
 /* Ouverture de l'application.
-   - Application INSTALLÉE (icône de l'écran d'accueil, Google Play) : on entre directement, sans intro.
-     Seul un voile discret sans logo couvre l'écran le temps de reconnaître le compte.
-   - Navigateur (lien, moteur de recherche) : intro animée COMPLÈTE à chaque ouverture, et dès que la personne
+   - Intro animée COMPLÈTE : à chaque ouverture (icône de l'écran d'accueil, lien, notification) et dès que la personne
      revient après plus de 2 minutes d'absence.
-   - Voile discret sans logo : aussi quand on actualise l'écran (tirer pour actualiser, bouton actualiser,
+   - Voile discret sans logo : seulement quand on actualise l'écran (tirer pour actualiser, bouton actualiser,
      bouton retour) moins de 2 minutes après la dernière ouverture.
    - Dans tous les cas, si une position est mémorisée (onglet, défilement, conversation), on y revient (__cnResume). */
 (function(){try{
@@ -19,8 +17,6 @@
   var nav=(performance.getEntriesByType&&performance.getEntriesByType('navigation')[0])||{};
   var r=null;try{r=JSON.parse(sessionStorage.getItem('cn_resume')||'null');}catch(e){}
   var fresh=r&&r.tab&&(now-(r.t||0))<12*3600*1000;
-  var installed=false;
-  try{installed=!!((window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||(typeof navigator!=='undefined'&&navigator.standalone===true)||String(document.referrer||'').indexOf('android-app://')===0);}catch(e){}
   var refresh=nav.type==='reload'||nav.type==='back_forward';
   var recent=(now-last)<2*60*1000;
   /* Billet de retour : posé quand la personne ouvre le choix d'un fichier (photo...). Si le téléphone ferme la page
@@ -28,7 +24,7 @@
   var tk=null;try{tk=JSON.parse(localStorage.getItem('cn_ticket')||'null');}catch(e){}
   var ticket=tk&&tk.t&&(now-tk.t)<10*60*1000;
   if(refresh||fresh||ticket){window.__cnResume=true;}
-  if(installed||ticket||(recent&&(refresh||fresh))){window.__cnQuick=true;document.documentElement.classList.add('cn-quick');}
+  if(ticket||(recent&&(refresh||fresh))){window.__cnQuick=true;document.documentElement.classList.add('cn-quick');}
   try{localStorage.setItem('cn_intro_at',String(now));}catch(e){}
 }catch(e){}})();
 </script>
@@ -2637,7 +2633,7 @@
   </div>
 </div>
 
-<script src="app.min.js?v=c9ed118a41" defer onerror="(function(){function f(){['translations','catalog-data','script','polish','menu-pro','push-center'].forEach(function(n){var x=document.createElement('script');x.src=n+'.js';x.async=false;document.body.appendChild(x)})}document.readyState==='loading'?document.addEventListener('DOMContentLoaded',f):f()})()"></script>
+<script src="app.min.js?v=9e69c869e5" defer onerror="(function(){function f(){['translations','catalog-data','script','polish','menu-pro','push-center'].forEach(function(n){var x=document.createElement('script');x.src=n+'.js';x.async=false;document.body.appendChild(x)})}document.readyState==='loading'?document.addEventListener('DOMContentLoaded',f):f()})()"></script>
 
 <!-- PWA : activation du service worker (installation en app) -->
 <script>

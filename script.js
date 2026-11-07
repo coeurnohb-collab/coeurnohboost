@@ -1761,7 +1761,7 @@ async function submitDirectPay() {
     if (btn) btn.disabled = true;
     // Mêmes champs que les autres demandes manuelles (le TXID est rangé dans « operator » pour l'admin)
     await db.collection('topup_requests').add({
-      uid: currentUser.uid, email: currentUser.email, method: 'crypto', country: null,
+      uid: currentUser.uid, email: currentUser.email || '', method: 'crypto', country: null,
       operator: txid ? 'TXID: ' + txid : 'Paiement direct USDT TRC20', phone: null,
       crypto: 'USDT TRC20 (direct)', amountUSD: amount, status: 'pending', createdAt: new Date().toISOString()
     });
@@ -2229,6 +2229,19 @@ function toggleFAQ(i) {
 /* =========================================================
    MODAL AUTH
    ========================================================= */
+// Nom de secours d'un compte : nom du compte, sinon début de l'e-mail, sinon « Membre » + 4 caractères de l'identifiant.
+// (Un compte créé avec un numéro de téléphone n'a pas d'e-mail.)
+function authFallbackName(user) {
+  if (!user) return 'Membre';
+  if (user.displayName) return user.displayName;
+  if (user.email) return String(user.email).split('@')[0];
+  return 'Membre ' + String(user.uid || '0000').slice(0, 4).toUpperCase();
+}
+// Vrai si ce compte a un mot de passe (inscription par e-mail). Faux pour Google, Apple, numéro de téléphone...
+function accountHasPassword() {
+  const u = auth && auth.currentUser;
+  return !!(u && (u.providerData || []).some(p => p.providerId === 'password'));
+}
 function openAuth(mode) {
   authMode = mode;
   updateAuthModalMode();
@@ -2406,10 +2419,10 @@ async function signInWithGoogle() {
     const ref = db.collection('users').doc(user.uid);
     const doc = await ref.get();
     if (!doc.exists) {
-      const finalName = user.displayName || user.email.split('@')[0];
+      const finalName = authFallbackName(user);
       await ref.set({
         name: finalName,
-        email: user.email,
+        email: user.email || '',
         photoURL: user.photoURL || null,
         balance: 0,
         referredBy: getPendingReferrerUid(),
@@ -2570,6 +2583,12 @@ async function saveAccountName() {
 // a detourner un compte.
 async function reauthenticateCurrentUser(currentPassword) {
   const user = auth.currentUser;
+  // Compte sans mot de passe (Google, Apple, numéro de téléphone) : on confirme l'identité avec la méthode de connexion du compte
+  // (fenêtre du fournisseur, ou code SMS). Voir login-pro.js.
+  if (!accountHasPassword()) {
+    if (window.cnReauth) return window.cnReauth();
+    const err = new Error('requires-recent-login'); err.code = 'auth/requires-recent-login'; throw err;
+  }
   const cred = firebase.auth.EmailAuthProvider.credential(user.email, currentPassword);
   await user.reauthenticateWithCredential(cred);
 }
@@ -2633,7 +2652,7 @@ async function deleteMyAccount() {
   const msgEl = document.getElementById('delete-account-msg');
   msgEl.style.color = 'var(--red-text)';
   const password = document.getElementById('delete-account-pass').value;
-  if (!password) {
+  if (!password && accountHasPassword()) {
     msgEl.textContent = 'Merci de saisir ton mot de passe pour confirmer.';
     return;
   }
@@ -2824,6 +2843,7 @@ function refreshMenuSectionData(sectionId) {
     'section-following': loadFollowingList,
     'section-blocked': loadBlockedList,
     'section-editaccount': fillAccountForm,
+    'section-security': () => { if (window.cnAccountMethods) window.cnAccountMethods(); },
     'section-notifprefs': applyNotifPrefsToUI,
     'section-faq': renderFAQ
   };
@@ -2867,14 +2887,14 @@ if (fbReady) {
       let data;
       try {
         const doc = await db.collection('users').doc(user.uid).get();
-        data = doc.exists ? doc.data() : { name: user.email.split('@')[0], email: user.email, balance: 0, createdAt: new Date().toISOString() };
+        data = doc.exists ? doc.data() : { name: authFallbackName(user), email: user.email || '', balance: 0, createdAt: new Date().toISOString() };
       } catch (e) {
         // AVANT : en cas d'echec de lecture du profil, l'ADRESSE E-MAIL
         // COMPLETE etait utilisee comme "nom" -- et donc affichee
         // publiquement (fil, commentaires, fiche profil) partout ou le nom
         // apparait. Corrige : seule la partie avant le "@" sert de repli.
         console.error("Erreur lecture profil :", e.message);
-        data = { name: user.email.split('@')[0], email: user.email, balance: 0, createdAt: new Date().toISOString() };
+        data = { name: authFallbackName(user), email: user.email || '', balance: 0, createdAt: new Date().toISOString() };
       }
       currentUser = { uid: user.uid, ...data };
 
@@ -2883,7 +2903,7 @@ if (fbReady) {
       refreshDashComposerAvatar();
       document.getElementById('wallet-balance').textContent = (currentUser.balance || 0).toFixed(2) + '$';
       document.getElementById('profile-name').textContent = currentUser.name;
-      document.getElementById('profile-email').textContent = currentUser.email;
+      document.getElementById('profile-email').textContent = currentUser.email || user.phoneNumber || currentUser.phone || '';
       document.getElementById('profile-since').textContent = currentUser.createdAt
         ? new Date(currentUser.createdAt).toLocaleDateString('fr-FR')
         : '—';

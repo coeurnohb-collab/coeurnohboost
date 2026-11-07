@@ -2165,6 +2165,7 @@ var MOCKUP_AI_ENABLED = false;
   }
   function loadAuthGuard() {
     loadHelper('auth-guard.js', 'data-cn-ag');   // connexion plus stable
+    loadHelper('login-pro.js?v=20261107', 'data-cn-lp');   // Apple, numéro de téléphone (SMS), Facebook, Microsoft
     loadHelper('messaging-pro.js?v=20261061', 'data-cn-ms');   // messagerie privée en temps réel (chargée à part : jamais bloquante)
   }
   function promptLoginForLink() {
