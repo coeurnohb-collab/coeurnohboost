@@ -66,7 +66,9 @@ function showOfflineBanner() {
   if (document.getElementById('offline-banner')) return;
   const el = document.createElement('div');
   el.id = 'offline-banner';
-  el.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:100001;background:var(--red-text);color:#fff;text-align:center;padding:8px 12px;font-size:0.85rem;font-weight:700';
+  el.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:100001;background:var(--red-text);color:#fff;text-align:center;padding:calc(8px + env(safe-area-inset-top)) 12px 8px;font-size:0.85rem;font-weight:700';
+  el.setAttribute('role', 'status');
+  el.setAttribute('aria-live', 'polite');
   el.textContent = t('offline_banner_text');
   document.body.appendChild(el);
 }
@@ -85,8 +87,20 @@ window.addEventListener('online', () => hideOfflineBanner(true));
    faire". Desormais elle est au moins journalisee dans la console (utile
    pour le diagnostic) ET signalee discretement, sans bloquer le reste de
    l'app. */
+// Le message n'apparait que pour une vraie erreur : jamais pour une annulation volontaire (partage, lecture video, requete
+// abandonnee en changeant d'ecran), jamais pendant une coupure reseau (la banniere le dit deja), et au plus une fois toutes les 15 s.
+let lastRejectionToast = 0;
 window.addEventListener('unhandledrejection', (event) => {
-  console.error('[promesse non interceptee]', event.reason);
+  const r = event.reason;
+  console.error('[promesse non interceptee]', r);
+  const name = r && r.name ? String(r.name) : '';
+  const msg = String((r && (r.message || r.code)) || r || '');
+  if (name === 'AbortError' || name === 'NotAllowedError') return;
+  if (/AbortError|aborted|cancel+ed|play\(\) request was interrupted|ResizeObserver/i.test(msg)) return;
+  if (navigator.onLine === false) return;
+  const now = Date.now();
+  if (now - lastRejectionToast < 15000) return;
+  lastRejectionToast = now;
   showToast(t('unexpected_error_toast'), 'error');
 });
 // Si l'app demarre deja hors-ligne (pas seulement une coupure en cours de
