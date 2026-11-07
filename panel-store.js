@@ -739,8 +739,18 @@
     document.body.appendChild(o); document.body.style.overflow = 'hidden';
     o.querySelector('#pm-site-x').onclick = function () { o.remove(); document.body.style.overflow = ''; };
   }
+  // Ouvre une adresse du site dans le navigateur (Chrome sur Android), sans quitter l'application.
+  function openInBrowser(full) {
+    var u; try { u = new URL(String(full), location.href); } catch (e) { return; }
+    if (u.origin !== location.origin) return;
+    if (/Android/i.test(navigator.userAgent || '')) {
+      location.href = 'intent://' + u.host + u.pathname + u.search + u.hash + '#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=' + encodeURIComponent(u.href) + ';end';
+    } else { window.open(u.href, '_blank', 'noopener'); }
+  }
   window.addEventListener('message', function (e) {
-    if (e.origin !== location.origin || !e.data || !e.data.cnStore) return;
+    if (e.origin !== location.origin || !e.data) return;
+    if (typeof e.data.cnExternal === 'string') { openInBrowser(e.data.cnExternal); return; }
+    if (!e.data.cnStore) return;
     var o = document.getElementById('pm-site'); if (o) o.remove(); openStore(String(e.data.cnStore));
   });
   document.addEventListener('click', function (ev) {

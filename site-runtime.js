@@ -1969,6 +1969,9 @@
     go.onclick = function () {
       var clean = location.search.replace(/([?&])source=pwa(&|$)/, '$1').replace(/[?&]$/, '');
       var path = location.pathname + clean + location.hash, full = location.origin + path;
+      // Site affiché dans la fenêtre « Aperçu » de l'application : un cadre ne peut pas lancer Chrome lui-même,
+      // on demande donc à l'application (la page qui contient le cadre) d'ouvrir Chrome à sa place.
+      try { if (window.parent && window.parent !== window) { window.parent.postMessage({ cnExternal: full }, location.origin); return; } } catch (e) { /* ignore */ }
       // Chrome est désigné par son nom : Android ne laisse pas l'autre application reprendre le lien.
       location.href = 'intent://' + location.host + path + '#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=' + encodeURIComponent(full) + ';end';
     };

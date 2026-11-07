@@ -1019,18 +1019,18 @@ async function loadUsersAdmin() {
     el.innerHTML = snap.docs.map(doc => {
       const d = doc.data();
       return `
-      <div class="admin-row" data-q="${escapeHtml(((d.name || '') + ' ' + (d.email || '') + ' ' + (d.username || '')).toLowerCase())}">
+      <div class="admin-row" data-q="${escapeHtml(((d.name || '') + ' ' + (d.email || '') + ' ' + (d.phone || '') + ' ' + (d.username || '')).toLowerCase())}">
         <div class="admin-row-top">
           <div>
             <div class="admin-row-title">${d.verified ? '✔️ ' : ''}${escapeHtml(d.name || '—')}</div>
-            <div class="admin-row-meta">${escapeHtml(d.email || '')}<br>Solde : ${(d.balance || 0).toFixed(2)}$ · Membre depuis ${d.createdAt ? new Date(d.createdAt).toLocaleDateString('fr-FR') : '—'}</div>
+            <div class="admin-row-meta">${escapeHtml(d.email || d.phone || '')}<br>Solde : ${(d.balance || 0).toFixed(2)}$ · Membre depuis ${d.createdAt ? new Date(d.createdAt).toLocaleDateString('fr-FR') : '—'}</div>
           </div>
         </div>
         <div class="admin-row-actions">
           <button class="btn btn-outline btn-sm" onclick="toggleUserVerified('${doc.id}', ${!d.verified})">
             ${d.verified ? '❌ Retirer la vérification' : '✔️ Vérifier ce vendeur'}
           </button>
-          <button class="btn btn-primary btn-sm" onclick="openAdminMessage('${escapeForJs(doc.id)}', '${escapeForJs(d.name || d.email || '')}')">💬 Message</button>
+          <button class="btn btn-primary btn-sm" onclick="openAdminMessage('${escapeForJs(doc.id)}', '${escapeForJs(d.name || d.email || d.phone || '')}')">💬 Message</button>
           <button class="btn btn-outline btn-sm" onclick="diagnoseUserNotifs('${doc.id}')">🔍 Diagnostic notifs</button>
         </div>
         <div id="notif-diag-${doc.id}"></div>

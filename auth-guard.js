@@ -272,19 +272,24 @@
     }
     copyLink();
   }
+  function phoneOn() { try { return !!(window.cnLoginPro && window.cnLoginPro.has && window.cnLoginPro.has('phone')); } catch (e) { return false; } }
   function noticeText() {
-    if (KIND === 'ios-app') return "Sur iPhone, dans l'application installée, la connexion Google peut échouer. Utilise ton email et ton mot de passe, ou ouvre le site dans Safari.";
-    return "Tu es dans le navigateur intégré d'une application (TikTok, Instagram, Facebook…). Google refuse la connexion ici. Ouvre dans Chrome / Safari, ou connecte-toi avec ton email juste en dessous.";
+    if (KIND === 'ios-app') return phoneOn()
+      ? "Sur iPhone, dans l'application installée, la connexion Google peut échouer. Utilise ton numéro de téléphone ou ton email, ou ouvre le site dans Safari."
+      : "Sur iPhone, dans l'application installée, la connexion Google peut échouer. Utilise ton email et ton mot de passe, ou ouvre le site dans Safari.";
+    return phoneOn()
+      ? "Tu es dans le navigateur intégré d'une application (TikTok, Instagram, Facebook…). Google refuse la connexion ici. Ouvre dans Chrome / Safari, ou connecte-toi avec ton numéro de téléphone ou ton email."
+      : "Tu es dans le navigateur intégré d'une application (TikTok, Instagram, Facebook…). Google refuse la connexion ici. Ouvre dans Chrome / Safari, ou connecte-toi avec ton email juste en dessous.";
   }
   function renderNotice() {
     if (!KIND) return;
-    var anchor = document.getElementById('google-btn');
+    var anchor = document.getElementById('cn-prov-top') || document.getElementById('google-btn');
     if (!anchor || document.getElementById('cn-inapp-notice')) return;
     var box = document.createElement('div');
     box.id = 'cn-inapp-notice';
     box.setAttribute('role', 'note');
     box.style.cssText = 'background:#fff4e6;color:#8a4b00;border:1px solid #ffd8a8;border-radius:12px;padding:12px 14px;margin:0 0 12px;font-size:.86rem;line-height:1.45';
-    box.innerHTML = '<div style="font-weight:800;margin-bottom:4px">⚠️ Connexion Google limitée ici</div><div>' + esc(noticeText()) + '</div>' +
+    box.innerHTML = '<div style="font-weight:800;margin-bottom:4px;display:flex;align-items:center;gap:8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/></svg>Connexion Google limitée ici</div><div>' + esc(noticeText()) + '</div>' +
       '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">' +
       (KIND === 'ios-app' ? '' : '<button type="button" data-cn="open" style="border:0;border-radius:10px;padding:9px 14px;font:inherit;font-weight:800;background:#e8590c;color:#fff;cursor:pointer">Ouvrir dans le navigateur</button>') +
       '<button type="button" data-cn="copy" style="border:1px solid #ffd8a8;border-radius:10px;padding:9px 14px;font:inherit;font-weight:700;background:#fff;color:#8a4b00;cursor:pointer">Copier le lien</button></div>';
@@ -337,7 +342,7 @@
     kind: KIND,
     // Affiche un message en haut de la fenêtre de connexion (utilisé pour les liens partagés)
     setContextNote: function (text) {
-      var anchor = document.getElementById('google-btn');
+      var anchor = document.getElementById('cn-prov-top') || document.getElementById('google-btn');
       if (!anchor) return;
       var el = document.getElementById('cn-auth-context');
       if (!el) {
