@@ -162,7 +162,8 @@
       case 'auth/missing-verification-code': return 'lp_e_code_short';
       case 'auth/code-expired': case 'auth/session-expired': case 'auth/invalid-verification-id': case 'auth/missing-verification-id': return 'lp_e_code_expired';
       case 'auth/operation-not-allowed': return /region/i.test(m) ? 'lp_e_region' : 'lp_e_not_enabled';
-      case 'auth/admin-restricted-operation': case 'auth/configuration-not-found': case 'auth/operation-not-supported-in-this-environment': return 'lp_e_not_enabled';
+      case 'auth/admin-restricted-operation': case 'auth/configuration-not-found': case 'auth/operation-not-supported-in-this-environment':
+      case 'auth/billing-not-enabled': case 'auth/unauthorized-domain': case 'auth/app-not-authorized': return 'lp_e_not_enabled';
       case 'auth/popup-closed-by-user': case 'auth/cancelled-popup-request': case 'auth/redirect-cancelled-by-user': case 'auth/user-cancelled': return 'lp_e_cancelled';
       case 'auth/popup-blocked': return 'lp_e_popup';
       case 'auth/credential-already-in-use': case 'auth/phone-number-already-exists': case 'auth/email-already-in-use': return 'lp_e_in_use';
