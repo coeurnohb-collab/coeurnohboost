@@ -1040,7 +1040,11 @@ async function loadBundlePricingOverrides() {
 let SITE_PRICING = {
   premiumPriceMonth: 20,  // valeur de repli -- doit rester identique a SITE_PREMIUM_PRICE plus bas dans ce fichier et a SITE_PREMIUM_PRICE dans api/payments-actions.js
   businessProPrice: 15,   // $/mois, reglable par l'admin (pricing/site) -- repli identique a BUSINESS_PRO_PRICE dans api/payments-actions.js
-  domainPriceMonth: 4     // valeur de repli ($/mois) -- doit rester identique a SITE_DOMAIN_PRICE_MONTH dans api/payments-actions.js ; sert de base au calcul automatique des formules
+  domainPriceMonth: 4,    // valeur de repli ($/mois) -- doit rester identique a SITE_DOMAIN_PRICE_MONTH dans api/payments-actions.js ; sert de base au calcul automatique des formules
+  // Reductions (en %) selon la duree choisie pour le Premium du site et l'Entreprise Pro :
+  // 1 mois = prix normal, puis de plus en plus de reduction. Reglables par l'admin
+  // (pricing/site.planDiscounts) ; calcul partage avec le serveur dans catalog-data.js.
+  planDiscounts: { premium: cleanPlanDiscounts(null), business: cleanPlanDiscounts(null) }
 };
 // Durees standards proposees au client, toujours calculees a partir de
 // SITE_PRICING.domainPriceMonth (jamais de prix fixe par duree).
@@ -1074,6 +1078,8 @@ async function loadSitePricingOverrides() {
       if (typeof data.businessProPrice === 'number' && data.businessProPrice > 0) {
         SITE_PRICING.businessProPrice = data.businessProPrice;
       }
+      const pd = (data.planDiscounts && typeof data.planDiscounts === 'object') ? data.planDiscounts : {};
+      SITE_PRICING.planDiscounts = { premium: cleanPlanDiscounts(pd.premium), business: cleanPlanDiscounts(pd.business) };
     }
   } catch (e) {
     console.warn('⚠️ Pas de tarifs Site/Domaine personnalisés (utilisation des prix par défaut).', e.message);
@@ -12971,10 +12977,11 @@ function renderSiteStatusView() {
         <span class="shop-card-category" style="background:#fff4e0;color:#b5720b">${t('site_premium_until_prefix')} ${escapeHtml(new Date(site.premiumUntil).toLocaleDateString())}</span>
       </div>
       <div class="muted small" style="margin:8px 0">${site.viewsCount || 0} ${t('site_views_suffix')}</div>
-      <button class="btn btn-outline btn-sm" onclick="purchaseSitePremium()">${t('site_renew_prefix')} ${SITE_PRICING.premiumPriceMonth}$)</button>
+      <button class="btn btn-outline btn-sm" onclick="purchaseSitePremium()">${t('pl_btn_extend')}</button>
     </div>` : `
     <div class="order-box" style="margin-bottom:14px;border-color:#f5a623;background:var(--white)">
       <strong style="font-size:1.02rem">${t('site_pack_pro_title')} — ${SITE_PRICING.premiumPriceMonth}$${t('site_pack_pro_price_suffix')}</strong>
+      ${planPromoLineHtml('premium')}
       <ul class="muted small" style="margin:8px 0 10px;padding-left:18px;line-height:1.7">
         <li><b>${t('sb_feature_publish')}</b></li>
         <li>${t('site_feature_photos_prefix')} ${t('site_unlimited_label')} ${t('site_feature_photos_mid')} ${SITE_FREE_PHOTO_LIMIT})</li>
@@ -12985,7 +12992,7 @@ function renderSiteStatusView() {
         <li>${t('site_feature_domain')}</li>
         <li>${t('site_feature_seo')}</li>
       </ul>
-      <button class="btn btn-primary btn-sm" style="width:100%;justify-content:center" onclick="purchaseSitePremium()">${t('site_activate_premium_btn')}</button>
+      <button class="btn btn-primary btn-sm" style="width:100%;justify-content:center" onclick="purchaseSitePremium()">${t('pl_btn_choose')}</button>
     </div>`;
 
   statusEl.innerHTML = `
@@ -13044,28 +13051,244 @@ async function verifyPublicSiteLink() {
    changement de code necessaire. */
 const SITE_ROOT_DOMAIN = null;
 
-async function purchaseSitePremium() {
-  if (!currentUser || !mySiteCache) return;
-  if (!confirm(`${t('site_confirm_premium_prefix')} ${SITE_PRICING.premiumPriceMonth}$ ${t('site_confirm_premium_suffix')}`)) return;
+/* ====================== FORMULES PREMIUM : 1 / 3 / 6 / 12 mois et 3 ans ======================
+   Une seule fenetre, deux usages : le Premium du site ("premium") et l'Entreprise Pro ("business").
+   Le prix normal est celui d'UN mois ; plus la duree est longue, plus la reduction est grande.
+   Les montants affiches viennent du meme calcul que le serveur (planQuote, catalog-data.js) et le serveur
+   les recalcule toujours : ce que le client voit ici est une information, jamais ce qui fait foi. */
+let planSheetState = null;
+let planPricingFetchedAt = 0;
+
+function planKindInfo(kind) {
+  if (kind === 'business') {
+    const b = (typeof businessMyProfile !== 'undefined') ? businessMyProfile : null;
+    return {
+      kind, name: 'CoeurNoh Business Pro',
+      monthly: SITE_PRICING.businessProPrice, discounts: SITE_PRICING.planDiscounts.business,
+      until: (b && b.pro && b.proUntil) ? b.proUntil : null
+    };
+  }
+  const site = (typeof mySiteCache !== 'undefined') ? mySiteCache : null;
+  return {
+    kind: 'premium', name: t('site_pack_pro_title'),
+    monthly: SITE_PRICING.premiumPriceMonth, discounts: SITE_PRICING.planDiscounts.premium,
+    until: (site && site.premium && site.premiumUntil) ? site.premiumUntil : null
+  };
+}
+function planMoney(n) {
+  const v = Math.round((Number(n) || 0) * 100) / 100;
+  return (v % 1 === 0 ? String(v) : v.toFixed(2)) + ' $';
+}
+function planPctText(p) { return '-' + (Math.round(p * 100) / 100) + '%'; }
+function planDurLabel(m) { return t('pl_d' + m); }
+function planFill(str, val) { return String(str).split('{0}').join(val); }
+function planDateText(ms) {
+  try { return new Date(ms).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' }); } catch (e) { return new Date(ms).toLocaleDateString(); }
+}
+// Date de fin que le client obtiendra (a partir d'aujourd'hui, ou de la fin de l'abonnement s'il court encore).
+function planEndMs(info, months) {
+  const now = Date.now();
+  const base = (info.until && new Date(info.until).getTime() > now) ? new Date(info.until).getTime() : now;
+  return planAddMonths(base, months);
+}
+// Petite ligne "Jusqu'a -35% avec une duree plus longue" pour les cartes Premium / Entreprise Pro.
+function planPromoLineHtml(kind) {
+  const info = planKindInfo(kind);
+  const best = planQuotes(info.monthly, info.discounts).reduce((m, q) => Math.max(m, q.discountPct), 0);
+  if (!(best > 0)) return '';
+  return `<p class="pl-promo">${escapeHtml(planFill(t('pl_promo_upto'), planPctText(best).replace('-', '')))}</p>`;
+}
+
+function planSheetCss() {
+  if (document.getElementById('pl-style')) return;
+  const st = document.createElement('style');
+  st.id = 'pl-style';
+  st.textContent =
+    '.pl-promo{margin:6px 0 0;font-size:.84rem;line-height:1.45;color:var(--tint-green-ink);font-weight:600}' +
+    '.pl-ov{position:fixed;inset:0;z-index:3400;background:rgba(10,14,22,.55);display:flex;align-items:flex-end;justify-content:center}' +
+    '.pl-sheet{background:var(--white);color:var(--ink);width:100%;max-width:480px;max-height:94vh;max-height:94dvh;display:flex;flex-direction:column;overflow:hidden;border-radius:20px 20px 0 0;box-shadow:var(--shadow-lg)}' +
+    '.pl-sheet:focus{outline:none}' +
+    '.pl-body{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:18px 16px 6px}' +
+    '.pl-foot{flex:none;padding:12px 16px calc(14px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);background:var(--white)}' +
+    '@media (min-width:600px){.pl-ov{align-items:center}.pl-sheet{border-radius:20px}}' +
+    '.pl-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}' +
+    '.pl-eyebrow{display:block;font-size:.74rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-bottom:3px}' +
+    '.pl-head h3{margin:0;font-size:1.2rem;line-height:1.25}' +
+    '.pl-head p{margin:4px 0 0;font-size:.88rem;line-height:1.45;color:var(--muted)}' +
+    '.pl-x{flex:none;width:40px;height:40px;border-radius:12px;border:1px solid var(--line);background:var(--white);color:var(--ink);display:inline-flex;align-items:center;justify-content:center;cursor:pointer}' +
+    '.pl-list{display:flex;flex-direction:column;gap:10px;margin:14px 0 8px}' +
+    '.pl-opt{display:flex;align-items:center;gap:12px;width:100%;text-align:left;font:inherit;color:inherit;background:var(--white);border:2px solid var(--line);border-radius:14px;padding:12px;cursor:pointer;min-height:64px}' +
+    '.pl-opt[aria-checked="true"]{border-color:var(--btn);background:var(--soft)}' +
+    '.pl-opt:focus-visible,.pl-x:focus-visible,.pl-pay:focus-visible{outline:3px solid var(--link);outline-offset:2px}' +
+    '.pl-radio{flex:none;width:22px;height:22px;border-radius:50%;border:2px solid var(--line-2);position:relative;background:var(--white)}' +
+    '.pl-opt[aria-checked="true"] .pl-radio{border-color:var(--btn)}' +
+    '.pl-opt[aria-checked="true"] .pl-radio::after{content:"";position:absolute;inset:3px;border-radius:50%;background:var(--btn)}' +
+    '.pl-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}' +
+    '.pl-dur{font-weight:700;font-size:1rem;line-height:1.2}' +
+    '.pl-tags{display:flex;flex-wrap:wrap;gap:6px}' +
+    '.pl-off,.pl-flag{display:inline-block;font-size:.72rem;font-weight:700;line-height:1;padding:4px 7px;border-radius:99px}' +
+    '.pl-off{background:var(--tint-green);color:var(--tint-green-ink)}' +
+    '.pl-flag{background:var(--tint-amber);color:var(--tint-amber-ink)}' +
+    '.pl-flag.best{background:var(--btn);color:var(--on-primary)}' +
+    '.pl-note{font-size:.8rem;color:var(--muted);line-height:1.35}' +
+    '.pl-price{flex:none;text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:2px}' +
+    '.pl-price b{font-size:1.15rem;line-height:1.1}' +
+    '.pl-price s{font-size:.78rem;color:var(--faint)}' +
+    '.pl-price small{font-size:.78rem;color:var(--muted)}' +
+    '.pl-sum{padding:0 2px 10px;font-size:.9rem;line-height:1.5}' +
+    '.pl-sum div{display:flex;justify-content:space-between;gap:10px}' +
+    '.pl-sum .tot{font-weight:800;font-size:1.1rem}' +
+    '.pl-sum .low{color:var(--red-text);font-weight:600}' +
+    '.pl-until{margin:8px 0 0;font-size:.82rem;color:var(--muted);text-align:center}' +
+    '.pl-pay{width:100%;justify-content:center;min-height:48px;font-size:1rem}' +
+    '.pl-fine{margin:4px 0 0;font-size:.76rem;line-height:1.4;color:var(--muted);text-align:center}' +
+    '@media (prefers-reduced-motion:no-preference){.pl-sheet{animation:plUp .18s ease-out}@keyframes plUp{from{transform:translateY(24px);opacity:.6}to{transform:none;opacity:1}}}';
+  document.head.appendChild(st);
+}
+
+async function openPlanSheet(kind) {
+  if (!currentUser) { openAuth('login'); return; }
+  if (kind === 'business' ? !businessMyProfile : !mySiteCache) return;
+  // Tarifs frais (l'admin a pu les changer depuis l'ouverture de l'application) : une lecture au plus par minute.
+  if (Date.now() - planPricingFetchedAt > 60000) {
+    planPricingFetchedAt = Date.now();
+    try { await loadSitePricingOverrides(); } catch (e) { /* on garde les tarifs deja charges */ }
+  }
+  planSheetState = { kind, months: 12, busy: false };
+  planSheetCss();
+  closePlanSheet(true);
+  const ov = document.createElement('div');
+  ov.className = 'pl-ov'; ov.id = 'pl-overlay';
+  ov.addEventListener('click', (e) => { if (e.target === ov) closePlanSheet(); });
+  document.body.appendChild(ov);
+  document.addEventListener('keydown', planSheetKey);
+  renderPlanSheet();
+  const sheet = ov.querySelector('.pl-sheet');
+  if (sheet) sheet.focus({ preventScroll: true });
+}
+function planSheetKey(e) {
+  if (e.key === 'Escape') { closePlanSheet(); return; }
+  if (!planSheetState || (e.key !== 'ArrowDown' && e.key !== 'ArrowUp')) return;
+  const list = [1, 3, 6, 12, 36];
+  const i = list.indexOf(planSheetState.months);
+  const n = list[Math.min(list.length - 1, Math.max(0, i + (e.key === 'ArrowDown' ? 1 : -1)))];
+  if (n !== planSheetState.months) { e.preventDefault(); selectPlanMonths(n, true); }
+}
+function closePlanSheet(keepState) {
+  const ov = document.getElementById('pl-overlay');
+  if (ov) ov.remove();
+  document.removeEventListener('keydown', planSheetKey);
+  if (!keepState) planSheetState = null;
+}
+function selectPlanMonths(m, refocus) {
+  if (!planSheetState || planSheetState.busy) return;
+  planSheetState.months = m;
+  renderPlanSheet();
+  if (refocus) { const el = document.querySelector('#pl-overlay .pl-opt[aria-checked="true"]'); if (el) el.focus(); }
+}
+function renderPlanSheet() {
+  const ov = document.getElementById('pl-overlay');
+  if (!ov || !planSheetState) return;
+  const info = planKindInfo(planSheetState.kind);
+  const quotes = planQuotes(info.monthly, info.discounts);
+  const chosen = quotes.find(q => q.months === planSheetState.months) || quotes[0];
+  const balance = Number(currentUser && currentUser.balance) || 0;
+  const enough = balance + 0.0001 >= chosen.total;
+  const maxPct = quotes.reduce((m, q) => Math.max(m, q.discountPct), 0);
+
+  const optsHtml = quotes.map(q => {
+    const sel = q.months === chosen.months;
+    const tags = [];
+    if (q.discountPct > 0) tags.push(`<span class="pl-off">${escapeHtml(planPctText(q.discountPct))}</span>`);
+    if (q.months === 12 && q.discountPct > 0) tags.push(`<span class="pl-flag">${escapeHtml(t('pl_popular'))}</span>`);
+    if (q.months === 36 && q.discountPct > 0 && q.discountPct === maxPct) tags.push(`<span class="pl-flag best">${escapeHtml(t('pl_best'))}</span>`);
+    const note = q.saved > 0 ? planFill(t('pl_save'), planMoney(q.saved)) : t('pl_normal');
+    return `<button type="button" class="pl-opt" role="radio" aria-checked="${sel ? 'true' : 'false'}" data-months="${q.months}" onclick="selectPlanMonths(${q.months})">
+      <span class="pl-radio" aria-hidden="true"></span>
+      <span class="pl-main"><span class="pl-dur">${escapeHtml(planDurLabel(q.months))}</span>${tags.length ? `<span class="pl-tags">${tags.join('')}</span>` : ''}<span class="pl-note">${escapeHtml(note)}</span></span>
+      <span class="pl-price">${q.saved > 0 ? `<s>${escapeHtml(planMoney(q.full))}</s>` : ''}<b>${escapeHtml(planMoney(q.total))}</b>${q.months > 1 ? `<small>${escapeHtml(planFill(t('pl_equiv'), planMoney(q.perMonth)))}</small>` : `<small>${escapeHtml(t('pl_per_month_word'))}</small>`}</span>
+    </button>`;
+  }).join('');
+
+  const endText = planDateText(planEndMs(info, chosen.months));
+  const payHtml = enough
+    ? `<button type="button" class="btn btn-primary pl-pay" id="pl-pay" ${planSheetState.busy ? 'disabled' : ''} onclick="submitPlanPurchase()">${escapeHtml(planSheetState.busy ? t('common_loading') : planFill(t('pl_pay'), planMoney(chosen.total)))}</button>`
+    : `<button type="button" class="btn btn-primary pl-pay" id="pl-pay" onclick="planGoRecharge()">${escapeHtml(t('pl_recharge'))}</button>`;
+
+  ov.innerHTML = `<div class="pl-sheet" role="dialog" aria-modal="true" aria-labelledby="pl-title" tabindex="-1">
+    <div class="pl-body">
+      <div class="pl-head">
+        <div><span class="pl-eyebrow">${escapeHtml(info.name)}</span><h3 id="pl-title">${escapeHtml(t('pl_title'))}</h3><p>${escapeHtml(t('pl_sub'))}</p></div>
+        <button type="button" class="pl-x" onclick="closePlanSheet()" aria-label="${escapeHtml(t('pl_close'))}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg></button>
+      </div>
+      <div class="pl-list" role="radiogroup" aria-label="${escapeHtml(t('pl_title'))}">${optsHtml}</div>
+    </div>
+    <div class="pl-foot">
+      <div class="pl-sum">
+        <div class="tot"><span>${escapeHtml(t('pl_total'))} (${escapeHtml(planDurLabel(chosen.months))})</span><span>${escapeHtml(planMoney(chosen.total))}</span></div>
+        <div><span>${escapeHtml(t('pl_balance'))}</span><span class="${enough ? '' : 'low'}">${escapeHtml(planMoney(balance))}</span></div>
+        ${enough ? '' : `<div class="low"><span>${escapeHtml(planFill(t('pl_missing'), planMoney(chosen.total - balance)))}</span></div>`}
+      </div>
+      ${payHtml}
+      <p class="pl-until">${escapeHtml(planFill(t('pl_until'), endText))}</p>
+      <p class="pl-fine">${escapeHtml(t('pl_fine'))}</p>
+    </div>
+  </div>`;
+}
+function planGoRecharge() {
+  closePlanSheet();
+  try { if (typeof closeMainMenu === 'function') closeMainMenu(); } catch (e) { /* ignore */ }
+  showRecharge();
+}
+async function submitPlanPurchase() {
+  const st = planSheetState;
+  if (!st || st.busy || !currentUser) return;
+  const info = planKindInfo(st.kind);
+  const q = planQuote(info.monthly, st.months, info.discounts);
+  if (!q) return;
+  st.busy = true; renderPlanSheet();
   try {
     const idToken = await auth.currentUser.getIdToken();
     const res = await fetch('/api/payments-actions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ idToken, action: 'site_premium_purchase' })
+      body: JSON.stringify({ idToken, action: st.kind === 'business' ? 'business_pro_purchase' : 'site_premium_purchase', months: q.months, expectedPrice: q.total })
     });
     const data = await res.json();
     if (!data.success) {
-      showToast(data.error || t('site_purchase_error'), 'error');
+      st.busy = false;
+      planPricingFetchedAt = 0; // le tarif a peut-etre change : on le relira a la prochaine ouverture
+      showToast(data.error || t(st.kind === 'business' ? 'business_pro_purchase_error' : 'site_purchase_error'), 'error');
+      renderPlanSheet();
       return;
     }
-    showToast(t('site_premium_activated_toast'), 'success');
-    mySiteCache.premium = true;
-    mySiteCache.premiumUntil = data.premiumUntil;
-    renderSiteStatusView();
+    if (typeof data.newBalance === 'number') {
+      currentUser.balance = data.newBalance;
+      const wb = document.getElementById('wallet-balance');
+      if (wb) wb.textContent = data.newBalance.toFixed(2) + '$';
+    }
+    closePlanSheet();
+    if (st.kind === 'business') {
+      showToast(t('business_pro_activated_toast'), 'success');
+      businessMyProfile.pro = true;
+      businessMyProfile.proUntil = data.proUntil;
+      renderMyBusinessStatus();
+    } else {
+      showToast(t('site_premium_activated_toast'), 'success');
+      mySiteCache.premium = true;
+      mySiteCache.premiumUntil = data.premiumUntil;
+      renderSiteStatusView();
+    }
   } catch (e) {
+    if (planSheetState) { planSheetState.busy = false; renderPlanSheet(); }
     showToast(friendlyErrorMessage(e), 'error');
   }
+}
+
+// Points d'entree conserves (appeles depuis de nombreux boutons) : ils ouvrent la fenetre de choix de duree.
+async function purchaseSitePremium() {
+  if (!currentUser || !mySiteCache) return;
+  return openPlanSheet('premium');
 }
 
 /* ====================== Aperçu fidèle du site (v-pro13) ======================
@@ -13430,7 +13653,7 @@ async function sitePreviewRefresh() {
     let h = '';
     if (locked) {
       h = st.canActivate
-        ? `<button class="btn btn-primary" style="flex:1;justify-content:center" onclick="closeSitePreview();purchaseSitePremium()">${t('sb_prev_activate')} — ${SITE_PRICING.premiumPriceMonth}$</button>`
+        ? `<button class="btn btn-primary" style="flex:1;justify-content:center" onclick="closeSitePreview();purchaseSitePremium()">${t('sb_prev_activate')} — ${SITE_PRICING.premiumPriceMonth}$${t('site_pack_pro_price_suffix')}</button>`
         : `<p class="sbx-prev-note" style="margin:0">${t('sb_prev_after_create')}</p>`;
     } else if (st.template !== st.originalTemplate && st.onUse) {
       h = `<button class="btn btn-primary" style="flex:1;justify-content:center" onclick="sitePreviewUse()">${t('sb_prev_use')}</button>`;
@@ -13591,10 +13814,10 @@ function openSiteSettingsScreen() {
           <h4>${t('sb_sec_pro')} ${ICON_SPARKLE}</h4>
           ${isPremium
             ? `<p class="sbx-hint" style="margin:0 0 10px">${t('sb_pro_active')} ${escapeHtml(new Date(site.premiumUntil).toLocaleDateString())}</p>
-               <button type="button" class="btn btn-outline btn-sm" onclick="closeSiteSettingsScreen();purchaseSitePremium()">${t('site_renew_prefix')} ${SITE_PRICING.premiumPriceMonth}$)</button>`
+               <button type="button" class="btn btn-outline btn-sm" onclick="closeSiteSettingsScreen();purchaseSitePremium()">${t('pl_btn_extend')}</button>`
             : `<p class="sbx-hint" style="margin:0 0 10px">${t('sb_pro_inactive')}</p>
                <div class="sbx-row"><button type="button" class="btn btn-outline btn-sm" onclick="openSitePreviewFromSaved('doux')">${t('sb_prev_pro_toggle')}</button>
-               <button type="button" class="btn btn-primary btn-sm" onclick="closeSiteSettingsScreen();purchaseSitePremium()">${t('sb_prev_activate')} — ${SITE_PRICING.premiumPriceMonth}$</button></div>`}
+               <button type="button" class="btn btn-primary btn-sm" onclick="closeSiteSettingsScreen();purchaseSitePremium()">${t('sb_prev_activate')} — ${SITE_PRICING.premiumPriceMonth}$${t('site_pack_pro_price_suffix')}</button></div>`}
         </div>
 
         <div class="sbx-card">
@@ -15144,10 +15367,11 @@ async function renderMyBusinessStatus() {
         <strong>${t('business_pro_active_label')} ${ICON_SPARKLE}</strong>
         <span class="shop-card-category" style="background:#fff4e0;color:#b5720b">${t('business_pro_until_prefix')} ${escapeHtml(new Date(b.proUntil).toLocaleDateString())}</span>
       </div>
-      <button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="purchaseBusinessPro()">${t('business_renew_prefix')} ${SITE_PRICING.businessProPrice}$)</button>
+      <button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="purchaseBusinessPro()">${t('pl_btn_extend')}</button>
     </div>` : `
     <div class="order-box" style="margin-bottom:14px">
       <strong>${t('business_upgrade_title_prefix')} ${SITE_PRICING.businessProPrice}$${t('business_per_month_suffix')}</strong>
+      ${planPromoLineHtml('business')}
       <ul class="muted small" style="margin:8px 0 10px;padding-left:18px;line-height:1.6">
         <li>${t('business_feature_catalog_prefix')} ${BUSINESS_PRO_CATALOG_LIMIT} ${t('business_feature_catalog_suffix')} ${BUSINESS_FREE_CATALOG_LIMIT})</li>
         <li>${t('business_feature_coupons_prefix')} ${BUSINESS_PRO_COUPON_LIMIT} ${t('business_feature_coupons_mid')} ${BUSINESS_FREE_COUPON_LIMIT})</li>
@@ -15158,7 +15382,7 @@ async function renderMyBusinessStatus() {
         <li>${t('bz_pro_f3')}</li>
         <li>${t('bz_pro_f4')}</li>
       </ul>
-      <button class="btn btn-primary btn-sm" onclick="purchaseBusinessPro()">${t('business_activate_pro_btn')}</button>
+      <button class="btn btn-primary btn-sm" onclick="purchaseBusinessPro()">${t('pl_btn_choose')}</button>
     </div>`;
 
   const comp = businessCompleteness(b);
@@ -15234,23 +15458,7 @@ async function renderMyBusinessStatus() {
 
 async function purchaseBusinessPro() {
   if (!currentUser || !businessMyProfile) return;
-  if (!confirm(`${t('business_confirm_pro_prefix')} ${SITE_PRICING.businessProPrice}$ ${t('business_confirm_pro_suffix')}`)) return;
-  try {
-    const idToken = await auth.currentUser.getIdToken();
-    const res = await fetch('/api/payments-actions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ idToken, action: 'business_pro_purchase' })
-    });
-    const data = await res.json();
-    if (!data.success) { showToast(data.error || t('business_pro_purchase_error'), 'error'); return; }
-    showToast(t('business_pro_activated_toast'), 'success');
-    businessMyProfile.pro = true;
-    businessMyProfile.proUntil = data.proUntil;
-    renderMyBusinessStatus();
-  } catch (e) {
-    showToast(friendlyErrorMessage(e), 'error');
-  }
+  return openPlanSheet('business');
 }
 
 /* ====================== ENTREPRISE v2 (v-pro16) ======================

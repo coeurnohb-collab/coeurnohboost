@@ -2000,41 +2000,61 @@ async function loadSitePricingEditor() {
     const premiumPriceMonth = (typeof data.premiumPriceMonth === 'number' && data.premiumPriceMonth > 0) ? data.premiumPriceMonth : 20;
     const domainPriceMonth = (typeof data.domainPriceMonth === 'number' && data.domainPriceMonth > 0) ? data.domainPriceMonth : 4;
     const businessProPrice = (typeof data.businessProPrice === 'number' && data.businessProPrice > 0) ? data.businessProPrice : 15;
-    renderSitePricingEditor(premiumPriceMonth, domainPriceMonth, businessProPrice);
+    const pd = (data.planDiscounts && typeof data.planDiscounts === 'object') ? data.planDiscounts : {};
+    renderSitePricingEditor(premiumPriceMonth, domainPriceMonth, businessProPrice, { premium: cleanPlanDiscounts(pd.premium), business: cleanPlanDiscounts(pd.business) });
   } catch (e) {
     el.innerHTML = `<p class="admin-empty">Erreur de chargement des tarifs : ${escapeHtml(e.message)}</p>`;
   }
 }
 
-function renderSitePricingEditor(premiumPriceMonth, domainPriceMonth, businessProPrice) {
+// Formules d'abonnement : un prix normal "par mois" + une reduction (%) par duree.
+// kind = 'premium' (Site Premium) ou 'business' (Entreprise Pro).
+const PLAN_ADMIN_KINDS = {
+  premium: { priceId: 'site-pricing-premium-month', title: 'Abonnement Site Premium', desc: "Prix NORMAL pour 1 mois de Premium (photos et articles illimités, catégories, thèmes, retrait de la mention, statistiques, éligibilité à l'achat de domaine). Les durées plus longues sont calculées automatiquement avec les réductions ci-dessous." },
+  business: { priceId: 'site-pricing-business-pro', title: 'Abonnement Entreprise Pro', desc: "Prix NORMAL pour 1 mois de Pro (page web publique, équipe, offres d'emploi, médiathèque illimitée, devis, etc.). Les durées plus longues sont calculées automatiquement avec les réductions ci-dessous." }
+};
+const PLAN_ADMIN_DURATIONS = [
+  { months: 3, label: '3 mois' },
+  { months: 6, label: '6 mois' },
+  { months: 12, label: '1 an' },
+  { months: 36, label: '3 ans' }
+];
+
+function planAdminBlockHtml(kind, price, discounts) {
+  const k = PLAN_ADMIN_KINDS[kind];
+  const fields = PLAN_ADMIN_DURATIONS.map(d => `
+          <div class="pricing-tier-field">
+            <span>Réduction pour ${d.label} (%)</span>
+            <input type="number" inputmode="decimal" step="0.5" min="0" max="${PLAN_MAX_DISCOUNT}" id="plan-disc-${kind}-m${d.months}" oninput="updatePlanPricingPreview('${kind}')" value="${discounts['m' + d.months]}">
+          </div>`).join('');
+  return `
+      <div class="pricing-service-block">
+        <label class="pricing-service-label">${escapeHtml(k.title)}</label>
+        <p class="muted small" style="margin:-4px 0 8px">${escapeHtml(k.desc)}</p>
+        <div class="pricing-tier-row" style="grid-template-columns:1fr">
+          <div class="pricing-tier-field">
+            <span>Prix normal pour 1 mois ($)</span>
+            <input type="number" inputmode="decimal" step="0.01" min="0" id="${k.priceId}" oninput="updatePlanPricingPreview('${kind}')" value="${price}">
+          </div>
+        </div>
+        <div class="pricing-tier-row" style="grid-template-columns:1fr 1fr;margin-top:8px">${fields}
+        </div>
+        <p class="muted small" style="margin:8px 0 4px">Ce que verra le client (calcul automatique) :</p>
+        <div id="plan-preview-${kind}"></div>
+      </div>`;
+}
+
+function renderSitePricingEditor(premiumPriceMonth, domainPriceMonth, businessProPrice, planDiscounts) {
   const el = document.getElementById('admin-site-pricing-editor');
+  const pd = planDiscounts || { premium: cleanPlanDiscounts(null), business: cleanPlanDiscounts(null) };
   el.innerHTML = `
     <div class="order-box">
-      <div class="pricing-service-block">
-        <label class="pricing-service-label">Abonnement Site Premium</label>
-        <p class="muted small" style="margin:-4px 0 8px">Prix facturé pour 30 jours de Premium (photos et articles illimités, catégories, thèmes, retrait de la mention, statistiques, éligibilité à l'achat de domaine).</p>
-        <div class="pricing-tier-row" style="grid-template-columns:1fr">
-          <div class="pricing-tier-field">
-            <span>Prix par mois ($)</span>
-            <input type="number" step="0.01" min="0" id="site-pricing-premium-month" value="${premiumPriceMonth}">
-          </div>
-        </div>
-      </div>
-
-      <div class="pricing-service-block">
-        <label class="pricing-service-label">Abonnement Entreprise Pro</label>
-        <p class="muted small" style="margin:-4px 0 8px">Prix facturé pour 30 jours de Pro (page web publique, équipe, offres d'emploi, médiathèque illimitée, devis, etc.).</p>
-        <div class="pricing-tier-row" style="grid-template-columns:1fr">
-          <div class="pricing-tier-field">
-            <span>Prix par mois ($)</span>
-            <input type="number" step="0.01" min="0" id="site-pricing-business-pro" value="${businessProPrice}">
-          </div>
-        </div>
-      </div>
+      ${planAdminBlockHtml('premium', premiumPriceMonth, pd.premium)}
+      ${planAdminBlockHtml('business', businessProPrice, pd.business)}
 
       <div class="pricing-service-block">
         <label class="pricing-service-label">Achat de domaine</label>
-        <p class="muted small" style="margin:-4px 0 8px">Un seul prix "par mois" : le prix pour 3 mois, 6 mois ou 1 an est calculé automatiquement, en multipliant simplement par le nombre de mois. Le propriétaire du site choisit la durée qui lui convient au moment de la demande.</p>
+        <p class="muted small" style="margin:-4px 0 8px">Un seul prix "par mois" : le prix pour 3 mois, 6 mois ou 1 an est calculé automatiquement, en multipliant simplement par le nombre de mois. Le propriétaire du site choisit la durée qui lui convient au moment de l'achat.</p>
         <div class="pricing-tier-row" style="grid-template-columns:1fr">
           <div class="pricing-tier-field">
             <span>Prix par mois ($)</span>
@@ -2048,6 +2068,30 @@ function renderSitePricingEditor(premiumPriceMonth, domainPriceMonth, businessPr
       <div class="modal-loading hidden" id="site-pricing-saved-msg" style="margin-top:10px">✅ Tarifs enregistrés !</div>
     </div>`;
   updateSiteDomainPricingPreview();
+  updatePlanPricingPreview('premium');
+  updatePlanPricingPreview('business');
+}
+
+// Lit les reductions saisies pour un type d'abonnement (valeurs brutes, avant nettoyage).
+function readPlanDiscountInputs(kind) {
+  const raw = {};
+  PLAN_ADMIN_DURATIONS.forEach(d => {
+    const inp = document.getElementById(`plan-disc-${kind}-m${d.months}`);
+    raw['m' + d.months] = inp ? inp.value : '';
+  });
+  return raw;
+}
+
+// Apercu en direct : exactement le calcul que fera le serveur (planQuotes, catalog-data.js).
+function updatePlanPricingPreview(kind) {
+  const priceEl = document.getElementById(PLAN_ADMIN_KINDS[kind].priceId);
+  const out = document.getElementById('plan-preview-' + kind);
+  if (!priceEl || !out) return;
+  const monthly = parseFloat(priceEl.value) || 0;
+  const quotes = planQuotes(monthly, readPlanDiscountInputs(kind));
+  if (!quotes.length) { out.innerHTML = '<div class="admin-row-meta">Entre un prix supérieur à 0.</div>'; return; }
+  const label = m => (m === 1 ? '1 mois' : m === 12 ? '1 an' : m === 36 ? '3 ans' : m + ' mois');
+  out.innerHTML = quotes.map(q => `<div class="admin-row-meta" style="margin-bottom:2px">${label(q.months)} → <strong>${q.total}$</strong>${q.months > 1 ? ` (soit ${q.perMonth}$/mois, réduction ${q.discountPct}%, le client économise ${q.saved}$)` : ' (prix normal)'}</div>`).join('');
 }
 
 // Recalcule et affiche, en direct pendant que l'admin tape, le prix que
@@ -2071,8 +2115,26 @@ async function saveSitePricingConfig() {
   if (businessProPrice <= 0) { alert('Le prix Entreprise Pro doit être supérieur à 0.'); return; }
   if (premiumPriceMonth <= 0) { alert('Le prix Premium doit être supérieur à 0.'); return; }
   if (domainPriceMonth <= 0) { alert('Le prix du domaine doit être supérieur à 0.'); return; }
+  // Reductions : nombres entre 0 et 90, et jamais moins de reduction pour une duree plus longue.
+  const planDiscounts = {};
+  for (const kind of ['premium', 'business']) {
+    const raw = readPlanDiscountInputs(kind);
+    const out = {};
+    let prev = 0;
+    for (const d of PLAN_ADMIN_DURATIONS) {
+      const key = 'm' + d.months;
+      const txt = String(raw[key]).trim().replace(',', '.');
+      const v = txt === '' ? NaN : Number(txt);
+      const name = kind === 'premium' ? 'Site Premium' : 'Entreprise Pro';
+      if (!isFinite(v) || v < 0 || v > PLAN_MAX_DISCOUNT) { alert(`${name} : la réduction pour ${d.label} doit être un nombre entre 0 et ${PLAN_MAX_DISCOUNT}.`); return; }
+      if (v < prev) { alert(`${name} : la réduction pour ${d.label} (${v}%) ne peut pas être plus petite que celle de la durée d'avant (${prev}%). Plus la durée est longue, plus la réduction doit être grande.`); return; }
+      out[key] = Math.round(v * 100) / 100;
+      prev = v;
+    }
+    planDiscounts[kind] = out;
+  }
   try {
-    await db.collection('pricing').doc('site').set({ premiumPriceMonth, domainPriceMonth, businessProPrice }, { merge: true });
+    await db.collection('pricing').doc('site').set({ premiumPriceMonth, domainPriceMonth, businessProPrice, planDiscounts }, { merge: true });
     const msg = document.getElementById('site-pricing-saved-msg');
     msg.classList.remove('hidden');
     setTimeout(() => msg.classList.add('hidden'), 2500);

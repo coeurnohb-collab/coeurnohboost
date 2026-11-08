@@ -272,11 +272,79 @@ function applyPricingOverrides(overrides) {
   });
 }
 
+/* ===== Formules d'abonnement : Site Premium et Entreprise Pro =====
+   UNE SEULE source de calcul, partagee par l'application (affichage), la page
+   admin (apercu en direct) et le serveur (api/_lib/payments-core.js, qui
+   RECALCULE toujours le prix : jamais de montant envoye par le client).
+   Principe : un prix normal "par mois" ; plus la duree est longue, plus la
+   reduction (en %) est grande. L'admin regle le prix mensuel et les % dans
+   son espace (document Firestore pricing/site : premiumPriceMonth,
+   businessProPrice, planDiscounts.{premium|business}.{m3|m6|m12|m36}). */
+const PLAN_MONTHS = [1, 3, 6, 12, 36];
+const PLAN_DEFAULT_DISCOUNTS = { m1: 0, m3: 10, m6: 15, m12: 25, m36: 35 };
+const PLAN_MAX_DISCOUNT = 90; // aucune reduction ne depasse 90 % (le prix reste toujours > 0)
+
+// Nettoie une configuration de reductions venue de Firestore (ou de l'admin) :
+// nombres seulement, entre 0 et 90, 1 mois toujours a 0 %, et jamais une
+// reduction plus petite pour une duree plus longue (3 mois >= 1 mois, etc.).
+function cleanPlanDiscounts(raw) {
+  const src = (raw && typeof raw === 'object') ? raw : {};
+  const out = { m1: 0 };
+  let prev = 0;
+  PLAN_MONTHS.slice(1).forEach(function (m) {
+    const key = 'm' + m;
+    let v = Number(src[key]);
+    if (src[key] === undefined || src[key] === null || src[key] === '' || !isFinite(v)) v = PLAN_DEFAULT_DISCOUNTS[key];
+    v = Math.min(Math.max(v, 0), PLAN_MAX_DISCOUNT);
+    v = Math.max(Math.round(v * 100) / 100, prev);
+    out[key] = v;
+    prev = v;
+  });
+  return out;
+}
+
+// Calcule le devis pour une duree : tout en centimes entiers, donc jamais
+// d'erreur d'arrondi. Renvoie des montants en dollars (2 decimales).
+function planQuote(monthlyPrice, months, discounts) {
+  const m = Number(months);
+  if (PLAN_MONTHS.indexOf(m) === -1) return null;
+  const monthlyCents = Math.round((Number(monthlyPrice) || 0) * 100);
+  if (!(monthlyCents > 0)) return null;
+  const pct = cleanPlanDiscounts(discounts)['m' + m];
+  const fullCents = monthlyCents * m;
+  const totalCents = Math.max(1, Math.round(fullCents * (100 - pct) / 100));
+  return {
+    months: m,
+    discountPct: pct,
+    monthly: monthlyCents / 100,
+    full: fullCents / 100,
+    total: totalCents / 100,
+    perMonth: Math.round(totalCents / m) / 100,
+    saved: (fullCents - totalCents) / 100
+  };
+}
+
+// Tous les devis (1, 3, 6, 12 et 36 mois) d'un coup, dans l'ordre.
+function planQuotes(monthlyPrice, discounts) {
+  return PLAN_MONTHS.map(function (m) { return planQuote(monthlyPrice, m, discounts); }).filter(Boolean);
+}
+
+// Ajoute des MOIS CALENDAIRES (31 janvier + 1 mois = 28/29 fevrier, pas 3 mars).
+function planAddMonths(baseMs, months) {
+  const d = new Date(baseMs);
+  const day = d.getUTCDate();
+  d.setUTCDate(1);
+  d.setUTCMonth(d.getUTCMonth() + months);
+  const last = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0)).getUTCDate();
+  d.setUTCDate(Math.min(day, last));
+  return d.getTime();
+}
+
 /* Rend ce fichier utilisable aussi cote serveur (Node.js, fonctions /api)
    sans rien changer pour le navigateur : "module" n'existe que sous Node,
    jamais dans un <script> charge par index.html. Ajoute ici toute donnee
    dont une fonction serveur pourrait avoir besoin pour recalculer un prix
    de maniere fiable (verification anti-fraude). */
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { SERVICE_CATALOG, QUALITY_TIERS, PLATFORMS, applyPricingOverrides };
+  module.exports = { SERVICE_CATALOG, QUALITY_TIERS, PLATFORMS, applyPricingOverrides, PLAN_MONTHS, PLAN_DEFAULT_DISCOUNTS, cleanPlanDiscounts, planQuote, planQuotes, planAddMonths };
 }
