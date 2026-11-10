@@ -146,6 +146,16 @@
   ],
   "redirects": [
     {
+      "source": "/fr/guide",
+      "destination": "/guide",
+      "permanent": true
+    },
+    {
+      "source": "/fr/guide/:slug",
+      "destination": "/guide/:slug",
+      "permanent": true
+    },
+    {
       "source": "/:path((?!api/|__/|[.]well-known/|$|index[.]html$|[^/]+[.](?:js|css|png|jpe?g|webp|svg|ico|woff2?|mp4|webm|json)$).*)",
       "has": [
         {
@@ -257,6 +267,22 @@
     {
       "source": "/aide",
       "destination": "/api/render-site?landing=aide"
+    },
+    {
+      "source": "/guide",
+      "destination": "/api/render-site?guide=hub&glang=fr"
+    },
+    {
+      "source": "/guide/:slug",
+      "destination": "/api/render-site?guide=:slug&glang=fr"
+    },
+    {
+      "source": "/:glang(en|es|it|pt)/guide",
+      "destination": "/api/render-site?guide=hub&glang=:glang"
+    },
+    {
+      "source": "/:glang(en|es|it|pt)/guide/:slug",
+      "destination": "/api/render-site?guide=:slug&glang=:glang"
     },
     {
       "source": "/about",

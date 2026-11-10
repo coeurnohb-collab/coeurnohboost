@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <url>
     <loc>https://coeurnohuniverse.com/</loc>
-    <lastmod>2026-10-25</lastmod>
+    <lastmod>2026-11-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
@@ -38,116 +38,1136 @@
   </url>
   <url>
     <loc>https://coeurnohuniverse.com/services</loc>
-    <lastmod>2026-10-25</lastmod>
+    <lastmod>2026-11-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://coeurnohuniverse.com/services/croissance-reseaux-sociaux</loc>
-    <lastmod>2026-10-25</lastmod>
+    <lastmod>2026-11-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://coeurnohuniverse.com/services/boutique-en-ligne</loc>
-    <lastmod>2026-10-25</lastmod>
+    <lastmod>2026-11-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://coeurnohuniverse.com/services/creer-un-site-web</loc>
-    <lastmod>2026-10-25</lastmod>
+    <lastmod>2026-11-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://coeurnohuniverse.com/services/entreprise-en-ligne</loc>
-    <lastmod>2026-10-25</lastmod>
+    <lastmod>2026-11-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://coeurnohuniverse.com/services/factures-et-recus</loc>
-    <lastmod>2026-10-25</lastmod>
+    <lastmod>2026-11-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://coeurnohuniverse.com/services/emploi-et-freelance</loc>
-    <lastmod>2026-10-25</lastmod>
+    <lastmod>2026-11-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://coeurnohuniverse.com/services/trouver-un-professionnel</loc>
-    <lastmod>2026-10-25</lastmod>
+    <lastmod>2026-11-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://coeurnohuniverse.com/services/academie-formations</loc>
-    <lastmod>2026-10-25</lastmod>
+    <lastmod>2026-11-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://coeurnohuniverse.com/services/immobilier</loc>
-    <lastmod>2026-10-25</lastmod>
+    <lastmod>2026-11-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://coeurnohuniverse.com/services/voyages-et-tourisme</loc>
-    <lastmod>2026-10-25</lastmod>
+    <lastmod>2026-11-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://coeurnohuniverse.com/services/reservation-en-ligne</loc>
-    <lastmod>2026-10-25</lastmod>
+    <lastmod>2026-11-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://coeurnohuniverse.com/services/pres-de-chez-vous</loc>
-    <lastmod>2026-10-25</lastmod>
+    <lastmod>2026-11-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://coeurnohuniverse.com/services/billetterie-evenements</loc>
-    <lastmod>2026-10-25</lastmod>
+    <lastmod>2026-11-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://coeurnohuniverse.com/services/concours-et-recompenses</loc>
-    <lastmod>2026-10-25</lastmod>
+    <lastmod>2026-11-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://coeurnohuniverse.com/services/alertes-produits</loc>
-    <lastmod>2026-10-25</lastmod>
+    <lastmod>2026-11-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://coeurnohuniverse.com/services/localisation-et-securite</loc>
-    <lastmod>2026-10-25</lastmod>
+    <lastmod>2026-11-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://coeurnohuniverse.com/services/outils-gratuits</loc>
-    <lastmod>2026-10-25</lastmod>
+    <lastmod>2026-11-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://coeurnohuniverse.com/aide</loc>
-    <lastmod>2026-10-25</lastmod>
+    <lastmod>2026-11-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/guide</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/og-image.jpg</image:loc></image:image>
+    <image:image><image:loc>https://coeurnohuniverse.com/app-menu.webp</image:loc></image:image>
+    <image:image><image:loc>https://coeurnohuniverse.com/app-recharge.webp</image:loc></image:image>
+    <image:image><image:loc>https://coeurnohuniverse.com/app-reseau.webp</image:loc></image:image>
+    <image:image><image:loc>https://coeurnohuniverse.com/app-outils.webp</image:loc></image:image>
+    <image:image><image:loc>https://coeurnohuniverse.com/app-wallet.webp</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/guide/getting-started</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/getting-started"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/getting-started"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/getting-started"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/getting-started"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/getting-started"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/getting-started"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-start.jpg</image:loc></image:image>
+    <image:image><image:loc>https://coeurnohuniverse.com/app-menu.webp</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/guide/feed</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/feed"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/feed"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/feed"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/feed"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/feed"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/feed"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-home.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/guide/messages</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/messages"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/messages"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/messages"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/messages"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/messages"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/messages"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-chat.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/guide/wallet</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/wallet"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/wallet"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/wallet"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/wallet"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/wallet"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/wallet"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-wallet.jpg</image:loc></image:image>
+    <image:image><image:loc>https://coeurnohuniverse.com/app-recharge.webp</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/guide/social-boost</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/social-boost"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/social-boost"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/social-boost"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/social-boost"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/social-boost"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/social-boost"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-boost.jpg</image:loc></image:image>
+    <image:image><image:loc>https://coeurnohuniverse.com/app-reseau.webp</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/guide/shop</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/shop"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/shop"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/shop"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/shop"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/shop"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/shop"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-shop.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/guide/website</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/website"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/website"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/website"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/website"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/website"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/website"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-site.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/guide/business</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/business"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/business"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/business"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/business"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/business"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/business"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-biz.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/guide/jobs</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/jobs"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/jobs"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/jobs"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/jobs"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/jobs"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/jobs"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-work.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/guide/nearby</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/nearby"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/nearby"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/nearby"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/nearby"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/nearby"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/nearby"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-local.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/guide/events</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/events"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/events"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/events"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/events"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/events"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/events"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-events.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/guide/free-tools</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/free-tools"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/free-tools"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/free-tools"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/free-tools"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/free-tools"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/free-tools"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-tools.jpg</image:loc></image:image>
+    <image:image><image:loc>https://coeurnohuniverse.com/app-outils.webp</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/guide/referral</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/referral"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/referral"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/referral"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/referral"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/referral"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/referral"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-earn.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/guide/account-security</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/account-security"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/account-security"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/account-security"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/account-security"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/account-security"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/account-security"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-account.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/en/guide</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/og-image.jpg</image:loc></image:image>
+    <image:image><image:loc>https://coeurnohuniverse.com/app-menu.webp</image:loc></image:image>
+    <image:image><image:loc>https://coeurnohuniverse.com/app-recharge.webp</image:loc></image:image>
+    <image:image><image:loc>https://coeurnohuniverse.com/app-reseau.webp</image:loc></image:image>
+    <image:image><image:loc>https://coeurnohuniverse.com/app-outils.webp</image:loc></image:image>
+    <image:image><image:loc>https://coeurnohuniverse.com/app-wallet.webp</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/en/guide/getting-started</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/getting-started"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/getting-started"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/getting-started"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/getting-started"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/getting-started"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/getting-started"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-start.jpg</image:loc></image:image>
+    <image:image><image:loc>https://coeurnohuniverse.com/app-menu.webp</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/en/guide/feed</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/feed"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/feed"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/feed"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/feed"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/feed"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/feed"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-home.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/en/guide/messages</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/messages"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/messages"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/messages"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/messages"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/messages"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/messages"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-chat.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/en/guide/wallet</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/wallet"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/wallet"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/wallet"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/wallet"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/wallet"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/wallet"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-wallet.jpg</image:loc></image:image>
+    <image:image><image:loc>https://coeurnohuniverse.com/app-recharge.webp</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/en/guide/social-boost</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/social-boost"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/social-boost"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/social-boost"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/social-boost"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/social-boost"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/social-boost"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-boost.jpg</image:loc></image:image>
+    <image:image><image:loc>https://coeurnohuniverse.com/app-reseau.webp</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/en/guide/shop</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/shop"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/shop"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/shop"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/shop"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/shop"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/shop"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-shop.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/en/guide/website</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/website"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/website"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/website"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/website"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/website"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/website"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-site.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/en/guide/business</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/business"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/business"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/business"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/business"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/business"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/business"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-biz.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/en/guide/jobs</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/jobs"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/jobs"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/jobs"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/jobs"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/jobs"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/jobs"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-work.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/en/guide/nearby</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/nearby"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/nearby"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/nearby"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/nearby"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/nearby"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/nearby"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-local.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/en/guide/events</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/events"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/events"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/events"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/events"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/events"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/events"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-events.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/en/guide/free-tools</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/free-tools"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/free-tools"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/free-tools"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/free-tools"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/free-tools"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/free-tools"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-tools.jpg</image:loc></image:image>
+    <image:image><image:loc>https://coeurnohuniverse.com/app-outils.webp</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/en/guide/referral</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/referral"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/referral"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/referral"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/referral"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/referral"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/referral"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-earn.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/en/guide/account-security</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/account-security"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/account-security"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/account-security"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/account-security"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/account-security"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/account-security"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-account.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/es/guide</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/og-image.jpg</image:loc></image:image>
+    <image:image><image:loc>https://coeurnohuniverse.com/app-menu.webp</image:loc></image:image>
+    <image:image><image:loc>https://coeurnohuniverse.com/app-recharge.webp</image:loc></image:image>
+    <image:image><image:loc>https://coeurnohuniverse.com/app-reseau.webp</image:loc></image:image>
+    <image:image><image:loc>https://coeurnohuniverse.com/app-outils.webp</image:loc></image:image>
+    <image:image><image:loc>https://coeurnohuniverse.com/app-wallet.webp</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/es/guide/getting-started</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/getting-started"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/getting-started"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/getting-started"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/getting-started"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/getting-started"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/getting-started"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-start.jpg</image:loc></image:image>
+    <image:image><image:loc>https://coeurnohuniverse.com/app-menu.webp</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/es/guide/feed</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/feed"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/feed"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/feed"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/feed"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/feed"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/feed"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-home.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/es/guide/messages</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/messages"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/messages"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/messages"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/messages"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/messages"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/messages"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-chat.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/es/guide/wallet</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/wallet"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/wallet"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/wallet"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/wallet"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/wallet"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/wallet"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-wallet.jpg</image:loc></image:image>
+    <image:image><image:loc>https://coeurnohuniverse.com/app-recharge.webp</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/es/guide/social-boost</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/social-boost"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/social-boost"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/social-boost"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/social-boost"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/social-boost"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/social-boost"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-boost.jpg</image:loc></image:image>
+    <image:image><image:loc>https://coeurnohuniverse.com/app-reseau.webp</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/es/guide/shop</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/shop"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/shop"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/shop"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/shop"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/shop"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/shop"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-shop.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/es/guide/website</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/website"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/website"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/website"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/website"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/website"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/website"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-site.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/es/guide/business</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/business"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/business"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/business"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/business"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/business"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/business"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-biz.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/es/guide/jobs</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/jobs"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/jobs"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/jobs"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/jobs"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/jobs"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/jobs"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-work.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/es/guide/nearby</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/nearby"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/nearby"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/nearby"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/nearby"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/nearby"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/nearby"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-local.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/es/guide/events</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/events"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/events"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/events"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/events"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/events"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/events"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-events.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/es/guide/free-tools</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/free-tools"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/free-tools"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/free-tools"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/free-tools"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/free-tools"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/free-tools"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-tools.jpg</image:loc></image:image>
+    <image:image><image:loc>https://coeurnohuniverse.com/app-outils.webp</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/es/guide/referral</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/referral"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/referral"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/referral"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/referral"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/referral"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/referral"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-earn.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/es/guide/account-security</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/account-security"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/account-security"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/account-security"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/account-security"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/account-security"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/account-security"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-account.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/it/guide</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/og-image.jpg</image:loc></image:image>
+    <image:image><image:loc>https://coeurnohuniverse.com/app-menu.webp</image:loc></image:image>
+    <image:image><image:loc>https://coeurnohuniverse.com/app-recharge.webp</image:loc></image:image>
+    <image:image><image:loc>https://coeurnohuniverse.com/app-reseau.webp</image:loc></image:image>
+    <image:image><image:loc>https://coeurnohuniverse.com/app-outils.webp</image:loc></image:image>
+    <image:image><image:loc>https://coeurnohuniverse.com/app-wallet.webp</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/it/guide/getting-started</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/getting-started"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/getting-started"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/getting-started"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/getting-started"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/getting-started"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/getting-started"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-start.jpg</image:loc></image:image>
+    <image:image><image:loc>https://coeurnohuniverse.com/app-menu.webp</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/it/guide/feed</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/feed"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/feed"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/feed"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/feed"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/feed"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/feed"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-home.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/it/guide/messages</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/messages"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/messages"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/messages"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/messages"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/messages"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/messages"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-chat.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/it/guide/wallet</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/wallet"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/wallet"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/wallet"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/wallet"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/wallet"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/wallet"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-wallet.jpg</image:loc></image:image>
+    <image:image><image:loc>https://coeurnohuniverse.com/app-recharge.webp</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/it/guide/social-boost</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/social-boost"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/social-boost"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/social-boost"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/social-boost"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/social-boost"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/social-boost"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-boost.jpg</image:loc></image:image>
+    <image:image><image:loc>https://coeurnohuniverse.com/app-reseau.webp</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/it/guide/shop</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/shop"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/shop"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/shop"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/shop"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/shop"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/shop"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-shop.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/it/guide/website</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/website"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/website"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/website"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/website"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/website"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/website"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-site.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/it/guide/business</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/business"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/business"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/business"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/business"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/business"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/business"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-biz.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/it/guide/jobs</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/jobs"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/jobs"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/jobs"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/jobs"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/jobs"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/jobs"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-work.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/it/guide/nearby</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/nearby"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/nearby"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/nearby"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/nearby"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/nearby"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/nearby"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-local.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/it/guide/events</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/events"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/events"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/events"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/events"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/events"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/events"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-events.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/it/guide/free-tools</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/free-tools"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/free-tools"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/free-tools"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/free-tools"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/free-tools"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/free-tools"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-tools.jpg</image:loc></image:image>
+    <image:image><image:loc>https://coeurnohuniverse.com/app-outils.webp</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/it/guide/referral</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/referral"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/referral"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/referral"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/referral"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/referral"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/referral"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-earn.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/it/guide/account-security</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/account-security"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/account-security"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/account-security"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/account-security"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/account-security"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/account-security"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-account.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/pt/guide</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/og-image.jpg</image:loc></image:image>
+    <image:image><image:loc>https://coeurnohuniverse.com/app-menu.webp</image:loc></image:image>
+    <image:image><image:loc>https://coeurnohuniverse.com/app-recharge.webp</image:loc></image:image>
+    <image:image><image:loc>https://coeurnohuniverse.com/app-reseau.webp</image:loc></image:image>
+    <image:image><image:loc>https://coeurnohuniverse.com/app-outils.webp</image:loc></image:image>
+    <image:image><image:loc>https://coeurnohuniverse.com/app-wallet.webp</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/pt/guide/getting-started</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/getting-started"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/getting-started"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/getting-started"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/getting-started"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/getting-started"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/getting-started"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-start.jpg</image:loc></image:image>
+    <image:image><image:loc>https://coeurnohuniverse.com/app-menu.webp</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/pt/guide/feed</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/feed"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/feed"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/feed"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/feed"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/feed"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/feed"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-home.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/pt/guide/messages</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/messages"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/messages"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/messages"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/messages"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/messages"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/messages"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-chat.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/pt/guide/wallet</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/wallet"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/wallet"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/wallet"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/wallet"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/wallet"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/wallet"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-wallet.jpg</image:loc></image:image>
+    <image:image><image:loc>https://coeurnohuniverse.com/app-recharge.webp</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/pt/guide/social-boost</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/social-boost"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/social-boost"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/social-boost"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/social-boost"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/social-boost"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/social-boost"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-boost.jpg</image:loc></image:image>
+    <image:image><image:loc>https://coeurnohuniverse.com/app-reseau.webp</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/pt/guide/shop</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/shop"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/shop"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/shop"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/shop"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/shop"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/shop"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-shop.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/pt/guide/website</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/website"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/website"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/website"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/website"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/website"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/website"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-site.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/pt/guide/business</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/business"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/business"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/business"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/business"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/business"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/business"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-biz.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/pt/guide/jobs</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/jobs"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/jobs"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/jobs"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/jobs"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/jobs"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/jobs"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-work.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/pt/guide/nearby</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/nearby"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/nearby"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/nearby"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/nearby"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/nearby"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/nearby"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-local.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/pt/guide/events</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/events"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/events"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/events"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/events"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/events"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/events"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-events.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/pt/guide/free-tools</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/free-tools"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/free-tools"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/free-tools"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/free-tools"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/free-tools"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/free-tools"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-tools.jpg</image:loc></image:image>
+    <image:image><image:loc>https://coeurnohuniverse.com/app-outils.webp</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/pt/guide/referral</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/referral"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/referral"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/referral"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/referral"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/referral"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/referral"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-earn.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://coeurnohuniverse.com/pt/guide/account-security</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://coeurnohuniverse.com/guide/account-security"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://coeurnohuniverse.com/en/guide/account-security"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://coeurnohuniverse.com/es/guide/account-security"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://coeurnohuniverse.com/it/guide/account-security"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://coeurnohuniverse.com/pt/guide/account-security"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://coeurnohuniverse.com/guide/account-security"/>
+    <image:image><image:loc>https://coeurnohuniverse.com/guide-account.jpg</image:loc></image:image>
   </url>
 </urlset>
