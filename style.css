@@ -40,15 +40,17 @@
   --shadow-lg:0 12px 32px rgba(16,24,40,.14);
   /* Typographie : Inter (texte) et Inter Display (titres), hébergées avec l'application */
   --font:'CN Inter','Inter','Segoe UI',system-ui,-apple-system,Roboto,'Helvetica Neue',Arial,sans-serif;
+  --font-serif:'CN Serif',Georgia,'Times New Roman',serif;
   --font-head:'CN Display','CN Inter','Inter Display','Inter','Segoe UI',system-ui,-apple-system,Roboto,Arial,sans-serif;
   color-scheme:light;
 }
 @font-face{font-family:'CN Inter';font-style:normal;font-weight:400;font-display:swap;src:url(cn-inter-400.woff2) format('woff2')}
 @font-face{font-family:'CN Inter';font-style:normal;font-weight:500;font-display:swap;src:url(cn-inter-500.woff2) format('woff2')}
-@font-face{font-family:'CN Inter';font-style:normal;font-weight:600;font-display:swap;src:url(cn-inter-600.woff2) format('woff2')}
-@font-face{font-family:'CN Inter';font-style:normal;font-weight:700 800;font-display:swap;src:url(cn-inter-700.woff2) format('woff2')}
-@font-face{font-family:'CN Display';font-style:normal;font-weight:400 600;font-display:swap;src:url(cn-display-600.woff2) format('woff2')}
-@font-face{font-family:'CN Display';font-style:normal;font-weight:700 900;font-display:swap;src:url(cn-display-700.woff2) format('woff2')}
+/* Gras sobre : tout ce qui est demandé en 600, 700, 800 ou 900 s'affiche en demi-gras (un seul fichier). */
+@font-face{font-family:'CN Inter';font-style:normal;font-weight:600 900;font-display:swap;src:url(cn-inter-600.woff2) format('woff2')}
+@font-face{font-family:'CN Display';font-style:normal;font-weight:400 900;font-display:swap;src:url(cn-display-600.woff2) format('woff2')}
+@font-face{font-family:'CN Serif';font-style:normal;font-weight:400 700;font-display:swap;src:url(cn-serif.woff2) format('woff2')}
+@font-face{font-family:'CN Serif';font-style:italic;font-weight:400 700;font-display:swap;src:url(cn-serif-italic.woff2) format('woff2')}
 html{font-size:16px}
 html[data-fontsize="small"]{font-size:14px}
 html[data-fontsize="normal"]{font-size:16px}
@@ -94,10 +96,12 @@ body{
   -webkit-font-smoothing:antialiased;
   -moz-osx-font-smoothing:grayscale;
   text-rendering:optimizeLegibility;
-  font-feature-settings:'cv11','ss03';
+  font-feature-settings:'kern','liga','calt';
 }
-h1,h2,h3,h4{font-family:var(--font-head);letter-spacing:-0.022em;font-weight:700}
-h2.page-title{color:var(--ink);font-weight:700}
+/* Titres d'écran : empattements (Lora) ; titres de cartes et de sections : Inter demi-gras. */
+h1,h2{font-family:var(--font-serif);letter-spacing:-0.012em;font-weight:600;line-height:1.2}
+h3,h4{font-family:var(--font);letter-spacing:-0.005em;font-weight:600;line-height:1.3}
+h2.page-title{color:var(--ink);font-weight:600}
 .hidden{display:none !important}
 .wrap{max-width:1100px;margin:0 auto;padding:0 20px}
 a{text-decoration:none;color:inherit}
@@ -999,43 +1003,6 @@ body.app-mode .nav-right{flex-wrap:nowrap}
 }
 .help-shortcut:hover{background:var(--green-light);color:var(--green-dark-text)}
 
-/* ================= TUTORIEL = VRAIE PAGE PLEIN ECRAN =================
-   AVANT : le tutoriel s'ouvrait dans une petite fenetre centree (max-width
-   440px) avec un fond assombri tout autour -- demande explicite : que ca
-   ouvre la page ENTIERE, comme les autres ecrans deja convertis
-   (#profile-modal, #post-detail-modal, #business-detail-modal, juste
-   au-dessus dans ce fichier). Meme technique exactement : on cible
-   uniquement #tutorial-modal (l'overlay) et sa classe .tutorial-modal
-   (le contenu), donc aucune autre fenetre n'est touchee. Le bouton de
-   fermeture (.modal-close, deja en fleche de retour partout dans l'appli)
-   reste positionne pareil, juste au-dessus du contenu plein ecran. */
-#tutorial-modal{
-  background:var(--white);padding:0;align-items:stretch;justify-content:stretch;
-}
-#tutorial-modal .tutorial-modal{
-  max-width:600px;width:100%;height:100%;max-height:none;margin:0 auto;padding:64px 20px 30px;
-  border-radius:0;position:relative;overflow-y:auto;-webkit-overflow-scrolling:touch;
-}
-.tutorial-modal{max-width:440px}
-.tutorial-dots{display:flex;justify-content:center;flex-wrap:wrap;gap:6px;margin-bottom:18px}
-.tutorial-dot{width:6px;height:6px;border-radius:50%;background:var(--line);transition:0.2s}
-.tutorial-dot.active{background:var(--green);width:18px;border-radius:4px}
-.tutorial-step{text-align:center}
-.tutorial-emoji{width:64px;height:64px;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:var(--green-light);color:var(--green)}
-.tutorial-emoji svg{width:32px;height:32px}
-.tutorial-step h2{font-size:1.25rem;margin-bottom:10px;color:var(--ink)}
-.tutorial-step .sub{color:var(--muted);font-size:0.92rem;line-height:1.5;margin-bottom:6px}
-.tutorial-list{text-align:left;list-style:none;margin-top:14px}
-.tutorial-list li{padding:9px 0;border-bottom:1px solid var(--line);font-size:0.9rem;color:var(--ink);line-height:1.45}
-.tutorial-list li:last-child{border-bottom:none}
-.tutorial-tier{display:flex;align-items:center;gap:12px;text-align:left;padding:12px;border:1px solid var(--line);border-radius:12px;margin-bottom:10px;font-size:0.88rem;color:var(--ink)}
-.tutorial-tier-badge{flex:0 0 auto;padding:5px 12px;border-radius:999px;font-weight:700;font-size:0.78rem;color:#fff;white-space:nowrap}
-.tier-standard{background:var(--soft-2);color:var(--ink-2)}
-.tier-premium{background:var(--btn)}
-.tier-vip{background:var(--accent);color:#161a1f}
-.tutorial-nav{display:flex;gap:10px;margin-top:20px}
-.tutorial-nav .btn{flex:1}
-#tutorial-prev.tutorial-nav-hidden{visibility:hidden}
 /* .promo-marquee supprimé : le bandeau défilant n'existe plus dans le HTML. */
 
 /* Bouton chat flottant (WhatsApp) retiré de l'accueil : le contact
@@ -1046,7 +1013,7 @@ body.app-mode .nav-right{flex-wrap:nowrap}
 
 /* Hover doux et coherent sur tous les boutons interactifs */
 .btn, .quick-link, .shop-filter-tabs button, .shop-action-btn, .op-card, .pack-card,
-.tutorial-dot, .bnav-btn, .segmented button {
+.bnav-btn, .segmented button {
   transition: background-color 0.18s ease, border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
 }
 .btn-outline:hover{background:var(--green-light);border-color:var(--green)}

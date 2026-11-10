@@ -9,11 +9,11 @@
   window.__cnPolish = true;
 
   var L10N = {
-    fr: { later: 'Plus tard', go: 'Découvrir en 30 s', hi: 'Bienvenue sur Coeurnoh Universe', b1: 'Boost de TikTok, Instagram, YouTube et plus', b2: 'Paiement mobile money, crypto ou carte', b3: 'Boutique, emploi, immobilier et services au même endroit', oops: 'Un petit souci est survenu. Réessaie dans un instant.', newn: 'Nouvelle notification', close: 'Fermer' },
-    en: { later: 'Maybe later', go: 'Quick tour (30 s)', hi: 'Welcome to Coeurnoh Universe', b1: 'Boost TikTok, Instagram, YouTube and more', b2: 'Pay with mobile money, crypto or card', b3: 'Shop, jobs, real estate and services in one place', oops: 'Something went wrong. Please try again in a moment.', newn: 'New notification', close: 'Close' },
-    es: { later: 'Más tarde', go: 'Descubrir en 30 s', hi: 'Bienvenido a Coeurnoh Universe', b1: 'Impulsa TikTok, Instagram, YouTube y más', b2: 'Paga con mobile money, cripto o tarjeta', b3: 'Tienda, empleo, inmuebles y servicios en un solo lugar', oops: 'Ha ocurrido un pequeño problema. Inténtalo de nuevo en un momento.', newn: 'Nueva notificación', close: 'Cerrar' },
-    it: { later: 'Più tardi', go: 'Scopri in 30 s', hi: 'Benvenuto su Coeurnoh Universe', b1: 'Potenzia TikTok, Instagram, YouTube e altro', b2: 'Paga con mobile money, cripto o carta', b3: 'Negozio, lavoro, immobili e servizi in un unico posto', oops: 'Si è verificato un piccolo problema. Riprova tra un momento.', newn: 'Nuova notifica', close: 'Chiudi' },
-    pt: { later: 'Mais tarde', go: 'Descobrir em 30 s', hi: 'Bem-vindo ao Coeurnoh Universe', b1: 'Impulsione TikTok, Instagram, YouTube e mais', b2: 'Pague com mobile money, cripto ou cartão', b3: 'Loja, emprego, imóveis e serviços num só lugar', oops: 'Ocorreu um pequeno problema. Tente novamente em instantes.', newn: 'Nova notificação', close: 'Fechar' }
+    fr: { later: 'Plus tard', go: 'Voir le guide', hi: 'Bienvenue sur Coeurnoh Universe', b1: 'Crée ton site web et trouve des clients', b2: 'Recharge par Mobile Money, crypto ou carte', b3: 'Boost réseaux, boutique, emploi, immobilier et plus encore', oops: 'Un petit souci est survenu. Réessaie dans un instant.' },
+    en: { later: 'Maybe later', go: 'See the guide', hi: 'Welcome to Coeurnoh Universe', b1: 'Build your website and find customers', b2: 'Top up with Mobile Money, crypto or card', b3: 'Social boost, shop, jobs, real estate and much more', oops: 'Something went wrong. Please try again in a moment.' },
+    es: { later: 'Más tarde', go: 'Ver la guía', hi: 'Bienvenido a Coeurnoh Universe', b1: 'Crea tu sitio web y encuentra clientes', b2: 'Recarga con Mobile Money, cripto o tarjeta', b3: 'Impulso de redes, tienda, empleo, inmuebles y mucho más', oops: 'Ha ocurrido un pequeño problema. Inténtalo de nuevo en un momento.' },
+    it: { later: 'Più tardi', go: 'Vedi la guida', hi: 'Benvenuto su Coeurnoh Universe', b1: 'Crea il tuo sito web e trova clienti', b2: 'Ricarica con Mobile Money, cripto o carta', b3: 'Boost social, negozio, lavoro, immobili e molto altro', oops: 'Si è verificato un piccolo problema. Riprova tra un momento.' },
+    pt: { later: 'Mais tarde', go: 'Ver o guia', hi: 'Bem-vindo ao Coeurnoh Universe', b1: 'Crie o seu site e encontre clientes', b2: 'Carregue com Mobile Money, cripto ou cartão', b3: 'Impulso de redes, loja, emprego, imóveis e muito mais', oops: 'Ocorreu um pequeno problema. Tente novamente em instantes.' }
   };
   function lang() { try { if (typeof currentLang !== 'undefined' && L10N[currentLang]) return currentLang; } catch (e) { /* ignore */ } var n = (navigator.language || 'fr').slice(0, 2); return L10N[n] ? n : 'fr'; }
   function tx(k) { return (L10N[lang()] || L10N.fr)[k] || L10N.fr[k]; }
@@ -49,53 +49,10 @@
     if (type === 'error') { try { if (navigator.vibrate) navigator.vibrate(18); } catch (e) { /* ignore */ } }
   };
 
-  /* ---------- 2. Bandeau « nouvelle notification » quand l'application est ouverte ---------- */
-  var seen = null, bannerTimer = null;
-  function iconForType(t) {
-    var p = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">';
-    if (t === 'sos') return p + '<path d="M12 3 2.5 20h19L12 3z"/><path d="M12 10v5M12 17.6v.1"/></svg>';
-    if (t === 'location') return p + '<path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>';
-    if (t === 'sale' || t === 'purchase' || t === 'recharge' || t === 'topup') return p + '<rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M3 10.5h18"/></svg>';
-    return p + '<path d="M6 9a6 6 0 1 1 12 0c0 6 2.5 7.5 2.5 7.5h-17S6 15 6 9z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>';
-  }
-  function showBanner(n) {
-    var el = document.getElementById('cn-inapp-notif');
-    if (!el) {
-      el = document.createElement('button');
-      el.id = 'cn-inapp-notif'; el.type = 'button';
-      el.addEventListener('click', function (ev) {
-        if (ev.target && ev.target.classList && ev.target.classList.contains('nx')) { hideBanner(); return; }
-        hideBanner();
-        try { if (typeof openNotifPanel === 'function') openNotifPanel(); } catch (e) { /* ignore */ }
-      });
-      document.body.appendChild(el);
-    }
-    var title = n.title || tx('newn'), body = n.body || n.message || n.text || '';
-    el.innerHTML = '<span class="ni">' + iconForType(n.type) + '</span><span style="flex:1;min-width:0"><b>' + esc(title) + '</b>' + (body ? '<span class="nb">' + esc(String(body).slice(0, 140)) + '</span>' : '') + '</span><span class="nx" role="button" aria-label="' + esc(tx('close')) + '" style="display:flex;align-items:center;justify-content:center">✕</span>';
-    requestAnimationFrame(function () { el.classList.add('on'); });
-    document.body.classList.add('cn-banner-on');
-    clearTimeout(bannerTimer); bannerTimer = setTimeout(hideBanner, 6500);
-    try { if (navigator.vibrate) navigator.vibrate([14, 40, 14]); } catch (e) { /* ignore */ }
-  }
-  function hideBanner() { var el = document.getElementById('cn-inapp-notif'); if (el) el.classList.remove('on'); document.body.classList.remove('cn-banner-on'); clearTimeout(bannerTimer); }
-  function checkNewNotifs() {
-    var cache; try { cache = (typeof notifCache !== 'undefined') ? notifCache : null; } catch (e) { cache = null; }
-    if (!cache) return;
-    var ids = {}; cache.forEach(function (n) { ids[n.id] = n; });
-    if (seen === null) { seen = {}; Object.keys(ids).forEach(function (k) { seen[k] = 1; }); return; } // 1re lecture = historique, pas de bandeau
-    cache.forEach(function (n) {
-      if (seen[n.id]) return; seen[n.id] = 1;
-      if (n.read) return;
-      if (document.visibilityState !== 'visible') return;
-      showBanner(n);
-    });
-  }
-  var origBadge = window.updateNotifBadge;
-  if (typeof origBadge === 'function') {
-    window.updateNotifBadge = function () { var r = origBadge.apply(this, arguments); try { checkNewNotifs(); } catch (e) { /* ignore */ } return r; };
-  }
-  var origStop = window.stopNotifWatch;
-  if (typeof origStop === 'function') window.stopNotifWatch = function () { seen = null; hideBanner(); return origStop.apply(this, arguments); };
+  /* ---------- 2. Notifications : jamais de bandeau pendant que l'application est ouverte ----------
+     Comme WhatsApp, Facebook ou TikTok : la notification s'affiche sur l'écran du téléphone quand l'application
+     est FERMÉE ou en arrière-plan. Application ouverte : seule la pastille du menu « Notifs » se met à jour. */
+  try { var oldBn = document.getElementById('cn-inapp-notif'); if (oldBn && oldBn.parentNode) oldBn.parentNode.removeChild(oldBn); document.body.classList.remove('cn-banner-on'); } catch (e) { /* ignore */ }
 
   /* ---------- 3. Premier accueil : un choix, pas un tutoriel imposé de 17 étapes ---------- */
   var SEEN_KEY = 'coeurnohboost_tutorial_seen', manual = false;
@@ -107,6 +64,8 @@
   function markSeen() { try { localStorage.setItem(SEEN_KEY, '1'); } catch (e) { /* ignore */ } }
   // Ouverture par un lien précis (notification, espace du site, partage) : on va droit au but, sans l'écran d'accueil.
   var DEEP = /[?&](mysite|open|openTab|profile|leads|panel|product|contest|biz|espace)=/.test(location.search);
+  // Lien « ouvrir le guide » venant d'une page publique (Google) : on ouvre le guide directement, sans écran d'accueil.
+  var GUIDE_LINK = /[?&]open=guide(-[a-z]{2,12})?(&|$)/.test(location.search);
   var origTour = window.openTutorial;
   function closeWelcome() { var w = document.getElementById('cn-welcome'); if (w) { w.classList.remove('on'); setTimeout(function () { if (w.parentNode) w.parentNode.removeChild(w); }, 400); } }
   // L'écran d'accueil attend la fin de l'intro animée (sinon son fond sombre la recouvre au bout de 0,9 s).
@@ -135,8 +94,9 @@
     requestAnimationFrame(function () { requestAnimationFrame(function () { w.classList.add('on'); }); });
   }
   if (typeof origTour === 'function') {
-    window.openTutorial = function () {
-      if (!manual && !isSeen()) { if (DEEP) return undefined; showWelcome(); return undefined; }
+    window.openTutorial = function (chapter) {
+      var explicit = typeof chapter === 'string' || GUIDE_LINK;
+      if (!manual && !isSeen() && !explicit) { if (DEEP) return undefined; showWelcome(); return undefined; }
       return origTour.apply(this, arguments);
     };
   }
@@ -336,6 +296,7 @@
     briefcase: '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M3 13h18"/>',
     cap: '<path d="M2 9l10-5 10 5-10 5L2 9z"/><path d="M6 11.5V16c0 1.5 3 3 6 3s6-1.5 6-3v-4.5"/>',
     heart: '<path d="M12 21s-8-4.6-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 6.4-8 11-8 11z"/>',
+    bell: '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>',
     star: '<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9L12 3z"/>'
   };
   window.cnIcon = function (name, size) {
@@ -350,7 +311,7 @@
     '💾': 'save', '➕': 'plus', '📊': 'chart', '🛒': 'cart', '🛍': 'cart', '💰': 'wallet', '💵': 'wallet', '💸': 'wallet', '💳': 'wallet', '🌐': 'globe',
     '🖥': 'monitor', '🏢': 'building', '🏪': 'store', '🚩': 'flag', '🤖': 'bot', '🐞': 'bug', '🔍': 'search', '🔎': 'search', '🧭': 'compass', '🏠': 'home',
     '📦': 'box', '🎯': 'target', '✨': 'spark', '📍': 'pin', '🎵': 'music', '🔊': 'volume', '📎': 'clip', '🏅': 'award', '🥇': 'award', '🥈': 'award', '🥉': 'award',
-    '🎨': 'palette', '👁': 'eye', '🔴': 'dot', '🟢': 'dot', '💹': 'trend', '↩': 'undo', '💄': 'spark', '👗': 'store', '🎉': 'spark', '📚️': 'book'
+    '🎨': 'palette', '👁': 'eye', '🔴': 'dot', '🟢': 'dot', '💹': 'trend', '↩': 'undo', '💄': 'spark', '👗': 'store', '🎉': 'spark', '📚️': 'book', '🌍': 'globe', '🌎': 'globe', '🚨': 'alert', '⏳': 'clock', '🆕': 'spark', '🛠': 'plug', '🔔': 'bell', '⭐': 'star'
   };
   var keys = Object.keys(M).sort(function (a, b) { return b.length - a.length; });
   var RE = new RegExp('^[\\s\\uFE0F]*(' + keys.join('|') + ')\\uFE0F?[\\s\\uFE0F]*', 'u');

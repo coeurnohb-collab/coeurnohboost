@@ -28,7 +28,15 @@ self.addEventListener('push', (event) => {
   event.stopImmediatePropagation();
   const d = p.data;
   const category = d.category || 'activity';
-  event.waitUntil(showRichNotification({
+  event.waitUntil((async () => {
+    // Application ouverte et visible : aucune notification sur l'écran (elle serait en double avec l'app).
+    // On prévient seulement la page pour qu'elle mette à jour la pastille « Notifs ».
+    try {
+      const wins = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+      const seen = wins.filter((w) => w.visibilityState === 'visible');
+      if (seen.length > 0) { seen.forEach((w) => { try { w.postMessage({ type: 'cn-push-silent' }); } catch (e) { /* ignore */ } }); return; }
+    } catch (e) { /* on affiche quand même */ }
+    return showRichNotification({
     title: d.title || 'Coeurnoh Universe',
     body: d.body || '',
     category,
@@ -38,7 +46,8 @@ self.addEventListener('push', (event) => {
     icon: d.icon || ICON,
     badgeCount: d.badgeCount,
     chatId: d.chatId || ''
-  }));
+    });
+  })());
 });
 
 const messaging = firebase.messaging();
@@ -227,7 +236,7 @@ self.addEventListener('notificationclick', (event) => {
   })());
 });
 
-const CACHE_NAME = 'coeurnohboost-v21';
+const CACHE_NAME = 'coeurnohboost-v23';
 const APP_SHELL = [
   '/',
   '/index.html',
@@ -236,7 +245,8 @@ const APP_SHELL = [
   '/icon-512-v2.png',
   '/cn-inter-400.woff2',
   '/cn-inter-600.woff2',
-  '/cn-display-700.woff2'
+  '/cn-display-600.woff2',
+  '/cn-serif.woff2'
 ];
 
 // Seules ces pages publiques sont gardées hors-ligne. Jamais les pages privées ou propres à

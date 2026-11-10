@@ -78,7 +78,7 @@
 
   /* ---------------------------------------------------------------- styles */
   var STYLES = [
-    '.cn-call-ov{position:fixed;inset:0;z-index:6000;display:flex;flex-direction:column;align-items:center;justify-content:space-between;color:#fff;background:linear-gradient(165deg,#0d182d,#1b2f55 55%,#2b4a7c);overflow:hidden;font-family:inherit}',
+    '.cn-call-ov{position:fixed;inset:0;z-index:6000;display:flex;flex-direction:column;align-items:center;justify-content:space-between;color:#fff;background:#14233f;overflow:hidden;font-family:inherit}',
     '.cn-call-ov video.rv{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#000;display:none}',
     '.cn-call-ov.vid.live video.rv{display:block}',
     '.cn-call-ov .cc-shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.45),transparent 28%,transparent 62%,rgba(0,0,0,.6));display:none;pointer-events:none}',

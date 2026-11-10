@@ -1659,7 +1659,7 @@ function renderPayCryptoOptions() {
   const el = document.getElementById('pay-crypto-list');
   el.innerHTML = CRYPTOS.map(c => `
     <div class="op-card${c.id === payCryptoId ? ' active' : ''}" onclick="selectCrypto('${c.id}')">
-      <div class="op-icon crypto-icon" style="background:linear-gradient(135deg,${c.bg},${c.bg2 || c.bg});color:#fff">${c.icon}</div>
+      <div class="op-icon crypto-icon" style="background:${c.bg};color:#fff">${c.icon}</div>
       <span class="op-name">${c.name}</span>
     </div>
   `).join('');
@@ -2133,7 +2133,10 @@ function openNotifTargetIfAny() {
   if (callLink) { window.history.replaceState({}, '', window.location.pathname); openCallFromLink(callLink); return; }
   if (params.get('mysite')) { window.history.replaceState({}, '', window.location.pathname); openMySiteFromLink(params.get('edit') === '1'); return; }
   if (leadsKind) { openLeadsManager(leadsKind === 'biz' ? 'biz' : 'site', 'appointment'); window.history.replaceState({}, '', window.location.pathname); return; }
-  if (pubId) {
+  // Liens rapides (?open=tools | services | plans | wallet | guide | guide-<sujet>) : ouverts par menu-pro.js,
+  // ce ne sont pas des publications.
+  const quickOpen = !!pubId && /^(tools|services|plans|wallet|guide(-[a-z]{2,12})?)$/.test(pubId);
+  if (pubId && !quickOpen) {
     openPostDetail(pubId);
   } else if (profileUid) {
     openSharedProfile(profileUid);
@@ -2927,6 +2930,7 @@ if (fbReady) {
       cnResumeArmed = true;
       hideAppSplash();
       cnClientBoot();
+      cnTransferBoot();
     } else {
       currentUser = null;
       cnResumeArmed = false; cnResumeBoot = null;
@@ -2942,6 +2946,7 @@ if (fbReady) {
       openSharedBusinessIfAny();
       installBackTrap();
       hideAppSplash();
+      cnTransferGuest();
     }
   });
 } else {
@@ -3020,7 +3025,6 @@ let backTrapInstalled = false;
 function closeTopmostOverlay() {
   const STATIC_MODAL_CLOSERS = {
     'auth-modal': () => closeAuth(),
-    'tutorial-modal': () => closeTutorial(),
     'main-menu-modal': () => cnMenuBack(),
     'post-detail-modal': () => closePostDetail(),
     'profile-modal': () => closeProfileModal(),
@@ -3045,10 +3049,12 @@ function closeTopmostOverlay() {
     'public-site-overlay': () => closePublicSite(),
     'cn-chat': () => { if (window.CNMessages) window.CNMessages.closeChat(); else document.getElementById('cn-chat')?.remove(); },
     'cn-story-reply': () => { if (window.CNMessages) window.CNMessages.closeStoryReply(); else document.getElementById('cn-story-reply')?.remove(); },
-    'cn-picker': () => document.getElementById('cn-picker')?.remove()
+    'cn-picker': () => document.getElementById('cn-picker')?.remove(),
+    'gd-overlay': () => closeTutorial(),
+    'tr-overlay': () => { if (window.CNSiteTransfer && window.CNSiteTransfer.close) window.CNSiteTransfer.close(); else document.getElementById('tr-overlay')?.remove(); }
   };
   const overlays = document.querySelectorAll(
-    '.modal-overlay:not(.hidden), .action-sheet-overlay:not(.hidden), .media-viewer:not(.hidden), #public-site-overlay:not(.hidden), #cn-chat, #cn-story-reply, #cn-picker'
+    '.modal-overlay:not(.hidden), .action-sheet-overlay:not(.hidden), .media-viewer:not(.hidden), #public-site-overlay:not(.hidden), #cn-chat, #cn-story-reply, #cn-picker, #gd-overlay, #tr-overlay'
   );
   if (overlays.length === 0) return false;
   const top = overlays[overlays.length - 1];
@@ -3108,7 +3114,6 @@ function renderHeroPayIcons() {
 }
 
 /* ================= TUTORIEL / GUIDE D'UTILISATION ================= */
-let tutorialCurrentStep = 0;
 const TUTORIAL_SEEN_KEY = 'coeurnohboost_tutorial_seen';
 
 /* ================= NOTIFICATIONS ================= */
@@ -3134,64 +3139,29 @@ function initTutorialAutoShow() {
   }
 }
 
-function tutorialStepCount() {
-  return document.querySelectorAll('.tutorial-step').length;
+// Le guide (guide-pro.js) est charge a la demande : il n'alourdit pas le demarrage de l'application.
+function cnLoadGuide(ok, ko) {
+  if (window.CNGuide) { ok(); return; }
+  let sc = document.querySelector('script[data-cn-guide]');
+  if (!sc) {
+    sc = document.createElement('script');
+    sc.src = 'guide-pro.js?v=20261110'; sc.async = true; sc.setAttribute('data-cn-guide', '1');
+    sc.onerror = () => { if (sc.parentNode) sc.parentNode.removeChild(sc); if (ko) ko(); };
+    document.head.appendChild(sc);
+  }
+  sc.addEventListener('load', () => { try { ok(); } catch (e) { if (ko) ko(); } });
 }
 
-function openTutorial() {
-  tutorialCurrentStep = 0;
-  const dotsContainer = document.getElementById('tutorial-dots');
-  dotsContainer.innerHTML = '';
-  for (let i = 0; i < tutorialStepCount(); i++) {
-    const dot = document.createElement('span');
-    dot.className = 'tutorial-dot' + (i === 0 ? ' active' : '');
-    dot.dataset.step = i;
-    dotsContainer.appendChild(dot);
-  }
-  renderTutorialStep();
-  document.getElementById('tutorial-modal').classList.remove('hidden');
+function openTutorial(chapter) {
+  try { localStorage.setItem(TUTORIAL_SEEN_KEY, '1'); } catch (e) { /* pas grave */ }
+  cnLoadGuide(
+    () => window.CNGuide.open(typeof chapter === 'string' ? chapter : undefined),
+    () => showToast(currentLang === 'en' ? 'The guide could not load. Check your connection and try again.' : 'Le guide n\u2019a pas pu se charger. Verifie ta connexion et reessaie.', 'error')
+  );
 }
 
 function closeTutorial() {
-  document.getElementById('tutorial-modal').classList.add('hidden');
-  try {
-    localStorage.setItem(TUTORIAL_SEEN_KEY, '1');
-  } catch (e) {
-    // localStorage indisponible : pas grave, le tutoriel se réaffichera simplement
-  }
-}
-
-function tutorialNext() {
-  if (tutorialCurrentStep < tutorialStepCount() - 1) {
-    tutorialCurrentStep++;
-    renderTutorialStep();
-  } else {
-    closeTutorial();
-  }
-}
-
-function tutorialPrev() {
-  if (tutorialCurrentStep > 0) {
-    tutorialCurrentStep--;
-    renderTutorialStep();
-  }
-}
-
-function renderTutorialStep() {
-  document.querySelectorAll('.tutorial-step').forEach((el) => {
-    el.classList.toggle('hidden', parseInt(el.dataset.tutorialStep, 10) !== tutorialCurrentStep);
-  });
-  document.querySelectorAll('.tutorial-dot').forEach((dot) => {
-    dot.classList.toggle('active', parseInt(dot.dataset.step, 10) === tutorialCurrentStep);
-  });
-  const prevBtn = document.getElementById('tutorial-prev');
-  const nextBtn = document.getElementById('tutorial-next');
-  prevBtn.classList.toggle('tutorial-nav-hidden', tutorialCurrentStep === 0);
-  if (tutorialCurrentStep === tutorialStepCount() - 1) {
-    nextBtn.classList.add('hidden');
-  } else {
-    nextBtn.classList.remove('hidden');
-  }
+  try { if (window.CNGuide) window.CNGuide.close(); } catch (e) { /* ignore */ }
 }
 
 /* ================= BOUTIQUE (livres & produits) ================= */
@@ -4055,18 +4025,18 @@ async function postOptionsDelete() {
 let pendingPostMediaFile = null;
 
 /* Arrière-plans colorés pour les publications "texte seul", comme sur
-   Facebook : l'utilisateur choisit une couleur/dégradé, le texte s'affiche
+   Facebook : l'utilisateur choisit une couleur, le texte s'affiche
    en grand, centré, sur ce fond -- dans le composeur (aperçu en direct)
    et dans le fil une fois publié (voir renderPostCard). null = pas de
    fond spécial (texte simple, comportement d'avant). */
 const TEXT_BG_PRESETS = [
-  { id: 'p1', css: 'linear-gradient(135deg,#845ec2,#d65db1)' },
-  { id: 'p2', css: 'linear-gradient(135deg,#0093e9,#80d0c7)' },
-  { id: 'p3', css: 'linear-gradient(135deg,#ff9a44,#e6482e)' },
-  { id: 'p4', css: 'linear-gradient(135deg,#11998e,#38ef7d)' },
-  { id: 'p5', css: 'linear-gradient(135deg,#1a2436,#3a4a68)' },
-  { id: 'p6', css: 'linear-gradient(135deg,#f857a6,#ff5858)' },
-  { id: 'p7', css: 'linear-gradient(135deg,#4e54c8,#8f94fb)' },
+  { id: 'p1', css: '#5b3f8c' },
+  { id: 'p2', css: '#0b6e99' },
+  { id: 'p3', css: '#b4501d' },
+  { id: 'p4', css: '#11695f' },
+  { id: 'p5', css: '#1a2436' },
+  { id: 'p6', css: '#a3324f' },
+  { id: 'p7', css: '#3b4296' },
   { id: 'p8', css: '#d7263d' },
   { id: 'p9', css: '#111318' }
 ];
@@ -4441,7 +4411,7 @@ function renderWithdrawOperators() {
     const badge = getOperatorBadge(op);
     return `
     <div class="op-card${op === withdrawOperator ? ' active' : ''}" onclick="selectWithdrawOperator('${op.replace(/'/g, "\\'")}')">
-      <div class="op-icon" style="background:linear-gradient(135deg,${badge.bg},${badge.bg2 || badge.bg})">${badgeInner(badge)}</div>
+      <div class="op-icon" style="background:${badge.bg}">${badgeInner(badge)}</div>
       <span class="op-name">${op}</span>
     </div>`;
   }).join('');
@@ -12934,6 +12904,65 @@ function cnClientBoot() {
     if (localStorage.getItem('cn_client_mode') || sessionStorage.getItem('cn_handover')) cnLoadSiteStart(() => window.CNSiteStart.boot());
   } catch (e) { /* ignore */ }
 }
+// ---- « Donner mon site » / « Recevoir un site » (fichier site-transfer.js, chargé à la demande) ----
+const TR_T = {
+  fr: { t: 'Donner mon site', d: 'Ton site est prêt ? Donne-le à un client ou à un ami : il en devient le propriétaire, le gère et paie l’abonnement.', give: 'Donner mon site', rec: 'J’ai reçu un site (code)', recd: 'Quelqu’un te donne son site ? Entre ici le code reçu.', fail: 'Cet écran ne peut pas s’ouvrir maintenant. Vérifie ta connexion et réessaie.', login: 'Connecte-toi ou crée ton compte pour recevoir le site.' },
+  en: { t: 'Give my site', d: 'Your site is ready? Give it to a client or a friend: they become the owner, manage it and pay the subscription.', give: 'Give my site', rec: 'I received a site (code)', recd: 'Is someone giving you their site? Enter the code here.', fail: 'This screen cannot open right now. Check your connection and try again.', login: 'Sign in or create your account to receive the site.' }
+};
+function trT(k) { const d = TR_T[currentLang] || TR_T.en; return d[k] != null ? d[k] : TR_T.en[k]; }
+function cnLoadSiteTransfer(ok, ko) {
+  if (window.CNSiteTransfer) { ok(); return; }
+  let sc = document.querySelector('script[data-cn-xfer]');
+  if (!sc) {
+    sc = document.createElement('script');
+    sc.src = 'site-transfer.js?v=20261108'; sc.async = true; sc.setAttribute('data-cn-xfer', '1');
+    sc.onerror = () => { if (sc.parentNode) sc.parentNode.removeChild(sc); if (ko) ko(); };
+    document.head.appendChild(sc);
+  }
+  sc.addEventListener('load', () => { try { ok(); } catch (e) { if (ko) ko(); } });
+}
+function openSiteTransfer(mode, code) {
+  if (!currentUser) { openAuth('register'); return; }
+  cnLoadSiteTransfer(() => (mode === 'receive' ? window.CNSiteTransfer.receive(code) : window.CNSiteTransfer.give()), () => showToast(trT('fail'), 'error'));
+}
+// Lien reçu (?site_transfer=CODE) : on garde le code, on retire le paramètre de l'adresse, puis on ouvre « Recevoir » quand la personne est connectée.
+function cnTransferCapture() {
+  try {
+    const p = new URLSearchParams(location.search);
+    const c = p.get('site_transfer');
+    if (c) {
+      sessionStorage.setItem('cn_site_transfer', String(c).slice(0, 40));
+      p.delete('site_transfer');
+      const q = p.toString();
+      history.replaceState(history.state, '', location.pathname + (q ? '?' + q : '') + location.hash);
+    }
+    return sessionStorage.getItem('cn_site_transfer') || '';
+  } catch (e) { return ''; }
+}
+function cnTransferBoot() {
+  if (!cnTransferCapture() || !currentUser) return;
+  cnLoadSiteTransfer(() => window.CNSiteTransfer.boot(), () => { /* le code reste gardé : on réessaiera à la prochaine ouverture */ });
+}
+function cnTransferGuest() {
+  if (!cnTransferCapture()) return;
+  setTimeout(() => { try { openAuth('register'); showToast(trT('login'), 'info'); } catch (e) { /* ignore */ } }, 700);
+}
+function siteTransferGiveCardHtml() {
+  if (cnClientModeOn()) return '';
+  return `<div class="order-box" style="margin:14px 0">
+      <strong style="font-size:1rem">${trT('t')}</strong>
+      <p class="muted small" style="margin:6px 0 10px;line-height:1.5">${trT('d')}</p>
+      <button class="btn btn-outline btn-sm" style="width:100%;justify-content:center" onclick="openSiteTransfer('give')">${trT('give')}</button>
+    </div>`;
+}
+function siteTransferReceiveCardHtml() {
+  if (cnClientModeOn()) return '';
+  return `<div class="order-box" style="margin:14px 0">
+      <strong style="font-size:1rem">${trT('rec')}</strong>
+      <p class="muted small" style="margin:6px 0 10px;line-height:1.5">${trT('recd')}</p>
+      <button class="btn btn-outline btn-sm" style="width:100%;justify-content:center" onclick="openSiteTransfer('receive')">${trT('rec')}</button>
+    </div>`;
+}
 function siteClientsCardHtml() {
   if (cnClientModeOn()) return '';
   return `<div class="order-box" style="margin:14px 0">
@@ -12949,6 +12978,7 @@ function renderSiteStatusView() {
     statusEl.innerHTML = `
       <p class="muted small" style="margin-bottom:14px">${t('site_create_intro')}</p>
       <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="openSiteStart()">${t('site_create_btn')}</button>
+      ${siteTransferReceiveCardHtml()}
       ${siteClientsCardHtml()}`;
     return;
   }
@@ -13014,6 +13044,7 @@ function renderSiteStatusView() {
     ${siteHubHtml(site, isPremium)}
     ${premiumBlockHtml}
     ${siteClientsCardHtml()}
+    ${siteTransferGiveCardHtml()}
     <button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="openSiteForm()">${t('site_edit_btn')}</button>
     <button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px" onclick="openSiteSettingsScreen()">${t('site_settings_btn')}</button>
     ${isPublished
@@ -13819,6 +13850,12 @@ function openSiteSettingsScreen() {
                <div class="sbx-row"><button type="button" class="btn btn-outline btn-sm" onclick="openSitePreviewFromSaved('doux')">${t('sb_prev_pro_toggle')}</button>
                <button type="button" class="btn btn-primary btn-sm" onclick="closeSiteSettingsScreen();purchaseSitePremium()">${t('sb_prev_activate')} — ${SITE_PRICING.premiumPriceMonth}$${t('site_pack_pro_price_suffix')}</button></div>`}
         </div>
+
+        ${cnClientModeOn() ? '' : `<div class="sbx-card">
+          <h4>${trT('t')}</h4>
+          <p class="muted small" style="margin:0 0 10px;line-height:1.5">${trT('d')}</p>
+          <button type="button" class="btn btn-outline" style="width:100%;justify-content:center" onclick="closeSiteSettingsScreen();openSiteTransfer('give')">${trT('give')}</button>
+        </div>`}
 
         <div class="sbx-card">
           <h4>${t('sb_sec_danger')}</h4>
@@ -14818,7 +14855,7 @@ function renderPublicSiteHtml(site, overlay) {
     <div style="max-width:640px;margin:0 auto;font-family:inherit;padding-bottom:${waLink ? '84px' : '24px'}">
       ${site.coverImageUrl
         ? `<img src="${escapeHtml(site.coverImageUrl)}" class="biz-cover" alt="">`
-        : `<div class="biz-cover" style="background:linear-gradient(135deg,${accent},#000)"></div>`}
+        : `<div class="biz-cover" style="background:${accent}"></div>`}
       <div class="biz-header">
         ${site.logoUrl
           ? `<img src="${escapeHtml(site.logoUrl)}" class="biz-avatar" alt="${escapeHtml(site.businessName || '')}">`
@@ -14915,7 +14952,7 @@ function renderPublicSiteHtml(site, overlay) {
       </div>
 
       ${(isPremium && site.hideBranding) ? '' : `
-        <div style="margin:24px 18px 0;padding:18px;border-radius:14px;background:linear-gradient(135deg,var(--green-light),var(--cream));text-align:center;border:1px solid var(--line)">
+        <div style="margin:24px 18px 0;padding:18px;border-radius:14px;background:var(--green-light);text-align:center;border:1px solid var(--line)">
           <p style="margin:0 0 10px;font-weight:700">${t('site_made_with_prefix')} <span style="color:${accent}">Coeurnoh Universe</span></p>
           <a class="btn btn-primary btn-sm" href="${safeHref(window.location.origin)}">${t('site_cta_create_yours')}</a>
         </div>`}
@@ -17196,7 +17233,7 @@ function closePostDetail() {
 /* ================= AVIS / NOTES (apres un achat confirme) ================= */
 function renderStars(rating) {
   const full = Math.round(rating);
-  return '⭐'.repeat(full) + '☆'.repeat(5 - full);
+  return '★'.repeat(full) + '☆'.repeat(5 - full);
 }
 
 // Recupere les avis existants d'un article, et propose le formulaire
@@ -17263,7 +17300,7 @@ let selectedReviewStars = {};
 function setReviewStars(pubId, n) {
   selectedReviewStars[pubId] = n;
   document.querySelectorAll(`#star-picker-${pubId} span`).forEach((el, i) => {
-    el.textContent = (i < n) ? '⭐' : '☆';
+    el.textContent = (i < n) ? '★' : '☆';
   });
 }
 
@@ -17887,38 +17924,15 @@ async function registerPushNotifications() {
       });
     }
 
-    // Reception d'une notification pendant que l'app est ouverte au premier plan
-    messaging.onMessage((payload) => {
-      const title = (payload.notification && payload.notification.title) || 'Coeurnoh Universe';
-      const body = (payload.notification && payload.notification.body) || '';
-      if (Notification.permission === 'granted') {
-        new Notification(title, { body, icon: '/icon-192.png' });
-      }
-      playNotifSound();
-      updateNotifBadge();
+    // Application OUVERTE au premier plan : aucune bulle, aucun bip, aucune notification systeme.
+    // On met seulement a jour la pastille du menu « Notifs ». Les notifications s'affichent sur
+    // l'ecran du telephone quand l'application est FERMEE (sw.js), comme WhatsApp ou TikTok.
+    messaging.onMessage(() => {
+      try { updateNotifBadge(); } catch (e) { /* ignore */ }
     });
   } catch (e) {
     console.log('[push] Erreur configuration :', e.message);
   }
-}
-
-// Petit bip genere directement (pas besoin de fichier audio) pour signaler
-// une notification recue pendant que l'app est ouverte au premier plan.
-// Quand l'app est fermee/en arriere-plan, c'est la sonnerie native du
-// telephone (geree par le systeme via sw.js) qui joue, comme les autres apps.
-function playNotifSound() {
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.frequency.value = 880;
-    gain.gain.setValueAtTime(0.15, ctx.currentTime);
-    osc.start();
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
-    osc.stop(ctx.currentTime + 0.35);
-  } catch (e) { /* pas grave si le navigateur bloque l'audio */ }
 }
 
 /* ================= HELPERS D'ENVOI DE PUSH REEL (serveur) ================= */

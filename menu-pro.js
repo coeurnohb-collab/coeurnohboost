@@ -10,7 +10,7 @@ var MOCKUP_AI_ENABLED = false;
    - Boîte à outils 100 % gratuite (QR Code, lien WhatsApp, texte stylé,
      convertisseur de devises, calculateur de prix, hashtags)
    - écran "Plans & tarifs" (lit les vraies constantes de script.js)
-   - liens rapides ?open=tools | services | plans | wallet (raccourcis
+   - liens rapides ?open=tools | services | plans | wallet | guide | guide-<sujet> (raccourcis
      de l'icône Android déclarés dans manifest.json)
 
    Si ce fichier échoue pour une raison quelconque, l'ancien menu reste
@@ -617,7 +617,7 @@ var MOCKUP_AI_ENABLED = false;
     return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (ICONS[name] || ICONS.star) + '</svg>';
   }
   function ico(entry, size) {
-    return '<span class="mp-ico" style="background:linear-gradient(145deg,' + entry.c[0] + ',' + entry.c[1] + ')">' + svg(entry.ic, size || 22) + '</span>';
+    return '<span class="mp-ico">' + svg(entry.ic, size || 22) + '</span>';
   }
 
   /* ===================================================================
@@ -641,14 +641,14 @@ var MOCKUP_AI_ENABLED = false;
     { id: 'alerts', grp: 'service', sec: 'community', tk: 'svc_alerts', ic: 'bell', c: ['#ff8787', '#e03131'], b: 'free', fn: 'openAlertsScreen', kw: 'alerte avis perdu objet alert notice' },
 
     // ---- Boîte à outils (100 % gratuite) ----
-    { id: 't_qr', grp: 'tool', lk: 'tool_qr', dk: 'tool_qr_d', ic: 'qr', c: ['#495057', '#212529'], b: 'new', tool: 'qr', kw: 'qr code scan lien link' },
-    { id: 't_wa', grp: 'tool', lk: 'tool_wa', dk: 'tool_wa_d', ic: 'chat', c: ['#40c057', '#2b8a3e'], b: 'new', tool: 'wa', kw: 'whatsapp wa.me contact message lien' },
-    { id: 't_font', grp: 'tool', lk: 'tool_font', dk: 'tool_font_d', ic: 'type', c: ['#f06595', '#c2255c'], b: 'new', tool: 'font', kw: 'texte style police bio gras cursif font fancy instagram tiktok' },
-    { id: 't_fx', grp: 'tool', lk: 'tool_fx', dk: 'tool_fx_d', ic: 'exchange', c: ['#15aabf', '#0b7285'], b: 'new', tool: 'fx', kw: 'devise change taux dollar franc cdf fcfa euro currency exchange convert' },
-    { id: 't_meme', grp: 'tool', lk: 'tool_meme', dk: 'tool_meme_d', ic: 'meme', c: ['#ffd43b', '#f2b600'], b: 'new', tool: 'meme', kw: 'affiche citation texte image meme generateur photo jaune noir poster quote' },
-    { id: 't_mockup', grp: 'tool', lk: 'tool_mockup', dk: 'tool_mockup_d', ic: 'mockup', c: ['#6c5ce7', '#4b3fb0'], b: 'new', tool: 'mockup', kw: 'mockup produit t-shirt tshirt emballage packaging design vetement pochette sachet' },
-    { id: 't_hash', grp: 'tool', lk: 'tool_hash', dk: 'tool_hash_d', ic: 'hash', c: ['#7950f2', '#5f3dc4'], b: 'new', tool: 'hash', kw: 'hashtag tags tiktok instagram viral' },
-    { id: 't_loc', grp: 'tool', lk: 'tool_loc', dk: 'tool_loc_d', ic: 'locate', c: ['#f76707', '#c92a2a'], b: 'new', tool: 'loc', kw: 'localisation position gps sos urgence carte partage appareil perdu telephone retrouver location map emergency find phone lost' },
+    { id: 't_qr', grp: 'tool', lk: 'tool_qr', dk: 'tool_qr_d', ic: 'qr', c: ['#495057', '#212529'], b: '', tool: 'qr', kw: 'qr code scan lien link' },
+    { id: 't_wa', grp: 'tool', lk: 'tool_wa', dk: 'tool_wa_d', ic: 'chat', c: ['#40c057', '#2b8a3e'], b: '', tool: 'wa', kw: 'whatsapp wa.me contact message lien' },
+    { id: 't_font', grp: 'tool', lk: 'tool_font', dk: 'tool_font_d', ic: 'type', c: ['#f06595', '#c2255c'], b: '', tool: 'font', kw: 'texte style police bio gras cursif font fancy instagram tiktok' },
+    { id: 't_fx', grp: 'tool', lk: 'tool_fx', dk: 'tool_fx_d', ic: 'exchange', c: ['#15aabf', '#0b7285'], b: '', tool: 'fx', kw: 'devise change taux dollar franc cdf fcfa euro currency exchange convert' },
+    { id: 't_meme', grp: 'tool', lk: 'tool_meme', dk: 'tool_meme_d', ic: 'meme', c: ['#ffd43b', '#f2b600'], b: '', tool: 'meme', kw: 'affiche citation texte image meme generateur photo jaune noir poster quote' },
+    { id: 't_mockup', grp: 'tool', lk: 'tool_mockup', dk: 'tool_mockup_d', ic: 'mockup', c: ['#6c5ce7', '#4b3fb0'], b: '', tool: 'mockup', kw: 'mockup produit t-shirt tshirt emballage packaging design vetement pochette sachet' },
+    { id: 't_hash', grp: 'tool', lk: 'tool_hash', dk: 'tool_hash_d', ic: 'hash', c: ['#7950f2', '#5f3dc4'], b: '', tool: 'hash', kw: 'hashtag tags tiktok instagram viral' },
+    { id: 't_loc', grp: 'tool', lk: 'tool_loc', dk: 'tool_loc_d', ic: 'locate', c: ['#f76707', '#c92a2a'], b: '', tool: 'loc', kw: 'localisation position gps sos urgence carte partage appareil perdu telephone retrouver location map emergency find phone lost' },
 
     // ---- Accès rapides de l'application ----
     { id: 'wallet', grp: 'core', tk: 'tab_wallet', ic: 'wallet', c: ['#20c997', '#087f5b'], go: function () { call('closeMainMenu'); call('showDashTab', 'wallet'); }, kw: 'portefeuille recharge solde argent mobile money crypto carte wallet balance top up deposit' },
@@ -2111,9 +2111,25 @@ var MOCKUP_AI_ENABLED = false;
   var deepLink = null;
   try { deepLink = new URLSearchParams(location.search).get('open'); } catch (e) { /* ignore */ }
 
+  // Le guide est public : on l'ouvre même sans compte (lien venant d'une page du guide sur Google).
+  var GUIDE_RE = /^guide(-[a-z]{2,12})?$/;
+  function openGuideLink(target) {
+    var tries = 0;
+    var iv = setInterval(function () {
+      tries++;
+      var sp = document.getElementById('app-splash');
+      var ready = typeof root.openTutorial === 'function' && (!sp || sp.classList.contains('hidden') || tries > 25);
+      if (ready) {
+        clearInterval(iv);
+        try { root.openTutorial(target.length > 5 ? target.slice(6) : undefined); } catch (e) { console.warn('[menu-pro] guide', e); }
+      } else if (tries > 60) clearInterval(iv);
+    }, 400);
+  }
+
   function handleDeepLink() {
     if (!deepLink) return;
     var target = deepLink;
+    if (GUIDE_RE.test(target)) { openGuideLink(target); return; }
     var tries = 0;
     var iv = setInterval(function () {
       tries++;
@@ -2143,7 +2159,7 @@ var MOCKUP_AI_ENABLED = false;
   try { qs = new URLSearchParams(location.search); } catch (e) { qs = null; }
   var locLink = qs ? qs.get('loc') : null;
   var locToken = qs ? qs.get('t') : null;
-  var needLoginLink = !!(qs && (locLink || qs.get('open') || qs.get('profile') || qs.get('openTab')));
+  var needLoginLink = !!(qs && (locLink || (qs.get('open') && !GUIDE_RE.test(qs.get('open'))) || qs.get('profile') || qs.get('openTab')));
   var locBoot = false;
   try { locBoot = localStorage.getItem('cn_loc_boot') === '1'; } catch (e) { /* ignore */ }
   var pending = null;
@@ -2166,7 +2182,7 @@ var MOCKUP_AI_ENABLED = false;
   function loadAuthGuard() {
     loadHelper('auth-guard.js', 'data-cn-ag');   // connexion plus stable
     loadHelper('login-pro.js?v=20261107', 'data-cn-lp');   // Apple, numéro de téléphone (SMS), Facebook, Microsoft
-    loadHelper('messaging-pro.js?v=20261061', 'data-cn-ms');   // messagerie privée en temps réel (chargée à part : jamais bloquante)
+    loadHelper('messaging-pro.js?v=20261110', 'data-cn-ms');   // messagerie privée en temps réel (chargée à part : jamais bloquante)
   }
   function promptLoginForLink() {
     var note = pending ? 'Connecte-toi pour voir la position partagée avec toi.' : 'Connecte-toi pour ouvrir ce contenu.';

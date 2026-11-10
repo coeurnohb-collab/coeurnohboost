@@ -35,7 +35,7 @@ const ICONS = {
 
 const PLATFORMS = [
   { id: "tiktok",    name: "TikTok",     bg: "#000000" },
-  { id: "instagram", name: "Instagram",  bg: "linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)" },
+  { id: "instagram", name: "Instagram",  bg: "#E1306C" },
   { id: "youtube",   name: "YouTube",    bg: "#FF0000" },
   { id: "facebook",  name: "Facebook",   bg: "#1877F2" },
   { id: "twitter",   name: "X",          bg: "#000000" },
@@ -49,7 +49,7 @@ const PLATFORMS = [
   { id: "discord",   name: "Discord",    bg: "#5865F2" },
   { id: "threads",   name: "Threads",    bg: "#000000" },
   { id: "kwai",      name: "Kwai",       bg: "#FF8000" },
-  { id: "likee",     name: "Likee",      bg: "linear-gradient(135deg,#FE2C55,#FFC000)" },
+  { id: "likee",     name: "Likee",      bg: "#FE2C55" },
   { id: "reddit",    name: "Reddit",     bg: "#FF4500" },
   { id: "soundcloud",name: "SoundCloud", bg: "#FF5500" }
 ];
@@ -234,7 +234,7 @@ const MONETIZATION_SERVICES = [
     id: "tiktok-monetization-views",
     platformId: "tiktok",
     label: "Vues Monétisables",
-    description: "Vues comptant pour le programme de monétisation TikTok. ⚠️ Prix à définir toi-même",
+    description: "Vues comptant pour le programme de monétisation TikTok. Prix à définir",
     price: { standard: 0, premium: 0, vip: 0 } // ⚠️ À CONFIGURER — aucun prix confirmé dans les captures fournies
   }
 ];

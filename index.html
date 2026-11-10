@@ -128,6 +128,7 @@
       "@id": "https://coeurnohuniverse.com/#website",
       "url": "https://coeurnohuniverse.com/",
       "name": "Coeurnoh Universe",
+      "alternateName": ["Coeurnoh", "CoeurnohBoost"],
       "inLanguage": [
         "fr",
         "en",
@@ -176,7 +177,24 @@
         "it",
         "pt"
       ],
+      "alternateName": ["Coeurnoh", "CoeurnohBoost", "Coeurnoh Boost"],
       "image": "https://coeurnohuniverse.com/og-image.jpg",
+      "screenshot": [
+        { "@type": "ImageObject", "contentUrl": "https://coeurnohuniverse.com/app-menu.webp", "caption": "Le Menu de Coeurnoh Universe : raccourcis et tous les services" },
+        { "@type": "ImageObject", "contentUrl": "https://coeurnohuniverse.com/app-recharge.webp", "caption": "Recharger son solde par Mobile Money, carte ou crypto" },
+        { "@type": "ImageObject", "contentUrl": "https://coeurnohuniverse.com/app-reseau.webp", "caption": "Les réseaux sociaux disponibles pour booster un compte" },
+        { "@type": "ImageObject", "contentUrl": "https://coeurnohuniverse.com/app-outils.webp", "caption": "La boîte à outils gratuite" },
+        { "@type": "ImageObject", "contentUrl": "https://coeurnohuniverse.com/app-wallet.webp", "caption": "Le portefeuille et l’historique des transactions" }
+      ],
+      "featureList": [
+        "Portefeuille et recharge par Mobile Money, carte ou crypto",
+        "Croissance des réseaux sociaux",
+        "Boutique en ligne",
+        "Création de site web",
+        "Emploi, immobilier et événements",
+        "Outils gratuits"
+      ],
+      "softwareHelp": { "@type": "CreativeWork", "name": "Guide d’utilisation", "url": "https://coeurnohuniverse.com/guide" },
       "publisher": {
         "@id": "https://coeurnohuniverse.com/#organization"
       },
@@ -202,16 +220,16 @@
 
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="app.min.css?v=eec8db1248" onerror="['style','polish','menu-pro','pro'].forEach(function(n){var l=document.createElement('link');l.rel='stylesheet';l.href=n+'.css';document.head.appendChild(l)})">
+<link rel="stylesheet" href="app.min.css?v=9104e2ab24" onerror="['style','polish','menu-pro','pro'].forEach(function(n){var l=document.createElement('link');l.rel='stylesheet';l.href=n+'.css';document.head.appendChild(l)})">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check-compat.js" defer></script>
 <script src="app-check.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js" defer></script>
+<link rel="preload" href="cn-inter-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="cn-inter-600.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="cn-serif.woff2" as="font" type="font/woff2" crossorigin>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -258,6 +276,7 @@
   <div style="max-width:720px;margin:0 auto;padding:24px;font-family:system-ui,sans-serif;line-height:1.6">
     <h1>Coeurnoh Universe — Réseaux sociaux, boutique &amp; services multiples</h1>
     <p>Croissance TikTok, Instagram, YouTube et Facebook, boutique en ligne, publications, création de mini-site, fiches entreprises, emploi et freelance, immobilier, voyages, réservations, factures et reçus, événements et concours pour l'Afrique francophone. Paiement par Mobile Money, crypto et carte. Boîte à outils gratuite : générateur de QR Code, lien WhatsApp direct, convertisseur de devises, calculateur de prix, hashtags.</p>
+    <p><a href="/guide">Guide d’utilisation</a> · <a href="/services">Services</a> · <a href="/aide">Aide</a> · <a href="/about">À propos</a></p>
     <p>Cette application nécessite JavaScript. Merci de l'activer dans votre navigateur.</p>
   </div>
 </noscript>
@@ -320,13 +339,15 @@
         <div class="pay-icons" id="hero-pay-icons"></div>
         <p class="hm-pay-note" data-i18n="hn_pay_note">Rechargez votre solde avec les moyens que vous utilisez déjà.</p>
       </aside>
-    </div>
-    <div class="wrap"><ul class="hm-trust">
+      <ul class="hm-trust">
       <li><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg><span data-i18n="hn_trust1">Mobile money, crypto et carte</span></li>
       <li><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span data-i18n="hn_trust2">Support actif 24h/24</span></li>
       <li><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M11 18h2"/></svg><span data-i18n="hn_trust3">Application installable</span></li>
       <li><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18Z"/></svg><span data-i18n="hn_trust4">Disponible en 5 langues</span></li>
     </ul>
+      <figure class="hm-show">
+        <div class="hm-phone"><img src="app-menu.webp" width="560" height="1212" decoding="async" fetchpriority="high" alt="Menu de l'application Coeurnoh Universe : portefeuille, boutique, réseau, création de site, entreprises, boîte à outils gratuite et parrainage"></div>
+      </figure>
     </div>
   </section>
 
@@ -484,6 +505,7 @@
     <div class="wrap">
       <nav class="hm-footer-links" aria-label="Coeurnoh Universe">
         <a href="/services" data-i18n="hn_f_services">Services</a>
+        <a href="/guide" data-guide-link data-i18n="hn_f_guide">Guide d’utilisation</a>
         <a href="/aide" data-i18n="hn_f_help">Aide</a>
         <a href="/about" data-i18n="hn_f_about">À propos</a>
         <a href="/terms" data-i18n="hn_f_terms">Conditions</a>
@@ -1101,255 +1123,7 @@
 </div>
 
 <!-- ================= TUTORIEL / GUIDE D'UTILISATION ================= -->
-<div class="modal-overlay hidden" id="tutorial-modal">
-  <div class="modal tutorial-modal">
-    <button class="modal-close" onclick="closeTutorial()" aria-label="Fermer">×</button>
 
-    <div class="tutorial-dots" id="tutorial-dots"></div>
-
-    <!-- Etape 0 : Bienvenue -->
-    <div class="tutorial-step" data-tutorial-step="0">
-      <div class="tutorial-emoji"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8Z"/></svg></div>
-      <h2 data-i18n="tuto_welcome_title">Bienvenue sur Coeurnoh Universe</h2>
-      <p class="sub" data-i18n="tuto_welcome_text">
-        Ce guide fait le tour de tout ce que l'application propose aujourd'hui : le fil social, le boost de réseaux sociaux,
-        le portefeuille, la boutique et tous les services CoeurNoh. Tu peux le rouvrir à tout moment avec le bouton d'aide
-        (icône « ? ») en haut de l'écran.
-      </p>
-    </div>
-
-    <!-- Etape 1 : Le fil d'actualite (Accueil) -->
-    <div class="tutorial-step hidden" data-tutorial-step="1">
-      <div class="tutorial-emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="m21 16-4.5-4.5L9 19"/></svg></div>
-      <h2 data-i18n="tuto_feed_title">Le fil d'actualité (Accueil)</h2>
-      <p class="sub" data-i18n="tuto_feed_sub">L'onglet « Accueil » est ton fil social, comme sur les réseaux :</p>
-      <ol class="tutorial-list">
-        <li data-i18n="tuto_feed_step1"><strong>1.</strong> Ajoute une story en haut de l'écran, ou publie une photo, une vidéo ou un texte sur ton fil.</li>
-        <li data-i18n="tuto_feed_step2"><strong>2.</strong> Aime, commente ou partage n'importe quelle publication — appuie dessus pour l'ouvrir en entier.</li>
-        <li data-i18n="tuto_feed_step3"><strong>3.</strong> Sur une story, appuie sur le nom de l'auteur (ou d'une personne l'ayant vue) pour ouvrir directement son profil.</li>
-        <li data-i18n="tuto_feed_step4"><strong>4.</strong> La personne concernée reçoit une vraie notification, même si son téléphone est fermé.</li>
-      </ol>
-    </div>
-
-    <!-- Etape 2 : Comment commander un boost (onglet Reseau) -->
-    <div class="tutorial-step hidden" data-tutorial-step="2">
-      <div class="tutorial-emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg></div>
-      <h2 data-i18n="tuto_order_title">Commander un boost</h2>
-      <p class="sub" data-i18n="tuto_order_sub">Depuis <strong>Menu › Services › « Réseau »</strong> :</p>
-      <ol class="tutorial-list">
-        <li data-i18n="tuto_order_step1"><strong>1.</strong> Appuie sur <strong>« Voir les services »</strong>.</li>
-        <li data-i18n="tuto_order_step2"><strong>2.</strong> Choisis le réseau social : TikTok, Instagram, YouTube, Facebook...</li>
-        <li data-i18n="tuto_order_step3"><strong>3.</strong> Choisis le service : Abonnés, Likes, Vues, Commentaires...</li>
-        <li data-i18n="tuto_order_step4"><strong>4.</strong> Colle le lien de ton profil ou de ta publication.</li>
-        <li data-i18n="tuto_order_step5"><strong>5.</strong> Appuie sur <strong>« Acheter »</strong> — la livraison démarre automatiquement, sans intervention manuelle.</li>
-      </ol>
-    </div>
-
-    <!-- Etape 3 : Forfaits vs a la carte -->
-    <div class="tutorial-step hidden" data-tutorial-step="3">
-      <div class="tutorial-emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5Z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg></div>
-      <h2 data-i18n="tuto_packages_title">Forfaits ou à la carte ?</h2>
-      <p class="sub" data-i18n="tuto_packages_sub">Sur chaque service, tu as deux façons de commander :</p>
-      <div class="tutorial-tier">
-        <span class="tutorial-tier-badge tier-standard" data-i18n="tuto_packages_alacarte_badge">À la carte</span>
-        <span data-i18n="tuto_packages_alacarte_text">Tu choisis toi-même la quantité exacte (ex: 350 abonnés) et le prix s'ajuste automatiquement.</span>
-      </div>
-      <div class="tutorial-tier">
-        <span class="tutorial-tier-badge tier-premium" data-i18n="tuto_packages_forfait_badge">Forfait (prix fixe)</span>
-        <span data-i18n="tuto_packages_forfait_text">Un pack tout prêt (ex: 200 Abonnés + 200 Likes + 200 Vues) à un prix fixe avantageux.</span>
-      </div>
-    </div>
-
-    <!-- Etape 4 : Standard / Premium / VIP -->
-    <div class="tutorial-step hidden" data-tutorial-step="4">
-      <div class="tutorial-emoji"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.3 6.9.9-5 4.8 1.3 6.8L12 17.6 5.9 20.8l1.3-6.8-5-4.8 6.9-.9Z"/></svg></div>
-      <h2 data-i18n="tuto_tiers_title">Standard, Premium ou VIP ?</h2>
-      <p class="sub" data-i18n="tuto_tiers_sub">Chaque service propose 3 niveaux de qualité :</p>
-      <div class="tutorial-tier">
-        <span class="tutorial-tier-badge tier-standard">Standard</span>
-        <span data-i18n="tuto_tier_standard">Bon rapport qualité-prix — le choix le plus économique.</span>
-      </div>
-      <div class="tutorial-tier">
-        <span class="tutorial-tier-badge tier-premium">Premium</span>
-        <span data-i18n="tuto_tier_premium">Plus rapide, meilleure rétention dans le temps.</span>
-      </div>
-      <div class="tutorial-tier">
-        <span class="tutorial-tier-badge tier-vip">VIP</span>
-        <span data-i18n="tuto_tier_vip">Ultra rapide, qualité maximale.</span>
-      </div>
-    </div>
-
-    <!-- Etape 5 : Monetisation -->
-    <div class="tutorial-step hidden" data-tutorial-step="5">
-      <div class="tutorial-emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a6 6 0 0 0-4 10.5c.6.5 1 1.3 1 2.5h6c0-1.2.4-2 1-2.5A6 6 0 0 0 12 2Z"/></svg></div>
-      <h2 data-i18n="tuto_monetization_title">La Monétisation</h2>
-      <p class="sub" data-i18n="tuto_monetization_text">
-        Dans <strong>Menu › Services › « Réseau »</strong>, le bouton <strong>« Monétisation »</strong> te montre les critères exacts que
-        chaque plateforme (YouTube, TikTok, Facebook...) exige pour activer la monétisation de ton compte, ainsi que les
-        services adaptés pour les atteindre plus rapidement.
-      </p>
-    </div>
-
-    <!-- Etape 6 : Portefeuille - vue d'ensemble -->
-    <div class="tutorial-step hidden" data-tutorial-step="6">
-      <div class="tutorial-emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5h-4a2 2 0 0 1 0-4h4Z"/></svg></div>
-      <h2 data-i18n="tuto_wallet_intro_title">Le Portefeuille</h2>
-      <p class="sub" data-i18n="tuto_wallet_intro_text">
-        Pour commander, ton compte doit avoir du solde. Va dans l'onglet <strong>« Portefeuille »</strong>
-        en bas de l'écran, puis choisis un mode de paiement : Mobile Money, Crypto, ou Carte. Ton solde et l'historique
-        de tes transactions se mettent à jour en temps réel, dès qu'une recharge est confirmée.
-      </p>
-    </div>
-
-    <!-- Etape 7 : Recharge Mobile Money -->
-    <div class="tutorial-step hidden" data-tutorial-step="7">
-      <div class="tutorial-emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2"/><line x1="11" y1="18" x2="13" y2="18"/></svg></div>
-      <h2 data-i18n="tuto_mobile_title">Recharger par Mobile Money</h2>
-      <ol class="tutorial-list">
-        <li data-i18n="tuto_mobile_step1"><strong>1.</strong> Choisis ton pays, puis ton opérateur (Orange Money, MTN, M-Pesa, Airtel Money...).</li>
-        <li data-i18n="tuto_mobile_step2"><strong>2.</strong> Entre ton numéro de téléphone Mobile Money et le montant à recharger.</li>
-        <li data-i18n="tuto_mobile_step3"><strong>3.</strong> Appuie sur « Envoyer la demande ».</li>
-        <li data-i18n="tuto_mobile_step4"><strong>4.</strong> Selon ton pays, la demande est traitée automatiquement en quelques minutes (confirme directement sur ton téléphone) ou vérifiée manuellement par notre équipe si ton pays n'est pas encore couvert automatiquement.</li>
-        <li data-i18n="tuto_mobile_step5"><strong>5.</strong> Ton solde est crédité dès la validation du paiement.</li>
-      </ol>
-    </div>
-
-    <!-- Etape 8 : Recharge Crypto -->
-    <div class="tutorial-step hidden" data-tutorial-step="8">
-      <div class="tutorial-emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.3 8.3h4a1.85 1.85 0 0 1 0 3.7H9.3m0-3.7v7.4m0-7.4H8m1.3 3.7h4.4a1.85 1.85 0 0 1 0 3.7H9.3m0 0H8m3-9.2v1.9m0 9.6v1.9"/></svg></div>
-      <h2 data-i18n="tuto_crypto_title">Recharger en Crypto</h2>
-      <ol class="tutorial-list">
-        <li data-i18n="tuto_crypto_step1"><strong>1.</strong> Choisis ta crypto (USDT, Bitcoin...) et le montant en dollars.</li>
-        <li data-i18n="tuto_crypto_step2"><strong>2.</strong> Tu es redirigé vers une page de paiement sécurisée (Cryptomus) avec l'adresse et le QR code exacts.</li>
-        <li data-i18n="tuto_crypto_step3"><strong>3.</strong> Envoie le montant exact affiché, depuis ton portefeuille crypto ou ton exchange.</li>
-        <li data-i18n="tuto_crypto_step4"><strong>4.</strong> Dès la confirmation sur la blockchain, ton solde est crédité automatiquement — aucune action manuelle de notre part.</li>
-      </ol>
-    </div>
-
-    <!-- Etape 9 : Recharge par Carte -->
-    <div class="tutorial-step hidden" data-tutorial-step="9">
-      <div class="tutorial-emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/><line x1="6" y1="15" x2="10" y2="15"/></svg></div>
-      <h2 data-i18n="tuto_card_title">Recharger par Carte</h2>
-      <p class="sub" data-i18n="tuto_card_text">
-        Le paiement par carte Visa ou Mastercard existe aussi dans le Portefeuille, mais il est <strong>momentanément
-        indisponible</strong> pour le moment (en cours de réactivation). En attendant, utilise Mobile Money ou Crypto.
-      </p>
-    </div>
-
-    <!-- Etape 10 : Le Parrainage -->
-    <div class="tutorial-step hidden" data-tutorial-step="10">
-      <div class="tutorial-emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="13" rx="1"/><path d="M12 8v13"/><path d="M3 12h18"/><path d="M12 8H7.5a2.5 2.5 0 0 1 0-5C10 3 12 8 12 8Z"/><path d="M12 8h4.5a2.5 2.5 0 0 0 0-5C14 3 12 8 12 8Z"/></svg></div>
-      <h2 data-i18n="tuto_referral_title">Le Parrainage</h2>
-      <p class="sub" data-i18n="tuto_referral_sub">Depuis le menu ☰ → <strong>Mon espace</strong> → <strong>Parrainage</strong> :</p>
-      <ol class="tutorial-list">
-        <li data-i18n="tuto_referral_step1"><strong>1.</strong> Copie ton lien de parrainage personnel.</li>
-        <li data-i18n="tuto_referral_step2"><strong>2.</strong> Partage-le à tes amis — quand ils s'inscrivent avec ce lien, ils sont liés à ton compte.</li>
-        <li data-i18n="tuto_referral_step3"><strong>3.</strong> Tu gagnes automatiquement 5% de chacune de leurs recharges, à vie, crédité sur ton solde.</li>
-      </ol>
-    </div>
-
-    <!-- Etape 11 : Boutique - acheter + Bibliotheque -->
-    <div class="tutorial-step hidden" data-tutorial-step="11">
-      <div class="tutorial-emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h5a2 2 0 0 1 2 2v14a2.5 2.5 0 0 0-2-1H4Z"/><path d="M20 4h-5a2 2 0 0 0-2 2v14a2.5 2.5 0 0 1 2-1h5Z"/></svg></div>
-      <h2 data-i18n="tuto_shopbuy_title">Acheter dans la Boutique</h2>
-      <ol class="tutorial-list">
-        <li data-i18n="tuto_shopbuy_step1"><strong>1.</strong> Va dans <strong>« Boutique »</strong> en bas de l'écran.</li>
-        <li data-i18n="tuto_shopbuy_step2"><strong>2.</strong> Utilise la recherche ou les onglets Livres/Produits pour trouver ce que tu veux.</li>
-        <li data-i18n="tuto_shopbuy_step3"><strong>3.</strong> Appuie sur <strong>« Commander »</strong> — le prix est débité de ton solde, instantanément.</li>
-        <li data-i18n="tuto_shopbuy_step4"><strong>4.</strong> Pour un livre, le téléchargement apparaît tout de suite, et reste accessible pour toujours.</li>
-        <li data-i18n="tuto_shopbuy_step5"><strong>5.</strong> Pour un produit, utilise le bouton WhatsApp sur l'article pour coordonner la livraison avec le vendeur.</li>
-      </ol>
-      <p class="sub" data-i18n="tuto_library_note">Un espace <strong>Bibliothèque</strong> dédié, uniquement aux livres et ebooks, est accessible directement depuis la Boutique.</p>
-    </div>
-
-    <!-- Etape 12 : Boutique - vendre -->
-    <div class="tutorial-step hidden" data-tutorial-step="12">
-      <div class="tutorial-emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 12.3 12.7 20.2a2 2 0 0 1-2.8 0l-7.1-7.1a2 2 0 0 1 0-2.8L10.7 2.3a2 2 0 0 1 1.4-.6H19a2 2 0 0 1 2 2v6.9a2 2 0 0 1-.4 1.7Z"/><circle cx="15.5" cy="7.5" r="1.5"/></svg></div>
-      <h2 data-i18n="tuto_shopsell_title">Vendre dans la Boutique</h2>
-      <p class="sub" data-i18n="tuto_shopsell_sub">
-        N'importe quel compte peut vendre un livre ou un produit. Coeurnoh Universe prélève <strong>10% de commission</strong>
-        sur chaque vente ; tu reçois <strong>90%</strong> directement sur ton solde, automatiquement.
-      </p>
-      <ol class="tutorial-list">
-        <li data-i18n="tuto_shopsell_step1"><strong>1.</strong> Dans « Boutique », appuie sur <strong>« Vendre »</strong>.</li>
-        <li data-i18n="tuto_shopsell_step2"><strong>2.</strong> Remplis le titre, la description et le prix.</li>
-        <li data-i18n="tuto_shopsell_step3"><strong>3.</strong> Ajoute le lien de ta photo (voir étape suivante pour savoir comment l'obtenir).</li>
-        <li data-i18n="tuto_shopsell_step4"><strong>4.</strong> Pour un livre, ajoute aussi le lien du PDF. Pour un produit, ajoute ton numéro WhatsApp.</li>
-        <li data-i18n="tuto_shopsell_step5"><strong>5.</strong> Publie — ton article apparaît immédiatement. Appuie sur <strong>« Vendeur »</strong> pour suivre tes ventes et demander un retrait.</li>
-      </ol>
-    </div>
-
-    <!-- Etape 13 : Obtenir un lien photo / PDF -->
-    <div class="tutorial-step hidden" data-tutorial-step="13">
-      <div class="tutorial-emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l2-2a5 5 0 0 0-7-7l-1.5 1.5"/><path d="M14 11a5 5 0 0 0-7.5-.5l-2 2a5 5 0 0 0 7 7l1.5-1.5"/></svg></div>
-      <h2 data-i18n="tuto_links_title">Obtenir un lien photo ou PDF</h2>
-      <p class="sub" data-i18n="tuto_links_sub">Ces liens sont gratuits et ne demandent pas de compte :</p>
-      <div class="tutorial-tier">
-        <span class="tutorial-tier-badge tier-standard">Photo</span>
-        <span data-i18n="tuto_links_image">Va sur <strong>postimages.org</strong> → « Choose images » → sélectionne ta photo → une fois uploadée, copie le lien <strong>« Lien direct »</strong> (pas les autres formats).</span>
-      </div>
-      <div class="tutorial-tier">
-        <span class="tutorial-tier-badge tier-premium">PDF</span>
-        <span data-i18n="tuto_links_pdf">Uploade ton PDF sur <strong>Google Drive</strong> → menu 3 points → « Partager » → choisis « Tous les utilisateurs disposant du lien » → copie le lien.</span>
-      </div>
-    </div>
-
-    <!-- Etape 14 : Le menu principal ☰ -->
-    <div class="tutorial-step hidden" data-tutorial-step="14">
-      <div class="tutorial-emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></div>
-      <h2 data-i18n="tuto_menu_title">Le menu ☰</h2>
-      <p class="sub" data-i18n="tuto_menu_sub">En bas à droite, le bouton <strong>« Menu »</strong> regroupe tout le reste :</p>
-      <div class="tutorial-tier">
-        <span class="tutorial-tier-badge tier-standard" data-i18n="tuto_menu_myspace_badge">Mon espace</span>
-        <span data-i18n="tuto_menu_myspace_text">Ton profil, tes publications enregistrées, tes abonnés/abonnements, ton parrainage et tes commandes.</span>
-      </div>
-      <div class="tutorial-tier">
-        <span class="tutorial-tier-badge tier-premium" data-i18n="tuto_menu_settings_badge">Paramètres</span>
-        <span data-i18n="tuto_menu_settings_text">Compte, sécurité, comptes bloqués, notifications, apparence et langue.</span>
-      </div>
-    </div>
-
-    <!-- Etape 15 : Services CoeurNoh -->
-    <div class="tutorial-step hidden" data-tutorial-step="15">
-      <div class="tutorial-emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
-      <h2 data-i18n="tuto_services_title">Services CoeurNoh</h2>
-      <p class="sub" data-i18n="tuto_services_sub">Toujours dans le menu ☰, la catégorie <strong>« Services CoeurNoh »</strong> donne accès à :</p>
-      <p class="sub" data-i18n="tuto_services_text">
-        Trouver un professionnel, Crée ton site, CoeurNoh Business, Factures &amp; Reçus, Emploi &amp; Freelance,
-        CoeurNoh Academy, Immobilier, CoeurNoh Travel, Réservation en ligne, Près de chez vous, Événements,
-        Concours &amp; Récompenses, et les Alertes. De nouveaux services s'ajoutent régulièrement ici.
-      </p>
-    </div>
-
-    <!-- Etape 16 : Installer l'application -->
-    <div class="tutorial-step hidden" data-tutorial-step="16">
-      <div class="tutorial-emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
-      <h2 data-i18n="tuto_install_title">Installer l'application</h2>
-      <p class="sub" data-i18n="tuto_install_text">
-        Tu utilises encore Coeurnoh Universe dans ton navigateur ? Appuie sur le bouton
-        <strong>« Installer l'app »</strong> en haut de l'écran pour l'ajouter comme une vraie
-        application, avec une icône sur ton écran d'accueil — plus rapide, et les notifications
-        arrivent mieux.
-      </p>
-    </div>
-
-    <!-- Etape 17 : Fin -->
-    <div class="tutorial-step hidden" data-tutorial-step="17">
-      <div class="tutorial-emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg></div>
-      <h2 data-i18n="tuto_finish_title">Prêt à décoller !</h2>
-      <p class="sub" data-i18n="tuto_finish_text">
-        Tu sais maintenant tout utiliser. Une question reste ? Le bouton WhatsApp en bas à droite
-        te met en contact direct avec nous, à tout moment.
-      </p>
-      <button class="btn btn-primary" style="width:100%;margin-top:14px" onclick="closeTutorial()" data-i18n="tuto_finish_cta">C'est compris, commencer →</button>
-    </div>
-
-    <div class="tutorial-nav">
-      <button class="btn btn-outline" id="tutorial-prev" onclick="tutorialPrev()" data-i18n="tuto_prev">← Précédent</button>
-      <button class="btn btn-primary" id="tutorial-next" onclick="tutorialNext()" data-i18n="tuto_next">Suivant →</button>
-    </div>
-  </div>
-</div>
 
 <!-- ================= PAGE NOTIFICATIONS (plein ecran) ================= -->
 <div id="view-notifications" class="hidden">
@@ -2177,6 +1951,10 @@
         <h2 data-i18n="menu_help">Aide &amp; informations</h2>
       </div>
       <div class="menu-card">
+      <button class="menu-item" onclick="openTutorial()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+        <span data-i18n="menu_guide">Guide d'utilisation</span>
+      </button>
       <button class="menu-item" onclick="goToAccountSection('section-contact')">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z"/></svg>
         <span data-i18n="menu_support">Assistance</span>
@@ -2633,7 +2411,7 @@
   </div>
 </div>
 
-<script src="app.min.js?v=cafcca097a" defer onerror="(function(){function f(){['translations','catalog-data','script','polish','menu-pro','push-center'].forEach(function(n){var x=document.createElement('script');x.src=n+'.js';x.async=false;document.body.appendChild(x)})}document.readyState==='loading'?document.addEventListener('DOMContentLoaded',f):f()})()"></script>
+<script src="app.min.js?v=007257aa1d" defer onerror="(function(){function f(){['translations','catalog-data','script','polish','menu-pro','push-center'].forEach(function(n){var x=document.createElement('script');x.src=n+'.js';x.async=false;document.body.appendChild(x)})}document.readyState==='loading'?document.addEventListener('DOMContentLoaded',f):f()})()"></script>
 
 <!-- PWA : activation du service worker (installation en app) -->
 <script>

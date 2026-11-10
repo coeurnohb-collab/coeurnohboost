@@ -248,17 +248,12 @@
     return true;
   }
 
-  // Message reçu pendant que l'app est OUVERTE : son + petit bandeau pour les annonces.
-  // (Les notifications personnelles ont déjà leur bandeau, via la liste en direct.)
+  // Message reçu pendant que l'app est OUVERTE : rien à l'écran (ni bandeau, ni bulle, ni bip).
+  // On met seulement à jour la pastille « Notifs ». La notification s'affiche sur l'écran du téléphone
+  // quand l'application est fermée ou en arrière-plan, comme WhatsApp, Facebook ou TikTok.
   function bindForeground(messaging) {
     if (fgBound) return; fgBound = true;
-    messaging.onMessage(function (p) {
-      var dt = (p && p.data) || {}, nn = (p && p.notification) || {};
-      try { if (typeof playNotifSound === 'function') playNotifSound(); } catch (e) { /* ignore */ }
-      if (dt.kind === 'broadcast' || nn.title) {
-        var t = dt.title || nn.title || '', b = dt.body || nn.body || '';
-        toast((t + (b ? ' — ' + b : '')).slice(0, 160), 'info');
-      }
+    messaging.onMessage(function () {
       try { updateNotifBadge(); } catch (e) { /* ignore */ }
     });
   }
@@ -510,6 +505,7 @@
   }
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.addEventListener('message', function (e) {
+      if (e && e.data && e.data.type === 'cn-push-silent') { try { updateNotifBadge(); } catch (x) { /* ignore */ } return; }
       if (e && e.data && e.data.type === 'cn-open') {
         // Accusé de réception : le service worker sait que la page est bien vivante et n'a pas besoin de la recharger.
         try { if (e.ports && e.ports[0]) e.ports[0].postMessage('ok'); } catch (x) { /* ignore */ }

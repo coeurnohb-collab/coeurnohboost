@@ -62,7 +62,7 @@
     '#menu-screen-academy #academy-browse-list .order-box:active,#menu-screen-academy #academy-mycourses-list .order-box:active{transform:scale(.992)}' +
     '#menu-screen-academy .shop-filter-tabs button{border-radius:999px;font-weight:700}' +
     '#menu-screen-academy .shop-card-category{border-radius:999px;font-weight:700}' +
-    '.cn-acad-hero{margin:0 0 16px;padding:20px 18px;border-radius:16px;color:var(--cnh-ink,#111827);background:linear-gradient(180deg,var(--cnh-brand-tint,rgba(29,79,145,.08)),transparent 130%),var(--cnh-card,#fff);border:1px solid var(--cnh-line,#e1e6ed)}' +
+    '.cn-acad-hero{margin:0 0 16px;padding:20px 18px;border-radius:16px;color:var(--cnh-ink,#111827);background:var(--cnh-card,#fff);border:1px solid var(--cnh-line,#e1e6ed)}' +
     '.cn-acad-hero h3{margin:0 0 6px;font-size:1.375rem;font-weight:700;letter-spacing:-.012em;line-height:1.25;color:var(--cnh-ink,#111827)}' +
     '.cn-acad-hero p{margin:0 0 14px;font-size:.9375rem;line-height:1.55;color:var(--cnh-sub,#5a6577)}' +
     '.cn-acad-chips{display:flex;flex-wrap:wrap;gap:8px}' +
