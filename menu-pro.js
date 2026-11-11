@@ -495,15 +495,15 @@ var MOCKUP_AI_ENABLED = false;
     mockup_empty_base: ["Ajoute d'abord une photo de ton produit.", 'First add a photo of your product.', 'Añade primero una foto de tu producto.', 'Aggiungi prima una foto del tuo prodotto.', 'Adiciona primeiro uma foto do teu produto.'],
     mockup_empty_design: ['Ajoute maintenant ton design / logo.', 'Now add your design / logo.', 'Ahora añade tu diseño / logo.', 'Ora aggiungi il tuo design / logo.', 'Agora adiciona o teu design / logo.'],
     mockup_dl_name: ['mockup', 'mockup', 'mockup', 'mockup', 'mockup'],
-    mockup_ai_generate: ['Générer un mockup professionnel (IA)', 'Generate a professional mockup (AI)', 'Generar un mockup profesional (IA)', 'Genera un mockup professionale (IA)', 'Gerar um mockup profissional (IA)'],
+    mockup_ai_generate: ['Générer un mockup professionnel', 'Generate a professional mockup', 'Generar un mockup profesional', 'Genera un mockup professionale', 'Gerar um mockup profissional'],
     mockup_ai_loading: ['Génération en cours (10-20 sec)...', 'Generating (10-20 sec)...', 'Generando (10-20 seg)...', 'Generazione in corso (10-20 sec)...', 'Gerando (10-20 seg)...'],
     mockup_ai_hint: ['Tes {q} premières générations sont gratuites, puis {p} $ par mockup (débité de ton portefeuille).', 'Your first {q} generations are free, then {p} $ per mockup (deducted from your wallet).', 'Tus {q} primeras generaciones son gratis, luego {p} $ por mockup (de tu billetera).', 'Le tue prime {q} generazioni sono gratuite, poi {p} $ per mockup (dal tuo portafoglio).', 'As tuas {q} primeiras gerações são grátis, depois {p} $ por mockup (da tua carteira).'],
     mockup_ai_error: ["La génération a échoué. Réessaie dans un instant.", 'Generation failed. Try again in a moment.', 'La generación falló. Inténtalo de nuevo en un momento.', 'La generazione non è riuscita. Riprova tra un momento.', 'A geração falhou. Tenta novamente daqui a pouco.'],
-    mockup_ai_login_needed: ['Connecte-toi pour utiliser la génération IA.', 'Log in to use AI generation.', 'Inicia sesión para usar la generación IA.', 'Accedi per usare la generazione IA.', 'Inicia sessão para usar a geração IA.'],
+    mockup_ai_login_needed: ['Connecte-toi pour générer un mockup.', 'Log in to generate a mockup.', 'Inicia sesión para generar un mockup.', 'Accedi per generare un mockup.', 'Inicia sessão para gerar um mockup.'],
     mockup_ai_recharge_btn: ['Recharger mon portefeuille', 'Top up my wallet', 'Recargar mi billetera', 'Ricarica il mio portafoglio', 'Recarregar a minha carteira'],
     mockup_ai_free_left: ['générations gratuites restantes', 'free generations left', 'generaciones gratis restantes', 'generazioni gratuite rimaste', 'gerações grátis restantes'],
     mockup_ai_charged: ['0,20 $ débités de ton portefeuille pour ce mockup.', '$0.20 deducted from your wallet for this mockup.', 'Se dedujeron 0,20 $ de tu billetera por este mockup.', '0,20 $ addebitati dal tuo portafoglio per questo mockup.', '0,20 $ debitados da tua carteira para este mockup.'],
-    mockup_ai_result_label: ['Mockup généré par IA', 'AI-generated mockup', 'Mockup generado por IA', 'Mockup generato dall\'IA', 'Mockup gerado por IA'],
+    mockup_ai_result_label: ['Mockup généré', 'Generated mockup', 'Mockup generado', 'Mockup generato', 'Mockup gerado'],
     mockup_ai_redo: ['Repositionner et régénérer', 'Reposition and regenerate', 'Reposicionar y regenerar', 'Riposiziona e rigenera', 'Reposicionar e regerar'],
 
     pl_intro: ['Tout ce qui est essentiel reste gratuit. Passe à un plan payant seulement quand ton activité grandit.', 'Everything essential stays free. Upgrade only when your activity grows.', 'Lo esencial sigue siendo gratis. Mejora solo cuando tu actividad crezca.', "L'essenziale resta gratis. Passa a un piano a pagamento solo quando la tua attività cresce.", 'O essencial continua grátis. Faça upgrade só quando sua atividade crescer.'],
@@ -2180,7 +2180,7 @@ var MOCKUP_AI_ENABLED = false;
     document.head.appendChild(s);
   }
   function loadAuthGuard() {
-    loadHelper('auth-guard.js', 'data-cn-ag');   // connexion plus stable
+    loadHelper('auth-guard.js?v=20261111', 'data-cn-ag');   // connexion plus stable
     loadHelper('login-pro.js?v=20261107', 'data-cn-lp');   // Apple, numéro de téléphone (SMS), Facebook, Microsoft
     loadHelper('messaging-pro.js?v=20261110', 'data-cn-ms');   // messagerie privée en temps réel (chargée à part : jamais bloquante)
   }

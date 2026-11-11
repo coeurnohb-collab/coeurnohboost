@@ -47,31 +47,11 @@ input:focus-visible, textarea:focus-visible, select:focus-visible { outline-offs
 
 /* ---------- 4. Ouverture animée (écran de démarrage) ---------- */
 /* Actualisation de l'ecran : pas d'intro, juste un voile discret le temps de reconnaitre le compte */
-html.cn-quick #app-splash { background: var(--bg, #f3f5f9); transition-duration: .16s; }
+html.cn-quick #app-splash { background: var(--bg, #ebecee); transition-duration: .16s; }
 html.cn-quick #app-splash::before, html.cn-quick #app-splash::after { display: none; }
 html.cn-quick #app-splash-inner > :not(#app-splash-spinner), html.cn-quick #app-splash-foot { display: none; }
-#app-splash { background: #f3f5f9; overflow: hidden; }
-html[data-theme="dark"] #app-splash { background: #171b22; }
-#app-splash::before {
-  content: ""; position: absolute; inset: -30%;
-  display: none;
-}
-#app-splash::after {
-  content: ""; position: absolute; left: 50%; top: 50%; width: 220px; height: 220px; margin: -150px 0 0 -110px; border-radius: 50%;
-  border: 2px solid rgba(243,156,31,.35); animation: cnSplashPulse 2.2s ease-out infinite;
-}
-#app-splash-inner { position: relative; z-index: 1; }
-#app-splash-spinner {
-  width: 132px; height: 4px; border: 0; border-radius: 99px; background: rgba(20,26,38,.09);
-  position: relative; overflow: hidden; animation: none;
-}
-#app-splash-spinner::after {
-  content: ""; position: absolute; inset: 0; width: 42%; border-radius: 99px;
-  background: #f39c1f; animation: cnSplashBar 1.25s ease-in-out infinite;
-}
-@keyframes cnSplashSpin { to { transform: rotate(360deg); } }
-@keyframes cnSplashPulse { 0% { transform: scale(.7); opacity: .9; } 100% { transform: scale(1.9); opacity: 0; } }
-@keyframes cnSplashBar { 0% { transform: translateX(-110%); } 100% { transform: translateX(260%); } }
+html.cn-quick #app-splash-spinner { animation: none; opacity: 1; margin-top: 0; }
+html.cn-quick #app-splash-spinner::after { animation-delay: 0s; }
 
 /* ---------- 5. Page d'accueil : l'entrée en douceur existe déjà (heroFadeUp), on ne la double pas ---------- */
 @keyframes cnFadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
@@ -133,15 +113,6 @@ html[data-theme="dark"] img.cn-img-fail { background: #2a313c; }
 /* Quand le bandeau de notification est affiché, les bulles descendent dessous (jamais l'une sur l'autre) */
 
 
-/* ---------- 12. Ouverture : logo qui apparaît avec un halo, nom qui scintille ---------- */
-#app-splash-logo-img { animation: cnLogoIn .95s cubic-bezier(.2,.9,.2,1) both, cnLogoGlow 3.4s ease-in-out .95s infinite; }
-@keyframes cnLogoIn { from { opacity: 0; transform: scale(.68) translateY(14px); } to { opacity: 1; transform: none; } }
-@keyframes cnLogoGlow { 0%, 100% { filter: drop-shadow(0 8px 18px rgba(243,156,31,0)); } 50% { filter: drop-shadow(0 12px 34px rgba(243,156,31,.5)); } }
-#app-splash-name { background: none; animation: none; }
-#app-splash-name .app-splash-name-red, #app-splash-name .app-splash-name-green { -webkit-text-fill-color: initial; }
-@keyframes cnShine { 0% { background-position: 120% 0; } 100% { background-position: -120% 0; } }
-#app-splash-tagline { letter-spacing: .42em; animation: cnTag 1.2s ease .5s both; }
-@keyframes cnTag { from { opacity: 0; letter-spacing: .8em; } to { opacity: 1; letter-spacing: .42em; } }
 
 
 /* ===== Icônes vectorielles (remplacent les emoji décoratifs) ===== */
@@ -192,3 +163,48 @@ textarea.text-input { min-height: 0; }
 input[type="search"], .search-input { border-radius: 12px; }
 ::selection { background: rgba(243, 156, 31, .28); }
 @media (prefers-reduced-motion: reduce) { .bnav-btn, .btn { transition: none; } }
+
+/* ---------- 17. Blanc « miroir » : surfaces claires, fines et nettes (v-pro23) ----------
+   Fond pierre claire, cartes d'un vrai blanc avec un liseré fin et un reflet net en haut,
+   barres du haut et du bas translucides. Aucun dégradé : seulement des aplats, des bords et des ombres douces. */
+:root {
+  --mirror-line: rgba(16, 24, 40, .075);
+  --mirror-hi: inset 0 1px 0 rgba(255, 255, 255, .95);
+  --mirror-drop: 0 1px 2px rgba(16, 24, 40, .045), 0 16px 30px -22px rgba(16, 24, 40, .32);
+  --mirror-glass: rgba(255, 255, 255, .78);
+}
+html[data-theme="dark"] {
+  --mirror-line: rgba(255, 255, 255, .08);
+  --mirror-hi: inset 0 1px 0 rgba(255, 255, 255, .06);
+  --mirror-drop: 0 1px 2px rgba(0, 0, 0, .4), 0 16px 30px -22px rgba(0, 0, 0, .7);
+  --mirror-glass: rgba(27, 31, 38, .78);
+}
+#nav {
+  background: var(--mirror-glass);
+  -webkit-backdrop-filter: saturate(170%) blur(18px); backdrop-filter: saturate(170%) blur(18px);
+  border-bottom: 1px solid var(--mirror-line); box-shadow: var(--mirror-hi);
+}
+.bottom-nav {
+  background: var(--mirror-glass);
+  -webkit-backdrop-filter: saturate(170%) blur(18px); backdrop-filter: saturate(170%) blur(18px);
+  border-top: 1px solid var(--mirror-line); box-shadow: 0 -1px 0 rgba(255, 255, 255, .6) inset;
+}
+.order-box, .menu-card, .menu-profile-card, .mp-shortcuts, .dash-composer, .ma-t,
+.platform-badge, .shop-card, .post-card, .op-card, .pack-card, .quick-link, .seller-stat-box, .skeleton-card {
+  background: var(--white); border: 1px solid var(--mirror-line);
+  box-shadow: var(--mirror-hi), var(--mirror-drop);
+}
+.menu-card, .mp-shortcuts { border-color: var(--mirror-line); }
+.mp-search-input, .text-input, .select-input, .search-input, input[type="search"] {
+  background: var(--white); border-color: var(--mirror-line); box-shadow: var(--mirror-hi);
+}
+.platform-badge:hover, .dash-composer:hover, .menu-profile-card:hover { box-shadow: var(--mirror-hi), 0 2px 4px rgba(16, 24, 40, .05), 0 20px 34px -22px rgba(16, 24, 40, .36); }
+.modal, .action-sheet, .comment-menu, .story-viewers-sheet {
+  background: color-mix(in srgb, var(--white) 95%, transparent);
+  -webkit-backdrop-filter: saturate(170%) blur(22px); backdrop-filter: saturate(170%) blur(22px);
+  border-top: 1px solid rgba(255, 255, 255, .8);
+}
+.modal-overlay, .story-viewers-overlay { -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
+@media (prefers-reduced-transparency: reduce) {
+  #nav, .bottom-nav, .modal, .action-sheet, .comment-menu, .story-viewers-sheet { background: var(--white); -webkit-backdrop-filter: none; backdrop-filter: none; }
+}

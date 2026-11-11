@@ -31,8 +31,8 @@ const FCM_VAPID_KEY = "BCwBF4M8jxL1uYPBERZvSFz0lYZk34m7vNLUtBby1lUwfoYVLFgY4c23O
 const APP_SPLASH_START = Date.now();
 // Quand on ACTUALISE l'ecran (tirer pour actualiser, bouton actualiser du navigateur) moins de 2 minutes apres la derniere
 // ouverture, on ne repasse pas par l'ecran d'intro : un petit voile sans logo (class "cn-quick" posee dans index.html)
-// disparait des que le compte est reconnu. Toute autre ouverture joue l'intro complete (2 s minimum).
-const APP_SPLASH_MIN_MS = window.__cnQuick ? 0 : 2000;
+// disparait des que le compte est reconnu. Toute autre ouverture joue l'intro complete (2,6 s minimum).
+const APP_SPLASH_MIN_MS = window.__cnQuick ? 0 : 2600;
 
 /* ================= NOTIFICATIONS "TOAST" (bannieres discretes) =================
    Remplace les alert() bloquants pour les messages courts (succes, erreur,
@@ -12882,16 +12882,26 @@ const SS_T = {
 };
 function ssT(k) { const d = SS_T[currentLang] || SS_T.en; return d[k] != null ? d[k] : SS_T.en[k]; }
 function cnClientModeOn() { try { return !!localStorage.getItem('cn_client_mode'); } catch (e) { return false; } }
-function cnLoadSiteStart(ok, ko) {
-  if (window.CNSiteStart) { ok(); return; }
-  let sc = document.querySelector('script[data-cn-ss]');
-  if (!sc) {
-    sc = document.createElement('script');
-    sc.src = 'site-start.js?v=20261105'; sc.async = true; sc.setAttribute('data-cn-ss', '1');
-    sc.onerror = () => { if (sc.parentNode) sc.parentNode.removeChild(sc); if (ko) ko(); };
+// Chargeur commun des modules « à la demande » : si le fichier est absent, périmé en mémoire ou ne s'est pas initialisé,
+// on le recharge UNE fois avec une adresse neuve (contourne l'ancienne copie gardée par le téléphone), puis on abandonne proprement.
+function cnLazyModule(attr, src, ready, ok, ko) {
+  if (ready()) { ok(); return; }
+  const load = (retry) => {
+    const old = document.querySelector('script[' + attr + ']');
+    if (old && old.parentNode) old.parentNode.removeChild(old);
+    const sc = document.createElement('script');
+    sc.src = src + (retry ? '&r=' + Date.now() : ''); sc.async = true; sc.setAttribute(attr, '1');
+    sc.onload = () => {
+      if (ready()) { try { ok(); } catch (e) { if (ko) ko(); } return; }
+      if (!retry) load(true); else { if (sc.parentNode) sc.parentNode.removeChild(sc); if (ko) ko(); }
+    };
+    sc.onerror = () => { if (sc.parentNode) sc.parentNode.removeChild(sc); if (!retry) load(true); else if (ko) ko(); };
     document.head.appendChild(sc);
-  }
-  sc.addEventListener('load', () => { try { ok(); } catch (e) { if (ko) ko(); } });
+  };
+  load(false);
+}
+function cnLoadSiteStart(ok, ko) {
+  cnLazyModule('data-cn-ss', 'site-start.js?v=20261111', () => !!window.CNSiteStart, ok, ko);
 }
 function openSiteStart(opts) {
   if (!currentUser) { openAuth('register'); return; }
@@ -12904,22 +12914,15 @@ function cnClientBoot() {
     if (localStorage.getItem('cn_client_mode') || sessionStorage.getItem('cn_handover')) cnLoadSiteStart(() => window.CNSiteStart.boot());
   } catch (e) { /* ignore */ }
 }
-// ---- « Donner mon site » / « Recevoir un site » (fichier site-transfer.js, chargé à la demande) ----
+// ---- « Donner mon site » / « Recevoir un site » (fichier site-give.js, chargé à la demande) ----
 const TR_T = {
   fr: { t: 'Donner mon site', d: 'Ton site est prêt ? Donne-le à un client ou à un ami : il en devient le propriétaire, le gère et paie l’abonnement.', give: 'Donner mon site', rec: 'J’ai reçu un site (code)', recd: 'Quelqu’un te donne son site ? Entre ici le code reçu.', fail: 'Cet écran ne peut pas s’ouvrir maintenant. Vérifie ta connexion et réessaie.', login: 'Connecte-toi ou crée ton compte pour recevoir le site.' },
   en: { t: 'Give my site', d: 'Your site is ready? Give it to a client or a friend: they become the owner, manage it and pay the subscription.', give: 'Give my site', rec: 'I received a site (code)', recd: 'Is someone giving you their site? Enter the code here.', fail: 'This screen cannot open right now. Check your connection and try again.', login: 'Sign in or create your account to receive the site.' }
 };
 function trT(k) { const d = TR_T[currentLang] || TR_T.en; return d[k] != null ? d[k] : TR_T.en[k]; }
 function cnLoadSiteTransfer(ok, ko) {
-  if (window.CNSiteTransfer) { ok(); return; }
-  let sc = document.querySelector('script[data-cn-xfer]');
-  if (!sc) {
-    sc = document.createElement('script');
-    sc.src = 'site-transfer.js?v=20261108'; sc.async = true; sc.setAttribute('data-cn-xfer', '1');
-    sc.onerror = () => { if (sc.parentNode) sc.parentNode.removeChild(sc); if (ko) ko(); };
-    document.head.appendChild(sc);
-  }
-  sc.addEventListener('load', () => { try { ok(); } catch (e) { if (ko) ko(); } });
+  // Fichier site-give.js (nom unique : aucune confusion possible avec le fichier serveur api/_lib/site-transfer.js).
+  cnLazyModule('data-cn-xfer', 'site-give.js?v=20261111', () => !!window.CNSiteTransfer, ok, ko);
 }
 function openSiteTransfer(mode, code) {
   if (!currentUser) { openAuth('register'); return; }

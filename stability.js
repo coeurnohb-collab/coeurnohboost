@@ -56,7 +56,7 @@
 
   /* 4. Académie : design, auto-études IA, affiliation / codes promo, quiz / certificats (fichiers séparés, jamais bloquants) */
   try {
-    var V = '20261110';
+    var V = '20261111';
     if (!document.querySelector('link[data-cn-au]')) {
       var au = document.createElement('link');
       au.rel = 'stylesheet'; au.href = 'academy-ui.css?v=' + V; au.setAttribute('data-cn-au', '1');

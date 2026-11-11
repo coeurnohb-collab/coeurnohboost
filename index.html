@@ -211,7 +211,7 @@
 
 <!-- PWA / Installation en application (Android, Google Play via TWA) -->
 <link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#1a2436">
+<meta name="theme-color" content="#ebecee">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Coeurnoh">
@@ -220,7 +220,7 @@
 
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
-<link rel="stylesheet" href="app.min.css?v=9104e2ab24" onerror="['style','polish','menu-pro','pro'].forEach(function(n){var l=document.createElement('link');l.rel='stylesheet';l.href=n+'.css';document.head.appendChild(l)})">
+<link rel="stylesheet" href="app.min.css?v=fcacc8adae" onerror="['style','polish','menu-pro','pro'].forEach(function(n){var l=document.createElement('link');l.rel='stylesheet';l.href=n+'.css';document.head.appendChild(l)})">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check-compat.js" defer></script>
 <script src="app-check.js" defer></script>
@@ -282,16 +282,12 @@
 </noscript>
 <div id="public-site-overlay" class="hidden" style="position:fixed;inset:0;z-index:99999;background:#fff;overflow-y:auto"></div>
 <div id="toast-container"></div>
-<div id="app-splash">
+<div id="app-splash" role="status" aria-live="polite">
   <div id="app-splash-inner">
-    <div class="sp-mark"><i class="sp-ripple"></i><i class="sp-ripple r2"></i><i class="sp-ring"></i><i class="sp-ring r2"></i><i class="sp-orbit"></i><i class="sp-orbit o2"></i><img id="app-splash-logo-img" src="icon-512-v2.png" alt="Coeurnoh Universe" width="108" height="108"><i class="sp-shine"></i></div>
-    <div id="app-splash-brand">
-      <span id="app-splash-name"><span class="app-splash-name-red">Coeurnoh</span> <span class="app-splash-name-green">Universe</span></span>
-      <span id="app-splash-tagline">Multi Services</span>
-    </div>
-    <div id="app-splash-spinner"></div>
+    <img id="app-splash-logo-img" src="icon-512-v2.png" alt="Coeurnoh Universe" width="120" height="120">
+    <div id="app-splash-dock" aria-hidden="true"><i class="sp-line"></i><span class="sp-s"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12V8H6a2 2 0 0 1 0-4h12v4"/><path d="M4 6v12a2 2 0 0 0 2 2h14v-4"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/></svg></span><span class="sp-s"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></span><span class="sp-s"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="5" cy="6" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="5" cy="18" r="2"/><circle cx="19" cy="18" r="2"/><path d="M7 7l3 3M17 7l-3 3M7 17l3-3M17 17l-3-3"/></svg></span><span class="sp-s"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10Z"/></svg></span><span class="sp-s"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></span><span class="sp-s"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5Z"/><path d="M6 12v5c0 1.5 3 3 6 3s6-1.5 6-3v-5"/></svg></span></div>
+    <div id="app-splash-spinner" aria-hidden="true"></div>
   </div>
-  <i class="sp-dot d1"></i><i class="sp-dot d2"></i><i class="sp-dot d3"></i><i class="sp-dot d4"></i><i class="sp-dot d5"></i><i class="sp-dot d6"></i>
   <div id="app-splash-foot">Mobile Money · Crypto · Carte</div>
 </div>
 
@@ -340,10 +336,10 @@
         <p class="hm-pay-note" data-i18n="hn_pay_note">Rechargez votre solde avec les moyens que vous utilisez déjà.</p>
       </aside>
       <ul class="hm-trust">
-      <li><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg><span data-i18n="hn_trust1">Mobile money, crypto et carte</span></li>
-      <li><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span data-i18n="hn_trust2">Support actif 24h/24</span></li>
-      <li><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M11 18h2"/></svg><span data-i18n="hn_trust3">Application installable</span></li>
-      <li><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18Z"/></svg><span data-i18n="hn_trust4">Disponible en 5 langues</span></li>
+      <li><svg data-ik="home_trust_1" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg><span data-i18n="hn_trust1">Mobile money, crypto et carte</span></li>
+      <li><svg data-ik="home_trust_2" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span data-i18n="hn_trust2">Support actif 24h/24</span></li>
+      <li><svg data-ik="home_trust_3" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M11 18h2"/></svg><span data-i18n="hn_trust3">Application installable</span></li>
+      <li><svg data-ik="home_trust_4" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18Z"/></svg><span data-i18n="hn_trust4">Disponible en 5 langues</span></li>
     </ul>
       <figure class="hm-show">
         <div class="hm-phone"><img src="app-menu.webp" width="560" height="1212" decoding="async" fetchpriority="high" alt="Menu de l'application Coeurnoh Universe : portefeuille, boutique, réseau, création de site, entreprises, boîte à outils gratuite et parrainage"></div>
@@ -369,67 +365,67 @@
       </div>
       <div class="hm-cards">
         <button type="button" class="hm-card" onclick="openAuth('register')">
-          <span class="hm-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L2 19l3 3 7.3-7.3a4 4 0 0 0 5.4-5.4l-2.8 2.8-2-2Z"/></svg></span>
+          <span class="hm-ico" data-ik="svc_pro"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L2 19l3 3 7.3-7.3a4 4 0 0 0 5.4-5.4l-2.8 2.8-2-2Z"/></svg></span>
           <span class="hm-card-body"><span class="hm-card-t" data-i18n="svc_pro">Trouver un professionnel</span><span class="hm-card-d" data-i18n="hn_d_pro">Trouvez des artisans et des experts près de chez vous.</span></span>
           <svg class="hm-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
         </button>
         <button type="button" class="hm-card" onclick="openAuth('register')">
-          <span class="hm-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10Z"/></svg></span>
+          <span class="hm-ico" data-ik="svc_site"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10Z"/></svg></span>
           <span class="hm-card-body"><span class="hm-card-t" data-i18n="hn_t_site">Créer votre site</span><span class="hm-card-d" data-i18n="hn_d_site">Un site professionnel en ligne en quelques minutes.</span></span>
           <svg class="hm-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
         </button>
         <button type="button" class="hm-card" onclick="openAuth('register')">
-          <span class="hm-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="2" width="16" height="20" rx="1.5"/><path d="M9 7h.01M15 7h.01M9 11h.01M15 11h.01"/><path d="M9 15h6"/></svg></span>
+          <span class="hm-ico" data-ik="svc_business"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="2" width="16" height="20" rx="1.5"/><path d="M9 7h.01M15 7h.01M9 11h.01M15 11h.01"/><path d="M9 15h6"/></svg></span>
           <span class="hm-card-body"><span class="hm-card-t" data-i18n="svc_business">Entreprises</span><span class="hm-card-d" data-i18n="hn_d_business">Présentez votre entreprise et gagnez de nouveaux clients.</span></span>
           <svg class="hm-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
         </button>
         <button type="button" class="hm-card" onclick="openAuth('register')">
-          <span class="hm-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h8"/></svg></span>
+          <span class="hm-ico" data-ik="svc_invoices"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h8"/></svg></span>
           <span class="hm-card-body"><span class="hm-card-t" data-i18n="svc_invoices">Factures &amp; Reçus</span><span class="hm-card-d" data-i18n="hn_d_invoices">Des factures et reçus clairs, prêts à envoyer.</span></span>
           <svg class="hm-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
         </button>
         <button type="button" class="hm-card" onclick="openAuth('register')">
-          <span class="hm-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></span>
+          <span class="hm-ico" data-ik="svc_jobs"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></span>
           <span class="hm-card-body"><span class="hm-card-t" data-i18n="svc_jobs">Emploi &amp; Freelance</span><span class="hm-card-d" data-i18n="hn_d_jobs">Publiez ou trouvez des offres, contrats et missions.</span></span>
           <svg class="hm-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
         </button>
         <button type="button" class="hm-card" onclick="openAuth('register')">
-          <span class="hm-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 10 12 5 2 10l10 5 10-5Z"/><path d="M6 12v5c0 1.5 3 3 6 3s6-1.5 6-3v-5"/></svg></span>
+          <span class="hm-ico" data-ik="svc_academy"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 10 12 5 2 10l10 5 10-5Z"/><path d="M6 12v5c0 1.5 3 3 6 3s6-1.5 6-3v-5"/></svg></span>
           <span class="hm-card-body"><span class="hm-card-t" data-i18n="svc_academy">Académie</span><span class="hm-card-d" data-i18n="hn_d_academy">Cours et auto-études avec certificat à la clé.</span></span>
           <svg class="hm-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
         </button>
         <button type="button" class="hm-card" onclick="openAuth('register')">
-          <span class="hm-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10"/></svg></span>
+          <span class="hm-ico" data-ik="svc_immo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10"/></svg></span>
           <span class="hm-card-body"><span class="hm-card-t" data-i18n="svc_immo">Immobilier</span><span class="hm-card-d" data-i18n="hn_d_immo">Louez, achetez ou vendez un bien.</span></span>
           <svg class="hm-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
         </button>
         <button type="button" class="hm-card" onclick="openAuth('register')">
-          <span class="hm-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5Z"/></svg></span>
+          <span class="hm-ico" data-ik="svc_travel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5Z"/></svg></span>
           <span class="hm-card-body"><span class="hm-card-t" data-i18n="svc_travel">Voyages</span><span class="hm-card-d" data-i18n="hn_d_travel">Préparez vos voyages et vos séjours.</span></span>
           <svg class="hm-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
         </button>
         <button type="button" class="hm-card" onclick="openAuth('register')">
-          <span class="hm-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span>
+          <span class="hm-ico" data-ik="svc_booking"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span>
           <span class="hm-card-body"><span class="hm-card-t" data-i18n="svc_booking">Réservation en ligne</span><span class="hm-card-d" data-i18n="hn_d_booking">Prenez ou recevez des rendez-vous en ligne.</span></span>
           <svg class="hm-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
         </button>
         <button type="button" class="hm-card" onclick="openAuth('register')">
-          <span class="hm-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg></span>
+          <span class="hm-ico" data-ik="svc_nearby"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg></span>
           <span class="hm-card-body"><span class="hm-card-t" data-i18n="svc_nearby">Près de chez vous</span><span class="hm-card-d" data-i18n="hn_d_nearby">Commerces et services autour de vous.</span></span>
           <svg class="hm-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
         </button>
         <button type="button" class="hm-card" onclick="openAuth('register')">
-          <span class="hm-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 9a3 3 0 0 1 0 6v3a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-3a3 3 0 0 1 0-6V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2M13 17v2M13 11v2"/></svg></span>
+          <span class="hm-ico" data-ik="svc_events"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 9a3 3 0 0 1 0 6v3a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-3a3 3 0 0 1 0-6V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2M13 17v2M13 11v2"/></svg></span>
           <span class="hm-card-body"><span class="hm-card-t" data-i18n="svc_events">Événements &amp; Billetterie</span><span class="hm-card-d" data-i18n="hn_d_events">Créez un événement et vendez vos billets.</span></span>
           <svg class="hm-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
         </button>
         <button type="button" class="hm-card" onclick="openAuth('register')">
-          <span class="hm-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M17 5h2a2 2 0 0 1 2 2 4 4 0 0 1-4 4"/><path d="M7 5H5a2 2 0 0 0-2 2 4 4 0 0 0 4 4"/></svg></span>
+          <span class="hm-ico" data-ik="svc_contests"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M17 5h2a2 2 0 0 1 2 2 4 4 0 0 1-4 4"/><path d="M7 5H5a2 2 0 0 0-2 2 4 4 0 0 0 4 4"/></svg></span>
           <span class="hm-card-body"><span class="hm-card-t" data-i18n="svc_contests">Concours &amp; Récompenses</span><span class="hm-card-d" data-i18n="hn_d_contests">Participez et gagnez des récompenses.</span></span>
           <svg class="hm-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
         </button>
         <button type="button" class="hm-card" onclick="openAuth('register')">
-          <span class="hm-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></span>
+          <span class="hm-ico" data-ik="svc_alerts"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></span>
           <span class="hm-card-body"><span class="hm-card-t" data-i18n="svc_alerts">Alertes</span><span class="hm-card-d" data-i18n="hn_d_alerts">Restez informé en temps réel sur votre téléphone.</span></span>
           <svg class="hm-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
         </button>
@@ -472,19 +468,19 @@
       </div>
       <div class="hm-why">
         <div class="hm-why-item">
-          <span class="hm-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></span>
+          <span class="hm-ico" data-ik="home_why_1"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></span>
           <h3 data-i18n="hn_why1_t">Paiements locaux</h3><p data-i18n="hn_why1_d">Mobile money, crypto et carte : payez comme vous en avez l'habitude.</p>
         </div>
         <div class="hm-why-item">
-          <span class="hm-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+          <span class="hm-ico" data-ik="home_why_2"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
           <h3 data-i18n="hn_why2_t">Une équipe à l'écoute</h3><p data-i18n="hn_why2_d">Un support actif 24h/24 pour vous répondre rapidement.</p>
         </div>
         <div class="hm-why-item">
-          <span class="hm-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12"/><path d="m7 11 5 5 5-5"/><path d="M5 21h14"/></svg></span>
+          <span class="hm-ico" data-ik="home_why_3"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12"/><path d="m7 11 5 5 5-5"/><path d="M5 21h14"/></svg></span>
           <h3 data-i18n="hn_why3_t">Installable sur téléphone</h3><p data-i18n="hn_why3_d">Ajoutez l'application à votre écran d'accueil, sans passer par une boutique d'applications.</p>
         </div>
         <div class="hm-why-item">
-          <span class="hm-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4.5 6v5.5c0 4.5 3.2 8 7.5 9.5 4.3-1.5 7.5-5 7.5-9.5V6L12 3Z"/><path d="m9 12 2 2 4-4"/></svg></span>
+          <span class="hm-ico" data-ik="home_why_4"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4.5 6v5.5c0 4.5 3.2 8 7.5 9.5 4.3-1.5 7.5-5 7.5-9.5V6L12 3Z"/><path d="m9 12 2 2 4-4"/></svg></span>
           <h3 data-i18n="hn_why4_t">Connexion sécurisée</h3><p data-i18n="hn_why4_d">Accédez à votre compte avec votre e-mail ou votre compte Google.</p>
         </div>
       </div>
@@ -2411,7 +2407,7 @@
   </div>
 </div>
 
-<script src="app.min.js?v=007257aa1d" defer onerror="(function(){function f(){['translations','catalog-data','script','polish','menu-pro','push-center'].forEach(function(n){var x=document.createElement('script');x.src=n+'.js';x.async=false;document.body.appendChild(x)})}document.readyState==='loading'?document.addEventListener('DOMContentLoaded',f):f()})()"></script>
+<script src="app.min.js?v=e42988f2eb" defer onerror="(function(){function f(){['translations','catalog-data','script','polish','menu-pro','push-center'].forEach(function(n){var x=document.createElement('script');x.src=n+'.js';x.async=false;document.body.appendChild(x)})}document.readyState==='loading'?document.addEventListener('DOMContentLoaded',f):f()})()"></script>
 
 <!-- PWA : activation du service worker (installation en app) -->
 <script>

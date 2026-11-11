@@ -150,24 +150,27 @@
   }
   function photo(k) { var u = PH[key(k)]; return (typeof u === 'string' && /^https:\/\//.test(u)) ? u : ''; }
   function toast(m, ty) { try { showToast(m, ty || 'info'); } catch (e) { } }
-  function pickPhoto(k) {
+  // pickPhoto(k, extra) : une seule photo envoyée, enregistrée sous la clé k et sous chaque clé de `extra` (ex. « toutes les icônes identiques »).
+  function pickPhoto(k, extra) {
     if (!isAdm()) return;
+    var ks = [k].concat(Array.isArray(extra) ? extra : []);
     var inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*';
     inp.onchange = function () {
       var f = inp.files && inp.files[0]; if (!f) return;
       toast(lang() === 'en' ? 'Uploading…' : 'Envoi en cours…');
       uploadFileToStorage(f, 'showcase', { maxSizeMB: 8 }).then(function (up) {
-        var o = {}; o[key(k)] = up.url;
-        return db.collection('pricing').doc('site').set({ showcasePhotos: o }, { merge: true }).then(function () { PH[key(k)] = up.url; });
+        var o = {}; ks.forEach(function (x) { o[key(x)] = up.url; });
+        return db.collection('pricing').doc('site').set({ showcasePhotos: o }, { merge: true }).then(function () { ks.forEach(function (x) { PH[key(x)] = up.url; }); });
       }).then(function () { toast(lang() === 'en' ? 'Photo saved' : 'Photo enregistrée', 'success'); refresh(); })
         .catch(function (e) { var m = e && e.message || 'Erreur'; try { m = friendlyErrorMessage(e); } catch (x) { } toast(m, 'error'); });
     };
     inp.click();
   }
-  function dropPhoto(k) {
+  function dropPhoto(k, extra) {
     if (!isAdm()) return;
-    var o = {}; o[key(k)] = firebase.firestore.FieldValue.delete();
-    db.collection('pricing').doc('site').set({ showcasePhotos: o }, { merge: true }).then(function () { delete PH[key(k)]; toast(lang() === 'en' ? 'Photo removed' : 'Photo retirée', 'success'); refresh(); }).catch(function () { });
+    var ks = [k].concat(Array.isArray(extra) ? extra : []), o = {};
+    ks.forEach(function (x) { o[key(x)] = firebase.firestore.FieldValue.delete(); });
+    db.collection('pricing').doc('site').set({ showcasePhotos: o }, { merge: true }).then(function () { ks.forEach(function (x) { delete PH[key(x)]; }); toast(lang() === 'en' ? 'Photo removed' : 'Photo retirée', 'success'); refresh(); }).catch(function () { });
   }
   function adminBtns(k) {
     if (!isAdm()) return '';

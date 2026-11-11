@@ -11,7 +11,7 @@
   --accent:#f39c1f;
   --accent-dark:#a35a00;
   --cream:#ffffff;
-  --bg:#eef0f4;
+  --bg:#f2f3f5;
   --ink:#141a26;
   --muted:#5d6779;
   --line:#e2e6ee;
@@ -40,7 +40,7 @@
   --shadow-lg:0 12px 32px rgba(16,24,40,.14);
   /* Typographie : Inter (texte) et Inter Display (titres), hébergées avec l'application */
   --font:'CN Inter','Inter','Segoe UI',system-ui,-apple-system,Roboto,'Helvetica Neue',Arial,sans-serif;
-  --font-serif:'CN Serif',Georgia,'Times New Roman',serif;
+  --font-title:'CN Serif',Georgia,'Times New Roman',serif;
   --font-head:'CN Display','CN Inter','Inter Display','Inter','Segoe UI',system-ui,-apple-system,Roboto,Arial,sans-serif;
   color-scheme:light;
 }
@@ -49,6 +49,7 @@
 /* Gras sobre : tout ce qui est demandé en 600, 700, 800 ou 900 s'affiche en demi-gras (un seul fichier). */
 @font-face{font-family:'CN Inter';font-style:normal;font-weight:600 900;font-display:swap;src:url(cn-inter-600.woff2) format('woff2')}
 @font-face{font-family:'CN Display';font-style:normal;font-weight:400 900;font-display:swap;src:url(cn-display-600.woff2) format('woff2')}
+/* Titres : empattements élégants (romain + italique) */
 @font-face{font-family:'CN Serif';font-style:normal;font-weight:400 700;font-display:swap;src:url(cn-serif.woff2) format('woff2')}
 @font-face{font-family:'CN Serif';font-style:italic;font-weight:400 700;font-display:swap;src:url(cn-serif-italic.woff2) format('woff2')}
 html{font-size:16px}
@@ -99,7 +100,7 @@ body{
   font-feature-settings:'kern','liga','calt';
 }
 /* Titres d'écran : empattements (Lora) ; titres de cartes et de sections : Inter demi-gras. */
-h1,h2{font-family:var(--font-serif);letter-spacing:-0.012em;font-weight:600;line-height:1.2}
+h1,h2{font-family:var(--font-title);letter-spacing:-0.014em;font-weight:600;line-height:1.16;text-wrap:balance;font-variant-numeric:lining-nums}
 h3,h4{font-family:var(--font);letter-spacing:-0.005em;font-weight:600;line-height:1.3}
 h2.page-title{color:var(--ink);font-weight:600}
 .hidden{display:none !important}
@@ -216,70 +217,15 @@ body.app-mode .nav-right{flex-wrap:nowrap}
   display:flex;flex-direction:column;gap:8px;align-items:center;
   pointer-events:none;width:100%;padding:0 16px;
 }
+/* Écran d'ouverture : le décor et le mouvement sont dans pro.css (section 1). */
 #app-splash{
-  position:fixed;inset:0;z-index:10000;background:var(--bg);
+  position:fixed;inset:0;z-index:10000;background:#ebecee;
   display:flex;align-items:center;justify-content:center;
   opacity:1;transition:opacity .38s ease;
 }
 #app-splash.splash-hide{opacity:0}
 #app-splash.hidden{display:none}
-#app-splash-inner{display:flex;flex-direction:column;align-items:center;gap:22px}
-/* AVANT : simple texte "Coeurnoh Universe" en 2 couleurs, avec un fondu
-   quasi imperceptible de 0.55s -- souvent jamais vu (voir hideAppSplash()
-   dans script.js pour la correction de duree). Remplace par le vrai logo
-   de l'app (meme image que l'icone installee sur le telephone), avec une
-   entree nette "zoom + rebond" et un halo qui respire doucement tant que
-   le chargement continue -- une vraie sequence d'ouverture, pas un simple
-   fondu discret. */
-#app-splash-logo-img{
-  width:128px;height:128px;border-radius:30px;
-  box-shadow:0 12px 32px rgba(0,0,0,0.16);
-  animation:splashLogoIn .7s cubic-bezier(.34,1.56,.64,1) forwards, splashLogoGlow 2.2s ease-in-out .7s infinite;
-}
-@keyframes splashLogoIn{
-  0%{opacity:0;transform:scale(.55) rotate(-8deg)}
-  100%{opacity:1;transform:scale(1) rotate(0deg)}
-}
-@keyframes splashLogoGlow{
-  0%,100%{box-shadow:0 12px 32px rgba(0,0,0,0.16)}
-  50%{box-shadow:0 12px 40px rgba(243,156,31,0.38)}
-}
-@media (prefers-reduced-motion: reduce){
-  #app-splash-logo-img{animation:none;opacity:1}
-}
-/* Nom + accroche animés sous le logo -- entrent juste après le logo
-   (delais decales) pour une vraie sequence d'ouverture, pas tout d'un coup. */
-#app-splash-brand{
-  display:flex;flex-direction:column;align-items:center;gap:6px;
-  opacity:0;transform:translateY(10px);
-  animation:splashBrandIn .55s ease .45s forwards;
-}
-#app-splash-name{font-size:1.5rem;font-weight:800;letter-spacing:-0.01em}
-.app-splash-name-red{color:var(--ink)}
-.app-splash-name-green{color:var(--accent-dark)}
-#app-splash-tagline{
-  font-size:0.72rem;font-weight:700;color:var(--red-text);
-  text-transform:uppercase;letter-spacing:0.22em;
-  opacity:0;animation:splashTaglineIn .5s ease .75s forwards;
-}
-@keyframes splashBrandIn{
-  0%{opacity:0;transform:translateY(10px)}
-  100%{opacity:1;transform:translateY(0)}
-}
-@keyframes splashTaglineIn{
-  0%{opacity:0;letter-spacing:0.4em}
-  100%{opacity:1;letter-spacing:0.22em}
-}
-@media (prefers-reduced-motion: reduce){
-  #app-splash-brand,#app-splash-tagline{animation:none;opacity:1;transform:none;letter-spacing:0.22em}
-}
-#app-splash-spinner{
-  width:28px;height:28px;border-radius:50%;
-  border:3px solid var(--line);border-top-color:var(--accent);
-  animation:app-splash-spin .8s linear infinite;
-  margin-top:4px;
-}
-@keyframes app-splash-spin{to{transform:rotate(360deg)}}
+#app-splash-inner{display:flex;flex-direction:column;align-items:center}
 .toast{
   background:var(--ink);color:#fff;padding:12px 18px;border-radius:999px;
   font-size:0.88rem;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,0.2);
@@ -631,8 +577,9 @@ body.app-mode .nav-right{flex-wrap:nowrap}
 
 /* BOUTIQUE PUBLIQUE */
 /* ================= SKELETONS DE CHARGEMENT ================= */
-@keyframes skeletonShimmer{0%{background-position:-200px 0}100%{background-position:calc(200px + 100%) 0}}
-.skeleton-shine{background:linear-gradient(90deg,var(--line) 25%,#e9e4d8 37%,var(--line) 63%);background-size:400px 100%;animation:skeletonShimmer 1.4s ease-in-out infinite}
+@keyframes skeletonPulse{0%,100%{opacity:1}50%{opacity:.55}}
+.skeleton-shine{background:var(--line);animation:skeletonPulse 1.5s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){.skeleton-shine{animation:none}}
 .skeleton-card{border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:14px;background:var(--white)}
 .skeleton-card .skeleton-media{width:100%;height:220px}
 .skeleton-card .skeleton-body{padding:16px;display:flex;flex-direction:column;gap:10px}

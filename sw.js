@@ -236,7 +236,7 @@ self.addEventListener('notificationclick', (event) => {
   })());
 });
 
-const CACHE_NAME = 'coeurnohboost-v23';
+const CACHE_NAME = 'coeurnohboost-v24';
 const APP_SHELL = [
   '/',
   '/index.html',
@@ -246,7 +246,8 @@ const APP_SHELL = [
   '/cn-inter-400.woff2',
   '/cn-inter-600.woff2',
   '/cn-display-600.woff2',
-  '/cn-serif.woff2'
+  '/cn-serif.woff2',
+  '/cn-serif-italic.woff2'
 ];
 
 // Seules ces pages publiques sont gardées hors-ligne. Jamais les pages privées ou propres à

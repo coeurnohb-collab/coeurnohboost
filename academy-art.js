@@ -151,7 +151,7 @@
   // Photo si elle est déclarée dans PHOTOS, sinon illustration. L'illustration reste dessous pendant le chargement.
   function art(id, cls) {
     var ph = PHOTOS[id] ? '<img class="cnh-photo" src="img/academie/' + encodeURIComponent(id) + '.' + PHOTOS[id] + '" alt="" loading="lazy" decoding="async">' : '';
-    return '<span class="cnh-art ' + (cls || '') + '">' + scene(id) + ph + '</span>';
+    return '<span class="cnh-art ' + (cls || '') + '" data-art="' + String(id).replace(/[^a-z0-9_-]/gi, '') + '">' + scene(id) + ph + '</span>';
   }
   document.addEventListener('error', function (e) {
     var t = e.target; if (t && t.tagName === 'IMG' && t.classList && t.classList.contains('cnh-photo')) t.remove();
