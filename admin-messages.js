@@ -283,7 +283,7 @@
     injectCss();
     var bar = document.createElement('div'); bar.id = 'am-bar';
     bar.innerHTML = '<div class="am-bar"><button class="btn btn-primary btn-sm" id="am-open-inbox" type="button">📬 Conversations</button></div>' +
-      '<input class="am-filter" id="am-filter" type="search" placeholder="🔎 Chercher un utilisateur (nom, e-mail)…" autocomplete="off">';
+      '<input class="am-filter" id="am-filter" type="search" placeholder="Chercher un utilisateur (nom, e-mail, pays)…" autocomplete="off">';
     list.parentNode.insertBefore(bar, list);
     el('am-open-inbox').onclick = openInbox;
     el('am-filter').addEventListener('input', function () {

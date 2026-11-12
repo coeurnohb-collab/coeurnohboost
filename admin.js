@@ -1010,35 +1010,103 @@ async function saveAcademyAiConfig() {
 /* =========================================================
    UTILISATEURS
    ========================================================= */
+// Pays : celui noté par le serveur à l'ouverture de l'application (d'après l'IP) ; à défaut, déduit de l'indicatif du téléphone.
+const ADM_DIAL = [['243', 'CD'], ['242', 'CG'], ['244', 'AO'], ['250', 'RW'], ['257', 'BI'], ['256', 'UG'], ['255', 'TZ'], ['254', 'KE'], ['260', 'ZM'], ['27', 'ZA'],
+  ['225', 'CI'], ['221', 'SN'], ['237', 'CM'], ['234', 'NG'], ['233', 'GH'], ['212', 'MA'], ['213', 'DZ'], ['216', 'TN'], ['241', 'GA'], ['236', 'CF'],
+  ['33', 'FR'], ['32', 'BE'], ['41', 'CH'], ['44', 'GB'], ['49', 'DE'], ['1', 'US']];
+const ADM_COUNTRY_FR = { CD: 'RD Congo', CG: 'Congo-Brazzaville', CI: "Côte d'Ivoire", US: 'États-Unis', GB: 'Royaume-Uni', FR: 'France', BE: 'Belgique' };
+function admCountryOf(d) {
+  let code = String(d.country || '').toUpperCase();
+  if (!/^[A-Z]{2}$/.test(code)) {
+    code = '';
+    const ph = String(d.phone || '').replace(/[^\d+]/g, '');
+    if (ph.charAt(0) === '+' || ph.indexOf('00') === 0) {
+      const digits = ph.replace(/^\+|^00/, '');
+      const hit = ADM_DIAL.find((x) => digits.indexOf(x[0]) === 0);
+      if (hit) code = hit[1];
+    }
+  }
+  if (!code) return '';
+  if (ADM_COUNTRY_FR[code]) return ADM_COUNTRY_FR[code];
+  try { return new Intl.DisplayNames(['fr'], { type: 'region' }).of(code) || code; } catch (e) { return code; }
+}
+// Un nom écrit tout en MAJUSCULES s'affiche en écriture normale (« JEAN KABONGO » devient « Jean Kabongo »).
+function admNiceName(n) {
+  const t = String(n || '').trim();
+  if (!t) return '—';
+  if (t.length > 2 && t === t.toUpperCase() && t !== t.toLowerCase()) return t.toLowerCase().replace(/(^|[\s'’-])([a-zà-ÿ])/g, (m, a, c) => a + c.toUpperCase());
+  return t;
+}
+function admWhen(iso) {
+  const t = Date.parse(iso || '');
+  if (!isFinite(t)) return '—';
+  const d = new Date(t);
+  return d.toLocaleDateString('fr-FR') + ' à ' + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+}
+function admIco(n, size) { return (window.cnIcon ? window.cnIcon(n, size || 16) : ''); }
+function admUserRow(doc) {
+  const d = doc.data();
+  const bal = Number(d.balance) || 0;
+  const country = admCountryOf(d);
+  const nm = admNiceName(d.name);
+  const seenTxt = (country ? 'Pays : ' + country : 'Pays : non connu') + (d.lastSeenAt ? ' · Dernière visite le ' + new Date(d.lastSeenAt).toLocaleDateString('fr-FR') : '');
+  return `
+      <div class="admin-row adm-user" data-q="${escapeHtml(((d.name || '') + ' ' + (d.email || '') + ' ' + (d.phone || '') + ' ' + (d.username || '') + ' ' + country).toLowerCase())}">
+        <div class="admin-row-top">
+          <div class="adm-av" aria-hidden="true">${escapeHtml(nm.charAt(0).toUpperCase())}</div>
+          <div class="adm-user-main">
+            <div class="admin-row-title">${escapeHtml(nm)}${d.verified ? `<span class="adm-ok" title="Vendeur vérifié">${admIco('check', 14)}</span>` : ''}</div>
+            <div class="admin-row-meta">${escapeHtml(d.email || d.phone || '')}</div>
+            <div class="admin-row-meta">Inscrit le ${admWhen(d.createdAt)}</div>
+            <div class="admin-row-meta">${escapeHtml(seenTxt)}</div>
+          </div>
+          <div class="adm-bal${bal > 0 ? ' has' : ''}">${bal > 0 ? bal.toFixed(2) + ' $' : '0 $'}</div>
+        </div>
+        <div class="admin-row-actions">
+          <button class="btn btn-outline btn-sm" onclick="toggleUserVerified('${doc.id}', ${!d.verified})">${admIco('check')}${d.verified ? 'Retirer la vérification' : 'Vérifier ce vendeur'}</button>
+          <button class="btn btn-primary btn-sm" onclick="openAdminMessage('${escapeForJs(doc.id)}', '${escapeForJs(d.name || d.email || d.phone || '')}')">${admIco('chat')}Message</button>
+          <button class="btn btn-outline btn-sm" onclick="diagnoseUserNotifs('${doc.id}')">${admIco('search')}Diagnostic des notifications</button>
+        </div>
+        <div id="notif-diag-${doc.id}"></div>
+      </div>`;
+}
+// Ordre voulu : d'abord les comptes qui ont de l'argent (du plus gros solde au plus petit), puis les plus récemment inscrits.
 async function loadUsersAdmin() {
   const el = document.getElementById('admin-users-list');
   el.innerHTML = `<p class="admin-empty">Chargement...</p>`;
   try {
-    const snap = await db.collection('users').orderBy('createdAt', 'desc').limit(100).get();
-    if (snap.empty) { el.innerHTML = `<p class="admin-empty">Aucun utilisateur.</p>`; return; }
-    el.innerHTML = snap.docs.map(doc => {
-      const d = doc.data();
-      return `
-      <div class="admin-row" data-q="${escapeHtml(((d.name || '') + ' ' + (d.email || '') + ' ' + (d.phone || '') + ' ' + (d.username || '')).toLowerCase())}">
-        <div class="admin-row-top">
-          <div>
-            <div class="admin-row-title">${d.verified ? '✔️ ' : ''}${escapeHtml(d.name || '—')}</div>
-            <div class="admin-row-meta">${escapeHtml(d.email || d.phone || '')}<br>Solde : ${(d.balance || 0).toFixed(2)}$ · Membre depuis ${d.createdAt ? new Date(d.createdAt).toLocaleDateString('fr-FR') : '—'}</div>
-          </div>
-        </div>
-        <div class="admin-row-actions">
-          <button class="btn btn-outline btn-sm" onclick="toggleUserVerified('${doc.id}', ${!d.verified})">
-            ${d.verified ? '❌ Retirer la vérification' : '✔️ Vérifier ce vendeur'}
-          </button>
-          <button class="btn btn-primary btn-sm" onclick="openAdminMessage('${escapeForJs(doc.id)}', '${escapeForJs(d.name || d.email || d.phone || '')}')">💬 Message</button>
-          <button class="btn btn-outline btn-sm" onclick="diagnoseUserNotifs('${doc.id}')">🔍 Diagnostic notifs</button>
-        </div>
-        <div id="notif-diag-${doc.id}"></div>
-      </div>`;
-    }).join('');
+    const [balSnap, recentSnap] = await Promise.all([
+      db.collection('users').where('balance', '>', 0).orderBy('balance', 'desc').limit(100).get().catch(() => null),
+      db.collection('users').orderBy('createdAt', 'desc').limit(160).get()
+    ]);
+    const rich = balSnap ? balSnap.docs : [];
+    const seen = new Set(rich.map((x) => x.id));
+    const recent = recentSnap.docs.filter((x) => !seen.has(x.id) && !(balSnap && (Number(x.data().balance) || 0) > 0)).slice(0, 100);
+    if (!rich.length && !recent.length) { el.innerHTML = `<p class="admin-empty">Aucun utilisateur.</p>`; return; }
+    let total = '';
+    try { const c = await db.collection('users').count().get(); total = c.data().count + ' comptes au total · '; } catch (e) { /* facultatif */ }
+    let clean = '';
+    try {
+      const cs = await db.collection('app_config').doc('inactive_cleanup').get();
+      const c = cs.exists ? cs.data() : {};
+      const on = c.enabled !== false;
+      const last = c.lastRunAt ? 'Dernier passage le ' + new Date(c.lastRunAt).toLocaleDateString('fr-FR') + (c.lastResult ? ' : ' + (c.lastResult.dryRun ? 'essai sans suppression' : c.lastResult.deleted + ' compte(s) supprimé(s)') : '') : 'Premier passage demain matin (essai sans suppression).';
+      clean = `<div class="adm-clean"><div><b>Nettoyage automatique</b><span>${on ? 'Actif' : 'En pause'} : un compte absent depuis 30 jours est supprimé, sauf s'il a un solde, un site, une entreprise ou une formation. ${last}</span></div>
+        <button class="btn btn-outline btn-sm" type="button" onclick="toggleInactiveCleanup(${on ? 'false' : 'true'})">${on ? 'Mettre en pause' : 'Réactiver'}</button></div>`;
+    } catch (e) { /* facultatif */ }
+    el.innerHTML = clean +
+      `<div class="adm-sum">${total}${rich.length} avec un solde</div>` +
+      (rich.length ? `<h3 class="adm-sec">Comptes avec un solde</h3>` + rich.map(admUserRow).join('') : '') +
+      `<h3 class="adm-sec">Derniers inscrits</h3>` + (recent.length ? recent.map(admUserRow).join('') : `<p class="admin-empty">Aucun autre compte.</p>`);
   } catch (e) {
     el.innerHTML = `<p class="admin-empty">Erreur : ${escapeHtml(e.message)}</p>`;
   }
+}
+async function toggleInactiveCleanup(on) {
+  try {
+    await db.collection('app_config').doc('inactive_cleanup').set({ enabled: !!on, updatedAt: new Date().toISOString() }, { merge: true });
+    loadUsersAdmin();
+  } catch (e) { alert('Erreur : ' + e.message); }
 }
 
 // Affiche les 20 dernieres tentatives d'envoi de notification pour ce
@@ -2892,6 +2960,11 @@ async function resellerAdminDelete(id) {
     briefcase: '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M3 13h18"/>',
     cap: '<path d="M2 9l10-5 10 5-10 5L2 9z"/><path d="M6 11.5V16c0 1.5 3 3 6 3s6-1.5 6-3v-4.5"/>',
     heart: '<path d="M12 21s-8-4.6-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 6.4-8 11-8 11z"/>',
+    bell: '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>',
+    pause: '<path d="M8 5v14M16 5v14"/>',
+    play: '<path d="M7 4l13 8-13 8V4z"/>',
+    mic: '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>',
+    menu: '<path d="M4 7h16M4 12h16M4 17h16"/>',
     star: '<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9L12 3z"/>'
   };
   window.cnIcon = function (name, size) {
@@ -2906,7 +2979,7 @@ async function resellerAdminDelete(id) {
     '💾': 'save', '➕': 'plus', '📊': 'chart', '🛒': 'cart', '🛍': 'cart', '💰': 'wallet', '💵': 'wallet', '💸': 'wallet', '💳': 'wallet', '🌐': 'globe',
     '🖥': 'monitor', '🏢': 'building', '🏪': 'store', '🚩': 'flag', '🤖': 'bot', '🐞': 'bug', '🔍': 'search', '🔎': 'search', '🧭': 'compass', '🏠': 'home',
     '📦': 'box', '🎯': 'target', '✨': 'spark', '📍': 'pin', '🎵': 'music', '🔊': 'volume', '📎': 'clip', '🏅': 'award', '🥇': 'award', '🥈': 'award', '🥉': 'award',
-    '🎨': 'palette', '👁': 'eye', '🔴': 'dot', '🟢': 'dot', '💹': 'trend', '↩': 'undo', '💄': 'spark', '👗': 'store', '🎉': 'spark', '📚️': 'book'
+    '🎨': 'palette', '👁': 'eye', '🔴': 'dot', '🟢': 'dot', '💹': 'trend', '↩': 'undo', '💄': 'spark', '👗': 'store', '🎉': 'spark', '📚️': 'book', '🌍': 'globe', '🌎': 'globe', '🚨': 'alert', '⏳': 'clock', '🆕': 'spark', '🛠': 'plug', '🔔': 'bell', '⭐': 'star', '📈': 'trend', '🎓': 'cap', '❤': 'heart', '⏸': 'pause', '▶': 'play', '🎤': 'mic', '☰': 'menu'
   };
   var keys = Object.keys(M).sort(function (a, b) { return b.length - a.length; });
   var RE = new RegExp('^[\\s\\uFE0F]*(' + keys.join('|') + ')\\uFE0F?[\\s\\uFE0F]*', 'u');

@@ -10,6 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="admin.css">
+<link rel="stylesheet" href="admin-pro.css?v=1">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check-compat.js"></script>
 <script src="app-check.js"></script>
@@ -41,9 +42,9 @@
 <div id="admin-panel" class="hidden">
   <nav id="admin-nav">
     <div class="wrap admin-nav-inner">
-      <div class="logo">Coeurnoh <span>Universe</span> <small class="admin-tag">ADMIN</small></div>
+      <div class="logo">Coeurnoh <span>Universe</span> <small class="admin-tag">Admin</small></div>
       <div style="display:flex;gap:8px">
-        <a href="index.html" class="btn btn-outline" style="border-color:#555;color:#fff">← Voir le site</a>
+        <a href="index.html" class="btn btn-outline">Voir le site</a>
         <button class="btn btn-outline" onclick="adminLogout()">Déconnexion</button>
       </div>
     </div>
@@ -51,7 +52,7 @@
 
   <div class="wrap admin-wrap">
     <div class="adm-topbar">
-      <button type="button" class="adm-burger" onclick="toggleAdminMenu()" aria-label="Menu">☰ <span>Menu</span></button>
+      <button type="button" class="adm-burger" onclick="toggleAdminMenu()" aria-label="Menu"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg><span>Menu</span></button>
       <h1 id="adm-title">Statistiques</h1>
     </div>
     <div class="adm-backdrop" onclick="toggleAdminMenu(false)"></div>
@@ -509,7 +510,7 @@
 </div>
 
 <script src="catalog-data.js?v=20261108"></script>
-<script src="admin.js?v=20261108"></script>
+<script src="admin.js?v=20261112"></script>
 <script src="admin-panels.js?v=3"></script>
 <script src="academy-spend-admin.js?v=1"></script>
 <script src="admin-login-methods.js?v=1"></script>

@@ -2876,6 +2876,22 @@ async function touchPresence() {
   } catch (e) { /* pas grave, pas une fonctionnalite critique */ }
 }
 
+// Une fois par session : le serveur note le pays (d'après l'IP, sans la garder) et la date de dernière visite.
+function cnRecordSeen(user) {
+  try {
+    const k = 'cn_seen_' + user.uid;
+    if (sessionStorage.getItem(k)) return;
+    sessionStorage.setItem(k, '1');
+  } catch (e) { /* ignore */ }
+  setTimeout(() => {
+    user.getIdToken().then((tok) => fetch('/api/payment-initiate', {
+      method: 'POST', keepalive: true,
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + tok },
+      body: JSON.stringify({ provider: 'seen' })
+    })).catch(() => { /* pas grave */ });
+  }, 4000);
+}
+
 function startPresenceUpdates() {
   touchPresence();
   if (presenceInterval) clearInterval(presenceInterval);
@@ -2925,6 +2941,7 @@ if (fbReady) {
       openSharedBusinessIfAny();
       openNotifTargetIfAny();
       registerPushNotifications();
+      cnRecordSeen(user);
       installBackTrap();
       if (cnResume) cnApplyResume(cnResume);
       cnResumeArmed = true;

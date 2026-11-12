@@ -9,8 +9,8 @@
   if (window.__cnAdminIcons) return; window.__cnAdminIcons = true;
   function lang() { try { return currentLang === 'en' ? 'en' : 'fr'; } catch (e) { return 'fr'; } }
   var TX = {
-    fr: { edit: 'Modifier les icônes', done: 'Terminer', hint: 'Touche une icône pour changer sa photo.', top: 'Mode icônes : touche une icône pour changer sa photo', pick: 'Choisir une photo', reset: 'Remettre l’icône d’origine', cancel: 'Annuler', title: 'Icône', none: 'Aucune icône trouvée ici.', pickAll: 'Changer partout (toutes les icônes identiques)', resetImg: 'Remettre l’image d’origine', resetAll: 'Tout remettre à l’origine', cover: 'Image de couverture', coverH: 'Choisis une belle image large : elle remplace le fond du bandeau.', home: 'Accueil', homeT: 'Icônes de la page d’accueil', homeH: 'Touche une icône pour changer sa photo. Elle change aussi dans l’application.', close: 'Fermer' },
-    en: { edit: 'Edit icons', done: 'Done', hint: 'Tap an icon to change its photo.', top: 'Icon mode: tap an icon to change its photo', pick: 'Choose a photo', reset: 'Restore original icon', cancel: 'Cancel', title: 'Icon', none: 'No icon found here.', pickAll: 'Change everywhere (all identical icons)', resetImg: 'Restore original image', resetAll: 'Restore everything', cover: 'Cover image', coverH: 'Choose a wide, elegant image: it replaces the banner background.', home: 'Home', homeT: 'Home page icons', homeH: 'Tap an icon to change its photo. It also changes inside the app.', close: 'Close' }
+    fr: { homeBg: 'Fond de l’accueil', edit: 'Modifier les icônes', done: 'Terminer', hint: 'Touche une icône pour changer sa photo.', top: 'Mode icônes : touche une icône pour changer sa photo', pick: 'Choisir une photo', reset: 'Remettre l’icône d’origine', cancel: 'Annuler', title: 'Icône', none: 'Aucune icône trouvée ici.', pickAll: 'Changer partout (toutes les icônes identiques)', resetImg: 'Remettre l’image d’origine', resetAll: 'Tout remettre à l’origine', cover: 'Image de couverture', coverH: 'Choisis une belle image large : elle remplace le fond du bandeau.', home: 'Accueil', homeT: 'Icônes de la page d’accueil', homeH: 'Touche une icône pour changer sa photo. Elle change aussi dans l’application.', close: 'Fermer' },
+    en: { homeBg: 'Home background', edit: 'Edit icons', done: 'Done', hint: 'Tap an icon to change its photo.', top: 'Icon mode: tap an icon to change its photo', pick: 'Choose a photo', reset: 'Restore original icon', cancel: 'Cancel', title: 'Icon', none: 'No icon found here.', pickAll: 'Change everywhere (all identical icons)', resetImg: 'Restore original image', resetAll: 'Restore everything', cover: 'Cover image', coverH: 'Choose a wide, elegant image: it replaces the banner background.', home: 'Home', homeT: 'Home page icons', homeH: 'Tap an icon to change its photo. It also changes inside the app.', close: 'Close' }
   };
   function tx() { return TX[lang()]; }
   function sc() { return window.CNShowcase; }
@@ -59,6 +59,11 @@
 
   /* ---------- Page d'accueil publique : pastilles .hm-ico[data-ik] (photo dans la pastille, lue par tous les visiteurs) ---------- */
   function applyHome() {
+    var hh = document.querySelector('.hm-hero'), hu0 = photo('home_hero');
+    if (hh) {
+      if (hu0) { hh.classList.add('has-cover'); hh.style.backgroundImage = coverUrl(hu0); }
+      else if (hh.classList.contains('has-cover')) { hh.classList.remove('has-cover'); hh.style.backgroundImage = ''; }
+    }
     document.querySelectorAll('.hm-ico[data-ik]').forEach(function (ico) {
       var sv1 = ico.querySelector('svg'), u = photo(ico.getAttribute('data-ik')) || (sv1 ? photo(shapeOf(sv1)) : ''), cur = ico.querySelector('img.mp-photo');
       if (u) {
@@ -169,6 +174,7 @@
   /* ---------- Liste des icônes de l'accueil (l'administrateur ne voit pas la page publique une fois connecté) ---------- */
   function homeItems() {
     var seen = {}, out = [];
+    out.push({ k: 'home_hero', label: tx().homeBg, svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="m21 16-5-5-8 8"/></svg>', shape: '' });
     document.querySelectorAll('.hm-ico[data-ik],svg[data-ik]').forEach(function (el) {
       var k = el.getAttribute('data-ik'); if (!k || seen[k]) return; seen[k] = 1;
       var box = el.closest('.hm-card,.hm-why-item,li') || el.parentElement, lab = '';
@@ -194,7 +200,7 @@
     if (t0.closest('[data-home]')) { if (isAdm()) { ev.preventDefault(); ev.stopPropagation(); openHome(); } return; }
     if (t0.closest('[data-hc]')) { ev.preventDefault(); ev.stopPropagation(); closeHome(); return; }
     var hk = t0.closest('[data-hk]');
-    if (hk) { ev.preventDefault(); ev.stopPropagation(); if (isAdm()) { closeHome(); openSheetKey(hk.getAttribute('data-hk'), hk.getAttribute('data-hl'), { shape: hk.getAttribute('data-hs') || '' }); } return; }
+    if (hk) { ev.preventDefault(); ev.stopPropagation(); if (isAdm()) { closeHome(); var hkk = hk.getAttribute('data-hk'); openSheetKey(hkk, hk.getAttribute('data-hl'), hkk === 'home_hero' ? { title: tx().cover, hint: tx().coverH } : { shape: hk.getAttribute('data-hs') || '' }); } return; }
     if (t0.closest('[data-toggle]')) { if (isAdm()) { ev.preventDefault(); ev.stopPropagation(); editing = !editing; closeSheet(); ui(); } return; }
     var sh = t0.closest('[data-sh]');
     if (sh) {
