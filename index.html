@@ -220,7 +220,7 @@
 
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
-<link rel="stylesheet" href="app.min.css?v=fcacc8adae" onerror="['style','polish','menu-pro','pro'].forEach(function(n){var l=document.createElement('link');l.rel='stylesheet';l.href=n+'.css';document.head.appendChild(l)})">
+<link rel="stylesheet" href="app.min.css?v=3a8c6794d1" onerror="['style','polish','menu-pro','pro'].forEach(function(n){var l=document.createElement('link');l.rel='stylesheet';l.href=n+'.css';document.head.appendChild(l)})">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check-compat.js" defer></script>
 <script src="app-check.js" defer></script>
@@ -283,13 +283,31 @@
 <div id="public-site-overlay" class="hidden" style="position:fixed;inset:0;z-index:99999;background:#fff;overflow-y:auto"></div>
 <div id="toast-container"></div>
 <div id="app-splash" role="status" aria-live="polite">
+  <video id="app-splash-video" muted playsinline preload="auto" aria-hidden="true" tabindex="-1"><source src="splash-v1.mp4" type="video/mp4"></video>
   <div id="app-splash-inner">
-    <img id="app-splash-logo-img" src="icon-512-v2.png" alt="Coeurnoh Universe" width="120" height="120">
-    <div id="app-splash-dock" aria-hidden="true"><i class="sp-line"></i><span class="sp-s"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12V8H6a2 2 0 0 1 0-4h12v4"/><path d="M4 6v12a2 2 0 0 0 2 2h14v-4"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/></svg></span><span class="sp-s"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></span><span class="sp-s"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="5" cy="6" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="5" cy="18" r="2"/><circle cx="19" cy="18" r="2"/><path d="M7 7l3 3M17 7l-3 3M7 17l3-3M17 17l-3-3"/></svg></span><span class="sp-s"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10Z"/></svg></span><span class="sp-s"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></span><span class="sp-s"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5Z"/><path d="M6 12v5c0 1.5 3 3 6 3s6-1.5 6-3v-5"/></svg></span></div>
+    <img id="app-splash-logo-img" src="logo-mark.png" alt="Coeurnoh Universe" width="240" height="112">
     <div id="app-splash-spinner" aria-hidden="true"></div>
   </div>
   <div id="app-splash-foot">Mobile Money · Crypto · Carte</div>
 </div>
+<script>
+/* Vidéo d'ouverture (format téléphone) : lue seulement si elle démarre vite, en français, sans économie de données ni mouvement réduit.
+   Sinon (ou au moindre doute) elle est retirée et le logo fixe prend le relais. Un appui sur l'écran la passe. */
+(function(){var sp=document.getElementById('app-splash'),v=document.getElementById('app-splash-video');if(!sp||!v)return;
+function drop(){try{v.pause();}catch(e){}if(v.parentNode)v.parentNode.removeChild(v);sp.classList.remove('sp-vid');}
+try{var lang=(localStorage.getItem('coeurnoh_lang')||navigator.language||'fr').slice(0,2).toLowerCase();
+var rm=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+var sd=navigator.connection&&navigator.connection.saveData;
+var wide=window.innerWidth>window.innerHeight*0.8;
+if(window.__cnQuick||rm||sd||wide||lang!=='fr'){drop();return;}}catch(e){}
+var ok=false;
+v.addEventListener('playing',function(){ok=true;sp.classList.add('sp-vid');},{once:true});
+v.addEventListener('error',drop);v.addEventListener('stalled',function(){if(!ok)drop();});
+try{var p=v.play();if(p&&p.catch)p.catch(drop);}catch(e){drop();}
+setTimeout(function(){if(!ok)drop();},2200);
+sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:true});
+})();
+</script>
 
 <!-- ================= NAV ================= -->
 <nav id="nav">
@@ -330,6 +348,15 @@
           <button type="button" class="hm-btn hm-btn-ghost" onclick="openAuth('login')" data-i18n="nav_login">Se connecter</button>
         </div>
       </div>
+      <figure class="hm-show">
+        <div class="hm-phone hm-phone-a"><img src="app-menu.webp" width="560" height="1212" decoding="async" fetchpriority="high" alt="Menu de l'application Coeurnoh Universe : portefeuille, boutique, réseau, création de site, entreprises, boîte à outils gratuite et parrainage"></div>
+        <div class="hm-phone hm-phone-b"><img src="app-wallet.webp" width="560" height="1212" decoding="async" loading="lazy" alt="Portefeuille de l'application : solde, recharge et historique"></div>
+      </figure>
+    </div>
+  </section>
+
+  <section class="hm-proof" aria-label="Paiement et confiance">
+    <div class="wrap hm-proof-grid">
       <aside class="hm-pay" aria-labelledby="hm-pay-t">
         <h2 class="hm-pay-title" id="hm-pay-t" data-i18n="hn_pay_title">Moyens de paiement acceptés</h2>
         <div class="pay-icons" id="hero-pay-icons"></div>
@@ -341,9 +368,6 @@
       <li><svg data-ik="home_trust_3" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M11 18h2"/></svg><span data-i18n="hn_trust3">Application installable</span></li>
       <li><svg data-ik="home_trust_4" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18Z"/></svg><span data-i18n="hn_trust4">Disponible en 5 langues</span></li>
     </ul>
-      <figure class="hm-show">
-        <div class="hm-phone"><img src="app-menu.webp" width="560" height="1212" decoding="async" fetchpriority="high" alt="Menu de l'application Coeurnoh Universe : portefeuille, boutique, réseau, création de site, entreprises, boîte à outils gratuite et parrainage"></div>
-      </figure>
     </div>
   </section>
 
@@ -2407,7 +2431,7 @@
   </div>
 </div>
 
-<script src="app.min.js?v=e42988f2eb" defer onerror="(function(){function f(){['translations','catalog-data','script','polish','menu-pro','push-center'].forEach(function(n){var x=document.createElement('script');x.src=n+'.js';x.async=false;document.body.appendChild(x)})}document.readyState==='loading'?document.addEventListener('DOMContentLoaded',f):f()})()"></script>
+<script src="app.min.js?v=0b61f2fe68" defer onerror="(function(){function f(){['translations','catalog-data','script','polish','menu-pro','push-center'].forEach(function(n){var x=document.createElement('script');x.src=n+'.js';x.async=false;document.body.appendChild(x)})}document.readyState==='loading'?document.addEventListener('DOMContentLoaded',f):f()})()"></script>
 
 <!-- PWA : activation du service worker (installation en app) -->
 <script>

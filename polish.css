@@ -49,7 +49,7 @@ input:focus-visible, textarea:focus-visible, select:focus-visible { outline-offs
 /* Actualisation de l'ecran : pas d'intro, juste un voile discret le temps de reconnaitre le compte */
 html.cn-quick #app-splash { background: var(--bg, #ebecee); transition-duration: .16s; }
 html.cn-quick #app-splash::before, html.cn-quick #app-splash::after { display: none; }
-html.cn-quick #app-splash-inner > :not(#app-splash-spinner), html.cn-quick #app-splash-foot { display: none; }
+html.cn-quick #app-splash-inner > :not(#app-splash-spinner), html.cn-quick #app-splash-foot, html.cn-quick #app-splash-video { display: none; }
 html.cn-quick #app-splash-spinner { animation: none; opacity: 1; margin-top: 0; }
 html.cn-quick #app-splash-spinner::after { animation-delay: 0s; }
 

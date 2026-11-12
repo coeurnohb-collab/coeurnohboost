@@ -2990,12 +2990,19 @@ function showFatalLoadError() {
 function hideAppSplash() {
   const splash = document.getElementById('app-splash');
   if (!splash) return;
-  const elapsed = Date.now() - APP_SPLASH_START;
-  const remaining = Math.max(0, APP_SPLASH_MIN_MS - elapsed);
-  setTimeout(() => {
-    splash.classList.add('splash-hide');
-    setTimeout(() => splash.classList.add('hidden'), window.__cnQuick ? 170 : 380);
-  }, remaining);
+  const vid = document.getElementById('app-splash-video');
+  const go = () => {
+    const elapsed = Date.now() - APP_SPLASH_START;
+    // Vidéo en cours : on la laisse finir (au plus 5 s au total) ; un appui sur l'écran la passe.
+    const cur = document.getElementById('app-splash-video');
+    if (vid && cur && !cur.ended && !window.__cnSkipIntro && elapsed < 5000) { setTimeout(go, 120); return; }
+    const remaining = cur && cur.ended ? 0 : Math.max(0, APP_SPLASH_MIN_MS - elapsed);
+    setTimeout(() => {
+      splash.classList.add('splash-hide');
+      setTimeout(() => splash.classList.add('hidden'), window.__cnQuick ? 170 : 380);
+    }, remaining);
+  };
+  go();
 }
 
 // Empeche le bouton "retour" (telephone/navigateur) de ramener un compte
@@ -3110,7 +3117,7 @@ function renderHeroPayIcons() {
     { label: 'USDT', badge: { bg:'#26A17B', bg2:'#1E8A69', code:'₮ USDT', fg:'#fff', slug:'usdt' } }
   ];
   el.innerHTML = items.map(it => `
-    <span class="pay-tile" title="${escapeHtml(it.label)}" role="img" aria-label="${escapeHtml(it.label)}" style="background:${it.badge.bg};color:${payTileInk(it.badge.bg)}">${escapeHtml(it.badge.code)}${it.badge.slug ? `<img src="logos/${it.badge.slug}.png" alt="" loading="lazy" onerror="this.remove()">` : ''}</span>`).join('');
+    <span class="pay-tile" title="${escapeHtml(it.label)}" role="img" aria-label="${escapeHtml(it.label)}" style="--pb:${it.badge.bg};background:${it.badge.bg};color:${payTileInk(it.badge.bg)}">${escapeHtml(it.badge.code)}${it.badge.slug ? `<img src="logos/${it.badge.slug}.png" alt="" loading="lazy" onerror="this.remove()">` : ''}</span>`).join('');
 }
 
 /* ================= TUTORIEL / GUIDE D'UTILISATION ================= */
