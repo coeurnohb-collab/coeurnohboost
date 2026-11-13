@@ -551,6 +551,7 @@ async function loadDepositsAdmin() {
         const spNote = isSp && d.status !== 'completed'
           ? ((d.saspayCheck && d.saspayCheck.note) || d.saspayNote || '')
           : '';
+        const secNote = d.securityNote && d.status !== 'completed' ? String(d.securityNote) : '';
         const spOpen = isSp && ['pending_payment', 'failed', 'expired', 'pending_admin_review'].indexOf(d.status) >= 0;
         const idAttr = escapeForJs(String(doc.id));
         return `
@@ -558,7 +559,7 @@ async function loadDepositsAdmin() {
         <div class="admin-row-top">
           <div>
             <div class="admin-row-title">${amount.toFixed(2)}$ — ${escapeHtml(d.email || '')}</div>
-            <div class="admin-row-meta">${detail}<br>${safeDateLabel(d.createdAt)}${spNote ? `<br><i>Dernier contrôle : ${escapeHtml(String(spNote))}</i>` : ''}</div>
+            <div class="admin-row-meta">${detail}<br>${safeDateLabel(d.createdAt)}${spNote ? `<br><i>Dernier contrôle : ${escapeHtml(String(spNote))}</i>` : ''}${secNote ? `<br><b>Mis de côté par la sécurité :</b> ${escapeHtml(secNote)}. Ne crédite qu'après avoir vu l'argent chez le fournisseur.` : ''}</div>
           </div>
           <span class="admin-badge ${isSp ? (SASPAY_BADGE[d.status] || 'pending') : status}">${isSp ? escapeHtml(SASPAY_LABELS[d.status] || String(d.status || '')) : status}</span>
         </div>
@@ -568,7 +569,7 @@ async function loadDepositsAdmin() {
           <button class="btn btn-outline btn-sm" onclick="creditSaspayByHand('${idAttr}',${amount})">Créditer à la main</button>
           <button class="btn btn-outline btn-sm" onclick="closeSaspayDone('${idAttr}')">Déjà réglé</button>
         </div>` : ''}
-        ${d.status === 'pending' || !d.status ? `
+        ${d.status === 'pending' || !d.status || (!isSp && d.status === 'pending_admin_review') ? `
         <div class="admin-row-actions">
           <button class="btn btn-primary btn-sm" onclick="approveDeposit('${doc.id}','${uidAttr}',${amount})">✓ Valider et créditer</button>
           <button class="btn btn-outline btn-sm" onclick="rejectDeposit('${doc.id}')">Rejeter</button>
@@ -1094,13 +1095,33 @@ async function loadUsersAdmin() {
       clean = `<div class="adm-clean"><div><b>Nettoyage automatique</b><span>${on ? 'Actif' : 'En pause'} : un compte absent depuis 30 jours est supprimé, sauf s'il a un solde, un site, une entreprise ou une formation. ${last}</span></div>
         <button class="btn btn-outline btn-sm" type="button" onclick="toggleInactiveCleanup(${on ? 'false' : 'true'})">${on ? 'Mettre en pause' : 'Réactiver'}</button></div>`;
     } catch (e) { /* facultatif */ }
-    el.innerHTML = clean +
+    let guard = '';
+    try {
+      const gs = await db.collection('app_config').doc('balance_guard').get();
+      const g = gs.exists ? gs.data() : {};
+      const bad = (g.alerts || []).filter((x) => x.kind === 'mismatch');
+      const none = (g.alerts || []).filter((x) => x.kind === 'noledger');
+      const when = g.lastRunAt ? 'Dernier contrôle le ' + new Date(g.lastRunAt).toLocaleDateString('fr-FR') + ' à ' + new Date(g.lastRunAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : 'Premier contrôle cette nuit (ou touche « Contrôler maintenant »).';
+      const line = (x) => `<div class="adm-gline"><b>${escapeHtml(x.name || x.email || x.uid)}</b> <span>${escapeHtml(x.email || '')}</span><br>Solde actuel ${Number(x.balance).toFixed(2)} $` + (x.kind === 'mismatch' ? ` · le relevé dit ${Number(x.ledger).toFixed(2)} $` : ' · aucun mouvement dans le relevé') + `</div>`;
+      guard = `<div class="adm-clean adm-guard${bad.length ? ' bad' : ''}"><div><b>Contrôle des soldes</b><span>${bad.length ? bad.length + ' solde(s) ne correspondent pas au relevé des mouvements : ils ont été modifiés sans passer par le serveur. Vérifie ces comptes avant tout retrait. ' : 'Chaque solde est comparé au relevé des mouvements. Aucun écart pour l\'instant. '}${none.length ? none.length + ' compte(s) ont un solde sans aucun mouvement (anciens comptes ou solde posé à la main). ' : ''}${when}</span>${bad.concat(none).slice(0, 10).map(line).join('')}</div>
+        <button class="btn btn-outline btn-sm" type="button" onclick="runBalanceGuardNow(this)">Contrôler maintenant</button></div>`;
+    } catch (e) { /* facultatif */ }
+    el.innerHTML = guard + clean +
       `<div class="adm-sum">${total}${rich.length} avec un solde</div>` +
       (rich.length ? `<h3 class="adm-sec">Comptes avec un solde</h3>` + rich.map(admUserRow).join('') : '') +
       `<h3 class="adm-sec">Derniers inscrits</h3>` + (recent.length ? recent.map(admUserRow).join('') : `<p class="admin-empty">Aucun autre compte.</p>`);
   } catch (e) {
     el.innerHTML = `<p class="admin-empty">Erreur : ${escapeHtml(e.message)}</p>`;
   }
+}
+async function runBalanceGuardNow(btn) {
+  if (btn) { btn.disabled = true; btn.textContent = 'Contrôle en cours…'; }
+  try {
+    const j = await saspayAdminCall({ action: 'balance_guard' });
+    const r = j.result || {};
+    alert('Contrôle terminé : ' + (r.withBalance || 0) + ' compte(s) avec un solde examiné(s), ' + (r.mismatch || 0) + ' écart(s), ' + (r.noLedger || 0) + ' sans mouvement.' + (r.wrapped ? '' : '\nTouche encore « Contrôler maintenant » pour examiner la suite des comptes.'));
+  } catch (e) { alert('Erreur : ' + e.message); }
+  loadUsersAdmin();
 }
 async function toggleInactiveCleanup(on) {
   try {

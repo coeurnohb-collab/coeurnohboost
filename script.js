@@ -818,13 +818,15 @@ async function loadWalletHistory() {
       listEl.innerHTML = '<p class="muted small" data-i18n="wallet_history_empty">Aucune transaction pour l\'instant.</p>';
       return;
     }
+    window.__walletTx = {};
     listEl.innerHTML = snap.docs.map(doc => {
       const t = doc.data();
+      window.__walletTx[doc.id] = t;
       const meta = WALLET_TX_LABELS[t.type] || { label: t.type || 'Transaction', icon: 'card' };
       const isCredit = (t.amount || 0) >= 0;
       const dateStr = t.createdAt ? new Date(t.createdAt).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
       return `
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)">
+        <div class="wtx-row" role="button" tabindex="0" aria-label="Voir le reçu" onclick="openWalletReceipt('${escapeForJs(doc.id)}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openWalletReceipt('${escapeForJs(doc.id)}')}" style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);cursor:pointer">
           <div style="display:flex;gap:10px;align-items:center;min-width:0">
             <span style="font-size:1.2rem;display:inline-flex">${cnIco(meta.icon)}</span>
             <div style="min-width:0">
@@ -839,6 +841,71 @@ async function loadWalletHistory() {
     listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${escapeHtml(e.message)}</p>`;
   }
 }
+
+/* ---- Reçu d'un mouvement du portefeuille : à partager, copier ou enregistrer en PDF (impression) ---- */
+function walletReceiptData(id) {
+  const t = (window.__walletTx || {})[id];
+  if (!t) return null;
+  const meta = WALLET_TX_LABELS[t.type] || { label: t.type || 'Transaction' };
+  const d = t.createdAt ? new Date(t.createdAt) : null;
+  const when = d && !isNaN(d) ? d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' }) + ' à ' + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '—';
+  const amount = Number(t.amount) || 0;
+  const holder = (currentUser && (currentUser.displayName || currentUser.email)) || '—';
+  const rows = [
+    ['Numéro du reçu', 'CU-' + String(id).slice(0, 8).toUpperCase()],
+    ['Titulaire', holder],
+    ['Date', when],
+    ['Opération', meta.label],
+    ['Détail', t.description || '—'],
+    ['Référence', t.relatedId || '—'],
+    ['Montant', (amount >= 0 ? '+' : '−') + Math.abs(amount).toFixed(2) + ' $'],
+    ['Solde après l\'opération', (Number(t.balanceAfter) || 0).toFixed(2) + ' $'],
+    ['Statut', 'Confirmé']
+  ];
+  return { rows, amount, label: meta.label, when };
+}
+function openWalletReceipt(id) {
+  const r = walletReceiptData(id);
+  if (!r) return;
+  closeWalletReceipt();
+  const el = document.createElement('div');
+  el.id = 'cn-receipt';
+  el.className = 'modal-overlay cn-receipt-ov';
+  el.setAttribute('role', 'dialog');
+  el.setAttribute('aria-modal', 'true');
+  el.setAttribute('aria-label', 'Reçu');
+  el.innerHTML = `
+    <div class="cn-rc-card">
+      <div class="cn-rc-brand">Coeurnoh <em>Universe</em></div>
+      <h3 class="cn-rc-title">Reçu de transaction</h3>
+      <div class="cn-rc-amount ${r.amount >= 0 ? 'in' : 'out'}">${escapeHtml((r.amount >= 0 ? '+' : '−') + Math.abs(r.amount).toFixed(2))} $</div>
+      <div class="cn-rc-rows">${r.rows.map(x => `<div class="cn-rc-row"><span>${escapeHtml(x[0])}</span><b>${escapeHtml(x[1])}</b></div>`).join('')}</div>
+      <p class="cn-rc-foot">Document généré par Coeurnoh Universe. Il fait foi de l'opération enregistrée sur ton compte.</p>
+      <div class="cn-rc-actions">
+        <button type="button" class="btn btn-primary btn-sm" id="cn-rc-share">Partager</button>
+        <button type="button" class="btn btn-outline btn-sm" id="cn-rc-print">Enregistrer en PDF</button>
+        <button type="button" class="btn btn-outline btn-sm" id="cn-rc-close">Fermer</button>
+      </div>
+    </div>`;
+  document.body.appendChild(el);
+  el.addEventListener('click', (e) => { if (e.target === el) closeWalletReceipt(); });
+  document.getElementById('cn-rc-close').onclick = closeWalletReceipt;
+  document.getElementById('cn-rc-print').onclick = () => window.print();
+  document.getElementById('cn-rc-share').onclick = async () => {
+    const text = 'Coeurnoh Universe : reçu de transaction\n' + r.rows.map(x => x[0] + ' : ' + x[1]).join('\n');
+    try {
+      if (navigator.share) { await navigator.share({ title: 'Reçu Coeurnoh Universe', text }); return; }
+      await navigator.clipboard.writeText(text);
+      showToast('Reçu copié.', 'success');
+    } catch (e) { /* partage annulé */ }
+  };
+}
+function closeWalletReceipt() {
+  const el = document.getElementById('cn-receipt');
+  if (el) el.remove();
+}
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeWalletReceipt(); });
+
 function showServices() {
   hideAllViews();
   document.getElementById('view-services').classList.remove('hidden');

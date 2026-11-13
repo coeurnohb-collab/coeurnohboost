@@ -807,3 +807,64 @@ html[data-theme="dark"] .mp-b-new{background:transparent;color:#a9c1f5}
 .stat strong,.order-summary-row strong,.pack-price{font-family:var(--font);font-weight:600}
 #view-shop .dash-wrap > input + div .btn:first-child,.shop-card .shop-card-actions .btn-buy-full.btn-primary{box-shadow:none}
 .order-box h3{color:var(--ink);font-weight:600}
+
+/* ===== Reçu d'un mouvement du portefeuille (lot 29) : carte blanche sobre, titres serif, sans dégradé ===== */
+.wtx-row:hover{background:rgba(34,51,80,.04)}
+.wtx-row:focus-visible{outline:2px solid var(--hm-accent,#1d4ed8);outline-offset:2px;border-radius:8px}
+.cn-receipt-ov{background:rgba(20,26,38,.5);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:1200}
+.cn-rc-card{background:#fff;border:1px solid #fff;border-radius:18px;width:min(420px,100%);max-height:calc(100vh - 32px);overflow:auto;padding:22px 20px 18px;box-shadow:0 30px 60px -30px rgba(16,24,40,.5)}
+.cn-rc-brand{font-family:var(--font-title);font-weight:600;font-size:1rem;color:var(--ink);letter-spacing:-.01em}
+.cn-rc-brand em{font-style:italic;font-weight:500;color:var(--hm-accent,#1d4ed8)}
+.cn-rc-title{font-family:var(--font-title);font-weight:600;font-size:1.35rem;letter-spacing:-.01em;margin:10px 0 2px;color:var(--ink)}
+.cn-rc-amount{font-family:var(--font-title);font-weight:600;font-size:2.1rem;letter-spacing:-.015em;font-variant-numeric:lining-nums tabular-nums;margin:2px 0 10px}
+.cn-rc-amount.in{color:var(--green,#15803d)}.cn-rc-amount.out{color:var(--ink)}
+.cn-rc-row{display:flex;justify-content:space-between;gap:14px;padding:9px 0;border-bottom:1px solid var(--line,#e3e5e9);font-size:.88rem}
+.cn-rc-row span{color:var(--muted,#5d6779);flex:0 0 auto}
+.cn-rc-row b{font-weight:600;text-align:right;word-break:break-word;color:var(--ink)}
+.cn-rc-foot{font-size:.74rem;line-height:1.5;color:var(--muted,#5d6779);margin:12px 0 0}
+.cn-rc-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+@media print{
+  body > *:not(.cn-receipt-ov){display:none !important}
+  .cn-receipt-ov{position:static !important;background:#fff !important;backdrop-filter:none !important;-webkit-backdrop-filter:none !important;padding:0 !important;display:block !important}
+  .cn-rc-card{box-shadow:none !important;border:0 !important;max-height:none !important;width:100% !important;padding:0 !important}
+  .cn-rc-actions{display:none !important}
+}
+
+/* =====================================================================
+   Lot 30 — L'application connectée dans le même univers que l'accueil :
+   fond de pierre claire, cartes en verre léger, étiquettes en écriture normale (jamais en majuscules espacées).
+   Thème clair seulement ; le thème sombre garde ses couleurs. Couleurs unies, aucun dégradé.
+   Le flou (verre dépoli) n'est mis que sur les grands blocs : pas sur les longues listes (téléphones modestes).
+   ===================================================================== */
+html:not([data-theme="dark"]) body.app-mode{
+  background-color:#e9eaed;background-image:url(home-stone-v1.jpg);background-size:600px auto;background-repeat:repeat;
+  --ap-glass:rgba(255,255,255,.74);--ap-solid:rgba(255,255,255,.93);--ap-line:rgba(255,255,255,.9);
+  --ap-edge:inset 0 1px 0 rgba(255,255,255,.98),0 0 0 1px rgba(16,24,40,.05),0 14px 30px -22px rgba(16,24,40,.30);
+}
+/* grands blocs : verre dépoli */
+html:not([data-theme="dark"]) body.app-mode :is(.order-box,.menu-card,.mp-shortcuts,.menu-profile-card,.rp-card,.dash-composer,.pay-sp-country,.ma-t){
+  background:var(--ap-glass);border:1px solid var(--ap-line);box-shadow:var(--ap-edge);
+  -webkit-backdrop-filter:blur(12px) saturate(1.15);backdrop-filter:blur(12px) saturate(1.15);
+}
+/* éléments de listes longues : surface presque pleine, sans flou */
+html:not([data-theme="dark"]) body.app-mode :is(.shop-card,.post-card,.notif-row){
+  background:var(--ap-solid);border:1px solid var(--ap-line);box-shadow:var(--ap-edge);
+}
+html:not([data-theme="dark"]) body.app-mode :is(.text-input,.mp-search-input){background:rgba(255,255,255,.88);border-color:#d9dce1}
+/* barre du bas et en-tête : même verre */
+html:not([data-theme="dark"]) body.app-mode :is(nav.bottom-nav,.bottom-nav,#bottom-nav){
+  background:rgba(246,247,248,.88);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-top:1px solid rgba(20,26,38,.08)}
+/* étiquettes : écriture normale, jamais de majuscules espacées */
+.rp-k,.gd-kicker,.gd-count,.gd-tip b,.pp-day,.pf-eyebrow,.cnx-h h4,.cnx-dbody h4,#lp-root h3,.lp-k small,.menu-category h4,.mp-section-title,.modal h4,.ma-t small,.price-table-head,.sbx-card h4,.sbx-prev-models>span,.api-field>span,.type-banner small,.sbx-google small{
+  text-transform:none!important;letter-spacing:0!important}
+.ma-t small{font-size:.78rem!important;font-weight:600!important}
+@supports not ((backdrop-filter:blur(2px)) or (-webkit-backdrop-filter:blur(2px))){
+  html:not([data-theme="dark"]) body.app-mode{--ap-glass:rgba(255,255,255,.94)}
+}
+@media (prefers-reduced-transparency:reduce){
+  html:not([data-theme="dark"]) body.app-mode :is(.order-box,.menu-card,.mp-shortcuts,.menu-profile-card,.rp-card,.dash-composer,.pay-sp-country,.ma-t,nav.bottom-nav,.bottom-nav,#bottom-nav){-webkit-backdrop-filter:none;backdrop-filter:none}
+  html:not([data-theme="dark"]) body.app-mode{--ap-glass:#fff}
+}
+/* menu principal : même fond de pierre que le reste de l'application */
+html:not([data-theme="dark"]) .modal.main-menu-panel{background-color:#e9eaed;background-image:url(home-stone-v1.jpg);background-size:600px auto;background-repeat:repeat}
+html:not([data-theme="dark"]) .main-menu-panel .menu-page-header{background:rgba(246,247,248,.86);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}

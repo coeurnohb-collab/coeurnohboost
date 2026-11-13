@@ -124,6 +124,11 @@ body.adm-menu-open .adm-backdrop{ background:rgba(20,26,38,.40); }
 .adm-clean b{ display:block; font-size:.9rem; color:var(--ad-ink); margin-bottom:2px; }
 .adm-clean span{ display:block; font-size:.78rem; line-height:1.5; color:var(--ad-mute); }
 
+.adm-guard.bad{border-color:#e9b8b8;background:rgba(255,246,246,.92)}
+.adm-guard.bad > div > b{color:#9b1c1c}
+.adm-gline{margin-top:8px;padding-top:8px;border-top:1px solid rgba(20,26,38,.08);font-size:.8rem;line-height:1.45;color:var(--ad-ink)}
+.adm-gline span{color:var(--ad-mute)}
+
 /* ---------- sans prise en charge du verre : surfaces pleines ---------- */
 @supports not ((backdrop-filter:blur(2px)) or (-webkit-backdrop-filter:blur(2px))){
   #admin-nav,.adm-topbar,nav.admin-tabs{ background:#f6f7f8; }
