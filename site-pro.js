@@ -77,13 +77,13 @@
     if (logo) { var s = 190, lx = W / 2 - s / 2; ctx.save(); ctx.beginPath(); ctx.arc(W / 2, y + s / 2, s / 2, 0, Math.PI * 2); ctx.closePath(); ctx.fillStyle = '#fff'; ctx.fill(); ctx.clip(); ctx.drawImage(logo, lx, y, s, s); ctx.restore(); }
     ctx.textAlign = 'center'; ctx.fillStyle = '#fff'; ctx.font = '800 64px system-ui,Arial,sans-serif';
     var nm = wrap(ctx, site.businessName || 'Mon site', W - 160, 2); nm.forEach(function (l, i) { ctx.fillText(l, W / 2, (logo ? 330 : 190) + i * 72 - (logo ? 0 : 20)); });
-    ctx.fillStyle = '#14263f'; ctx.font = '600 44px system-ui,Arial,sans-serif'; var ty = 450;
+    ctx.fillStyle = '#12295f'; ctx.font = '600 44px system-ui,Arial,sans-serif'; var ty = 450;
     if (site.tagline) { wrap(ctx, site.tagline, W - 220, 3).forEach(function (l, i) { ctx.fillText(l, W / 2, ty + i * 58); }); ty += 60 * Math.min(3, wrap(ctx, site.tagline, W - 220, 3).length) + 20; }
     ctx.font = '800 56px system-ui,Arial,sans-serif'; ctx.fillStyle = accent; ctx.fillText('Scannez pour nous retrouver', W / 2, Math.max(ty + 60, 600));
     var qr = window.CNQR && CNQR.encode(link), box = 680, bx = W / 2 - box / 2, by = Math.max(ty + 100, 660);
-    ctx.fillStyle = '#fff'; ctx.fillRect(bx - 20, by - 20, box + 40, box + 40); ctx.strokeStyle = '#14263f'; ctx.lineWidth = 6; ctx.strokeRect(bx - 20, by - 20, box + 40, box + 40);
+    ctx.fillStyle = '#fff'; ctx.fillRect(bx - 20, by - 20, box + 40, box + 40); ctx.strokeStyle = '#12295f'; ctx.lineWidth = 6; ctx.strokeRect(bx - 20, by - 20, box + 40, box + 40);
     if (qr) { var n = qr.length, m = box / (n + 2), ox = bx + m, oy = by + m; ctx.fillStyle = '#000'; for (var r = 0; r < n; r++) for (var c = 0; c < n; c++) if (qr[r][c]) ctx.fillRect(Math.floor(ox + c * m), Math.floor(oy + r * m), Math.ceil(m), Math.ceil(m)); }
-    var uy = by + box + 100; ctx.fillStyle = '#14263f'; ctx.font = '700 46px system-ui,Arial,sans-serif'; ctx.fillText(link.replace(/^https?:\/\//, ''), W / 2, uy);
+    var uy = by + box + 100; ctx.fillStyle = '#12295f'; ctx.font = '700 46px system-ui,Arial,sans-serif'; ctx.fillText(link.replace(/^https?:\/\//, ''), W / 2, uy);
     var info = [site.contactWhatsapp ? 'WhatsApp : ' + site.contactWhatsapp : '', site.address || ''].filter(Boolean);
     ctx.font = '600 38px system-ui,Arial,sans-serif'; ctx.fillStyle = '#4a5568'; info.forEach(function (t, i) { ctx.fillText(t.slice(0, 60), W / 2, uy + 64 + i * 50); });
     ctx.fillStyle = '#fff'; ctx.font = '600 32px system-ui,Arial,sans-serif'; ctx.fillText('Site créé avec Coeurnoh Universe', W / 2, H - 50);

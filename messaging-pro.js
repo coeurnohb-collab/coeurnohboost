@@ -116,7 +116,7 @@
 
   /* ---------------------------------------------------------------- petits outils */
   var PAGE = 50, ONLINE_MS = 5 * 60 * 1000, CLOUD = 'https://res.cloudinary.com/aqe4fxh4/';
-  var CALLS_SRC = 'calls-pro.js?v=20261110';
+  var CALLS_SRC = 'calls-pro.js?v=20261114';
   var BAD_EXT = /\.(exe|apk|bat|cmd|msi|scr|vbs|jar|sh|com|pif|dll|app|dmg|js|ps1)$/i;
   var EMOJIS = '😀 😂 🤣 😊 😍 😘 😎 🤩 🥰 😉 😇 🙂 🙃 😅 😭 😢 😡 😱 🤔 🙄 😴 🤗 😏 😬 🥳 😋 😜 🤭 😌 😔 👍 👎 👏 🙏 💪 👌 ✌️ 🤝 🙌 👋 🤞 ❤️ 🧡 💛 💚 💙 💜 🖤 💔 💕 💯 🔥 ✨ 🎉 🎁 🌹 ☀️ ⭐ ✅ ❌ 💰 📞 📷 🎵 🍕 ☕ 🚀'.split(' ');
   var REACTS = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
@@ -344,7 +344,7 @@
     '.cn-sheet{width:100%;max-width:560px;background:var(--white,#fff);color:var(--ink,#141a26);border-radius:22px 22px 0 0;padding:14px 14px calc(14px + env(safe-area-inset-bottom,0px));max-height:86%;display:flex;flex-direction:column;gap:10px;box-sizing:border-box}',
     '.cn-sheet h3{margin:0;font-size:1.02rem;display:flex;align-items:center;justify-content:space-between;gap:8px}',
     '.cn-sheet .lst{overflow-y:auto;border-radius:14px;border:1px solid var(--line,#e2e6ee);min-height:60px}',
-    '.cn-sheet .sec{padding:8px 14px 4px;font-size:.72rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--muted,#5d6779);background:var(--green-light,#eef1f6)}',
+    '.cn-sheet .sec{padding:8px 14px 4px;font-size:.72rem;font-weight:800;letter-spacing:.04em;text-transform:none;color:var(--muted,#5d6779);background:var(--green-light,#eef1f6)}',
     '.cn-sheet textarea{width:100%;border:1px solid var(--line,#e2e6ee);background:var(--bg,#eef0f4);color:var(--ink,#141a26);border-radius:16px;padding:11px 14px;font:inherit;font-size:.96rem;min-height:84px;resize:none;outline:none;box-sizing:border-box}',
     '.cn-sheet .go{display:flex;justify-content:flex-end;gap:8px}',
     '.cn-mm .rx{display:flex;justify-content:space-around;padding:4px 0 6px;border-bottom:1px solid var(--line,#e2e6ee)}',

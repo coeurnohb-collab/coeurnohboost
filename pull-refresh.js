@@ -59,6 +59,6 @@
     var ok = refresh();
     setTimeout(function () { busy = false; hide(); if (!ok) { try { location.reload(); } catch (e) { } } }, ok ? 900 : 350);
   }, { passive: true });
-  var css = '.cn-ptr{position:fixed;top:max(8px,env(safe-area-inset-top));left:50%;width:42px;height:42px;border-radius:50%;background:var(--cnh-card,#fff);color:var(--cnh-brand,#1d4f91);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(17,24,39,.22);z-index:10050;opacity:0;transform:translate(-50%,-40px);pointer-events:none;transition:opacity .15s}.cn-ptr.ready{color:var(--cnh-ok,#17653a)}.cn-ptr.spin svg{animation:cnPtrSpin .8s linear infinite}@keyframes cnPtrSpin{to{transform:rotate(360deg)}}';
+  var css = '.cn-ptr{position:fixed;top:max(8px,env(safe-area-inset-top));left:50%;width:42px;height:42px;border-radius:50%;background:var(--cnh-card,#fff);color:var(--cnh-brand,#1d4ed8);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(17,24,39,.22);z-index:10050;opacity:0;transform:translate(-50%,-40px);pointer-events:none;transition:opacity .15s}.cn-ptr.ready{color:var(--cnh-ok,#17653a)}.cn-ptr.spin svg{animation:cnPtrSpin .8s linear infinite}@keyframes cnPtrSpin{to{transform:rotate(360deg)}}';
   try { var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st); } catch (e) { }
 })();
