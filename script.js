@@ -3236,7 +3236,7 @@ function cnLoadGuide(ok, ko) {
   let sc = document.querySelector('script[data-cn-guide]');
   if (!sc) {
     sc = document.createElement('script');
-    sc.src = 'guide-pro.js?v=20261114'; sc.async = true; sc.setAttribute('data-cn-guide', '1');
+    sc.src = 'guide-pro.js?v=20261115'; sc.async = true; sc.setAttribute('data-cn-guide', '1');
     sc.onerror = () => { if (sc.parentNode) sc.parentNode.removeChild(sc); if (ko) ko(); };
     document.head.appendChild(sc);
   }
@@ -7123,7 +7123,7 @@ async function loadInvoices() {
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     renderInvoiceList(invoicesCache);
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">${t('invoice_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
+    renderLoadError(listEl, loadInvoices, e);
   }
 }
 
@@ -7500,7 +7500,7 @@ async function loadAlerts() {
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     renderAlertsList(alertsCache);
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">${t('alerts_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
+    renderLoadError(listEl, loadAlerts, e);
   }
 }
 
@@ -7689,6 +7689,18 @@ async function checkAlertsForNewProduct(product) {
   });
 }
 
+/* Etat d'echec professionnel : message clair + bouton « Reessayer ».
+   On n'affiche plus le message technique brut du serveur ; il part dans la console. */
+function renderLoadError(el, retryFn, err) {
+  if (!el) return;
+  const offline = typeof navigator !== 'undefined' && navigator.onLine === false;
+  const msg = offline ? t('state_offline') : t('state_error');
+  el.innerHTML = `<div class="state-card state-error" role="alert"><span class="state-ico" aria-hidden="true"></span><p>${escapeHtml(msg)}</p>${typeof retryFn === 'function' ? `<button type="button" class="btn btn-outline state-retry">${escapeHtml(t('state_retry'))}</button>` : ''}</div>`;
+  const b = el.querySelector('.state-retry');
+  if (b) b.onclick = () => { b.disabled = true; try { retryFn(); } catch (_) { b.disabled = false; } };
+  try { console.warn('[chargement]', err && (err.code || err.message)); } catch (_) { }
+}
+
 /* ================= PRES DE CHEZ VOUS =================
    Service unique de decouverte des fiches professionnelles -- fusionne
    avec l'ancien ecran separe "Annuaire professionnel" (qui affichait les
@@ -7701,6 +7713,11 @@ const NEARBY_CATEGORY_LABELS = {
   photographes: 'nearby_cat_photographes', informaticiens: 'nearby_cat_informaticiens', boutiques: 'nearby_cat_boutiques',
   professionnels: 'nearby_cat_professionnels', evenements: 'nearby_cat_evenements', services: 'menu_services'
 };
+/* Libelle traduit d'une categorie (jamais la cle brute). */
+function nearbyCatLabel(cat) {
+  const k = NEARBY_CATEGORY_LABELS[cat];
+  return k ? t(k) : '';
+}
 let nearbySelectedCategory = '';
 let nearbySearchDebounce = null;
 
@@ -7719,7 +7736,7 @@ async function loadNearbyListings() {
     await fetchAllListings(true);
     runNearbyFilter();
   } catch (e) {
-    resultsEl.innerHTML = `<p class="muted small">${t('alerts_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
+    renderLoadError(resultsEl, loadNearbyListings, e);
   }
 }
 
@@ -7850,7 +7867,7 @@ async function loadContests() {
     );
     renderContestsList();
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">${t('contest_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
+    renderLoadError(listEl, loadContests, e);
   }
 }
 
@@ -8257,7 +8274,7 @@ async function loadContestEntries(contestId, status) {
 
     renderContestEntries(contestId, entries, status);
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">${t('contest_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
+    renderLoadError(listEl, () => loadContestEntries(contestId, status), e);
   }
 }
 
@@ -8895,7 +8912,7 @@ async function openJobDetail(offerId) {
       }
     }
   } catch (e) {
-    bodyEl.innerHTML = `<p class="muted small">${t('alerts_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
+    renderLoadError(bodyEl, () => openJobDetail(offerId), e);
   }
 }
 
@@ -9154,7 +9171,7 @@ async function loadMyJobApplications() {
         <button class="btn btn-outline btn-sm" onclick="openJobDetail('${a.offerId}')">${t('job_view_offer_btn')}</button>
       </div>`).join('');
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">${t('alerts_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
+    renderLoadError(listEl, loadMyJobApplications, e);
   }
 }
 
@@ -9181,7 +9198,7 @@ async function loadMyJobOffers() {
         <button class="btn btn-outline btn-sm" onclick="openJobDetail('${o.id}')">${t('job_manage_btn')}</button>
       </div>`).join('');
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">${t('alerts_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
+    renderLoadError(listEl, loadMyJobOffers, e);
   }
 }
 
@@ -9287,7 +9304,7 @@ async function loadJobSeekers() {
     jobSeekersCache = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(p => !currentUser || p.ownerUid !== currentUser.uid);
     runJobSeekersFilter();
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">${t('alerts_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
+    renderLoadError(listEl, loadJobSeekers, e);
   }
 }
 
@@ -9364,7 +9381,7 @@ async function openJobSeekerDetail(profileId) {
       ` : `<p class="muted small" style="text-align:center">${t('jobseeker_own_profile_notice')}</p>`}
     `;
   } catch (e) {
-    bodyEl.innerHTML = `<p class="muted small">${t('alerts_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
+    renderLoadError(bodyEl, () => openJobSeekerDetail(profileId), e);
   }
 }
 
@@ -9615,7 +9632,7 @@ async function loadEvents() {
     eventsCache.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
     runEventsFilter();
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">${t('event_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
+    renderLoadError(listEl, loadEvents, e);
   }
 }
 
@@ -9732,7 +9749,7 @@ async function openEventDetail(eventId) {
       ${!isOwner && currentUser ? `<button class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin-top:8px" onclick="openReportModal('${e.id}', '${e.ownerUid}', 'event')">${t('event_report_btn')}</button>` : ''}
     `;
   } catch (e) {
-    bodyEl.innerHTML = `<p class="muted small">${t('event_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
+    renderLoadError(bodyEl, () => openEventDetail(eventId), e);
   }
 }
 
@@ -10065,7 +10082,7 @@ async function loadMyEventTickets() {
       </div>`;
     }).join('');
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">${t('event_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
+    renderLoadError(listEl, loadMyEventTickets, e);
   }
 }
 
@@ -10119,7 +10136,7 @@ async function loadMyOrganizedEvents() {
       </div>`;
     }).join('');
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">${t('event_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
+    renderLoadError(listEl, loadMyOrganizedEvents, e);
   }
 }
 
@@ -10206,7 +10223,7 @@ async function loadTravelSpots() {
     travelCache.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
     runTravelFilter();
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">${t('travel_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
+    renderLoadError(listEl, loadTravelSpots, e);
   }
 }
 
@@ -10356,7 +10373,7 @@ async function loadTravelFavorites() {
     const spots = spotDocs.filter(d => d.exists).map(d => ({ id: d.id, ...d.data() }));
     renderTravelCards(spots, 'travel-favorites-list', t('travel_no_favorites'));
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">${t('travel_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
+    renderLoadError(listEl, loadTravelFavorites, e);
   }
 }
 
@@ -10391,7 +10408,7 @@ async function loadMyTravelSpots() {
         </div>
       </div>`).join('');
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">${t('travel_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
+    renderLoadError(listEl, loadMyTravelSpots, e);
   }
 }
 
@@ -10582,7 +10599,7 @@ async function loadBookableProfessionals() {
     bookingProsCache = (directoryCache || []).filter(f => f.bookingEnabled);
     runBookingSearch();
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">${t('booking_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
+    renderLoadError(listEl, loadBookableProfessionals, e);
   }
 }
 
@@ -10736,7 +10753,7 @@ async function loadAvailableSlots(proUid) {
         ${available.map(t => `<button type="button" class="btn btn-outline btn-sm" data-slot="${t}" onclick="selectBookingSlot('${t}', ${duration})">${t}</button>`).join('')}
       </div>`;
   } catch (e) {
-    containerEl.innerHTML = `<p class="muted small">${t('booking_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
+    renderLoadError(containerEl, () => loadAvailableSlots(proUid), e);
   }
 }
 
@@ -10834,7 +10851,7 @@ async function loadMyBookings() {
       .sort((a, b) => `${b.date}${b.startTime}`.localeCompare(`${a.date}${a.startTime}`));
     renderBookingsList(bookings, 'booking-mine-list', t('booking_no_bookings_mine'), false);
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">${t('booking_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
+    renderLoadError(listEl, loadMyBookings, e);
   }
 }
 
@@ -10848,7 +10865,7 @@ async function loadReceivedBookings() {
       .sort((a, b) => `${b.date}${b.startTime}`.localeCompare(`${a.date}${a.startTime}`));
     renderBookingsList(bookings, 'booking-received-list', t('booking_no_bookings_received'), true);
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">${t('booking_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
+    renderLoadError(listEl, loadReceivedBookings, e);
   }
 }
 
@@ -10917,7 +10934,7 @@ async function loadCourses() {
     academyCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     runAcademyFilter();
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">${t('course_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
+    renderLoadError(listEl, loadCourses, e);
   }
 }
 
@@ -11045,7 +11062,7 @@ async function openCourseDetail(courseId) {
     loadPublicReviews('course', c.id, 'course-detail-reviews', c.title);
     loadRatingBadgeInline('course', c.id, `course-rating-badge-${c.id}`);
   } catch (e) {
-    bodyEl.innerHTML = `<p class="muted small">${t('course_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
+    renderLoadError(bodyEl, () => openCourseDetail(courseId), e);
   }
 }
 
@@ -11106,7 +11123,7 @@ async function loadBooks() {
     booksCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     runBooksFilter();
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">${t('book_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
+    renderLoadError(listEl, loadBooks, e);
   }
 }
 
@@ -11415,7 +11432,7 @@ async function loadMyPurchasedBooks() {
         </div>
       </div>`).join('');
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">${t('book_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
+    renderLoadError(listEl, loadMyPurchasedBooks, e);
   }
 }
 
@@ -11446,7 +11463,7 @@ async function loadMyPublishedBooks() {
         </div>
       </div>`).join('');
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">${t('book_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
+    renderLoadError(listEl, loadMyPublishedBooks, e);
   }
 }
 
@@ -11777,7 +11794,7 @@ async function loadMyEnrolledCourses() {
         <button class="btn btn-outline btn-sm" onclick="openCourseDetail('${en.courseId}')">${t('course_continue_btn')}</button>
       </div>`).join('');
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">${t('course_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
+    renderLoadError(listEl, loadMyEnrolledCourses, e);
   }
 }
 
@@ -11804,7 +11821,7 @@ async function loadMyTaughtCourses() {
         <button class="btn btn-outline btn-sm" onclick="openCourseDetail('${c.id}')">${t('course_manage_btn')}</button>
       </div>`).join('');
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">${t('course_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
+    renderLoadError(listEl, loadMyTaughtCourses, e);
   }
 }
 
@@ -11894,7 +11911,7 @@ async function loadImmoProperties() {
     immoCache.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
     runImmoFilter();
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">${t('immo_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
+    renderLoadError(listEl, loadImmoProperties, e);
   }
 }
 
@@ -12046,7 +12063,7 @@ async function loadImmoFavorites() {
     const properties = propDocs.filter(d => d.exists).map(d => ({ id: d.id, ...d.data() }));
     renderImmoCards(properties, 'immo-favorites-list', t('immo_no_favorites'));
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">${t('immo_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
+    renderLoadError(listEl, loadImmoFavorites, e);
   }
 }
 
@@ -12085,7 +12102,7 @@ async function loadMyImmoProperties() {
       </div>`;
     }).join('');
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">${t('immo_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
+    renderLoadError(listEl, loadMyImmoProperties, e);
   }
 }
 
@@ -12279,7 +12296,8 @@ function populateSRequestCategoryTabs() {
   Object.entries(NEARBY_CATEGORY_LABELS).forEach(([val, label]) => {
     const btn = document.createElement('button');
     btn.dataset.cat = val;
-    btn.textContent = label;
+    btn.setAttribute('data-i18n', label);
+    btn.textContent = t(label);
     btn.onclick = () => setSRequestCategory(val);
     tabsEl.appendChild(btn);
   });
@@ -12302,7 +12320,7 @@ function openSRequestForm() {
   if (document.getElementById('srequest-form-modal')) return;
 
   const catOptions = Object.entries(NEARBY_CATEGORY_LABELS)
-    .map(([val, label]) => `<option value="${val}">${escapeHtml(label)}</option>`).join('');
+    .map(([val, label]) => `<option value="${val}">${escapeHtml(t(label))}</option>`).join('');
 
   const html = `
     <div class="modal-overlay" id="srequest-form-modal">
@@ -12408,7 +12426,7 @@ async function loadMySRequests() {
           <span class="shop-card-category">${escapeHtml(SREQUEST_STATUS_LABELS[r.status] || r.status)}</span>
         </div>
         ${r.featured ? '<span class="shop-card-category" style="background:#fff4e0;color:#b5720b;margin-top:4px;display:inline-block">Mise en avant</span>' : ''}
-        <div class="muted small" style="margin:4px 0">${escapeHtml(NEARBY_CATEGORY_LABELS[r.category] || '')} · ${escapeHtml(r.city || '')}</div>
+        <div class="muted small" style="margin:4px 0">${escapeHtml(nearbyCatLabel(r.category))} · ${escapeHtml(r.city || '')}</div>
         ${r.status === 'open' && quoteCounts[r.id] ? `<div class="muted small" style="margin-bottom:6px">${quoteCounts[r.id]} devis reçu(s)</div>` : ''}
         ${r.status === 'in_progress' ? `<div class="muted small" style="margin-bottom:8px">Attribuée à ${escapeHtml(r.acceptedProName || '')}</div>${renderContactLinksHtml({ whatsapp: r.acceptedProPhone, email: r.acceptedProEmail, facebook: r.acceptedProFacebook, tiktok: r.acceptedProTiktok }, 'row')}` : ''}
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
@@ -12665,7 +12683,7 @@ function renderAvailableSRequests(list) {
     <div class="order-box" style="margin-bottom:12px${r.featured ? ';border-color:#f5a623' : ''}">
       ${r.featured ? '<span class="shop-card-category" style="background:#fff4e0;color:#b5720b;margin-bottom:4px;display:inline-block">Mise en avant</span>' : ''}
       <strong style="font-size:1.02rem">${escapeHtml(r.title)}</strong>
-      <div class="muted small" style="margin:4px 0">${escapeHtml(NEARBY_CATEGORY_LABELS[r.category] || '')} · ${escapeHtml(r.city || '')}</div>
+      <div class="muted small" style="margin:4px 0">${escapeHtml(nearbyCatLabel(r.category))} · ${escapeHtml(r.city || '')}</div>
       ${r.budget ? `<div class="muted small" style="margin-bottom:6px">Budget indicatif : ${escapeHtml(r.budget)}</div>` : ''}
       <p class="muted small" style="margin-bottom:10px">${escapeHtml(r.description || '')}</p>
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
@@ -13237,7 +13255,7 @@ function planSheetCss() {
     '.pl-foot{flex:none;padding:12px 16px calc(14px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);background:var(--white)}' +
     '@media (min-width:600px){.pl-ov{align-items:center}.pl-sheet{border-radius:20px}}' +
     '.pl-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}' +
-    '.pl-eyebrow{display:block;font-size:.74rem;font-weight:700;letter-spacing:.04em;text-transform:none;color:var(--muted);margin-bottom:3px}' +
+    '.pl-eyebrow{display:block;font-size:.74rem;font-weight:700;letter-spacing:.01em;text-transform:none;color:var(--muted);margin-bottom:3px}' +
     '.pl-head h3{margin:0;font-size:1.2rem;line-height:1.25}' +
     '.pl-head p{margin:4px 0 0;font-size:.88rem;line-height:1.45;color:var(--muted)}' +
     '.pl-x{flex:none;width:40px;height:40px;border-radius:12px;border:1px solid var(--line);background:var(--white);color:var(--ink);display:inline-flex;align-items:center;justify-content:center;cursor:pointer}' +
@@ -15113,7 +15131,8 @@ function populateBusinessCategoryTabs() {
   Object.entries(NEARBY_CATEGORY_LABELS).forEach(([val, label]) => {
     const btn = document.createElement('button');
     btn.dataset.cat = val;
-    btn.textContent = label;
+    btn.setAttribute('data-i18n', label);
+    btn.textContent = t(label);
     btn.onclick = () => setBusinessCategory(val);
     tabsEl.appendChild(btn);
   });
@@ -15136,7 +15155,7 @@ async function loadBusinesses() {
     businessCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     runBusinessFilter();
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">${t('business_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
+    renderLoadError(listEl, loadBusinesses, e);
   }
 }
 
@@ -15443,7 +15462,7 @@ async function loadBusinessPostsFeed(ownerUid, targetId) {
         </div>
       </div>`).join('');
   } catch (e) {
-    el.innerHTML = `<p class="muted small">${t('business_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
+    renderLoadError(el, () => loadBusinessPostsFeed(ownerUid, targetId), e);
   }
 }
 
@@ -16808,7 +16827,7 @@ async function loadBusinessClients() {
         ${c.notes ? `<p class="muted small" style="margin-top:4px">${escapeHtml(c.notes)}</p>` : ''}
       </div>`).join('');
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">${t('business_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
+    renderLoadError(listEl, loadBusinessClients, e);
   }
 }
 

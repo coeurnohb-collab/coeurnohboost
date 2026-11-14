@@ -14,9 +14,9 @@
 
   function lang() { try { return currentLang === 'en' ? 'en' : 'fr'; } catch (e) { return 'fr'; } }
   var D = {
-    fr: { search: 'Rechercher un lieu, une adresse, une ville…', me: 'Ma position', loading: 'Recherche…', none: 'Aucun résultat. Essaie un autre nom ou une autre ville.', err: 'Recherche indisponible pour le moment. Vérifie ta connexion.', near: 'À proximité', results: 'Résultats', dir: 'Itinéraire', copy: 'Copier', share: 'Partager', call: 'Appeler', web: 'Site web', away: 'de toi', copied: 'Coordonnées copiées', coords: 'Coordonnées', geoOff: 'Position refusée : active-la dans les réglages du navigateur.', geoWait: 'Localisation…', place: 'Lieu', hint: 'Touche la carte pour voir l’adresse d’un endroit.', dirTitle: 'Annuaire Coeurnoh', mapErr: 'La carte n’a pas pu se charger. Vérifie ta connexion puis réessaie.',
+    fr: { retry: 'Réessayer', search: 'Rechercher un lieu, une adresse, une ville…', me: 'Ma position', loading: 'Recherche…', none: 'Aucun résultat. Essaie un autre nom ou une autre ville.', err: 'Recherche indisponible pour le moment. Vérifie ta connexion.', near: 'À proximité', results: 'Résultats', dir: 'Itinéraire', copy: 'Copier', share: 'Partager', call: 'Appeler', web: 'Site web', away: 'de toi', copied: 'Coordonnées copiées', coords: 'Coordonnées', geoOff: 'Position refusée : active-la dans les réglages du navigateur.', geoWait: 'Localisation…', place: 'Lieu', hint: 'Touche la carte pour voir l’adresse d’un endroit.', dirTitle: 'Annuaire Coeurnoh', mapErr: 'La carte n’a pas pu se charger. Vérifie ta connexion puis réessaie.',
       cats: [['restaurant', 'Restaurants'], ['pharmacy', 'Pharmacies'], ['hospital', 'Hôpitaux'], ['bank', 'Banques'], ['hotel', 'Hôtels'], ['supermarket', 'Supermarchés'], ['fuel', 'Stations'], ['school', 'Écoles'], ['atm', 'Distributeurs']] },
-    en: { search: 'Search a place, address, city…', me: 'My location', loading: 'Searching…', none: 'No result. Try another name or city.', err: 'Search unavailable right now. Check your connection.', near: 'Nearby', results: 'Results', dir: 'Directions', copy: 'Copy', share: 'Share', call: 'Call', web: 'Website', away: 'from you', copied: 'Coordinates copied', coords: 'Coordinates', geoOff: 'Location denied: enable it in your browser settings.', geoWait: 'Locating…', place: 'Place', hint: 'Tap the map to see the address of any spot.', dirTitle: 'Coeurnoh directory', mapErr: 'The map could not load. Check your connection and retry.',
+    en: { retry: 'Try again', search: 'Search a place, address, city…', me: 'My location', loading: 'Searching…', none: 'No result. Try another name or city.', err: 'Search unavailable right now. Check your connection.', near: 'Nearby', results: 'Results', dir: 'Directions', copy: 'Copy', share: 'Share', call: 'Call', web: 'Website', away: 'from you', copied: 'Coordinates copied', coords: 'Coordinates', geoOff: 'Location denied: enable it in your browser settings.', geoWait: 'Locating…', place: 'Place', hint: 'Tap the map to see the address of any spot.', dirTitle: 'Coeurnoh directory', mapErr: 'The map could not load. Check your connection and retry.',
       cats: [['restaurant', 'Restaurants'], ['pharmacy', 'Pharmacies'], ['hospital', 'Hospitals'], ['bank', 'Banks'], ['hotel', 'Hotels'], ['supermarket', 'Supermarkets'], ['fuel', 'Fuel'], ['school', 'Schools'], ['atm', 'ATMs']] }
   };
   function L(k) { return D[lang()][k]; }
@@ -38,7 +38,7 @@
       var i = 0;
       CSS.forEach(function (h, k) { if (k === 0) { var l = document.createElement('link'); l.rel = 'stylesheet'; l.href = h; document.head.appendChild(l); } });
       (function next() {
-        if (i >= JS.length) return rej(new Error('leaflet'));
+        if (i >= JS.length) { loadingLib = null; return rej(new Error('leaflet')); }
         var s = document.createElement('script'); s.src = JS[i++]; s.async = true;
         s.onload = function () { window.L && window.L.map ? res() : next(); };
         s.onerror = next; document.head.appendChild(s);
@@ -169,6 +169,11 @@
     var b = ev.target.closest && ev.target.closest('[data-nm]'); if (!b || !b.closest('#nm-root')) return;
     var a = b.getAttribute('data-nm');
     if (a === 'me') locate(false);
+    else if (a === 'retry') {
+      var mm = document.getElementById('nm-map'); if (mm) mm.innerHTML = '';
+      var hh2 = document.getElementById('nm-hint'); if (hh2) hh2.hidden = false;
+      map = null; initMap().then(function () { if (!meMarker && !me) locate(true); }).catch(mapFail);
+    }
     else if (a === 'cat') {
       var v = b.getAttribute('data-v'); cat = cat === v ? '' : v;
       document.querySelectorAll('#nm-chips .nm-chip').forEach(function (c) { c.classList.toggle('on', c.getAttribute('data-v') === cat); });
@@ -189,9 +194,12 @@
 
   function enter() {
     if (!build()) return;
-    initMap().then(function () { if (!meMarker && !me) locate(true); }).catch(function () {
-      var m = document.getElementById('nm-map'); if (m) m.innerHTML = '<div class="nm-empty"><p>' + esc(L('mapErr')) + '</p></div>';
-    });
+    initMap().then(function () { if (!meMarker && !me) locate(true); }).catch(mapFail);
+  }
+  function mapFail() {
+    var m = document.getElementById('nm-map');
+    if (m) m.innerHTML = '<div class="nm-empty nm-maperr"><p>' + esc(L('mapErr')) + '</p><button type="button" class="nm-retry" data-nm="retry">' + esc(L('retry')) + '</button></div>';
+    var h = document.getElementById('nm-hint'); if (h) h.hidden = true;
   }
   var orig = window.openNearbyScreen;
   window.openNearbyScreen = function () { if (typeof orig === 'function') orig.apply(this, arguments); setTimeout(enter, 60); };
@@ -210,6 +218,7 @@
     '.nm-mapwrap{position:relative;border-radius:18px;overflow:hidden;border:1px solid var(--cnh-line,#e1e6ed);box-shadow:var(--cnh-shadow,0 4px 14px rgba(17,24,39,.08))}',
     '.nm-map{height:300px;background:#e6edf5;z-index:0}',
     '.nm-me{position:absolute;right:12px;bottom:12px;z-index:500;width:48px;height:48px;border-radius:50%;border:0;background:var(--cnh-card,#fff);color:var(--cnh-brand,#1d4ed8);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,.25);cursor:pointer;touch-action:manipulation}',
+    '.nm-hint[hidden]{display:none}.nm-maperr{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px}.nm-retry{min-height:44px;padding:0 20px;border-radius:12px;border:1.5px solid var(--cnh-act-line,#c3d3f3);background:var(--cnh-card,#fff);color:var(--cnh-brand,#1d4ed8);font:inherit;font-weight:700;cursor:pointer}',
     '.nm-hint{position:absolute;left:12px;top:12px;z-index:500;max-width:70%;background:rgba(20,38,63,.88);color:#fff;font-size:.75rem;padding:6px 10px;border-radius:999px}',
     '.nm-pin{background:none;border:0}.nm-pin span{display:block;width:30px;height:30px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:#1d4ed8;border:3px solid #fff;box-shadow:0 3px 8px rgba(0,0,0,.35);margin-top:4px}.nm-pin.on span{background:#d6336c}',
     '.nm-me-dot span{display:block;width:18px;height:18px;border-radius:50%;background:#1d6ff0;border:3px solid #fff;box-shadow:0 0 0 6px rgba(29,111,240,.25)}',
@@ -222,7 +231,7 @@
     '.nm-acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}',
     '.nm-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:42px;padding:0 14px;border-radius:12px;border:1px solid var(--cnh-line,#e1e6ed);background:var(--cnh-card,#fff);color:var(--cnh-ink,#111827);font:inherit;font-weight:600;font-size:.8125rem;text-decoration:none;cursor:pointer;touch-action:manipulation}',
     '.nm-btn.pri{background:var(--cnh-brand,#1d4ed8);border-color:var(--cnh-brand,#1d4ed8);color:#fff;flex:1 1 140px}html[data-theme="dark"] .nm-btn.pri{color:#0b1220}',
-    '.nm-h{margin:20px 0 10px;font-size:.75rem;font-weight:700;letter-spacing:.08em;text-transform:none;color:var(--cnh-sub,#5a6577)}',
+    '.nm-h{margin:20px 0 10px;font-size:.75rem;font-weight:700;letter-spacing:.01em;text-transform:none;color:var(--cnh-sub,#5a6577)}',
     '.nm-list{display:grid;gap:8px}.nm-list .nm-h{margin:14px 0 2px}',
     '.nm-item{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--cnh-card,#fff);border:1px solid var(--cnh-line,#e1e6ed);border-radius:14px;padding:10px 12px;cursor:pointer;color:inherit;font:inherit;touch-action:manipulation}',
     '.nm-item:active{transform:scale(.985)}.nm-tx{min-width:0;display:flex;flex-direction:column;gap:2px}.nm-tx b{font-size:.9375rem;line-height:1.3;word-break:break-word}',

@@ -142,7 +142,7 @@ textarea.text-input { min-height: 0; }
 .modal-close { top: 12px; left: 12px; width: 34px; height: 34px; min-width: 34px; min-height: 34px; box-shadow: none; }
 .modal-close::before { width: 17px; height: 17px; }
 .modal h3 { font-size: 1.05rem; }
-.modal h4 { font-size: .85rem; text-transform:none; letter-spacing: .06em; color: var(--muted); font-weight: 800; }
+.modal h4 { font-size: .85rem; text-transform:none; letter-spacing:.01em; color: var(--muted); font-weight: 800; }
 .muted.small, .small { font-size: .78rem; }
 .invoice-row-remove { width: 34px; height: 34px; min-width: 34px; font-size: 1rem; border-radius: 10px; }
 .file-picker-btn { font-size: .82rem; padding: 9px 12px; border-radius: 11px; }

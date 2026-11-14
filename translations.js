@@ -5,6 +5,9 @@
    ========================================================= */
 const TRANSLATIONS = {
   fr: {
+    state_error: "Impossible de charger pour le moment. Vérifie ta connexion puis réessaie.",
+    state_offline: "Tu es hors ligne. Reconnecte-toi puis réessaie.",
+    state_retry: "Réessayer",
     pl_title: "Choisis ta durée",
     pl_sub: "Plus la durée est longue, moins tu paies par mois.",
     pl_close: "Fermer",
@@ -1684,6 +1687,9 @@ services_title: "Services populaires",
     site_whatsapp_contact_btn: "Contacter sur WhatsApp"
   },
   en: {
+    state_error: "Couldn't load right now. Check your connection and try again.",
+    state_offline: "You're offline. Reconnect and try again.",
+    state_retry: "Try again",
     pl_title: "Choose your duration",
     pl_sub: "The longer you commit, the less you pay per month.",
     pl_close: "Close",
@@ -3363,6 +3369,9 @@ services_title: "Popular services",
     site_whatsapp_contact_btn: "Contact on WhatsApp"
   },
   es: {
+    state_error: "No se pudo cargar ahora. Comprueba tu conexión e inténtalo de nuevo.",
+    state_offline: "Estás sin conexión. Vuelve a conectarte e inténtalo de nuevo.",
+    state_retry: "Reintentar",
     pl_title: "Elige tu duración",
     pl_sub: "Cuanto más larga la duración, menos pagas al mes.",
     pl_close: "Cerrar",
@@ -5043,6 +5052,9 @@ services_title: "Servicios populares",
     site_whatsapp_contact_btn: "Contactar por WhatsApp"
   },
   it: {
+    state_error: "Impossibile caricare al momento. Controlla la connessione e riprova.",
+    state_offline: "Sei offline. Riconnettiti e riprova.",
+    state_retry: "Riprova",
     pl_title: "Scegli la durata",
     pl_sub: "Più lunga è la durata, meno paghi al mese.",
     pl_close: "Chiudi",
@@ -6723,6 +6735,9 @@ services_title: "Servizi popolari",
     site_whatsapp_contact_btn: "Contatta su WhatsApp"
   },
   pt: {
+    state_error: "Não foi possível carregar agora. Verifique a conexão e tente novamente.",
+    state_offline: "Você está offline. Reconecte-se e tente novamente.",
+    state_retry: "Tentar novamente",
     pl_title: "Escolha a duração",
     pl_sub: "Quanto maior a duração, menos você paga por mês.",
     pl_close: "Fechar",
