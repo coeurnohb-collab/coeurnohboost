@@ -326,7 +326,7 @@
       '#lc-root.mapfs .lc-nav{display:none}',
       '.lc-navb{border:0;background:none;font:inherit;color:#6b7686;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;border-radius:14px;cursor:pointer;min-width:0}',
       '.lc-navb svg{width:23px;height:23px;display:block}.lc-navb span{font-size:.64rem;font-weight:700;letter-spacing:.01em;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
-      '.lc-navb.on{color:#1b4fd8}.lc-navb.on .ic{background:#e6edff}.lc-navb .ic{display:flex;align-items:center;justify-content:center;width:46px;height:28px;border-radius:14px}',
+      '.lc-navb.on{color:#1d4ed8}.lc-navb.on .ic{background:#e6edff}.lc-navb .ic{display:flex;align-items:center;justify-content:center;width:46px;height:28px;border-radius:14px}',
       '.lc-navb .dot{position:absolute;top:2px;right:8px;width:9px;height:9px;border-radius:50%;background:#d7263d;border:2px solid #fff}.lc-navb .ic{position:relative}',
       '.lc-hero{border-radius:22px;padding:16px;margin-bottom:14px;background:#1d3f8f;color:#fff;box-shadow:0 6px 18px rgba(16,24,40,.16)}',
       '.lc-hero .st{display:inline-flex;align-items:center;gap:6px;font-size:.74rem;font-weight:800;background:rgba(255,255,255,.18);border-radius:999px;padding:5px 11px}.lc-hero .st i{width:8px;height:8px;border-radius:50%;background:#9aa6b8}.lc-hero .st.ok i{background:#55e08a}.lc-hero .st.wait i{background:#ffd166}.lc-hero .st.bad i{background:#ff7b7b}',
@@ -339,7 +339,7 @@
       '.lc-tile b{font-size:.95rem;font-weight:800;line-height:1.2}.lc-tile span.d{font-size:.78rem;color:#5d6779;line-height:1.35}',
       '.lc-tile .bd{position:absolute;top:12px;right:12px;font-size:.66rem;font-weight:800;border-radius:999px;padding:3px 8px;background:#e6f6ec;color:#1b7a3d}.lc-tile .bd.off{background:#eef1f6;color:#6b7686}.lc-tile .bd.red{background:#fde8ea;color:#d7263d}',
       '.lc-mapnote{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:4;display:none;align-items:center;gap:8px;background:rgba(255,255,255,.96);border-radius:999px;padding:7px 14px;font-size:.78rem;font-weight:700;box-shadow:0 2px 10px rgba(0,0,0,.2);pointer-events:none;white-space:nowrap}',
-      '.lc-mapnote.on{display:flex}.lc-mapnote i{width:14px;height:14px;border-radius:50%;border:2px solid #cfd6e2;border-top-color:#1b4fd8;animation:lcspin .8s linear infinite}@keyframes lcspin{to{transform:rotate(360deg)}}',
+      '.lc-mapnote.on{display:flex}.lc-mapnote i{width:14px;height:14px;border-radius:50%;border:2px solid #cfd6e2;border-top-color:#1d4ed8;animation:lcspin .8s linear infinite}@keyframes lcspin{to{transform:rotate(360deg)}}',
       '#lc-root.mapfs .lc-mapnote{top:calc(max(10px,env(safe-area-inset-top)) + 58px)}',
       '.lc-lnote{background:#fff4e6;color:#8a4b00;border-radius:12px;padding:10px 12px;font-size:.8rem;margin-bottom:12px;line-height:1.4}.lc-lnote button{margin-top:8px}',
       '.lc-opt .bad{display:block;font-size:.66rem;color:#d7263d;font-weight:700;margin-top:-4px}',
@@ -1849,7 +1849,7 @@
     var nOut = activeOut().length + activeLinks().length, nIn = activeIn().length, nReq = S.outShares.filter(function (s) { return s.status === 'pending'; }).length;
     var shareBadge = (nOut + nIn) ? T('hm_active', { n: nOut + nIn }) : (nReq ? String(nReq) : '');
     return '<div class="lc-sec">' + esc(T('hm_title')) + '</div><div class="lc-tiles">' +
-      tile('share', 'tab', 'share', '#1b4fd8', T('hm_share_t'), T('hm_share_d'), shareBadge, nReq && !(nOut + nIn) ? 'red' : '') +
+      tile('share', 'tab', 'share', '#1d4ed8', T('hm_share_t'), T('hm_share_d'), shareBadge, nReq && !(nOut + nIn) ? 'red' : '') +
       tile('share', 'tab', 'users', '#0b9a6a', T('hm_find_t'), T('hm_find_d')) +
       tile('sec', 'tab', 'sos', '#d7263d', T('hm_sos_t'), T('hm_sos_d'), S.sosMine ? T('hm_sos_on') : '', 'red') +
       tile('dev', 'tab', 'phone', '#7048e8', T('hm_dev_t'), T('hm_dev_d'), cfg.track ? T('hm_on') : T('hm_off'), cfg.track ? '' : 'off') +

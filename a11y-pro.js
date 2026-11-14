@@ -33,7 +33,7 @@
     return n;
   }
   var st = document.createElement('style');
-  st.textContent = ':focus-visible{outline:3px solid #1b4fd8;outline-offset:2px}button:focus:not(:focus-visible),a:focus:not(:focus-visible){outline:none}@media (prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}';
+  st.textContent = ':focus-visible{outline:3px solid #1d4ed8;outline-offset:2px}button:focus:not(:focus-visible),a:focus:not(:focus-visible){outline:none}@media (prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}';
   document.head.appendChild(st);
 
   function live() { var t = document.getElementById('toast-container'); if (t && !t.getAttribute('aria-live')) { t.setAttribute('role', 'status'); t.setAttribute('aria-live', 'polite'); t.setAttribute('aria-atomic', 'true'); } }

@@ -298,7 +298,7 @@ nav.admin-tabs button{display:flex;width:100%;align-items:center;gap:12px;backgr
   color:rgba(255,255,255,.82);padding:11px 12px;font-size:.92rem;font-weight:600;text-align:left;cursor:pointer;
   box-shadow:none;font-family:var(--font);white-space:normal}
 nav.admin-tabs button:hover{background:rgba(255,255,255,.07);color:#fff;border:0}
-nav.admin-tabs button.active{background:linear-gradient(135deg,#1d4fa8,#2f6fe0);color:#fff;box-shadow:0 6px 16px rgba(29,79,168,.45)}
+nav.admin-tabs button.active{background:linear-gradient(135deg,#1d4ed8,#2f6fe0);color:#fff;box-shadow:0 6px 16px rgba(29,79,168,.45)}
 .adm-ic{width:26px;text-align:center;font-size:1.05rem}
 
 /* bureau : menu fixe à gauche */
@@ -328,7 +328,7 @@ nav.admin-tabs button.active{background:linear-gradient(135deg,#1d4fa8,#2f6fe0);
 /* sites & entreprises */
 .adm-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
 .adm-kpi{background:#fff;border:1px solid #e3e9f5;border-radius:16px;padding:14px;text-align:center}
-.adm-kpi b{display:block;font-size:1.5rem;color:#1d4fa8;line-height:1.1}
+.adm-kpi b{display:block;font-size:1.5rem;color:#1d4ed8;line-height:1.1}
 .adm-kpi span{font-size:.72rem;color:#6b7790;font-weight:700}
 .adm-toolbar{display:flex;gap:8px;margin-bottom:14px}
 .adm-toolbar input{flex:1;min-width:0}

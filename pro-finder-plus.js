@@ -32,7 +32,7 @@
 
     var CSS = '.pp-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}.pp-s{background:var(--white,#fff);border-radius:16px;padding:12px;text-align:center;box-shadow:0 2px 12px rgba(20,38,63,.07)}.pp-s b{display:block;font-size:1.3rem}.pp-s small{font-size:.68rem;font-weight:800;text-transform:none;letter-spacing:.01em;color:var(--muted,#5d6779)}' +
       '.pp-b{display:inline-block;padding:3px 9px;border-radius:999px;font-size:.68rem;font-weight:800;letter-spacing:.03em;margin:0 6px 4px 0}.pp-card{background:var(--white,#fff);border-radius:18px;padding:14px;margin-bottom:12px;box-shadow:0 2px 12px rgba(20,38,63,.07)}.pp-card.f{box-shadow:0 0 0 2px #f5a623,0 2px 12px rgba(20,38,63,.07)}' +
-      '.pp-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.pp-top b{font-size:1rem}.pp-m{color:var(--muted,#5d6779);font-size:.8rem;margin:4px 0}.pp-steps{display:flex;gap:4px;margin:10px 0 6px}.pp-steps i{flex:1;height:5px;border-radius:3px;background:#e3e8f0}.pp-steps i.on{background:#1b4fd8}.pp-steps i.ok{background:#0b9a6a}' +
+      '.pp-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.pp-top b{font-size:1rem}.pp-m{color:var(--muted,#5d6779);font-size:.8rem;margin:4px 0}.pp-steps{display:flex;gap:4px;margin:10px 0 6px}.pp-steps i{flex:1;height:5px;border-radius:3px;background:#e3e8f0}.pp-steps i.on{background:#1d4ed8}.pp-steps i.ok{background:#0b9a6a}' +
       '.pp-lbl{display:flex;justify-content:space-between;font-size:.68rem;color:var(--muted,#5d6779);font-weight:700;margin-bottom:8px}.pp-acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.pp-sort{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;scrollbar-width:none}.pp-sort button{flex:0 0 auto;border:0;border-radius:999px;padding:7px 13px;font-weight:700;font-size:.78rem;background:#e9edf3;color:#34415a;cursor:pointer}.pp-sort button.on{background:#1d4ed8;color:#fff}' +
       '.pp-sum{background:#12295f;color:#fff;border-radius:16px;padding:14px;margin-bottom:12px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}.pp-sum small{display:block;font-size:.66rem;opacity:.75;text-transform:none;letter-spacing:.01em}.pp-sum b{font-size:1.05rem}' +
       '.pp-rep{font-size:.78rem;color:var(--muted,#5d6779)}.pp-stars{display:flex;gap:6px;justify-content:center;margin:6px 0 14px}.pp-stars button{border:0;background:none;padding:2px;cursor:pointer;color:#cbd2de}.pp-stars button.on{color:#f59f00}' +
@@ -81,7 +81,7 @@
           if (a === 'quotes') window.viewSRequestQuotes(id); else if (a === 'done') window.completeSRequest(id); else if (a === 'cancel') window.cancelSRequest(id); else if (a === 'del') window.deleteSRequest(id);
           else if (a === 'again' && r) republish(r); else if (a === 'share' && r) shareReq(r);
         };
-      } catch (e) { listEl.innerHTML = '<p class="muted small">Erreur de chargement : ' + esc(e.message) + '</p>'; }
+      } catch (e) { renderLoadError(listEl, window.loadMySRequests, e); }
     };
     function shareReq(r) {
       var text = 'Je cherche : ' + r.title + ' (' + (r.city || '') + '). Envoie ton devis sur Coeurnoh Universe.\nhttps://coeurnohuniverse.com/?open=srequests';
@@ -174,7 +174,7 @@
           try { var ds = await db.collection('service_requests').where('acceptedProUid', '==', u).limit(200).get(); var n = ds.docs.filter(function (d) { return d.data().status === 'completed'; }).length; if (n) { rep[u] = rep[u] || { avg: 0, count: 0, done: 0 }; rep[u].done = n; } } catch (e) { /* secondaire */ }
         }));
         if ($('srequest-quotes-modal')) draw();
-      } catch (e) { listEl.innerHTML = '<p class="muted small">Erreur de chargement : ' + esc(e.message) + '</p>'; }
+      } catch (e) { renderLoadError(listEl, function () { var m = $('srequest-quotes-modal'); if (m) m.remove(); window.viewSRequestQuotes(requestId); }, e); }
     };
 
     /* ----- avis par étoiles ----- */
@@ -275,7 +275,7 @@
           if (!confirm('Retirer ce devis ? Le client ne le verra plus.')) return;
           try { await db.collection('service_quotes').doc(id).delete(); toast('Devis retiré', 'info'); if (srequestMyQuotedIds) { var q = srequestMyQuotesCache.find(function (x) { return x.id === id; }); if (q) srequestMyQuotedIds.delete(q.requestId); } window.loadMyQuotes(); } catch (er) { toast(emsg(er), 'error'); }
         };
-      } catch (e) { listEl.innerHTML = '<p class="muted small">Erreur de chargement : ' + esc(e.message) + '</p>'; }
+      } catch (e) { renderLoadError(listEl, window.loadMyQuotes, e); }
     };
   }
   go();

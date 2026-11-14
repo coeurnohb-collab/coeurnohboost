@@ -126,7 +126,7 @@
           if (r.ok && j && j.success !== false) { resolve(j); return; }
           var er = new Error(j && j.error ? tr(j.error) : L('err')); er.data = j || {}; er.status = r.status; reject(er);
         });
-      }).catch(function (e) { reject(e && e.message ? e : new Error(L('err_net'))); });
+      }).catch(function () { reject(new Error(L('err_net'))); });
     });
   }
 

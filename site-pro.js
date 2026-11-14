@@ -6,6 +6,8 @@
    Les réglages sont enregistrés par le serveur (action « site_extras »), aucune règle Firestore à modifier. */
 (function () {
   'use strict';
+  // Texte d'erreur lisible (jamais de message technique en anglais)
+  function RE(e) { try { return readableError(e); } catch (x) { return (e && e.message) || ''; } }
   if (window.__cnSitePro) return; window.__cnSitePro = true;
   var tries = 0;
   function go() { if (typeof siteHubHtml !== 'function' || typeof spShell !== 'function' || typeof mySiteCache === 'undefined') { if (++tries < 160) setTimeout(go, 250); return; } main(); }
@@ -26,7 +28,7 @@
   var st = document.createElement('style');
   st.textContent = '.spx-row{display:grid;grid-template-columns:82px 1fr 1fr 52px;gap:6px;align-items:center;margin:6px 0;font-size:.86rem}.spx-row input[type=time]{width:100%;box-sizing:border-box;border:1px solid #d5dbe6;border-radius:10px;padding:8px;font:inherit}.spx-row label{font-size:.78rem;display:flex;gap:4px;align-items:center;justify-content:flex-end}' +
     '.spx-f{margin:10px 0}.spx-f select,.spx-f textarea,.spx-f input[type=text]{width:100%;box-sizing:border-box;border:1px solid #d5dbe6;border-radius:12px;padding:10px 12px;font:inherit;background:#fff;color:inherit}.spx-sw{display:flex;gap:10px;align-items:center;font-weight:700}.spx-sw input{width:20px;height:20px}' +
-    '.spx-b{border:1px solid #d5dbe6;background:#fff;border-radius:12px;padding:10px 14px;font:inherit;font-weight:700;cursor:pointer;color:inherit}.spx-b.p{background:#1b4fd8;border-color:#1b4fd8;color:#fff}.spx-seg{display:flex;gap:6px;margin-bottom:10px}.spx-kg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.spx-k{background:#f3f5f9;border-radius:12px;padding:10px 6px;text-align:center}.spx-k b{display:block;font-size:1.25rem}.spx-k span{font-size:.7rem;color:#5d6779}.spx-bars{display:flex;align-items:flex-end;gap:2px;height:110px;margin:14px 0 2px;border-bottom:1px solid #d5dbe6}.spx-bars i{flex:1;background:#1b4fd8;border-radius:2px 2px 0 0;min-height:2px}.spx-lab{display:flex;justify-content:space-between;font-size:.7rem;color:#5d6779}.spx-n{font-size:.8rem;color:#5d6779;margin:6px 0}.spx-poster{display:block;width:100%;max-width:340px;margin:10px auto;border:1px solid #d5dbe6;border-radius:8px}';
+    '.spx-b{border:1px solid #d5dbe6;background:#fff;border-radius:12px;padding:10px 14px;font:inherit;font-weight:700;cursor:pointer;color:inherit}.spx-b.p{background:#1d4ed8;border-color:#1d4ed8;color:#fff}.spx-seg{display:flex;gap:6px;margin-bottom:10px}.spx-kg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.spx-k{background:#f3f5f9;border-radius:12px;padding:10px 6px;text-align:center}.spx-k b{display:block;font-size:1.25rem}.spx-k span{font-size:.7rem;color:#5d6779}.spx-bars{display:flex;align-items:flex-end;gap:2px;height:110px;margin:14px 0 2px;border-bottom:1px solid #d5dbe6}.spx-bars i{flex:1;background:#1d4ed8;border-radius:2px 2px 0 0;min-height:2px}.spx-lab{display:flex;justify-content:space-between;font-size:.7rem;color:#5d6779}.spx-n{font-size:.8rem;color:#5d6779;margin:6px 0}.spx-poster{display:block;width:100%;max-width:340px;margin:10px auto;border:1px solid #d5dbe6;border-radius:8px}';
   st.textContent += '.spx-pn{display:flex;gap:8px;align-items:flex-start;padding:8px 0;border-bottom:1px solid #e4e8ef;font-size:.8rem}.spx-pn input{margin-top:3px;width:18px;height:18px}.spx-req{padding:10px 0;border-bottom:1px solid #e4e8ef;font-size:.88rem}.spx-req .spx-seg{margin:8px 0 0}.spx-req a.spx-b{text-decoration:none;display:inline-block}';
   document.head.appendChild(st);
 
@@ -44,7 +46,7 @@
         var cur = extras(), week = [].map.call(body.querySelectorAll('.spx-row'), function (r) { return { x: r.querySelector('.x').checked, o: r.querySelector('.o').value || '08:00', c: r.querySelector('.c').value || '18:00' }; });
         cur.week = week; cur.hoursOn = body.querySelector('#spx-on').checked; cur.tz = ZONES[parseInt(body.querySelector('#spx-tz').value, 10)][0];
         await saveExtras(cur); toast('Horaires enregistrés', 'success'); m.textContent = 'Enregistré. Le badge apparaît sur votre site public.';
-      } catch (e) { m.textContent = e.message; }
+      } catch (e) { m.textContent = RE(e); }
       b.disabled = false;
     };
   }
@@ -61,7 +63,7 @@
     body.querySelector('#spx-save').onclick = async function () {
       var b = this, m = body.querySelector('#spx-msg'); b.disabled = true;
       try { var cur = extras(); cur.cart = { on: body.querySelector('#spx-cart').checked, note: body.querySelector('#spx-note').value }; await saveExtras(cur); toast('Panier enregistré', 'success'); m.textContent = 'Enregistré.'; }
-      catch (e) { m.textContent = e.message; }
+      catch (e) { m.textContent = RE(e); }
       b.disabled = false;
     };
   }
@@ -71,7 +73,7 @@
   function wrap(ctx, text, maxW, maxLines) { var words = String(text).split(/\s+/), lines = [], cur = ''; words.forEach(function (w) { var t = cur ? cur + ' ' + w : w; if (ctx.measureText(t).width > maxW && cur) { lines.push(cur); cur = w; } else cur = t; }); if (cur) lines.push(cur); return lines.slice(0, maxLines); }
   async function drawPoster(site, cv) {
     var W = 1240, H = 1754, ctx = cv.getContext('2d'); cv.width = W; cv.height = H;
-    var accent = /^#[0-9a-fA-F]{6}$/.test(site.accentColor || '') ? site.accentColor : '#1b4fd8', link = location.origin + '/s/' + encodeURIComponent(site.slug || '');
+    var accent = /^#[0-9a-fA-F]{6}$/.test(site.accentColor || '') ? site.accentColor : '#1d4ed8', link = location.origin + '/s/' + encodeURIComponent(site.slug || '');
     ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, W, H); ctx.fillStyle = accent; ctx.fillRect(0, 0, W, 330); ctx.fillRect(0, H - 120, W, 120);
     var logo = await loadImg(site.logoUrl), y = 70;
     if (logo) { var s = 190, lx = W / 2 - s / 2; ctx.save(); ctx.beginPath(); ctx.arc(W / 2, y + s / 2, s / 2, 0, Math.PI * 2); ctx.closePath(); ctx.fillStyle = '#fff'; ctx.fill(); ctx.clip(); ctx.drawImage(logo, lx, y, s, s); ctx.restore(); }
@@ -116,7 +118,7 @@
         '<div class="spx-kg">' + kp + '</div><div class="spx-bars" role="img" aria-label="Visites par jour">' + bars + '</div><div class="spx-lab"><span>' + esc(r.series[0].day.slice(5)) + '</span><span>' + esc(r.series[r.series.length - 1].day.slice(5)) + '</span></div>' +
         '<p class="spx-n"><b>' + r.contactRate + ' %</b> des visiteurs ont contacté ou commandé' + (r.bestDay ? ' · meilleur jour : ' + esc(r.bestDay) : '') + '</p><p class="spx-n">' + esc(tip) + '</p><p class="spx-n">Vos propres visites sont comptées. Les chiffres sont indicatifs.</p>';
       body.querySelectorAll('[data-d]').forEach(function (b) { b.onclick = function () { openStats(parseInt(b.getAttribute('data-d'), 10)); }; });
-    }).catch(function (e) { body.innerHTML = '<p class="spx-n">' + esc(e.message) + '</p>'; });
+    }).catch(function (e) { body.innerHTML = '<p class="spx-n">' + esc(RE(e)) + '</p>'; });
   }
 
   /* ----- Panel : connexion API du fournisseur, catalogue et demandes ----- */
@@ -129,10 +131,10 @@
     api('panel_get').then(function (r) {
       mySiteCache.panel = r.panel;
       body.innerHTML = '<div class="spx-seg"><button type="button" class="spx-b p" data-t="c">Connexion</button><button type="button" class="spx-b" data-t="k">Catalogue</button><button type="button" class="spx-b" data-t="d">Demandes</button></div><div id="pn-pane"></div>';
-      var go = function (t) { body.querySelectorAll('[data-t]').forEach(function (b) { b.classList.toggle('p', b.getAttribute('data-t') === t); }); api('panel_get').then(function (r2) { mySiteCache.panel = r2.panel; (t === 'c' ? pnConn : t === 'k' ? pnCat : pnReq)(r2, body.querySelector('#pn-pane')); }).catch(function (e) { body.querySelector('#pn-pane').innerHTML = '<p class="spx-n">' + esc(e.message) + '</p>'; }); };
+      var go = function (t) { body.querySelectorAll('[data-t]').forEach(function (b) { b.classList.toggle('p', b.getAttribute('data-t') === t); }); api('panel_get').then(function (r2) { mySiteCache.panel = r2.panel; (t === 'c' ? pnConn : t === 'k' ? pnCat : pnReq)(r2, body.querySelector('#pn-pane')); }).catch(function (e) { body.querySelector('#pn-pane').innerHTML = '<p class="spx-n">' + esc(RE(e)) + '</p>'; }); };
       body.querySelectorAll('[data-t]').forEach(function (b) { b.onclick = function () { go(b.getAttribute('data-t')); }; });
       go(r.connected ? 'k' : 'c');
-    }).catch(function (e) { body.innerHTML = '<p class="spx-n">' + esc(e.message) + '</p>'; });
+    }).catch(function (e) { body.innerHTML = '<p class="spx-n">' + esc(RE(e)) + '</p>'; });
   }
   function pnConn(r, pane) {
     pane.innerHTML = '<p class="spx-n">Connectez l’API de <b>votre fournisseur</b> (panel au format « API v2 », le plus courant). Vos visiteurs commandent sur votre site, <b>vous</b> validez, puis la commande part chez votre fournisseur. Rien ne s’exécute sans votre clic.</p>' +
@@ -145,10 +147,10 @@
     pane.querySelector('#pn-save').onclick = async function () {
       var b = this; b.disabled = true; msg.textContent = 'Vérification…';
       try { await api('panel_save', { url: pane.querySelector('#pn-url').value, key: pane.querySelector('#pn-key').value }); var t = await api('panel_test'); msg.textContent = 'Connexion réussie' + (t.balance ? ' · solde chez le fournisseur : ' + t.balance + ' ' + t.currency : '') + '. Passez à « Catalogue ».'; toast('Panel connecté', 'success'); pane.querySelector('#pn-key').value = ''; }
-      catch (e) { msg.textContent = e.message; }
+      catch (e) { msg.textContent = RE(e); }
       b.disabled = false;
     };
-    var off = pane.querySelector('#pn-off'); if (off) off.onclick = async function () { if (!confirm('Déconnecter ce panel ? Le catalogue sera retiré de votre site.')) return; try { await api('panel_disconnect'); toast('Panel déconnecté', 'success'); openPanel(); } catch (e) { msg.textContent = e.message; } };
+    var off = pane.querySelector('#pn-off'); if (off) off.onclick = async function () { if (!confirm('Déconnecter ce panel ? Le catalogue sera retiré de votre site.')) return; try { await api('panel_disconnect'); toast('Panel déconnecté', 'success'); openPanel(); } catch (e) { msg.textContent = RE(e); } };
   }
   function pnCat(r, pane) {
     if (!r.connected) { pane.innerHTML = '<p class="spx-n">Connectez d’abord votre panel (onglet « Connexion »).</p>'; return; }
@@ -161,8 +163,8 @@
     var list = pane.querySelector('#pn-list'), msg = pane.querySelector('#pn-msg');
     function draw() { var mk = parseFloat(pane.querySelector('#pn-mk').value) || 0; list.innerHTML = (PN.list.length ? '<p>' + PN.list.length + ' service(s) affiché(s). Cochez ceux à vendre. Prix de vente = coût + ' + mk + ' %.</p>' : '') + PN.list.map(function (x) { var pr = Math.round(x.cost * (1 + mk / 100) * 10000) / 10000; return '<label class="spx-pn"><input type="checkbox" data-id="' + esc(x.id) + '"' + (PN.sel[x.id] ? ' checked' : '') + '><span><b>' + esc(x.name) + '</b><br>' + esc(x.cat) + ' · coût ' + x.cost + ' $ · <b>vente ' + pr + ' $</b> / 1000 · ' + x.min + '–' + x.max + '</span></label>'; }).join(''); list.querySelectorAll('[data-id]').forEach(function (c) { c.onchange = function () { if (c.checked) PN.sel[c.getAttribute('data-id')] = 1; else delete PN.sel[c.getAttribute('data-id')]; }; }); }
     pane.querySelector('#pn-mk').oninput = function () { if (PN.list.length) draw(); };
-    pane.querySelector('#pn-load').onclick = async function () { var b = this; b.disabled = true; msg.textContent = 'Chargement…'; try { var j = await api('panel_services', { markup: parseFloat(pane.querySelector('#pn-mk').value) || 0, q: pane.querySelector('#pn-q').value }); PN.list = j.items; msg.textContent = j.total + ' services chez le fournisseur' + (j.items.length < j.total ? ' · affinez la recherche pour en voir d’autres.' : '.'); draw(); } catch (e) { msg.textContent = e.message; } b.disabled = false; };
-    pane.querySelector('#pn-pub').onclick = async function () { var b = this; b.disabled = true; msg.textContent = 'Publication…'; try { var j = await api('panel_publish', { on: pane.querySelector('#pn-on').checked, title: pane.querySelector('#pn-title').value, markup: parseFloat(pane.querySelector('#pn-mk').value) || 0, ids: Object.keys(PN.sel) }); mySiteCache.panel = j.panel; msg.textContent = 'Publié : ' + j.panel.items.length + ' service(s) sur votre site. Les prix sont recalculés par le serveur.'; toast('Catalogue publié', 'success'); } catch (e) { msg.textContent = e.message; } b.disabled = false; };
+    pane.querySelector('#pn-load').onclick = async function () { var b = this; b.disabled = true; msg.textContent = 'Chargement…'; try { var j = await api('panel_services', { markup: parseFloat(pane.querySelector('#pn-mk').value) || 0, q: pane.querySelector('#pn-q').value }); PN.list = j.items; msg.textContent = j.total + ' services chez le fournisseur' + (j.items.length < j.total ? ' · affinez la recherche pour en voir d’autres.' : '.'); draw(); } catch (e) { msg.textContent = RE(e); } b.disabled = false; };
+    pane.querySelector('#pn-pub').onclick = async function () { var b = this; b.disabled = true; msg.textContent = 'Publication…'; try { var j = await api('panel_publish', { on: pane.querySelector('#pn-on').checked, title: pane.querySelector('#pn-title').value, markup: parseFloat(pane.querySelector('#pn-mk').value) || 0, ids: Object.keys(PN.sel) }); mySiteCache.panel = j.panel; msg.textContent = 'Publié : ' + j.panel.items.length + ' service(s) sur votre site. Les prix sont recalculés par le serveur.'; toast('Catalogue publié', 'success'); } catch (e) { msg.textContent = RE(e); } b.disabled = false; };
   }
   function pnReq(r, pane) {
     pane.innerHTML = '<p class="spx-n">Chargement…</p>';
@@ -178,10 +180,10 @@
         var id = row.getAttribute('data-id'), q = row.querySelector('[data-a]');
         q.onclick = async function () {
           var a = q.getAttribute('data-a'); if (a === 'send' && !confirm('Envoyer cette commande au fournisseur ? Elle sera débitée de votre solde chez lui.')) return;
-          q.disabled = true; try { await api(a === 'send' ? 'panel_send' : 'panel_status', { leadId: id }); toast(a === 'send' ? 'Commande envoyée' : 'État mis à jour', 'success'); pnReq(r, pane); } catch (e) { toast(e.message, 'error'); q.disabled = false; }
+          q.disabled = true; try { await api(a === 'send' ? 'panel_send' : 'panel_status', { leadId: id }); toast(a === 'send' ? 'Commande envoyée' : 'État mis à jour', 'success'); pnReq(r, pane); } catch (e) { toast(RE(e), 'error'); q.disabled = false; }
         };
       });
-    }).catch(function (e) { pane.innerHTML = '<p class="spx-n">' + esc(e.message) + '</p>'; });
+    }).catch(function (e) { pane.innerHTML = '<p class="spx-n">' + esc(RE(e)) + '</p>'; });
   }
 
   function main() {

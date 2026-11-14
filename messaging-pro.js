@@ -116,7 +116,7 @@
 
   /* ---------------------------------------------------------------- petits outils */
   var PAGE = 50, ONLINE_MS = 5 * 60 * 1000, CLOUD = 'https://res.cloudinary.com/aqe4fxh4/';
-  var CALLS_SRC = 'calls-pro.js?v=20261115';
+  var CALLS_SRC = 'calls-pro.js?v=20261116';
   var BAD_EXT = /\.(exe|apk|bat|cmd|msi|scr|vbs|jar|sh|com|pif|dll|app|dmg|js|ps1)$/i;
   var EMOJIS = '😀 😂 🤣 😊 😍 😘 😎 🤩 🥰 😉 😇 🙂 🙃 😅 😭 😢 😡 😱 🤔 🙄 😴 🤗 😏 😬 🥳 😋 😜 🤭 😌 😔 👍 👎 👏 🙏 💪 👌 ✌️ 🤝 🙌 👋 🤞 ❤️ 🧡 💛 💚 💙 💜 🖤 💔 💕 💯 🔥 ✨ 🎉 🎁 🌹 ☀️ ⭐ ✅ ❌ 💰 📞 📷 🎵 🍕 ☕ 🚀'.split(' ');
   var REACTS = ['👍', '❤️', '😂', '😮', '😢', '🙏'];

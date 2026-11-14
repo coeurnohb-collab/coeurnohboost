@@ -403,8 +403,8 @@ html[data-theme="dark"]{--cnh-hero:#1b2b48;--cnh-hero-line:rgba(255,255,255,.18)
 #menu-screen-academy .shop-filter-tabs{display:flex;gap:2px;background:var(--cnh-soft);border:1px solid var(--cnh-line);border-radius:13px;padding:4px;overflow:visible;margin-bottom:14px}
 #menu-screen-academy .shop-filter-tabs button{flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;text-align:center;border:0;background:transparent;border-radius:10px;padding:11px 4px;font:inherit;font-weight:600;font-size:.86rem;line-height:1.1;color:var(--cnh-sub);box-shadow:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #menu-screen-academy .shop-filter-tabs button:hover:not(.active){background:transparent;border-color:transparent;color:var(--cnh-ink)}
-#menu-screen-academy .shop-filter-tabs button.active{background:var(--cnh-card);color:var(--cnh-ink);box-shadow:0 0 0 1px var(--cnh-line),0 1px 2px rgba(17,24,39,.08)}
-html[data-theme="dark"] #menu-screen-academy .shop-filter-tabs button.active{background:#2b3649;box-shadow:none;color:var(--cnh-ink)}
+#menu-screen-academy .shop-filter-tabs button.active{background:var(--cnh-card);color:var(--cnh-brand);box-shadow:0 0 0 1px var(--cnh-line),0 1px 2px rgba(17,24,39,.08)}
+html[data-theme="dark"] #menu-screen-academy .shop-filter-tabs button.active{background:#2b3649;box-shadow:none;color:var(--cnh-brand)}
 
 /* Bouton « Créer un cours », recherche, filtres */
 #academy-courses-section > .btn.btn-primary{min-height:50px;border-radius:12px;font-weight:600;font-size:.95rem;box-shadow:none}

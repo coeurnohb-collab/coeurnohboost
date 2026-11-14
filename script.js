@@ -838,7 +838,7 @@ async function loadWalletHistory() {
         </div>`;
     }).join('');
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${escapeHtml(e.message)}</p>`;
+    renderLoadError(listEl, loadWalletHistory, e);
   }
 }
 
@@ -2625,6 +2625,16 @@ function friendlyErrorMessage(e) {
   return 'Une erreur est survenue. Réessaie dans un instant.';
 }
 
+// Message lisible pour l'utilisateur : garde le texte voulu par le serveur,
+// mais remplace les erreurs techniques du navigateur (en anglais) par un texte clair.
+function readableError(e) {
+  const msg = (e && e.message) || '';
+  const technical = !msg || e instanceof TypeError || e instanceof ReferenceError || e instanceof SyntaxError ||
+    /Failed to fetch|NetworkError|Load failed|Cannot read|is not a function|is not defined|undefined|\bnull\b|Unexpected token|JSON/i.test(msg);
+  if (technical) return (typeof navigator !== 'undefined' && navigator.onLine === false) ? t('state_offline') : friendlyErrorMessage(e);
+  return msg;
+}
+
 function friendlyAuthError(e) {
   const code = e && e.code;
   if (code === 'auth/wrong-password') return "Mot de passe actuel incorrect.";
@@ -3236,7 +3246,7 @@ function cnLoadGuide(ok, ko) {
   let sc = document.querySelector('script[data-cn-guide]');
   if (!sc) {
     sc = document.createElement('script');
-    sc.src = 'guide-pro.js?v=20261115'; sc.async = true; sc.setAttribute('data-cn-guide', '1');
+    sc.src = 'guide-pro.js?v=20261116'; sc.async = true; sc.setAttribute('data-cn-guide', '1');
     sc.onerror = () => { if (sc.parentNode) sc.parentNode.removeChild(sc); if (ko) ko(); };
     document.head.appendChild(sc);
   }
@@ -3768,7 +3778,7 @@ async function loadHomeFeed(append = false) {
     }
   } catch (e) {
     if (!append) {
-      feedEl.innerHTML = `<p class="muted"><span data-i18n="shop_load_error_prefix">Erreur de chargement :</span> ${escapeHtml(e.message)}</p>`;
+      renderLoadError(feedEl, () => loadHomeFeed(append), e);
     } else {
       showToast(friendlyErrorMessage(e), 'error');
     }
@@ -4603,7 +4613,7 @@ async function loadSellerWithdrawals() {
       </div>`;
     }).join('');
   } catch (e) {
-    el.innerHTML = `<p class="muted">Erreur de chargement : ${escapeHtml(e.message)}</p>`;
+    renderLoadError(el, loadSellerWithdrawals, e);
   }
 }
 
@@ -4671,7 +4681,7 @@ async function loadSellerStats() {
       `).join('');
     }
   } catch (e) {
-    badgeEl.innerHTML = `<p class="muted">Erreur de chargement : ${escapeHtml(e.message)}</p>`;
+    renderLoadError(badgeEl, loadSellerStats, e);
     statsEl.innerHTML = '';
     salesEl.innerHTML = '';
   }
@@ -4705,7 +4715,7 @@ async function loadMyPublications() {
       </div>`;
     }).join('');
   } catch (e) {
-    el.innerHTML = `<p class="muted">Erreur de chargement : ${escapeHtml(e.message)}</p>`;
+    renderLoadError(el, loadMyPublications, e);
   }
 }
 
@@ -4905,7 +4915,7 @@ async function loadShopFeed() {
 
     renderShopFeed();
   } catch (e) {
-    feedEl.innerHTML = `<p class="muted"><span data-i18n="shop_load_error_prefix">Erreur de chargement :</span> ${escapeHtml(e.message)}</p>`;
+    renderLoadError(feedEl, loadShopFeed, e);
   }
 }
 
@@ -6463,7 +6473,7 @@ async function openProfileModal(sellerUid, sellerName, sellerVerified) {
     watchPostsCounts(posts.map(p => p.id));
     watchProfileTotalLikes();
   } catch (e) {
-    body.innerHTML = `<p class="muted small">Erreur de chargement : ${escapeHtml(e.message)}</p>`;
+    renderLoadError(body, () => openProfileModal(sellerUid, sellerName, sellerVerified), e);
   }
 }
 
@@ -6565,7 +6575,7 @@ async function loadProfileFavoritesGrid(uid, container) {
     container.innerHTML = `<div class="profile-grid">${items.map(p => renderProfileGridItem(p)).join('')}</div>`;
     watchPostsCounts(items.map(p => p.id));
   } catch (e) {
-    container.innerHTML = `<p class="muted small">Erreur de chargement : ${escapeHtml(e.message)}</p>`;
+    renderLoadError(container, () => loadProfileFavoritesGrid(uid, container), e);
   }
 }
 
@@ -7691,6 +7701,11 @@ async function checkAlertsForNewProduct(product) {
 
 /* Etat d'echec professionnel : message clair + bouton « Reessayer ».
    On n'affiche plus le message technique brut du serveur ; il part dans la console. */
+// Élément supprimé ou introuvable : carte claire au lieu d'une simple ligne grise.
+function renderGone(el, key) {
+  if (!el) return;
+  el.innerHTML = `<div class="state-card state-gone" role="status"><span class="state-ico" aria-hidden="true"></span><p>${escapeHtml(t(key))}</p></div>`;
+}
 function renderLoadError(el, retryFn, err) {
   if (!el) return;
   const offline = typeof navigator !== 'undefined' && navigator.onLine === false;
@@ -8535,7 +8550,7 @@ async function loadFollowingList() {
       </div>`;
     }).join('');
   } catch (e) {
-    el.innerHTML = `<p class="muted small">Erreur de chargement : ${escapeHtml(e.message)}</p>`;
+    renderLoadError(el, loadFollowingList, e);
   }
 }
 
@@ -8641,7 +8656,7 @@ async function loadFollowersList() {
       </div>`;
     }).join('');
   } catch (e) {
-    el.innerHTML = `<p class="muted small">Erreur de chargement : ${escapeHtml(e.message)}</p>`;
+    renderLoadError(el, loadFollowersList, e);
   }
 }
 
@@ -8664,7 +8679,7 @@ async function loadBlockedList() {
       </div>`;
     }).join('');
   } catch (e) {
-    el.innerHTML = `<p class="muted small">Erreur de chargement : ${escapeHtml(e.message)}</p>`;
+    renderLoadError(el, loadBlockedList, e);
   }
 }
 
@@ -8729,7 +8744,7 @@ async function loadSavedFeed() {
     // le compteur ne bougerait plus jamais sur cet ecran.
     watchPostsCounts(items.map(item => item.id));
   } catch (e) {
-    feedEl.innerHTML = `<p class="muted small">Erreur de chargement : ${escapeHtml(e.message)}</p>`;
+    renderLoadError(feedEl, loadSavedFeed, e);
   }
 }
 
@@ -8797,7 +8812,7 @@ async function loadJobOffers() {
     jobsCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     runJobsFilter();
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${escapeHtml(e.message)}</p>`;
+    renderLoadError(listEl, loadJobOffers, e);
   }
 }
 
@@ -8865,7 +8880,7 @@ async function openJobDetail(offerId) {
   try {
     const snap = await db.collection('job_offers').doc(offerId).get();
     if (!snap.exists) {
-      bodyEl.innerHTML = `<p class="muted small">${t('job_gone')}</p>`;
+      renderGone(bodyEl, 'job_gone');
       return;
     }
     const o = { id: snap.id, ...snap.data() };
@@ -9234,7 +9249,7 @@ async function openJobCandidates(offerId) {
         </div>
       </div>`).join('');
   } catch (e) {
-    document.getElementById('job-candidates-list').innerHTML = `<p class="muted small">${t('alerts_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
+    renderLoadError(document.getElementById('job-candidates-list'), () => openJobCandidates(offerId), e);
   }
 }
 
@@ -9358,7 +9373,7 @@ async function openJobSeekerDetail(profileId) {
     const snap = cached ? null : await db.collection('job_seekers').doc(profileId).get();
     const p = cached || (snap && snap.exists ? { id: snap.id, ...snap.data() } : null);
     if (!p) {
-      bodyEl.innerHTML = `<p class="muted small">${t('jobseeker_gone')}</p>`;
+      renderGone(bodyEl, 'jobseeker_gone');
       return;
     }
     const isOwner = currentUser && currentUser.uid === p.ownerUid;
@@ -9403,7 +9418,7 @@ async function loadMyJobSeekerProfile() {
     myJobSeekerProfile = snap.exists ? { id: snap.id, ...snap.data() } : null;
     renderMyJobSeekerProfile();
   } catch (e) {
-    statusEl.innerHTML = `<p class="muted small">${t('alerts_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
+    renderLoadError(statusEl, loadMyJobSeekerProfile, e);
   }
 }
 
@@ -9693,7 +9708,7 @@ async function openEventDetail(eventId) {
   try {
     const snap = await db.collection('events').doc(eventId).get();
     if (!snap.exists) {
-      bodyEl.innerHTML = `<p class="muted small">${t('event_gone')}</p>`;
+      renderGone(bodyEl, 'event_gone');
       return;
     }
     const e = { id: snap.id, ...snap.data() };
@@ -10046,7 +10061,7 @@ async function submitEventReservation() {
     eventsCache = null;
     openEventDetail(reservedEventId);
   } catch (e) {
-    errEl.textContent = e.message || t('event_generic_error');
+    errEl.textContent = readableError(e);
     errEl.classList.remove('hidden');
   } finally {
     btn.disabled = false;
@@ -10106,7 +10121,7 @@ async function cancelEventTicket(ticketId) {
     showToast(t('event_ticket_cancelled_toast'), 'success');
     loadMyEventTickets();
   } catch (e) {
-    showToast(e.message || t('event_generic_error'), 'error');
+    showToast(readableError(e), 'error');
   }
 }
 
@@ -10166,7 +10181,7 @@ async function openEventAttendees(eventId) {
         <div class="muted small">${t('event_status_prefix')} ${tk.status === 'cancelled' ? t('event_ticket_status_cancelled') : t('event_ticket_status_confirmed')}</div>
       </div>`).join('');
   } catch (e) {
-    document.getElementById('event-attendees-list').innerHTML = `<p class="muted small">${t('event_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
+    renderLoadError(document.getElementById('event-attendees-list'), () => openEventAttendees(eventId), e);
   }
 }
 
@@ -10983,7 +10998,7 @@ async function openCourseDetail(courseId) {
   try {
     const snap = await db.collection('courses').doc(courseId).get();
     if (!snap.exists) {
-      bodyEl.innerHTML = `<p class="muted small">${t('course_gone')}</p>`;
+      renderGone(bodyEl, 'course_gone');
       return;
     }
     const c = { id: snap.id, ...snap.data() };
@@ -11750,7 +11765,7 @@ async function submitCourseEnrollment() {
     } else if (e.code === 'permission-denied') {
       errEl.textContent = t('course_already_enrolled_error');
     } else {
-      errEl.textContent = e.message || friendlyErrorMessage(e);
+      errEl.textContent = readableError(e);
     }
     errEl.classList.remove('hidden');
   } finally {
@@ -11854,7 +11869,7 @@ async function openCourseStudents(courseId) {
       </div>`;
     }).join('');
   } catch (e) {
-    document.getElementById('course-students-list').innerHTML = `<p class="muted small">${t('course_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
+    renderLoadError(document.getElementById('course-students-list'), () => openCourseStudents(courseId), e);
   }
 }
 
@@ -12437,7 +12452,7 @@ async function loadMySRequests() {
         </div>
       </div>`).join('');
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${escapeHtml(e.message)}</p>`;
+    renderLoadError(listEl, loadMySRequests, e);
   }
 }
 
@@ -12512,7 +12527,7 @@ async function viewSRequestQuotes(requestId) {
       </div>`;
     }).join('');
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${escapeHtml(e.message)}</p>`;
+    renderLoadError(listEl, () => { const m = document.getElementById('srequest-quotes-modal'); if (m) m.remove(); viewSRequestQuotes(requestId); }, e);
   }
 }
 
@@ -12642,7 +12657,7 @@ async function loadAvailableSRequests() {
     srequestMyQuotedIds = new Set(myQuotesSnap ? myQuotesSnap.docs.map(d => d.data().requestId) : []);
     runSRequestFilter();
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${escapeHtml(e.message)}</p>`;
+    renderLoadError(listEl, loadAvailableSRequests, e);
   }
 }
 
@@ -12811,7 +12826,7 @@ async function loadMyQuotes() {
         ${q.message ? `<p class="muted small" style="margin-top:4px">${escapeHtml(q.message)}</p>` : ''}
       </div>`).join('');
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${escapeHtml(e.message)}</p>`;
+    renderLoadError(listEl, loadMyQuotes, e);
   }
 }
 
@@ -12939,7 +12954,7 @@ async function loadMySite() {
     mySiteCache = snap.exists ? snap.data() : null;
     renderSiteStatusView();
   } catch (e) {
-    statusEl.innerHTML = `<p class="muted small">${t('site_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
+    renderLoadError(statusEl, loadMySite, e);
   }
 }
 
@@ -13031,7 +13046,7 @@ const TR_T = {
 function trT(k) { const d = TR_T[currentLang] || TR_T.en; return d[k] != null ? d[k] : TR_T.en[k]; }
 function cnLoadSiteTransfer(ok, ko) {
   // Fichier site-give.js (nom unique : aucune confusion possible avec le fichier serveur api/_lib/site-transfer.js).
-  cnLazyModule('data-cn-xfer', 'site-give.js?v=20261111', () => !!window.CNSiteTransfer, ok, ko);
+  cnLazyModule('data-cn-xfer', 'site-give.js?v=20261116', () => !!window.CNSiteTransfer, ok, ko);
 }
 function openSiteTransfer(mode, code) {
   if (!currentUser) { openAuth('register'); return; }
@@ -15476,7 +15491,7 @@ async function loadMyBusiness() {
     businessMyProfile = snap.exists ? snap.data() : null;
     renderMyBusinessStatus();
   } catch (e) {
-    statusEl.innerHTML = `<p class="muted small">${t('business_load_error_prefix')} ${escapeHtml(e.message)}</p>`;
+    renderLoadError(statusEl, loadMyBusiness, e);
   }
 }
 
@@ -16388,7 +16403,7 @@ async function openResellerApiScreen() {
       <div class="fs-body" id="reseller-body"><p class="muted small">${t('common_loading')}</p></div>
     </div>`);
   document.body.classList.add('fs-open');
-  try { resellerState = await resellerCall({ op: 'status' }); } catch (e) { resellerState = { err: (e && e.message) || '' }; }
+  try { resellerState = await resellerCall({ op: 'status' }); } catch (e) { resellerState = { err: readableError(e) }; }
   renderResellerApi();
 }
 function closeResellerApi() {
@@ -16405,7 +16420,7 @@ function apiTab(i) {
 function renderResellerApi(secret) {
   const el = document.getElementById('reseller-body'); if (!el) return;
   const s = resellerState || {};
-  if (s.err) { el.innerHTML = `<p class="lead-err">${uiIc('alert', 16)} ${escapeHtml(s.err)}</p>`; return; }
+  if (s.err) { el.innerHTML = `<div class="state-card state-error" role="alert"><span class="state-ico" aria-hidden="true"></span><p>${escapeHtml(s.err)}</p><button type="button" class="btn btn-outline state-retry" onclick="openResellerApiScreen()">${escapeHtml(t('state_retry'))}</button></div>`; return; }
   const k = s.key || { exists: false };
   const ep = s.endpoint || 'https://coeurnohuniverse.com/api/v2';
   const KEY = secret || 'VOTRE_CLE_API';
@@ -16472,16 +16487,16 @@ function renderResellerApi(secret) {
 }
 async function resellerCreate() {
   try { const j = await resellerCall({ op: 'create' }); resellerState = j; renderResellerApi(j.secret); }
-  catch (e) { showToast((e && e.message) || friendlyErrorMessage(e), 'error'); }
+  catch (e) { showToast(readableError(e), 'error'); }
 }
 async function resellerRegen() { if (confirm(t('api_regen_confirm'))) resellerCreate(); }
 async function resellerRevoke() {
   if (!confirm(t('api_revoke_confirm'))) return;
-  try { resellerState = await resellerCall({ op: 'revoke' }); renderResellerApi(); } catch (e) { showToast((e && e.message) || '', 'error'); }
+  try { resellerState = await resellerCall({ op: 'revoke' }); renderResellerApi(); } catch (e) { showToast(readableError(e), 'error'); }
 }
 async function resellerSaveIps() {
   try { resellerState = await resellerCall({ op: 'set_ips', ips: document.getElementById('api-ips').value }); renderResellerApi(); showToast(t('sp_published'), 'success'); }
-  catch (e) { showToast((e && e.message) || '', 'error'); }
+  catch (e) { showToast(readableError(e), 'error'); }
 }
 
 /* ---- Rendez-vous, newsletter et catégories (v-pro20) ---- */
@@ -16522,8 +16537,8 @@ async function openLeadsManager(kind, type) {
     leadState.items = (j.items || []).filter(x => x.type === type);
     renderLeadsManager();
   } catch (e) {
-    if (leadState) { leadState.items = []; leadState.err = (e && e.message) || ''; renderLeadsManager(); }
-    showToast((e && e.message) || friendlyErrorMessage(e), 'error');
+    if (leadState) { leadState.items = []; leadState.err = readableError(e); renderLeadsManager(); }
+    showToast(readableError(e), 'error');
   }
 }
 function closeLeadsManager() {
@@ -17645,7 +17660,7 @@ async function loadShopComments(pubId) {
     // une seule fois pour toute l'application (delegation d'evenements).
     bindCommentLongPress();
   } catch (e) {
-    listEl.innerHTML = `<p class="muted small">Erreur de chargement : ${escapeHtml(e.message)}</p>`;
+    renderLoadError(listEl, () => loadShopComments(pubId), e);
   }
 }
 

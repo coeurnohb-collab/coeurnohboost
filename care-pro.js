@@ -4,6 +4,8 @@
    Tout passe par le serveur (action payments-actions) : aucune règle Firestore à modifier. */
 (function () {
   'use strict';
+  // Texte d'erreur lisible (jamais de message technique en anglais)
+  function RE(e) { try { return readableError(e); } catch (x) { return (e && e.message) || ''; } }
   if (window.__cnCare) return; window.__cnCare = true;
   var tries = 0;
   function go() {
@@ -58,7 +60,7 @@
         var r = await api('support_create', { category: box.querySelector('#cr-cat').value, subject: sub, message: msg });
         box.querySelector('#cr-sub').value = ''; box.querySelector('#cr-msg').value = '';
         note.textContent = 'Demande envoyée. Numéro de suivi : #' + r.ref + '. Nous te répondons dès que possible.'; toast('Demande envoyée', 'success'); load();
-      } catch (e) { note.textContent = e.message; toast(e.message, 'error'); }
+      } catch (e) { note.textContent = RE(e); toast(RE(e), 'error'); }
       send.disabled = false;
     });
     list.addEventListener('click', async function (e) {
@@ -86,7 +88,7 @@
         var r = await api('export_my_data'), blob = new Blob([JSON.stringify(r.data, null, 2)], { type: 'application/json' }), a = document.createElement('a');
         a.href = URL.createObjectURL(blob); a.download = 'mes-donnees-coeurnoh-' + new Date().toISOString().slice(0, 10) + '.json'; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
         n.textContent = 'Fichier téléchargé.';
-      } catch (e) { n.textContent = e.message; }
+      } catch (e) { n.textContent = RE(e); }
       btn.disabled = false;
     });
   }
