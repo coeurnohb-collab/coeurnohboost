@@ -26,7 +26,7 @@
 /* ---------- Titres de section ---------- */
 .mp-section-title{
   display:flex;align-items:center;gap:8px;
-  font-size:.72rem;text-transform:uppercase;letter-spacing:.09em;
+  font-size:.72rem;text-transform:none;letter-spacing:.09em;
   color:var(--muted);font-weight:800;margin:4px 6px 10px;
 }
 .mp-section-title::before{
@@ -62,7 +62,7 @@
 .mp-promo{
   display:flex;align-items:center;gap:14px;width:100%;text-align:left;cursor:pointer;
   border:none;border-radius:16px;padding:14px 16px;margin-bottom:16px;color:#fff;font:inherit;
-  background:#1a2436;
+  background:#12295f;
   transition:transform .12s ease;
 }
 .mp-promo:active{transform:scale(.985)}
@@ -215,7 +215,7 @@ html[data-theme="dark"] .mp-b-new{background:#12284a;color:#8ec5ff}
 .mockup-tpl-own,.mockup-tpl-admin{justify-content:center;min-height:120px;border-style:dashed}
 .mockup-tpl-own-icon{font-size:1.8rem}
 .mp-back-link{
-  background:none;border:none;color:var(--accent-dark);font-weight:700;font-size:.85rem;
+  background:none;border:none;color:var(--act,#1d4ed8);font-weight:700;font-size:.85rem;
   padding:4px 0;margin-bottom:6px;cursor:pointer;
 }
 .btn-ai{
@@ -331,7 +331,7 @@ html[data-theme="dark"] .modal.main-menu-panel{
 /* ---------- Bannière Pro ---------- */
 .mp-promo{
   position:relative;overflow:hidden;border-radius:20px;padding:16px 18px;margin-bottom:14px;
-  background:#1a2436;
+  background:#12295f;
 }
 .mp-promo::after{
   content:"";position:absolute;right:-30px;top:-40px;width:130px;height:130px;border-radius:50%;

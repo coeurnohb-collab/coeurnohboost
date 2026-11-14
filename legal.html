@@ -20,8 +20,8 @@
 <meta property="og:image:alt" content="Coeurnoh Universe">
 <meta name="twitter:card" content="summary_large_image">
 <style>
-:root{--bg:#eef0f4;--card:#fff;--ink:#141a26;--muted:#5d6779;--line:#e2e6ee;--slate:#28374f;--amber:#f39c1f;--amber-d:#d9820a}
-@media (prefers-color-scheme:dark){:root{--bg:#0f1218;--card:#1b1f26;--ink:#eef1f5;--muted:#9aa3b2;--line:#2a2f38;--slate:#9db4d8}}
+:root{--bg:#eef0f4;--card:#fff;--ink:#141a26;--muted:#5d6779;--line:#e2e6ee;--slate:#1d4ed8;--link:#1d4ed8;--amber:#f39c1f;--amber-d:#d9820a}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1218;--card:#1b1f26;--ink:#eef1f5;--muted:#9aa3b2;--line:#2a2f38;--slate:#7ea5f7;--link:#7ea5f7}}
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
@@ -51,7 +51,8 @@ ul{padding-left:20px;margin:6px 0}
 details{border-top:1px solid var(--line);padding:12px 0}
 summary{cursor:pointer;font-weight:700;font-size:.95rem}
 details p{margin:8px 0 0;color:var(--muted)}
-a{color:var(--amber-d)}
+a{color:var(--link)}
+@media (prefers-color-scheme:dark){nav.tabs a.on{color:#0b1220}}
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:14px 0}
 .stat{background:var(--bg);border-radius:14px;padding:14px;text-align:center}
 .stat strong{display:block;font-size:1.4rem;color:var(--slate)}

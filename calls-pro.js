@@ -92,7 +92,7 @@
     '.cn-call-ov.live .cc-av:before,.cn-call-ov.live .cc-av:after{animation:none;display:none}',
     '.cn-call-ov .cc-nm{font-size:1.6rem;font-weight:800;letter-spacing:-.01em;text-shadow:0 2px 12px rgba(0,0,0,.4)}',
     '.cn-call-ov .cc-sub{font-size:1rem;opacity:.85;font-variant-numeric:tabular-nums}',
-    '.cn-call-ov .cc-kd{font-size:.8rem;opacity:.7;letter-spacing:.06em;text-transform:uppercase}',
+    '.cn-call-ov .cc-kd{font-size:.8rem;opacity:.7;letter-spacing:.06em;text-transform:none}',
     '.cn-call-ov.vid.live .cc-who{margin-top:calc(14px + env(safe-area-inset-top,0px));align-self:flex-start;flex-direction:row;gap:10px;text-align:left;padding:0 16px}',
     '.cn-call-ov.vid.live .cc-av{width:44px;height:44px;font-size:1.2rem}',
     '.cn-call-ov.vid.live .cc-nm{font-size:1.05rem}',

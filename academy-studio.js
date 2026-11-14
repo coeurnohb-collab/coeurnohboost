@@ -217,7 +217,7 @@
         if (!r.files.length) { listEl.innerHTML = '<p class="cnh-sub" style="margin:0 0 10px">' + esc(tx('dNone')) + '</p>'; return; }
         r.files.forEach(function (f) {
           var ext = (String(f.name).split('.').pop() || '').toLowerCase().slice(0, 4);
-          var col = { pdf: '#dc2626', doc: '#2563eb', docx: '#2563eb', xls: '#16a34a', xlsx: '#16a34a', ppt: '#ea580c', pptx: '#ea580c', zip: '#7c3aed', txt: '#64748b' }[ext] || '#475569';
+          var col = { pdf: '#dc2626', doc: '#1d4ed8', docx: '#1d4ed8', xls: '#16a34a', xlsx: '#16a34a', ppt: '#ea580c', pptx: '#ea580c', zip: '#7c3aed', txt: '#64748b' }[ext] || '#475569';
           var row = document.createElement('div'); row.className = 'cnh-doc';
           var ico = document.createElement('span'); ico.className = 'cnh-doc-i'; ico.style.background = col; ico.textContent = (ext || 'file').toUpperCase();
           var info = document.createElement('div'); info.className = 'cnh-grow';

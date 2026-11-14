@@ -6,7 +6,7 @@
    ========================================================= */
 :root{
   --ad-ink:#141a26; --ad-ink2:#454e60; --ad-mute:#5d6779; --ad-line:#d9dce1;
-  --ad-btn:#223350; --ad-btn-h:#16233a; --ad-accent:#1d4ed8; --ad-mark:#f39c1f;
+  --ad-btn:#1d4ed8; --ad-btn-h:#1741b8; --ad-accent:#1d4ed8; --ad-soft:#e8effb; --ad-act-line:#c3d3f3; --ad-mark:#f39c1f;
   --ad-glass:rgba(255,255,255,.80); --ad-glass-2:rgba(255,255,255,.92);
   --ad-edge:inset 0 1px 0 #fff, 0 1px 2px rgba(16,24,40,.05), 0 14px 28px -20px rgba(16,24,40,.30);
   --ad-title:'CN Serif',Georgia,'Times New Roman',serif;
@@ -42,21 +42,22 @@ body:has(#admin-panel){
   background:transparent; color:var(--ad-mute); border:1px solid var(--ad-line); border-radius:999px;
   font-family:var(--font); font-size:.68rem; font-weight:600; letter-spacing:0; text-transform:capitalize; padding:2px 9px; margin-left:8px;
 }
-.admin-nav-inner .btn-outline{ background:rgba(255,255,255,.7); color:var(--ad-ink); border:1px solid var(--ad-line); box-shadow:none; }
-.admin-nav-inner .btn-outline:hover{ background:#fff; border-color:var(--ad-line); }
+.admin-nav-inner .btn-outline{ background:rgba(255,255,255,.85); color:var(--ad-accent); border:1px solid var(--ad-act-line); box-shadow:none; }
+.admin-nav-inner .btn-outline:hover{ background:var(--ad-soft); border-color:var(--ad-accent); }
 
 /* ---------- barre du titre de page + bouton menu ---------- */
 .adm-topbar{ background:rgba(238,239,241,.90); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,.9); border-radius:14px; box-shadow:var(--ad-edge); padding:8px 10px; }
 .adm-topbar h1{ font-family:var(--ad-title); font-weight:600; font-size:1.4rem; letter-spacing:-.01em; color:var(--ad-ink); }
-.adm-burger{ background:var(--ad-glass-2); border:1px solid var(--ad-line); color:var(--ad-ink); border-radius:11px; box-shadow:none; }
+.adm-burger{ background:var(--ad-glass-2); border:1px solid var(--ad-act-line); color:var(--ad-accent); border-radius:11px; box-shadow:none; }
 .adm-burger svg{ flex:0 0 auto; }
 
 /* ---------- menu (tiroir sur téléphone, colonne sur ordinateur) ---------- */
 nav.admin-tabs{ background:var(--ad-glass-2); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); border-right:1px solid var(--ad-line); box-shadow:0 0 40px rgba(16,24,40,.22); }
 nav.admin-tabs button{ color:var(--ad-ink2); border-radius:11px; font-weight:550; }
-nav.admin-tabs button:hover{ background:rgba(34,51,80,.06); color:var(--ad-ink); }
+nav.admin-tabs button:hover{ background:var(--ad-soft); color:var(--ad-accent); }
 nav.admin-tabs button.active{ background:var(--ad-btn); color:#fff; box-shadow:none; }
-nav.admin-tabs button .adm-ic{ display:inline-flex; align-items:center; justify-content:center; width:24px; color:inherit; opacity:.9; }
+nav.admin-tabs button .adm-ic{ display:inline-flex; align-items:center; justify-content:center; width:24px; color:var(--ad-accent); opacity:1; }
+nav.admin-tabs button.active .adm-ic{ color:#fff; }
 nav.admin-tabs button .adm-ic .ico-i{ margin:0; }
 nav.admin-tabs button .adm-ic svg{ width:19px; height:19px; }
 .adm-group h6{ font-size:.74rem; font-weight:600; letter-spacing:0; text-transform:none; color:var(--ad-mute); margin:0 0 4px 12px; }
@@ -86,8 +87,8 @@ body.adm-menu-open .adm-backdrop{ background:rgba(20,26,38,.40); }
 /* ---------- boutons et champs ---------- */
 .admin-tab .btn-primary,.admin-row .btn-primary,.btn-primary.btn-sm{ background:var(--ad-btn); border:1px solid var(--ad-btn); color:#fff; box-shadow:none; }
 .admin-tab .btn-primary:hover,.admin-row .btn-primary:hover{ background:var(--ad-btn-h); }
-.admin-tab .btn-outline,.admin-row .btn-outline{ background:rgba(255,255,255,.85); border:1px solid var(--ad-line); color:var(--ad-ink); }
-.admin-tab .btn-outline:hover,.admin-row .btn-outline:hover{ background:#fff; border-color:#b9c1cf; }
+.admin-tab .btn-outline,.admin-row .btn-outline{ background:rgba(255,255,255,.9); border:1px solid var(--ad-act-line); color:var(--ad-accent); }
+.admin-tab .btn-outline:hover,.admin-row .btn-outline:hover{ background:var(--ad-soft); border-color:var(--ad-accent); }
 .admin-row-actions .btn .ico-i,.adm-clean .btn .ico-i{ margin-right:.4em; }
 .admin-row-actions{ border-top:1px solid rgba(20,26,38,.07); }
 .admin-tab input[type=text],.admin-tab input[type=number],.admin-tab input[type=search],.admin-tab input[type=url],.admin-tab input[type=email],.admin-tab select,.admin-tab textarea,.am-filter{
@@ -105,7 +106,7 @@ body.adm-menu-open .adm-backdrop{ background:rgba(20,26,38,.40); }
 .adm-sum{ font-size:.8rem; color:var(--ad-mute); margin:2px 2px 4px; }
 .adm-user .admin-row-top{ align-items:center; gap:12px; }
 .adm-av{
-  flex:0 0 auto; width:42px; height:42px; border-radius:50%; background:#e4e8f0; color:var(--ad-btn);
+  flex:0 0 auto; width:42px; height:42px; border-radius:50%; background:var(--ad-soft); color:var(--ad-btn);
   display:flex; align-items:center; justify-content:center; font-family:var(--ad-title); font-weight:600; font-size:1.1rem;
   border:1px solid #fff; box-shadow:0 1px 2px rgba(16,24,40,.08);
 }
@@ -138,3 +139,10 @@ body.adm-menu-open .adm-backdrop{ background:rgba(20,26,38,.40); }
   .adm-user .admin-row-top{ align-items:flex-start; }
   .admin-nav-inner .logo{ font-size:1.05rem; }
 }
+
+/* ---------- Lot 31 : tout ce qui se touche est bleu ---------- */
+.admin-tab select,.am-filter,.admin-tab .btn-outline svg,.admin-row .btn-outline svg{ color:var(--ad-accent); }
+.admin-tab .btn-outline .ico-i,.admin-row .btn-outline .ico-i{ color:currentColor; }
+.admin-tab input[type=checkbox],.admin-tab input[type=radio]{ accent-color:var(--ad-accent); }
+.admin-lock{ background:var(--ad-soft); }
+.admin-login-box .btn-primary:hover{ background:var(--ad-btn-h); }

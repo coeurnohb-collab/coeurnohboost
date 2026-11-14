@@ -3236,7 +3236,7 @@ function cnLoadGuide(ok, ko) {
   let sc = document.querySelector('script[data-cn-guide]');
   if (!sc) {
     sc = document.createElement('script');
-    sc.src = 'guide-pro.js?v=20261110'; sc.async = true; sc.setAttribute('data-cn-guide', '1');
+    sc.src = 'guide-pro.js?v=20261114'; sc.async = true; sc.setAttribute('data-cn-guide', '1');
     sc.onerror = () => { if (sc.parentNode) sc.parentNode.removeChild(sc); if (ko) ko(); };
     document.head.appendChild(sc);
   }
@@ -3821,7 +3821,7 @@ function renderPostCard(item, isLiked, isSaved, hideFollowBtn) {
       <button class="post-more-btn" onclick="openPostOptionsMenu('${item.id}',true)" title="Options" aria-label="Options de la publication">${ICON_DOTS}</button>
       ` : ''}
     </div>
-    ${item.mediaType === 'text' && item.textBg && item.description ? `<div class="text-post-box ${textLenClass(item.description)}" style="background:${textBgCss(item.textBg) || '#1a2436'};font-family:${textFontCss(item.textFont)}">${escapeHtml(item.description)}</div>` : (item.description ? `<p class="post-caption">${escapeHtml(item.description)}</p>` : '')}
+    ${item.mediaType === 'text' && item.textBg && item.description ? `<div class="text-post-box ${textLenClass(item.description)}" style="background:${textBgCss(item.textBg) || '#12295f'};font-family:${textFontCss(item.textFont)}">${escapeHtml(item.description)}</div>` : (item.description ? `<p class="post-caption">${escapeHtml(item.description)}</p>` : '')}
     ${mediaHtml}
     <div class="post-actions">
       <button class="shop-action-btn ${isLiked ? 'liked' : ''}" data-like-btn="${item.id}" onclick="toggleShopLike('${item.id}')"
@@ -4125,7 +4125,7 @@ const TEXT_BG_PRESETS = [
   { id: 'p2', css: '#0b6e99' },
   { id: 'p3', css: '#b4501d' },
   { id: 'p4', css: '#11695f' },
-  { id: 'p5', css: '#1a2436' },
+  { id: 'p5', css: '#12295f' },
   { id: 'p6', css: '#a3324f' },
   { id: 'p7', css: '#3b4296' },
   { id: 'p8', css: '#d7263d' },
@@ -7421,7 +7421,7 @@ function printInvoice(invoiceId) {
     <div style="max-width:700px;margin:0 auto;font-family:Arial,sans-serif;color:#161a1f">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px">
         <div>
-          <h1 style="font-size:1.4rem;margin:0 0 4px;color:#28374f">CoeurNoh Business</h1>
+          <h1 style="font-size:1.4rem;margin:0 0 4px;color:#12295f">CoeurNoh Business</h1>
           <p style="margin:0;font-size:0.85rem;color:#5b6472">${t('invoice_card_title_prefix')} ${escapeHtml(inv.number || '')}</p>
         </div>
         <div style="text-align:right;font-size:0.85rem;color:#5b6472">${escapeHtml(dateLabel)}</div>
@@ -13237,7 +13237,7 @@ function planSheetCss() {
     '.pl-foot{flex:none;padding:12px 16px calc(14px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);background:var(--white)}' +
     '@media (min-width:600px){.pl-ov{align-items:center}.pl-sheet{border-radius:20px}}' +
     '.pl-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}' +
-    '.pl-eyebrow{display:block;font-size:.74rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-bottom:3px}' +
+    '.pl-eyebrow{display:block;font-size:.74rem;font-weight:700;letter-spacing:.04em;text-transform:none;color:var(--muted);margin-bottom:3px}' +
     '.pl-head h3{margin:0;font-size:1.2rem;line-height:1.25}' +
     '.pl-head p{margin:4px 0 0;font-size:.88rem;line-height:1.45;color:var(--muted)}' +
     '.pl-x{flex:none;width:40px;height:40px;border-radius:12px;border:1px solid var(--line);background:var(--white);color:var(--ink);display:inline-flex;align-items:center;justify-content:center;cursor:pointer}' +
@@ -16318,7 +16318,7 @@ async function renderSiteHelp() {
   const when = (iso) => { try { return new Date(iso).toLocaleString(currentLang, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); } catch (e) { return ''; } };
   const bubbles = (th.messages || []).map(m => {
     const me = m.from === 'owner';
-    return `<div style="max-width:88%;margin:0 0 8px ${me ? 'auto' : '0'};padding:10px 12px;border-radius:14px;background:${me ? 'var(--brand,#1d4f91)' : 'var(--card,#fff)'};color:${me ? '#fff' : 'inherit'};border:1px solid rgba(128,128,128,.25);white-space:pre-wrap;word-break:break-word"><small style="display:block;opacity:.7;font-weight:700;font-size:.7rem">${escapeHtml(me ? sxT('you') : sxT('team'))} · ${escapeHtml(when(m.at))}</small>${escapeHtml(m.text || '')}</div>`;
+    return `<div style="max-width:88%;margin:0 0 8px ${me ? 'auto' : '0'};padding:10px 12px;border-radius:14px;background:${me ? 'var(--brand,#1d4ed8)' : 'var(--card,#fff)'};color:${me ? '#fff' : 'inherit'};border:1px solid rgba(128,128,128,.25);white-space:pre-wrap;word-break:break-word"><small style="display:block;opacity:.7;font-weight:700;font-size:.7rem">${escapeHtml(me ? sxT('you') : sxT('team'))} · ${escapeHtml(when(m.at))}</small>${escapeHtml(m.text || '')}</div>`;
   }).join('');
   const cats = ['modification', 'domaine', 'paiement', 'bug', 'autre'].map(k => `<option value="${k}">${escapeHtml(sxT('cat')[k])}</option>`).join('');
   body.innerHTML = `<p class="sbx-hint" style="margin:0 0 10px">${escapeHtml(sxT('h_intro'))}</p>

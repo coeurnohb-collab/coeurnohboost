@@ -14,7 +14,7 @@
     function usd2(n) { return (Number(n) || 0).toFixed(2) + ' $'; }
     var KIND = { plan: 'Parcours', lesson: 'Leçons', tutor: 'Tuteur', other: 'Autre' };
     var st = document.createElement('style');
-    st.textContent = '.sp-g{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}.sp-g div{background:#f3f5f9;border-radius:12px;padding:10px;text-align:center}.sp-g b{display:block;font-size:1.05rem}.sp-g small{font-size:.64rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:#5d6779}' +
+    st.textContent = '.sp-g{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}.sp-g div{background:#f3f5f9;border-radius:12px;padding:10px;text-align:center}.sp-g b{display:block;font-size:1.05rem}.sp-g small{font-size:.64rem;font-weight:800;text-transform:none;letter-spacing:.05em;color:#5d6779}' +
       '.sp-meter{height:10px;border-radius:6px;background:#e3e8f0;overflow:hidden;margin:6px 0 2px}.sp-meter i{display:block;height:100%;background:#1b4fd8}.sp-meter i.w{background:#e8890c}.sp-meter i.x{background:#d7263d}' +
       '.sp-bars{display:flex;align-items:flex-end;gap:4px;height:90px;margin:10px 0 2px}.sp-bars span{flex:1;background:#1b4fd8;border-radius:3px 3px 0 0;min-height:2px}.sp-lab{display:flex;justify-content:space-between;font-size:.66rem;color:#5d6779}' +
       '.sp-row{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid #e3e8f0;font-size:.88rem}.sp-state{border-radius:12px;padding:10px 12px;font-weight:700;margin-bottom:10px}.sp-state.on{background:#e3f6ec;color:#0b5c3d}.sp-state.off{background:#fde5e8;color:#8c1223}';

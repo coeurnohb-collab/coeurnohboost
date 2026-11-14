@@ -2180,9 +2180,9 @@ var MOCKUP_AI_ENABLED = false;
     document.head.appendChild(s);
   }
   function loadAuthGuard() {
-    loadHelper('auth-guard.js?v=20261111', 'data-cn-ag');   // connexion plus stable
+    loadHelper('auth-guard.js?v=20261114', 'data-cn-ag');   // connexion plus stable
     loadHelper('login-pro.js?v=20261107', 'data-cn-lp');   // Apple, numéro de téléphone (SMS), Facebook, Microsoft
-    loadHelper('messaging-pro.js?v=20261110', 'data-cn-ms');   // messagerie privée en temps réel (chargée à part : jamais bloquante)
+    loadHelper('messaging-pro.js?v=20261114', 'data-cn-ms');   // messagerie privée en temps réel (chargée à part : jamais bloquante)
   }
   function promptLoginForLink() {
     var note = pending ? 'Connecte-toi pour voir la position partagée avec toi.' : 'Connecte-toi pour ouvrir ce contenu.';

@@ -88,7 +88,7 @@
         '<p class="muted small" style="margin:0 0 10px">' + (j.slug ? '<a target="_blank" rel="noopener" href="/s/' + esc(j.slug) + '">Ouvrir le site</a> · ' : '') + esc(ST[j.status] || j.status) + '</p>' +
         '<div style="margin-bottom:12px">' + j.messages.map(function (m) {
           var me = m.from === 'admin';
-          return '<div style="max-width:90%;margin:0 0 8px ' + (me ? 'auto' : '0') + ';padding:10px 12px;border-radius:12px;background:' + (me ? '#1d4f91' : 'rgba(128,128,128,.14)') + ';color:' + (me ? '#fff' : 'inherit') + ';white-space:pre-wrap;word-break:break-word"><small style="display:block;opacity:.75;font-weight:700;font-size:.7rem">' + (me ? 'Toi' : 'Propriétaire' + (m.category ? ' · ' + esc(m.category) : '')) + ' · ' + esc(when(m.at)) + '</small>' + esc(m.text) + '</div>';
+          return '<div style="max-width:90%;margin:0 0 8px ' + (me ? 'auto' : '0') + ';padding:10px 12px;border-radius:12px;background:' + (me ? '#1d4ed8' : 'rgba(128,128,128,.14)') + ';color:' + (me ? '#fff' : 'inherit') + ';white-space:pre-wrap;word-break:break-word"><small style="display:block;opacity:.75;font-weight:700;font-size:.7rem">' + (me ? 'Toi' : 'Propriétaire' + (m.category ? ' · ' + esc(m.category) : '')) + ' · ' + esc(when(m.at)) + '</small>' + esc(m.text) + '</div>';
         }).join('') + '</div>' +
         '<textarea id="sh-txt" class="text-input" rows="4" maxlength="1000" placeholder="Ta réponse…" style="width:100%"></textarea>' +
         '<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"><button class="btn btn-primary btn-sm" id="sh-send">Répondre</button><button class="btn btn-outline btn-sm" id="sh-close">Répondre et marquer résolu</button></div><div id="sh-msg" class="muted small" style="margin-top:6px"></div>';

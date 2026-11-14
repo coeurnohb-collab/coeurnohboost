@@ -95,10 +95,10 @@ html[data-theme="dark"] #cn-welcome .cw { background: #1f242d; color: #f2f4f8; }
 #cn-welcome h2 { margin: 0; font-size: 1.25rem; line-height: 1.2; }
 #cn-welcome ul { list-style: none; margin: 12px 0 18px; padding: 0; display: grid; gap: 10px; }
 #cn-welcome li { display: flex; gap: 12px; align-items: center; font-size: .92rem; line-height: 1.35; }
-#cn-welcome li i { font-style: normal; width: 34px; height: 34px; border-radius: 11px; display: flex; align-items: center; justify-content: center; background: rgba(243,156,31,.16); flex: 0 0 auto; font-size: 1.05rem; }
+#cn-welcome li i { font-style: normal; width: 34px; height: 34px; border-radius: 11px; display: flex; align-items: center; justify-content: center; background: rgba(29,78,216,.12); flex: 0 0 auto; font-size: 1.05rem; }
 #cn-welcome .cw-acts { display: grid; gap: 8px; }
 #cn-welcome .cw-acts button { font: inherit; font-weight: 800; border: 0; border-radius: 14px; padding: 14px; cursor: pointer; }
-#cn-welcome .cw-go { background: var(--green, #28374f); color: #fff; box-shadow: 0 10px 24px rgba(40,55,79,.28); }
+#cn-welcome .cw-go { background: var(--green, #28374f); color: #fff; box-shadow: 0 10px 24px rgba(29,78,216,.30); }
 #cn-welcome .cw-later { background: transparent; color: var(--muted, #5d6779); }
 
 /* ---------- 9. Images en échec : jamais d'icône « cassée » ---------- */
@@ -142,7 +142,7 @@ textarea.text-input { min-height: 0; }
 .modal-close { top: 12px; left: 12px; width: 34px; height: 34px; min-width: 34px; min-height: 34px; box-shadow: none; }
 .modal-close::before { width: 17px; height: 17px; }
 .modal h3 { font-size: 1.05rem; }
-.modal h4 { font-size: .85rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 800; }
+.modal h4 { font-size: .85rem; text-transform:none; letter-spacing: .06em; color: var(--muted); font-weight: 800; }
 .muted.small, .small { font-size: .78rem; }
 .invoice-row-remove { width: 34px; height: 34px; min-width: 34px; font-size: 1rem; border-radius: 10px; }
 .file-picker-btn { font-size: .82rem; padding: 9px 12px; border-radius: 11px; }
@@ -156,7 +156,7 @@ textarea.text-input { min-height: 0; }
 /* ---------- 16. Coque de l'app : navigation du bas et cartes (v-pro22) ---------- */
 .bottom-nav { background: color-mix(in srgb, var(--white) 92%, transparent); backdrop-filter: saturate(160%) blur(14px); -webkit-backdrop-filter: saturate(160%) blur(14px); border-top: 1px solid var(--line); padding-top: 6px; box-shadow: 0 -6px 24px rgba(15, 23, 42, .05); }
 .bnav-btn { font-size: .62rem; gap: 3px; position: relative; transition: color .15s ease; }
-.bnav-btn.active::before { content: ""; position: absolute; top: -7px; left: 50%; width: 22px; height: 3px; margin-left: -11px; border-radius: 0 0 3px 3px; background: var(--accent, #f39c1f); }
+.bnav-btn.active::before { content: ""; position: absolute; top: -7px; left: 50%; width: 22px; height: 3px; margin-left: -11px; border-radius: 0 0 3px 3px; background: var(--act, #1d4ed8); }
 .bnav-btn.active { font-weight: 800; }
 .card, .post-card, .shop-card, .op-card, .pack-card, .quick-link { border-radius: 14px; }
 .card { box-shadow: 0 1px 2px rgba(15, 23, 42, .04), 0 6px 18px -10px rgba(15, 23, 42, .12); }

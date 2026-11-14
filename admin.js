@@ -2800,7 +2800,7 @@ function adminGrant(target, id) {
   m.innerHTML = `<div style="background:#fff;color:#111827;width:100%;max-width:520px;border-radius:18px 18px 0 0;padding:20px 18px 24px;max-height:92vh;overflow:auto;font-family:inherit">
     <div style="font-weight:800;font-size:17px;margin-bottom:4px">${isSite ? 'Offrir Premium' : 'Offrir Pro'}</div>
     <div style="font-size:13px;color:#6b7280;margin-bottom:14px">Choisissez ce que vous offrez, puis la durée.</div>
-    <label style="display:flex;gap:10px;align-items:center;padding:12px;border:1.5px solid #2563eb;border-radius:12px;margin-bottom:8px;cursor:pointer">
+    <label style="display:flex;gap:10px;align-items:center;padding:12px;border:1.5px solid #1d4ed8;border-radius:12px;margin-bottom:8px;cursor:pointer">
       <input type="radio" name="ag-mode" value="all" checked> <span><b>Tout offrir en Pro</b><br><small style="color:#6b7280">Toutes les fonctions Pro sont débloquées</small></span></label>
     <label style="display:flex;gap:10px;align-items:center;padding:12px;border:1.5px solid #d1d5db;border-radius:12px;margin-bottom:10px;cursor:pointer">
       <input type="radio" name="ag-mode" value="pick"> <span><b>Choisir les services à offrir</b><br><small style="color:#6b7280">Seulement ceux que vous cochez</small></span></label>
