@@ -116,7 +116,7 @@
 
   /* ---------------------------------------------------------------- petits outils */
   var PAGE = 50, ONLINE_MS = 5 * 60 * 1000, CLOUD = 'https://res.cloudinary.com/aqe4fxh4/';
-  var CALLS_SRC = 'calls-pro.js?v=20261116';
+  var CALLS_SRC = 'calls-pro.js?v=20261118';
   var BAD_EXT = /\.(exe|apk|bat|cmd|msi|scr|vbs|jar|sh|com|pif|dll|app|dmg|js|ps1)$/i;
   var EMOJIS = '😀 😂 🤣 😊 😍 😘 😎 🤩 🥰 😉 😇 🙂 🙃 😅 😭 😢 😡 😱 🤔 🙄 😴 🤗 😏 😬 🥳 😋 😜 🤭 😌 😔 👍 👎 👏 🙏 💪 👌 ✌️ 🤝 🙌 👋 🤞 ❤️ 🧡 💛 💚 💙 💜 🖤 💔 💕 💯 🔥 ✨ 🎉 🎁 🌹 ☀️ ⭐ ✅ ❌ 💰 📞 📷 🎵 🍕 ☕ 🚀'.split(' ');
   var REACTS = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
@@ -231,7 +231,7 @@
     '.cn-empty svg{opacity:.55;margin-bottom:8px}',
     '.cn-empty h3{color:var(--ink,#141a26);margin:6px 0}',
     '.cn-empty p{font-size:.92rem;line-height:1.5;margin:0 auto 16px;max-width:320px}',
-    '.cn-btn{border:0;border-radius:999px;padding:11px 20px;font:inherit;font-weight:700;font-size:.92rem;background:var(--green,#28374f);color:#fff;cursor:pointer}',
+    '.cn-btn{border:0;border-radius:999px;padding:11px 20px;font:inherit;font-weight:700;font-size:.92rem;background:var(--action,#1d4f91);color:#fff;cursor:pointer}',
     /* chat plein écran */
     '.cn-chat{position:fixed;left:0;right:0;top:0;height:100%;z-index:1500;background:var(--bg,#eef0f4);color:var(--ink,#141a26);display:flex;flex-direction:column;overscroll-behavior:contain}',
     '.cn-ch-h{display:flex;align-items:center;gap:6px;padding:8px 6px 8px 2px;padding-top:calc(8px + env(safe-area-inset-top,0px));background:var(--white,#fff);border-bottom:1px solid var(--line,#e2e6ee);flex:0 0 auto;box-shadow:0 2px 12px rgba(20,38,63,.05)}',

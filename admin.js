@@ -1114,12 +1114,19 @@ async function loadUsersAdmin() {
     el.innerHTML = `<p class="admin-empty">Erreur : ${escapeHtml(e.message)}</p>`;
   }
 }
+// Achats « de son propre produit » (argent créé à tort avant le correctif) : texte lisible pour l'alerte du contrôle.
+function selfDealsText(sd) {
+  if (!sd) return '\n\nAchats de son propre produit : contrôle indisponible pour le moment.';
+  if (!sd.count) return '\n\nAchats de son propre produit : aucun trouvé' + (sd.partial ? ' (parmi les 1000 plus récents examinés).' : '.');
+  return '\n\nATTENTION : ' + sd.count + ' achat(s) de son propre produit trouvé(s), environ ' + Number(sd.total).toFixed(2) + ' $ créés à tort' + (sd.partial ? ' (liste partielle)' : '') + ' :\n' +
+    (sd.items || []).slice(0, 10).map((x) => '- ' + x.kind + ' « ' + (x.title || '?') + ' », ' + Number(x.amount).toFixed(2) + ' $, compte ' + x.uid).join('\n');
+}
 async function runBalanceGuardNow(btn) {
   if (btn) { btn.disabled = true; btn.textContent = 'Contrôle en cours…'; }
   try {
     const j = await saspayAdminCall({ action: 'balance_guard' });
     const r = j.result || {};
-    alert('Contrôle terminé : ' + (r.withBalance || 0) + ' compte(s) avec un solde examiné(s), ' + (r.mismatch || 0) + ' écart(s), ' + (r.noLedger || 0) + ' sans mouvement.' + (r.wrapped ? '' : '\nTouche encore « Contrôler maintenant » pour examiner la suite des comptes.'));
+    alert('Contrôle terminé : ' + (r.withBalance || 0) + ' compte(s) avec un solde examiné(s), ' + (r.mismatch || 0) + ' écart(s), ' + (r.noLedger || 0) + ' sans mouvement.' + (r.wrapped ? '' : '\nTouche encore « Contrôler maintenant » pour examiner la suite des comptes.') + selfDealsText(r.selfDeals));
   } catch (e) { alert('Erreur : ' + e.message); }
   loadUsersAdmin();
 }

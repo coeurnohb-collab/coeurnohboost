@@ -834,7 +834,7 @@ async function loadWalletHistory() {
               <div class="muted small">${escapeHtml(dateStr)}</div>
             </div>
           </div>
-          <strong style="white-space:nowrap;color:${isCredit ? 'var(--green)' : 'var(--red-text)'}">${isCredit ? '+' : ''}${(t.amount || 0).toFixed(2)}$</strong>
+          <strong style="white-space:nowrap;color:${isCredit ? 'var(--tint-green-ink)' : 'var(--red-text)'}">${isCredit ? '+' : ''}${(t.amount || 0).toFixed(2)}$</strong>
         </div>`;
     }).join('');
   } catch (e) {
@@ -1429,7 +1429,7 @@ async function submitOrder() {
 }
 
 const ORDER_STATUS_UI = {
-  pending: ['En attente', '#92400e', '#fef3c7'], processing: ['En cours', '#1e40af', '#dbeafe'], completed: ['Terminé', '#166534', '#dcfce7'],
+  pending: ['En attente', '#92400e', '#fef3c7'], processing: ['En cours', '#28374f', '#eef1f6'], completed: ['Terminé', '#166534', '#dcfce7'],
   partial: ['Partiel', '#92400e', '#fef3c7'], refunded: ['Remboursé', '#374151', '#e5e7eb'], canceled: ['Annulé', '#374151', '#e5e7eb'],
   pending_review: ['En vérification', '#92400e', '#fef3c7']
 };
@@ -2696,7 +2696,7 @@ async function saveAccountEmail() {
     currentUser.email = newEmail;
     document.getElementById('profile-email').textContent = newEmail;
     document.getElementById('account-email-currentpass').value = '';
-    msgEl.style.color = 'var(--green)';
+    msgEl.style.color = 'var(--tint-green-ink)';
     msgEl.textContent = 'E-mail mis à jour avec succès.';
   } catch (e) {
     msgEl.textContent = friendlyAuthError(e);
@@ -2722,7 +2722,7 @@ async function saveAccountPassword() {
     await auth.currentUser.updatePassword(newPassword);
     document.getElementById('account-pass-current').value = '';
     document.getElementById('account-pass-new').value = '';
-    msgEl.style.color = 'var(--green)';
+    msgEl.style.color = 'var(--tint-green-ink)';
     msgEl.textContent = 'Mot de passe changé avec succès.';
   } catch (e) {
     msgEl.textContent = friendlyAuthError(e);
@@ -3246,7 +3246,7 @@ function cnLoadGuide(ok, ko) {
   let sc = document.querySelector('script[data-cn-guide]');
   if (!sc) {
     sc = document.createElement('script');
-    sc.src = 'guide-pro.js?v=20261116'; sc.async = true; sc.setAttribute('data-cn-guide', '1');
+    sc.src = 'guide-pro.js?v=20261118'; sc.async = true; sc.setAttribute('data-cn-guide', '1');
     sc.onerror = () => { if (sc.parentNode) sc.parentNode.removeChild(sc); if (ko) ko(); };
     document.head.appendChild(sc);
   }
@@ -3387,7 +3387,7 @@ async function checkoutCart() {
     currentUser.balance = data.newBalance;
     cartItems = [];
     saveCart();
-    document.getElementById('cart-items-list').innerHTML = `<p style="text-align:center;color:var(--green);font-weight:700">Achat confirmé ! Contacte les vendeurs via WhatsApp sur chaque article pour la livraison.</p>`;
+    document.getElementById('cart-items-list').innerHTML = `<p style="text-align:center;color:var(--tint-green-ink);font-weight:700">Achat confirmé ! Contacte les vendeurs via WhatsApp sur chaque article pour la livraison.</p>`;
     document.getElementById('cart-summary').innerHTML = '';
     renderShopFeed();
   } catch (e) {
@@ -6389,7 +6389,7 @@ async function openProfileModal(sellerUid, sellerName, sellerVerified) {
         const lastActive = new Date(presenceDoc.data().lastActiveAt);
         const minutesAgo = (Date.now() - lastActive.getTime()) / 60000;
         if (minutesAgo < 5) {
-          onlineStatusHtml = `<p class="muted small" style="color:var(--green)"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);margin-right:5px"></span>En ligne</p>`;
+          onlineStatusHtml = `<p class="muted small" style="color:var(--tint-green-ink)"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--tint-green-ink);margin-right:5px"></span>En ligne</p>`;
         } else {
           onlineStatusHtml = `<p class="muted small">Vu ${timeAgo(presenceDoc.data().lastActiveAt)}</p>`;
         }
@@ -7431,7 +7431,7 @@ function printInvoice(invoiceId) {
     <div style="max-width:700px;margin:0 auto;font-family:Arial,sans-serif;color:#161a1f">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px">
         <div>
-          <h1 style="font-size:1.4rem;margin:0 0 4px;color:#12295f">CoeurNoh Business</h1>
+          <h1 style="font-size:1.4rem;margin:0 0 4px;color:#1a2436">CoeurNoh Business</h1>
           <p style="margin:0;font-size:0.85rem;color:#5b6472">${t('invoice_card_title_prefix')} ${escapeHtml(inv.number || '')}</p>
         </div>
         <div style="text-align:right;font-size:0.85rem;color:#5b6472">${escapeHtml(dateLabel)}</div>
@@ -13046,7 +13046,7 @@ const TR_T = {
 function trT(k) { const d = TR_T[currentLang] || TR_T.en; return d[k] != null ? d[k] : TR_T.en[k]; }
 function cnLoadSiteTransfer(ok, ko) {
   // Fichier site-give.js (nom unique : aucune confusion possible avec le fichier serveur api/_lib/site-transfer.js).
-  cnLazyModule('data-cn-xfer', 'site-give.js?v=20261116', () => !!window.CNSiteTransfer, ok, ko);
+  cnLazyModule('data-cn-xfer', 'site-give.js?v=20261118', () => !!window.CNSiteTransfer, ok, ko);
 }
 function openSiteTransfer(mode, code) {
   if (!currentUser) { openAuth('register'); return; }
@@ -16352,7 +16352,7 @@ async function renderSiteHelp() {
   const when = (iso) => { try { return new Date(iso).toLocaleString(currentLang, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); } catch (e) { return ''; } };
   const bubbles = (th.messages || []).map(m => {
     const me = m.from === 'owner';
-    return `<div style="max-width:88%;margin:0 0 8px ${me ? 'auto' : '0'};padding:10px 12px;border-radius:14px;background:${me ? 'var(--brand,#1d4ed8)' : 'var(--card,#fff)'};color:${me ? '#fff' : 'inherit'};border:1px solid rgba(128,128,128,.25);white-space:pre-wrap;word-break:break-word"><small style="display:block;opacity:.7;font-weight:700;font-size:.7rem">${escapeHtml(me ? sxT('you') : sxT('team'))} · ${escapeHtml(when(m.at))}</small>${escapeHtml(m.text || '')}</div>`;
+    return `<div style="max-width:88%;margin:0 0 8px ${me ? 'auto' : '0'};padding:10px 12px;border-radius:14px;background:${me ? 'var(--btn,#28374f)' : 'var(--card,#fff)'};color:${me ? '#fff' : 'inherit'};border:1px solid rgba(128,128,128,.25);white-space:pre-wrap;word-break:break-word"><small style="display:block;opacity:.7;font-weight:700;font-size:.7rem">${escapeHtml(me ? sxT('you') : sxT('team'))} · ${escapeHtml(when(m.at))}</small>${escapeHtml(m.text || '')}</div>`;
   }).join('');
   const cats = ['modification', 'domaine', 'paiement', 'bug', 'autre'].map(k => `<option value="${k}">${escapeHtml(sxT('cat')[k])}</option>`).join('');
   body.innerHTML = `<p class="sbx-hint" style="margin:0 0 10px">${escapeHtml(sxT('h_intro'))}</p>
@@ -17958,7 +17958,7 @@ function buyShopItem(pubId, title, price, itemType) {
         <div class="modal-error hidden" id="shop-checkout-error"></div>
         <div class="hidden" id="shop-checkout-success">
           <div class="tutorial-emoji"><svg class="ico" aria-hidden="true"><use href="#i-check"/></svg></div>
-          <p class="sub" style="text-align:center;font-weight:700;color:var(--green)">Achat confirmé !</p>
+          <p class="sub" style="text-align:center;font-weight:700;color:var(--tint-green-ink)">Achat confirmé !</p>
           <div id="shop-checkout-download"></div>
         </div>
         <button class="btn btn-primary" style="width:100%;margin-top:14px" id="shop-checkout-submit" onclick="confirmShopPurchase('${pubId}','${escapeForJs(title)}',${price},'${escapeForJs(itemType)}')">Confirmer l'achat (${price.toFixed(2)}$)</button>
