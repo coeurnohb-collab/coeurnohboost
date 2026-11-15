@@ -21,7 +21,7 @@
   /* ---------- Petit moteur de personnages (style aplat, sans visage) ---------- */
   function line(x1, y1, x2, y2, c, w) { return '<path d="M' + x1 + ' ' + y1 + 'L' + x2 + ' ' + y2 + '" stroke="' + c + '" stroke-width="' + w + '" stroke-linecap="round" fill="none"/>'; }
   function person(o) {
-    var s = o.s || 1, skin = o.skin || '#c68a5e', top = o.top || '#1d4ed8', bot = o.bot || '#1f2937', shoe = o.shoe || '#111827';
+    var s = o.s || 1, skin = o.skin || '#c68a5e', top = o.top || '#1d4f91', bot = o.bot || '#1f2937', shoe = o.shoe || '#111827';
     var la = o.la || [-9, 24], ra = o.ra || [9, 24], ll = o.ll || [-1, 0], rl = o.rl || [1, 0], hair = o.hair || '#1b1b1b';
     var g = '<g transform="translate(' + o.x + ' ' + o.y + ') scale(' + s + ')">';
     // jambes
@@ -52,9 +52,9 @@
   var SCENES = {
     languages: function () {
       return frame('#e6eefb', '', '<circle cx="270" cy="45" r="48" fill="#d3e0f6"/><circle cx="48" cy="150" r="34" fill="#d3e0f6"/>' + floor('#c9d9f2') +
-        '<rect x="48" y="38" width="86" height="40" rx="14" fill="#fff"/><path d="M92 78l8 12 6-12z" fill="#fff"/>' + txt(91, 64, 'Hello', 18, '#1d4ed8') +
-        '<rect x="186" y="26" width="92" height="40" rx="14" fill="#1d4ed8"/><path d="M226 66l-4 12 12-12z" fill="#1d4ed8"/>' + txt(232, 52, 'Bonjour', 17, '#fff') +
-        person({ x: 100, y: 170, skin: '#8a5a3c', top: '#1d4ed8', bot: '#334155', hair: '#111', hairStyle: 'afro', ra: [16, -6] }) +
+        '<rect x="48" y="38" width="86" height="40" rx="14" fill="#fff"/><path d="M92 78l8 12 6-12z" fill="#fff"/>' + txt(91, 64, 'Hello', 18, '#1d4f91') +
+        '<rect x="186" y="26" width="92" height="40" rx="14" fill="#1d4f91"/><path d="M226 66l-4 12 12-12z" fill="#1d4f91"/>' + txt(232, 52, 'Bonjour', 17, '#fff') +
+        person({ x: 100, y: 170, skin: '#8a5a3c', top: '#1d4f91', bot: '#334155', hair: '#111', hairStyle: 'afro', ra: [16, -6] }) +
         person({ x: 225, y: 170, skin: '#e2b48f', top: '#c2410c', bot: '#1f2937', hair: '#5b3a1e', hairStyle: 'long', la: [-16, -6] }));
     },
     tech: function () {
@@ -108,7 +108,7 @@
     },
     sport: function () {
       return frame('#e5f1e4', '', '<circle cx="278" cy="40" r="26" fill="#fde68a"/><rect x="0" y="150" width="320" height="50" fill="#5fae62"/><path d="M0 170h320" stroke="#7cc47e" stroke-width="3"/><path d="M0 160h320" stroke="#4f9c53" stroke-width="2" opacity=".6"/>' +
-        person({ x: 92, y: 172, skin: '#7a4a2e', top: '#facc15', bot: '#1d4ed8', hair: '#0f0f0f', hairStyle: 'short', rl: [34, -14], la: [-22, 10], ra: [20, 18] }) +
+        person({ x: 92, y: 172, skin: '#7a4a2e', top: '#facc15', bot: '#1d4f91', hair: '#0f0f0f', hairStyle: 'short', rl: [34, -14], la: [-22, 10], ra: [20, 18] }) +
         '<g transform="translate(146 150)"><circle r="9" fill="#fff" stroke="#1f2937" stroke-width="2"/><path d="M0-4l4 3-1.500 5h-5L-4-1z" fill="#1f2937"/></g>' +
         person({ x: 240, y: 172, skin: '#d9a47c', top: '#ffffff', topStroke: '#cbd5e1', bot: '#ffffff', hair: '#1b1b1b', hairStyle: 'short', beltY: -36, belt: '#111827', ll: [-16, 0], rl: [18, 0], la: [-6, 8], ra: [38, -4], shoe: '#e5e7eb' }));
     },
@@ -144,7 +144,7 @@
   };
   // Tout identifiant inconnu : scène neutre (livre ouvert)
   SCENES._default = function () {
-    return frame('#e6eefb', '', '<circle cx="160" cy="100" r="70" fill="#d3e0f6"/><path d="M160 140c-24-14-60-14-84 0V66c24-14 60-14 84 0 24-14 60-14 84 0v74c-24-14-60-14-84 0z" fill="#fff" stroke="#1d4ed8" stroke-width="4" stroke-linejoin="round"/><path d="M160 66v74" stroke="#1d4ed8" stroke-width="4"/>');
+    return frame('#e6eefb', '', '<circle cx="160" cy="100" r="70" fill="#d3e0f6"/><path d="M160 140c-24-14-60-14-84 0V66c24-14 60-14 84 0 24-14 60-14 84 0v74c-24-14-60-14-84 0z" fill="#fff" stroke="#1d4f91" stroke-width="4" stroke-linejoin="round"/><path d="M160 66v74" stroke="#1d4f91" stroke-width="4"/>');
   };
 
   function scene(id) { return (SCENES[id] || SCENES._default)(); }
