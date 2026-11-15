@@ -1,7 +1,7 @@
 /* =====================================================================
    academy-ui.css — Design de l'Académie (auto-études, cours, étudiants, codes promo)
    Chargé par stability.js. Préfixe .cnh- : n'écrase aucun style existant.
-   Principes : fond clair, un seul bleu institutionnel, aucun dégradé, aucun emoji (icônes SVG),
+   Principes : fond clair, ardoise + bleu d'action rare (boutons principaux, liens, focus), aucun dégradé, aucun emoji (icônes SVG),
    une seule famille de police, une échelle de tailles et de rayons fixe.
    Suit le thème clair / sombre de l'application (html[data-theme="dark"]).
    ===================================================================== */
@@ -9,7 +9,8 @@
   /* Couleurs */
   --cnh-card:#ffffff; --cnh-soft:#eef3f9; --cnh-soft2:#f6f8fb; --cnh-page:#f4f6f9;
   --cnh-ink:#111827; --cnh-sub:#5a6577; --cnh-line:#e1e6ed;
-  --cnh-act-line:#c3d3f3; --cnh-brand:#1d4ed8; --cnh-brand2:#3b6be0; --cnh-brand-ink:#1741b8; --cnh-brand-tint:rgba(29,78,216,.08);
+  --cnh-act-line:#d5dbe6; --cnh-brand:#28374f; --cnh-brand2:#1a2436; --cnh-brand-ink:#1a2436; --cnh-brand-tint:rgba(40,55,79,.07);
+  --cnh-night:#14263f; --cnh-night-text:#14263f; --cnh-action:#1d4f91; --cnh-action-hover:#173f75; --cnh-action-press:#12335e; --cnh-action-ring:rgba(29,79,145,.38); --cnh-link:#1d4f91;
   --cnh-ok:#17653a; --cnh-ok-bg:#e8f4ec; --cnh-warn:#8a5a0b; --cnh-warn-bg:#fbf3e2; --cnh-bad:#a42a2a; --cnh-bad-bg:#fbeaea;
   --cnh-shadow:0 1px 2px rgba(17,24,39,.04),0 4px 14px rgba(17,24,39,.05);
   --cnh-grad:var(--cnh-brand);
@@ -22,7 +23,8 @@
 html[data-theme="dark"]{
   --cnh-card:#171c24; --cnh-soft:#1b2433; --cnh-soft2:#141922; --cnh-page:#0f1319;
   --cnh-ink:#eceff4; --cnh-sub:#a1abbb; --cnh-line:#262d38;
-  --cnh-act-line:#2c4170; --cnh-brand:#7ea5f7; --cnh-brand2:#9bbaf9; --cnh-brand-ink:#b4cbfb; --cnh-brand-tint:rgba(126,165,247,.14);
+  --cnh-act-line:#33415c; --cnh-brand:#9db0cf; --cnh-brand2:#b9c7df; --cnh-brand-ink:#c9d4e6; --cnh-brand-tint:rgba(157,176,207,.13);
+  --cnh-night:#2f4f80; --cnh-night-text:#dbe4f3; --cnh-action:#2f62a8; --cnh-action-hover:#3a70bd; --cnh-action-press:#285491; --cnh-action-ring:rgba(127,168,224,.55); --cnh-link:#7fa8e0;
   --cnh-ok:#69cf93; --cnh-ok-bg:#122519; --cnh-warn:#e8b765; --cnh-warn-bg:#2a2112; --cnh-bad:#ff9a9a; --cnh-bad-bg:#2d1616;
   --cnh-shadow:0 1px 2px rgba(0,0,0,.4),0 4px 14px rgba(0,0,0,.28);
 }
@@ -44,12 +46,11 @@ html[data-theme="dark"]{
 
 .cnh-btn{appearance:none;border:1px solid var(--cnh-act-line);background:var(--cnh-card);color:var(--cnh-brand-ink);font:inherit;font-weight:600;font-size:var(--cnh-fs);line-height:1;min-height:44px;padding:0 18px;border-radius:var(--cnh-r);display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;transition:background .15s,border-color .15s,box-shadow .15s,transform .1s;-webkit-tap-highlight-color:transparent}
 .cnh-btn:hover{border-color:var(--cnh-brand)}.cnh-btn:active{transform:scale(.985)}
-.cnh-btn:focus-visible,.cnh-input:focus-visible,.cnh-tile:focus-visible,.cnh-lrow:focus-visible,.cnh-course:focus-visible,.cnh-grp:focus-visible,.cnh-topic:focus-visible{outline:3px solid color-mix(in srgb,var(--cnh-brand) 40%,transparent);outline-offset:2px}
+.cnh-btn:focus-visible,.cnh-input:focus-visible,.cnh-tile:focus-visible,.cnh-lrow:focus-visible,.cnh-course:focus-visible,.cnh-grp:focus-visible,.cnh-topic:focus-visible{outline:3px solid var(--cnh-action-ring);outline-offset:2px}
 .cnh-btn[disabled]{opacity:.5;cursor:not-allowed;transform:none}
-.cnh-btn.primary{background:var(--cnh-brand);border-color:var(--cnh-brand);color:#fff}
-html[data-theme="dark"] .cnh-btn.primary{color:#0b1220}
-.cnh-btn.primary:hover{background:var(--cnh-brand-ink);border-color:var(--cnh-brand-ink)}
-html[data-theme="dark"] .cnh-btn.primary:hover{background:var(--cnh-brand2);border-color:var(--cnh-brand2)}
+.cnh-btn.primary{background:var(--cnh-action);border-color:var(--cnh-action);color:#fff}
+.cnh-btn.primary:hover{background:var(--cnh-action-hover);border-color:var(--cnh-action-hover)}
+.cnh-btn.primary:active{background:var(--cnh-action-press);border-color:var(--cnh-action-press)}
 .cnh-btn.soft{background:var(--cnh-soft);border-color:transparent;color:var(--cnh-brand-ink)}
 .cnh-btn.soft:hover{border-color:var(--cnh-brand)}
 .cnh-btn.ghost{background:transparent;border-color:transparent;color:var(--cnh-brand-ink);min-height:40px;padding:0 10px}
@@ -66,7 +67,7 @@ html[data-theme="dark"] .cnh-btn.primary:hover{background:var(--cnh-brand2);bord
 .cnh-input{width:100%;min-height:46px;padding:0 14px;border-radius:var(--cnh-r);border:1px solid var(--cnh-line);background:var(--cnh-card);color:var(--cnh-ink);font:inherit;font-size:var(--cnh-fs);line-height:1.3;transition:border-color .15s,box-shadow .15s}
 textarea.cnh-input{min-height:88px;padding:12px 14px;resize:vertical;line-height:1.5}
 .cnh-input::placeholder{color:var(--cnh-sub);opacity:.7}
-.cnh-input:focus{border-color:var(--cnh-brand);box-shadow:0 0 0 3px var(--cnh-brand-tint);outline:none}
+.cnh-input:focus{border-color:var(--cnh-action);box-shadow:0 0 0 3px var(--cnh-action-ring);outline:none}
 .cnh-input.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.06em;text-transform:uppercase}
 .cnh-range{width:100%;accent-color:var(--cnh-brand);margin:4px 0 0}
 .cnh-inline{display:flex;gap:8px;align-items:stretch}.cnh-inline .cnh-input{flex:1;min-width:0}
@@ -75,8 +76,8 @@ textarea.cnh-input{min-height:88px;padding:12px 14px;resize:vertical;line-height
 @media(max-width:360px){.cnh-two{grid-template-columns:1fr}}
 
 .cnh-chip{display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 14px;border-radius:999px;border:1px solid var(--cnh-act-line);background:var(--cnh-card);color:var(--cnh-brand-ink);font:inherit;font-size:var(--cnh-fs-sm);font-weight:600;cursor:pointer;white-space:nowrap}
-.cnh-chip.on{background:var(--cnh-brand);border-color:var(--cnh-brand);color:#fff}
-html[data-theme="dark"] .cnh-chip.on{color:#0b1220}
+.cnh-chip.on{background:var(--cnh-night);border-color:var(--cnh-night);color:#fff}
+html[data-theme="dark"] .cnh-chip.on{color:#fff}
 .cnh-chips{display:flex;gap:8px;overflow-x:auto;padding:2px 0 6px;margin:0 0 6px;scrollbar-width:none}.cnh-chips::-webkit-scrollbar{display:none}
 .cnh-chips.wrap{flex-wrap:wrap;overflow:visible}
 .cnh-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:6px;font-size:var(--cnh-fs-xs);font-weight:600;background:var(--cnh-soft);color:var(--cnh-brand-ink);line-height:1.4}
@@ -160,7 +161,7 @@ html[data-theme="dark"] .cnh-fc-b{color:#0b1220}
 .cnh-opt{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:12px 14px;margin:0 0 8px;border:1px solid var(--cnh-line);border-radius:var(--cnh-r);background:var(--cnh-card);color:inherit;font:inherit;font-size:var(--cnh-fs);cursor:pointer;min-height:50px}
 .cnh-opt:hover{border-color:var(--cnh-brand)}
 .cnh-opt .k{width:26px;height:26px;border-radius:50%;border:1px solid var(--cnh-line);display:inline-flex;align-items:center;justify-content:center;font-size:var(--cnh-fs-xs);font-weight:700;flex:0 0 auto}
-.cnh-opt.on{border-color:var(--cnh-brand);background:var(--cnh-soft)}.cnh-opt.on .k{background:var(--cnh-brand);border-color:var(--cnh-brand);color:#fff}
+.cnh-opt.on{border-color:var(--cnh-night-text);background:var(--cnh-soft)}.cnh-opt.on .k{background:var(--cnh-night);border-color:var(--cnh-night);color:#fff}
 .cnh-opt.good{border-color:var(--cnh-ok);background:var(--cnh-ok-bg)}.cnh-opt.good .k{background:var(--cnh-ok);border-color:var(--cnh-ok);color:#fff}
 .cnh-opt.bad{border-color:var(--cnh-bad);background:var(--cnh-bad-bg)}.cnh-opt.bad .k{background:var(--cnh-bad);border-color:var(--cnh-bad);color:#fff}
 .cnh-opt .k svg{width:14px;height:14px}
@@ -204,9 +205,9 @@ html[data-theme="dark"] .cnh-msg.me{color:#0b1220}
 .cnh-offers{display:grid;gap:10px;margin:0 0 14px}
 .cnh-offer{position:relative;display:flex;align-items:center;gap:14px;width:100%;text-align:left;padding:14px 16px;border:1px solid var(--cnh-line);border-radius:var(--cnh-r);background:var(--cnh-card);color:var(--cnh-ink);font:inherit;cursor:pointer;transition:border-color .15s,background .15s}
 .cnh-offer:hover{border-color:var(--cnh-brand)}
-.cnh-offer.on{border-color:var(--cnh-brand);background:var(--cnh-soft);box-shadow:0 0 0 1px var(--cnh-brand)}
+.cnh-offer.on{border-color:var(--cnh-night-text);background:var(--cnh-soft);box-shadow:0 0 0 1px var(--cnh-night-text)}
 .cnh-offer .r{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--cnh-line);flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center}
-.cnh-offer.on .r{border-color:var(--cnh-brand);background:var(--cnh-brand);color:#fff}
+.cnh-offer.on .r{border-color:var(--cnh-night);background:var(--cnh-night);color:#fff}
 .cnh-offer .r svg{width:12px;height:12px;opacity:0}.cnh-offer.on .r svg{opacity:1}
 .cnh-offer b{display:block;font-size:var(--cnh-fs);font-weight:600}
 .cnh-offer small{display:block;font-size:var(--cnh-fs-xs);color:var(--cnh-sub);margin-top:2px}
@@ -321,7 +322,7 @@ html[data-theme="dark"] .cnh-grp .l{background:color-mix(in srgb,var(--t) 18%,va
 /* ---------- Harmonie générale de l'application (menu, services) ---------- */
 .mp-ico[data-flat]{background:color-mix(in srgb,var(--t) 12%,var(--cnh-card,#fff))!important;color:var(--t)!important;box-shadow:none!important;border:1px solid color-mix(in srgb,var(--t) 20%,transparent)}
 .mp-ico[data-flat] svg{color:var(--t)!important}
-.mp-promo{background:#12295f!important;border-radius:16px!important;padding:16px 18px!important;box-shadow:0 1px 2px rgba(17,24,39,.12),0 8px 22px -12px rgba(20,38,63,.55)!important;border:1px solid rgba(255,255,255,.06)!important}
+.mp-promo{background:#1a2436!important;border-radius:16px!important;padding:16px 18px!important;box-shadow:0 1px 2px rgba(17,24,39,.12),0 8px 22px -12px rgba(20,38,63,.55)!important;border:1px solid rgba(255,255,255,.06)!important}
 .mp-promo::after{display:none!important}
 .mp-promo::before{content:"";position:absolute;left:0;top:14px;bottom:14px;width:3px;border-radius:0 3px 3px 0;background:#e8b64c}
 .mp-promo .mp-ico{background:rgba(232,182,76,.14)!important;color:#e8b64c!important;border:1px solid rgba(232,182,76,.3);box-shadow:none!important;border-radius:12px!important;width:44px!important;height:44px!important}
@@ -333,8 +334,8 @@ html[data-theme="dark"] .cnh-grp .l{background:color-mix(in srgb,var(--t) 18%,va
 .cnh-tools{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px}
 .cnh-chip{appearance:none;border:1px solid var(--cnh-act-line);background:var(--cnh-card);color:var(--cnh-brand-ink);font:inherit;font-weight:600;font-size:var(--cnh-fs-sm);line-height:1;min-height:38px;padding:0 14px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;gap:7px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .15s,border-color .15s}
 .cnh-chip:hover{border-color:var(--cnh-brand)}
-.cnh-chip.on{background:var(--cnh-brand);border-color:var(--cnh-brand);color:#fff}
-html[data-theme="dark"] .cnh-chip.on{color:#0b1220}
+.cnh-chip.on{background:var(--cnh-night);border-color:var(--cnh-night);color:#fff}
+html[data-theme="dark"] .cnh-chip.on{color:#fff}
 .cnh-chip svg{width:16px;height:16px}
 .cnh-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 0 12px;border-radius:var(--cnh-r-sm)}
 .cnh-tbl{width:100%;border-collapse:collapse;font-size:var(--cnh-fs-sm);line-height:1.45;min-width:260px}
@@ -363,8 +364,8 @@ html[data-theme="dark"] .cnh-chip.on{color:#0b1220}
 .cnh-spk svg{width:18px;height:18px}
 .cnh-spk.sm{width:30px;height:30px;min-width:30px;vertical-align:middle}.cnh-spk.sm svg{width:15px;height:15px}
 .cnh-spk:hover{border-color:var(--cnh-brand)}
-.cnh-spk.on{background:var(--cnh-brand);border-color:var(--cnh-brand);color:#fff}
-html[data-theme="dark"] .cnh-spk.on{color:#0b1220}
+.cnh-spk.on{background:var(--cnh-night);border-color:var(--cnh-night);color:#fff}
+html[data-theme="dark"] .cnh-spk.on{color:#fff}
 .cnh-spk.mic.on{background:var(--cnh-bad);border-color:var(--cnh-bad);color:#fff}
 .cnh-pron{font-size:var(--cnh-fs-sm);line-height:1.5;margin-top:8px;color:var(--cnh-sub)}
 .cnh-pron:empty{display:none}
@@ -403,13 +404,13 @@ html[data-theme="dark"]{--cnh-hero:#1b2b48;--cnh-hero-line:rgba(255,255,255,.18)
 #menu-screen-academy .shop-filter-tabs{display:flex;gap:2px;background:var(--cnh-soft);border:1px solid var(--cnh-line);border-radius:13px;padding:4px;overflow:visible;margin-bottom:14px}
 #menu-screen-academy .shop-filter-tabs button{flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;text-align:center;border:0;background:transparent;border-radius:10px;padding:11px 4px;font:inherit;font-weight:600;font-size:.86rem;line-height:1.1;color:var(--cnh-sub);box-shadow:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #menu-screen-academy .shop-filter-tabs button:hover:not(.active){background:transparent;border-color:transparent;color:var(--cnh-ink)}
-#menu-screen-academy .shop-filter-tabs button.active{background:var(--cnh-card);color:var(--cnh-brand);box-shadow:0 0 0 1px var(--cnh-line),0 1px 2px rgba(17,24,39,.08)}
-html[data-theme="dark"] #menu-screen-academy .shop-filter-tabs button.active{background:#2b3649;box-shadow:none;color:var(--cnh-brand)}
+#menu-screen-academy .shop-filter-tabs button.active{background:var(--cnh-card);color:var(--cnh-night-text);box-shadow:0 0 0 1px var(--cnh-line),0 1px 2px rgba(17,24,39,.08)}
+html[data-theme="dark"] #menu-screen-academy .shop-filter-tabs button.active{background:#2b3649;box-shadow:none;color:var(--cnh-night-text)}
 
 /* Bouton « Créer un cours », recherche, filtres */
 #academy-courses-section > .btn.btn-primary{min-height:50px;border-radius:12px;font-weight:600;font-size:.95rem;box-shadow:none}
 #academy-search-input{height:50px;border-radius:12px;border:1px solid var(--cnh-line);background:var(--cnh-card) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%238a94a6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-3.5-3.5'/%3E%3C/svg%3E") no-repeat 15px center;padding:0 14px 0 44px;font-size:.93rem}
-#academy-search-input:focus{outline:3px solid color-mix(in srgb,var(--cnh-brand) 30%,transparent);border-color:var(--cnh-brand)}
+#academy-search-input:focus{outline:3px solid var(--cnh-action-ring);border-color:var(--cnh-action)}
 #menu-screen-academy .cnh-chips{padding:2px 0 10px;margin:0 0 4px}
 #menu-screen-academy .cnh-chip{min-height:38px;padding:0 16px;font-size:.84rem}
 
