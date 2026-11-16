@@ -10,7 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="admin.css?v=5">
-<link rel="stylesheet" href="admin-pro.css?v=4">
+<link rel="stylesheet" href="admin-pro.css?v=5">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check-compat.js"></script>
 <script src="app-check.js"></script>
@@ -118,6 +118,22 @@
       <p class="muted" style="margin-bottom:14px">Revenus clients moins coûts réels facturés par MoreThanPanel, calculés automatiquement sur les commandes automatisées.</p>
       <div class="stats-cards" id="admin-profit-cards"></div>
       <div id="admin-profit-unknown-list"></div>
+
+      <!-- Rapport financier : relevé réel des mouvements d'argent + contrôle de cohérence (lecture seule) -->
+      <div class="order-box" id="admin-fin-box" style="margin-top:22px">
+        <h3 style="margin:0 0 6px">Rapport financier</h3>
+        <p class="muted small" style="margin-bottom:12px">Tous les mouvements d'argent enregistrés par le serveur : recharges, retraits, achats, commissions. Le rapport ne modifie jamais aucun solde.</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px">
+          <select id="admin-fin-days" aria-label="Période du rapport">
+            <option value="7">7 derniers jours</option>
+            <option value="30" selected>30 derniers jours</option>
+            <option value="92">3 derniers mois</option>
+          </select>
+          <button class="btn btn-primary btn-sm" type="button" onclick="finReportRun(this)">Générer le rapport</button>
+          <button class="btn btn-outline btn-sm" type="button" onclick="finReportCsv(this)">Télécharger le relevé (CSV)</button>
+        </div>
+        <div id="admin-fin-body"></div>
+      </div>
     </div>
 
     <!-- ---- Tarifs ---- -->
@@ -510,7 +526,7 @@
 </div>
 
 <script src="catalog-data.js?v=20261108"></script>
-<script src="admin.js?v=20261119"></script>
+<script src="admin.js?v=20261120"></script>
 <script src="admin-panels.js?v=5"></script>
 <script src="academy-spend-admin.js?v=3"></script>
 <script src="admin-login-methods.js?v=1"></script>

@@ -533,8 +533,8 @@ var MOCKUP_AI_ENABLED = false;
   function L(key) {
     var a = D[key];
     if (!a) return key;
-    var i = LANGS.indexOf(curLang());
-    if (i < 0) i = 1;
+    var cl = curLang(), i = LANGS.indexOf(cl);
+    if (i < 0) i = (cl === 'sw' || cl === 'ln') ? 0 : 1; // Kiswahili / Lingála : français (langue commune), pas anglais
     return a[i] || a[1] || a[0];
   }
   function TT(key) { // clés existantes de translations.js
@@ -984,7 +984,7 @@ var MOCKUP_AI_ENABLED = false;
     call('showMenuScreen', 'tools');
   }
   // « Achat Domaine » : l'écran est un fichier à part, chargé seulement quand on l'ouvre.
-  var DOMAIN_JS = 'domain-shop.js?v=20261119';
+  var DOMAIN_JS = 'domain-shop.js?v=20261120';
   function openDomainShopScreen(q) {
     if (!getUser()) { call('closeMainMenu'); call('openAuth', 'login'); return; }
     ensureMenuOpen();
@@ -2180,9 +2180,9 @@ var MOCKUP_AI_ENABLED = false;
     document.head.appendChild(s);
   }
   function loadAuthGuard() {
-    loadHelper('auth-guard.js?v=20261119', 'data-cn-ag');   // connexion plus stable
+    loadHelper('auth-guard.js?v=20261120', 'data-cn-ag');   // connexion plus stable
     loadHelper('login-pro.js?v=20261107', 'data-cn-lp');   // Apple, numéro de téléphone (SMS), Facebook, Microsoft
-    loadHelper('messaging-pro.js?v=20261119', 'data-cn-ms');   // messagerie privée en temps réel (chargée à part : jamais bloquante)
+    loadHelper('messaging-pro.js?v=20261120', 'data-cn-ms');   // messagerie privée en temps réel (chargée à part : jamais bloquante)
   }
   function promptLoginForLink() {
     var note = pending ? 'Connecte-toi pour voir la position partagée avec toi.' : 'Connecte-toi pour ouvrir ce contenu.';

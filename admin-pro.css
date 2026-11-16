@@ -146,3 +146,20 @@ body.adm-menu-open .adm-backdrop{ background:rgba(20,26,38,.40); }
 .admin-tab input[type=checkbox],.admin-tab input[type=radio]{ accent-color:var(--ad-accent); }
 .admin-lock{ background:var(--ad-soft); }
 .admin-login-box .btn-primary:hover{ background:var(--ad-btn-h); }
+
+/* ---------- rapport financier (onglet Bénéfices) ---------- */
+.adm-fin-cards{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-bottom:12px; }
+.adm-fin-card{ background:#fff; border:1px solid var(--ad-line); border-radius:12px; padding:12px 14px; display:flex; flex-direction:column; gap:4px; }
+.adm-fin-card span{ font-size:.78rem; color:var(--ad-mute); }
+.adm-fin-card b{ font-size:1.05rem; color:var(--ad-night); font-variant-numeric:tabular-nums; }
+.adm-fin-card.bad{ border-color:#c0392b; }
+.adm-fin-card.bad b{ color:#c0392b; }
+.adm-fin-ok{ color:var(--ad-ink2); font-size:.88rem; margin:6px 0 12px; }
+.adm-fin-alert{ background:#fff4f2; border:1px solid #e6b7b0; color:#8a2a1f; border-radius:10px; padding:10px 12px; font-size:.86rem; margin:6px 0; }
+.adm-fin-scroll{ overflow-x:auto; -webkit-overflow-scrolling:touch; border:1px solid var(--ad-line); border-radius:12px; background:#fff; }
+.adm-fin-table{ width:100%; border-collapse:collapse; font-size:.84rem; min-width:460px; }
+.adm-fin-table th,.adm-fin-table td{ padding:9px 10px; border-bottom:1px solid #eceef2; text-align:left; color:var(--ad-ink); }
+.adm-fin-table th{ background:var(--ad-soft); color:var(--ad-accent); font-weight:600; font-size:.78rem; }
+.adm-fin-table .num{ text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
+.adm-fin-table tbody tr:last-child td{ border-bottom:0; }
+@media (min-width:640px){ .adm-fin-cards{ grid-template-columns:repeat(4,minmax(0,1fr)); } }

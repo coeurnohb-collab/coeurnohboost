@@ -571,8 +571,8 @@ async function loadDepositsAdmin() {
         </div>` : ''}
         ${d.status === 'pending' || !d.status || (!isSp && d.status === 'pending_admin_review') ? `
         <div class="admin-row-actions">
-          <button class="btn btn-primary btn-sm" onclick="approveDeposit('${doc.id}','${uidAttr}',${amount})">✓ Valider et créditer</button>
-          <button class="btn btn-outline btn-sm" onclick="rejectDeposit('${doc.id}')">Rejeter</button>
+          <button class="btn btn-primary btn-sm" onclick="approveDeposit('${escapeForJs(doc.id)}')">✓ Valider et créditer</button>
+          <button class="btn btn-outline btn-sm" onclick="rejectDeposit('${escapeForJs(doc.id)}')">Rejeter</button>
         </div>` : ''}
         <div class="admin-row-actions">
           <button class="btn btn-outline btn-sm" onclick="deleteDeposit('${doc.id}')">🗑️ Supprimer</button>
@@ -588,31 +588,23 @@ async function loadDepositsAdmin() {
     el.innerHTML = `<p class="admin-empty">Erreur : ${escapeHtml(e.message)}</p>`;
   }
 }
-async function approveDeposit(depositId, uid, amount) {
+/* Validation / rejet d'une recharge manuelle : fait par le SERVEUR (une seule fois, montant lu dans la demande). */
+async function approveDeposit(depositId) {
+  if (!confirm("Confirmer : tu as bien reçu l'argent ? Le solde du client sera crédité (une seule fois).")) return;
   try {
-    const userRef = db.collection('users').doc(uid);
-    const userDoc = await userRef.get();
-    const currentBalance = userDoc.exists ? (userDoc.data().balance || 0) : 0;
-    const newBalance = currentBalance + amount;
-    await userRef.update({ balance: newBalance });
-    await db.collection('topup_requests').doc(depositId).update({ status: 'approved' });
-    await db.collection('wallet_transactions').add({
-      uid, type: 'topup_admin', amount, balanceAfter: Math.round(newBalance * 100) / 100,
-      description: 'Recharge validée par l\'équipe', relatedId: depositId,
-      createdAt: new Date().toISOString()
-    });
-    loadDepositsAdmin();
+    await adminManageCall(null, depositId, 'dep_approve');
   } catch (e) {
     alert("Erreur : " + e.message);
   }
+  loadDepositsAdmin();
 }
 async function rejectDeposit(depositId) {
   try {
-    await db.collection('topup_requests').doc(depositId).update({ status: 'rejected' });
-    loadDepositsAdmin();
+    await adminManageCall(null, depositId, 'dep_reject');
   } catch (e) {
     alert("Erreur : " + e.message);
   }
+  loadDepositsAdmin();
 }
 async function deleteDeposit(depositId) {
   if (!confirm("Supprimer definitivement cette demande ? Cette action est irreversible.")) return;
@@ -2648,6 +2640,55 @@ async function adminManageCall(target, id, op, extra) {
   if (!data) throw new Error('Le serveur n’est pas à jour : mettez en ligne api/payments-actions.js (dossier api) puis attendez la fin du déploiement Vercel.');
   if (!data.success) throw new Error(data.error || 'Erreur');
   return data;
+}
+
+/* ---- Rapport financier : le calcul est fait par le serveur, la page ne fait qu'afficher ---- */
+function finMoney(n) { return (Number(n) || 0).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' $'; }
+function finReportHtml(r) {
+  const t = r.totals || {}, tp = r.topups || {};
+  const card = (label, value, cls) => `<div class="adm-fin-card${cls ? ' ' + cls : ''}"><span>${escapeHtml(label)}</span><b>${escapeHtml(value)}</b></div>`;
+  const alerts = [];
+  if (r.truncated) alerts.push('Le rapport est coupé aux 5 000 mouvements les plus anciens de la période. Choisis une période plus courte pour tout voir.');
+  if (t.internalFlag) alerts.push('Les mouvements internes (achats, ventes, commissions) ne se compensent pas : écart de ' + finMoney(t.internalNet) + '. Regarde le tableau pour trouver le type de mouvement concerné. Des bonus offerts par la plateforme peuvent expliquer une partie de l\'écart.');
+  if (tp.flag) alerts.push('Les recharges du relevé (' + finMoney(tp.ledger) + ') ne correspondent pas aux demandes de recharge créditées (' + finMoney(tp.requests) + ') : écart de ' + finMoney(tp.delta) + '.');
+  const rows = (r.groups || []).map((g) => `<tr><td>${escapeHtml(g.label)}</td><td class="num">${g.count}</td><td class="num">${finMoney(g.in)}</td><td class="num">${finMoney(g.out)}</td><td class="num"><b>${finMoney(g.net)}</b></td></tr>`).join('');
+  return `<div class="adm-fin-cards">
+      ${card('Recharges (argent entré)', finMoney(t.recharges))}
+      ${card('Retraits (argent sorti)', finMoney(t.withdrawals))}
+      ${card('Mouvements internes, total', finMoney(t.internalNet), t.internalFlag ? 'bad' : '')}
+      ${card('Mouvements examinés', String(t.rows || 0))}
+    </div>
+    ${alerts.length ? alerts.map((a) => `<p class="adm-fin-alert">${escapeHtml(a)}</p>`).join('') : '<p class="adm-fin-ok">Aucun écart détecté sur cette période.</p>'}
+    <div class="adm-fin-scroll"><table class="adm-fin-table"><thead><tr><th>Type de mouvement</th><th class="num">Nombre</th><th class="num">Entrées</th><th class="num">Sorties</th><th class="num">Net</th></tr></thead><tbody>${rows || '<tr><td colspan="5">Aucun mouvement sur cette période.</td></tr>'}</tbody></table></div>
+    <p class="muted small" style="margin-top:8px">Période : du ${admFmtDate(r.since)} au ${admFmtDate(r.until)}.</p>`;
+}
+async function finReportRun(btn) {
+  const body = document.getElementById('admin-fin-body');
+  const days = parseInt((document.getElementById('admin-fin-days') || {}).value, 10) || 30;
+  if (btn) { btn.disabled = true; btn.textContent = 'Calcul en cours…'; }
+  body.innerHTML = '<p class="admin-empty">Calcul en cours…</p>';
+  try {
+    const r = await adminManageCall(null, null, 'fin_report', { days });
+    body.innerHTML = finReportHtml(r);
+  } catch (e) {
+    body.innerHTML = '<p class="admin-empty">Erreur : ' + escapeHtml(e.message) + '</p>';
+  }
+  if (btn) { btn.disabled = false; btn.textContent = 'Générer le rapport'; }
+}
+async function finReportCsv(btn) {
+  const days = parseInt((document.getElementById('admin-fin-days') || {}).value, 10) || 30;
+  if (btn) { btn.disabled = true; btn.textContent = 'Préparation…'; }
+  try {
+    const r = await adminManageCall(null, null, 'fin_report', { days, csv: true });
+    const blob = new Blob([r.csv || ''], { type: 'text/csv;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'releve-coeurnoh-' + new Date().toISOString().slice(0, 10) + '.csv';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    if (r.truncated) alert('Le relevé est coupé aux 5 000 mouvements les plus anciens. Choisis une période plus courte pour tout avoir.');
+  } catch (e) { alert('Erreur : ' + e.message); }
+  if (btn) { btn.disabled = false; btn.textContent = 'Télécharger le relevé (CSV)'; }
 }
 
 function admFmtDate(iso) { return iso ? new Date(iso).toLocaleDateString('fr-FR') : '—'; }

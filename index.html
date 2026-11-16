@@ -320,6 +320,8 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
         <option value="es">🇪🇸 ES</option>
         <option value="it">🇮🇹 IT</option>
         <option value="pt">🇵🇹 PT</option>
+        <option value="sw">🇨🇩 SW</option>
+        <option value="ln">🇨🇩 LN</option>
       </select>
       <button class="btn btn-outline" id="nav-login-btn" data-i18n="nav_login" onclick="openAuth('login')">Se connecter</button>
       <button class="btn btn-primary" id="nav-register-btn" data-i18n="nav_register" onclick="openAuth('register')">Créer un compte</button>
@@ -365,7 +367,7 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
       <li><svg data-ik="home_trust_1" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg><span data-i18n="hn_trust1">Mobile money, crypto et carte</span></li>
       <li><svg data-ik="home_trust_2" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span data-i18n="hn_trust2">Support actif 24h/24</span></li>
       <li><svg data-ik="home_trust_3" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M11 18h2"/></svg><span data-i18n="hn_trust3">Application installable</span></li>
-      <li><svg data-ik="home_trust_4" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18Z"/></svg><span data-i18n="hn_trust4">Disponible en 5 langues</span></li>
+      <li><svg data-ik="home_trust_4" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18Z"/></svg><span data-i18n="hn_trust4">Disponible en 7 langues</span></li>
     </ul>
     </div>
   </section>
@@ -764,6 +766,8 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
           <button class="lang-choice" data-lang="es" onclick="changeLanguage('es')">🇪🇸 Español</button>
           <button class="lang-choice" data-lang="it" onclick="changeLanguage('it')">🇮🇹 Italiano</button>
           <button class="lang-choice" data-lang="pt" onclick="changeLanguage('pt')">🇵🇹 Português</button>
+          <button class="lang-choice" data-lang="sw" onclick="changeLanguage('sw')">🇨🇩 Kiswahili</button>
+          <button class="lang-choice" data-lang="ln" onclick="changeLanguage('ln')">🇨🇩 Lingála</button>
         </div>
       </div>
 
@@ -1095,7 +1099,7 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
       <p class="auth-hero-line" id="auth-hero-line" data-i18n="auth_hero_line">Réseaux sociaux, boutique et services multiples — un seul compte.</p>
       <div class="auth-trust">
         <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4 6v6c0 5 3.4 8.4 8 9 4.6-.6 8-4 8-9V6l-8-3Z"/><path d="m9 12 2 2 4-4"/></svg><i id="auth-trust-1" style="font-style:normal" data-i18n="auth_trust_1">Paiement sécurisé</i></span>
-        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg><i id="auth-trust-2" style="font-style:normal" data-i18n="auth_trust_2">5 langues</i></span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg><i id="auth-trust-2" style="font-style:normal" data-i18n="auth_trust_2">7 langues</i></span>
         <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg><i id="auth-trust-3" style="font-style:normal" data-i18n="auth_trust_3">Support 24/7</i></span>
       </div>
     </div>
@@ -2430,7 +2434,7 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
   </div>
 </div>
 
-<script src="app.min.js?v=f17b117d6e" defer onerror="(function(){function f(){['translations','catalog-data','script','polish','menu-pro','push-center'].forEach(function(n){var x=document.createElement('script');x.src=n+'.js';x.async=false;document.body.appendChild(x)})}document.readyState==='loading'?document.addEventListener('DOMContentLoaded',f):f()})()"></script>
+<script src="app.min.js?v=42f16811b6" defer onerror="(function(){function f(){['translations','catalog-data','script','polish','menu-pro','push-center'].forEach(function(n){var x=document.createElement('script');x.src=n+'.js';x.async=false;document.body.appendChild(x)})}document.readyState==='loading'?document.addEventListener('DOMContentLoaded',f):f()})()"></script>
 
 <!-- PWA : activation du service worker (installation en app) -->
 <script>

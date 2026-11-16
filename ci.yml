@@ -1,4 +1,4 @@
-name: ContrÃ´le qualitÃ©
+name: Contrôle qualité
 on:
   push:
     branches: [main]
@@ -11,5 +11,5 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: VÃ©rifier le projet (syntaxe, traductions, boutons, limites Vercel, sÃ©curitÃ©)
+      - name: Vérifier le projet (syntaxe, traductions, boutons, limites Vercel, sécurité)
         run: node --test
