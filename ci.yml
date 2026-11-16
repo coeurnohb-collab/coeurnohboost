@@ -1,0 +1,21 @@
+name: Contrôle qualité
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Vérifier le projet (syntaxe, traductions, boutons, limites Vercel, sécurité, argent)
+        run: |
+          set +e
+          node --test --test-reporter=spec > resultat.txt 2>&1
+          code=$?
+          grep -E "^\s*✖" resultat.txt | sed 's/^\s*//' | head -25 | while read -r ligne; do echo "::error::Test en échec : $ligne"; done
+          tail -n 25 resultat.txt
+          exit $code

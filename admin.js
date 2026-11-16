@@ -2651,6 +2651,7 @@ function finReportHtml(r) {
   if (r.truncated) alerts.push('Le rapport est coupé aux 5 000 mouvements les plus anciens de la période. Choisis une période plus courte pour tout voir.');
   if (t.internalFlag) alerts.push('Les mouvements internes (achats, ventes, commissions) ne se compensent pas : écart de ' + finMoney(t.internalNet) + '. Regarde le tableau pour trouver le type de mouvement concerné. Des bonus offerts par la plateforme peuvent expliquer une partie de l\'écart.');
   if (tp.flag) alerts.push('Les recharges du relevé (' + finMoney(tp.ledger) + ') ne correspondent pas aux demandes de recharge créditées (' + finMoney(tp.requests) + ') : écart de ' + finMoney(tp.delta) + '.');
+  (tp.problems || []).forEach((p) => alerts.push('Recharge à vérifier : demande ' + p.id + ' (' + finMoney(p.amount) + ') — ' + p.reason + '.'));
   const rows = (r.groups || []).map((g) => `<tr><td>${escapeHtml(g.label)}</td><td class="num">${g.count}</td><td class="num">${finMoney(g.in)}</td><td class="num">${finMoney(g.out)}</td><td class="num"><b>${finMoney(g.net)}</b></td></tr>`).join('');
   return `<div class="adm-fin-cards">
       ${card('Recharges (argent entré)', finMoney(t.recharges))}
