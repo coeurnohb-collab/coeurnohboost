@@ -3246,7 +3246,7 @@ function cnLoadGuide(ok, ko) {
   let sc = document.querySelector('script[data-cn-guide]');
   if (!sc) {
     sc = document.createElement('script');
-    sc.src = 'guide-pro.js?v=20261118'; sc.async = true; sc.setAttribute('data-cn-guide', '1');
+    sc.src = 'guide-pro.js?v=20261119'; sc.async = true; sc.setAttribute('data-cn-guide', '1');
     sc.onerror = () => { if (sc.parentNode) sc.parentNode.removeChild(sc); if (ko) ko(); };
     document.head.appendChild(sc);
   }
@@ -13046,7 +13046,7 @@ const TR_T = {
 function trT(k) { const d = TR_T[currentLang] || TR_T.en; return d[k] != null ? d[k] : TR_T.en[k]; }
 function cnLoadSiteTransfer(ok, ko) {
   // Fichier site-give.js (nom unique : aucune confusion possible avec le fichier serveur api/_lib/site-transfer.js).
-  cnLazyModule('data-cn-xfer', 'site-give.js?v=20261118', () => !!window.CNSiteTransfer, ok, ko);
+  cnLazyModule('data-cn-xfer', 'site-give.js?v=20261119', () => !!window.CNSiteTransfer, ok, ko);
 }
 function openSiteTransfer(mode, code) {
   if (!currentUser) { openAuth('register'); return; }

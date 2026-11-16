@@ -1747,7 +1747,7 @@ async function loadWithdrawalsAdmin() {
         ${w.status === 'pending' ? `
         <div class="admin-row-actions">
           <button class="btn btn-outline btn-sm" onclick="markWithdrawalPaid('${doc.id}')">✅ Marquer comme payé</button>
-          <button class="btn btn-outline btn-sm" onclick="rejectWithdrawal('${escapeForJs(doc.id)}','${escapeForJs(w.uid)}',${Number(w.amountUSD) || 0})">❌ Rejeter (rembourse)</button>
+          <button class="btn btn-outline btn-sm" onclick="rejectWithdrawal('${escapeForJs(doc.id)}')">❌ Rejeter (rembourse)</button>
         </div>` : ''}
       </div>`;
     }).join('');
@@ -1807,43 +1807,25 @@ async function resolveReport(reportId, newStatus) {
   }
 }
 
+/* Traitement des retraits : fait par le SERVEUR (une seule fois par demande, montant lu dans la demande). */
 async function markWithdrawalPaid(reqId) {
   if (!confirm("Confirmer que tu as bien envoye l'argent au vendeur ?")) return;
   try {
-    await db.collection('withdrawal_requests').doc(reqId).update({
-      status: 'paid',
-      processedAt: new Date().toISOString()
-    });
-    loadWithdrawalsAdmin();
+    await adminManageCall(null, reqId, 'wd_paid');
   } catch (e) {
     alert("Erreur : " + e.message);
   }
+  loadWithdrawalsAdmin();
 }
 
-async function rejectWithdrawal(reqId, uid, amount) {
+async function rejectWithdrawal(reqId) {
   if (!confirm("Rejeter cette demande ? Le montant sera automatiquement rembourse sur le solde du vendeur.")) return;
   try {
-    const userRef = db.collection('users').doc(uid);
-    await db.runTransaction(async (transaction) => {
-      const userSnap = await transaction.get(userRef);
-      if (!userSnap.exists) throw new Error("Compte vendeur introuvable");
-      const currentBalance = userSnap.data().balance || 0;
-      const newBalance = Math.round((currentBalance + amount) * 100) / 100;
-      transaction.update(userRef, { balance: newBalance });
-      transaction.update(db.collection('withdrawal_requests').doc(reqId), {
-        status: 'rejected',
-        processedAt: new Date().toISOString()
-      });
-      transaction.set(db.collection('wallet_transactions').doc(), {
-        uid, type: 'withdrawal_rejected_refund', amount, balanceAfter: newBalance,
-        description: 'Retrait refusé, remboursé', relatedId: reqId,
-        createdAt: new Date().toISOString()
-      });
-    });
-    loadWithdrawalsAdmin();
+    await adminManageCall(null, reqId, 'wd_reject');
   } catch (e) {
     alert("Erreur : " + e.message);
   }
+  loadWithdrawalsAdmin();
 }
 
 /* =========================================================
@@ -2274,8 +2256,8 @@ async function loadDomainRequestsList() {
         </div>
         ${status === 'pending' ? `
         <div class="admin-row-actions">
-          <button class="btn btn-outline btn-sm" onclick="activateDomain('${escapeForJs(doc.id)}','${escapeForJs(r.desiredDomain || '')}',${months})">✅ Marquer comme actif (${months} mois)</button>
-          <button class="btn btn-outline btn-sm" onclick="rejectDomain('${doc.id}','${r.uid || doc.id}',${r.pricePaid || 0})">❌ Rejeter (rembourse)</button>
+          <button class="btn btn-outline btn-sm" onclick="activateDomain('${escapeForJs(doc.id)}','${escapeForJs(r.desiredDomain || '')}')">✅ Marquer comme actif (${months} mois)</button>
+          <button class="btn btn-outline btn-sm" onclick="rejectDomain('${escapeForJs(doc.id)}')">❌ Rejeter (rembourse)</button>
         </div>` : ''}
       </div>`;
     }).join('');
@@ -2284,43 +2266,26 @@ async function loadDomainRequestsList() {
   }
 }
 
-async function activateDomain(uid, desiredDomain, months) {
+/* Traitement des domaines : fait par le SERVEUR (une seule fois, montant et duree lus dans la demande,
+   part de l'administrateur reprise en cas de refus). */
+async function activateDomain(uid, desiredDomain) {
   if (!confirm(`Confirmer que "${desiredDomain}" est bien acheté et connecté au site ?`)) return;
   try {
-    const expiresAt = new Date(Date.now() + (months || 12) * 30 * 24 * 60 * 60 * 1000).toISOString();
-    await db.collection('domain_purchase_requests').doc(uid).update({
-      status: 'active', expiresAt, processedAt: new Date().toISOString()
-    });
-    loadDomainRequestsList();
+    await adminManageCall(null, uid, 'dom_activate');
   } catch (e) {
     alert("Erreur : " + e.message);
   }
+  loadDomainRequestsList();
 }
 
-async function rejectDomain(uid, ownerUid, amount) {
+async function rejectDomain(uid) {
   if (!confirm("Rejeter cette demande ? Le montant sera automatiquement remboursé sur le portefeuille du propriétaire.")) return;
   try {
-    const userRef = db.collection('users').doc(ownerUid);
-    await db.runTransaction(async (transaction) => {
-      const userSnap = await transaction.get(userRef);
-      if (!userSnap.exists) throw new Error("Compte introuvable");
-      const currentBalance = userSnap.data().balance || 0;
-      const newBalance = Math.round((currentBalance + amount) * 100) / 100;
-      transaction.update(userRef, { balance: newBalance });
-      transaction.update(db.collection('domain_purchase_requests').doc(uid), {
-        status: 'rejected',
-        processedAt: new Date().toISOString()
-      });
-      transaction.set(db.collection('wallet_transactions').doc(), {
-        uid: ownerUid, type: 'site_domain_purchase_rejected_refund', amount, balanceAfter: newBalance,
-        description: 'Achat de domaine refusé, remboursé', relatedId: uid,
-        createdAt: new Date().toISOString()
-      });
-    });
-    loadDomainRequestsList();
+    await adminManageCall(null, uid, 'dom_reject');
   } catch (e) {
     alert("Erreur : " + e.message);
   }
+  loadDomainRequestsList();
 }
 
 /* =========================================================
