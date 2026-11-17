@@ -2651,7 +2651,12 @@ function finReportHtml(r) {
   if (r.truncated) alerts.push('Le rapport est coupé aux 5 000 mouvements les plus anciens de la période. Choisis une période plus courte pour tout voir.');
   if (t.internalFlag) alerts.push('Les mouvements internes (achats, ventes, commissions) ne se compensent pas : écart de ' + finMoney(t.internalNet) + '. Regarde le tableau pour trouver le type de mouvement concerné. Des bonus offerts par la plateforme peuvent expliquer une partie de l\'écart.');
   if (tp.flag) alerts.push('Les recharges du relevé (' + finMoney(tp.ledger) + ') ne correspondent pas aux demandes de recharge créditées (' + finMoney(tp.requests) + ') : écart de ' + finMoney(tp.delta) + '.');
-  (tp.problems || []).forEach((p) => alerts.push('Recharge à vérifier : demande ' + p.id + ' (' + finMoney(p.amount) + ') — ' + p.reason + '.'));
+  // Chaque recharge à vérifier : compte concerné, surplus, et — quand c'est sûr — le bouton qui retire le surplus (fait par le serveur, une seule fois).
+  const probs = (tp.problems || []).map((p) => {
+    const who = p.uid ? 'Compte : ' + (p.name || 'sans nom') + (p.email ? ' (' + p.email + ')' : '') + (p.balance != null ? ' — solde actuel ' + finMoney(p.balance) : '') : '';
+    const btn = p.canCorrect ? `<div style="margin-top:8px"><button class="btn btn-primary btn-sm" onclick="finCorrect(this,'${escapeForJs(p.id)}',${Number(p.surplus) || 0})">Retirer ${escapeHtml(finMoney(p.surplus))} du solde</button></div>` : '';
+    return `<div class="adm-fin-alert"><b>Recharge à vérifier</b><br>Demande ${escapeHtml(p.id)} (${escapeHtml(finMoney(p.amount))} crédités) — ${escapeHtml(p.reason)}.${p.surplus > 0 ? '<br>Surplus : ' + escapeHtml(finMoney(p.surplus)) : ''}${who ? '<br>' + escapeHtml(who) : ''}${btn}</div>`;
+  });
   const rows = (r.groups || []).map((g) => `<tr><td>${escapeHtml(g.label)}</td><td class="num">${g.count}</td><td class="num">${finMoney(g.in)}</td><td class="num">${finMoney(g.out)}</td><td class="num"><b>${finMoney(g.net)}</b></td></tr>`).join('');
   return `<div class="adm-fin-cards">
       ${card('Recharges (argent entré)', finMoney(t.recharges))}
@@ -2659,7 +2664,7 @@ function finReportHtml(r) {
       ${card('Mouvements internes, total', finMoney(t.internalNet), t.internalFlag ? 'bad' : '')}
       ${card('Mouvements examinés', String(t.rows || 0))}
     </div>
-    ${alerts.length ? alerts.map((a) => `<p class="adm-fin-alert">${escapeHtml(a)}</p>`).join('') : '<p class="adm-fin-ok">Aucun écart détecté sur cette période.</p>'}
+    ${alerts.length || probs.length ? alerts.map((a) => `<p class="adm-fin-alert">${escapeHtml(a)}</p>`).join('') + probs.join('') : '<p class="adm-fin-ok">Aucun écart détecté sur cette période.</p>'}
     <div class="adm-fin-scroll"><table class="adm-fin-table"><thead><tr><th>Type de mouvement</th><th class="num">Nombre</th><th class="num">Entrées</th><th class="num">Sorties</th><th class="num">Net</th></tr></thead><tbody>${rows || '<tr><td colspan="5">Aucun mouvement sur cette période.</td></tr>'}</tbody></table></div>
     <p class="muted small" style="margin-top:8px">Période : du ${admFmtDate(r.since)} au ${admFmtDate(r.until)}.</p>`;
 }
@@ -2675,6 +2680,16 @@ async function finReportRun(btn) {
     body.innerHTML = '<p class="admin-empty">Erreur : ' + escapeHtml(e.message) + '</p>';
   }
   if (btn) { btn.disabled = false; btn.textContent = 'Générer le rapport'; }
+}
+// Retire le surplus d'une recharge créditée plusieurs fois. Le serveur recalcule le montant et refuse tout 2e retrait.
+async function finCorrect(btn, id, surplus) {
+  if (!confirm('Retirer ' + finMoney(surplus) + ' du solde de cette personne ?\n\nCette recharge a été créditée plusieurs fois par l\'ancienne méthode. Le surplus sera retiré UNE seule fois et écrit dans son relevé. Si elle a déjà dépensé une partie de cet argent, seul ce qui reste dans son solde sera retiré.')) return;
+  if (btn) { btn.disabled = true; btn.textContent = 'Correction en cours…'; }
+  try {
+    const r = await adminManageCall(null, id, 'fin_correct');
+    alert('Fait : ' + finMoney(r.removed) + ' retirés. Nouveau solde : ' + finMoney(r.balance) + '.' + (r.left > 0.004 ? '\n\nIl reste ' + finMoney(r.left) + ' non récupérés (argent déjà dépensé).' : ''));
+  } catch (e) { alert('Erreur : ' + e.message); }
+  finReportRun(null);
 }
 async function finReportCsv(btn) {
   const days = parseInt((document.getElementById('admin-fin-days') || {}).value, 10) || 30;
