@@ -3180,11 +3180,15 @@ function installBackTrap() {
 
 /* Applique la langue détectée (ou choisie) dès que la page est prête */
 document.addEventListener('DOMContentLoaded', () => {
-  applyTranslations(currentLang);
-  initHomeCatalog();
-  initTutorialAutoShow();
-  updateCartBadge();
-  renderHeroPayIcons();
+  // Le pack de la langue choisie est demandé très tôt par index.html : en général il est déjà là (exécution immédiate).
+  // Sinon on l'attend 3 s au plus ; passé ce délai on démarre en français et la langue s'applique dès que le pack arrive.
+  onLangReady(currentLang, () => {
+    applyTranslations(currentLang);
+    initHomeCatalog();
+    initTutorialAutoShow();
+    updateCartBadge();
+    renderHeroPayIcons();
+  }, 3000);
 });
 
 /* Bandeau "moyens de paiement" de la page d'accueil publique — pastilles
@@ -3246,7 +3250,7 @@ function cnLoadGuide(ok, ko) {
   let sc = document.querySelector('script[data-cn-guide]');
   if (!sc) {
     sc = document.createElement('script');
-    sc.src = 'guide-pro.js?v=20261120'; sc.async = true; sc.setAttribute('data-cn-guide', '1');
+    sc.src = 'guide-pro.js?v=20261125'; sc.async = true; sc.setAttribute('data-cn-guide', '1');
     sc.onerror = () => { if (sc.parentNode) sc.parentNode.removeChild(sc); if (ko) ko(); };
     document.head.appendChild(sc);
   }
@@ -12909,7 +12913,7 @@ const SITE_TEMPLATE_EXTRA = {
     Object.keys(SITE_TEMPLATE_EXTRA).forEach((k) => {
       const d = SITE_TEMPLATE_EXTRA[k], key = 'site_template_' + k;
       if (!SITE_TEMPLATES[k]) { const e = { label: key, accent: d[0] }; if (d[1]) e.premium = true; SITE_TEMPLATES[k] = e; }
-      LG.forEach((l, i) => { if (typeof TRANSLATIONS === 'object' && TRANSLATIONS[l] && !TRANSLATIONS[l][key]) TRANSLATIONS[l][key] = d[2 + i]; });
+      LG.forEach((l, i) => { if (typeof addTranslation === 'function') addTranslation(l, key, d[2 + i]); }); // rangé même si le pack de la langue n'est pas encore chargé
     });
   } catch (e) { /* ignore */ }
 })();
@@ -13046,7 +13050,7 @@ const TR_T = {
 function trT(k) { const d = TR_T[currentLang] || TR_T.en; return d[k] != null ? d[k] : TR_T.en[k]; }
 function cnLoadSiteTransfer(ok, ko) {
   // Fichier site-give.js (nom unique : aucune confusion possible avec le fichier serveur api/_lib/site-transfer.js).
-  cnLazyModule('data-cn-xfer', 'site-give.js?v=20261120', () => !!window.CNSiteTransfer, ok, ko);
+  cnLazyModule('data-cn-xfer', 'site-give.js?v=20261125', () => !!window.CNSiteTransfer, ok, ko);
 }
 function openSiteTransfer(mode, code) {
   if (!currentUser) { openAuth('register'); return; }
@@ -18271,7 +18275,7 @@ function syncNotifSelectHeader() {
   if (normal) normal.classList.toggle('hidden', notifSelectMode);
   if (select) select.classList.toggle('hidden', !notifSelectMode);
   if (hint) hint.classList.toggle('hidden', notifSelectMode);
-  if (count) count.textContent = `${selectedNotifIds.size} sélectionnée(s)`;
+  if (count) count.textContent = t('notif_selected_count').replace('{n}', selectedNotifIds.size);
 }
 
 function toggleNotifSelectMode() {

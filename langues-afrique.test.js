@@ -4,22 +4,17 @@ const test = require('node:test');
 const assert = require('node:assert');
 const fs = require('fs');
 const path = require('path');
-const vm = require('vm');
 
 const read = (f) => fs.readFileSync(path.join(__dirname, '..', f), 'utf8');
-const src = read('translations.js');
+const { makeEnv, allLangSrc, PACKS } = require('./lang-env');
+const src = allLangSrc(); // français (translations.js) + les 6 packs de langue (lang-xx.js)
 
 function load() {
-  const store = {};
-  const ctx = {
-    localStorage: { getItem: (k) => (k in store ? store[k] : null), setItem: (k, v) => { store[k] = String(v); } },
-    navigator: { language: 'fr-FR' },
-    document: { body: null, addEventListener() {}, querySelectorAll: () => [], getElementById: () => null, documentElement: {} },
-    MutationObserver: function () { this.observe = () => {}; }
-  };
-  vm.createContext(ctx);
-  vm.runInContext(src + '\n;this.__api = { t, TRANSLATIONS, SUPPORTED_LANGS, SW_CORE, LN_CORE, setLang: (l) => { currentLang = l; }, detectLanguage };', ctx);
-  return { api: ctx.__api, store };
+  // translations.js (français + moteur) puis les packs, exactement comme le navigateur les reçoit.
+  const env = makeEnv({ navigator: 'fr-FR' }).boot();
+  PACKS.forEach((l) => env.loadPack(l));
+  const api = Object.assign({}, env.api, { SW_CORE: env.ctx.__cnPacks.sw, LN_CORE: env.ctx.__cnPacks.ln });
+  return { api, store: env.store };
 }
 
 test('langues : sw et ln sont déclarées comme langues prises en charge, et proposées dans les deux sélecteurs', () => {
@@ -48,18 +43,25 @@ test('langues : chaque clé traduite existe en français, n\'est pas vide et gar
   }
 });
 
-test('langues : sw et ln contiennent TOUTES les clés du français (le reste en français), donc aucun écran vide', () => {
+test('langues : sw et ln contiennent TOUTES les clés du français et sont vraiment traduites (pas du français collé)', () => {
   const { api } = load();
+  const fr = api.TRANSLATIONS.fr;
   for (const l of ['sw', 'ln']) {
-    const missing = Object.keys(api.TRANSLATIONS.fr).filter((k) => !(k in api.TRANSLATIONS[l]));
+    const missing = Object.keys(fr).filter((k) => !(k in api.TRANSLATIONS[l]));
     assert.deepStrictEqual(missing, [], l + ' : clés absentes');
+    const empty = Object.keys(fr).filter((k) => !String(api.TRANSLATIONS[l][k] || '').trim());
+    assert.deepStrictEqual(empty, [], l + ' : textes vides');
+    const same = Object.keys(fr).filter((k) => api.TRANSLATIONS[l][k] === fr[k]).length;
+    // Le lingala garde volontairement des mots français courants en RDC (Menu, Solde, Catégorie…) : on limite à 15 %.
+    assert.ok(same / Object.keys(fr).length < 0.15, l + ' : trop de textes identiques au français (' + same + ')');
   }
   assert.strictEqual(api.TRANSLATIONS.sw.nav_login, 'Ingia');
   assert.strictEqual(api.TRANSLATIONS.ln.nav_login, 'Kokota');
-  assert.strictEqual(api.TRANSLATIONS.ln.hn_d_pro, api.TRANSLATIONS.fr.hn_d_pro, 'non traduit en lingala = français');
+  assert.notStrictEqual(api.TRANSLATIONS.ln.hn_d_pro, api.TRANSLATIONS.fr.hn_d_pro, 'traduit en lingala (plus de français collé)');
+  assert.notStrictEqual(api.TRANSLATIONS.sw.hn_d_pro, api.TRANSLATIONS.fr.hn_d_pro, 'traduit en kiswahili');
 });
 
-test('langues : t() — clé traduite dans la langue ; clé non traduite ou ajoutée plus tard = français (jamais anglais) en sw/ln', () => {
+test('langues : t() — clé traduite dans la langue ; clé ajoutée plus tard (pas encore traduite) = français (jamais anglais) en sw/ln', () => {
   const { api } = load();
   api.TRANSLATIONS.fr.cle_ajoutee_apres = 'Bonjour le monde';
   api.TRANSLATIONS.en.cle_ajoutee_apres = 'Hello world';
@@ -87,6 +89,18 @@ test('langues : « 5 langues » est devenu « 7 langues » partout (les 5 dictio
   assert.strictEqual((src.match(/auth_trust_2: "7 /g) || []).length, 5, 'une par langue d\'origine (fr, en, es, it, pt)');
 });
 
-test('langues : le menu en bas de page (menu-pro) retombe sur le français pour sw/ln, pas sur l\'anglais', () => {
-  assert.match(read('menu-pro.js'), /cl === 'sw' \|\| cl === 'ln'\) \? 0 : 1/);
+test('langues : le menu principal (menu-pro) a ses 159 textes en 7 langues ; si un texte manque, le français (jamais l\'anglais) en sw/ln', () => {
+  const src = read('menu-pro.js');
+  assert.match(src, /var LANGS = \['fr', 'en', 'es', 'it', 'pt', 'sw', 'ln'\];/);
+  assert.match(src, /\(i > 4 \? a\[0\] : a\[1\]\)/);
+  const block = src.slice(src.indexOf('  var D = {'), src.indexOf('  function curLang'));
+  const rows = [...block.matchAll(/^ {4}(\w+): (\[.*\]),?\s*$/gm)];
+  assert.ok(rows.length >= 159, 'au moins 159 textes (' + rows.length + ')');
+  for (const [, key, arr] of rows) {
+    const a = eval(arr);
+    assert.strictEqual(a.length, 7, key + ' : 7 langues attendues (fr, en, es, it, pt, sw, ln)');
+    assert.ok(a.every((x) => String(x).trim().length > 0), key + ' : texte vide');
+    const vars = (x) => (String(x).match(/\{\w+\}/g) || []).sort().join();
+    for (let i = 1; i < 7; i++) assert.strictEqual(vars(a[i]), vars(a[0]), key + ' : variable {..} différente (langue ' + i + ')');
+  }
 });

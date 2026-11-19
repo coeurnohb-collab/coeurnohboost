@@ -218,6 +218,25 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="apple-touch-icon" href="/icon-192-v2.png">
 
+<script>
+/* Langue : le français est dans l'application elle-même. Pour toute autre langue, on demande son petit fichier (lang-xx.js)
+   TOUT DE SUITE, en parallèle du reste, pour que les textes soient prêts à l'ouverture. Les numéros de version (lv) sont
+   écrits par `node tools/build.js`. Si le fichier ne vient pas (pas de réseau), le texte reste en français et l'application
+   réessaie dès que la connexion revient (voir translations.js). */
+(function(){try{
+  var LV=/*lv*/{"en":"0d0d73187f","es":"a9362f3588","it":"3becb1e060","pt":"666d0c82ac","sw":"ebc46e3373","ln":"432433975c"}/*end-lv*/;
+  window.__cnLV=LV;
+  var S=['fr','en','es','it','pt','sw','ln'],l=null;
+  try{l=localStorage.getItem('coeurnoh_lang');}catch(e){}
+  if(!l||S.indexOf(l)<0){l=String(navigator.language||'en').slice(0,2).toLowerCase();if(S.indexOf(l)<0)l='en';}
+  if(l!=='fr'&&LV[l]){
+    var P=(window.__cnPS=window.__cnPS||{});P[l]='loading';
+    var s=document.createElement('script');s.src='lang-'+l+'.js?v='+LV[l];s.async=true;
+    s.onerror=function(){P[l]='fail';if(window.__cnPackFailed)window.__cnPackFailed(l);};
+    document.head.appendChild(s);
+  }
+}catch(e){}})();
+</script>
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="stylesheet" href="app.min.css?v=c9e42ad9b0" onerror="['style','polish','menu-pro','pro'].forEach(function(n){var l=document.createElement('link');l.rel='stylesheet';l.href=n+'.css';document.head.appendChild(l)})">
@@ -288,7 +307,7 @@
     <img id="app-splash-logo-img" src="logo-mark.png" alt="Coeurnoh Universe" width="240" height="112">
     <div id="app-splash-spinner" aria-hidden="true"></div>
   </div>
-  <div id="app-splash-foot">Mobile Money · Crypto · Carte</div>
+  <div id="app-splash-foot" data-i18n="st_mobile_money_crypto_carte_2934">Mobile Money · Crypto · Carte</div>
 </div>
 <script>
 /* Vidéo d'ouverture (format téléphone) : lue seulement si elle démarre vite, en français, sans économie de données ni mouvement réduit.
@@ -312,7 +331,7 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
 <!-- ================= NAV ================= -->
 <nav id="nav">
   <div class="wrap nav-inner">
-    <div class="logo" onclick="showHome()"><img class="brand-mark" src="icon-512-v2.png" alt="Coeurnoh Universe" width="34" height="34" loading="eager"><b>C<svg class="logo-o" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="6.5" fill="#28374f"/><path d="M5.5 12h13M12 5.5c-2.6 2-2.6 11 0 13M12 5.5c2.6 2 2.6 11 0 13" stroke="#f39c1f" stroke-width=".9" opacity=".9"/><ellipse cx="12" cy="12" rx="10.5" ry="4" transform="rotate(-24 12 12)" stroke="#f39c1f" stroke-width="1.3"/></svg>eurnoh <span>Universe</span></b></div>
+    <div class="logo" onclick="showHome()"><img class="brand-mark" src="icon-192-v2.png" alt="Coeurnoh Universe" width="34" height="34" loading="eager"><b>C<svg class="logo-o" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="6.5" fill="#28374f"/><path d="M5.5 12h13M12 5.5c-2.6 2-2.6 11 0 13M12 5.5c2.6 2 2.6 11 0 13" stroke="#f39c1f" stroke-width=".9" opacity=".9"/><ellipse cx="12" cy="12" rx="10.5" ry="4" transform="rotate(-24 12 12)" stroke="#f39c1f" stroke-width="1.3"/></svg>eurnoh <span>Universe</span></b></div>
     <div class="nav-right">
       <select id="lang-select" class="lang-select" onchange="changeLanguage(this.value)">
         <option value="fr">🇫🇷 FR</option>
@@ -326,8 +345,8 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
       <button class="btn btn-outline" id="nav-login-btn" data-i18n="nav_login" onclick="openAuth('login')">Se connecter</button>
       <button class="btn btn-primary" id="nav-register-btn" data-i18n="nav_register" onclick="openAuth('register')">Créer un compte</button>
       <div class="nav-icon-group">
-        <a href="admin.html" class="btn admin-shortcut hidden" id="admin-shortcut-btn" aria-label="Administration"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></a>
-        <button class="btn help-shortcut" id="help-shortcut-btn" onclick="openTutorial()" aria-label="Aide / Tutoriel" title="Comment ça marche ?"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 2-3 4"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></button>
+        <a href="admin.html" class="btn admin-shortcut hidden" id="admin-shortcut-btn" aria-label="Administration" data-i18n-aria-label="st_administration_b8be"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></a>
+        <button class="btn help-shortcut" id="help-shortcut-btn" onclick="openTutorial()" aria-label="Aide / Tutoriel" title="Comment ça marche ?" data-i18n-title="st_comment_ca_marche_a6cc" data-i18n-aria-label="st_aide_tutoriel_99d5"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 2-3 4"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></button>
       </div>
       <button class="btn btn-primary hidden" id="install-app-btn" onclick="installApp()"><svg class="ico" aria-hidden="true"><use href="#i-download"/></svg> <span data-i18n="install_app_btn">Installer l'app</span></button>
     </div>
@@ -351,12 +370,12 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
         </div>
       </div>
       <figure class="hm-show">
-        <img class="hm-photo" src="hero-phones-v2.webp" width="1200" height="1152" decoding="async" fetchpriority="high" alt="Application Coeurnoh Universe sur deux téléphones : le menu avec les raccourcis, et les réseaux sociaux disponibles">
+        <img class="hm-photo" src="hero-phones-v2.webp" width="1200" height="1152" decoding="async" fetchpriority="high" alt="Application Coeurnoh Universe sur deux téléphones : le menu avec les raccourcis, et les réseaux sociaux disponibles" data-i18n-alt="st_application_coeurnoh_unive_dcab">
       </figure>
     </div>
   </section>
 
-  <section class="hm-proof" aria-label="Paiement et confiance">
+  <section class="hm-proof" aria-label="Paiement et confiance" data-i18n-aria-label="st_paiement_et_confiance_25a6">
     <div class="wrap hm-proof-grid">
       <aside class="hm-pay" aria-labelledby="hm-pay-t">
         <h2 class="hm-pay-title" id="hm-pay-t" data-i18n="hn_pay_title">Moyens de paiement acceptés</h2>
@@ -468,7 +487,7 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
         <h2 class="hm-h2" data-i18n="hn_smm_title">Boostez votre présence en ligne</h2>
         <p class="hm-sub" data-i18n="hn_smm_sub">Consultez les tarifs, puis créez votre compte pour commander.</p>
       </div>
-      <input type="text" id="home-platform-search" class="text-input hm-search" data-i18n-placeholder="search_placeholder" placeholder="Rechercher un réseau..." aria-label="Rechercher un réseau" oninput="filterPlatformGrid('home-platform-grid', this.value)">
+      <input type="text" id="home-platform-search" class="text-input hm-search" data-i18n-placeholder="search_placeholder" placeholder="Rechercher un réseau..." aria-label="Rechercher un réseau" oninput="filterPlatformGrid('home-platform-grid', this.value)" data-i18n-aria-label="st_rechercher_un_reseau_d963">
       <div class="platform-grid" id="home-platform-grid"></div>
     </div>
   </section>
@@ -535,7 +554,7 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
         <a href="https://wa.me/243825001290" rel="noopener">WhatsApp</a>
       </nav>
       <p class="hm-copy">© 2026 Coeurnoh Business — Coeurnoh Universe. <span data-i18n="footer_rights">Tous droits réservés</span>.</p>
-      <p id="cn-recaptcha-legal" class="hm-legal" style="display:none">Protégé par reCAPTCHA — la <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">politique de confidentialité</a> et les <a href="https://policies.google.com/terms" target="_blank" rel="noopener">conditions d'utilisation</a> de Google s'appliquent.</p>
+      <p id="cn-recaptcha-legal" class="hm-legal" style="display:none"><span data-i18n="st_protege_par_recaptcha_la_2a0c">Protégé par reCAPTCHA — la</span> <a href="https://policies.google.com/privacy" target="_blank" rel="noopener" data-i18n="st_politique_de_confidentiali_f3b4">politique de confidentialité</a> <span data-i18n="st_et_les_b5a9">et les</span> <a href="https://policies.google.com/terms" target="_blank" rel="noopener" data-i18n="st_conditions_d_utilisation_30f1">conditions d'utilisation</a> <span data-i18n="st_de_google_s_appliquent_fc7c">de Google s'appliquent.</span></p>
     </div>
   </footer>
 </div>
@@ -572,7 +591,7 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
       <input type="file" id="story-upload-file" class="file-input-hidden" accept="image/*,video/*" onchange="handleStoryFileChange(event)">
 
       <div style="position:relative;margin-bottom:14px">
-        <input type="text" id="account-search-input" class="text-input" placeholder="Rechercher un compte..." oninput="searchAccounts(this.value)" onfocus="if(this.value) searchAccounts(this.value)" onblur="closeAccountSearchOnBlur()">
+        <input type="text" id="account-search-input" class="text-input" placeholder="Rechercher un compte..." oninput="searchAccounts(this.value)" onfocus="if(this.value) searchAccounts(this.value)" onblur="closeAccountSearchOnBlur()" data-i18n-placeholder="st_rechercher_un_compte_a40d">
         <div id="account-search-results" class="account-search-results hidden"></div>
       </div>
 
@@ -629,33 +648,33 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
       </div>
 
       <div class="order-box" id="section-saved" data-menu-title="Enregistrés">
-        <h3><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:6px"><path d="M19 21 12 16l-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>Enregistrés</h3>
-        <p class="muted small" style="margin-bottom:12px">Retrouve ici les publications que tu as enregistrées.</p>
+        <h3><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:6px"><path d="M19 21 12 16l-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg><span data-i18n="st_enregistres_d0e5">Enregistrés</span></h3>
+        <p class="muted small" style="margin-bottom:12px" data-i18n="st_retrouve_ici_les_publicati_89b9">Retrouve ici les publications que tu as enregistrées.</p>
         <div id="saved-feed"><p class="muted small">Chargement...</p></div>
       </div>
 
       <div class="order-box" id="section-followers" data-menu-title="Mes abonnés">
-        <h3><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:6px"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Mes abonnés</h3>
-        <p class="muted small" style="margin-bottom:12px">Les comptes qui te suivent.</p>
+        <h3><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:6px"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span data-i18n="st_mes_abonnes_491b">Mes abonnés</span></h3>
+        <p class="muted small" style="margin-bottom:12px" data-i18n="st_les_comptes_qui_te_suivent_5ee9">Les comptes qui te suivent.</p>
         <div id="followers-list"><p class="muted small">Chargement...</p></div>
       </div>
 
       <div class="order-box" id="section-following" data-menu-title="Mes abonnements">
-        <h3><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:6px"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Mes abonnements</h3>
-        <p class="muted small" style="margin-bottom:12px">Les comptes que tu suis.</p>
+        <h3><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:6px"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span data-i18n="st_mes_abonnements_ee22">Mes abonnements</span></h3>
+        <p class="muted small" style="margin-bottom:12px" data-i18n="st_les_comptes_que_tu_suis_b378">Les comptes que tu suis.</p>
         <div id="following-list"><p class="muted small">Chargement...</p></div>
       </div>
 
       <div class="order-box" id="section-blocked" data-menu-title="Confidentialité">
-        <h3><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:6px"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>Comptes bloqués</h3>
-        <p class="muted small" style="margin-bottom:12px">Ces comptes n'apparaissent plus dans ton fil ni dans la recherche.</p>
+        <h3><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:6px"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg><span data-i18n="st_comptes_bloques_0bbe">Comptes bloqués</span></h3>
+        <p class="muted small" style="margin-bottom:12px" data-i18n="st_ces_comptes_n_apparaissent_0a2a">Ces comptes n'apparaissent plus dans ton fil ni dans la recherche.</p>
         <div id="blocked-list"><p class="muted small">Chargement...</p></div>
-        <p class="muted small" style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line)"><svg class="ico" aria-hidden="true"><use href="#i-lock"/></svg> Tes données (nom, e-mail, publications) sont stockées de façon sécurisée et ne sont jamais partagées avec des tiers.</p>
+        <p class="muted small" style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line)"><svg class="ico" aria-hidden="true"><use href="#i-lock"/></svg> <span data-i18n="st_tes_donnees_nom_e_mail_pub_ed45">Tes données (nom, e-mail, publications) sont stockées de façon sécurisée et ne sont jamais partagées avec des tiers.</span></p>
       </div>
 
       <div class="order-box" id="section-profile" data-menu-title="Mon profil">
         <h3 data-i18n="dash_profile_title">Mon profil</h3>
-        <button class="btn btn-outline btn-sm" style="margin-bottom:14px" onclick="shareMyProfile()"><svg class="ico" aria-hidden="true"><use href="#i-link"/></svg> Partager mon profil</button>
+        <button class="btn btn-outline btn-sm" style="margin-bottom:14px" onclick="shareMyProfile()"><svg class="ico" aria-hidden="true"><use href="#i-link"/></svg> <span data-i18n="st_partager_mon_profil_ce96">Partager mon profil</span></button>
         <div class="profile-row"><span data-i18n="dash_profile_name">Nom</span><span id="profile-name">—</span></div>
         <div class="profile-row"><span data-i18n="dash_profile_email">Email</span><span id="profile-email">—</span></div>
         <div class="profile-row"><span data-i18n="dash_profile_since">Membre depuis</span><span id="profile-since">—</span></div>
@@ -679,10 +698,10 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
       </div>
 
       <div class="order-box" id="section-editaccount" data-menu-title="Compte">
-        <h3><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:6px"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Compte</h3>
+        <h3><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:6px"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg><span data-i18n="st_compte_c457">Compte</span></h3>
 
         <div class="field">
-          <label>Photo de profil</label>
+          <label data-i18n="st_photo_de_profil_7415">Photo de profil</label>
           <input type="file" id="account-photo-file" class="file-input-hidden" accept="image/*" onchange="handleAccountPhotoFileChange(event)">
           <div style="display:flex;align-items:center;gap:12px;margin-top:6px">
             <span id="account-photo-preview-wrap"></span>
@@ -695,71 +714,71 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
             <div class="upload-progress-fill" id="account-photo-progress-fill"></div>
             <span class="upload-progress-label" id="account-photo-progress-label">0%</span>
           </div>
-          <button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="saveAccountPhoto()">Enregistrer la photo</button>
+          <button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="saveAccountPhoto()" data-i18n="st_enregistrer_la_photo_e8e5">Enregistrer la photo</button>
         </div>
 
         <div class="field">
-          <label for="account-name-input">Nom</label>
+          <label for="account-name-input" data-i18n="st_nom_7ff2">Nom</label>
           <input type="text" id="account-name-input">
         </div>
-        <button class="btn btn-outline" onclick="saveAccountName()">Enregistrer le nom</button>
+        <button class="btn btn-outline" onclick="saveAccountName()" data-i18n="st_enregistrer_le_nom_aff8">Enregistrer le nom</button>
 
         <div class="field" style="margin-top:18px">
-          <label for="account-email-input">Adresse e-mail</label>
+          <label for="account-email-input" data-i18n="st_adresse_e_mail_e0ed">Adresse e-mail</label>
           <input type="email" id="account-email-input">
         </div>
         <div class="field">
-          <label for="account-email-currentpass">Mot de passe actuel (requis pour changer l'e-mail)</label>
+          <label for="account-email-currentpass" data-i18n="st_mot_de_passe_actuel_requis_951d">Mot de passe actuel (requis pour changer l'e-mail)</label>
           <input type="password" id="account-email-currentpass">
         </div>
-        <button class="btn btn-outline" onclick="saveAccountEmail()">Mettre à jour l'e-mail</button>
+        <button class="btn btn-outline" onclick="saveAccountEmail()" data-i18n="st_mettre_a_jour_l_e_mail_e910">Mettre à jour l'e-mail</button>
         <p class="muted small" id="account-email-msg" style="margin-top:6px"></p>
       </div>
 
       <div class="order-box" id="section-security" data-menu-title="Sécurité">
-        <h3><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:6px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg>Sécurité</h3>
+        <h3><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:6px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg><span data-i18n="st_securite_33e9">Sécurité</span></h3>
 
         <div class="field">
-          <label for="account-pass-current">Mot de passe actuel</label>
+          <label for="account-pass-current" data-i18n="st_mot_de_passe_actuel_f924">Mot de passe actuel</label>
           <input type="password" id="account-pass-current">
         </div>
         <div class="field">
-          <label for="account-pass-new">Nouveau mot de passe (6 caractères min.)</label>
+          <label for="account-pass-new" data-i18n="st_nouveau_mot_de_passe_6_car_8265">Nouveau mot de passe (6 caractères min.)</label>
           <input type="password" id="account-pass-new">
         </div>
-        <button class="btn btn-outline" onclick="saveAccountPassword()">Changer le mot de passe</button>
+        <button class="btn btn-outline" onclick="saveAccountPassword()" data-i18n="st_changer_le_mot_de_passe_4ad8">Changer le mot de passe</button>
         <p class="muted small" id="account-pass-msg" style="margin-top:6px"></p>
 
-        <button class="btn btn-outline" style="margin-top:18px;color:var(--red-text);border-color:var(--red-text)" onclick="logoutAllDevices()"><svg class="ico" aria-hidden="true"><use href="#i-lock"/></svg> Se déconnecter de tous les appareils</button>
+        <button class="btn btn-outline" style="margin-top:18px;color:var(--red-text);border-color:var(--red-text)" onclick="logoutAllDevices()"><svg class="ico" aria-hidden="true"><use href="#i-lock"/></svg> <span data-i18n="st_se_deconnecter_de_tous_les_6d08">Se déconnecter de tous les appareils</span></button>
 
-        <p class="muted small" style="margin:18px 0 10px"><svg class="ico" aria-hidden="true"><use href="#i-alert"/></svg> Supprimer ton compte est <strong>définitif</strong> : tu perdras ton solde restant et tes publications.</p>
+        <p class="muted small" style="margin:18px 0 10px"><svg class="ico" aria-hidden="true"><use href="#i-alert"/></svg> <span data-i18n="st_supprimer_ton_compte_est_b6f1">Supprimer ton compte est</span> <strong data-i18n="st_definitif_74b4">définitif</strong> <span data-i18n="st_tu_perdras_ton_solde_resta_e91b">: tu perdras ton solde restant et tes publications.</span></p>
         <div class="field">
-          <label for="delete-account-pass">Mot de passe actuel (pour confirmer la suppression)</label>
+          <label for="delete-account-pass" data-i18n="st_mot_de_passe_actuel_pour_c_f98a">Mot de passe actuel (pour confirmer la suppression)</label>
           <input type="password" id="delete-account-pass">
         </div>
-        <button class="btn btn-outline" style="color:var(--red-text);border-color:var(--red-text)" onclick="deleteMyAccount()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:4px"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>Supprimer mon compte définitivement</button>
+        <button class="btn btn-outline" style="color:var(--red-text);border-color:var(--red-text)" onclick="deleteMyAccount()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:4px"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg><span data-i18n="st_supprimer_mon_compte_defin_5034">Supprimer mon compte définitivement</span></button>
         <p class="muted small" id="delete-account-msg" style="margin-top:6px"></p>
       </div>
 
       <div class="order-box" id="section-appearance" data-menu-title="Apparence">
-        <h3><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:6px"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2a10 10 0 1 0 10 10c0-1-1-2-2-2h-2.5a2.5 2.5 0 0 1 0-5H19a2 2 0 0 0 2-2c0-2-4-3-9-3Z"/></svg>Apparence</h3>
-        <p class="muted small" style="margin-bottom:8px">Thème</p>
+        <h3><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:6px"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2a10 10 0 1 0 10 10c0-1-1-2-2-2h-2.5a2.5 2.5 0 0 1 0-5H19a2 2 0 0 0 2-2c0-2-4-3-9-3Z"/></svg><span data-i18n="st_apparence_80b3">Apparence</span></h3>
+        <p class="muted small" style="margin-bottom:8px" data-i18n="st_theme_f366">Thème</p>
         <div class="shop-filter-tabs">
-          <button class="theme-choice" data-theme="light" onclick="setTheme('light')"><svg class="ico" aria-hidden="true"><use href="#i-sun"/></svg> Clair</button>
-          <button class="theme-choice" data-theme="dark" onclick="setTheme('dark')"><svg class="ico" aria-hidden="true"><use href="#i-moon"/></svg> Sombre</button>
-          <button class="theme-choice" data-theme="auto" onclick="setTheme('auto')"><svg class="ico" aria-hidden="true"><use href="#i-monitor"/></svg> Auto</button>
+          <button class="theme-choice" data-theme="light" onclick="setTheme('light')"><svg class="ico" aria-hidden="true"><use href="#i-sun"/></svg> <span data-i18n="st_clair_1c50">Clair</span></button>
+          <button class="theme-choice" data-theme="dark" onclick="setTheme('dark')"><svg class="ico" aria-hidden="true"><use href="#i-moon"/></svg> <span data-i18n="st_sombre_b1fa">Sombre</span></button>
+          <button class="theme-choice" data-theme="auto" onclick="setTheme('auto')"><svg class="ico" aria-hidden="true"><use href="#i-monitor"/></svg> <span data-i18n="st_auto_c614">Auto</span></button>
         </div>
-        <p class="muted small" style="margin:14px 0 8px">Taille du texte</p>
+        <p class="muted small" style="margin:14px 0 8px" data-i18n="st_taille_du_texte_d694">Taille du texte</p>
         <div class="shop-filter-tabs">
-          <button class="fontsize-choice" data-fontsize="small" onclick="setFontSize('small')">Petite</button>
-          <button class="fontsize-choice" data-fontsize="normal" onclick="setFontSize('normal')">Normale</button>
-          <button class="fontsize-choice" data-fontsize="large" onclick="setFontSize('large')">Grande</button>
-          <button class="fontsize-choice" data-fontsize="xlarge" onclick="setFontSize('xlarge')">Très grande</button>
+          <button class="fontsize-choice" data-fontsize="small" onclick="setFontSize('small')" data-i18n="st_petite_5a7f">Petite</button>
+          <button class="fontsize-choice" data-fontsize="normal" onclick="setFontSize('normal')" data-i18n="st_normale_c82c">Normale</button>
+          <button class="fontsize-choice" data-fontsize="large" onclick="setFontSize('large')" data-i18n="st_grande_0b6d">Grande</button>
+          <button class="fontsize-choice" data-fontsize="xlarge" onclick="setFontSize('xlarge')" data-i18n="st_tres_grande_d9ad">Très grande</button>
         </div>
       </div>
 
       <div class="order-box" id="section-language" data-menu-title="Langue">
-        <h3><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:6px"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10Z"/></svg>Langue</h3>
+        <h3><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:6px"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10Z"/></svg><span data-i18n="st_langue_6619">Langue</span></h3>
         <div class="shop-filter-tabs">
           <button class="lang-choice" data-lang="fr" onclick="changeLanguage('fr')">🇫🇷 Français</button>
           <button class="lang-choice" data-lang="en" onclick="changeLanguage('en')">🇬🇧 English</button>
@@ -772,44 +791,44 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
       </div>
 
       <div class="order-box" id="section-notifprefs" data-menu-title="Notifications">
-        <h3><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:6px"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>Préférences de notifications</h3>
-        <p class="muted small" style="margin-bottom:6px">Choisis les alertes que tu veux recevoir.</p>
-        <div class="profile-row"><span>Notifications push</span>
+        <h3><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:6px"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span data-i18n="st_preferences_de_notificatio_a7b9">Préférences de notifications</span></h3>
+        <p class="muted small" style="margin-bottom:6px" data-i18n="st_choisis_les_alertes_que_tu_a0d6">Choisis les alertes que tu veux recevoir.</p>
+        <div class="profile-row"><span data-i18n="st_notifications_push_2cd9">Notifications push</span>
           <label class="switch"><input type="checkbox" id="notifpref-push" onchange="saveNotifPrefs()"><span class="slider"></span></label>
         </div>
-        <div class="profile-row"><span>Notifications par e-mail</span>
+        <div class="profile-row"><span data-i18n="st_notifications_par_e_mail_64b6">Notifications par e-mail</span>
           <label class="switch"><input type="checkbox" id="notifpref-email" onchange="saveNotifPrefs()"><span class="slider"></span></label>
         </div>
-        <div class="profile-row"><span>Nouveaux contenus &amp; promos</span>
+        <div class="profile-row"><span data-i18n="st_nouveaux_contenus_promos_a14a">Nouveaux contenus &amp; promos</span>
           <label class="switch"><input type="checkbox" id="notifpref-content" onchange="saveNotifPrefs()"><span class="slider"></span></label>
         </div>
-        <div class="profile-row"><span>Messages privés</span>
+        <div class="profile-row"><span data-i18n="st_messages_prives_f808">Messages privés</span>
           <label class="switch"><input type="checkbox" id="notifpref-message" onchange="saveNotifPrefs()"><span class="slider"></span></label>
         </div>
-        <div class="profile-row"><span>Activité (likes, commentaires, partages)</span>
+        <div class="profile-row"><span data-i18n="st_activite_likes_commentaire_4b68">Activité (likes, commentaires, partages)</span>
           <label class="switch"><input type="checkbox" id="notifpref-activity" onchange="saveNotifPrefs()"><span class="slider"></span></label>
         </div>
-        <div class="profile-row" style="border-bottom:none"><span>Commandes &amp; achats</span>
+        <div class="profile-row" style="border-bottom:none"><span data-i18n="st_commandes_achats_af21">Commandes &amp; achats</span>
           <label class="switch"><input type="checkbox" id="notifpref-orders" onchange="saveNotifPrefs()"><span class="slider"></span></label>
         </div>
-        <p class="muted small" style="margin-top:10px"><svg class="ico" aria-hidden="true"><use href="#i-lock"/></svg> Les annonces administratives importantes restent toujours actives, pour ta sécurité.</p>
+        <p class="muted small" style="margin-top:10px"><svg class="ico" aria-hidden="true"><use href="#i-lock"/></svg> <span data-i18n="st_les_annonces_administrativ_0df5">Les annonces administratives importantes restent toujours actives, pour ta sécurité.</span></p>
       </div>
 
 
       <div class="order-box" id="section-share" data-menu-title="Partager Coeurnoh Universe">
-        <p class="muted small" style="margin-bottom:10px">Fais connaître l'application à ton entourage.</p>
-        <button class="btn btn-outline" onclick="shareApp()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:5px"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.6" x2="15.4" y2="6.4"/><line x1="8.6" y1="13.4" x2="15.4" y2="17.6"/></svg>Partager l'application</button>
+        <p class="muted small" style="margin-bottom:10px" data-i18n="st_fais_connaitre_l_applicati_3bb9">Fais connaître l'application à ton entourage.</p>
+        <button class="btn btn-outline" onclick="shareApp()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:5px"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.6" x2="15.4" y2="6.4"/><line x1="8.6" y1="13.4" x2="15.4" y2="17.6"/></svg><span data-i18n="st_partager_l_application_4d08">Partager l'application</span></button>
       </div>
 
       <div class="order-box" id="section-about" data-menu-title="À propos">
-        <h3><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:6px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>À propos</h3>
-        <p class="muted small">Coeurnoh Universe est une application multi-services éditée par Coeurnoh Business : boutique et bibliothèque, publications, emploi et freelance, immobilier, voyages, réservations, factures et reçus, mini-sites, croissance des réseaux sociaux et portefeuille intégré. Les paiements se font par Mobile Money, crypto ou carte.</p>
+        <h3><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:6px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span data-i18n="st_a_propos_5345">À propos</span></h3>
+        <p class="muted small" data-i18n="st_coeurnoh_universe_est_une_92c1">Coeurnoh Universe est une application multi-services éditée par Coeurnoh Business : boutique et bibliothèque, publications, emploi et freelance, immobilier, voyages, réservations, factures et reçus, mini-sites, croissance des réseaux sociaux et portefeuille intégré. Les paiements se font par Mobile Money, crypto ou carte.</p>
         <div class="cn-about-links">
-          <a href="/about">Qui sommes-nous</a>
-          <a href="/terms">Conditions d'utilisation</a>
-          <a href="/privacy">Politique de confidentialité</a>
-          <a href="/refund">Remboursement et livraison</a>
-          <a href="/contact">Nous contacter</a>
+          <a href="/about" data-i18n="st_qui_sommes_nous_966e">Qui sommes-nous</a>
+          <a href="/terms" data-i18n="st_conditions_d_utilisation_3e2c">Conditions d'utilisation</a>
+          <a href="/privacy" data-i18n="st_politique_de_confidentiali_42b0">Politique de confidentialité</a>
+          <a href="/refund" data-i18n="st_remboursement_et_livraison_7936">Remboursement et livraison</a>
+          <a href="/contact" data-i18n="st_nous_contacter_f02f">Nous contacter</a>
         </div>
       </div>
 
@@ -833,7 +852,7 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
       <span class="bnav-icon"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9V6a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v3"/><path d="M3 9a2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0"/><path d="M4 9v10a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9"/><path d="M9 21v-5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v5"/></svg></span><span data-i18n="shop_title">Boutique</span>
     </button>
     <button class="bnav-btn" id="bnav-notif" onclick="openNotifPanel()" style="position:relative">
-      <span class="bnav-icon"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="notif-badge hidden" id="notif-badge-bnav">0</span></span><span>Notifs</span>
+      <span class="bnav-icon"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="notif-badge hidden" id="notif-badge-bnav">0</span></span><span data-i18n="st_notifs_bee7">Notifs</span>
     </button>
     <button class="bnav-btn" id="bnav-menu" onclick="openMainMenu()">
       <span class="bnav-icon"><svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></span><span data-i18n="tab_menu">Menu</span>
@@ -920,7 +939,7 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
         <label class="field-label" data-i18n="pay_crypto_label">Choisis ta crypto</label>
         <div class="op-grid" id="pay-crypto-list"></div>
         <p class="muted small" data-i18n="pay_crypto_note">Tu es redirigé vers une page sécurisée pour payer en crypto. Ton solde est crédité automatiquement dès que le paiement est confirmé.</p>
-        <p class="muted small" id="pay-crypto-browser-tip">Si la page de paiement affiche une erreur, copie le lien et ouvre-le dans un autre navigateur (Firefox, Edge…).</p>
+        <p class="muted small" id="pay-crypto-browser-tip" data-i18n="st_si_la_page_de_paiement_aff_ad2a">Si la page de paiement affiche une erreur, copie le lien et ouvre-le dans un autre navigateur (Firefox, Edge…).</p>
         <div id="pay-direct-box" class="hidden"></div>
       </div>
 
@@ -945,7 +964,7 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
           <div class="card-preview-chip"></div>
           <div class="card-preview-number">•••• •••• •••• ••••</div>
           <div class="card-preview-row">
-            <span class="card-preview-brands"><span class="brand-pill brand-pill-visa">VISA</span><span class="brand-pill brand-pill-mastercard"><span class="mc-circles"><span></span><span></span></span><span class="mc-label">mastercard</span></span></span>
+            <span class="card-preview-brands"><span class="brand-pill brand-pill-visa">VISA</span><span class="brand-pill brand-pill-mastercard"><span class="mc-circles"><span></span><span></span></span><span class="mc-label" data-i18n="st_mastercard_c19e">mastercard</span></span></span>
           </div>
         </div>
         <p class="muted small" style="margin-top:10px" data-i18n="pay_card_note">Visa ou Mastercard, partout dans le monde. En RDC, tu peux aussi payer par illicocash ou Mobile Money sur la même page.</p>
@@ -963,8 +982,8 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
 
       <div id="recharge-amount-block">
         <label class="field-label" style="margin-top:16px" id="recharge-amount-label" data-i18n="pay_amount_label">Montant (USD)</label>
-        <input type="number" id="recharge-amount" class="text-input" placeholder="Ex: 5" inputmode="decimal" oninput="updateRechargeEquivalent()">
-        <div class="cn-amt-chips" role="group" aria-label="Montants rapides">
+        <input type="number" id="recharge-amount" class="text-input" placeholder="Ex: 5" inputmode="decimal" oninput="updateRechargeEquivalent()" data-i18n-placeholder="st_ex_5_06b7">
+        <div class="cn-amt-chips" role="group" aria-label="Montants rapides" data-i18n-aria-label="st_montants_rapides_c212">
           <button type="button" onclick="cnSetAmount(2)">2 $</button>
           <button type="button" onclick="cnSetAmount(5)">5 $</button>
           <button type="button" onclick="cnSetAmount(10)">10 $</button>
@@ -1008,7 +1027,7 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
     <div style="display:flex;gap:10px;margin-bottom:14px">
       <button class="btn btn-outline" style="flex:1;justify-content:center" onclick="openSellForm()"><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg> <span data-i18n="shop_sell_btn">Vendre</span></button>
       <button class="btn btn-outline" style="flex:1;justify-content:center" onclick="showSellerPage()"><svg class="ico" aria-hidden="true"><use href="#i-briefcase"/></svg> <span data-i18n="shop_seller_btn">Vendeur</span></button>
-      <button class="btn btn-outline" style="position:relative" onclick="openCart()" aria-label="Panier"><svg class="ico" aria-hidden="true"><use href="#i-cart"/></svg> <span class="cart-badge hidden" id="cart-badge">0</span></button>
+      <button class="btn btn-outline" style="position:relative" onclick="openCart()" aria-label="Panier" data-i18n-aria-label="st_panier_cb46"><svg class="ico" aria-hidden="true"><use href="#i-cart"/></svg> <span class="cart-badge hidden" id="cart-badge">0</span></button>
     </div>
 
     <div class="shop-switch"><button type="button" class="active" data-i18n="shop_title">Boutique</button><button type="button" onclick="showLibrary()" data-i18n="library_title">Bibliothèque</button></div>
@@ -1061,23 +1080,23 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
 <!-- ================= ESPACE VENDEUR ================= -->
 <div id="view-seller" class="hidden">
   <div class="wrap dash-wrap">
-    <button class="btn btn-outline" style="margin-bottom:16px" onclick="showShop()">← Retour à la Boutique</button>
-    <h2 class="page-title" style="margin-bottom:4px"><svg class="ico" aria-hidden="true"><use href="#i-briefcase"/></svg> Mon espace vendeur</h2>
-    <p class="muted" style="margin-bottom:18px">Tes ventes, tes revenus, ton niveau.</p>
+    <button class="btn btn-outline" style="margin-bottom:16px" onclick="showShop()" data-i18n="st_retour_a_la_boutique_3390">← Retour à la Boutique</button>
+    <h2 class="page-title" style="margin-bottom:4px"><svg class="ico" aria-hidden="true"><use href="#i-briefcase"/></svg> <span data-i18n="st_mon_espace_vendeur_b686">Mon espace vendeur</span></h2>
+    <p class="muted" style="margin-bottom:18px" data-i18n="st_tes_ventes_tes_revenus_ton_c1bd">Tes ventes, tes revenus, ton niveau.</p>
 
     <div id="seller-badge-card"><p class="muted">Chargement...</p></div>
 
     <div class="seller-stats-grid" id="seller-stats-grid"></div>
 
-    <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:14px" onclick="openWithdrawForm()"><svg class="ico" aria-hidden="true"><use href="#i-card"/></svg> Demander un retrait</button>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:14px" onclick="openWithdrawForm()"><svg class="ico" aria-hidden="true"><use href="#i-card"/></svg> <span data-i18n="st_demander_un_retrait_df6a">Demander un retrait</span></button>
 
-    <h3 style="margin:20px 0 10px 0"><svg class="ico" aria-hidden="true"><use href="#i-card"/></svg> Mes demandes de retrait</h3>
+    <h3 style="margin:20px 0 10px 0"><svg class="ico" aria-hidden="true"><use href="#i-card"/></svg> <span data-i18n="st_mes_demandes_de_retrait_9f70">Mes demandes de retrait</span></h3>
     <div id="seller-withdrawals-list"><p class="muted">Chargement...</p></div>
 
-    <h3 style="margin:20px 0 10px 0"><svg class="ico" aria-hidden="true"><use href="#i-package"/></svg> Mes publications</h3>
+    <h3 style="margin:20px 0 10px 0"><svg class="ico" aria-hidden="true"><use href="#i-package"/></svg> <span data-i18n="st_mes_publications_c874">Mes publications</span></h3>
     <div id="seller-publications-list"><p class="muted">Chargement...</p></div>
 
-    <h3 style="margin:20px 0 10px 0"><svg class="ico" aria-hidden="true"><use href="#i-filetext"/></svg> Ventes récentes</h3>
+    <h3 style="margin:20px 0 10px 0"><svg class="ico" aria-hidden="true"><use href="#i-filetext"/></svg> <span data-i18n="st_ventes_recentes_010c">Ventes récentes</span></h3>
     <div id="seller-recent-sales"><p class="muted">Chargement...</p></div>
   </div>
 </div>
@@ -1086,14 +1105,14 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
 <!-- ================= AUTH MODAL ================= -->
 <div class="modal-overlay auth-modal-overlay hidden" id="auth-modal" role="dialog" aria-modal="true" aria-labelledby="auth-title">
   <div class="modal auth-modal">
-    <button class="modal-close" onclick="closeAuth()" aria-label="Fermer">×</button>
+    <button class="modal-close" onclick="closeAuth()" aria-label="Fermer" data-i18n-aria-label="st_fermer_5ab4">×</button>
 
     <div class="auth-hero">
       <div class="auth-brand">
-        <img class="brand-mark" src="icon-512-v2.png" alt="Coeurnoh Universe" width="46" height="46" loading="lazy">
+        <img class="brand-mark" src="icon-192-v2.png" alt="Coeurnoh Universe" width="46" height="46" loading="lazy">
         <div>
           <div class="auth-brand-name">Coeurnoh <span>Universe</span></div>
-          <span class="auth-brand-tag">Multi Services</span>
+          <span class="auth-brand-tag" data-i18n="st_multi_services_2a42">Multi Services</span>
         </div>
       </div>
       <p class="auth-hero-line" id="auth-hero-line" data-i18n="auth_hero_line">Réseaux sociaux, boutique et services multiples — un seul compte.</p>
@@ -1129,7 +1148,7 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
       <div class="field">
         <label for="auth-password" data-i18n="auth_password_label">Mot de passe</label>
         <div class="auth-input password-wrap"><svg class="lead" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="3"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><input type="password" id="auth-password" autocomplete="new-password" enterkeyhint="go" data-i18n-placeholder="auth_password_ph" placeholder="•••••••• (6 caractères min.)" oninput="updatePasswordStrength()">
-          <button type="button" class="password-toggle" id="password-toggle-btn" onclick="togglePasswordVisibility()" aria-label="Afficher le mot de passe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          <button type="button" class="password-toggle" id="password-toggle-btn" onclick="togglePasswordVisibility()" aria-label="Afficher le mot de passe" data-i18n-aria-label="st_afficher_le_mot_de_passe_6415"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg></button>
         </div>
         <div id="auth-pw-strength" class="hidden"><div class="pw-meter"><i id="auth-pw-bar"></i></div><div class="pw-hint" id="auth-pw-hint"></div></div>
       </div>
@@ -1152,21 +1171,21 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
 <div id="view-notifications" class="hidden">
   <div class="wrap dash-wrap">
     <div id="notif-header-normal" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:10px">
-      <button class="btn btn-outline nt-back" onclick="showDashboard()" aria-label="Retour"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
-      <h2 class="page-title" style="margin-bottom:0">Notifications
+      <button class="btn btn-outline nt-back" onclick="showDashboard()" aria-label="Retour" data-i18n-aria-label="st_retour_e5be"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <h2 class="page-title" style="margin-bottom:0" data-i18n="st_notifications_753a">Notifications
       </h2>
-      <button class="btn btn-outline nt-check" onclick="var m=document.querySelector('#cn-notif-tools .mk');if(m)m.click()" aria-label="Tout marquer comme lu" title="Tout marquer comme lu"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>
+      <button class="btn btn-outline nt-check" onclick="var m=document.querySelector('#cn-notif-tools .mk');if(m)m.click()" aria-label="Tout marquer comme lu" title="Tout marquer comme lu" data-i18n-title="st_tout_marquer_comme_lu_dd4c" data-i18n-aria-label="st_tout_marquer_comme_lu_dd4c"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>
     </div>
     <div id="notif-header-select" class="hidden" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:10px">
-      <button class="btn btn-outline btn-sm" onclick="toggleNotifSelectMode()" aria-label="Annuler la sélection">
+      <button class="btn btn-outline btn-sm" onclick="toggleNotifSelectMode()" aria-label="Annuler la sélection" data-i18n-aria-label="st_annuler_la_selection_d86e">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
       <strong id="notif-select-count" style="font-size:0.95rem">0 sélectionnée(s)</strong>
-      <button class="btn btn-outline btn-sm" style="color:var(--red);border-color:var(--red)" onclick="deleteSelectedNotifs()" aria-label="Supprimer la sélection">
+      <button class="btn btn-outline btn-sm" style="color:var(--red);border-color:var(--red)" onclick="deleteSelectedNotifs()" aria-label="Supprimer la sélection" data-i18n-aria-label="st_supprimer_la_selection_d134">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
       </button>
     </div>
-    <p class="muted small" id="notif-select-hint" style="margin-bottom:12px">Astuce : reste appuyé sur une notification pour la sélectionner.</p>
+    <p class="muted small" id="notif-select-hint" data-i18n="notif_select_hint" style="margin-bottom:12px">Astuce : reste appuyé sur une notification pour la sélectionner.</p>
     <div id="notif-list"><p class="muted">Chargement...</p></div>
   </div>
 </div>
@@ -1181,8 +1200,8 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
      "Télécharger" du menu "..." : retire, une seule facon de telecharger
      desormais, comme sur Facebook/Instagram. -->
 <div class="media-viewer hidden" id="media-viewer">
-  <button class="media-viewer-icon-btn media-viewer-back" onclick="closeMediaViewer()" aria-label="Retour"></button>
-  <button class="media-viewer-icon-btn media-viewer-more hidden" id="media-viewer-more-btn" aria-label="Options" title="Options"></button>
+  <button class="media-viewer-icon-btn media-viewer-back" onclick="closeMediaViewer()" aria-label="Retour" data-i18n-aria-label="st_retour_e5be"></button>
+  <button class="media-viewer-icon-btn media-viewer-more hidden" id="media-viewer-more-btn" aria-label="Options" title="Options" data-i18n-title="st_options_6bf5" data-i18n-aria-label="st_options_6bf5"></button>
   <div class="media-viewer-content" id="media-viewer-content"></div>
 </div>
 
@@ -1221,7 +1240,7 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
     <div id="menu-screen-categories">
       <div class="menu-page-header">
         <h2 data-i18n="menu_title">Menu</h2>
-        <button class="modal-close" style="position:static" onclick="closeMainMenu()" aria-label="Fermer">×</button>
+        <button class="modal-close" style="position:static" onclick="closeMainMenu()" aria-label="Fermer" data-i18n-aria-label="st_fermer_5ab4">×</button>
       </div>
 
       <!-- Carte profil : remplie dynamiquement par openMainMenu() (avatar,
@@ -1260,7 +1279,7 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
     <!-- NIVEAU 2a : liste "Mon espace" -->
     <div id="menu-screen-items-espace" class="hidden">
       <div class="menu-page-header">
-        <button class="menu-back-btn" onclick="showMenuScreen('categories')" aria-label="Retour">
+        <button class="menu-back-btn" onclick="showMenuScreen('categories')" aria-label="Retour" data-i18n-aria-label="st_retour_e5be">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
         <h2 data-i18n="menu_myspace">Mon espace</h2>
@@ -1296,7 +1315,7 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
     <!-- NIVEAU 2b : liste "Paramètres" -->
     <div id="menu-screen-items-parametres" class="hidden">
       <div class="menu-page-header">
-        <button class="menu-back-btn" onclick="showMenuScreen('categories')" aria-label="Retour">
+        <button class="menu-back-btn" onclick="showMenuScreen('categories')" aria-label="Retour" data-i18n-aria-label="st_retour_e5be">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
         <h2 data-i18n="menu_settings">Paramètres</h2>
@@ -1332,7 +1351,7 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
     <!-- NIVEAU 2c : liste "Services CoeurNoh" (rien encore construit, juste l'annonce) -->
     <div id="menu-screen-items-services" class="hidden">
       <div class="menu-page-header">
-        <button class="menu-back-btn" onclick="showMenuScreen('categories')" aria-label="Retour">
+        <button class="menu-back-btn" onclick="showMenuScreen('categories')" aria-label="Retour" data-i18n-aria-label="st_retour_e5be">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
         <h2 data-i18n="menu_services">Services</h2>
@@ -1352,7 +1371,7 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
       </div>
 
       <div class="menu-category">
-        <h4>Vendre &amp; entreprendre</h4>
+        <h4 data-i18n="st_vendre_entreprendre_d794">Vendre &amp; entreprendre</h4>
         <button class="menu-item" onclick="openServiceRequestScreen()">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L2 19l3 3 7.3-7.3a4 4 0 0 0 5.4-5.4l-2.8 2.8-2-2Z"/></svg>
           <span data-i18n="svc_pro">Trouver un professionnel</span>
@@ -1372,7 +1391,7 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
       </div>
 
       <div class="menu-category">
-        <h4>Emploi &amp; formation</h4>
+        <h4 data-i18n="st_emploi_formation_e758">Emploi &amp; formation</h4>
         <button class="menu-item" onclick="openJobsScreen()">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
           <span data-i18n="svc_jobs">Emploi &amp; Freelance</span>
@@ -1384,7 +1403,7 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
       </div>
 
       <div class="menu-category">
-        <h4>Immobilier &amp; voyages</h4>
+        <h4 data-i18n="st_immobilier_voyages_cd41">Immobilier &amp; voyages</h4>
         <button class="menu-item" onclick="openImmoScreen()">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10"/></svg>
           <span data-i18n="svc_immo">Immobilier</span>
@@ -1404,7 +1423,7 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
       </div>
 
       <div class="menu-category">
-        <h4>Communauté &amp; évènements</h4>
+        <h4 data-i18n="st_communaute_evenements_6cf8">Communauté &amp; évènements</h4>
         <button class="menu-item" onclick="openEventsScreen()">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v3a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-3a3 3 0 0 1 0-6V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><line x1="13" y1="5" x2="13" y2="19" stroke-dasharray="2 2"/></svg>
           <span data-i18n="svc_events">Événements &amp; Billetterie</span>
@@ -1426,13 +1445,13 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
          bouton ci-dessus devra changer pour pointer vers la vraie page. -->
     <div id="menu-screen-comingsoon" class="hidden">
       <div class="menu-page-header">
-        <button class="menu-back-btn" onclick="showMenuScreen('items-services')" aria-label="Retour">
+        <button class="menu-back-btn" onclick="showMenuScreen('items-services')" aria-label="Retour" data-i18n-aria-label="st_retour_e5be">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
         <h2 id="comingsoon-title">—</h2>
       </div>
       <div style="text-align:center;padding:30px 16px">
-        <div class="coming-soon-badge">Bientôt disponible</div>
+        <div class="coming-soon-badge" data-i18n="st_bientot_disponible_cd7e">Bientôt disponible</div>
         <p class="muted" id="comingsoon-desc" style="margin-top:16px;line-height:1.6"></p>
       </div>
     </div>
@@ -1440,7 +1459,7 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
     <!-- FACTURES & REÇUS -->
     <div id="menu-screen-invoices" class="hidden">
       <div class="menu-page-header">
-        <button class="menu-back-btn" onclick="showMenuScreen('items-services')" aria-label="Retour">
+        <button class="menu-back-btn" onclick="showMenuScreen('items-services')" aria-label="Retour" data-i18n-aria-label="st_retour_e5be">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
         <h2 data-i18n="svc_invoices">Factures &amp; Reçus</h2>
@@ -1457,7 +1476,7 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
     <!-- COEURNOH ALERTES -->
     <div id="menu-screen-alerts" class="hidden">
       <div class="menu-page-header">
-        <button class="menu-back-btn" onclick="showMenuScreen('items-services')" aria-label="Retour">
+        <button class="menu-back-btn" onclick="showMenuScreen('items-services')" aria-label="Retour" data-i18n-aria-label="st_retour_e5be">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
         <h2 data-i18n="svc_alerts">Alertes</h2>
@@ -1475,7 +1494,7 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
     <!-- PRES DE CHEZ VOUS (fusionne avec l'ancien Annuaire professionnel) -->
     <div id="menu-screen-nearby" class="hidden">
       <div class="menu-page-header">
-        <button class="menu-back-btn" onclick="showMenuScreen('items-services')" aria-label="Retour">
+        <button class="menu-back-btn" onclick="showMenuScreen('items-services')" aria-label="Retour" data-i18n-aria-label="st_retour_e5be">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
         <h2 data-i18n="svc_nearby">Près de chez vous</h2>
@@ -1507,7 +1526,7 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
     <!-- CONCOURS & RECOMPENSES -->
     <div id="menu-screen-contests" class="hidden">
       <div class="menu-page-header">
-        <button class="menu-back-btn" onclick="showMenuScreen('items-services')" aria-label="Retour">
+        <button class="menu-back-btn" onclick="showMenuScreen('items-services')" aria-label="Retour" data-i18n-aria-label="st_retour_e5be">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
         <h2 data-i18n="svc_contests">Concours &amp; Récompenses</h2>
@@ -1531,7 +1550,7 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
     <!-- EMPLOI & FREELANCE -->
     <div id="menu-screen-jobs" class="hidden">
       <div class="menu-page-header">
-        <button class="menu-back-btn" onclick="showMenuScreen('items-services')" aria-label="Retour">
+        <button class="menu-back-btn" onclick="showMenuScreen('items-services')" aria-label="Retour" data-i18n-aria-label="st_retour_e5be">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
         <h2 data-i18n="svc_jobs">Emploi &amp; Freelance</h2>
@@ -1619,25 +1638,25 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
     <!-- EVENEMENTS & BILLETTERIE -->
     <div id="menu-screen-events" class="hidden">
       <div class="menu-page-header">
-        <button class="menu-back-btn" onclick="showMenuScreen('items-services')" aria-label="Retour">
+        <button class="menu-back-btn" onclick="showMenuScreen('items-services')" aria-label="Retour" data-i18n-aria-label="st_retour_e5be">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
-        <h2>Événements &amp; Billetterie</h2>
+        <h2 data-i18n="st_evenements_billetterie_e20b">Événements &amp; Billetterie</h2>
       </div>
 
       <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:14px" onclick="openEventForm()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Créer un événement
+        <span data-i18n="st_creer_un_evenement_0c5a">Créer un événement</span>
       </button>
 
       <div class="shop-filter-tabs" id="events-main-tabs" style="margin-bottom:14px">
-        <button class="active" data-tab="browse" onclick="setEventsTab('browse')">Découvrir</button>
-        <button data-tab="mytickets" onclick="setEventsTab('mytickets')">Mes réservations</button>
-        <button data-tab="myevents" onclick="setEventsTab('myevents')">Mes événements</button>
+        <button class="active" data-tab="browse" onclick="setEventsTab('browse')" data-i18n="st_decouvrir_8969">Découvrir</button>
+        <button data-tab="mytickets" onclick="setEventsTab('mytickets')" data-i18n="st_mes_reservations_82a6">Mes réservations</button>
+        <button data-tab="myevents" onclick="setEventsTab('myevents')" data-i18n="st_mes_evenements_6026">Mes événements</button>
       </div>
 
       <div id="events-tab-browse">
-        <input type="text" id="events-search-input" class="text-input" style="margin-bottom:14px" placeholder="Titre, ville ou catégorie" oninput="scheduleEventsSearch()">
+        <input type="text" id="events-search-input" class="text-input" style="margin-bottom:14px" placeholder="Titre, ville ou catégorie" oninput="scheduleEventsSearch()" data-i18n-placeholder="st_titre_ville_ou_categorie_5791">
         <div id="events-browse-list"><p class="muted small">Chargement...</p></div>
       </div>
 
@@ -1653,7 +1672,7 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
     <!-- COEURNOH TRAVEL -->
     <div id="menu-screen-travel" class="hidden">
       <div class="menu-page-header">
-        <button class="menu-back-btn" onclick="showMenuScreen('items-services')" aria-label="Retour">
+        <button class="menu-back-btn" onclick="showMenuScreen('items-services')" aria-label="Retour" data-i18n-aria-label="st_retour_e5be">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
         <h2 data-i18n="svc_travel">Voyages</h2>
@@ -1661,24 +1680,24 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
 
       <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:14px" onclick="openTravelForm()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Publier un lieu / bon plan
+        <span data-i18n="st_publier_un_lieu_bon_plan_fb87">Publier un lieu / bon plan</span>
       </button>
 
       <div class="shop-filter-tabs" id="travel-main-tabs" style="margin-bottom:14px">
-        <button class="active" data-tab="browse" onclick="setTravelTab('browse')">Découvrir</button>
-        <button data-tab="favorites" onclick="setTravelTab('favorites')">Mes favoris</button>
-        <button data-tab="mine" onclick="setTravelTab('mine')">Mes publications</button>
+        <button class="active" data-tab="browse" onclick="setTravelTab('browse')" data-i18n="st_decouvrir_8969">Découvrir</button>
+        <button data-tab="favorites" onclick="setTravelTab('favorites')" data-i18n="st_mes_favoris_8dd6">Mes favoris</button>
+        <button data-tab="mine" onclick="setTravelTab('mine')" data-i18n="st_mes_publications_c874">Mes publications</button>
       </div>
 
       <div id="travel-tab-browse">
-        <input type="text" id="travel-search-input" class="text-input" style="margin-bottom:12px" placeholder="Titre, ville ou pays" oninput="scheduleTravelSearch()">
+        <input type="text" id="travel-search-input" class="text-input" style="margin-bottom:12px" placeholder="Titre, ville ou pays" oninput="scheduleTravelSearch()" data-i18n-placeholder="st_titre_ville_ou_pays_5f1f">
         <div class="shop-filter-tabs" id="travel-category-tabs" style="margin-bottom:14px">
-          <button class="active" data-cat="" onclick="setTravelCategory('')">Tous</button>
-          <button data-cat="hotel" onclick="setTravelCategory('hotel')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20V9a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v11"/><path d="M2 20h20"/><path d="M6 20v-4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v4"/><path d="M6 7V4a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v3"/></svg> Hôtels</button>
-          <button data-cat="restaurant" onclick="setTravelCategory('restaurant')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h1a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg> Restaurants</button>
-          <button data-cat="site" onclick="setTravelCategory('site')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="M16 21l4-4-4-4"/><path d="M20 17H4"/></svg> Sites touristiques</button>
-          <button data-cat="activite" onclick="setTravelCategory('activite')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg> Activités</button>
-          <button data-cat="bon_plan" onclick="setTravelCategory('bon_plan')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41 11 3.83A2 2 0 0 0 9.59 3.17H4a1 1 0 0 0-1 1v5.59a2 2 0 0 0 .59 1.41l9.58 9.58a2 2 0 0 0 2.82 0l5.6-5.6a2 2 0 0 0 0-2.58Z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg> Bons plans</button>
+          <button class="active" data-cat="" onclick="setTravelCategory('')" data-i18n="st_tous_b97a">Tous</button>
+          <button data-cat="hotel" onclick="setTravelCategory('hotel')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20V9a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v11"/><path d="M2 20h20"/><path d="M6 20v-4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v4"/><path d="M6 7V4a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v3"/></svg> <span data-i18n="st_hotels_fcc6">Hôtels</span></button>
+          <button data-cat="restaurant" onclick="setTravelCategory('restaurant')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h1a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg> <span data-i18n="st_restaurants_94a3">Restaurants</span></button>
+          <button data-cat="site" onclick="setTravelCategory('site')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="M16 21l4-4-4-4"/><path d="M20 17H4"/></svg> <span data-i18n="st_sites_touristiques_47eb">Sites touristiques</span></button>
+          <button data-cat="activite" onclick="setTravelCategory('activite')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg> <span data-i18n="st_activites_9c1f">Activités</span></button>
+          <button data-cat="bon_plan" onclick="setTravelCategory('bon_plan')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41 11 3.83A2 2 0 0 0 9.59 3.17H4a1 1 0 0 0-1 1v5.59a2 2 0 0 0 .59 1.41l9.58 9.58a2 2 0 0 0 2.82 0l5.6-5.6a2 2 0 0 0 0-2.58Z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg> <span data-i18n="st_bons_plans_11cf">Bons plans</span></button>
         </div>
         <div id="travel-browse-list"><p class="muted small">Chargement...</p></div>
       </div>
@@ -1695,21 +1714,21 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
     <!-- RESERVATION EN LIGNE -->
     <div id="menu-screen-booking" class="hidden">
       <div class="menu-page-header">
-        <button class="menu-back-btn" onclick="showMenuScreen('items-services')" aria-label="Retour">
+        <button class="menu-back-btn" onclick="showMenuScreen('items-services')" aria-label="Retour" data-i18n-aria-label="st_retour_e5be">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
-        <h2>Réservation en ligne</h2>
+        <h2 data-i18n="st_reservation_en_ligne_523b">Réservation en ligne</h2>
       </div>
 
       <div class="shop-filter-tabs" id="booking-main-tabs" style="margin-bottom:14px">
-        <button class="active" data-tab="find" onclick="setBookingTab('find')">Trouver un pro</button>
-        <button data-tab="mine" onclick="setBookingTab('mine')">Mes réservations</button>
-        <button data-tab="received" onclick="setBookingTab('received')">Rendez-vous reçus</button>
+        <button class="active" data-tab="find" onclick="setBookingTab('find')" data-i18n="st_trouver_un_pro_2335">Trouver un pro</button>
+        <button data-tab="mine" onclick="setBookingTab('mine')" data-i18n="st_mes_reservations_82a6">Mes réservations</button>
+        <button data-tab="received" onclick="setBookingTab('received')" data-i18n="st_rendez_vous_recus_67de">Rendez-vous reçus</button>
       </div>
 
       <div id="booking-tab-find">
-        <p class="muted small" style="padding:0 10px 12px">Recherche un professionnel qui accepte les réservations en ligne (coiffeur, mécanicien, photographe...) et réserve directement un créneau. Tu es toi-même un professionnel ? Active cette fonction sur ta propre fiche pour recevoir des rendez-vous.</p>
-        <input type="text" id="booking-search-input" class="text-input" style="margin-bottom:12px" placeholder="Métier, nom ou ville" oninput="scheduleBookingSearch()">
+        <p class="muted small" style="padding:0 10px 12px" data-i18n="st_recherche_un_professionnel_1bb8">Recherche un professionnel qui accepte les réservations en ligne (coiffeur, mécanicien, photographe...) et réserve directement un créneau. Tu es toi-même un professionnel ? Active cette fonction sur ta propre fiche pour recevoir des rendez-vous.</p>
+        <input type="text" id="booking-search-input" class="text-input" style="margin-bottom:12px" placeholder="Métier, nom ou ville" oninput="scheduleBookingSearch()" data-i18n-placeholder="st_metier_nom_ou_ville_4311">
         <div id="booking-find-list"><p class="muted small">Chargement...</p></div>
       </div>
 
@@ -1718,7 +1737,7 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
       </div>
 
       <div id="booking-tab-received" class="hidden">
-        <p class="muted small" style="padding:0 10px 12px">Ces rendez-vous n'apparaissent que si tu as activé les réservations en ligne sur ta fiche professionnelle (dans « Près de chez vous »).</p>
+        <p class="muted small" style="padding:0 10px 12px" data-i18n="st_ces_rendez_vous_n_apparais_19f4">Ces rendez-vous n'apparaissent que si tu as activé les réservations en ligne sur ta fiche professionnelle (dans « Près de chez vous »).</p>
         <div id="booking-received-list"><p class="muted small">Chargement...</p></div>
       </div>
     </div>
@@ -1726,7 +1745,7 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
     <!-- COEURNOH IMMO -->
     <div id="menu-screen-immo" class="hidden">
       <div class="menu-page-header">
-        <button class="menu-back-btn" onclick="showMenuScreen('items-services')" aria-label="Retour">
+        <button class="menu-back-btn" onclick="showMenuScreen('items-services')" aria-label="Retour" data-i18n-aria-label="st_retour_e5be">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
         <h2 data-i18n="svc_immo">Immobilier</h2>
@@ -1734,29 +1753,29 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
 
       <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:14px" onclick="openImmoForm()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Publier une annonce
+        <span data-i18n="st_publier_une_annonce_3552">Publier une annonce</span>
       </button>
 
       <div class="shop-filter-tabs" id="immo-main-tabs" style="margin-bottom:14px">
-        <button class="active" data-tab="browse" onclick="setImmoTab('browse')">Découvrir</button>
-        <button data-tab="favorites" onclick="setImmoTab('favorites')">Mes favoris</button>
-        <button data-tab="mine" onclick="setImmoTab('mine')">Mes annonces</button>
+        <button class="active" data-tab="browse" onclick="setImmoTab('browse')" data-i18n="st_decouvrir_8969">Découvrir</button>
+        <button data-tab="favorites" onclick="setImmoTab('favorites')" data-i18n="st_mes_favoris_8dd6">Mes favoris</button>
+        <button data-tab="mine" onclick="setImmoTab('mine')" data-i18n="st_mes_annonces_4313">Mes annonces</button>
       </div>
 
       <div id="immo-tab-browse">
-        <input type="text" id="immo-search-input" class="text-input" style="margin-bottom:12px" placeholder="Titre ou ville" oninput="scheduleImmoSearch()">
+        <input type="text" id="immo-search-input" class="text-input" style="margin-bottom:12px" placeholder="Titre ou ville" oninput="scheduleImmoSearch()" data-i18n-placeholder="st_titre_ou_ville_cfae">
 
         <div class="shop-filter-tabs" id="immo-transaction-tabs" style="margin-bottom:10px">
-          <button class="active" data-tx="" onclick="setImmoTransaction('')">Tous</button>
-          <button data-tx="vente" onclick="setImmoTransaction('vente')">À vendre</button>
-          <button data-tx="location" onclick="setImmoTransaction('location')">À louer</button>
+          <button class="active" data-tx="" onclick="setImmoTransaction('')" data-i18n="st_tous_b97a">Tous</button>
+          <button data-tx="vente" onclick="setImmoTransaction('vente')" data-i18n="st_a_vendre_b7df">À vendre</button>
+          <button data-tx="location" onclick="setImmoTransaction('location')" data-i18n="st_a_louer_6941">À louer</button>
         </div>
         <div class="shop-filter-tabs" id="immo-type-tabs" style="margin-bottom:14px">
-          <button class="active" data-type="" onclick="setImmoType('')">Tous types</button>
-          <button data-type="maison" onclick="setImmoType('maison')">Maisons</button>
-          <button data-type="appartement" onclick="setImmoType('appartement')">Appartements</button>
-          <button data-type="terrain" onclick="setImmoType('terrain')">Terrains</button>
-          <button data-type="local_commercial" onclick="setImmoType('local_commercial')">Locaux commerciaux</button>
+          <button class="active" data-type="" onclick="setImmoType('')" data-i18n="st_tous_types_38fa">Tous types</button>
+          <button data-type="maison" onclick="setImmoType('maison')" data-i18n="st_maisons_328f">Maisons</button>
+          <button data-type="appartement" onclick="setImmoType('appartement')" data-i18n="st_appartements_5f11">Appartements</button>
+          <button data-type="terrain" onclick="setImmoType('terrain')" data-i18n="st_terrains_d121">Terrains</button>
+          <button data-type="local_commercial" onclick="setImmoType('local_commercial')" data-i18n="st_locaux_commerciaux_48d6">Locaux commerciaux</button>
         </div>
 
         <div id="immo-browse-list"><p class="muted small">Chargement...</p></div>
@@ -1774,31 +1793,31 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
     <!-- TROUVER UN PROFESSIONNEL (demandes de service + devis) -->
     <div id="menu-screen-srequests" class="hidden">
       <div class="menu-page-header">
-        <button class="menu-back-btn" onclick="showMenuScreen('items-services')" aria-label="Retour">
+        <button class="menu-back-btn" onclick="showMenuScreen('items-services')" aria-label="Retour" data-i18n-aria-label="st_retour_e5be">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
-        <h2>Trouver un professionnel</h2>
+        <h2 data-i18n="st_trouver_un_professionnel_398a">Trouver un professionnel</h2>
       </div>
-      <p class="muted small" style="padding:0 10px 12px">Décris ce dont tu as besoin, les professionnels autour de toi t'envoient un devis. Ou trouve une demande à pourvoir si tu es toi-même professionnel.</p>
+      <p class="muted small" style="padding:0 10px 12px" data-i18n="st_decris_ce_dont_tu_as_besoi_35c9">Décris ce dont tu as besoin, les professionnels autour de toi t'envoient un devis. Ou trouve une demande à pourvoir si tu es toi-même professionnel.</p>
 
       <div class="shop-filter-tabs" id="srequest-main-tabs" style="margin-bottom:14px">
-        <button class="active" data-tab="mine" onclick="setSRequestTab('mine')">Mes demandes</button>
-        <button data-tab="available" onclick="setSRequestTab('available')">Demandes à pourvoir</button>
-        <button data-tab="myquotes" onclick="setSRequestTab('myquotes')">Mes devis envoyés</button>
+        <button class="active" data-tab="mine" onclick="setSRequestTab('mine')" data-i18n="st_mes_demandes_d0a4">Mes demandes</button>
+        <button data-tab="available" onclick="setSRequestTab('available')" data-i18n="st_demandes_a_pourvoir_9809">Demandes à pourvoir</button>
+        <button data-tab="myquotes" onclick="setSRequestTab('myquotes')" data-i18n="st_mes_devis_envoyes_1f9f">Mes devis envoyés</button>
       </div>
 
       <div id="srequest-tab-mine">
         <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:14px" onclick="openSRequestForm()">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Nouvelle demande
+          <span data-i18n="st_nouvelle_demande_0a6e">Nouvelle demande</span>
         </button>
         <div id="srequest-mine-list"><p class="muted small">Chargement...</p></div>
       </div>
 
       <div id="srequest-tab-available" class="hidden">
-        <input type="text" id="srequest-search-input" class="text-input" style="margin-bottom:12px" placeholder="Titre ou ville" oninput="scheduleSRequestSearch()">
+        <input type="text" id="srequest-search-input" class="text-input" style="margin-bottom:12px" placeholder="Titre ou ville" oninput="scheduleSRequestSearch()" data-i18n-placeholder="st_titre_ou_ville_cfae">
         <div class="shop-filter-tabs" id="srequest-category-tabs" style="margin-bottom:14px">
-          <button class="active" data-cat="" onclick="setSRequestCategory('')">Toutes</button>
+          <button class="active" data-cat="" onclick="setSRequestCategory('')" data-i18n="st_toutes_c5f6">Toutes</button>
         </div>
         <div id="srequest-available-list"><p class="muted small">Chargement...</p></div>
       </div>
@@ -1811,7 +1830,7 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
     <!-- COEURNOH ACADEMY -->
     <div id="menu-screen-academy" class="hidden">
       <div class="menu-page-header">
-        <button class="menu-back-btn" onclick="showMenuScreen('items-services')" aria-label="Retour">
+        <button class="menu-back-btn" onclick="showMenuScreen('items-services')" aria-label="Retour" data-i18n-aria-label="st_retour_e5be">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
         <h2 data-i18n="svc_academy">Académie</h2>
@@ -1825,17 +1844,17 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
       <div id="academy-courses-section">
         <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:14px" onclick="openCourseForm()">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Créer un cours
+          <span data-i18n="st_creer_un_cours_b386">Créer un cours</span>
         </button>
 
         <div class="shop-filter-tabs" id="academy-main-tabs" style="margin-bottom:14px">
-          <button class="active" data-tab="browse" onclick="setAcademyTab('browse')">Découvrir</button>
-          <button data-tab="mycourses" onclick="setAcademyTab('mycourses')">Mes cours</button>
-          <button data-tab="myteaching" onclick="setAcademyTab('myteaching')">Mes formations</button>
+          <button class="active" data-tab="browse" onclick="setAcademyTab('browse')" data-i18n="st_decouvrir_8969">Découvrir</button>
+          <button data-tab="mycourses" onclick="setAcademyTab('mycourses')" data-i18n="st_mes_cours_3ceb">Mes cours</button>
+          <button data-tab="myteaching" onclick="setAcademyTab('myteaching')" data-i18n="st_mes_formations_9307">Mes formations</button>
         </div>
 
         <div id="academy-tab-browse">
-          <input type="text" id="academy-search-input" class="text-input" style="margin-bottom:12px" placeholder="Titre, catégorie ou mot-clé (ex: Excel, anglais)" oninput="scheduleAcademySearch()">
+          <input type="text" id="academy-search-input" class="text-input" style="margin-bottom:12px" placeholder="Titre, catégorie ou mot-clé (ex: Excel, anglais)" oninput="scheduleAcademySearch()" data-i18n-placeholder="st_titre_categorie_ou_mot_cle_4797">
           <div id="academy-browse-list"><p class="muted small">Chargement...</p></div>
         </div>
 
@@ -1878,7 +1897,7 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
     <!-- Formulaire de publication/edition d'un livre (Academie) -->
     <div class="modal-overlay hidden" id="book-form-modal">
       <div class="modal">
-        <button class="modal-close" onclick="closeBookForm()" aria-label="Fermer">×</button>
+        <button class="modal-close" onclick="closeBookForm()" aria-label="Fermer" data-i18n-aria-label="st_fermer_5ab4">×</button>
         <h3 id="book-form-title" style="margin-bottom:4px">Publier un livre</h3>
         <p class="muted small" style="margin-bottom:14px" data-i18n="book_commission_notice">Une commission de la plateforme s'applique sur chaque vente (voir les Conditions).</p>
         <div class="field">
@@ -1930,7 +1949,7 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
     <!-- CREE TON SITE -->
     <div id="menu-screen-site" class="hidden">
       <div class="menu-page-header">
-        <button class="menu-back-btn" onclick="showMenuScreen('items-services')" aria-label="Retour">
+        <button class="menu-back-btn" onclick="showMenuScreen('items-services')" aria-label="Retour" data-i18n-aria-label="st_retour_e5be">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
         <h2 data-i18n="svc_site">Crée ton site</h2>
@@ -1941,21 +1960,21 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
     <!-- COEURNOH BUSINESS -->
     <div id="menu-screen-business" class="hidden">
       <div class="menu-page-header">
-        <button class="menu-back-btn" onclick="showMenuScreen('items-services')" aria-label="Retour">
+        <button class="menu-back-btn" onclick="showMenuScreen('items-services')" aria-label="Retour" data-i18n-aria-label="st_retour_e5be">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
         <h2 data-i18n="svc_business">Entreprises</h2>
       </div>
 
       <div class="shop-filter-tabs" id="business-main-tabs" style="margin-bottom:14px">
-        <button class="active" data-tab="browse" onclick="setBusinessTab('browse')">Découvrir</button>
-        <button data-tab="mine" onclick="setBusinessTab('mine')">Mon entreprise</button>
+        <button class="active" data-tab="browse" onclick="setBusinessTab('browse')" data-i18n="st_decouvrir_8969">Découvrir</button>
+        <button data-tab="mine" onclick="setBusinessTab('mine')" data-i18n="st_mon_entreprise_e950">Mon entreprise</button>
       </div>
 
       <div id="business-tab-browse">
-        <input type="text" id="business-search-input" class="text-input" style="margin-bottom:12px" placeholder="Nom ou catégorie" oninput="scheduleBusinessSearch()">
+        <input type="text" id="business-search-input" class="text-input" style="margin-bottom:12px" placeholder="Nom ou catégorie" oninput="scheduleBusinessSearch()" data-i18n-placeholder="st_nom_ou_categorie_a278">
         <div class="shop-filter-tabs" id="business-category-tabs" style="margin-bottom:14px">
-          <button class="active" data-cat="" onclick="setBusinessCategory('')">Toutes</button>
+          <button class="active" data-cat="" onclick="setBusinessCategory('')" data-i18n="st_toutes_c5f6">Toutes</button>
         </div>
         <div id="business-browse-list"><p class="muted small">Chargement...</p></div>
       </div>
@@ -1968,7 +1987,7 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
     <!-- NIVEAU 2d : liste "Aide & informations" -->
     <div id="menu-screen-items-aide" class="hidden">
       <div class="menu-page-header">
-        <button class="menu-back-btn" onclick="showMenuScreen('categories')" aria-label="Retour">
+        <button class="menu-back-btn" onclick="showMenuScreen('categories')" aria-label="Retour" data-i18n-aria-label="st_retour_e5be">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
         <h2 data-i18n="menu_help">Aide &amp; informations</h2>
@@ -1997,7 +2016,7 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
          deplacees ici sans etre recreees, chacune affichee seule) -->
     <div id="menu-screen-content" class="hidden">
       <div class="menu-page-header">
-        <button class="menu-back-btn" id="menu-content-back-btn" onclick="menuGoBackFromContent()" aria-label="Retour">
+        <button class="menu-back-btn" id="menu-content-back-btn" onclick="menuGoBackFromContent()" aria-label="Retour" data-i18n-aria-label="st_retour_e5be">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
         <h2 id="menu-content-title">—</h2>
@@ -2010,7 +2029,7 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
 
 <div class="modal-overlay hidden" id="post-detail-modal">
   <div class="modal post-detail-modal-inner">
-    <button class="modal-close" onclick="closePostDetail()" aria-label="Fermer">×</button>
+    <button class="modal-close" onclick="closePostDetail()" aria-label="Fermer" data-i18n-aria-label="st_fermer_5ab4">×</button>
     <div id="post-detail-body"></div>
   </div>
 </div>
@@ -2020,7 +2039,7 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
     <!-- Le profil est une vraie page plein ecran (comme TikTok/Instagram),
          pas une petite fenetre : fleche de retour en haut a gauche au lieu
          de la croix "×", meme dessin que la fleche de la visionneuse. -->
-    <button class="profile-page-back" onclick="closeProfileModal()" aria-label="Retour">
+    <button class="profile-page-back" onclick="closeProfileModal()" aria-label="Retour" data-i18n-aria-label="st_retour_e5be">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
     </button>
     <div id="profile-modal-body"></div>
@@ -2034,7 +2053,7 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
      fiche profil elle-même. -->
 <div class="modal-overlay hidden" id="follow-list-modal">
   <div class="modal post-detail-modal-inner">
-    <button class="profile-page-back" onclick="closeFollowListModal()" aria-label="Retour">
+    <button class="profile-page-back" onclick="closeFollowListModal()" aria-label="Retour" data-i18n-aria-label="st_retour_e5be">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
     </button>
     <h3 id="follow-list-modal-title" style="text-align:center;margin:0 0 16px;padding-top:4px">—</h3>
@@ -2044,14 +2063,14 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
 
 <div class="modal-overlay hidden" id="job-detail-modal">
   <div class="modal post-detail-modal-inner">
-    <button class="modal-close" onclick="closeJobDetail()" aria-label="Fermer">×</button>
+    <button class="modal-close" onclick="closeJobDetail()" aria-label="Fermer" data-i18n-aria-label="st_fermer_5ab4">×</button>
     <div id="job-detail-body"></div>
   </div>
 </div>
 
 <div class="modal-overlay hidden" id="job-form-modal">
   <div class="modal">
-    <button class="modal-close" onclick="closeJobForm()" aria-label="Fermer">×</button>
+    <button class="modal-close" onclick="closeJobForm()" aria-label="Fermer" data-i18n-aria-label="st_fermer_5ab4">×</button>
     <h2 id="job-form-title" data-i18n="jobs_post_offer_btn">Publier une offre</h2>
     <div class="modal-error hidden" id="job-form-error"></div>
 
@@ -2107,7 +2126,7 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
 
 <div class="modal-overlay hidden" id="job-apply-modal">
   <div class="modal">
-    <button class="modal-close" onclick="closeJobApplyForm()" aria-label="Fermer">×</button>
+    <button class="modal-close" onclick="closeJobApplyForm()" aria-label="Fermer" data-i18n-aria-label="st_fermer_5ab4">×</button>
     <h3 style="margin-bottom:4px" data-i18n="job_apply_title">Postuler à cette offre</h3>
     <p class="muted small" style="margin-bottom:14px" id="job-apply-offer-title"></p>
     <div class="modal-error hidden" id="job-apply-error"></div>
@@ -2133,14 +2152,14 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
 
 <div class="modal-overlay hidden" id="jobseeker-detail-modal">
   <div class="modal post-detail-modal-inner">
-    <button class="modal-close" onclick="closeJobSeekerDetail()" aria-label="Fermer">×</button>
+    <button class="modal-close" onclick="closeJobSeekerDetail()" aria-label="Fermer" data-i18n-aria-label="st_fermer_5ab4">×</button>
     <div id="jobseeker-detail-body"></div>
   </div>
 </div>
 
 <div class="modal-overlay hidden" id="jobseeker-form-modal">
   <div class="modal">
-    <button class="modal-close" onclick="closeJobSeekerForm()" aria-label="Fermer">×</button>
+    <button class="modal-close" onclick="closeJobSeekerForm()" aria-label="Fermer" data-i18n-aria-label="st_fermer_5ab4">×</button>
     <h2 id="jobseeker-form-title" data-i18n="jobs_post_profile_btn">Publier ma demande d'emploi</h2>
     <div class="modal-error hidden" id="jobseeker-form-error"></div>
 
@@ -2209,11 +2228,11 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
     </div>
     <div class="field">
       <label for="jobseeker-facebook-input" data-i18n="contact_facebook_label">Page Facebook (facultatif)</label>
-      <input type="text" id="jobseeker-facebook-input" class="text-input" placeholder="nom de la page ou lien">
+      <input type="text" id="jobseeker-facebook-input" class="text-input" placeholder="nom de la page ou lien" data-i18n-placeholder="st_nom_de_la_page_ou_lien_a827">
     </div>
     <div class="field">
       <label for="jobseeker-tiktok-input" data-i18n="contact_tiktok_label">Compte TikTok (facultatif)</label>
-      <input type="text" id="jobseeker-tiktok-input" class="text-input" placeholder="@pseudo ou lien">
+      <input type="text" id="jobseeker-tiktok-input" class="text-input" placeholder="@pseudo ou lien" data-i18n-placeholder="st_pseudo_ou_lien_157b">
     </div>
 
     <button class="btn btn-primary" id="jobseeker-form-submit-btn" style="width:100%;justify-content:center" onclick="saveJobSeekerProfile()" data-i18n="common_publish">Publier</button>
@@ -2222,14 +2241,14 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
 
 <div class="modal-overlay hidden" id="event-detail-modal">
   <div class="modal post-detail-modal-inner">
-    <button class="modal-close" onclick="closeEventDetail()" aria-label="Fermer">×</button>
+    <button class="modal-close" onclick="closeEventDetail()" aria-label="Fermer" data-i18n-aria-label="st_fermer_5ab4">×</button>
     <div id="event-detail-body"></div>
   </div>
 </div>
 
 <div class="modal-overlay hidden" id="event-form-modal">
   <div class="modal">
-    <button class="modal-close" onclick="closeEventForm()" aria-label="Fermer">×</button>
+    <button class="modal-close" onclick="closeEventForm()" aria-label="Fermer" data-i18n-aria-label="st_fermer_5ab4">×</button>
     <h2 id="event-form-title" data-i18n="event_form_title_new">Créer un événement</h2>
     <div class="modal-error hidden" id="event-form-error"></div>
 
@@ -2282,7 +2301,7 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
 
 <div class="modal-overlay hidden" id="event-reserve-modal">
   <div class="modal">
-    <button class="modal-close" onclick="closeEventReserveForm()" aria-label="Fermer">×</button>
+    <button class="modal-close" onclick="closeEventReserveForm()" aria-label="Fermer" data-i18n-aria-label="st_fermer_5ab4">×</button>
     <h3 style="margin-bottom:4px" data-i18n="event_reserve_ticket_modal_title">Réserver un billet</h3>
     <p class="muted small" style="margin-bottom:14px" id="event-reserve-ticket-label"></p>
     <div class="modal-error hidden" id="event-reserve-error"></div>
@@ -2297,14 +2316,14 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
 
 <div class="modal-overlay hidden" id="course-detail-modal">
   <div class="modal post-detail-modal-inner">
-    <button class="modal-close" onclick="closeCourseDetail()" aria-label="Fermer">×</button>
+    <button class="modal-close" onclick="closeCourseDetail()" aria-label="Fermer" data-i18n-aria-label="st_fermer_5ab4">×</button>
     <div id="course-detail-body"></div>
   </div>
 </div>
 
 <div class="modal-overlay hidden" id="course-form-modal">
   <div class="modal">
-    <button class="modal-close" onclick="closeCourseForm()" aria-label="Fermer">×</button>
+    <button class="modal-close" onclick="closeCourseForm()" aria-label="Fermer" data-i18n-aria-label="st_fermer_5ab4">×</button>
     <h2 id="course-form-title" data-i18n="course_form_title_new">Créer un cours</h2>
     <div class="modal-error hidden" id="course-form-error"></div>
 
@@ -2356,7 +2375,7 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
 
 <div class="modal-overlay hidden" id="course-enroll-modal">
   <div class="modal">
-    <button class="modal-close" onclick="closeCourseEnrollModal()" aria-label="Fermer">×</button>
+    <button class="modal-close" onclick="closeCourseEnrollModal()" aria-label="Fermer" data-i18n-aria-label="st_fermer_5ab4">×</button>
     <h3 style="margin-bottom:4px" data-i18n="course_confirm_enrollment_btn">Confirmer l'inscription</h3>
     <p class="muted small" style="margin-bottom:14px" id="course-enroll-summary"></p>
     <div class="modal-error hidden" id="course-enroll-error"></div>
@@ -2366,16 +2385,16 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
 
 <div class="modal-overlay hidden" id="report-modal">
   <div class="modal">
-    <button class="modal-close" onclick="closeReportModal()" aria-label="Fermer">×</button>
-    <h3 style="margin-bottom:4px">Signaler ce contenu</h3>
-    <p class="muted small" style="margin-bottom:14px">Dis-nous pourquoi ce contenu te semble inapproprié. Notre équipe va l'examiner.</p>
+    <button class="modal-close" onclick="closeReportModal()" aria-label="Fermer" data-i18n-aria-label="st_fermer_5ab4">×</button>
+    <h3 style="margin-bottom:4px" data-i18n="st_signaler_ce_contenu_6e21">Signaler ce contenu</h3>
+    <p class="muted small" style="margin-bottom:14px" data-i18n="st_dis_nous_pourquoi_ce_conte_7e20">Dis-nous pourquoi ce contenu te semble inapproprié. Notre équipe va l'examiner.</p>
     <div id="report-reason-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px">
-      <label class="report-reason-option"><input type="radio" name="report-reason" value="spam"> Spam ou publicité non désirée</label>
-      <label class="report-reason-option"><input type="radio" name="report-reason" value="inapproprie"> Contenu inapproprié ou choquant</label>
-      <label class="report-reason-option"><input type="radio" name="report-reason" value="arnaque"> Arnaque ou tentative de fraude</label>
-      <label class="report-reason-option"><input type="radio" name="report-reason" value="autre"> Autre raison</label>
+      <label class="report-reason-option"><input type="radio" name="report-reason" value="spam"> <span data-i18n="st_spam_ou_publicite_non_desi_1d3c">Spam ou publicité non désirée</span></label>
+      <label class="report-reason-option"><input type="radio" name="report-reason" value="inapproprie"> <span data-i18n="st_contenu_inapproprie_ou_cho_2fc3">Contenu inapproprié ou choquant</span></label>
+      <label class="report-reason-option"><input type="radio" name="report-reason" value="arnaque"> <span data-i18n="st_arnaque_ou_tentative_de_fr_28a5">Arnaque ou tentative de fraude</span></label>
+      <label class="report-reason-option"><input type="radio" name="report-reason" value="autre"> <span data-i18n="st_autre_raison_9c67">Autre raison</span></label>
     </div>
-    <textarea id="report-comment" class="text-input" rows="2" placeholder="Précise si tu veux (facultatif)" style="margin-bottom:14px;resize:vertical"></textarea>
+    <textarea id="report-comment" class="text-input" rows="2" placeholder="Précise si tu veux (facultatif)" style="margin-bottom:14px;resize:vertical" data-i18n-placeholder="st_precise_si_tu_veux_faculta_90a4"></textarea>
     <p class="muted small" id="report-error" style="color:var(--red);display:none;margin-bottom:10px"></p>
     <button class="btn btn-primary" id="report-submit-btn" style="width:100%;justify-content:center" onclick="submitReport()">Envoyer le signalement</button>
   </div>
@@ -2383,7 +2402,7 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
 
 <div class="modal-overlay hidden" id="notif-detail-modal">
   <div class="modal">
-    <button class="modal-close" onclick="closeNotifDetailModal()" aria-label="Fermer">×</button>
+    <button class="modal-close" onclick="closeNotifDetailModal()" aria-label="Fermer" data-i18n-aria-label="st_fermer_5ab4">×</button>
     <h3 id="notif-detail-title" style="margin-bottom:10px"></h3>
     <p id="notif-detail-body" class="muted"></p>
   </div>
@@ -2392,26 +2411,26 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
 <!-- ================= NOUVELLE PUBLICATION (Accueil, style Facebook) ================= -->
 <div class="modal-overlay hidden" id="create-post-modal">
   <div class="modal">
-    <button class="modal-close" onclick="closeCreatePostForm()" aria-label="Fermer">×</button>
-    <h2><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg> Nouvelle publication</h2>
+    <button class="modal-close" onclick="closeCreatePostForm()" aria-label="Fermer" data-i18n-aria-label="st_fermer_5ab4">×</button>
+    <h2><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg> <span data-i18n="st_nouvelle_publication_a073">Nouvelle publication</span></h2>
     <div class="modal-error hidden" id="post-form-error"></div>
 
     <div class="field">
-      <label for="post-media-type">Type</label>
+      <label for="post-media-type" data-i18n="st_type_3deb">Type</label>
       <select id="post-media-type" class="text-input" onchange="togglePostMediaField()">
-        <option value="photo">Photo</option>
-        <option value="video">Vidéo</option>
-        <option value="text">Texte seul</option>
+        <option value="photo" data-i18n="st_photo_d01d">Photo</option>
+        <option value="video" data-i18n="st_video_304f">Vidéo</option>
+        <option value="text" data-i18n="st_texte_seul_2421">Texte seul</option>
       </select>
     </div>
     <div class="field" id="post-media-url-field">
-      <label>Photo ou vidéo</label>
+      <label data-i18n="st_photo_ou_video_1639">Photo ou vidéo</label>
       <input type="file" id="post-media-file" class="file-input-hidden" accept="image/*" onchange="handlePostMediaFileChange(event)">
       <label for="post-media-file" class="file-picker-btn" id="post-media-file-label">
         <span class="file-picker-icon" id="post-media-file-icon"><svg class="ico" aria-hidden="true"><use href="#i-camera"/></svg></span>
         <span class="file-picker-text" id="post-media-file-text">Choisir une photo</span>
       </label>
-      <p class="muted small" style="margin-top:4px">Choisis directement le fichier sur ton téléphone — photo (max 10 Mo) ou vidéo (max 100 Mo).</p>
+      <p class="muted small" style="margin-top:4px" data-i18n="st_choisis_directement_le_fic_b8ad">Choisis directement le fichier sur ton téléphone — photo (max 10 Mo) ou vidéo (max 100 Mo).</p>
       <div class="upload-progress-wrap hidden" id="post-media-progress-wrap">
         <div class="upload-progress-fill" id="post-media-progress-fill"></div>
         <span class="upload-progress-label" id="post-media-progress-label">0%</span>
@@ -2419,12 +2438,12 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
       <div id="post-media-preview"></div>
     </div>
     <div class="field">
-      <label for="post-caption">Texte / légende <span class="muted small" id="post-caption-optional-hint">(facultatif avec une photo/vidéo)</span></label>
-      <textarea id="post-caption" class="text-input" rows="3" placeholder="Qu'as-tu envie de partager ?" oninput="updatePostTextBgPreview()"></textarea>
+      <label for="post-caption"><span data-i18n="st_texte_legende_225c">Texte / légende</span> <span class="muted small" id="post-caption-optional-hint">(facultatif avec une photo/vidéo)</span></label>
+      <textarea id="post-caption" class="text-input" rows="3" placeholder="Qu'as-tu envie de partager ?" oninput="updatePostTextBgPreview()" data-i18n-placeholder="st_qu_as_tu_envie_de_partager_c61d"></textarea>
       <div class="text-bg-picker hidden" id="post-text-bg-picker">
-        <p class="muted small" style="margin:10px 0 6px">Arrière-plan du texte</p>
+        <p class="muted small" style="margin:10px 0 6px" data-i18n="st_arriere_plan_du_texte_9b28">Arrière-plan du texte</p>
         <div class="text-bg-swatches" id="post-text-bg-swatches"></div>
-        <p class="muted small" style="margin:14px 0 6px">Style d'écriture</p>
+        <p class="muted small" style="margin:14px 0 6px" data-i18n="st_style_d_ecriture_1d6b">Style d'écriture</p>
         <div class="text-font-swatches" id="post-text-font-swatches"></div>
         <div class="text-post-preview hidden" id="post-text-bg-preview"><span id="post-text-bg-preview-text"></span></div>
       </div>
@@ -2434,7 +2453,7 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
   </div>
 </div>
 
-<script src="app.min.js?v=42f16811b6" defer onerror="(function(){function f(){['translations','catalog-data','script','polish','menu-pro','push-center'].forEach(function(n){var x=document.createElement('script');x.src=n+'.js';x.async=false;document.body.appendChild(x)})}document.readyState==='loading'?document.addEventListener('DOMContentLoaded',f):f()})()"></script>
+<script src="app.min.js?v=e26add7e5e" defer onerror="(function(){function f(){['translations','catalog-data','script','polish','menu-pro','push-center'].forEach(function(n){var x=document.createElement('script');x.src=n+'.js';x.async=false;document.body.appendChild(x)})}document.readyState==='loading'?document.addEventListener('DOMContentLoaded',f):f()})()"></script>
 
 <!-- PWA : activation du service worker (installation en app) -->
 <script>
@@ -2462,7 +2481,7 @@ if ('serviceWorker' in navigator) {
      ouverte/fermee via openMediaLightbox()/closeMediaLightbox() dans
      script.js. -->
 <div class="media-lightbox" id="media-lightbox" onclick="closeMediaLightbox()">
-  <button type="button" class="media-lightbox-close" onclick="event.stopPropagation();closeMediaLightbox()" aria-label="Fermer">×</button>
+  <button type="button" class="media-lightbox-close" onclick="event.stopPropagation();closeMediaLightbox()" aria-label="Fermer" data-i18n-aria-label="st_fermer_5ab4">×</button>
   <img id="media-lightbox-img" src="" alt="">
 </div>
 
