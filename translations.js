@@ -2041,8 +2041,41 @@ function literalMapFor(lang) {
     const tv = d[k];
     if (tv && tv !== fr[k]) m.set(v, tv);
   });
+  // Table « texte français → traduction » des écrans internes (dans lang-xx.js, window.__cnPhrases[lang]).
+  // Un texte avec {variables} devient un modèle : « {n} leçons » reconnaît « 12 leçons ».
+  m.tpl = new Map(); m.tplAny = [];
+  const ph = (CN_W.__cnPhrases && CN_W.__cnPhrases[lang]) || null;
+  if (ph) {
+    Object.keys(ph).forEach(function (k) {
+      const v = ph[k];
+      if (!v || typeof v !== "string") return;
+      if (k.indexOf("{") < 0) { if (!m.has(k)) m.set(k, v); return; }
+      const names = [];
+      const parts = k.split(/\{(\w+)\}/);
+      let src = "";
+      for (let i = 0; i < parts.length; i++) {
+        if (i % 2) { names.push(parts[i]); src += "([\\s\\S]+?)"; }
+        else src += parts[i].replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      }
+      let re; try { re = new RegExp("^" + src + "$"); } catch (e) { return; }
+      const entry = { re: re, names: names, tr: v };
+      const pre = parts[0].length >= 4 ? parts[0].slice(0, 4) : "";
+      if (pre) { if (!m.tpl.has(pre)) m.tpl.set(pre, []); m.tpl.get(pre).push(entry); } else m.tplAny.push(entry);
+    });
+  }
   litLang = lang; litMap = m;
   return m;
+}
+function literalTpl(k, m) {
+  const list = (m.tpl.get(k.slice(0, 4)) || []).concat(m.tplAny);
+  for (let i = 0; i < list.length; i++) {
+    const r = list[i].re.exec(k);
+    if (!r) continue;
+    let out = list[i].tr;
+    list[i].names.forEach(function (nm, j) { out = out.split("{" + nm + "}").join(r[j + 1]); });
+    return out;
+  }
+  return undefined;
 }
 function literalOk(el) {
   try { return !(el && el.closest && el.closest('[translate="no"],[data-no-i18n],.lang-choice,#lang-select')); } catch (e) { return true; }
@@ -2054,7 +2087,8 @@ function literalText(n, m) {
   if (!raw || raw.length > 220) return;
   const k = raw.replace(/\s+/g, " ").trim();
   if (k.length < 3) return;
-  const tr = m.get(k);
+  let tr = m.get(k);
+  if (tr === undefined && k.length > 5 && m.tpl && (m.tpl.size || m.tplAny.length)) tr = literalTpl(k, m);
   if (tr === undefined || !literalOk(p)) return;
   const mm = /^(\s*)[\s\S]*?(\s*)$/.exec(raw);
   n.nodeValue = (mm ? mm[1] : "") + tr + (mm ? mm[2] : "");

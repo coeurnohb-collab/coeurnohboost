@@ -509,6 +509,29 @@ async function recheckAllSaspay() {
     if (t.credited) loadDepositsAdmin();
   } catch (e) { if (box) box.textContent = 'Erreur : ' + e.message; }
 }
+// Interrupteur Mobile Money de la RDC (SasPay ↔ OPTGateway). Les AUTRES pays restent toujours sur SasPay :
+// OPTGateway ne couvre que la carte et le Mobile Money congolais. Pris en compte en moins d'une minute.
+const MM_NAMES = { saspay: 'SasPay', optgateway: 'OPTGateway' };
+async function refreshMobileProvider(payload) {
+  const box = document.getElementById('mm-provider-state');
+  if (!box) return;
+  try {
+    const j = await saspayAdminCall(Object.assign({ country: 'CD' }, payload || { action: 'get_provider' }));
+    box.innerHTML = 'Mobile Money en RDC (Congo) en ce moment : <b>' + escapeHtml(MM_NAMES[j.provider] || j.provider) + '</b>' +
+      (j.healed ? '<br>Ancien réglage « tous les pays » retiré : SasPay est remis pour tous les autres pays.' : '');
+    ['saspay', 'optgateway'].forEach(function (k) {
+      const b = document.getElementById('mm-btn-' + k);
+      if (b) { b.disabled = (j.provider === k); b.className = 'btn btn-sm ' + (j.provider === k ? 'btn-outline' : 'btn-primary'); }
+    });
+  } catch (e) { box.textContent = 'Mobile Money : état illisible (' + e.message + ')'; }
+}
+async function setMobileProvider(name) {
+  if (!confirm('Passer le Mobile Money de la RDC (Congo) sur ' + (MM_NAMES[name] || name) + ' ?\n\nSeule la RDC change : tous les autres pays restent sur SasPay. Les prochaines recharges Mobile Money en RDC utiliseront ce fournisseur (en moins d\'une minute). Les recharges déjà commencées ne changent pas.')) return;
+  const box = document.getElementById('mm-provider-state');
+  if (box) box.textContent = 'Changement en cours…';
+  try { await refreshMobileProvider({ action: 'set_provider', provider: name }); }
+  catch (e) { alert('Erreur : ' + e.message); }
+}
 async function closeSaspayDone(id) {
   if (!confirm("Cette personne a DÉJÀ reçu son argent par un autre moyen ?\n\nLa demande sera fermée sans rien créditer (pour éviter un double crédit).")) return;
   try {
@@ -529,13 +552,21 @@ async function loadDepositsAdmin() {
   el.innerHTML = `<p class="admin-empty">Chargement...</p>`;
   try {
     const snap = await db.collection('topup_requests').orderBy('createdAt', 'desc').limit(50).get();
-    if (snap.empty) { el.innerHTML = `<p class="admin-empty">Aucune demande pour l'instant.</p>`; return; }
     const toolbar = `
       <div class="admin-row">
         <div class="admin-row-meta">Recharges Mobile Money : si de l'argent est arrivé chez SasPay mais pas dans le portefeuille, appuyez ici.</div>
         <div class="admin-row-actions"><button class="btn btn-primary btn-sm" onclick="recheckAllSaspay()">Revérifier tous les paiements SasPay</button></div>
         <div class="admin-row-meta" id="saspay-recheck-result"></div>
+      </div>
+      <div class="admin-row">
+        <div class="admin-row-meta" id="mm-provider-state">Mobile Money : lecture…</div>
+        <div class="admin-row-meta">Si les clients de RDC ne reçoivent pas la demande de confirmation sur leur téléphone, changez de fournisseur ici. Les autres pays restent sur SasPay.</div>
+        <div class="admin-row-actions">
+          <button id="mm-btn-saspay" class="btn btn-outline btn-sm" onclick="setMobileProvider('saspay')">RDC : utiliser SasPay</button>
+          <button id="mm-btn-optgateway" class="btn btn-outline btn-sm" onclick="setMobileProvider('optgateway')">RDC : utiliser OPTGateway</button>
+        </div>
       </div>`;
+    if (snap.empty) { el.innerHTML = toolbar + `<p class="admin-empty">Aucune demande pour l'instant.</p>`; refreshMobileProvider(); return; }
     el.innerHTML = toolbar + snap.docs.map(doc => {
       try {
         const d = doc.data();
@@ -584,6 +615,7 @@ async function loadDepositsAdmin() {
         return `<div class="admin-row"><p class="admin-empty">Ligne illisible (id ${escapeHtml(doc.id)}) : ${escapeHtml(rowErr.message)}</p></div>`;
       }
     }).join('');
+    refreshMobileProvider();
   } catch (e) {
     el.innerHTML = `<p class="admin-empty">Erreur : ${escapeHtml(e.message)}</p>`;
   }
@@ -628,42 +660,29 @@ async function loadProfitAdmin() {
   el.innerHTML = `<p class="admin-empty">Calcul en cours...</p>`;
   listEl.innerHTML = '';
   try {
-    const snap = await db.collection('orders').get();
-    let revenue = 0;
-    let cost = 0;
-    let countWithCost = 0;
-    let unknownOrders = [];
-
-    snap.forEach(doc => {
-      const d = doc.data();
-      const price = d.price || 0;
-      if (typeof d.mtpCost === 'number') {
-        revenue += price;
-        cost += d.mtpCost;
-        countWithCost++;
-      } else if (d.status === 'processing' || d.status === 'completed') {
-        // Commande automatisee ou terminee, mais dont le cout MTP est inconnu
-        unknownOrders.push(d);
-      }
-    });
-
-    const profit = revenue - cost;
-    const margin = revenue > 0 ? (profit / revenue) * 100 : 0;
+    // Seules les commandes de la période choisie sont lues (admin-profit.js) : plus de relecture de toute la collection à chaque ouverture.
+    const sel = document.getElementById('admin-profit-period');
+    const period = (sel && sel.value) || CNProfit.DEFAULT_PERIOD;
+    const r = await CNProfit.load(db, period);
 
     el.innerHTML = `
-      <div class="stat-card"><span class="stat-value">${revenue.toFixed(2)}$</span><span class="stat-label">Revenus (commandes suivies)</span></div>
-      <div class="stat-card"><span class="stat-value">${cost.toFixed(2)}$</span><span class="stat-label">Coûts MoreThanPanel</span></div>
-      <div class="stat-card"><span class="stat-value">${profit.toFixed(2)}$</span><span class="stat-label">Bénéfice net</span></div>
-      <div class="stat-card"><span class="stat-value">${margin.toFixed(0)}%</span><span class="stat-label">Marge moyenne</span></div>
-      <div class="stat-card"><span class="stat-value">${countWithCost}</span><span class="stat-label">Commandes avec coût connu</span></div>
+      <div class="stat-card"><span class="stat-value">${r.revenue.toFixed(2)}$</span><span class="stat-label">Revenus (commandes suivies)</span></div>
+      <div class="stat-card"><span class="stat-value">${r.cost.toFixed(2)}$</span><span class="stat-label">Coûts MoreThanPanel</span></div>
+      <div class="stat-card"><span class="stat-value">${r.profit.toFixed(2)}$</span><span class="stat-label">Bénéfice net</span></div>
+      <div class="stat-card"><span class="stat-value">${r.margin.toFixed(0)}%</span><span class="stat-label">Marge moyenne</span></div>
+      <div class="stat-card"><span class="stat-value">${r.countWithCost}</span><span class="stat-label">Commandes avec coût connu</span></div>
     `;
 
-    if (unknownOrders.length > 0) {
-      listEl.innerHTML = `
-        <p class="muted small" style="margin:16px 0 8px">
-          ⚠️ ${unknownOrders.length} commande(s) automatisée(s) sans coût MTP connu (passées avant cette mise à jour, ou coût non recuperable) — non comptées ci-dessus.
+    let note = `<p class="muted small" style="margin:16px 0 8px">Période : <strong>${escapeHtml(CNProfit.label(period))}</strong> — ${r.read} commande(s) lue(s).</p>`;
+    if (r.truncated) {
+      note += `<p class="muted small" style="margin:0 0 8px"><strong>Attention :</strong> la période contient plus de ${CNProfit.LIMIT} commandes ; seules les ${CNProfit.LIMIT} plus récentes sont comptées. Choisis une période plus courte pour un total exact.</p>`;
+    }
+    if (r.unknown > 0) {
+      note += `<p class="muted small" style="margin:0 0 8px">
+          ⚠️ ${r.unknown} commande(s) automatisée(s) sans coût MTP connu (passées avant cette mise à jour, ou coût non recuperable) — non comptées ci-dessus.
         </p>`;
     }
+    listEl.innerHTML = note;
   } catch (e) {
     el.innerHTML = `<p class="admin-empty">Erreur : ${escapeHtml(e.message)}</p>`;
   }
