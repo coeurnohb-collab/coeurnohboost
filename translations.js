@@ -2,7 +2,7 @@
    TRADUCTIONS — Coeurnoh Universe
    Langues : Français (fr) — toujours chargé, dans CE fichier ;
              English (en), Español (es), Italiano (it), Português (pt),
-             Kiswahili (sw) et Lingála (ln) : traduction complète (bêta, à faire relire)
+             Deutsch (de), Kiswahili (sw) et Lingála (ln) : traduction complète (de, sw, ln : bêta, à faire relire)
              → un petit fichier par langue (lang-en.js, lang-es.js…), chargé seulement si la langue est choisie.
    Pour ajouter / corriger un texte : le français ici, les autres langues dans leur fichier lang-xx.js,
    puis `node tools/build.js`.
@@ -314,7 +314,7 @@ services_title: "Services populaires",
     auth_switch_btn_login: "Se connecter",
     auth_hero_line: "Réseaux sociaux, boutique et services multiples — un seul compte.",
     auth_trust_1: "Paiement sécurisé",
-    auth_trust_2: "7 langues",
+    auth_trust_2: "8 langues",
     auth_trust_3: "Support 24/7",
     auth_forgot: "Mot de passe oublié ?",
     auth_legal: "En continuant, tu acceptes les conditions d'utilisation de Coeurnoh Universe.",
@@ -381,7 +381,7 @@ services_title: "Services populaires",
     hn_trust1: "Mobile money, crypto et carte",
     hn_trust2: "Support actif 24h/24",
     hn_trust3: "Application installable",
-    hn_trust4: "Disponible en 7 langues",
+    hn_trust4: "Disponible en 8 langues",
     hn_t_site: "Créer votre site",
     hn_d_pro: "Trouvez des artisans et des experts près de chez vous.",
     hn_d_site: "Un site professionnel en ligne en quelques minutes.",
@@ -1874,8 +1874,8 @@ services_title: "Services populaires",
      - ce moteur le branche dans TRANSLATIONS. Peu importe quel fichier arrive le premier.
    Si un pack ne peut pas être chargé (pas de réseau), le texte reste en français, jamais vide ni « clé brute »,
    et on réessaie dès que la connexion revient. */
-const SUPPORTED_LANGS = ["fr", "en", "es", "it", "pt", "sw", "ln"];
-const LANG_PACKS = ["en", "es", "it", "pt", "sw", "ln"];
+const SUPPORTED_LANGS = ["fr", "en", "es", "it", "pt", "de", "sw", "ln"];
+const LANG_PACKS = ["en", "es", "it", "pt", "de", "sw", "ln"];
 const LANG_PACK_TIMEOUT_MS = 12000;
 const CN_W = (typeof window !== "undefined") ? window : (typeof globalThis !== "undefined" ? globalThis : {});
 const LANG_FAIL_MSG = {
@@ -1883,7 +1883,8 @@ const LANG_FAIL_MSG = {
   en: "Couldn't load this language. Check your connection and try again.",
   es: "No se pudo cargar este idioma. Comprueba tu conexión e inténtalo de nuevo.",
   it: "Impossibile caricare questa lingua. Controlla la connessione e riprova.",
-  pt: "Não foi possível carregar este idioma. Verifica a ligação e tenta de novo."
+  pt: "Não foi possível carregar este idioma. Verifica a ligação e tenta de novo.",
+  de: "Diese Sprache konnte nicht geladen werden. Prüfe deine Verbindung und versuche es erneut."
 };
 const langWaiters = {};      // langue -> fonctions à prévenir quand le pack est là (ou a échoué)
 const langAdds = {};         // langue -> textes ajoutés par d'autres fichiers avant l'arrivée du pack
@@ -2036,10 +2037,11 @@ function literalMapFor(lang) {
   if (litLang === lang && litMap) return litMap;
   const fr = TRANSLATIONS.fr, d = TRANSLATIONS[lang], m = new Map();
   Object.keys(fr).forEach(function (k) {
-    const v = String(fr[k]).replace(/\s+/g, " ").trim();
-    if (v.length < 3 || /[{<&]/.test(v) || m.has(v)) return;
+    // « & » (ex. « Concours & Récompenses ») est un texte ordinaire dans la page : on compare avec « & », pas « &amp; ».
+    const v = String(fr[k]).replace(/\s+/g, " ").replace(/&amp;/g, "&").trim();
+    if (v.length < 3 || /[{<]|&[#a-z0-9]+;/i.test(v) || m.has(v)) return;
     const tv = d[k];
-    if (tv && tv !== fr[k]) m.set(v, tv);
+    if (tv && tv !== fr[k]) m.set(v, String(tv).replace(/&amp;/g, "&"));
   });
   // Table « texte français → traduction » des écrans internes (dans lang-xx.js, window.__cnPhrases[lang]).
   // Un texte avec {variables} devient un modèle : « {n} leçons » reconnaît « 12 leçons ».

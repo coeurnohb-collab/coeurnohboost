@@ -6,7 +6,7 @@
   'use strict';
   if (window.__cnShowcase) return; window.__cnShowcase = true;
 
-  function lang() { try { return (typeof currentLang !== 'undefined' && currentLang === 'en') ? 'en' : 'fr'; } catch (e) { return 'fr'; } }
+  function lang() { try { return (typeof currentLang !== 'undefined' && (currentLang === 'en' || currentLang === 'de')) ? 'en' : 'fr'; } catch (e) { return 'fr'; } }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   var I = {
     job: '<rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>',
@@ -124,10 +124,11 @@
     es: { ex: 'Ejemplo', title: 'Ejemplos de fichas', sub: 'Así se ve una publicación bien hecha. Son modelos, no anuncios reales.', note: 'Modelo de ejemplo' },
     it: { ex: 'Esempio', title: 'Esempi di schede', sub: 'Ecco come appare una pubblicazione ben riuscita. Sono modelli, non annunci reali.', note: 'Modello di esempio' },
     pt: { ex: 'Exemplo', title: 'Exemplos de fichas', sub: 'Assim se vê uma publicação bem feita. São modelos, não anúncios reais.', note: 'Modelo de exemplo' },
+    de: { ex: "Beispiel", title: "Beispielanzeigen", sub: "So sieht eine gelungene Anzeige aus. Das sind Muster, keine echten Anzeigen.", note: "Beispielvorlage" },
     sw: { ex: 'Mfano', title: 'Mifano ya matangazo', sub: 'Hivi ndivyo tangazo zuri linavyoonekana. Haya ni mifano, si matangazo halisi.', note: 'Mfano wa kuigwa' },
     ln: { ex: 'Ndakisa', title: 'Ba ndakisa ya ba fiches', sub: 'Tala ndenge publication ya malamu emonanaka. Ezali ba modèles, ba annonces ya solo te.', note: 'Modèle ya ndakisa' }
   };
-  var VIEW = { fr: 'Voir', en: 'View', es: 'Ver', it: 'Vedi', pt: 'Ver', sw: 'Tazama', ln: 'Talá' };
+  var VIEW = { fr: 'Voir', en: 'View', es: 'Ver', it: 'Vedi', pt: 'Ver', de: "Ansehen", sw: 'Tazama', ln: 'Talá' };
   /* Les modèles de fiches existent en français et en anglais ; les petits textes (Exemple, titre, « Voir ») existent en 7 langues. */
   function ui() { try { var c = (typeof currentLang !== 'undefined' && currentLang) || 'fr'; return T[c] ? c : lang(); } catch (e) { return 'fr'; } }
 

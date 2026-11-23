@@ -43,11 +43,45 @@
     done: ['Fichier téléchargé.', 'File downloaded.', 'Archivo descargado.', 'File scaricato.', 'Ficheiro descarregado.', 'Faili imepakuliwa.', 'Fichier ezwami.']
   };
   var CL = ['fr', 'en', 'es', 'it', 'pt', 'sw', 'ln'];
+  /* Allemand (de) : textes à part (les listes ci-dessus ont 7 colonnes) */
+  var CDE = {
+    "h_send": "Anfrage senden",
+    "p_send": "Ein Problem mit einer Zahlung, einer Bestellung oder deinem Konto? Beschreibe es hier: Du erhältst eine Nummer zur Nachverfolgung und die Antwort erscheint auf dieser Seite.",
+    "c_pay": "Zahlung / Aufladung",
+    "c_order": "Bestellung",
+    "c_acc": "Mein Konto",
+    "c_tech": "Technisches Problem",
+    "c_other": "Sonstiges",
+    "ph_sub": "Betreff (z. B. Aufladung nicht erhalten)",
+    "ph_msg": "Erkläre, was passiert ist (Betrag, Datum, Bestellnummer…)",
+    "b_send": "Anfrage senden",
+    "h_mine": "Meine Anfragen",
+    "loading": "Wird geladen…",
+    "none": "Noch keine Anfragen.",
+    "team": "Coeurnoh-Team",
+    "you": "Du",
+    "ph_add": "Nachricht hinzufügen",
+    "b_reply": "Senden",
+    "b_close": "Abschließen",
+    "login": "Melde dich an, um deine Anfragen zu sehen.",
+    "login2": "Melde dich an, um fortzufahren.",
+    "err": "Fehler, versuch es erneut.",
+    "sent": "Anfrage gesendet. Nummer zur Nachverfolgung: #{ref}. Wir antworten dir so schnell wie möglich.",
+    "sent_t": "Anfrage gesendet",
+    "s_open": "Ausstehend",
+    "s_answered": "Antwort erhalten",
+    "s_closed": "Abgeschlossen",
+    "h_data": "Meine Daten",
+    "p_data": "Lade eine Kopie deiner Daten herunter: Profil, Bestellungen, Aufladungen, Wallet-Auszug, Tickets, Zertifikate, Beiträge und Support-Anfragen.",
+    "b_data": "Meine Daten herunterladen",
+    "prep": "Wird vorbereitet…",
+    "done": "Datei heruntergeladen."
+  };
   function X(key, vars) {
     var a = CT[key]; if (!a) return key;
     var l = 'fr'; try { if (typeof currentLang !== 'undefined' && currentLang) l = currentLang; } catch (e) { /* ignore */ }
     var i = CL.indexOf(l); if (i < 0) i = 1;
-    var s = a[i] || a[0];
+    var s = (l === 'de' && CDE[key]) || a[i] || a[0];
     if (vars) Object.keys(vars).forEach(function (k) { s = s.split('{' + k + '}').join(String(vars[k])); });
     return s;
   }
