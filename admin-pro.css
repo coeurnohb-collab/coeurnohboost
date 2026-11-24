@@ -163,3 +163,32 @@ body.adm-menu-open .adm-backdrop{ background:rgba(20,26,38,.40); }
 .adm-fin-table .num{ text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
 .adm-fin-table tbody tr:last-child td{ border-bottom:0; }
 @media (min-width:640px){ .adm-fin-cards{ grid-template-columns:repeat(4,minmax(0,1fr)); } }
+
+/* ---------- Statistiques : cartes cliquables (ouvrent la liste correspondante) ---------- */
+button.stat-card-link{
+  position:relative; width:100%; text-align:left; font:inherit; color:inherit; cursor:pointer;
+  -webkit-appearance:none; appearance:none; min-height:84px; padding-right:12px;
+  transition:border-color .15s ease, transform .15s ease, box-shadow .15s ease;
+}
+button.stat-card-link .stat-go{ position:absolute; right:10px; top:12px; color:var(--ad-accent); opacity:.65; transition:transform .15s ease, opacity .15s ease; }
+.stats-cards{ grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+@media(min-width:700px){ .stats-cards{ grid-template-columns:repeat(3,minmax(0,1fr)); } }
+button.stat-card-link:hover,button.stat-card-link:active{ border-color:var(--ad-accent); transform:translateY(-1px); }
+button.stat-card-link:hover .stat-go,button.stat-card-link:active .stat-go{ opacity:1; transform:translateX(2px); }
+button.stat-card-link:focus-visible{ outline:2px solid var(--ad-btn); outline-offset:2px; }
+@media (prefers-reduced-motion:reduce){ button.stat-card-link,button.stat-card-link .stat-go{ transition:none; } button.stat-card-link:hover{ transform:none; } }
+
+/* ---------- filtres (puces) : sélection en bleu nuit ---------- */
+.adm-chips{ display:flex; flex-wrap:wrap; gap:6px; margin:4px 0 12px; }
+.adm-chip{
+  font:inherit; font-size:.78rem; font-weight:600; padding:6px 12px; border-radius:999px; cursor:pointer;
+  border:1px solid var(--ad-act-line); background:#fff; color:var(--ad-ink2); min-height:34px;
+}
+.adm-chip.on{ background:var(--ad-night); border-color:var(--ad-night); color:#fff; }
+.adm-chip:focus-visible{ outline:2px solid var(--ad-btn); outline-offset:2px; }
+
+/* ---------- En ligne maintenant (pastille verte = état « connecté », même vert que le badge du profil de l'application) ---------- */
+.adm-live-dot{ display:inline-block; width:9px; height:9px; border-radius:50%; background:#15693a; margin-right:7px; vertical-align:1px; }
+.adm-online{ display:inline-block; margin-left:8px; padding:2px 8px; border-radius:999px; font-size:.68rem; font-weight:700; letter-spacing:.01em; color:#15693a; background:#e3f3e9; border:1px solid #b3dcc2; vertical-align:2px; }
+button.stat-card-link .stat-sub{ display:block; margin-top:3px; font-size:.7rem; line-height:1.25; color:var(--ad-ink2); font-weight:500; }
+#adm-online-box,#adm-archives-box{ scroll-margin-top:160px; }

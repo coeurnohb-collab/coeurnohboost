@@ -51,6 +51,8 @@
     fatal_load_error_title: "Unable to load the app",
     fatal_load_error_body: "Check your internet connection and try again. If the problem continues, restart the app.",
     fatal_load_error_retry: "Retry",
+    account_restored: "Welcome back! Your account has been restored with all your information.",
+    online_now_n: "{n} members online",
     offline_banner_text: "No internet connection — some actions won't work.",
     online_restored_toast: "Connection restored",
     unexpected_error_toast: "Something went wrong. Please try again in a moment.",

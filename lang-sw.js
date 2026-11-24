@@ -54,6 +54,8 @@
     fatal_load_error_title: "Imeshindikana kupakia programu",
     fatal_load_error_body: "Angalia muunganisho wako wa intaneti kisha ujaribu tena. Tatizo likiendelea, zima programu na uifungue tena.",
     fatal_load_error_retry: "Jaribu tena",
+    account_restored: "Karibu tena! Akaunti yako imerejeshwa pamoja na taarifa zako zote.",
+    online_now_n: "Wanachama {n} mtandaoni",
     offline_banner_text: "Hakuna intaneti — baadhi ya vitendo havitafanya kazi.",
     online_restored_toast: "Muunganisho umerudi",
     unexpected_error_toast: "Kumetokea hitilafu. Jaribu tena baada ya muda mfupi.",

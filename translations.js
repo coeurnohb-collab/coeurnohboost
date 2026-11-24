@@ -54,6 +54,8 @@ const TRANSLATIONS = {
     fatal_load_error_title: "Impossible de charger l'application",
     fatal_load_error_body: "Vérifie ta connexion internet puis réessaie. Si le problème persiste, redémarre l'application.",
     fatal_load_error_retry: "Réessayer",
+    account_restored: "Bon retour ! Ton compte a été récupéré avec toutes tes informations.",
+    online_now_n: "{n} membres en ligne",
     offline_banner_text: "Pas de connexion internet — certaines actions ne fonctionneront pas.",
     online_restored_toast: "Connexion rétablie",
     unexpected_error_toast: "Un problème est survenu. Réessaie dans un instant.",

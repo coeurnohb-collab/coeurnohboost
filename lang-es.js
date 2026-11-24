@@ -51,6 +51,8 @@
     fatal_load_error_title: "No se pudo cargar la aplicación",
     fatal_load_error_body: "Revisa tu conexión a internet e inténtalo de nuevo. Si el problema continúa, reinicia la aplicación.",
     fatal_load_error_retry: "Reintentar",
+    account_restored: "¡Bienvenido de nuevo! Tu cuenta se ha recuperado con toda tu información.",
+    online_now_n: "{n} miembros en línea",
     offline_banner_text: "Sin conexión a internet — algunas acciones no funcionarán.",
     online_restored_toast: "Conexión restablecida",
     unexpected_error_toast: "Ocurrió un problema. Inténtalo de nuevo en un momento.",

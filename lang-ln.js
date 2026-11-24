@@ -54,6 +54,8 @@
     fatal_load_error_title: "Application ekoki kofungwama te",
     fatal_load_error_body: "Tala connexion internet na yo, sima meká lisusu. Soki likambo ezali kokoba, kanga application mpe fungola yango lisusu.",
     fatal_load_error_retry: "Meká lisusu",
+    account_restored: "Boyei malamu! Konti na yo ezongisami elongo na makambo na yo nyonso.",
+    online_now_n: "Bamemba {n} bazali na internet",
     offline_banner_text: "Internet ezali te — misala mosusu ekosala te.",
     online_restored_toast: "Connexion ezongi",
     unexpected_error_toast: "Likambo moko ebimi. Meká lisusu na mwa ntango.",

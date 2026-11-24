@@ -51,6 +51,8 @@
     fatal_load_error_title: "Impossibile caricare l'app",
     fatal_load_error_body: "Controlla la tua connessione internet e riprova. Se il problema persiste, riavvia l'app.",
     fatal_load_error_retry: "Riprova",
+    account_restored: "Bentornato! Il tuo account è stato ripristinato con tutte le tue informazioni.",
+    online_now_n: "{n} membri online",
     offline_banner_text: "Nessuna connessione internet — alcune azioni non funzioneranno.",
     online_restored_toast: "Connessione ripristinata",
     unexpected_error_toast: "Si è verificato un problema. Riprova tra un momento.",

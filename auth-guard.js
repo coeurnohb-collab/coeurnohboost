@@ -180,6 +180,19 @@
     var ref = dbx.collection('users').doc(user.uid);
     return ref.get().then(function (snap) {
       if (snap.exists) return null;
+      // Compte mis de côté pour inactivité : on le récupère avant tout. En cas d'erreur réseau on ne crée RIEN (jamais de fiche vide par-dessus).
+      return restoreFirst(user).then(function (r) {
+        if (r !== false) return null;
+        return createBlank(user, ref);
+      });
+    });
+  }
+  function restoreFirst(user) {
+    try { if (typeof window.cnRestoreIfArchived === 'function') return window.cnRestoreIfArchived(user, 6000); } catch (e) { /* ignore */ }
+    return Promise.resolve(false);
+  }
+  function createBlank(user, ref) {
+    return Promise.resolve().then(function () {
       var name = user.displayName || (user.email ? user.email.split('@')[0] : 'Membre');
       var refUid = null; try { refUid = getPendingReferrerUid(); } catch (e) { /* ignore */ }
       return ref.set({
@@ -322,12 +335,16 @@
         var dbx = firebase.firestore();
         dbx.collection('users').doc(user.uid).get().then(function (s) {
           if (s.exists) return null;
-          var name = user.displayName || (user.email ? user.email.split('@')[0] : 'Membre');
-          var ref = null; try { ref = new URLSearchParams(location.search).get('ref') || null; } catch (e) { /* ignore */ }
-          return dbx.collection('users').doc(user.uid).set({
-            name: name, email: user.email || '', photoURL: user.photoURL || null, balance: 0, referredBy: ref, createdAt: new Date().toISOString()
-          }).then(function () {
-            try { if (typeof syncPublicProfile === 'function') syncPublicProfile(user.uid, { name: name, photoURL: user.photoURL || null, verified: false, referredBy: ref }); } catch (e) { /* ignore */ }
+          // Compte mis de côté pour inactivité : récupéré d'abord ; en cas d'erreur réseau on ne crée rien (retour au prochain démarrage).
+          return restoreFirst(user).then(function (r) {
+            if (r !== false) return null;
+            var name = user.displayName || (user.email ? user.email.split('@')[0] : 'Membre');
+            var ref = null; try { ref = new URLSearchParams(location.search).get('ref') || null; } catch (e) { /* ignore */ }
+            return dbx.collection('users').doc(user.uid).set({
+              name: name, email: user.email || '', photoURL: user.photoURL || null, balance: 0, referredBy: ref, createdAt: new Date().toISOString()
+            }).then(function () {
+              try { if (typeof syncPublicProfile === 'function') syncPublicProfile(user.uid, { name: name, photoURL: user.photoURL || null, verified: false, referredBy: ref }); } catch (e) { /* ignore */ }
+            });
           });
         }).catch(function () { /* au prochain démarrage */ });
       }, 5000);
@@ -361,6 +378,6 @@
 (function () {
   if (document.querySelector('script[data-cn-st]')) return;
   var s = document.createElement('script');
-  s.src = 'stability.js?v=20261120'; s.async = true; s.setAttribute('data-cn-st', '1');
+  s.src = 'stability.js?v=20261125'; s.async = true; s.setAttribute('data-cn-st', '1');
   document.head.appendChild(s);
 })();

@@ -307,6 +307,88 @@ function showAdminTab(tab) {
 /* =========================================================
    STATISTIQUES
    ========================================================= */
+/* ================= QUI EST EN LIGNE ? =================
+   Le serveur compte les personnes connectées dont le dernier battement (toutes les 2 min, application visible) date de moins
+   de 5 minutes. Calcul serveur : fiable quelles que soient les règles Firestore, et peu coûteux (comptage groupé). */
+window.__admOnline = { uids: new Set(), counts: null, users: [] };
+async function admFetchOnline(list) {
+  const j = await saspayAdminCall({ action: 'online_now', list: list !== false });
+  const o = window.__admOnline;
+  o.counts = j.counts || null;
+  if (list !== false) { o.users = j.users || []; o.uids = new Set(o.users.map((u) => u.uid)); }
+  return o;
+}
+function admAgo(iso) {
+  const m = Math.floor((Date.now() - Date.parse(iso)) / 60000);
+  if (!(m >= 0)) return 'à l\'instant';
+  if (m < 1) return 'à l\'instant';
+  return 'il y a ' + m + ' min';
+}
+let admOnlineTimer = null;
+function admOnlineTicker() {
+  if (admOnlineTimer) clearInterval(admOnlineTimer);
+  // Pendant que la page Statistiques est ouverte : le chiffre se met à jour tout seul toutes les 30 s.
+  admOnlineTimer = setInterval(async () => {
+    const tab = document.getElementById('admin-tab-stats');
+    if (!tab || tab.classList.contains('hidden') || document.hidden) { if (!tab || tab.classList.contains('hidden')) { clearInterval(admOnlineTimer); admOnlineTimer = null; } return; }
+    try {
+      const o = await admFetchOnline(false);
+      const v = document.querySelector('[data-online-value]');
+      if (v && o.counts) v.textContent = o.counts.online;
+      const sb = document.querySelector('[data-online-sub]');
+      if (sb && o.counts) sb.textContent = o.counts.lastHour + ' dans l\'heure · ' + o.counts.last24h + ' en 24 h';
+    } catch (e) { /* on réessaie au prochain tour */ }
+  }, 30000);
+}
+async function admRefreshOnline(btn) {
+  if (btn) { btn.disabled = true; btn.textContent = 'Chargement…'; }
+  try {
+    const o = await admFetchOnline(true);
+    const box = document.getElementById('adm-online-box');
+    if (box) box.outerHTML = admOnlineBox(o);
+    const lst = document.getElementById('adm-online-list');
+    if (lst) lst.innerHTML = admOnlineRows(o);
+  } catch (e) {
+    if (btn) { btn.disabled = false; btn.textContent = 'Actualiser'; }
+    alert('Erreur : ' + e.message);
+  }
+}
+function admOnlineBox(o) {
+  const c = o && o.counts;
+  const n = c ? c.online : 0;
+  const detail = c ? c.lastHour + ' dans la dernière heure, ' + c.last24h + ' dans les dernières 24 h. ' : '';
+  return `<div class="adm-clean" id="adm-online-box"><div><b><span class="adm-live-dot" aria-hidden="true"></span>En ligne maintenant : ${n}</b><span>Comptes connectés qui ont utilisé l'application ces 5 dernières minutes. ${detail}Les visiteurs sans compte ne sont pas comptés.</span></div>
+        <button class="btn btn-outline btn-sm" type="button" onclick="admRefreshOnline(this)">Actualiser</button></div>`;
+}
+function admOnlineRows(o) {
+  const users = (o && o.users) || [];
+  if (!users.length) return '<p class="admin-empty">Personne en ligne pour l\'instant.</p>';
+  return users.map((u) => {
+    const nm = admNiceName(u.name || u.email || 'Membre');
+    const uid = String(u.uid || '').replace(/[^A-Za-z0-9_-]/g, '');
+    return `
+      <div class="admin-row adm-user">
+        <div class="admin-row-top">
+          <div class="adm-av" aria-hidden="true">${escapeHtml(nm.charAt(0).toUpperCase())}</div>
+          <div class="adm-user-main">
+            <div class="admin-row-title">${escapeHtml(nm)}<span class="adm-online">En ligne</span></div>
+            <div class="admin-row-meta">${escapeHtml(u.email || '')}${escapeHtml(u.country ? ' · ' + u.country : '')}</div>
+            <div class="admin-row-meta">Actif ${escapeHtml(admAgo(u.lastActiveAt))}</div>
+          </div>
+        </div>
+        <div class="admin-row-actions">
+          <button class="btn btn-primary btn-sm" type="button" onclick="openAdminMessage('${uid}', '${escapeForJs(u.name || u.email || '')}')">${admIco('chat')}Message</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// Les cartes de la page Statistiques sont des boutons : elles ouvrent directement la bonne liste.
+function admGoto(tab, filter) {
+  if (tab === 'orders') window.__admOrdersFilter = filter || 'all';
+  window.__admUsersFocus = (tab === 'users' && filter) ? filter : '';
+  showAdminTab(tab);
+}
 async function loadStats() {
   const el = document.getElementById('admin-stats-cards');
   el.innerHTML = `<p class="admin-empty">Chargement...</p>`;
@@ -316,19 +398,36 @@ async function loadStats() {
       db.collection('orders').get(),
       db.collection('topup_requests').where('status', '==', 'pending').get()
     ]);
-    let revenue = 0, pendingOrders = 0;
+    let revenue = 0, pendingOrders = 0, newUsers = 0;
+    const weekAgo = Date.now() - 7 * 86400000;
+    usersSnap.forEach(doc => { const c = Date.parse((doc.data() || {}).createdAt); if (c >= weekAgo) newUsers++; });
     ordersSnap.forEach(doc => {
       const d = doc.data();
       revenue += d.price || 0;
       if (d.status === 'pending') pendingOrders++;
     });
-    el.innerHTML = `
-      <div class="stat-card"><span class="stat-value">${usersSnap.size}</span><span class="stat-label">Utilisateurs</span></div>
-      <div class="stat-card"><span class="stat-value">${ordersSnap.size}</span><span class="stat-label">Commandes totales</span></div>
-      <div class="stat-card"><span class="stat-value">${revenue.toFixed(2)}$</span><span class="stat-label">Chiffre d'affaires</span></div>
-      <div class="stat-card"><span class="stat-value">${pendingOrders}</span><span class="stat-label">Commandes en attente</span></div>
-      <div class="stat-card"><span class="stat-value">${depositsSnap.size}</span><span class="stat-label">Dépôts à valider</span></div>
-    `;
+    // Nombre de comptes archivés (inactifs, récupérables) : lecture serveur, facultative.
+    let archivedCount = null;
+    try {
+      const cs = await db.collection('app_config').doc('inactive_cleanup').get();
+      const c = cs.exists ? cs.data() : {};
+      if (c.lastResult && typeof c.lastResult.archivedTotal === 'number') archivedCount = c.lastResult.archivedTotal;
+    } catch (e) { /* facultatif */ }
+    // En ligne maintenant : nombre calculé par le serveur ; si le serveur ne répond pas, la carte n'est simplement pas affichée.
+    let online = null;
+    try { online = (await admFetchOnline(false)).counts; } catch (e) { /* facultatif */ }
+    const chev = '<svg class="stat-go" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>';
+    const card = (value, label, go, hint, sub) => `<button type="button" class="stat-card stat-card-link" onclick="${go}" aria-label="${escapeHtml(label)} : ${escapeHtml(String(value))}. ${escapeHtml(hint)}">${chev}<span class="stat-value"${sub ? ' data-online-value' : ''}>${value}</span><span class="stat-label">${label}</span>${sub ? `<span class="stat-sub" data-online-sub>${sub}</span>` : ''}</button>`;
+    el.innerHTML =
+      card(usersSnap.size, 'Utilisateurs', "admGoto('users')", 'Ouvrir la liste des utilisateurs') +
+      (online ? card(online.online, 'En ligne maintenant', "admGoto('users','online')", 'Voir les personnes en ligne', online.lastHour + " dans l'heure · " + online.last24h + ' en 24 h') : '') +
+      card(newUsers, 'Nouveaux (7 jours)', "admGoto('users')", 'Voir les derniers inscrits') +
+      card(ordersSnap.size, 'Commandes totales', "admGoto('orders','all')", 'Ouvrir toutes les commandes') +
+      card(revenue.toFixed(2) + '$', "Chiffre d'affaires", "admGoto('profit')", 'Ouvrir le rapport des bénéfices') +
+      card(pendingOrders, 'Commandes en attente', "admGoto('orders','pending')", 'Ouvrir les commandes en attente') +
+      card(depositsSnap.size, 'Dépôts à valider', "admGoto('deposits')", 'Ouvrir les dépôts à valider') +
+      (archivedCount === null ? '' : card(archivedCount, 'Comptes archivés', "admGoto('users','archives')", 'Voir les comptes archivés, récupérables'));
+    admOnlineTicker();
   } catch (e) {
     el.innerHTML = `<p class="admin-empty">Erreur de chargement : ${escapeHtml(e.message)}</p>`;
   }
@@ -377,13 +476,24 @@ async function exportOrdersCSV() {
   }
 }
 
+const ADM_ORDER_FILTERS = [
+  ['all', 'Toutes'], ['pending', 'En attente'], ['processing', 'En cours'],
+  ['pending_review', 'À vérifier'], ['completed', 'Terminées'], ['refunded', 'Remboursées']
+];
+function admSetOrdersFilter(f) { window.__admOrdersFilter = f; loadOrdersAdmin(); }
 async function loadOrdersAdmin() {
   const el = document.getElementById('admin-orders-list');
+  const filter = window.__admOrdersFilter || 'all';
   el.innerHTML = `<p class="admin-empty">Chargement...</p>`;
   try {
-    const snap = await db.collection('orders').orderBy('createdAt', 'desc').limit(50).get();
-    if (snap.empty) { el.innerHTML = `<p class="admin-empty">Aucune commande pour l'instant.</p>`; return; }
-    el.innerHTML = snap.docs.map(doc => {
+    // Avec un filtre, on lit plus de commandes récentes (le tri par date évite un index à créer).
+    const snap = await db.collection('orders').orderBy('createdAt', 'desc').limit(filter === 'all' ? 50 : 400).get();
+    const bar = `<div class="adm-chips" role="group" aria-label="Filtrer les commandes">${ADM_ORDER_FILTERS.map(([id, lb]) =>
+      `<button type="button" class="adm-chip${id === filter ? ' on' : ''}" aria-pressed="${id === filter}" onclick="admSetOrdersFilter('${id}')">${lb}</button>`).join('')}</div>`;
+    if (snap.empty) { el.innerHTML = bar + `<p class="admin-empty">Aucune commande pour l'instant.</p>`; return; }
+    const docs = snap.docs.filter(doc => filter === 'all' || (doc.data().status || 'pending') === filter).slice(0, 100);
+    if (!docs.length) { el.innerHTML = bar + `<p class="admin-empty">Aucune commande dans cette catégorie.</p>`; return; }
+    el.innerHTML = bar + docs.map(doc => {
       const d = doc.data();
       const status = d.status || 'pending';
       // "refunded" / "pending_review" viennent de la correction du systeme
@@ -1067,7 +1177,7 @@ function admUserRow(doc) {
         <div class="admin-row-top">
           <div class="adm-av" aria-hidden="true">${escapeHtml(nm.charAt(0).toUpperCase())}</div>
           <div class="adm-user-main">
-            <div class="admin-row-title">${escapeHtml(nm)}${d.verified ? `<span class="adm-ok" title="Vendeur vérifié">${admIco('check', 14)}</span>` : ''}</div>
+            <div class="admin-row-title">${escapeHtml(nm)}${(window.__admOnline && window.__admOnline.uids.has(doc.id)) ? '<span class="adm-online">En ligne</span>' : ''}${d.verified ? `<span class="adm-ok" title="Vendeur vérifié">${admIco('check', 14)}</span>` : ''}</div>
             <div class="admin-row-meta">${escapeHtml(d.email || d.phone || '')}</div>
             <div class="admin-row-meta">Inscrit le ${admWhen(d.createdAt)}</div>
             <div class="admin-row-meta">${escapeHtml(seenTxt)}</div>
@@ -1087,9 +1197,10 @@ async function loadUsersAdmin() {
   const el = document.getElementById('admin-users-list');
   el.innerHTML = `<p class="admin-empty">Chargement...</p>`;
   try {
-    const [balSnap, recentSnap] = await Promise.all([
+    const [balSnap, recentSnap, onl] = await Promise.all([
       db.collection('users').where('balance', '>', 0).orderBy('balance', 'desc').limit(100).get().catch(() => null),
-      db.collection('users').orderBy('createdAt', 'desc').limit(160).get()
+      db.collection('users').orderBy('createdAt', 'desc').limit(160).get(),
+      admFetchOnline(true).catch(() => null) // facultatif : sans réponse, la liste s'affiche quand même
     ]);
     const rich = balSnap ? balSnap.docs : [];
     const seen = new Set(rich.map((x) => x.id));
@@ -1102,9 +1213,14 @@ async function loadUsersAdmin() {
       const cs = await db.collection('app_config').doc('inactive_cleanup').get();
       const c = cs.exists ? cs.data() : {};
       const on = c.enabled !== false;
-      const last = c.lastRunAt ? 'Dernier passage le ' + new Date(c.lastRunAt).toLocaleDateString('fr-FR') + (c.lastResult ? ' : ' + (c.lastResult.dryRun ? 'essai sans suppression' : c.lastResult.deleted + ' compte(s) supprimé(s)') : '') : 'Premier passage demain matin (essai sans suppression).';
-      clean = `<div class="adm-clean"><div><b>Nettoyage automatique</b><span>${on ? 'Actif' : 'En pause'} : un compte absent depuis 30 jours est supprimé, sauf s'il a un solde, un site, une entreprise ou une formation. ${last}</span></div>
-        <button class="btn btn-outline btn-sm" type="button" onclick="toggleInactiveCleanup(${on ? 'false' : 'true'})">${on ? 'Mettre en pause' : 'Réactiver'}</button></div>`;
+      const r = c.lastResult || null;
+      const done = r ? (typeof r.archived === 'number' ? r.archived : (r.deleted || 0)) : 0;
+      const last = c.lastRunAt ? 'Dernier passage le ' + new Date(c.lastRunAt).toLocaleDateString('fr-FR') + (r ? ' : ' + (r.dryRun ? 'essai sans archivage' : done + ' compte(s) mis de côté') : '') : 'Premier passage demain matin (essai sans archivage).';
+      clean = `<div class="adm-clean"><div><b>Comptes inactifs</b><span>${on ? 'Actif' : 'En pause'} : un compte absent depuis 30 jours est mis de côté (archivé), jamais détruit : la personne se reconnecte avec le même e-mail ou le même Google et retrouve toutes ses informations. Jamais archivé s'il a un solde, un site, une entreprise ou une formation. ${last}</span></div>
+        <button class="btn btn-outline btn-sm" type="button" onclick="toggleInactiveCleanup(${on ? 'false' : 'true'})">${on ? 'Mettre en pause' : 'Réactiver'}</button></div>
+        <div class="adm-clean" id="adm-archives-box"><div><b>Comptes archivés</b><span id="adm-archives-sum">${typeof (r && r.archivedTotal) === 'number' ? r.archivedTotal + ' compte(s) mis de côté. ' : ''}Tu peux en récupérer un à la main ou le supprimer définitivement.</span></div>
+        <button class="btn btn-outline btn-sm" type="button" onclick="loadArchivesAdmin(this)">Voir la liste</button></div>
+        <div id="adm-archives-list"></div>`;
     } catch (e) { /* facultatif */ }
     let guard = '';
     try {
@@ -1117,10 +1233,21 @@ async function loadUsersAdmin() {
       guard = `<div class="adm-clean adm-guard${bad.length ? ' bad' : ''}"><div><b>Contrôle des soldes</b><span>${bad.length ? bad.length + ' solde(s) ne correspondent pas au relevé des mouvements : ils ont été modifiés sans passer par le serveur. Vérifie ces comptes avant tout retrait. ' : 'Chaque solde est comparé au relevé des mouvements. Aucun écart pour l\'instant. '}${none.length ? none.length + ' compte(s) ont un solde sans aucun mouvement (anciens comptes ou solde posé à la main). ' : ''}${when}</span>${bad.concat(none).slice(0, 10).map(line).join('')}</div>
         <button class="btn btn-outline btn-sm" type="button" onclick="runBalanceGuardNow(this)">Contrôler maintenant</button></div>`;
     } catch (e) { /* facultatif */ }
-    el.innerHTML = guard + clean +
+    el.innerHTML = (onl ? admOnlineBox(onl) + `<div id="adm-online-list">${admOnlineRows(onl)}</div>` : '') + guard + clean +
       `<div class="adm-sum">${total}${rich.length} avec un solde</div>` +
       (rich.length ? `<h3 class="adm-sec">Comptes avec un solde</h3>` + rich.map(admUserRow).join('') : '') +
       `<h3 class="adm-sec">Derniers inscrits</h3>` + (recent.length ? recent.map(admUserRow).join('') : `<p class="admin-empty">Aucun autre compte.</p>`);
+    // Arrivée depuis la carte « Comptes archivés » des Statistiques : on ouvre directement la liste.
+    if (window.__admUsersFocus === 'online') {
+      window.__admUsersFocus = '';
+      const ob = document.getElementById('adm-online-box');
+      if (ob) ob.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    if (window.__admUsersFocus === 'archives') {
+      window.__admUsersFocus = '';
+      const box = document.getElementById('adm-archives-box');
+      if (box) { loadArchivesAdmin(box.querySelector('button')); box.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+    }
   } catch (e) {
     el.innerHTML = `<p class="admin-empty">Erreur : ${escapeHtml(e.message)}</p>`;
   }
@@ -1140,6 +1267,55 @@ async function runBalanceGuardNow(btn) {
     alert('Contrôle terminé : ' + (r.withBalance || 0) + ' compte(s) avec un solde examiné(s), ' + (r.mismatch || 0) + ' écart(s), ' + (r.noLedger || 0) + ' sans mouvement.' + (r.wrapped ? '' : '\nTouche encore « Contrôler maintenant » pour examiner la suite des comptes.') + selfDealsText(r.selfDeals));
   } catch (e) { alert('Erreur : ' + e.message); }
   loadUsersAdmin();
+}
+// Comptes mis de côté pour inactivité : liste (lue par le serveur), récupération à la main, suppression définitive.
+async function loadArchivesAdmin(btn) {
+  const el = document.getElementById('adm-archives-list');
+  if (!el) return;
+  if (btn) { btn.disabled = true; btn.textContent = 'Chargement…'; }
+  el.innerHTML = '';
+  try {
+    const j = await saspayAdminCall({ action: 'archives_list' });
+    const items = j.items || [];
+    const sum = document.getElementById('adm-archives-sum');
+    if (sum) sum.textContent = items.length + ' compte(s) mis de côté' + (items.length >= 100 ? ' (les 100 plus récents)' : '') + '. Tu peux en récupérer un à la main ou le supprimer définitivement.';
+    const day = (v) => v ? new Date(v).toLocaleDateString('fr-FR') : '—';
+    el.innerHTML = items.length ? items.map((x) => { const uid = String(x.uid || '').replace(/[^A-Za-z0-9_-]/g, ''); return `
+      <div class="admin-row adm-user" id="adm-arch-${uid}">
+        <div class="admin-row-top">
+          <div class="adm-av" aria-hidden="true">${escapeHtml((x.name || x.email || '?').trim().charAt(0).toUpperCase() || '?')}</div>
+          <div class="adm-user-main">
+            <div class="admin-row-title">${escapeHtml(x.name || 'Sans nom')}</div>
+            <div class="admin-row-meta">${escapeHtml(x.email || x.phone || '')}${escapeHtml(x.country ? ' · ' + x.country : '')}<br>Dernière activité : ${day(x.lastActivityAt)} · mis de côté le ${day(x.archivedAt)}${x.publications ? ' · ' + x.publications + ' publication(s)' : ''}</div>
+          </div>
+        </div>
+        <div class="admin-row-actions">
+          <button class="btn btn-primary btn-sm" type="button" onclick="restoreArchivedAccount('${uid}', this)">Récupérer</button>
+          <button class="btn btn-outline btn-sm" type="button" onclick="purgeArchivedAccount('${uid}', this)">Supprimer définitivement</button>
+        </div>
+      </div>`; }).join('') : `<p class="admin-empty">Aucun compte archivé pour l'instant.</p>`;
+  } catch (e) {
+    el.innerHTML = `<p class="admin-empty">Erreur : ${escapeHtml(e.message)}</p>`;
+  }
+  if (btn) { btn.disabled = false; btn.textContent = 'Actualiser'; }
+}
+async function restoreArchivedAccount(uid, btn) {
+  if (!confirm("Récupérer ce compte ? Il revient dans la liste des utilisateurs avec toutes ses informations.")) return;
+  if (btn) btn.disabled = true;
+  try {
+    await saspayAdminCall({ action: 'archive_restore', uid });
+    alert('Compte récupéré.');
+    loadUsersAdmin();
+  } catch (e) { alert('Erreur : ' + e.message); if (btn) btn.disabled = false; }
+}
+async function purgeArchivedAccount(uid, btn) {
+  if (!confirm("Supprimer DÉFINITIVEMENT ce compte archivé ? Son e-mail ne pourra plus se connecter et ses informations seront perdues. Cette action est irréversible.")) return;
+  if (btn) btn.disabled = true;
+  try {
+    await saspayAdminCall({ action: 'archive_purge', uid });
+    const row = document.getElementById('adm-arch-' + uid);
+    if (row) row.remove();
+  } catch (e) { alert('Erreur : ' + e.message); if (btn) btn.disabled = false; }
 }
 async function toggleInactiveCleanup(on) {
   try {

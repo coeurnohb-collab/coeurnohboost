@@ -10,7 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="admin.css?v=5">
-<link rel="stylesheet" href="admin-pro.css?v=5">
+<link rel="stylesheet" href="admin-pro.css?v=6">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check-compat.js"></script>
 <script src="app-check.js"></script>
@@ -116,6 +116,17 @@
     <div class="admin-tab hidden" id="admin-tab-profit">
       <h2 class="page-title">Bénéfices</h2>
       <p class="muted" style="margin-bottom:14px">Revenus clients moins coûts réels facturés par MoreThanPanel, calculés automatiquement sur les commandes automatisées.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px">
+        <label for="admin-profit-period" class="muted small">Période</label>
+        <select id="admin-profit-period" onchange="loadProfitAdmin()">
+          <option value="today">Aujourd'hui</option>
+          <option value="7">7 derniers jours</option>
+          <option value="30" selected>30 derniers jours</option>
+          <option value="month">Ce mois-ci</option>
+          <option value="92">3 derniers mois</option>
+          <option value="all">Tout (peut être lent)</option>
+        </select>
+      </div>
       <div class="stats-cards" id="admin-profit-cards"></div>
       <div id="admin-profit-unknown-list"></div>
 
@@ -526,10 +537,12 @@
 </div>
 
 <script src="catalog-data.js?v=20261108"></script>
-<script src="admin.js?v=20261122"></script>
+<script src="admin-profit.js?v=1"></script>
+<script src="admin.js?v=20261125"></script>
 <script src="admin-panels.js?v=5"></script>
 <script src="academy-spend-admin.js?v=3"></script>
 <script src="admin-login-methods.js?v=1"></script>
+<script src="admin-availability.js?v=1"></script>
 <script src="ops-admin.js?v=4"></script>
 <script src="admin-messages.js?v=3"></script>
 <script src="a11y-pro.js?v=3"></script>

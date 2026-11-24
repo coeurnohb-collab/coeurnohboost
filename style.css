@@ -3,9 +3,9 @@
      rouge (MULTI SERVICES). Toutes les couleurs de l'application passent par
      ces variables : le mode clair et le mode sombre les redéfinissent, donc
      aucun texte ne peut se retrouver « blanc sur blanc ». */
-  --green:#1d4ed8;
-  --green-dark:#1741b8;
-  --green-light:#e8effb;
+  --green:#28374f;
+  --green-dark:#1a2436;
+  --green-light:#eef1f6;
   --red:#d7263d;
   --red-dark:#a91a2e;
   --accent:#f39c1f;
@@ -18,19 +18,28 @@
   --white:#ffffff;
   --radius:16px;
   --red-text:#c81e35;
-  --green-dark-text:#1741b8;
+  --green-dark-text:#28374f;
   /* Surfaces et textes neutres (remplacent tous les gris « en dur ») */
   --ink-2:#38435a;
   --faint:#7b8599;
   --soft:#f3f5f9;
   --soft-2:#e8ecf3;
   --line-2:#cfd6e2;
-  --link:#1d4ed8;
+  --link:#1d4f91;
   --on-primary:#ffffff;
-  --btn:#1d4ed8;
-  --btn-hover:#1741b8;
+  --btn:#28374f;
+  --btn-hover:#1a2436;
+  /* Ardoise (icônes, flèches, avatars, boutons secondaires), bleu nuit (sélections, onglets actifs)
+     et bleu d'action. Le bleu d'action est RARE : boutons pleins principaux, liens, anneau de focus
+     au clavier, moyen de paiement choisi. Nulle part ailleurs. */
+  --slate:#28374f;
+  --night:#14263f; --night-text:#14263f;
+  --action:#1d4f91; --action-hover:#173f75; --action-press:#12335e;
+  --action-ring:rgba(29,79,145,.38); --action-tint:#e9eff8; --action-line:#bccbe3;
+  --act:#28374f; --act-hover:#1a2436; --act-press:#111a2b; --act-soft:#66738a;
+  --act-tint:#eef1f6; --act-tint-2:#e2e7ef; --act-line:#d5dbe6; --act-deep:#1a2436; --act-ring:rgba(29,79,145,.38);
   /* Teintes d'état : fond doux + texte lisible dessus */
-  --tint-blue:#e8effb;     --tint-blue-ink:#1d4ed8;     --tint-blue-line:#c3d3f3;
+  --tint-blue:#eef1f6;     --tint-blue-ink:#28374f;     --tint-blue-line:#d5dbe6;
   --tint-green:#e3f3e9;    --tint-green-ink:#15693a;    --tint-green-line:#b3dcc2;
   --tint-amber:#fcf1d8;    --tint-amber-ink:#7a4a00;    --tint-amber-line:#f0d58e;
   --tint-red:#fbe8ea;      --tint-red-ink:#a3202f;      --tint-red-line:#f0b9bf;
@@ -64,22 +73,28 @@ html[data-theme="dark"]{
   --muted:#9aa3b2;
   --line:#2a2f38;
   --white:#1b1f26;
-  --green:#6f9bf5;
-  --green-dark:#4a7be6;
-  --green-light:#16243f;
+  --green:#5f7aa3;
+  --green-dark:#4a6489;
+  --green-light:#1c2638;
   /* Teintes plus claires pour rester lisibles quand elles servent de TEXTE sur fond sombre */
   --red-text:#ff6b7a;
-  --green-dark-text:#8fb0f5;
+  --green-dark-text:#f5b55a;
   --accent-dark:#f5b55a;
   --ink-2:#c3cad6;
   --faint:#7b8698;
   --soft:#232832;
   --soft-2:#2b313d;
   --line-2:#3a414d;
-  --link:#8fb0f5;
-  --btn:#3b6be0;
-  --btn-hover:#5a84ec;
-  --tint-blue:#1a2742;     --tint-blue-ink:#a9c1f5;     --tint-blue-line:#2c4170;
+  --link:#7fa8e0;
+  --btn:#4a6489;
+  --btn-hover:#5a76a0;
+  --slate:#9db0cf;
+  --night:#2f4f80; --night-text:#dbe4f3;
+  --action:#2f62a8; --action-hover:#3a70bd; --action-press:#285491;
+  --action-ring:rgba(127,168,224,.55); --action-tint:#17263f; --action-line:#2f4a75;
+  --act:#9db0cf; --act-hover:#b9c7df; --act-press:#d0daea; --act-soft:#8a98b2;
+  --act-tint:#1c2638; --act-tint-2:#243049; --act-line:#33415c; --act-deep:#1a2436; --act-ring:rgba(127,168,224,.55);
+  --tint-blue:#1c2638;     --tint-blue-ink:#c9d4e6;     --tint-blue-line:#33415c;
   --tint-green:#14301f;    --tint-green-ink:#86d6a2;    --tint-green-line:#245a38;
   --tint-amber:#34290f;    --tint-amber-ink:#f2c874;    --tint-amber-line:#5c4818;
   --tint-red:#3a1b21;      --tint-red-ink:#ff909c;      --tint-red-line:#68303a;
@@ -113,7 +128,7 @@ a{text-decoration:none;color:inherit}
 .logo{font-family:var(--font-head);font-weight:800;font-size:1.2rem;cursor:pointer;color:var(--ink);letter-spacing:-0.02em;display:inline-flex;align-items:center;gap:8px;flex:0 1 auto;min-width:0}
 .logo b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:inline-flex;align-items:baseline}
 .logo .logo-o{width:.78em;height:.78em;flex:0 0 auto;display:inline-block;vertical-align:-0.08em;margin:0 .02em}
-.logo span{color:var(--link)}
+.logo span{color:var(--act,#28374f)}
 .logo .brand-mark{width:30px;height:30px;flex:0 0 auto;box-sizing:border-box;object-fit:contain;border-radius:8px;display:block}
 /* Sur le tableau de bord (après connexion), les boutons Se connecter /
    Créer un compte sont masqués -- il ne reste que le sélecteur de langue
@@ -157,8 +172,9 @@ body.app-mode .nav-right{flex-wrap:nowrap}
   border:none;border-radius:999px;padding:10px 18px;font-size:0.9rem;font-weight:600;
   cursor:pointer;transition:0.18s ease;
 }
-.btn-primary{background:var(--green);color:#fff;box-shadow:0 4px 14px rgba(40,55,79,0.24)}
-.btn-primary:hover{background:var(--green-dark);transform:translateY(-1px);box-shadow:0 6px 18px rgba(40,55,79,0.3)}
+.btn-primary{background:var(--action);color:#fff;box-shadow:0 4px 14px rgba(29,79,145,0.22)}
+.btn-primary:hover{background:var(--action-hover);transform:translateY(-1px);box-shadow:0 6px 18px rgba(29,79,145,0.28)}
+.btn-primary:active{background:var(--action-press);transform:none}
 .btn-outline{background:transparent;color:var(--green);border:1.5px solid var(--green)}
 .btn-outline:hover{background:var(--cream)}
 .btn-lg{padding:15px 28px;font-size:1rem}
@@ -298,7 +314,7 @@ body.app-mode .nav-right{flex-wrap:nowrap}
   cursor:pointer;background:var(--white);transition:0.15s;
 }
 .quality-card:hover{border-color:var(--tint-blue-line)}
-.quality-card.active{border-color:var(--green);background:var(--green-light);box-shadow:0 3px 10px rgba(40,55,79,0.12)}
+.quality-card.active{border-color:var(--night-text);background:var(--green-light);box-shadow:0 3px 10px rgba(20,38,63,0.14)}
 .quality-card .q-name{font-weight:800;font-size:0.85rem;display:block;letter-spacing:0.01em}
 .quality-card .q-mult{font-size:0.78rem;color:var(--green-dark-text);font-weight:700;display:block;margin-top:4px}
 .quality-card .q-mult small{font-weight:500;color:var(--muted);font-size:0.65rem}
@@ -335,7 +351,7 @@ body.app-mode .nav-right{flex-wrap:nowrap}
 /* Aperçu visuel "carte virtuelle" — design pro générique, aucun logo de réseau reproduit */
 .card-preview{
   border-radius:16px;padding:20px;color:#fff;position:relative;overflow:hidden;
-  background:#12295f;
+  background:#1a2436;
   box-shadow:var(--shadow-md);
 }
 .card-preview::after{
@@ -383,7 +399,7 @@ body.app-mode .nav-right{flex-wrap:nowrap}
   cursor:pointer;white-space:nowrap;transition:0.18s;
 }
 .platform-tab:hover{border-color:var(--tint-blue-line)}
-.platform-tab.active{background:var(--btn);color:#fff;border-color:var(--btn);box-shadow:0 4px 12px rgba(40,55,79,0.25)}
+.platform-tab.active{background:var(--night);color:#fff;border-color:var(--night);box-shadow:0 4px 12px rgba(20,38,63,0.25)}
 
 /* SÉLECTEUR SEGMENTÉ (moyens de paiement) — style iOS premium */
 .segmented{display:flex;background:var(--cream);border-radius:999px;padding:5px;gap:4px}
@@ -573,7 +589,7 @@ body.app-mode .nav-right{flex-wrap:nowrap}
   white-space:nowrap;transition:0.15s;display:inline-flex;align-items:center;gap:6px;
 }
 .shop-filter-tabs button svg{flex-shrink:0}
-.shop-filter-tabs button.active{background:var(--btn);border-color:var(--btn);color:#fff}
+.shop-filter-tabs button.active{background:var(--night);border-color:var(--night);color:#fff}
 
 /* BOUTIQUE PUBLIQUE */
 /* ================= SKELETONS DE CHARGEMENT ================= */
@@ -590,7 +606,7 @@ body.app-mode .nav-right{flex-wrap:nowrap}
 .skeleton-card .skeleton-line.w-40{width:40%}
 .skeleton-card .skeleton-line.w-90{width:90%}
 .report-reason-option{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;cursor:pointer;font-size:0.92rem}
-.report-reason-option:has(input:checked){border-color:var(--green);background:var(--green-light)}
+.report-reason-option:has(input:checked){border-color:var(--night-text);background:var(--green-light)}
 .report-reason-option input{accent-color:var(--green)}
 .media-error-placeholder{
   background:var(--green-light);color:var(--muted);text-align:center;
@@ -684,7 +700,7 @@ body.app-mode .nav-right{flex-wrap:nowrap}
 .menu-item:hover svg{transform:translateY(-1px);box-shadow:0 5px 12px rgba(40,55,79,0.34), inset 0 1px 0 rgba(255,255,255,0.15)}
 .menu-item:active svg{transform:translateY(0) scale(.94)}
 
-.lang-choice.active{background:var(--btn);border-color:var(--btn);color:#fff}
+.lang-choice.active{background:var(--night);border-color:var(--night);color:#fff}
 
 .coming-soon-badge{
   display:inline-block;background:var(--green-light);color:var(--green-dark-text);
@@ -797,12 +813,15 @@ body.app-mode .nav-right{flex-wrap:nowrap}
 .reaction-picker-btn:active{transform:scale(1.35)}
 
 /* ================= STORIES FACON FACEBOOK/INSTAGRAM ================= */
+.online-now{display:flex;align-items:center;gap:8px;width:fit-content;max-width:100%;margin:4px 4px 0;padding:6px 12px;border-radius:999px;font-size:.8rem;font-weight:600;line-height:1.2;color:var(--tint-green-ink);background:var(--tint-green);border:1px solid var(--tint-green-line)}
+.online-now.hidden{display:none}
+.online-dot{flex:none;width:8px;height:8px;border-radius:50%;background:var(--tint-green-ink)}
 .stories-bar{display:flex;gap:10px;overflow-x:auto;padding:12px 4px;margin-bottom:6px;-webkit-overflow-scrolling:touch}
 .stories-bar::-webkit-scrollbar{display:none}
 .story-bubble{display:flex;flex-direction:column;align-items:center;gap:4px;flex:0 0 auto;width:66px;cursor:pointer}
 .story-ring{
   width:60px;height:60px;border-radius:50%;padding:2.5px;
-  background:var(--act,#1d4ed8);
+  background:var(--act,#28374f);
   display:flex;align-items:center;justify-content:center;
 }
 .story-ring.seen{background:var(--border,#d9d9d9)}
@@ -1118,8 +1137,8 @@ body.app-mode .nav-right{flex-wrap:nowrap}
 }
 .notif-type-badge .icon-svg, .notif-type-badge svg{width:12px;height:12px}
 .notif-type-badge.badge-like{background:var(--red)}
-.notif-type-badge.badge-comment{background:#1d4ed8}
-.notif-type-badge.badge-share{background:#1d4ed8}
+.notif-type-badge.badge-comment{background:var(--btn)}
+.notif-type-badge.badge-share{background:var(--btn)}
 .notif-type-badge.badge-sale, .notif-type-badge.badge-order{background:var(--btn)}
 .notif-type-badge.badge-purchase, .notif-type-badge.badge-recharge{background:#F5A623}
 .notif-type-badge.badge-announcement, .notif-type-badge.badge-admin_message{background:var(--ink)}
@@ -1423,7 +1442,7 @@ body.app-mode .nav-right{flex-wrap:nowrap}
   display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.3);
 }
 .media-viewer-icon-btn:active{transform:scale(0.93)}
-.media-viewer-back{left:16px;color:#1d4ed8}
+.media-viewer-back{left:16px;color:var(--ink)}
 .media-viewer-more{right:16px;color:var(--ink)}
 
 /* ================= MENU OPTIONS PUBLICATION (3 points, façon Facebook) =================
@@ -1487,32 +1506,21 @@ body.app-mode .nav-right{flex-wrap:nowrap}
 /* =====================================================================
    COEURNOH UNIVERSE — REFONTE PRO (typographie, badges, connexion)
    ===================================================================== */
-/* Palette "app" (après connexion) : bleu façon Facebook, comme demandé —
-   la vitrine publique (avant connexion, view-home + modale de connexion)
-   garde elle la palette ardoise/orange ci-dessus, inchangée. body.app-mode
-   est ajoutée/retirée par hideAllViews()/showHome() dans script.js. */
-body.app-mode{
-  --green:#1d4ed8;
-  --green-dark:#1741b8;
-  --green-light:#e8effb;
-  --green-dark-text:#1741b8;
-}
-html[data-theme="dark"] body.app-mode{
-  --green:#6f9bf5;
-  --green-dark:#4a7be6;
-  --green-light:#16243f;
-  --green-dark-text:#8fb0f5;
-}
+/* Lot 34 : la palette est la même avant et après connexion (ardoise + orange de la marque).
+   Le bleu n'est plus une palette : c'est une couleur d'action rare (voir --action plus haut).
+   body.app-mode est toujours ajoutée/retirée par hideAllViews()/showHome() dans script.js
+   (d'autres règles s'y accrochent), mais elle ne change plus les variables de couleur. */
 html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
 body{font-feature-settings:"cv11","ss01";text-rendering:optimizeLegibility}
-::selection{background:rgba(29,78,216,.22)}
+::selection{background:rgba(40,55,79,.2)}
 button,input,select,textarea{font-family:var(--font)}
 .btn{min-height:44px;letter-spacing:.005em}
-.btn-primary{background:var(--btn);color:#fff;box-shadow:var(--shadow-sm)}
-.btn-primary:hover{background:var(--btn-hover)}
+.btn-primary{background:var(--action);color:#fff;box-shadow:var(--shadow-sm)}
+.btn-primary:hover{background:var(--action-hover)}
+.btn-primary:active{background:var(--action-press)}
 .btn-outline{color:var(--ink);border-color:var(--line);background:var(--white)}
 .btn-outline:hover{border-color:var(--ink);background:var(--white)}
-.btn:focus-visible,.field input:focus-visible,.google-btn:focus-visible{outline:3px solid rgba(29,78,216,.45);outline-offset:2px}
+.btn:focus-visible,.field input:focus-visible,.google-btn:focus-visible{outline:3px solid var(--action-ring);outline-offset:2px}
 #nav{background:rgba(255,255,255,.86);backdrop-filter:saturate(180%) blur(14px);-webkit-backdrop-filter:saturate(180%) blur(14px)}
 html[data-theme="dark"] #nav{background:rgba(27,31,38,.86)}
 .stat strong,.order-summary-row strong,.pack-price{font-family:var(--font-head);font-variant-numeric:tabular-nums}
@@ -1525,7 +1533,7 @@ html[data-theme="dark"] #nav{background:rgba(27,31,38,.86)}
 .op-logo{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#fff;padding:5px;z-index:2}
 .op-icon.crypto-icon{width:44px;height:44px;border-radius:50%;font-size:1.15rem}
 .op-card{border-radius:16px;padding:14px 6px;box-shadow:0 1px 2px rgba(16,24,40,.04)}
-.op-card.active{border-color:var(--act,#1d4ed8);background:var(--white);box-shadow:0 0 0 3px rgba(29,78,216,.18)}
+.op-card.active{border-color:var(--action);background:var(--white);box-shadow:0 0 0 3px var(--action-ring)}
 .op-name{font-size:.72rem;font-weight:700}
 .pay-icons{gap:8px}
 .pay-tile{display:inline-flex;align-items:center;justify-content:center;height:36px;min-width:66px;padding:0 12px;border-radius:10px;font-family:var(--font-head);font-weight:800;font-size:.76rem;letter-spacing:-.02em;color:#fff;position:relative;overflow:hidden}
@@ -1535,7 +1543,7 @@ html[data-theme="dark"] #nav{background:rgba(27,31,38,.86)}
 .auth-modal-overlay{padding:16px;background:rgba(10,14,22,.62);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);align-items:center}
 .modal.auth-modal{max-width:440px;padding:0;border-radius:26px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.4);max-height:94vh;max-height:94dvh}
 .auth-hero{position:relative;padding:64px 26px 26px;color:#fff;overflow:hidden;
-  background:#12295f}
+  background:#1a2436}
 .auth-hero::after{content:none}
 .auth-brand{display:flex;align-items:center;gap:12px;position:relative;z-index:1}
 .auth-brand .brand-mark{width:46px;height:46px;flex:0 0 auto;background:#fff;border-radius:14px;padding:5px;box-shadow:0 6px 18px rgba(0,0,0,.28);box-sizing:border-box;object-fit:contain;display:block}
@@ -1545,7 +1553,7 @@ html[data-theme="dark"] #nav{background:rgba(27,31,38,.86)}
 .auth-hero-line{position:relative;z-index:1;margin-top:16px;font-size:.92rem;line-height:1.5;color:rgba(255,255,255,.86);max-width:32ch}
 .auth-trust{position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
 .auth-trust span{display:inline-flex;align-items:center;gap:6px;font-size:.72rem;font-weight:600;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.14);color:#fff}
-.auth-trust svg{width:13px;height:13px;color:var(--act,#1d4ed8)}
+.auth-trust svg{width:13px;height:13px;color:var(--accent)}
 .auth-modal .modal-close{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.22);color:#fff;box-shadow:none;z-index:3}
 .auth-body{padding:22px 24px 24px;background:var(--white)}
 .auth-modal h2{font-size:1.35rem;margin:0 0 4px}
@@ -1554,7 +1562,7 @@ html[data-theme="dark"] #nav{background:rgba(27,31,38,.86)}
 .auth-input{position:relative}
 .auth-input>svg.lead{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:18px;height:18px;color:var(--muted);pointer-events:none}
 .auth-input input{padding:13px 14px 13px 42px;border-radius:14px;background:var(--cream);border:1.5px solid var(--line);font-size:.95rem;transition:border-color .15s,box-shadow .15s}
-.auth-input input:focus{border-color:var(--act,#1d4ed8);box-shadow:0 0 0 4px rgba(29,78,216,.16);outline:none}
+.auth-input input:focus{border-color:var(--action);box-shadow:0 0 0 4px var(--action-ring);outline:none}
 .auth-modal .password-wrap input{padding-right:48px}
 .auth-modal .password-toggle{right:8px;width:34px;height:34px;padding:0;display:flex;align-items:center;justify-content:center;color:var(--muted);border-radius:10px}
 .auth-modal .password-toggle svg{width:19px;height:19px}
@@ -1563,7 +1571,7 @@ html[data-theme="dark"] #nav{background:rgba(27,31,38,.86)}
 .pw-meter i{display:block;height:100%;width:0;border-radius:4px;background:var(--red);transition:width .2s,background .2s}
 .pw-hint{font-size:.72rem;color:var(--muted);margin-top:5px;min-height:1em}
 .auth-row{display:flex;justify-content:flex-end;margin:-4px 0 12px}
-.auth-link{background:none;border:none;color:var(--act,#1d4ed8);font-weight:700;font-size:.8rem;cursor:pointer;padding:4px 0}
+.auth-link{background:none;border:none;color:var(--link);font-weight:700;font-size:.8rem;cursor:pointer;padding:4px 0}
 .auth-modal #auth-submit{padding:14px;border-radius:14px;font-size:.98rem;font-weight:700;margin-top:2px}
 .auth-modal #auth-submit::after{content:"→";margin-left:8px;font-weight:600;transition:transform .15s}
 .auth-modal #auth-submit:hover::after{transform:translateX(3px)}
@@ -1572,7 +1580,7 @@ html[data-theme="dark"] #nav{background:rgba(27,31,38,.86)}
 .auth-modal .divider-or{margin:16px 0}
 .auth-modal .divider-or::before,.auth-modal .divider-or::after{width:38%}
 .auth-legal{margin-top:14px;font-size:.7rem;line-height:1.5;color:var(--muted);text-align:center}
-.auth-modal .modal-switch button{color:var(--act,#1d4ed8)}
+.auth-modal .modal-switch button{color:var(--link)}
 .auth-modal .modal-loading{background:var(--green-light);color:var(--ink)}
 .auth-modal .modal-error{border-radius:12px}
 .auth-modal .modal-success{background:rgba(22,163,74,.1);color:#15803d;border:1px solid rgba(22,163,74,.3);border-radius:12px;padding:10px 12px;font-size:.85rem;margin-bottom:14px}
@@ -1586,7 +1594,7 @@ html[data-theme="dark"] #nav{background:rgba(27,31,38,.86)}
 /* --- Publication "texte seul" avec arrière-plan coloré (façon Facebook) --- */
 .text-bg-swatches{display:flex;flex-wrap:wrap;gap:10px}
 .text-bg-swatch{width:36px;height:36px;border-radius:50%;border:2px solid var(--line);cursor:pointer;padding:0;box-shadow:0 2px 6px rgba(0,0,0,.12)}
-.text-bg-swatch.active{border-color:var(--ink);box-shadow:0 0 0 3px rgba(29,78,216,.28)}
+.text-bg-swatch.active{border-color:var(--ink);box-shadow:0 0 0 3px rgba(40,55,79,.28)}
 .text-bg-swatch-plain{background:var(--cream);color:var(--ink);font-weight:800;font-size:.85rem;display:flex;align-items:center;justify-content:center}
 .text-post-preview,.text-post-box{
   width:100%;aspect-ratio:1/1;border-radius:16px;display:flex;align-items:center;justify-content:center;text-align:center;
@@ -1604,4 +1612,4 @@ html[data-theme="dark"] #nav{background:rgba(27,31,38,.86)}
   border:1.5px solid var(--line);border-radius:12px;padding:8px 14px;background:var(--white);
   color:var(--ink);cursor:pointer;font-size:1.05rem;min-width:56px;
 }
-.text-font-swatch.active{border-color:var(--act,#1d4ed8);background:var(--green-light);box-shadow:0 0 0 2px rgba(29,78,216,.2)}
+.text-font-swatch.active{border-color:var(--night-text);background:var(--green-light);box-shadow:0 0 0 2px var(--act-line)}

@@ -87,6 +87,8 @@
 <meta property="og:locale:alternate" content="es_ES">
 <meta property="og:locale:alternate" content="it_IT">
 <meta property="og:locale:alternate" content="pt_PT">
+<meta property="og:locale:alternate" content="de_DE">
+<meta property="og:locale:alternate" content="sw_KE">
 <meta property="og:site_name" content="Coeurnoh Universe">
 
 <!-- Twitter Card -->
@@ -95,7 +97,8 @@
 <meta name="twitter:description" content="Croissance réseaux sociaux, boutique, publications et services multiples — Paiement Mobile Money, crypto et carte, partout en Afrique francophone.">
 <meta name="twitter:image" content="https://coeurnohuniverse.com/og-image.jpg">
 <meta name="twitter:image:alt" content="Coeurnoh Universe — Réseaux sociaux, boutique et services multiples">
-<link rel="icon" type="image/png" href="/icon-192-v2.png">
+<link rel="icon" type="image/png" sizes="48x48" href="/favicon-48-v2.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192-v2.png">
 <!-- Données structurées (Google, Bing) -->
 <script type="application/ld+json">
 {
@@ -134,7 +137,10 @@
         "en",
         "es",
         "it",
-        "pt"
+        "pt",
+        "de",
+        "sw",
+        "ln"
       ],
       "publisher": {
         "@id": "https://coeurnohuniverse.com/#organization"
@@ -175,7 +181,10 @@
         "en",
         "es",
         "it",
-        "pt"
+        "pt",
+        "de",
+        "sw",
+        "ln"
       ],
       "alternateName": ["Coeurnoh", "CoeurnohBoost", "Coeurnoh Boost"],
       "image": "https://coeurnohuniverse.com/og-image.jpg",
@@ -224,7 +233,7 @@
    écrits par `node tools/build.js`. Si le fichier ne vient pas (pas de réseau), le texte reste en français et l'application
    réessaie dès que la connexion revient (voir translations.js). */
 (function(){try{
-  var LV=/*lv*/{"en":"3ffc913a08","es":"d8cdb478ef","it":"211589fc91","pt":"e26fe72116","de":"5e87835cc6","sw":"f4eedfd826","ln":"92f4ebc21e"}/*end-lv*/;
+  var LV=/*lv*/{"en":"51c3b16ae7","es":"bd23e8dbc8","it":"0fd9598d5f","pt":"22d4e895ec","de":"76b98612e8","sw":"ed33739932","ln":"f8e38ffd0c"}/*end-lv*/;
   window.__cnLV=LV;
   var S=['fr','en','es','it','pt','de','sw','ln'],l=null;
   try{l=localStorage.getItem('coeurnoh_lang');}catch(e){}
@@ -237,15 +246,17 @@
   }
 }catch(e){}})();
 </script>
+<link rel="preconnect" href="https://www.gstatic.com">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
-<link rel="stylesheet" href="app.min.css?v=c9e42ad9b0" onerror="['style','polish','menu-pro','pro'].forEach(function(n){var l=document.createElement('link');l.rel='stylesheet';l.href=n+'.css';document.head.appendChild(l)})">
+<link rel="stylesheet" href="app.min.css?v=9ab44655c2" onerror="['style','polish','menu-pro','pro'].forEach(function(n){var l=document.createElement('link');l.rel='stylesheet';l.href=n+'.css';document.head.appendChild(l)})">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check-compat.js" defer></script>
 <script src="app-check.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js" defer></script>
+<link rel="preload" href="app.min.js?v=636ad54fe5" as="script" fetchpriority="high">
 <link rel="preload" href="cn-inter-400.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="cn-inter-600.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="cn-serif.woff2" as="font" type="font/woff2" crossorigin>
@@ -304,7 +315,7 @@
 <div id="app-splash" role="status" aria-live="polite">
   <video id="app-splash-video" muted playsinline preload="auto" aria-hidden="true" tabindex="-1"><source src="splash-v2.mp4" type="video/mp4"></video>
   <div id="app-splash-inner">
-    <img id="app-splash-logo-img" src="logo-mark.png" alt="Coeurnoh Universe" width="240" height="112">
+    <img id="app-splash-logo-img" src="logo-mark-480.webp" alt="Coeurnoh Universe" width="240" height="112" fetchpriority="high">
     <div id="app-splash-spinner" aria-hidden="true"></div>
   </div>
   <div id="app-splash-foot" data-i18n="st_mobile_money_crypto_carte_2934">Mobile Money · Crypto · Carte</div>
@@ -318,7 +329,9 @@ try{var lang=(localStorage.getItem('coeurnoh_lang')||navigator.language||'fr').s
 var rm=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 var sd=navigator.connection&&navigator.connection.saveData;
 var wide=window.innerWidth>window.innerHeight*0.8;
-if(window.__cnQuick||rm||sd||wide||lang!=='fr'){drop();return;}}catch(e){}
+/* Connexion lente (2G/3G ou moins de 1,5 Mb/s) : la vidéo (≈ 310 Ko) n'aurait pas démarré à temps et ralentirait toute l'ouverture : on garde le logo fixe. */
+var cn=navigator.connection,slow=!!cn&&(/^(slow-2g|2g|3g)$/.test(cn.effectiveType||'')||(cn.downlink>0&&cn.downlink<1.5));
+if(window.__cnQuick||rm||sd||wide||slow||lang!=='fr'){drop();return;}}catch(e){}
 var ok=false;
 v.addEventListener('playing',function(){ok=true;sp.classList.add('sp-vid');},{once:true});
 v.addEventListener('error',drop);v.addEventListener('stalled',function(){if(!ok)drop();});
@@ -331,7 +344,7 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
 <!-- ================= NAV ================= -->
 <nav id="nav">
   <div class="wrap nav-inner">
-    <div class="logo" onclick="showHome()"><img class="brand-mark" src="icon-192-v2.png" alt="Coeurnoh Universe" width="34" height="34" loading="eager"><b>C<svg class="logo-o" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="6.5" fill="#28374f"/><path d="M5.5 12h13M12 5.5c-2.6 2-2.6 11 0 13M12 5.5c2.6 2 2.6 11 0 13" stroke="#f39c1f" stroke-width=".9" opacity=".9"/><ellipse cx="12" cy="12" rx="10.5" ry="4" transform="rotate(-24 12 12)" stroke="#f39c1f" stroke-width="1.3"/></svg>eurnoh <span>Universe</span></b></div>
+    <div class="logo" onclick="showHome()"><img class="brand-mark" src="icon-128-v2.png" alt="Coeurnoh Universe" width="34" height="34" loading="eager"><b>C<svg class="logo-o" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="6.5" fill="#28374f"/><path d="M5.5 12h13M12 5.5c-2.6 2-2.6 11 0 13M12 5.5c2.6 2 2.6 11 0 13" stroke="#f39c1f" stroke-width=".9" opacity=".9"/><ellipse cx="12" cy="12" rx="10.5" ry="4" transform="rotate(-24 12 12)" stroke="#f39c1f" stroke-width="1.3"/></svg>eurnoh <span>Universe</span></b></div>
     <div class="nav-right">
       <select id="lang-select" class="lang-select" onchange="changeLanguage(this.value)">
         <option value="fr">🇫🇷 FR</option>
@@ -371,7 +384,7 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
         </div>
       </div>
       <figure class="hm-show">
-        <img class="hm-photo" src="hero-phones-v2.webp" width="1200" height="1152" decoding="async" fetchpriority="high" alt="Application Coeurnoh Universe sur deux téléphones : le menu avec les raccourcis, et les réseaux sociaux disponibles" data-i18n-alt="st_application_coeurnoh_unive_dcab">
+        <img class="hm-photo" src="hero-phones-v2.webp" srcset="hero-phones-v2-600.webp 600w, hero-phones-v2-800.webp 800w, hero-phones-v2-1000.webp 1000w, hero-phones-v2.webp 1200w" sizes="(min-width: 900px) 520px, calc(100vw - 32px)" width="1200" height="1152" decoding="async" fetchpriority="low" alt="Application Coeurnoh Universe sur deux téléphones : le menu avec les raccourcis, et les réseaux sociaux disponibles" data-i18n-alt="st_application_coeurnoh_unive_dcab">
       </figure>
     </div>
   </section>
@@ -577,6 +590,8 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
            avec le menu ☰ → Services CoeurNoh qui sert déjà à ça). Elle reste
            présente sur la page publique (view-home) pour les visiteurs non
            connectés. -->
+      <!-- Membres en ligne : chiffre donné par le serveur (nombre seulement), visible à partir de 3 personnes. Rempli par cnRefreshOnline() dans script.js. -->
+      <div id="online-now" class="online-now hidden" role="status" aria-live="polite"></div>
       <!-- Barre de stories facon Facebook/Instagram (bulles rondes, 24h).
            Remplie par renderStoriesBar() dans script.js. -->
       <div id="stories-bar" class="stories-bar"></div>
@@ -2455,7 +2470,7 @@ sp.addEventListener('click',function(){window.__cnSkipIntro=true;drop();},{once:
   </div>
 </div>
 
-<script src="app.min.js?v=acd9f742aa" defer onerror="(function(){function f(){['translations','catalog-data','script','polish','menu-pro','push-center'].forEach(function(n){var x=document.createElement('script');x.src=n+'.js';x.async=false;document.body.appendChild(x)})}document.readyState==='loading'?document.addEventListener('DOMContentLoaded',f):f()})()"></script>
+<script src="app.min.js?v=636ad54fe5" defer onerror="(function(){function f(){['translations','catalog-data','script','polish','menu-pro','push-center'].forEach(function(n){var x=document.createElement('script');x.src=n+'.js';x.async=false;document.body.appendChild(x)})}document.readyState==='loading'?document.addEventListener('DOMContentLoaded',f):f()})()"></script>
 
 <!-- PWA : activation du service worker (installation en app) -->
 <script>

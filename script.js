@@ -2946,12 +2946,50 @@ let presenceInterval = null;
 
 async function touchPresence() {
   if (!currentUser) return;
+  // Application en arrière-plan (autre appli ou écran éteint) : la personne n'est pas « en ligne », on n'écrit rien (économise aussi la batterie).
+  if (typeof document !== 'undefined' && document.hidden) return;
   try {
     await db.collection('presence').doc(currentUser.uid).set({
       lastActiveAt: new Date().toISOString()
     });
   } catch (e) { /* pas grave, pas une fonctionnalite critique */ }
 }
+
+// Compte mis de côté pour inactivité (30 jours) : à la reconnexion, le serveur remet TOUT en place (même compte, mêmes
+// informations). Résultat : true = récupéré, false = rien à récupérer, null = erreur réseau/serveur (on réessaiera, et on
+// ne recrée surtout pas une fiche vide par-dessus). Une seule demande par personne et par ouverture.
+const cnRestoreJobs = {};
+function cnRestoreIfArchived(user, waitMs) {
+  if (!user) return Promise.resolve(false);
+  const k = user.uid;
+  if (!cnRestoreJobs[k]) {
+    cnRestoreJobs[k] = user.getIdToken().then((tok) => fetch('/api/payment-initiate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + tok },
+      body: JSON.stringify({ provider: 'restore' })
+    })).then((r) => (r.ok ? r.json() : null)).then((j) => {
+      if (!j) { delete cnRestoreJobs[k]; return null; }
+      if (j.restored) { try { user.getIdToken(true).catch(() => {}); } catch (e) { /* ignore */ } }
+      return !!j.restored;
+    }).catch(() => { delete cnRestoreJobs[k]; return null; });
+  }
+  const job = cnRestoreJobs[k];
+  if (!waitMs) return job;
+  let timer;
+  const cap = new Promise((resolve) => {
+    timer = setTimeout(() => {
+      resolve(null);
+      // Réponse tardive : l'écran a déjà démarré sans les informations, on le recharge une seule fois.
+      job.then((ok) => {
+        if (ok !== true) return;
+        try { if (sessionStorage.getItem('cn_restored_reload')) return; sessionStorage.setItem('cn_restored_reload', '1'); } catch (e) { /* ignore */ }
+        window.location.reload();
+      });
+    }, waitMs);
+  });
+  return Promise.race([job, cap]).then((v) => { clearTimeout(timer); return v; });
+}
+window.cnRestoreIfArchived = cnRestoreIfArchived;
 
 // Une fois par session : le serveur note le pays (d'après l'IP, sans la garder) et la date de dernière visite.
 function cnRecordSeen(user) {
@@ -2969,15 +3007,62 @@ function cnRecordSeen(user) {
   }, 4000);
 }
 
+/* Compteur « membres en ligne » (page d'accueil connectée). Le chiffre est calculé par le serveur (seulement un NOMBRE, jamais de noms),
+   rafraîchi toutes les 90 s tant que l'application est visible. Affiché à partir de 3 personnes en ligne, pour ne pas montrer « 1 en ligne »
+   (c'est soi-même). Silencieux en cas d'erreur : fonctionnalité secondaire. */
+const CN_ONLINE_MIN_SHOWN = 3;
+let cnOnlineTimer = null;
+async function cnRefreshOnline() {
+  const el = document.getElementById('online-now');
+  const fu = auth && auth.currentUser; // « currentUser » (variable de l'application) est une simple fiche : le jeton vient du compte Firebase
+  if (!el || !currentUser || !fu || document.hidden) return;
+  try {
+    const tok = await fu.getIdToken();
+    const r = await fetch('/api/payment-initiate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + tok },
+      body: JSON.stringify({ provider: 'online' })
+    });
+    const j = r.ok ? await r.json() : null;
+    const n = j && j.ok ? Number(j.online) || 0 : 0;
+    if (n >= CN_ONLINE_MIN_SHOWN) {
+      el.textContent = '';
+      const dot = document.createElement('span');
+      dot.className = 'online-dot';
+      dot.setAttribute('aria-hidden', 'true');
+      const label = document.createElement('span');
+      label.textContent = t('online_now_n').replace('{n}', n.toLocaleString(currentLang === 'fr' ? 'fr-FR' : undefined));
+      el.appendChild(dot);
+      el.appendChild(label);
+      el.classList.remove('hidden');
+    } else {
+      el.classList.add('hidden');
+    }
+  } catch (e) { /* secondaire */ }
+}
+
 function startPresenceUpdates() {
   touchPresence();
   if (presenceInterval) clearInterval(presenceInterval);
   presenceInterval = setInterval(touchPresence, 2 * 60 * 1000); // toutes les 2 min
+  if (!window.__cnPresenceVis) {
+    window.__cnPresenceVis = true;
+    // Retour dans l'application : battement immédiat (on apparaît « en ligne » tout de suite) + chiffre à jour.
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) { touchPresence(); cnRefreshOnline(); } });
+    window.addEventListener('online', () => { touchPresence(); });
+  }
+  if (cnOnlineTimer) clearInterval(cnOnlineTimer);
+  setTimeout(cnRefreshOnline, 3500); // après le démarrage : ne ralentit pas l'ouverture
+  cnOnlineTimer = setInterval(cnRefreshOnline, 90 * 1000);
 }
 
 function stopPresenceUpdates() {
   if (presenceInterval) clearInterval(presenceInterval);
   presenceInterval = null;
+  if (cnOnlineTimer) clearInterval(cnOnlineTimer);
+  cnOnlineTimer = null;
+  const el = document.getElementById('online-now');
+  if (el) el.classList.add('hidden');
 }
 
 if (fbReady) {
@@ -2987,8 +3072,18 @@ if (fbReady) {
   auth.onAuthStateChanged(async (user) => {
     if (user) {
       let data;
+      let cnWelcomeBack = false;
       try {
-        const doc = await db.collection('users').doc(user.uid).get();
+        let doc = await db.collection('users').doc(user.uid).get();
+        // Fiche absente (ou compte encore marqué « archivé ») : on vérifie si le compte a été mis de côté et on le récupère.
+        let archivedFlag = false;
+        if (doc.exists) { try { archivedFlag = !!(((await user.getIdTokenResult()).claims || {}).archived); } catch (e) { /* ignore */ } }
+        if (!doc.exists || archivedFlag) {
+          if ((await cnRestoreIfArchived(user, 6000)) === true) {
+            doc = await db.collection('users').doc(user.uid).get();
+            cnWelcomeBack = true;
+          }
+        }
         data = doc.exists ? doc.data() : { name: authFallbackName(user), email: user.email || '', balance: 0, createdAt: new Date().toISOString() };
       } catch (e) {
         // AVANT : en cas d'echec de lecture du profil, l'ADRESSE E-MAIL
@@ -3019,6 +3114,7 @@ if (fbReady) {
       openNotifTargetIfAny();
       registerPushNotifications();
       cnRecordSeen(user);
+      if (cnWelcomeBack) setTimeout(() => showToast(t('account_restored'), 'success', 6000), 700);
       installBackTrap();
       if (cnResume) cnApplyResume(cnResume);
       cnResumeArmed = true;
