@@ -151,7 +151,7 @@
     lock: '<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>', search: '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>', x: '<path d="M18 6 6 18M6 6l12 12"/>', right: '<path d="m9 6 6 6-6 6"/>'
   };
   function ic(name, cls) { return '<svg class="cnh-ico ' + (cls || '') + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (P[name] || '') + '</svg>'; }
-  var TINTS = ['#28374f', '#0f766e', '#5b4bb0', '#9a4a14', '#2f6b3a', '#8a6a0c', '#0e6f8a', '#8e2f5a', '#3d4f8f', '#6b5a2f', '#2a6f6a', '#7a3b3b'];
+  var TINTS = ['#28374f', '#1d4f91', '#14263f', '#2f4a75', '#3b5378', '#334a6b', '#26435f', '#1f3f6e', '#3d4f8f', '#2b3f5c', '#36506e', '#2a3a52'];
   function hash(s) { var h = 0; s = String(s || ''); for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0; return h; }
   function tintOf(s) { return TINTS[hash(s) % TINTS.length]; }
 

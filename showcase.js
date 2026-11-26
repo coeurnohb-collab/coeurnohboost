@@ -37,14 +37,14 @@
         ['Junior web developer', 'Digital agency · Kinshasa', ['Full time', 'On site'], '$600 / month', 'Job'],
         ['Community manager', 'Online store · Remote', ['Part time', 'Remote'], '$250 / month', 'Job'],
         ['Freelance accountant', 'Consulting firm · Lubumbashi', ['Contract', 'Hybrid'], '$400 / project', 'Job']] } },
-    { id: 'jobseekers-browse-list', fn: 'openJobSeekerForm', ic: 'user', c: '#0f766e',
+    { id: 'jobseekers-browse-list', fn: 'openJobSeekerForm', ic: 'user', c: '#28374f',
       fr: { cta: 'Publier mon profil', items: [
         ['Graphiste & motion designer', '4 ans d’expérience · Kinshasa', ['Disponible', 'Freelance'], 'dès 80 $ / projet', 'Profil'],
         ['Vendeuse e-commerce', '2 ans d’expérience · Abidjan', ['Disponible', 'Temps plein'], '200 $ / mois', 'Profil']] },
       en: { cta: 'Publish my profile', items: [
         ['Graphic & motion designer', '4 years experience · Kinshasa', ['Available', 'Freelance'], 'from $80 / project', 'Profile'],
         ['E-commerce sales associate', '2 years experience · Abidjan', ['Available', 'Full time'], '$200 / month', 'Profile']] } },
-    { id: 'immo-browse-list', fn: 'openImmoForm', ic: 'home', c: '#b45309',
+    { id: 'immo-browse-list', fn: 'openImmoForm', ic: 'home', c: '#28374f',
       fr: { cta: 'Publier un bien', items: [
         ['Appartement 2 chambres meublé', 'Gombe · Kinshasa', ['2 ch.', '1 sdb', '65 m²'], '450 $ / mois', 'Location'],
         ['Parcelle constructible 20×30', 'Bord du lac Kivu · Goma', ['600 m²', 'Titre foncier'], '18 000 $', 'Vente'],
@@ -53,7 +53,7 @@
         ['Furnished 2-bedroom apartment', 'Gombe · Kinshasa', ['2 bd', '1 ba', '65 m²'], '$450 / month', 'Rent'],
         ['Building plot 20×30', 'Lake Kivu shore · Goma', ['600 m²', 'Land title'], '$18,000', 'Sale'],
         ['Downtown shop unit', 'Plateau, downtown · Dakar', ['40 m²', 'Shop window'], '$300 / month', 'Rent']] } },
-    { id: 'events-browse-list', fn: 'openEventForm', ic: 'ticket', c: '#be123c',
+    { id: 'events-browse-list', fn: 'openEventForm', ic: 'ticket', c: '#28374f',
       fr: { cta: 'Créer un événement', items: [
         ['Soirée networking entrepreneurs', 'Samedi · 18:00 · Kinshasa', ['Billets en ligne', '150 places'], 'dès 5 $', 'Événement'],
         ['Concert live acoustique', 'Vendredi · 20:00 · Brazzaville', ['Placement libre', 'Scan QR'], 'dès 8 $', 'Événement'],
@@ -62,7 +62,7 @@
         ['Entrepreneurs networking night', 'Saturday · 6 PM · Kinshasa', ['Online tickets', '150 seats'], 'from $5', 'Event'],
         ['Live acoustic concert', 'Friday · 8 PM · Brazzaville', ['Open seating', 'QR scan'], 'from $8', 'Event'],
         ['Beginner photo workshop', 'Sunday · 9 AM · Paris', ['Limited seats', '3 h'], '$12', 'Event']] } },
-    { id: 'travel-browse-list', fn: 'openTravelForm', ic: 'plane', c: '#0369a1',
+    { id: 'travel-browse-list', fn: 'openTravelForm', ic: 'plane', c: '#28374f',
       fr: { cta: 'Proposer un voyage', items: [
         ['Trek des gorilles · parc des Virunga', 'Départ de Goma', ['Permis inclus', 'Guide'], '400 $ / pers.', 'Séjour'],
         ['Week-end aux chutes de Zongo', 'Départ de Kinshasa', ['Transport inclus', '2 nuits'], '95 $ / pers.', 'Séjour'],
@@ -71,7 +71,7 @@
         ['Mountain gorilla trek · Virunga park', 'Departing Goma', ['Permit included', 'Guide'], '$400 / person', 'Stay'],
         ['Weekend at Zongo Falls', 'Departing Kinshasa', ['Transport included', '2 nights'], '$95 / person', 'Stay'],
         ['Gorée Island stay', 'Departing Dakar', ['Guided tour', '3 nights'], '$180 / person', 'Stay']] } },
-    { id: 'business-browse-list', fn: 'openBusinessForm', ic: 'shop', c: '#6741d9',
+    { id: 'business-browse-list', fn: 'openBusinessForm', ic: 'shop', c: '#28374f',
       fr: { cta: 'Créer ma page entreprise', items: [
         ['Atelier Couture Élégance', 'Mode sur mesure · Kinshasa', ['Catalogue', 'Coupons', 'Avis clients'], 'Ouvert 8h–18h', 'Entreprise'],
         ['Fresh Market Livraison', 'Alimentation · Lubumbashi', ['Livraison', 'Paiement mobile'], 'Ouvert 7h–20h', 'Entreprise'],
@@ -80,7 +80,7 @@
         ['Elegance Tailoring Studio', 'Custom fashion · Kinshasa', ['Catalog', 'Coupons', 'Reviews'], 'Open 8 AM–6 PM', 'Business'],
         ['Fresh Market Delivery', 'Food · Lubumbashi', ['Delivery', 'Mobile pay'], 'Open 7 AM–8 PM', 'Business'],
         ['Pixel Studio Agency', 'Digital marketing · Abidjan', ['Free quote', 'Portfolio'], 'By appointment', 'Business']] } },
-    { id: 'booking-find-list', fn: null, ic: 'cal', c: '#0f766e',
+    { id: 'booking-find-list', fn: null, ic: 'cal', c: '#28374f',
       fr: { cta: '', items: [
         ['Coiffure & soins à domicile', 'Salon mobile · Kinshasa', ['Créneaux 30 min', 'Rappel SMS'], 'dès 10 $', 'Réservation'],
         ['Consultation juridique', 'Cabinet · Bukavu', ['Visio ou présentiel', '45 min'], '30 $', 'Réservation'],
@@ -89,7 +89,7 @@
         ['Hair & home care', 'Mobile salon · Kinshasa', ['30 min slots', 'SMS reminder'], 'from $10', 'Booking'],
         ['Legal consultation', 'Law office · Bukavu', ['Video or in person', '45 min'], '$30', 'Booking'],
         ['Fitness coaching', 'Certified coach · Brazzaville', ['1 h session', '5-session pack'], '$15', 'Booking']] } },
-    { id: 'srequest-available-list', fn: 'openSRequestForm', ic: 'wrench', c: '#c2410c',
+    { id: 'srequest-available-list', fn: 'openSRequestForm', ic: 'wrench', c: '#28374f',
       fr: { cta: 'Publier ma demande', items: [
         ['Besoin d’un électricien pour une installation', 'Maison de 3 chambres · Kinshasa', ['Devis demandé', 'Cette semaine'], 'Budget 60–90 $', 'Demande'],
         ['Création d’un logo et d’une charte', 'Nouvelle boutique · À distance', ['Devis demandé', '7 jours'], 'Budget 80 $', 'Demande'],
@@ -98,7 +98,7 @@
         ['Electrician needed for an installation', '3-bedroom house · Kinshasa', ['Quote requested', 'This week'], 'Budget $60–90', 'Request'],
         ['Logo and brand kit design', 'New shop · Remote', ['Quote requested', '7 days'], 'Budget $80', 'Request'],
         ['French ↔ English translator', '10-page document', ['Quote requested', '48 h'], 'Budget $25', 'Request']] } },
-    { id: 'academy-browse-list', fn: 'openCourseForm', ic: 'cap', c: '#7c3aed',
+    { id: 'academy-browse-list', fn: 'openCourseForm', ic: 'cap', c: '#28374f',
       fr: { cta: 'Créer un cours', items: [
         ['Excel professionnel : de zéro à expert', '12 chapitres · Par un formateur', ['Débutant', 'Certificat'], '15 $', 'Cours'],
         ['Vendre sur les réseaux sociaux', '8 chapitres · Par un formateur', ['Intermédiaire', 'Vidéos'], '10 $', 'Cours'],
@@ -107,10 +107,10 @@
         ['Professional Excel: zero to expert', '12 chapters · By an instructor', ['Beginner', 'Certificate'], '$15', 'Course'],
         ['Selling on social media', '8 chapters · By an instructor', ['Intermediate', 'Videos'], '$10', 'Course'],
         ['Business English', '20 lessons · By an instructor', ['Beginner', 'Quizzes'], 'Free', 'Course']] } },
-    { id: 'contests-example', fn: 'openContestForm', ic: 'trophy', c: '#a16207',
+    { id: 'contests-example', fn: 'openContestForm', ic: 'trophy', c: '#28374f',
       fr: { cta: 'Proposer un concours', items: [['Meilleure photo de la ville', 'Concours ouvert à tous · Gratuit', ['Vote du public', 'Classement en direct'], '200 $ + trophée', 'Concours']] },
       en: { cta: 'Propose a contest', items: [['Best photo of the city', 'Open to everyone · Free', ['Public vote', 'Live leaderboard'], '$200 + trophy', 'Contest']] } },
-    { id: 'books-browse-list', fn: 'openBookForm', ic: 'book', c: '#475569',
+    { id: 'books-browse-list', fn: 'openBookForm', ic: 'book', c: '#28374f',
       fr: { cta: 'Publier un livre', items: [
         ['Guide de l’entrepreneur débutant', 'Ebook PDF · 120 pages', ['Téléchargement immédiat'], '6 $', 'Livre'],
         ['Recettes de cuisine d’Afrique centrale', 'Ebook PDF · 85 pages', ['Téléchargement immédiat'], '4 $', 'Livre']] },

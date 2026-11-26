@@ -25,7 +25,7 @@
     cta_sub: ['Ouvre ta boutique gratuitement et partage ton QR : tes clients arrivent directement chez toi.', 'Open your shop for free and share your QR code: customers land straight on your shop.', 'Abre tu tienda gratis y comparte tu QR: tus clientes llegan directo a ti.', 'Apri il tuo negozio gratis e condividi il tuo QR: i clienti arrivano direttamente da te.', 'Abre a tua loja grátis e partilha o teu QR: os clientes chegam diretamente a ti.', 'Eröffne deinen Shop kostenlos und teile deinen QR-Code: Kunden landen direkt bei dir.', 'Fungua duka lako bure na ushiriki QR yako: wateja wanafika moja kwa moja kwako.', 'Fungola ndako na yo ya koteka ofele mpe kabola QR na yo: bakiliya bakoya nokinoki epai na yo.'],
     cta_btn: ['Ouvrir ma boutique gratuitement', 'Open my shop for free', 'Abrir mi tienda gratis', 'Apri il mio negozio gratis', 'Abrir a minha loja grátis', 'Meinen Shop kostenlos eröffnen', 'Fungua duka langu bure', 'Fungola ndako na ngai ofele'],
     mine_title: ['Ma boutique', 'My shop', 'Mi tienda', 'Il mio negozio', 'A minha loja', 'Mein Shop', 'Duka langu', 'Ndako na ngai'],
-    mine_sub: ['Articles en ligne : {n}. Fais scanner ton QR pour attirer tes clients.', 'Items online: {n}. Let people scan your QR to bring in customers.', 'Artículos en línea: {n}. Haz escanear tu QR para atraer clientes.', 'Articoli online: {n}. Fai scansionare il tuo QR per attirare clienti.', 'Artigos online: {n}. Pede para lerem o teu QR para atrair clientes.', 'Artikel online: {n}. Lass deinen QR scannen, um Kunden anzulocken.', 'Bidhaa mtandaoni: {n}. Waache wachanue QR yako ili kuvutia wateja.', 'Biloko na internet: {n}. Pesa bato báscanner QR na yo mpo na kobenga bakiliya.'],
+    mine_sub: ['Articles en ligne : {n}. Ajoute ton WhatsApp et ton moyen de paiement pour que tes clients te joignent et te paient facilement.', 'Items online: {n}. Add your WhatsApp and payment method so customers can reach and pay you easily.', 'Artículos en línea: {n}. Añade tu WhatsApp y tu medio de pago para que tus clientes te contacten y te paguen fácilmente.', 'Articoli online: {n}. Aggiungi il tuo WhatsApp e il metodo di pagamento: i clienti ti contatteranno e ti pagheranno facilmente.', 'Artigos online: {n}. Adiciona o teu WhatsApp e o meio de pagamento para que os clientes te contactem e te paguem com facilidade.', 'Artikel online: {n}. Füge dein WhatsApp und deine Zahlungsart hinzu, damit Kunden dich leicht erreichen und bezahlen können.', 'Bidhaa mtandaoni: {n}. Ongeza WhatsApp yako na njia ya malipo ili wateja wakufikie na kukulipa kwa urahisi.', 'Biloko na internet: {n}. Bakisa WhatsApp na yo mpe lolenge ya kofuta mpo bakiliya bakoka kosolola na yo mpe kofuta yo malamu.'],
     see_mine: ['Voir ma vitrine', 'View my storefront', 'Ver mi escaparate', 'Vedi la mia vetrina', 'Ver a minha montra', 'Meine Auslage ansehen', 'Tazama vitrini yangu', 'Tala vitrine na ngai'],
     trust_pay: ['Paiement sécurisé', 'Secure payment', 'Pago seguro', 'Pagamento sicuro', 'Pagamento seguro', 'Sichere Zahlung', 'Malipo salama', 'Kofuta na libateli'],
     trust_ver: ['Vendeurs vérifiés', 'Verified sellers', 'Vendedores verificados', 'Venditori verificati', 'Vendedores verificados', 'Geprüfte Verkäufer', 'Wauzaji waliothibitishwa', 'Batekisi bandimami'],
@@ -303,28 +303,28 @@
   };
   function svg(n, s) { return '<svg width="' + (s || 18) + '" height="' + (s || 18) + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (IC[n] || '') + '</svg>'; }
 
-  /* ---------- Style (aplats vert et jaune de l'affiche, clair et sombre) ---------- */
+  /* ---------- Style (sobre : palette de l'application, bleu nuit + bleu d'action + ardoise ; clair et sombre) ---------- */
   var CSS =
-    '.sx,.sx-ov{--sx-g:#0f7a3e;--sx-gl:#0f7a3e;--sx-gd:#0b5a2e;--sx-gt:#e6f4ec;--sx-a:#f5b800;--sx-ad:#3a2a00;--sx-ink:#13261b;--sx-mut:#52655a;--sx-line:#dbe7df;--sx-card:#fff;--sx-bg:#f4faf6;--sx-red:#c81e35;--sx-hero:#0f7a3e}' +
-    'html[data-theme="dark"] .sx,html[data-theme="dark"] .sx-ov{--sx-g:#158044;--sx-gl:#5fd096;--sx-gd:#0e5f33;--sx-gt:#173626;--sx-ink:#e8f1ec;--sx-mut:#9fb2a7;--sx-line:#27382d;--sx-card:#17231c;--sx-bg:#0f1812;--sx-hero:#0c4a28}' +
+    '.sx,.sx-ov{--sx-g:#1d4f91;--sx-gl:#1d4f91;--sx-gd:#14263f;--sx-gt:#eef1f6;--sx-a:#f39c1f;--sx-ad:#14263f;--sx-ink:#141a26;--sx-mut:#5b6577;--sx-line:#e2e6ee;--sx-card:#fff;--sx-bg:#f4f6fa;--sx-red:#b42318;--sx-promo:#b42318;--sx-sel:#14263f;--sx-slate:#28374f;--sx-ring:#1d4f91}' +
+    'html[data-theme="dark"] .sx,html[data-theme="dark"] .sx-ov{--sx-g:#2b62a8;--sx-gl:#8db6ec;--sx-gd:#0e1a2c;--sx-gt:#232d3d;--sx-ink:#e9edf4;--sx-mut:#9aa6b8;--sx-line:#2a3444;--sx-card:#171e2a;--sx-bg:#0f141d;--sx-red:#ff8a80;--sx-promo:#c4352a;--sx-sel:#3a4a63;--sx-slate:#c3cddd;--sx-ring:#8db6ec}' +
     '#view-shop.sx-on .wrap>:not(#sx-root){display:none!important}' +
     '.sx{color:var(--sx-ink);padding-bottom:150px}.sx *,.sx-ov *{box-sizing:border-box}:where(.sx,.sx-ov) button{font:inherit;color:inherit;cursor:pointer}' +
     '.sx-back{display:inline-flex;align-items:center;gap:6px;border:0;background:none;color:var(--sx-gl);font-weight:700;padding:6px 2px;margin-bottom:8px}' +
-    '.sx-compact .sx-hero{padding:14px 14px 12px}.sx-compact .sx-hero p,.sx-compact .sx-hero-acts,.sx-compact .sx-stats{display:none}.sx-compact .sx-hero h2{font-size:1.2rem;margin-bottom:10px}.sx-hero{background:var(--sx-hero);color:#fff;border-radius:22px;padding:20px 16px 16px}.sx-hero h2{margin:0;font-size:1.55rem;line-height:1.15;color:#fff}.sx-hero p{margin:6px 0 14px;font-size:.9rem;line-height:1.4;color:rgba(255,255,255,.9)}' +
-    '.sx-search{position:relative;display:flex;align-items:center;background:#fff;border-radius:14px;color:#13261b}.sx-search>svg{position:absolute;left:13px;color:#52655a}.sx-search input{flex:1;min-width:0;border:0;background:none;outline:0;padding:13px 40px 13px 40px;font-size:.95rem;color:#13261b;border-radius:14px}.sx-search input::placeholder{color:#6b7c71}' +
-    '.sx-search input:focus-visible{box-shadow:0 0 0 3px var(--sx-a)}.sx-search button{position:absolute;right:6px;width:32px;height:32px;border:0;background:none;color:#52655a;border-radius:50%;display:flex;align-items:center;justify-content:center}' +
-    '.sx-hero-acts{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}' +
+    '.sx-hero{padding:2px 0 0}.sx-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}.sx-hero h2{margin:0;font-size:1.35rem;line-height:1.2;font-weight:800;color:var(--sx-ink)}.sx-hero p{margin:0 0 12px;font-size:.86rem;line-height:1.4;color:var(--sx-mut)}.sx-compact .sx-hero p,.sx-compact .sx-stats{display:none}.sx-compact .sx-top{margin-bottom:10px}' +
+    '.sx-search{position:relative;display:flex;align-items:center;background:var(--sx-card);border:1.5px solid var(--sx-line);border-radius:12px;color:var(--sx-ink)}.sx-search>svg{position:absolute;left:13px;color:var(--sx-mut)}.sx-search input{flex:1;min-width:0;border:0;background:none;outline:0;padding:12px 40px 12px 40px;font-size:.95rem;color:var(--sx-ink);border-radius:12px}.sx-search input::placeholder{color:var(--sx-mut)}' +
+    '.sx-search:focus-within{border-color:var(--sx-ring);box-shadow:0 0 0 3px rgba(29,79,145,.18)}.sx-search button{position:absolute;right:6px;width:32px;height:32px;border:0;background:none;color:var(--sx-mut);border-radius:50%;display:flex;align-items:center;justify-content:center}' +
+    '.sx-hero-acts{display:flex;gap:8px;flex-wrap:nowrap;flex:0 0 auto}' +
     '.sx-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:0;border-radius:12px;padding:10px 14px;font-weight:800;font-size:.86rem;line-height:1.1;text-decoration:none;min-height:42px}' +
-    '.sx-btn:focus-visible,.sx-tab:focus-visible,.sx-chip:focus-visible,.sx-heart:focus-visible,.sx-ib:focus-visible{outline:3px solid var(--sx-a);outline-offset:2px}' +
-    '.sx-amber{background:var(--sx-a);color:var(--sx-ad)}.sx-ghost{background:rgba(255,255,255,.16);color:#fff;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.6)}' +
+    '.sx-btn:focus-visible,.sx-tab:focus-visible,.sx-chip:focus-visible,.sx-heart:focus-visible,.sx-ib:focus-visible{outline:3px solid var(--sx-ring);outline-offset:2px}' +
+    '.sx-amber{background:var(--sx-a);color:var(--sx-ad)}.sx-ghost{background:transparent;color:var(--sx-ink);box-shadow:inset 0 0 0 1.5px var(--sx-line)}' +
     '.sx-green{background:var(--sx-g);color:#fff}.sx-out{background:transparent;color:var(--sx-gl);box-shadow:inset 0 0 0 1.5px var(--sx-gl)}' +
-    '.sx-stats{display:flex;gap:6px 14px;flex-wrap:wrap;margin-top:12px;font-size:.78rem;font-weight:700;color:rgba(255,255,255,.92)}.sx-stats span:before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--sx-a);margin-right:6px}' +
-    '.sx-tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;background:var(--sx-card);border:1px solid var(--sx-line);border-radius:16px;padding:4px;margin:14px 0 4px}' +
-    '.sx-tab{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;border:0;background:none;border-radius:12px;padding:8px 1px;font-size:.66rem;font-weight:700;color:var(--sx-mut);min-width:0}.sx-tab span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}' +
-    '.sx-tab.on{background:var(--sx-g);color:#fff}.sx-tab i{position:absolute;top:3px;right:calc(50% - 22px);min-width:17px;height:17px;border-radius:9px;background:var(--sx-a);color:var(--sx-ad);font-style:normal;font-size:.62rem;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 4px}' +
+    '.sx-stats{display:flex;gap:4px 14px;flex-wrap:wrap;margin-top:10px;font-size:.78rem;font-weight:600;color:var(--sx-mut)}' +
+    '.sx-tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-bottom:1px solid var(--sx-line);margin:14px 0 2px}' +
+    '.sx-tab{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;border:0;background:none;border-bottom:2px solid transparent;margin-bottom:-1px;padding:9px 1px 8px;font-size:.7rem;font-weight:700;color:var(--sx-mut);min-width:0}.sx-tab span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}' +
+    '.sx-tab.on{color:var(--sx-ink);border-bottom-color:var(--sx-ink)}.sx-tab i{position:absolute;top:2px;right:calc(50% - 24px);min-width:17px;height:17px;border-radius:9px;background:var(--sx-sel);color:#fff;font-style:normal;font-size:.62rem;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 4px}' +
     '.sx-cats{display:flex;gap:8px;overflow-x:auto;padding:12px 2px 6px;scrollbar-width:none;-webkit-overflow-scrolling:touch}.sx-cats::-webkit-scrollbar{display:none}' +
-    '.sx-chip{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:6px;width:76px;border:0;background:none;font-size:.7rem;font-weight:700;color:var(--sx-ink);text-align:center;line-height:1.2}' +
-    '.sx-chip b{width:54px;height:54px;border-radius:18px;background:var(--sx-gt);color:var(--sx-gl);display:flex;align-items:center;justify-content:center;border:2px solid transparent}.sx-chip.on b{background:var(--sx-g);color:#fff;border-color:var(--sx-a)}.sx-chip.on{color:var(--sx-gl)}' +
+    '.sx-chip{flex:0 0 auto;display:flex;align-items:center;gap:7px;padding:8px 13px;border:1px solid var(--sx-line);border-radius:999px;background:var(--sx-card);font-size:.78rem;font-weight:700;color:var(--sx-ink);white-space:nowrap;line-height:1.2}' +
+    '.sx-chip b{display:flex;color:var(--sx-slate)}.sx-chip.on{background:var(--sx-sel);border-color:var(--sx-sel);color:#fff}.sx-chip.on b{color:#fff}' +
     '.sx-sec{margin:20px 0 0}.sx-sh{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin:0 2px 10px}.sx-sh h3{margin:0;font-size:1.08rem;display:flex;align-items:center;gap:7px}.sx-sh h3 svg{color:var(--sx-gl)}.sx-sh small{display:block;font-size:.76rem;color:var(--sx-mut);margin-top:2px;font-weight:600}' +
     '.sx-sh button{border:0;background:none;color:var(--sx-gl);font-weight:800;font-size:.8rem;padding:6px 2px;white-space:nowrap}' +
     '.sx-flash .sx-sh h3 svg{color:#b07d00}html[data-theme="dark"] .sx-flash .sx-sh h3 svg{color:var(--sx-a)}' +
@@ -369,7 +369,19 @@
     '.sx-pr{display:grid;grid-template-columns:1fr;gap:6px;margin-top:10px;padding:10px;border:1px dashed var(--sx-line);border-radius:14px}.sx-pr input{width:100%;border:1.5px solid var(--sx-line);border-radius:12px;padding:10px;font:inherit;font-size:.88rem;background:var(--sx-card);color:var(--sx-ink)}.sx-pr button{justify-self:end;border:0;background:none;color:var(--sx-red);font-weight:800;font-size:.78rem;padding:4px}' +
     '.sx-err{color:var(--sx-red);font-weight:700;font-size:.82rem;margin-top:10px}.sx-qrp{display:flex;align-items:center;gap:12px;margin-top:8px}.sx-qrp img{width:84px;height:84px;object-fit:contain;border-radius:12px;border:1px solid var(--sx-line);background:#fff}' +
     '.sx-sub{margin:6px 0 0;color:var(--sx-mut);font-size:.84rem;line-height:1.4}a.sx-lb{text-decoration:none}.sx-qrimg{border:0;background:#fff;border-radius:16px;padding:10px;width:min(240px,70vw);border:2px solid var(--sx-g)}.sx-qrimg img{display:block;width:100%;height:auto}' +
-    '.sx-acts{flex-wrap:wrap}.sx-acts .sx-btn{flex:1 0 100%}.sx-acts .sx-ib{flex:1 1 0;width:auto;min-width:36px;height:36px}' +
+    '.sx-acts{flex-wrap:wrap;gap:8px}.sx-acts .sx-btn{flex:1 0 100%}.sx-acts .sx-ib{flex:0 0 auto;width:40px;height:36px}' +
+    '.sx h2,.sx h3,.sx-ov h3{font-family:inherit;letter-spacing:0}' +
+    '.sx-ib,.sx-ch,.sx-lb b,.sx-pill,.sx-empty svg,.sx-sh h3 svg,.sx-trust svg{color:var(--sx-slate)}.sx-ib,.sx-ch,.sx-lb b,.sx-pill{background:var(--sx-gt)}.sx-flash .sx-sh h3 svg{color:var(--sx-red)}' +
+    '.sx-card{border-radius:14px}.sx-media{aspect-ratio:1/1}.sx-promo{background:var(--sx-promo);color:#fff}.sx-new{background:var(--sx-slate);color:var(--sx-card)}' +
+    '.sx-kind{color:var(--sx-mut);letter-spacing:.06em}.sx-end{color:var(--sx-red)}.sx-title{font-weight:600}' +
+    '.sx-out{color:var(--sx-slate);box-shadow:inset 0 0 0 1.5px var(--sx-slate)}.sx-sm{min-height:38px;padding:8px 12px;font-size:.8rem}' +
+    '.sx-cta{background:var(--sx-card);border:1px solid var(--sx-line);color:var(--sx-ink);border-radius:14px}.sx-cta h3{font-size:1.02rem}.sx-cta .sx-btn{background:var(--sx-g);color:#fff}.sx-cta .sx-btn.sx-out{background:transparent;color:var(--sx-slate)}' +
+    '.sx-trust{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:16px}.sx-trust div{background:none;border:0;padding:0;font-size:.74rem;font-weight:600;color:var(--sx-mut)}.sx-trust svg{width:16px;height:16px}' +
+    '.sx-v .post-avatar,.sx-v .post-avatar-img{box-shadow:0 0 0 2px var(--sx-line)}.sx-shophead,.sx-empty{border-radius:14px}' +
+    '.sx-cartbar{border-radius:14px;box-shadow:0 8px 24px rgba(10,20,40,.3)}.sx-cartbar .sx-btn{background:#fff;color:#14263f}' +
+    '.sx-ov{background:rgba(12,20,34,.55)}.sx-sheet{border-radius:18px 18px 0 0}.sx-opt.on{background:var(--sx-sel);border-color:var(--sx-sel);color:#fff}' +
+    '.sx-qrbox .q,.sx-qrimg{border:1px solid var(--sx-line)}.sx-fb i{background:var(--sx-sel);color:#fff}.sx-tg input{accent-color:var(--sx-g)}' +
+    '.sx-sk{border-radius:14px;aspect-ratio:1/1.5}.sx-grid>.sx-card{contain-intrinsic-size:auto 290px}' +
     '.sx-zoom{position:fixed;inset:0;z-index:420;background:rgba(0,0,0,.82);display:flex;align-items:center;justify-content:center;padding:18px}.sx-zoom img{max-width:100%;max-height:100%;background:#fff;border-radius:16px;padding:10px}';
 
   /* ---------- État ---------- */
@@ -485,7 +497,7 @@
   function catsHtml() {
     return CATS.map(function (c) {
       var label = c === 'all' ? T('all_cat') : catLabel(c);
-      return '<button type="button" class="sx-chip' + (S.cat === c ? ' on' : '') + '" data-a="cat" data-cat="' + c + '" aria-pressed="' + (S.cat === c) + '"><b>' + svg(c === 'all' ? 'grid' : (c === 'ebooks' ? 'book' : c), 24) + '</b><span>' + esc(label) + '</span></button>';
+      return '<button type="button" class="sx-chip' + (S.cat === c ? ' on' : '') + '" data-a="cat" data-cat="' + c + '" aria-pressed="' + (S.cat === c) + '"><b>' + svg(c === 'all' ? 'grid' : (c === 'ebooks' ? 'book' : c), 18) + '</b><span>' + esc(label) + '</span></button>';
     }).join('');
   }
   function tabsHtml() {
@@ -497,12 +509,12 @@
   function shell() {
     return '<div class="sx" id="sx">' +
       '<button type="button" class="sx-back" data-a="back">' + svg('back', 18) + '<span>' + esc(tt('services_back').replace(/^←\s*/, '')) + '</span></button>' +
-      '<section class="sx-hero"><h2>' + esc(tt('shop_title')) + '</h2><p>' + esc(T('hero_sub')) + '</p>' +
+      '<section class="sx-hero"><div class="sx-top"><h2>' + esc(tt('shop_title')) + '</h2><div class="sx-hero-acts">' +
+      '<button type="button" class="sx-btn sx-ghost sx-sm" data-a="hub">' + svg('store', 16) + esc(T('mine_title')) + '</button>' +
+      '<button type="button" class="sx-btn sx-amber sx-sm" data-a="sell">' + svg('plus', 16) + esc(T('sell')) + '</button></div></div>' +
+      '<p>' + esc(T('hero_sub')) + '</p>' +
       '<div class="sx-search">' + svg('search', 18) + '<input id="sx-q" type="search" enterkeyhint="search" autocomplete="off" maxlength="80" placeholder="' + esc(T('search_ph')) + '" aria-label="' + esc(T('search_ph')) + '" value="' + esc(S.q) + '">' +
       '<button type="button" id="sx-qx" data-a="clearq" aria-label="' + esc(T('clear_q')) + '"' + (S.q ? '' : ' hidden') + '>' + svg('x', 16) + '</button></div>' +
-      '<div class="sx-hero-acts"><button type="button" class="sx-btn sx-amber" data-a="sell">' + svg('plus', 16) + esc(T('sell')) + '</button>' +
-      '<button type="button" class="sx-btn sx-ghost" data-a="hub">' + svg('store', 16) + esc(T('mine_title')) + '</button>' +
-      '<button type="button" class="sx-btn sx-ghost" data-a="space">' + svg('grid', 16) + esc(T('my_space')) + '</button></div>' +
       '<div class="sx-stats" id="sx-stats"></div></section>' +
       '<nav class="sx-tabs" id="sx-tabs" role="tablist"></nav>' +
       '<div class="sx-cats" id="sx-cats"></div>' +

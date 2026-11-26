@@ -13268,48 +13268,50 @@ function renderSiteStatusView() {
   const isPublished = site.status === 'published' && siteIsPremiumActive(site, 'publish');
 
   const statusPillHtml = isPublished
-    ? `<span class="shop-card-category" style="background:#e3f6ea;color:#177a3f">${ICON_SPARKLE} ${t('site_status_published')}</span>`
-    : `<span class="shop-card-category" style="background:#fff1cf;color:#8a5600">${t('site_status_draft')}</span>`;
+    ? `<span class="sst-pill live">${uiIc('check', 12)} ${t('site_status_published')}</span>`
+    : `<span class="sst-pill">${t('site_status_draft')}</span>`;
+
+  const proFeatureText = [
+    `<b>${t('sb_feature_publish')}</b>`,
+    `${t('site_feature_photos_prefix')} ${t('site_unlimited_label')} ${t('site_feature_photos_mid')} ${SITE_FREE_PHOTO_LIMIT})`,
+    `${t('site_feature_blog_prefix')} ${t('site_unlimited_label')} ${t('site_feature_blog_mid')} ${SITE_FREE_BLOG_LIMIT})`,
+    t('site_feature_themes'), t('site_feature_no_branding'), t('site_feature_stats'), t('site_feature_domain'), t('site_feature_seo')
+  ];
+  const proFeaturesHtml = proFeatureText.map((x) => `<li>${uiIc('check', 15)}<span>${x}</span></li>`).join('');
 
   const premiumBlockHtml = isPremium ? `
-    <div class="order-box" style="margin-bottom:14px;border-color:#f5a623">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <strong>${t('site_premium_active_label')} ${ICON_SPARKLE}</strong>
-        <span class="shop-card-category" style="background:#fff4e0;color:#b5720b">${t('site_premium_until_prefix')} ${escapeHtml(new Date(site.premiumUntil).toLocaleDateString())}</span>
+    <section class="sst-pro on">
+      <div class="sst-pro-head">
+        <strong class="sst-pro-t">${t('site_premium_active_label')}</strong>
+        <span class="sst-pill live">${t('site_premium_until_prefix')} ${escapeHtml(new Date(site.premiumUntil).toLocaleDateString())}</span>
       </div>
-      <div class="muted small" style="margin:8px 0">${site.viewsCount || 0} ${t('site_views_suffix')}</div>
+      <p class="sst-meta">${Number(site.viewsCount || 0)} ${t('site_views_suffix')}</p>
       <button class="btn btn-outline btn-sm" onclick="purchaseSitePremium()">${t('pl_btn_extend')}</button>
-    </div>` : `
-    <div class="order-box" style="margin-bottom:14px;border-color:#f5a623;background:var(--white)">
-      <strong style="font-size:1.02rem">${t('site_pack_pro_title')} — ${SITE_PRICING.premiumPriceMonth}$${t('site_pack_pro_price_suffix')}</strong>
+    </section>` : `
+    <section class="sst-pro">
+      <div class="sst-pro-head">
+        <strong class="sst-pro-t">${t('site_pack_pro_title')}</strong>
+        <span class="sst-price"><b>${Number(SITE_PRICING.premiumPriceMonth)}$</b>${t('site_pack_pro_price_suffix')}</span>
+      </div>
       ${planPromoLineHtml('premium')}
-      <ul class="muted small" style="margin:8px 0 10px;padding-left:18px;line-height:1.7">
-        <li><b>${t('sb_feature_publish')}</b></li>
-        <li>${t('site_feature_photos_prefix')} ${t('site_unlimited_label')} ${t('site_feature_photos_mid')} ${SITE_FREE_PHOTO_LIMIT})</li>
-        <li>${t('site_feature_blog_prefix')} ${t('site_unlimited_label')} ${t('site_feature_blog_mid')} ${SITE_FREE_BLOG_LIMIT})</li>
-        <li>${t('site_feature_themes')}</li>
-        <li>${t('site_feature_no_branding')}</li>
-        <li>${t('site_feature_stats')}</li>
-        <li>${t('site_feature_domain')}</li>
-        <li>${t('site_feature_seo')}</li>
-      </ul>
+      <ul class="sst-feat">${proFeaturesHtml}</ul>
       <button class="btn btn-primary btn-sm" style="width:100%;justify-content:center" onclick="purchaseSitePremium()">${t('pl_btn_choose')}</button>
-    </div>`;
+    </section>`;
 
   statusEl.innerHTML = `
-    <div class="order-box" style="margin-bottom:14px">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
-        <strong style="font-size:1.05rem">${siteTypeIcon(siteTypeOf(site), 18)} ${escapeHtml(site.businessName || t('site_default_name'))}</strong>
-        ${statusPillHtml}
+    <section class="sst-card">
+      <div class="sst-head">
+        <span class="sst-logo">${siteTypeIcon(siteTypeOf(site), 22)}</span>
+        <div class="sst-id"><strong>${escapeHtml(site.businessName || t('site_default_name'))}</strong>${statusPillHtml}</div>
       </div>
-      <p class="muted small" id="site-link-text" style="margin:8px 0;word-break:break-all;${isPublished ? '' : 'opacity:.55'}">${escapeHtml(link)}</p>
-      ${isPublished ? `<div style="display:flex;gap:8px;flex-wrap:wrap">
+      <div class="sst-link${isPublished ? '' : ' off'}">${uiIc('globe', 15)}<span id="site-link-text">${escapeHtml(link)}</span></div>
+      ${isPublished ? `<div class="sst-acts">
         <button class="btn btn-outline btn-sm" onclick="copySiteLink()">${t('site_copy_link_btn')}</button>
         <a class="btn btn-outline btn-sm" href="${safeHref(link)}" target="_blank" rel="noopener">${t('sb_open')}</a>
         <button class="btn btn-outline btn-sm" onclick="verifyPublicSiteLink()">${t('site_check_link_btn')}</button>
       </div>
-      <p class="muted small" id="site-check-link-result" style="margin-top:8px"></p>` : `<p class="sbx-prev-note" style="margin:6px 0 0">${t('sb_status_private')}</p>`}
-    </div>
+      <p class="sst-meta" id="site-check-link-result"></p>` : `<p class="sst-note">${uiIc('lock', 15)}<span>${t('sb_status_private')}</span></p>`}
+    </section>
     <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:8px" onclick="openSitePreviewFromSaved()">${t('sb_preview_btn')}</button>
     ${siteQualityHtml(site, isPublished)}
     ${siteHubHtml(site, isPremium)}
@@ -13337,7 +13339,7 @@ async function verifyPublicSiteLink() {
     const snap = await db.collection('mini_sites').where('slug', '==', mySiteCache.slug).limit(1).get();
     const ok = !snap.empty && snap.docs[0].data().status === 'published' && siteIsPremiumActive(snap.docs[0].data(), 'publish');
     resultEl.textContent = ok ? `${t('site_check_link_ok')}` : `${t('site_check_link_fail')}`;
-    resultEl.style.color = ok ? '#177a3f' : '#b5720b';
+    resultEl.style.color = ok ? 'var(--tint-green-ink)' : 'var(--tint-amber-ink)';
   } catch (e) {
     resultEl.textContent = friendlyErrorMessage(e);
     resultEl.style.color = 'var(--red-text)';
