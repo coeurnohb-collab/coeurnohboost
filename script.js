@@ -2151,6 +2151,17 @@ function showMonetization() {
    UNIQUEMENT la fiche du produit partage, en fenetre par-dessus -- comme
    un lien Instagram/TikTok vers un post precis. Fermer la fenetre revient
    naturellement a l'Accueil, qui etait deja dessous. */
+// Lien d'une vitrine vendeur (?boutique=UID, ou le QR « Mon QR boutique ») : ouvre la Boutique sur les articles de ce vendeur.
+// Personne non connectée : le lien reste dans l'adresse et s'ouvre juste après la connexion.
+function openSharedShopIfAny() {
+  if (!currentUser) return;
+  let sid = '';
+  try { sid = new URLSearchParams(window.location.search).get('boutique') || ''; } catch (e) { return; }
+  if (!/^[A-Za-z0-9_-]{6,64}$/.test(sid)) return;
+  window.history.replaceState({}, '', window.location.pathname);
+  showShop({ seller: sid });
+}
+
 async function openSharedProductIfAny() {
   const params = new URLSearchParams(window.location.search);
   const pubId = params.get('produit');
@@ -3111,6 +3122,7 @@ if (fbReady) {
       openSharedProductIfAny();
       openSharedContestIfAny();
       openSharedBusinessIfAny();
+      openSharedShopIfAny();
       openNotifTargetIfAny();
       registerPushNotifications();
       cnRecordSeen(user);
@@ -3183,9 +3195,11 @@ function hideAppSplash() {
   const vid = document.getElementById('app-splash-video');
   const go = () => {
     const elapsed = Date.now() - APP_SPLASH_START;
-    // Vidéo en cours : on la laisse finir (au plus 5 s au total) ; un appui sur l'écran la passe.
+    // Vidéo en cours : on la laisse finir jusqu'au bout (au plus 9 s au total, même si elle a démarré tard sur une connexion lente) ;
+    // vidéo pas encore démarrée : on n'attend pas plus de 5 s. Un appui sur l'écran la passe.
     const cur = document.getElementById('app-splash-video');
-    if (vid && cur && !cur.ended && !window.__cnSkipIntro && elapsed < 5000) { setTimeout(go, 120); return; }
+    const vidLimit = cur && cur.currentTime > 0 ? 9000 : 5000;
+    if (vid && cur && !cur.ended && !window.__cnSkipIntro && elapsed < vidLimit) { setTimeout(go, 120); return; }
     const remaining = cur && cur.ended ? 0 : Math.max(0, APP_SPLASH_MIN_MS - elapsed);
     setTimeout(() => {
       splash.classList.add('splash-hide');
@@ -3379,6 +3393,7 @@ function saveCart() {
 }
 
 function updateCartBadge() {
+  if (window.cnShopPro && window.cnShopPro.cartSync) window.cnShopPro.cartSync();
   const badge = document.getElementById('cart-badge');
   if (!badge) return;
   if (cartItems.length > 0) {
@@ -3398,14 +3413,20 @@ function toggleCartItem(pubId, title, price, imageUrl) {
     cartItems.push({ id: pubId, title, price, imageUrl });
   }
   saveCart();
-  renderShopFeed(); // met a jour le bouton "Ajouter" / "Dans le panier" sur la carte
+  cnShopCardSync(pubId); // met a jour le bouton "Ajouter" / "Dans le panier" sur la carte
+}
+
+// Met à jour UNE carte de la Boutique (vitrine) sans tout redessiner ; ancienne liste : redessin complet.
+function cnShopCardSync(pubId) {
+  if (window.cnShopPro && window.cnShopPro.active()) window.cnShopPro.cardSync(pubId);
+  else renderShopFeed();
 }
 
 function removeFromCart(pubId) {
   cartItems = cartItems.filter(c => c.id !== pubId);
   saveCart();
   renderCartModal();
-  renderShopFeed();
+  cnShopCardSync(pubId);
 }
 
 function getCartTotal() {
@@ -3738,7 +3759,7 @@ async function submitSellForm() {
     }
 
     document.getElementById('sell-modal').remove();
-    loadShopFeed();
+    loadShopFeed(true);
   } catch (e) {
     errEl.textContent = friendlyErrorMessage(e);
     errEl.classList.remove('hidden');
@@ -4450,12 +4471,15 @@ async function submitCreatePost() {
   }
 }
 
-function showShop() {
+function showShop(opts) {
   hideAllViews();
   document.getElementById('view-shop').classList.remove('hidden');
   const homeFeedEl = document.getElementById('home-feed');
   if (homeFeedEl) homeFeedEl.innerHTML = '';
-  loadShopFeed();
+  // Vitrine « Boutique » (fichier shop-pro.js, chargé à la première ouverture). Si le fichier ne vient pas,
+  // l'ancienne liste reste affichée : la Boutique ne disparaît jamais.
+  if (window.cnShopPro) { window.cnShopPro.open(opts); return; }
+  cnLazyModule('data-cn-shop', 'shop-pro.js?v=20261125', () => !!window.cnShopPro, () => window.cnShopPro.open(opts), () => loadShopFeed());
 }
 
 /* ================= BIBLIOTHEQUE (livres uniquement, espace dedie) =================
@@ -4823,6 +4847,9 @@ async function deleteMyPublication(pubId) {
   if (!confirm("Supprimer definitivement cette publication ?")) return false;
   try {
     await db.collection('publications').doc(pubId).delete();
+    shopLoadedAt = 0; shopFeedItems = shopFeedItems.filter(i => i.id !== pubId);
+    const shopView = document.getElementById('view-shop');
+    if (shopView && !shopView.classList.contains('hidden')) renderShopFeed();
     loadMyPublications();
     return true;
   } catch (e) {
@@ -4883,6 +4910,7 @@ async function saveEditShopItem(pubId) {
   btn.textContent = 'Enregistrement...';
   try {
     await db.collection('publications').doc(pubId).update({ title, description, price });
+    shopLoadedAt = 0; { const _it = shopFeedItems.find(i => i.id === pubId); if (_it) { _it.title = title; _it.description = description; _it.price = price; } }
     const modal = document.getElementById('edit-shopitem-modal');
     if (modal) modal.remove();
     showToast('Article modifié', 'success');
@@ -4939,9 +4967,21 @@ function setShopFilter(filter) {
   renderShopFeed();
 }
 
-async function loadShopFeed() {
+// Boutique : les articles sont gardés 2 minutes (rouvrir la Boutique ne relit plus tout), et les « j'aime » déjà connus
+// ne sont pas relus. « force » = true : relecture complète (bouton Actualiser, nouvel article publié).
+let shopLoadedAt = 0, shopLoadedUid = '', shopLoadBusy = null;
+function loadShopFeed(force) {
+  if (shopLoadBusy) return shopLoadBusy;
+  const uid = currentUser ? currentUser.uid : '';
+  if (force !== true && shopFeedItems.length && uid === shopLoadedUid && Date.now() - shopLoadedAt < 120000) { renderShopFeed(); return Promise.resolve(); }
+  shopLoadBusy = loadShopFeedNow(uid).then(() => { shopLoadBusy = null; }, (e) => { shopLoadBusy = null; throw e; });
+  return shopLoadBusy;
+}
+
+async function loadShopFeedNow(uid) {
   const feedEl = document.getElementById('shop-feed');
-  feedEl.innerHTML = renderFeedSkeletons(4);
+  const pro = !!(window.cnShopPro && window.cnShopPro.active());
+  if (pro) window.cnShopPro.loading(); else feedEl.innerHTML = renderFeedSkeletons(4);
   try {
     // AVANT : cette requete ne filtrait QUE sur status=='published', sans
     // filtrer par type -- elle recuperait donc les 200 publications les
@@ -4982,6 +5022,7 @@ async function loadShopFeed() {
     shopFeedItems = snap.docs
       .map(doc => ({ id: doc.id, ...doc.data() }))
       .filter(item => item.type === 'book' || item.type === 'product');
+    const knownLikes = uid === shopLoadedUid ? shopLikedMap : {};
     shopLikedMap = {};
     shopPurchasedSet = new Set();
 
@@ -4992,15 +5033,16 @@ async function loadShopFeed() {
       // au lieu de disparaitre completement derriere un message d'erreur.
       try {
         const [likeChecks, ordersSnap] = await Promise.all([
-          Promise.all(shopFeedItems.map(item =>
-            db.collection('publication_likes').doc(`${item.id}_${currentUser.uid}`).get()
+          Promise.all(shopFeedItems.map(item => (item.id in knownLikes)
+            ? Promise.resolve({ known: true, v: knownLikes[item.id] })
+            : db.collection('publication_likes').doc(`${item.id}_${currentUser.uid}`).get()
           )),
           db.collection('shop_orders')
             .where('uid', '==', currentUser.uid)
             .where('status', '==', 'completed')
             .limit(200).get()
         ]);
-        shopFeedItems.forEach((item, i) => { shopLikedMap[item.id] = likeChecks[i].exists ? (likeChecks[i].data().type || 'love') : null; });
+        shopFeedItems.forEach((item, i) => { const c = likeChecks[i]; shopLikedMap[item.id] = c.known ? c.v : (c.exists ? (c.data().type || 'love') : null); });
         ordersSnap.docs.forEach(doc => shopPurchasedSet.add(doc.data().pubId));
       } catch (e) {
         console.log('[shop like/achat] non bloquant :', e.message);
@@ -5013,13 +5055,15 @@ async function loadShopFeed() {
       console.log('[public_profiles] non bloquant :', e.message);
     }
 
+    shopLoadedAt = Date.now(); shopLoadedUid = uid;
     renderShopFeed();
   } catch (e) {
-    renderLoadError(feedEl, loadShopFeed, e);
+    if (pro) window.cnShopPro.fail(e); else renderLoadError(feedEl, () => loadShopFeed(true), e);
   }
 }
 
 function renderShopFeed() {
+  if (window.cnShopPro && window.cnShopPro.active()) { window.cnShopPro.render(); return; }
   const feedEl = document.getElementById('shop-feed');
   const searchText = (document.getElementById('shop-search-input').value || '').trim().toLowerCase();
 
@@ -15303,17 +15347,43 @@ function renderBusinessCards(list) {
     listEl.innerHTML = `<p class="muted small" style="text-align:center;padding:20px 0">${t('business_empty_browse')}</p>`;
     return;
   }
-  listEl.innerHTML = visible.map(b => `
-    <div class="order-box" style="margin-bottom:12px${businessIsProActive(b) ? ';border-color:#f5a623' : ''}">
-      <div style="display:flex;align-items:center;gap:10px">
-        ${b.logoUrl ? `<img src="${escapeHtml(b.logoUrl)}" alt="${escapeHtml(b.businessName || '')}" style="width:44px;height:44px;border-radius:50%;object-fit:cover">` : ''}
-        <div>
-          <strong>${escapeHtml(b.businessName || t('business_default_name'))}</strong>${businessIsProActive(b) ? ` <span class="shop-card-category" style="background:#fff4e0;color:#b5720b">${t('business_pro_badge')}</span>` : ''}
-          <div class="muted small">${t(NEARBY_CATEGORY_LABELS[b.category]) || ''}</div>
+  // Cartes « vitrine » : bandeau, logo, nom + badges, accroche, adresse, et les gestes utiles en un toucher
+  // (voir la page, WhatsApp, appeler, partager). Tout texte venu des entreprises passe par escapeHtml / safeHref.
+  const cards = visible.map(b => {
+    const pro = businessIsProActive(b);
+    const uidJs = escapeForJs(b.ownerUid || '');
+    const initial = escapeHtml((b.businessName || '?').trim().charAt(0).toUpperCase());
+    const wa = b.whatsapp ? String(b.whatsapp).replace(/\D/g, '') : '';
+    const tel = b.phone ? String(b.phone).replace(/[^+\d]/g, '') : '';
+    const cover = b.coverImageUrl ? `<img src="${escapeHtml(b.coverImageUrl)}" alt="" loading="lazy" decoding="async" onerror="mediaLoadError(this)">` : '';
+    const logo = b.logoUrl
+      ? `<img class="bzl-logo" src="${escapeHtml(b.logoUrl)}" alt="" loading="lazy" decoding="async" onerror="mediaLoadError(this)">`
+      : `<span class="bzl-logo bzl-initial" aria-hidden="true">${initial}</span>`;
+    const views = Number(b.viewsCount) > 0 ? `<span>${Number(b.viewsCount).toLocaleString()} ${t('business_views_label')}</span>` : '';
+    const addr = b.address ? `<span>${ICON_LOCATION} ${escapeHtml(b.address)}</span>` : '';
+    return `<article class="bzl-card${pro ? ' pro' : ''}">
+      <div class="bzl-cover${cover ? '' : ' bzl-nocover'}" onclick="openBusinessDetail('${uidJs}')">${cover}</div>
+      <div class="bzl-body">
+        <div class="bzl-top" onclick="openBusinessDetail('${uidJs}')">
+          ${logo}
+          <div class="bzl-id">
+            <h3>${escapeHtml(b.businessName || t('business_default_name'))}${b.adminVerified ? `<span title="${escapeHtml(t('bz_verified_badge'))}">${ICON_VERIFIED_BADGE}</span>` : ''}</h3>
+            <span class="bzl-cat">${escapeHtml(t(NEARBY_CATEGORY_LABELS[b.category]) || '')}</span>
+          </div>
+          ${pro ? `<span class="bzl-pro">${escapeHtml(t('business_pro_badge'))}</span>` : ''}
+        </div>
+        ${b.tagline ? `<p class="bzl-tag">${escapeHtml(b.tagline)}</p>` : ''}
+        ${(addr || views) ? `<div class="bzl-meta">${addr}${views}</div>` : ''}
+        <div class="bzl-acts">
+          <button type="button" class="btn btn-primary btn-sm bzl-view" onclick="openBusinessDetail('${uidJs}')">${t('business_view_page_btn')}</button>
+          ${wa ? `<a class="bzl-ib" href="${safeHref('https://wa.me/' + wa)}" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">${ICON_WHATSAPP}</a>` : ''}
+          ${tel ? `<a class="bzl-ib" href="${safeHref('tel:' + tel)}" aria-label="${escapeHtml(t('business_call_btn'))}">${ICON_PHONE}</a>` : ''}
+          <button type="button" class="bzl-ib" onclick="shareBusiness('${uidJs}','${escapeForJs(b.businessName || '')}')" aria-label="${escapeHtml(t('sb_share'))}">${ICON_SHARE}</button>
         </div>
       </div>
-      <button class="btn btn-outline btn-sm" style="margin-top:10px" onclick="openBusinessDetail('${b.ownerUid}')">${t('business_view_page_btn')}</button>
-    </div>`).join('');
+    </article>`;
+  }).join('');
+  listEl.innerHTML = `<div class="bzl-count" aria-live="polite">${visible.length} ${escapeHtml(t('svc_business'))}</div>${cards}`;
 }
 
 async function openBusinessDetail(ownerUid) {

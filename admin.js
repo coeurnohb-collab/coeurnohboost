@@ -1967,12 +1967,15 @@ async function loadReportsAdmin() {
           <div>
             <div class="admin-row-title">${escapeHtml(reasonLabels[r.reason] || r.reason)}</div>
             <div class="admin-row-meta">Publication : ${escapeHtml(r.targetId)} · Signalé par : ${escapeHtml(r.reporterUid)}</div>
+            ${r.targetOwnerUid ? `<div class="admin-row-meta">Vendeur : ${escapeHtml(r.targetOwnerUid)}</div>` : ''}
             ${r.comment ? `<div class="admin-row-meta">💬 ${escapeHtml(r.comment)}</div>` : ''}
           </div>
           <span class="admin-badge ${status}">${status === 'pending' ? 'en attente' : status === 'resolved' ? 'traité' : 'rejeté'}</span>
         </div>
         <div class="admin-row-actions">
           <button class="btn btn-outline btn-sm" onclick="window.open('index.html?produit=${encodeURIComponent(r.targetId || '')}','_blank')">👁️ Voir la publication</button>
+          ${r.targetOwnerUid ? `<button class="btn btn-outline btn-sm" data-uid="${escapeHtml(r.targetOwnerUid)}" onclick="blockSellerPay(this.dataset.uid, true)">🔒 Bloquer ses liens de paiement</button>
+          <button class="btn btn-outline btn-sm" data-uid="${escapeHtml(r.targetOwnerUid)}" onclick="blockSellerPay(this.dataset.uid, false)">🔓 Débloquer</button>` : ''}
           ${status === 'pending' ? `
           <button class="btn btn-outline btn-sm" onclick="resolveReport('${doc.id}','resolved')">✅ Marquer comme traité</button>
           <button class="btn btn-outline btn-sm" onclick="resolveReport('${doc.id}','dismissed')">❌ Rejeter</button>
@@ -1982,6 +1985,27 @@ async function loadReportsAdmin() {
     }).join('');
   } catch (e) {
     el.innerHTML = `<p class="admin-empty">Erreur : ${escapeHtml(e.message)}</p>`;
+  }
+}
+
+/* Liens de paiement d'un vendeur (Boutique) : le blocage est fait par le SERVEUR (api/payments-actions.js, action shop_profile_block).
+   Un vendeur bloqué garde ses contacts mais ses liens et son QR de paiement ne s'affichent plus chez les acheteurs. */
+async function blockSellerPay(uid, blocked) {
+  if (!uid) return;
+  if (!confirm(blocked ? "Bloquer les liens de paiement de ce vendeur ? Ils ne s'afficheront plus dans la Boutique." : "Débloquer les liens de paiement de ce vendeur ? Il devra les ajouter de nouveau.")) return;
+  try {
+    const idToken = await auth.currentUser.getIdToken();
+    const res = await fetch('/api/payments-actions', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken, action: 'shop_profile_block', uid, blocked: !!blocked })
+    });
+    let data = null;
+    try { data = await res.json(); } catch (e) { data = null; }
+    if (!data) throw new Error('Le serveur n’est pas à jour : mettez en ligne api/payments-actions.js et api/_lib/payments-core.js puis attendez la fin du déploiement Vercel.');
+    if (!data.success) throw new Error(data.error || 'Erreur');
+    alert(blocked ? 'Liens de paiement bloqués.' : 'Liens de paiement débloqués.');
+  } catch (e) {
+    alert('Erreur : ' + e.message);
   }
 }
 

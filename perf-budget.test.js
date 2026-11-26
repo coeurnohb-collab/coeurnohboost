@@ -114,20 +114,16 @@ test('démarrage : le serveur des scripts Firebase est préparé SANS « crossor
   for (const m of html.matchAll(/<script src="https:\/\/www\.gstatic\.com\/[^"]+"([^>]*)>/g)) assert.doesNotMatch(m[1], /crossorigin/);
 });
 
-test('démarrage : la vidéo d\'ouverture n\'est pas téléchargée sur une connexion lente (2G/3G ou moins de 1,5 Mb/s)', () => {
+test('intro : la vidéo d\'ouverture est tentée sur TOUTES les connexions (une connexion « 3G » annoncée par le téléphone ne la supprime plus)', () => {
   const html = read('index.html');
-  const m = html.match(/var cn=navigator\.connection,slow=([^;]+);/);
-  assert.ok(m, 'règle « connexion lente » introuvable');
-  assert.match(m[1], /slow-2g\|2g\|3g/);
-  assert.match(m[1], /downlink<1\.5/);
-  // La règle est évaluée AVANT la décision d\'abandonner la vidéo, et fait partie de la même condition.
-  assert.match(html, /if\(window\.__cnQuick\|\|rm\|\|sd\|\|wide\|\|slow\|\|lang!=='fr'\)\{drop\(\);return;\}/);
-  // Fonctionnement réel de la règle (sans navigateur : on exécute juste l\'expression).
-  const slowOf = (cn) => new Function('cn', 'return !!cn&&(' + m[1].replace(/^!!cn&&\(/, '').replace(/\)\s*$/, '') + ');')(cn);
-  assert.strictEqual(slowOf({ effectiveType: '3g', downlink: 0.35 }), true);
-  assert.strictEqual(slowOf({ effectiveType: '2g' }), true);
-  assert.strictEqual(slowOf({ effectiveType: '4g', downlink: 1.2 }), true);
-  assert.strictEqual(slowOf({ effectiveType: '4g', downlink: 1.7 }), false);
-  assert.strictEqual(slowOf({ effectiveType: '4g' }), false);
-  assert.strictEqual(slowOf(undefined), false, 'navigateur sans cette information (iPhone…) : la vidéo continue comme avant');
+  const block = html.match(/\(function\(\)\{var sp=document\.getElementById\('app-splash'\)[\s\S]*?\}\)\(\);/)[0];
+  assert.doesNotMatch(block, /slow|effectiveType|downlink/, 'aucune règle « connexion lente » : elle supprimait l\'intro sur des téléphones en 4G');
+  // Les seules raisons de ne pas la lire : reprise rapide, mouvement réduit, économie de données, grand écran, autre langue que le français.
+  assert.match(block, /if\(window\.__cnQuick\|\|rm\|\|sd\|\|wide\|\|lang!=='fr'\)\{drop\(\);return;\}/);
+  // Délai pour démarrer : au moins 4 s ; pas d'abandon sur le simple événement « stalled » (trop nerveux sur réseau lent).
+  const t = block.match(/setTimeout\(function\(\)\{if\(!ok\)drop\(\);\},(\d+)\)/);
+  assert.ok(t && Number(t[1]) >= 4000, 'délai de démarrage de la vidéo trop court');
+  assert.doesNotMatch(block, /stalled/);
+  // La vidéo se termine : au plus 9 s au total une fois démarrée (script.js).
+  assert.match(read('script.js'), /cur\.currentTime > 0 \? 9000 : 5000/);
 });
