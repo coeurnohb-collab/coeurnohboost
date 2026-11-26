@@ -68,7 +68,7 @@ test('nettoyage : 3 liens de paiement au plus, nom obligatoire, lien mal écrit 
   const junk = clean('texte');
   assert.deepStrictEqual(junk.value.pay, []);
   assert.strictEqual(clean({ payNote: 'a'.repeat(400) }).value.payNote.length, 160);
-  assert.strictEqual(clean({ pay: [{ label: 'x\u0000y‮z', url: 'https://a.com/x' }] }).value.pay[0].label, 'xyz');
+  assert.strictEqual(clean({ pay: [{ label: 'x\u0000y\u202Ez', url: 'https://a.com/x' }] }).value.pay[0].label, 'xyz');
 });
 
 test('vue publique : aucun champ interne, liens retirés si l\'admin a bloqué', () => {
