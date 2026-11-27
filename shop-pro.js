@@ -1002,6 +1002,16 @@
     var p = call('loadShopFeed');
     if (p && p.then) p.then(function () { /* renderShopFeed est rappelé par le chargement */ }, function () { /* erreur déjà affichée */ });
   }
+  /* Bouton Retour du téléphone : ferme d'abord l'image agrandie, puis la fenêtre ouverte (paiement, réglages…). */
+  (function () {
+    var orig = window.closeTopmostOverlay;
+    window.closeTopmostOverlay = function () {
+      var z = document.querySelector('.sx-zoom');
+      if (z) { if (z.parentNode) z.parentNode.removeChild(z); return true; }
+      if (document.getElementById('sx-ov')) { closeOv(); return true; }
+      return typeof orig === 'function' ? orig.apply(this, arguments) : false;
+    };
+  })();
   window.cnShopPro = {
     open: open, active: active,
     render: function () { S.state = 'ready'; if (active()) renderBody(); },

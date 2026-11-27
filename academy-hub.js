@@ -24,7 +24,7 @@
       noPaths: 'Tu n\'as pas encore de parcours. Choisis un domaine ci-dessous pour commencer.', lessonsN: '{a}/{b} leçons', topicsN: '{n} sujets',
       createT: 'Ton parcours sur mesure', learnQ: 'Que veux-tu apprendre ?', learnPh: 'Ex. : Python, anglais des affaires…', popular: 'Idées de sujets',
       levelQ: 'Ton niveau', lv1: 'Débutant', lv2: 'Intermédiaire', lv3: 'Avancé', goalQ: 'Ton objectif (facultatif)', goalPh: 'Ex. : réussir mon examen en décembre, trouver un emploi…',
-      hoursQ: 'Temps disponible par semaine', hoursV: '{n} h / semaine', createBtn: 'Créer mon parcours', compact: 'Version gratuite : parcours compact (4 modules maximum). Académie Plus débloque les parcours complets.',
+      hoursQ: 'Temps disponible par semaine', hoursV: '{n} h / semaine', createBtn: 'Créer mon parcours', advT: 'Options avancées', advS: 'Façon d’apprendre, objectif, rythme', lv1H: 'Je pars de zéro', lv2H: 'Je connais les bases', lv3H: 'Je veux approfondir', compact: 'Version gratuite : parcours compact (4 modules maximum). Académie Plus débloque les parcours complets.',
       c1: 'Analyse de ton objectif…', c2: 'Choix des notions importantes…', c3: 'Organisation en modules…', c4: 'Dernières vérifications…', creatingS: 'Cela prend 15 à 40 secondes.',
       back: 'Retour', outcomes: 'À la fin, tu sauras', pathProg: 'Progression', start: 'Commencer', continueL: 'Continuer : {t}', allDone: 'Parcours terminé, bravo !', delPath: 'Supprimer ce parcours', delConfirm: 'Supprimer ce parcours et toute sa progression ?', moduleN: 'Module {n}', ready: 'Prête', toGen: 'Sera préparée à ton premier passage',
       lessonOf: 'Leçon {a} sur {b}', prep: 'Ton tuteur prépare la leçon…', prepS: 'La première fois, cela prend 15 à 40 secondes. Ensuite elle est enregistrée et s\'ouvre tout de suite.',
@@ -74,7 +74,7 @@
       noPaths: "You don't have a path yet. Pick a field below to get started.", lessonsN: '{a}/{b} lessons', topicsN: '{n} topics',
       createT: 'Your tailor-made path', learnQ: 'What do you want to learn?', learnPh: 'E.g. Python, business English…', popular: 'Topic ideas',
       levelQ: 'Your level', lv1: 'Beginner', lv2: 'Intermediate', lv3: 'Advanced', goalQ: 'Your goal (optional)', goalPh: 'E.g. pass my exam in December, get a job…',
-      hoursQ: 'Time available per week', hoursV: '{n} h / week', createBtn: 'Create my path', compact: 'Free plan: compact path (4 modules max). Academy Plus unlocks full paths.',
+      hoursQ: 'Time available per week', hoursV: '{n} h / week', createBtn: 'Create my path', advT: 'Advanced options', advS: 'Learning style, goal, pace', lv1H: 'I am starting from zero', lv2H: 'I know the basics', lv3H: 'I want to go deeper', compact: 'Free plan: compact path (4 modules max). Academy Plus unlocks full paths.',
       c1: 'Analysing your goal…', c2: 'Choosing the key concepts…', c3: 'Organising modules…', c4: 'Final checks…', creatingS: 'This takes 15 to 40 seconds.',
       back: 'Back', outcomes: 'By the end you will be able to', pathProg: 'Progress', start: 'Start', continueL: 'Continue: {t}', allDone: 'Path completed, well done!', delPath: 'Delete this path', delConfirm: 'Delete this path and all its progress?', moduleN: 'Module {n}', ready: 'Ready', toGen: 'Will be prepared when you open it',
       lessonOf: 'Lesson {a} of {b}', prep: 'Your tutor is preparing the lesson…', prepS: 'The first time takes 15 to 40 seconds. Then it is saved and opens instantly.',
@@ -250,6 +250,19 @@
   function accOf(id) { var a = S.cfg && S.cfg.access && S.cfg.access[id]; return a || { mode: 'free', open: true, enabled: true, price: 0, days: 90, untilMs: 0 }; }
   function art(id, cls) { try { if (window.CNArt) return window.CNArt.art(id, cls); } catch (e) { /* ignore */ } return '<span class="cnh-art ' + (cls || '') + '"></span>'; }
   function box() { return S.fs ? $('cnh-fs-body') : root; }
+  // Module « lecteur audio guidé, schémas, photos » : chargé à la demande, jamais bloquant (si le chargement échoue, la leçon reste complète).
+  var VIS_JS = 'academy-visual.js?v=20261127';
+  function withVisual(cb) {
+    if (window.CNVisual) { cb(window.CNVisual); return; }
+    var sc = document.querySelector('script[data-cn-av]');
+    if (!sc) {
+      sc = document.createElement('script');
+      sc.src = VIS_JS; sc.async = true; sc.setAttribute('data-cn-av', '1');
+      sc.onerror = function () { if (sc.parentNode) sc.parentNode.removeChild(sc); cb(null); };
+      document.head.appendChild(sc);
+    }
+    sc.addEventListener('load', function () { cb(window.CNVisual || null); });
+  }
   function setRoot(html) {
     var b = box();
     if (!b) return;
@@ -276,6 +289,7 @@
   }
   function fsClose(viaPop) {
     if (!S.fs) return;
+    stopSpeech();
     S.fs.remove(); S.fs = null;
     document.documentElement.classList.remove('cnh-fs-open');
     if (S.hist && !viaPop) { S.ignorePop = true; try { history.back(); } catch (e) { S.ignorePop = false; } }
@@ -297,6 +311,7 @@
   }
   function renderEntry() {
     var e = S.stack[S.stack.length - 1];
+    stopSpeech();
     if (!e) { closeAll(); return; }
     var a = e.args; S.view = e.view; S.q = '';
     switch (e.view) {
@@ -455,10 +470,13 @@
     h += '<label class="cnh-field"><span class="cnh-label">' + esc(tx('learnQ')) + '</span><input class="cnh-input" data-f="topic" maxlength="80" autocomplete="off" placeholder="' + esc(tx('ownPh')) + '" value="' + esc(f.topic) + '"></label>';
     h += '<div class="cnh-field"><span class="cnh-label">' + esc(isLang ? tx('levelQL') : tx('levelQ')) + '</span><div class="cnh-seg">' +
       [['beginner', 'lv1'], ['intermediate', 'lv2'], ['advanced', 'lv3']].map(function (l) { return '<button type="button" data-act="level" data-v="' + l[0] + '" class="' + (f.level === l[0] ? 'on' : '') + '">' + esc(tx(isLang ? l[1] + 'L' : l[1])) + '</button>'; }).join('') + '</div></div>';
+    h += '<p class="cnh-hint" id="cnh-lv-h" style="margin:-6px 0 14px">' + esc(tx({ beginner: 'lv1H', intermediate: 'lv2H', advanced: 'lv3H' }[f.level] || 'lv1H')) + '</p>';
+    h += '<details class="cnv-adv"><summary><span>' + esc(tx('advT')) + '</span><small>' + esc(tx('advS')) + '</small></summary>';
     h += '<div class="cnh-field"><span class="cnh-label">' + esc(tx('styleQ')) + '</span><div class="cnh-seg four">' +
       [['balanced', 'st1'], ['practice', 'st2'], ['theory', 'st3'], ['exam', 'st4']].map(function (l) { return '<button type="button" data-act="style" data-v="' + l[0] + '" class="' + (f.style === l[0] ? 'on' : '') + '">' + esc(tx(l[1])) + '</button>'; }).join('') + '</div><p class="cnh-hint" id="cnh-style-h">' + esc(tx('stH_' + f.style)) + '</p></div>';
     h += '<label class="cnh-field"><span class="cnh-label">' + esc(tx('goalQ')) + '</span><textarea class="cnh-input" data-f="goal" maxlength="240" placeholder="' + esc(tx('goalPh')) + '">' + esc(f.goal) + '</textarea></label>';
     h += '<label class="cnh-field"><span class="cnh-label-row"><span>' + esc(tx('hoursQ')) + '</span><b id="cnh-hours-v">' + esc(tx('hoursV', { n: f.hours })) + '</b></span><input class="cnh-range" type="range" data-f="hours" min="1" max="20" step="1" value="' + f.hours + '"></label>';
+    h += '</details>';
     if (!c.plus.active) h += '<div class="cnh-notice">' + ic('bulb') + '<span>' + esc(tx('freeNote', { a: c.trial.lessons.max, b: c.trial.tutor.max })) + '</span></div>';
     if (!acc.open) h += accessBar(cid);
     h += '<button type="button" class="cnh-btn primary block" data-act="create"' + (c.enabled && c.aiReady && acc.open ? '' : ' disabled') + '>' + ic('spark') + esc(tx('createBtn')) + '</button>';
@@ -612,6 +630,8 @@
       '<button type="button" class="cnh-btn" data-act="next-lesson" style="flex:0 0 auto"><span>' + esc(tx('nextL')) + '</span>' + ic('right') + '</button></div>';
     setRoot(h);
     paintCard(); if ((l.quiz || []).length) paintQuiz();
+    var lid = S.lessonId;
+    withVisual(function (Vz) { if (Vz && S.view === 'lesson' && S.lessonId === lid && S.lesson === l) Vz.hydrate(box(), { lesson: l, scope: 'fs' }); });
   }
   function paintCard() {
     var c = S.cards[S.card]; if (!c) return;
@@ -703,7 +723,7 @@
     VO.on = btn || null;
     if (btn) btn.classList.add('on');
   }
-  function stopSpeech() { VO.tok++; try { if (ttsOk()) window.speechSynthesis.cancel(); } catch (e) { /* ignore */ } markSpeaking(null); }
+  function stopSpeech() { VO.tok++; try { if (ttsOk()) window.speechSynthesis.cancel(); } catch (e) { /* ignore */ } markSpeaking(null); try { if (window.CNVisual) window.CNVisual.stop(); } catch (e) { /* ignore */ } }
   function speak(text, tag, btn) {
     if (!ttsOk()) { toast(tx('ttsNo'), 'info'); return; }
     var wasOn = !!btn && btn === VO.on;
@@ -960,6 +980,7 @@
       lessonBodyHtml(e.lesson) +
       ((e.lesson.flashcards || []).length ? '<div class="cnh-eyebrow cnh-row">' + ic('cards', 'sm') + esc(tx('cardsT')) + '</div>' + e.lesson.flashcards.map(function (c) { return '<div class="cnh-box"><b>' + esc(c.front) + '</b><div class="cnh-sub" style="margin-top:4px">' + esc(c.back) + '</div></div>'; }).join('') : '');
     var b = $('cnh-sheet-b'); if (b) { b.innerHTML = h; b.scrollTop = 0; }
+    withVisual(function (Vz) { var bb = $('cnh-sheet-b'); if (Vz && bb && S.sv === e) Vz.hydrate(bb, { lesson: e.lesson, scope: 'sheet' }); });
   }
   function savedBackToList() {
     var list = savedList(), b = $('cnh-sheet-b'); S.sv = null; if (!b) return;
@@ -978,12 +999,13 @@
     document.body.appendChild(ov);
     return ov;
   }
-  function closeSheet() { var o = $('cnh-ov'); if (o) o.remove(); S.sv = null; }
+  function closeSheet() { var o = $('cnh-ov'); if (o) o.remove(); S.sv = null; try { if (window.CNVisual) window.CNVisual.stop('sheet'); } catch (e) { /* ignore */ } }
 
   function openTutor() {
     var h = '<div id="cnh-chat"></div>';
     var foot = '<form id="cnh-chat-f" class="cnh-inline"><input class="cnh-input" id="cnh-chat-i" maxlength="1200" autocomplete="off" placeholder="' + esc(tx('tutorPh')) + '"><button type="submit" class="cnh-btn primary cnh-iconbtn" aria-label="' + esc(tx('send')) + '">' + ic('send') + '</button></form>';
     var ov = sheet(tx('tutorT'), h, foot);
+    withVisual(function (Vz) { if (Vz && $('cnh-ov') === ov) Vz.tutorChips(ov); });
     function paint() {
       var el = $('cnh-chat'); if (!el) return;
       var x = '<div class="cnh-msg ai"><div class="cnh-md">' + md(tx('tutorHi')) + '</div></div>';
@@ -1083,7 +1105,7 @@
         if (own.length < 2) { var oi = $('cnh-fs-body') && $('cnh-fs-body').querySelector('[data-f="own"]'); if (oi) oi.focus(); break; }
         go('create', { c: el.getAttribute('data-c'), g: el.getAttribute('data-g'), topic: own.slice(0, 80) });
         break;
-      case 'level': if (S.form) { S.form.level = el.getAttribute('data-v'); [].forEach.call(el.parentNode.querySelectorAll('button'), function (b) { b.classList.toggle('on', b === el); }); } break;
+      case 'level': if (S.form) { S.form.level = el.getAttribute('data-v'); [].forEach.call(el.parentNode.querySelectorAll('button'), function (b) { b.classList.toggle('on', b === el); }); var lh = $('cnh-lv-h'); if (lh) lh.textContent = tx({ beginner: 'lv1H', intermediate: 'lv2H', advanced: 'lv3H' }[S.form.level] || 'lv1H'); } break;
       case 'style': if (S.form) { S.form.style = el.getAttribute('data-v'); [].forEach.call(el.parentNode.querySelectorAll('button'), function (b) { b.classList.toggle('on', b === el); }); var sh = $('cnh-style-h'); if (sh) sh.textContent = tx('stH_' + S.form.style); } break;
       case 'create': doCreate(); break;
       case 'path': go('path', { id: id }); break;
@@ -1091,7 +1113,13 @@
       case 'lesson': go('lesson', { id: id }); break;
       case 'tutor': openTutor(); break;
       case 'speak': speak(el.getAttribute('data-s'), el.getAttribute('data-l') || '', el); break;
-      case 'speak-lesson': var cd = curDoc() || (S.sv ? { l: S.sv.lesson } : null); if (cd) speak(lessonReadText(Object.assign({ title: cd.title }, cd.l)), '', el); break;
+      case 'speak-lesson':
+        var cd = curDoc() || (S.sv ? { l: S.sv.lesson } : null);
+        if (!cd) break;
+        var lessonObj = Object.assign({ title: cd.title }, cd.l);
+        if (window.CNVisual && window.CNVisual.ttsOk()) { stopSpeech(); window.CNVisual.playLesson(lessonObj, { scope: S.sv ? 'sheet' : 'fs' }); }
+        else speak(lessonReadText(lessonObj), '', el);
+        break;
       case 'speak-card': var sc = S.cards[S.card]; if (sc) speak(sc.front, S.lesson && S.lesson.speechLang || '', el); break;
       case 'rec': var po = el.closest('.cnh-pi'); listenTo(el.getAttribute('data-s'), el.getAttribute('data-l'), po && po.querySelector('.cnh-pron'), el); break;
       case 'rate': VO.rate = +el.getAttribute('data-v') || 0.9; [].forEach.call(el.parentNode.querySelectorAll('[data-act="rate"]'), function (b) { b.classList.toggle('on', b === el); }); break;
@@ -1137,6 +1165,7 @@
   /* ---------------------------- Montage dans l'Académie ---------------------------- */
   function openHub() {
     if (!root) return;
+    withVisual(function () { /* préchargement */ });
     if (!me()) {
       setRoot('<div class="cnh-empty"><span class="cnh-dom">' + ic('cap') + '</span><h3 class="cnh-h cnh-h2" style="margin:0 0 6px">' + esc(tx('loginT')) + '</h3><p style="margin:0 0 16px">' + esc(tx('loginS')) + '</p><button type="button" class="cnh-btn primary" data-act="login">' + esc(tx('loginB')) + '</button></div>');
       return;

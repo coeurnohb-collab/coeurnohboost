@@ -1031,3 +1031,66 @@ html[data-theme="dark"] body .state-card.state-gone .state-ico{background-image:
 .sst-feat li b{color:var(--ink)}
 .sst-pro.on{border-color:var(--act-line)}
 .sst-pro.on .btn{margin-top:12px}
+
+/* ============ Publications : ligne « J'aime · vues » + fenêtre « Personnes qui ont aimé » ============ */
+.post-stats{display:flex;align-items:center;gap:16px;padding:0 14px}
+.post-stats-likes,.post-stats-views{display:inline-flex;align-items:center;gap:5px;padding:9px 0 2px;font-size:.8rem;font-weight:600;color:var(--muted);background:none;border:none;line-height:1}
+.post-stats-likes{cursor:pointer;font-family:inherit}
+.post-stats-likes:active{opacity:.7}
+.post-stats-likes:focus-visible{outline:3px solid var(--action-ring);outline-offset:2px;border-radius:6px}
+.post-stats-ic{display:inline-flex;color:var(--tint-red-ink,#b42318)}
+.post-stats-ic svg{width:14px;height:14px}
+.post-stats-views svg{width:15px;height:15px;color:var(--act-soft)}
+.post-stats-likes:has([data-raw="0"]),.post-stats-views:has([data-raw="0"]){display:none}
+.post-stats-views{margin-left:auto}
+.cnl-sheet{max-height:78vh;display:flex;flex-direction:column;padding-top:6px}
+.cnl-grip{width:38px;height:4px;border-radius:99px;background:var(--line-2);margin:4px auto 6px}
+.cnl-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 16px 10px;border-bottom:1px solid var(--line)}
+.cnl-ht{display:flex;flex-direction:column;gap:2px;min-width:0}
+.cnl-ht strong{font-size:1.02rem;color:var(--ink)}
+.cnl-ht small{font-size:.78rem;color:var(--muted);font-weight:600}
+.cnl-x{flex:0 0 auto;width:38px;height:38px;border-radius:50%;border:none;background:var(--soft-2);color:var(--ink-2);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.cnl-body{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:4px 0 8px;min-height:120px}
+.cnl-row{display:flex;align-items:center;gap:10px;padding:9px 16px}
+.cnl-who{flex:1 1 auto;min-width:0;display:flex;align-items:center;gap:12px;background:none;border:none;padding:0;text-align:left;cursor:pointer;color:var(--ink);font-family:inherit}
+.cnl-av{position:relative;flex:0 0 auto;display:inline-flex}
+.cnl-av .post-avatar,.cnl-av .post-avatar-img{border-radius:50%;object-fit:cover}
+.cnl-react{position:absolute;right:-4px;bottom:-4px;width:20px;height:20px;border-radius:50%;background:var(--white);border:2px solid var(--white);box-shadow:0 0 0 1px var(--line);display:flex;align-items:center;justify-content:center;color:var(--tint-red-ink,#b42318);font-size:.7rem;overflow:hidden}
+.cnl-react svg{width:12px;height:12px}
+.cnl-name{font-weight:700;font-size:.95rem;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-flex;align-items:center;gap:4px;min-width:0}
+.cnl-acts{flex:0 0 auto;display:flex;align-items:center;gap:6px}
+.cnl-follow{padding:7px 12px;font-size:.78rem}
+.cnl-msg{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:999px;border:1px solid var(--line-2);background:var(--white);color:var(--act);font-weight:700;font-size:.78rem;cursor:pointer;font-family:inherit}
+.cnl-msg:active{background:var(--soft-2)}
+.cnl-you{font-size:.78rem;font-weight:700;color:var(--muted);padding:0 6px}
+.cnl-empty{text-align:center;padding:30px 20px;color:var(--muted);font-size:.9rem;display:flex;flex-direction:column;align-items:center;gap:12px}
+.cnl-more{text-align:center;color:var(--muted);font-size:.8rem;padding:10px 16px 4px;margin:0}
+.cnl-sk{pointer-events:none}
+.cnl-skc{width:46px;height:46px;border-radius:50%;background:var(--soft-2);flex:0 0 auto}
+.cnl-skl{height:12px;width:46%;border-radius:6px;background:var(--soft-2)}
+@media (prefers-reduced-motion:no-preference){.cnl-sk .cnl-skc,.cnl-sk .cnl-skl{animation:cnlPulse 1.2s ease-in-out infinite}}
+@keyframes cnlPulse{50%{opacity:.5}}
+/* Fiche publication plein écran : le bouton Retour ne passe plus sur l'avatar */
+/* (la règle générale « .modal-overlay:not(#auth-modal)… > * » imposait 18px en haut : on la dépasse avec plus de poids) */
+html body #post-detail-modal.modal-overlay:not(#auth-modal):not(#report-modal):not(#book-form-modal) > .post-detail-modal-inner{padding-top:calc(env(safe-area-inset-top, 0px) + 62px)}
+#post-detail-modal .post-detail-modal-inner>.modal-close{top:10px;left:10px}
+
+/* =====================================================================
+   Boîte à outils et écrans du menu : en-tête plein, cartes compactes et alignées.
+   - L'en-tête n'est plus transparent (les cartes passaient derrière le titre) et se colle tout en haut
+     (la règle générale « .modal-overlay > * » ajoutait 18px en haut du panneau : on la dépasse avec plus de poids).
+   - Carte d'outil : icône à gauche, titre et description centrés ensemble, plus d'espace vide sous le texte.
+   ===================================================================== */
+html body #main-menu-modal.modal-overlay:not(#auth-modal):not(#report-modal):not(#book-form-modal) > .main-menu-panel{padding-top:0}
+html:not([data-theme="dark"]) .main-menu-panel .menu-page-header{background:#f4f5f7;-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:0 1px 0 var(--line)}
+html[data-theme="dark"] .main-menu-panel .menu-page-header{background:var(--mp-bg);box-shadow:0 1px 0 var(--line)}
+#mp-tools-list{gap:10px}
+#mp-tools-list .mp-tile{
+  display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-rows:auto auto;column-gap:14px;row-gap:3px;
+  align-items:center;align-content:center;min-height:78px;padding:14px 16px 14px 14px;
+  border:1px solid var(--line);border-radius:18px;box-shadow:var(--mp-shadow);
+}
+#mp-tools-list .mp-tile .mp-ico{grid-column:1;grid-row:1 / span 2;width:48px;height:48px;border-radius:14px;align-self:center}
+#mp-tools-list .mp-tile-label{grid-column:2;grid-row:1;align-self:end;margin:0;font-size:.98rem;line-height:1.25}
+#mp-tools-list .mp-tile-desc{grid-column:2;grid-row:2;align-self:start;font-size:.8rem;line-height:1.35}
+#mp-tools-list .mp-tile .mp-badge{grid-column:2;justify-self:start;margin-top:4px}

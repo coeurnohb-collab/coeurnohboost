@@ -42,6 +42,58 @@
   P('Ils nous font confiance', 'They trust us', 'Confían en nosotros', 'Si fidano di noi', 'Eles confiam em nós');
   P('Notre parcours', 'Our journey', 'Nuestra trayectoria', 'Il nostro percorso', 'Nossa trajetória');
   P('Historique', 'History', 'Historia', 'Storia', 'Histórico');
+  P('Programme et inscriptions', 'Program and enrollment', 'Programa e inscripciones', 'Programma e iscrizioni', 'Programa e inscrições');
+  P('Tout savoir avant de vous inscrire', 'Everything you need to know before enrolling', 'Todo lo que debes saber antes de inscribirte', 'Tutto da sapere prima di iscriverti', 'Tudo o que precisa saber antes de se inscrever');
+  P('Durée', 'Duration', 'Duración', 'Durata', 'Duração');
+  P('Niveau', 'Level', 'Nivel', 'Livello', 'Nível');
+  P('Mode', 'Format', 'Modalidad', 'Modalità', 'Modalidade');
+  P('Langue', 'Language', 'Idioma', 'Lingua', 'Idioma');
+  P('Certificat', 'Certificate', 'Certificado', 'Certificato', 'Certificado');
+  P('Prochaines sessions', 'Upcoming sessions', 'Próximas sesiones', 'Prossime sessioni', 'Próximas sessões');
+  P('Comment s’inscrire', 'How to enroll', 'Cómo inscribirse', 'Come iscriversi', 'Como se inscrever');
+  P('Réserver ma place', 'Reserve my spot', 'Reservar mi plaza', 'Prenota il mio posto', 'Reservar a minha vaga');
+  P('Nouvelle session', 'New session', 'Nueva sesión', 'Nuova sessione', 'Nova sessão');
+  P('Inscriptions', 'Enrollment', 'Inscripciones', 'Iscrizioni', 'Inscrições');
+  P('Formateurs', 'Trainers', 'Formadores', 'Formatori', 'Formadores');
+  P('Coachs', 'Coaches', 'Entrenadores', 'Coach', 'Treinadores');
+  P('Nos formateurs', 'Our trainers', 'Nuestros formadores', 'I nostri formatori', 'Nossos formadores');
+  P('Des experts à vos côtés', 'Experts by your side', 'Expertos a tu lado', 'Esperti al tuo fianco', 'Especialistas ao seu lado');
+  P('Avis des apprenants', 'Learner reviews', 'Opiniones de los alumnos', 'Recensioni degli studenti', 'Avaliações dos alunos');
+  P('Ils ont suivi nos formations', 'They took our courses', 'Han seguido nuestras formaciones', 'Hanno seguito i nostri corsi', 'Fizeram as nossas formações');
+  P('Notre équipe soignante', 'Our care team', 'Nuestro equipo sanitario', 'Il nostro team sanitario', 'Nossa equipe de saúde');
+  P('Des professionnels à votre écoute', 'Professionals who listen', 'Profesionales a tu disposición', 'Professionisti al tuo ascolto', 'Profissionais ao seu dispor');
+  P('Avis des patients', 'Patient reviews', 'Opiniones de los pacientes', 'Recensioni dei pazienti', 'Avaliações dos pacientes');
+  P('Nos coachs', 'Our coaches', 'Nuestros entrenadores', 'I nostri coach', 'Nossos treinadores');
+  P('Des professionnels à vos côtés', 'Professionals by your side', 'Profesionales a tu lado', 'Professionisti al tuo fianco', 'Profissionais ao seu lado');
+  P('Avis des membres', 'Member reviews', 'Opiniones de los miembros', 'Recensioni dei membri', 'Avaliações dos membros');
+  P('Notre équipe juridique', 'Our legal team', 'Nuestro equipo jurídico', 'Il nostro team legale', 'Nossa equipe jurídica');
+  P('Expertise et confidentialité', 'Expertise and confidentiality', 'Experiencia y confidencialidad', 'Competenza e riservatezza', 'Especialização e confidencialidade');
+  P('Débutant', 'Beginner', 'Principiante', 'Principiante', 'Iniciante');
+  P('Intermédiaire', 'Intermediate', 'Intermedio', 'Intermedio', 'Intermediário');
+  P('Avancé', 'Advanced', 'Avanzado', 'Avanzato', 'Avançado');
+  P('Tous niveaux', 'All levels', 'Todos los niveles', 'Tutti i livelli', 'Todos os níveis');
+  P('Présentiel', 'In person', 'Presencial', 'In presenza', 'Presencial');
+  P('En ligne', 'Online', 'En línea', 'Online', 'Online');
+  P('Hybride', 'Hybrid', 'Híbrido', 'Ibrido', 'Híbrido');
+  P('Certificat délivré', 'Certificate awarded', 'Certificado incluido', 'Certificato rilasciato', 'Certificado emitido');
+  P('Paiement échelonné possible', 'Installment payment available', 'Pago a plazos disponible', 'Pagamento rateale possibile', 'Pagamento parcelado disponível');
+  P('Places limitées', 'Limited seats', 'Plazas limitadas', 'Posti limitati', 'Vagas limitadas');
+  P('Formateurs expérimentés', 'Experienced trainers', 'Formadores con experiencia', 'Formatori esperti', 'Formadores experientes');
+  P('Supports de cours inclus', 'Course materials included', 'Material del curso incluido', 'Materiali del corso inclusi', 'Materiais do curso incluídos');
+  P('Accompagnement après la formation', 'Support after the course', 'Acompañamiento tras la formación', 'Supporto dopo il corso', 'Acompanhamento após a formação');
+  P('Choisissez votre formation', 'Choose your course', 'Elige tu formación', 'Scegli il tuo corso', 'Escolha a sua formação');
+  P('Consultez le programme, la durée et le prix, puis choisissez la session qui vous convient.', 'Check the program, duration and price, then pick the session that suits you.', 'Consulta el programa, la duración y el precio, y elige la sesión que más te convenga.', 'Consulta programma, durata e prezzo, poi scegli la sessione più adatta a te.', 'Consulte o programa, a duração e o preço e escolha a sessão que lhe convém.');
+  P('Contactez-nous', 'Contact us', 'Contáctanos', 'Contattaci', 'Fale connosco');
+  P('Écrivez-nous sur WhatsApp ou remplissez le formulaire : nous répondons rapidement à vos questions.', 'Message us on WhatsApp or fill in the form: we answer your questions quickly.', 'Escríbenos por WhatsApp o rellena el formulario: respondemos rápido a tus preguntas.', 'Scrivici su WhatsApp o compila il modulo: rispondiamo in fretta alle tue domande.', 'Escreva-nos no WhatsApp ou preencha o formulário: respondemos rapidamente às suas perguntas.');
+  P('Confirmez votre place', 'Confirm your spot', 'Confirma tu plaza', 'Conferma il tuo posto', 'Confirme a sua vaga');
+  P('Nous vous indiquons les modalités de paiement et nous réservons votre place.', 'We explain how to pay and reserve your spot.', 'Te indicamos cómo pagar y reservamos tu plaza.', 'Ti indichiamo come pagare e riserviamo il tuo posto.', 'Indicamos-lhe como pagar e reservamos a sua vaga.');
+  P('Commencez à apprendre', 'Start learning', 'Empieza a aprender', 'Inizia a imparare', 'Comece a aprender');
+  P('Rejoignez la session, suivez les cours et obtenez votre attestation à la fin.', 'Join the session, follow the lessons and get your certificate at the end.', 'Únete a la sesión, sigue las clases y obtén tu certificado al final.', 'Partecipa alla sessione, segui le lezioni e ottieni l’attestato alla fine.', 'Junte-se à sessão, acompanhe as aulas e receba o certificado no final.');
+  P('Français', 'French', 'Francés', 'Francese', 'Francês');
+  P('Certificat de fin de formation', 'Certificate of completion', 'Certificado de finalización', 'Attestato di fine corso', 'Certificado de conclusão');
+  P('Campus principal', 'Main campus', 'Campus principal', 'Sede principale', 'Campus principal');
+  P('Avec l’indicatif du pays', 'With the country code', 'Con el prefijo del país', 'Con il prefisso internazionale', 'Com o indicativo do país');
+  P('Téléphone avec l’indicatif du pays', 'Phone with the country code', 'Teléfono con el prefijo del país', 'Telefono con il prefisso internazionale', 'Telefone com o indicativo do país');
   P('Avis de clients', 'Customer reviews', 'Opiniones de clientes', 'Recensioni dei clienti', 'Avaliações de clientes');
   P("Besoin d'aide ?", 'Need help?', '¿Necesitas ayuda?', 'Serve aiuto?', 'Precisa de ajuda?');
   P('Questions fréquentes', 'Frequently asked questions', 'Preguntas frecuentes', 'Domande frequenti', 'Perguntas frequentes');
@@ -197,6 +249,9 @@
     pub: [['publication', 'publications'], ['post', 'posts'], ['publicación', 'publicaciones'], ['pubblicazione', 'pubblicazioni'], ['publicação', 'publicações']],
     art: [['article', 'articles'], ['item', 'items'], ['artículo', 'artículos'], ['articolo', 'articoli'], ['item', 'itens']]
   };
+  var MFR = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
+  var MTR = [null, ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'], ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'], ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic'], ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']];
+  function dateTr(d, li) { var m = /^(\d{1,2}) (\S+) (\d{4})$/.exec(d); if (!m) return null; var i = MFR.indexOf(m[2]); return i < 0 ? null : m[1] + ' ' + MTR[li][i] + ' ' + m[3]; }
   function pl(k, n, li) { var x = PLUR[k][li]; return n + ' ' + (n > 1 ? x[1] : x[0]); }
 
   /* Traduit un texte français (sans les espaces de bord). Retourne null si rien à traduire. */
@@ -213,6 +268,11 @@
     if ((m = /^Fermé · ouvre (.+) à (.+)$/.exec(t))) { var w = m[1]; if (w === WORDS.today[0]) w = WORDS.today[li]; else if (w === WORDS.tomorrow[0]) w = WORDS.tomorrow[li]; else if (DAYS[w]) w = DAYS[w][li - 1]; return WORDS.closed[li] + ' · ' + WORDS.opens[li] + ' ' + w + ' ' + [null, 'at', '', 'alle', 'às'][li] + ' ' + m[2]; }
     if ((m = /^dès (.+)$/.exec(t))) return [null, 'from', 'desde', 'da', 'a partir de'][li] + ' ' + m[1];
     if ((m = /^Min (\d+) · Max (.+)$/.exec(t))) return 'Min ' + m[1] + ' · Max ' + m[2];
+    var mi = MFR.indexOf(t);
+    if (mi >= 0) return MTR[li][mi];
+    if ((m = /^(\d{1,2} \S+ \d{4})$/.exec(t))) { var d1 = dateTr(m[1], li); if (d1) return d1; }
+    if ((m = /^Du (\d{1,2} \S+ \d{4}) au (\d{1,2} \S+ \d{4})$/.exec(t))) { var da = dateTr(m[1], li), db = dateTr(m[2], li); if (da && db) return [null, 'From ', 'Del ', 'Dal ', 'De '][li] + da + [null, ' to ', ' al ', ' al ', ' a '][li] + db; }
+    if ((m = /^(\d+) places?$/.exec(t))) { var pn = +m[1] > 1; return m[1] + ' ' + [null, pn ? 'seats' : 'seat', pn ? 'plazas' : 'plaza', pn ? 'posti' : 'posto', pn ? 'vagas' : 'vaga'][li]; }
     if ((m = /^Quantité : entre (\d+) et (\d+)\.$/.exec(t))) return [null, 'Quantity: between ', 'Cantidad: entre ', 'Quantità: tra ', 'Quantidade: entre '][li] + m[1] + [null, ' and ', ' y ', ' e ', ' e '][li] + m[2] + '.';
     return null;
   }

@@ -731,6 +731,7 @@ window.addEventListener('beforeunload', cnSaveResume);
 setInterval(cnSaveResume, 4000);
 
 function showDashTab(tab) {
+  cnNavNoteTab(tab);
   document.querySelectorAll('.dash-tab').forEach(el => el.classList.add('hidden'));
   const tabEl = document.getElementById('dash-tab-' + tab);
   if (!tabEl) { // onglet inconnu (ex. ancien lien de notification) : on revient sur l'accueil au lieu de planter
@@ -3213,7 +3214,6 @@ function hideAppSplash() {
 // deja connecte sur la page d'accueil publique. Tant qu'on est connecte,
 // un retour arriere revient simplement au tableau de bord — il faut se
 // deconnecter explicitement (bouton "Se deconnecter") pour quitter le compte.
-let backTrapInstalled = false;
 // CORRECTIF (chantier post-audit) : avant, une pression sur le bouton
 // "retour" du telephone ramenait TOUJOURS directement a l'Accueil, meme
 // quand une fenetre (fiche produit, paiement, creation de site, formulaire
@@ -3265,7 +3265,7 @@ function closeTopmostOverlay() {
     'tr-overlay': () => { if (window.CNSiteTransfer && window.CNSiteTransfer.close) window.CNSiteTransfer.close(); else document.getElementById('tr-overlay')?.remove(); }
   };
   const overlays = document.querySelectorAll(
-    '.modal-overlay:not(.hidden), .action-sheet-overlay:not(.hidden), .media-viewer:not(.hidden), #public-site-overlay:not(.hidden), #cn-chat, #cn-story-reply, #cn-picker, #gd-overlay, #tr-overlay'
+    '.modal-overlay:not(.hidden), .action-sheet-overlay:not(.hidden), .media-viewer:not(.hidden), #public-site-overlay:not(.hidden), #cn-chat, #cn-story-reply, #cn-picker, #cn-welcome, #gd-overlay, #tr-overlay'
   );
   if (overlays.length === 0) return false;
   const top = overlays[overlays.length - 1];
@@ -3275,17 +3275,133 @@ function closeTopmostOverlay() {
   return true;
 }
 
+/* ================= BOUTON RETOUR DU TELEPHONE : UNE VRAIE PILE DE PAGES (v44) =================
+   Avant : le piège ajoutait une entrée d'historique SANS que la personne ait touché l'écran, puis en rajoutait une
+   à chaque retour. Chrome ignore ces entrées « créées sans geste » (protection contre les pages qui bloquent le
+   bouton Retour) : après une actualisation, ou après quelques retours, le téléphone sortait de l'application.
+   Maintenant :
+   - les entrées d'historique sont ajoutées au moment où la personne TOUCHE l'écran (geste réel) : il y en a toujours
+     au moins 2 de réserve, plus une par fenêtre ouverte ou par page empilée ;
+   - le numéro de chaque entrée est gardé dans history.state : il survit à l'actualisation ;
+   - Retour ferme d'abord la fenêtre du dessus, puis revient à la page précédente (Boutique -> Accueil, Portefeuille ->
+     onglet d'avant...), et sur l'Accueil il ne fait plus rien (il remonte seulement en haut). Il ne quitte plus l'app. */
+let backTrapInstalled = false;
+const cnNav = { pos: 0, armed: false, views: [], tabs: [], fromBack: false, timer: 0 };
+const CN_NAV_LAYERS = '.modal-overlay:not(.hidden), .action-sheet-overlay:not(.hidden), .media-viewer:not(.hidden), #public-site-overlay:not(.hidden), #cn-chat, #cn-story-reply, #cn-picker, #gd-overlay, #tr-overlay, #cnsh, #site-preview-screen, #cnh-fs, #cnx-detail, #sx-ov, .sx-zoom, #pm-ov';
+(function cnNavBoot() {
+  try {
+    const st = history.state;
+    if (st && typeof st.cnIdx === 'number') cnNav.pos = st.cnIdx;
+    else history.replaceState(Object.assign({}, st && typeof st === 'object' ? st : {}, { cnIdx: 0 }), '', location.href);
+    const rawPush = history.pushState.bind(history);
+    const rawRep = history.replaceState.bind(history);
+    const wrap = (s) => (s && typeof s === 'object') ? s : (s == null ? {} : null);
+    history.pushState = function (s, t, u) {
+      const o = wrap(s);
+      if (!o) return rawPush(s, t, u);
+      const next = cnNav.pos + 1;
+      rawPush(Object.assign({}, o, { cnIdx: next }), t, u);
+      cnNav.pos = next;
+    };
+    history.replaceState = function (s, t, u) {
+      const o = wrap(s);
+      return o ? rawRep(Object.assign({}, o, { cnIdx: cnNav.pos }), t, u) : rawRep(s, t, u);
+    };
+    // Écouteur en CAPTURE, posé tout de suite : il suit la position même quand un autre module (Académie) intercepte l'événement.
+    window.addEventListener('popstate', (e) => {
+      const s = e.state;
+      if (s && typeof s.cnIdx === 'number') cnNav.pos = s.cnIdx; else cnNav.pos = Math.max(0, cnNav.pos - 1);
+    }, true);
+  } catch (e) { /* l'historique reste celui du navigateur */ }
+})();
+function cnNavLayers() {
+  try { return document.querySelectorAll(CN_NAV_LAYERS).length; } catch (e) { return 0; }
+}
+function cnNavSteps() {
+  const v = cnNav.views.length;
+  return cnNavLayers() + Math.max(0, v - 1) + (v <= 1 ? Math.max(0, cnNav.tabs.length - 1) : 0);
+}
+function cnNavEnsure() {
+  if (!cnNav.armed) return;
+  const want = Math.min(10, cnNavSteps() + 2);
+  let guard = 0;
+  while (cnNav.pos < want && guard++ < 12) {
+    try { history.pushState({ app: true }, '', window.location.href); } catch (e) { break; }
+  }
+}
+function cnNavSoon() {
+  if (cnNav.timer) return;
+  cnNav.timer = setTimeout(() => { cnNav.timer = 0; cnNavEnsure(); }, 120);
+}
+function cnNavNoteView() {
+  const el = document.querySelector('[id^="view-"]:not(.hidden)');
+  if (!el) return;
+  const v = cnNav.views, i = v.lastIndexOf(el.id);
+  if (i >= 0) v.length = i + 1; else { v.push(el.id); if (v.length > 10) v.shift(); }
+  cnNavSoon();
+}
+function cnNavNoteTab(tab) {
+  try {
+    if (cnNav.fromBack) return;
+    const t = cnNav.tabs;
+    if (t[t.length - 1] !== tab) { t.push(tab); if (t.length > 12) t.shift(); }
+  } catch (e) { /* pile pas encore prête : sans effet */ }
+}
+function cnNavShow(viewId) {
+  const tab = cnNav.tabs[cnNav.tabs.length - 1] || 'home';
+  const open = {
+    'view-dashboard': () => showDashboard(tab), 'view-services': () => showServices(), 'view-order': () => showServices(),
+    'view-recharge': () => showRecharge(), 'view-monetization': () => showMonetization(), 'view-shop': () => showShop(),
+    'view-library': () => showLibrary(), 'view-seller': () => showSellerPage(), 'view-notifications': () => openNotifPanel(),
+    'view-home': () => showHome()
+  }[viewId];
+  cnNav.fromBack = true;
+  try { if (open) open(); else showDashboard(tab); } finally { cnNav.fromBack = false; }
+  window.scrollTo(0, 0);
+}
+function cnNavBackPage() {
+  const v = cnNav.views;
+  if (v.length > 1) { v.pop(); cnNavShow(v[v.length - 1]); return; }
+  if (!currentUser) return; // accueil public : on reste ici
+  const dash = document.getElementById('view-dashboard');
+  if (dash && dash.classList.contains('hidden')) { showDashboard(cnNav.tabs[cnNav.tabs.length - 1] || 'home'); return; }
+  if (cnNav.tabs.length > 1) {
+    cnNav.tabs.pop();
+    cnNav.fromBack = true;
+    try { showDashTab(cnNav.tabs[cnNav.tabs.length - 1]); } finally { cnNav.fromBack = false; }
+    window.scrollTo(0, 0);
+    return;
+  }
+  const cur = cnCurrentTab();
+  if (cur && cur !== 'home') { cnNav.tabs = ['home']; showDashTab('home'); window.scrollTo(0, 0); return; }
+  if ((window.scrollY || document.documentElement.scrollTop || 0) > 300) window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
 function installBackTrap() {
   if (backTrapInstalled) return;
   backTrapInstalled = true;
-  history.pushState({ app: true }, '', window.location.href);
+  cnNav.armed = true;
+  cnNavNoteView();
+  if (currentUser) cnNavNoteTab(cnCurrentTab() || 'home');
+  // Les entrées d'historique ne se créent que sur un GESTE réel (toucher, touche) : sinon Chrome les ignore.
+  ['pointerup', 'touchend', 'click', 'keydown'].forEach((ev) => document.addEventListener(ev, cnNavEnsure, { capture: true, passive: true }));
+  try {
+    const mo = new MutationObserver(cnNavSoon);
+    mo.observe(document.body, { childList: true });
+    const moAttr = new MutationObserver(() => { cnNavNoteView(); cnNavSoon(); });
+    document.querySelectorAll('[id^="view-"]').forEach((el) => moAttr.observe(el, { attributes: true, attributeFilter: ['class'] }));
+    const moLayer = new MutationObserver(cnNavSoon);
+    document.querySelectorAll('.modal-overlay, .action-sheet-overlay, .media-viewer, #public-site-overlay').forEach((el) => moLayer.observe(el, { attributes: true, attributeFilter: ['class'] }));
+  } catch (e) { /* le piège marche quand même au toucher */ }
   window.addEventListener('popstate', () => {
-    history.pushState({ app: true }, '', window.location.href);
-    if (closeTopmostOverlay()) return;
-    // CORRECTIF : fonctionne aussi pour un visiteur pas encore connecte
-    // (fiche produit ou mini-site ouverts sans compte).
-    if (currentUser) showDashboard(); else showHome();
+    if (!cnNav.armed) return;
+    let closed = false;
+    try { closed = closeTopmostOverlay(); } catch (e) { closed = false; }
+    if (!closed) { try { cnNavBackPage(); } catch (e) { if (currentUser) showDashboard(); else showHome(); } }
+    cnNavEnsure();
+    setTimeout(cnNavEnsure, 80);
   });
+  cnNavEnsure();
 }
 
 /* Applique la langue détectée (ou choisie) dès que la page est prête */
@@ -3954,6 +4070,7 @@ function renderPostCard(item, isLiked, isSaved, hideFollowBtn) {
     </div>
     ${item.mediaType === 'text' && item.textBg && item.description ? `<div class="text-post-box ${textLenClass(item.description)}" style="background:${textBgCss(item.textBg) || '#12295f'};font-family:${textFontCss(item.textFont)}">${escapeHtml(item.description)}</div>` : (item.description ? `<p class="post-caption">${escapeHtml(item.description)}</p>` : '')}
     ${mediaHtml}
+    ${postStatsHtml(item)}
     <div class="post-actions">
       <button class="shop-action-btn ${isLiked ? 'liked' : ''}" data-like-btn="${item.id}" onclick="toggleShopLike('${item.id}')"
         onmousedown="startReactionHold('${item.id}', this)" onmouseup="cancelReactionHold()" onmouseleave="cancelReactionHold()"
@@ -3973,6 +4090,86 @@ function renderPostCard(item, isLiked, isSaved, hideFollowBtn) {
     </div>
   </div>`;
 }
+
+/* ================= « QUI A AIMÉ » + NOMBRE DE VUES (v44) =================
+   - Sous chaque publication (photo, vidéo, texte), une ligne « ♥ 12 J'aime · 340 vues » : toucher les J'aime ouvre la liste des
+     personnes (avec Profil / Suivre / Écrire), comme sur Facebook.
+   - Les vues sont comptées côté serveur (action « post_views ») : UNE vue par personne et par publication, jamais sur sa propre
+     publication. Une publication compte comme vue quand elle reste affichée à plus de 60 % pendant 1,2 seconde, ou quand on ouvre sa fiche. */
+function postStatsHtml(item) {
+  const likes = safeCount(item.likesCount);
+  const views = safeCount(item.viewsCount);
+  return `<div class="post-stats">
+    <button type="button" class="post-stats-likes" onclick="openLikersSheet('${item.id}')" aria-label="${escapeHtml(t('stat_likes'))}">
+      <span class="post-stats-ic">${ICON_HEART_FILLED}</span><span data-likers-count="${item.id}" data-raw="${likes}">${formatCompactCount(likes)}</span><span>${escapeHtml(t('stat_likes'))}</span>
+    </button>
+    <span class="post-stats-views">${ICON_EYE}<span data-views-count="${item.id}" data-raw="${views}">${formatCompactCount(views)}</span><span>${escapeHtml(t('site_views_label'))}</span></span>
+  </div>`;
+}
+
+function openLikersSheet(pubId) {
+  if (!currentUser) { openAuth('register'); return; }
+  cnLazyModule('data-cn-psoc', 'post-social.js?v=20261126', () => !!window.cnPostSocial, () => window.cnPostSocial.open(pubId), () => showToast(t('event_generic_error'), 'error'));
+}
+
+const cnViews = { seen: new Set(), queue: new Set(), timer: 0, flushTimer: 0, io: null, pending: new Map() };
+function cnViewEnqueue(pubId) {
+  if (!currentUser || !pubId || cnViews.seen.has(pubId)) return;
+  cnViews.seen.add(pubId);
+  cnViews.queue.add(pubId);
+  if (cnViews.flushTimer) return;
+  cnViews.flushTimer = setTimeout(cnViewFlush, 2500);
+}
+async function cnViewFlush() {
+  cnViews.flushTimer = 0;
+  if (!currentUser || !auth || !auth.currentUser || !cnViews.queue.size) return;
+  const ids = Array.from(cnViews.queue).slice(0, 25);
+  ids.forEach((id) => cnViews.queue.delete(id));
+  try {
+    const idToken = await auth.currentUser.getIdToken();
+    const r = await fetch('/api/payments-actions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ idToken, action: 'post_views', ids }) });
+    const d = await r.json().catch(() => null);
+    if (d && d.success && Array.isArray(d.counted)) {
+      d.counted.forEach((id) => {
+        document.querySelectorAll(`[data-views-count="${id}"]`).forEach((el) => {
+          const n = safeCount(el.dataset.raw) + 1;
+          el.dataset.raw = String(n);
+          el.textContent = formatCompactCount(n);
+        });
+      });
+    }
+  } catch (e) { /* non bloquant : la vue sera recomptée à la prochaine ouverture */ }
+  if (cnViews.queue.size) cnViews.flushTimer = setTimeout(cnViewFlush, 1500);
+}
+function cnViewsWatchCards() {
+  if (!('IntersectionObserver' in window)) return;
+  if (!cnViews.io) {
+    cnViews.io = new IntersectionObserver((entries) => {
+      entries.forEach((en) => {
+        const el = en.target;
+        const id = String(el.id || '').replace('shop-card-', '');
+        if (en.isIntersecting && en.intersectionRatio >= 0.6) {
+          if (!cnViews.pending.has(el)) cnViews.pending.set(el, setTimeout(() => { cnViews.pending.delete(el); cnViewEnqueue(id); }, 1200));
+        } else if (cnViews.pending.has(el)) {
+          clearTimeout(cnViews.pending.get(el));
+          cnViews.pending.delete(el);
+        }
+      });
+    }, { threshold: [0, 0.6] });
+  }
+  document.querySelectorAll('.post-card[id^="shop-card-"]:not([data-vw])').forEach((el) => {
+    el.setAttribute('data-vw', '1');
+    cnViews.io.observe(el);
+  });
+}
+(function cnViewsBoot() {
+  let t = 0;
+  const run = () => { t = 0; try { if (currentUser) cnViewsWatchCards(); } catch (e) { /* non bloquant */ } };
+  const start = () => {
+    try { new MutationObserver(() => { if (!t) t = setTimeout(run, 400); }).observe(document.body, { childList: true, subtree: true }); } catch (e) { /* ignore */ }
+  };
+  if (document.body) start(); else document.addEventListener('DOMContentLoaded', start);
+})();
 
 function sharePost(pubId, caption, url) {
   if (navigator.share) {
@@ -4132,6 +4329,14 @@ function watchPostCounts(pubId) {
       document.querySelectorAll(`[data-comment-count="${pubId}"]`).forEach(el => {
         el.dataset.raw = String(d.commentsCount || 0);
         el.textContent = formatCompactCount(d.commentsCount || 0);
+      });
+      document.querySelectorAll(`[data-likers-count="${pubId}"]`).forEach(el => {
+        el.dataset.raw = String(safeCount(d.likesCount));
+        el.textContent = formatCompactCount(safeCount(d.likesCount));
+      });
+      document.querySelectorAll(`[data-views-count="${pubId}"]`).forEach(el => {
+        el.dataset.raw = String(safeCount(d.viewsCount));
+        el.textContent = formatCompactCount(safeCount(d.viewsCount));
       });
     }, (err) => {
       console.log('[compteurs temps reel] non bloquant :', err.message);
@@ -17476,6 +17681,7 @@ async function openPostDetail(pubId) {
       ${item.title ? `<h3 class="post-detail-title">${escapeHtml(item.title)}</h3>` : ''}
       ${item.description ? `<p class="post-caption">${escapeHtml(item.description)}</p>` : ''}
       ${mediaHtml}
+      ${postStatsHtml(item)}
       <div class="post-actions">
         <button class="shop-action-btn ${isLiked ? 'liked' : ''}" data-like-btn="${item.id}" onclick="toggleShopLike('${item.id}')"
           onmousedown="startReactionHold('${item.id}', this)" onmouseup="cancelReactionHold()" onmouseleave="cancelReactionHold()"
@@ -17520,6 +17726,7 @@ async function openPostDetail(pubId) {
     await loadShopComments(pubId);
     // Compteurs de like/commentaire a jour en temps reel tant que la fiche est ouverte.
     watchPostCounts(pubId);
+    cnViewEnqueue(pubId);
   } catch (e) {
     showToast(friendlyErrorMessage(e), 'error');
   }

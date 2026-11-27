@@ -82,10 +82,20 @@
     if (document.getElementById('cn-welcome')) return;
     var w = document.createElement('div');
     w.id = 'cn-welcome'; w.setAttribute('role', 'dialog'); w.setAttribute('aria-modal', 'true');
-    w.innerHTML = '<div class="cw"><div class="cw-top"><img src="icon-512-v2.png" alt="" width="50" height="50"><h2>' + esc(tx('hi')) + '</h2></div>' +
+    w.innerHTML = '<div class="cw"><div class="cw-top"><img src="icon-192-v2.png" alt="" width="50" height="50"><h2>' + esc(tx('hi')) + '</h2></div>' +
       '<ul><li><i>' + (window.cnIcon ? window.cnIcon('spark', 18) : '') + '</i><span>' + esc(tx('b1')) + '</span></li><li><i>' + (window.cnIcon ? window.cnIcon('wallet', 18) : '') + '</i><span>' + esc(tx('b2')) + '</span></li><li><i>' + (window.cnIcon ? window.cnIcon('cart', 18) : '') + '</i><span>' + esc(tx('b3')) + '</span></li></ul>' +
       '<div class="cw-acts"><button type="button" class="cw-go">' + esc(tx('go')) + '</button><button type="button" class="cw-later">' + esc(tx('later')) + '</button></div></div>';
     document.body.appendChild(w);
+    // Bouton Retour du téléphone : ferme l'accueil comme « Plus tard » (une seule fois).
+    if (!window.__cnWelcomeBack && typeof window.closeTopmostOverlay === 'function') {
+      window.__cnWelcomeBack = true;
+      var prevTop = window.closeTopmostOverlay;
+      window.closeTopmostOverlay = function () {
+        var el = document.getElementById('cn-welcome');
+        if (el) { markSeen(); closeWelcome(); return true; }
+        return prevTop.apply(this, arguments);
+      };
+    }
     w.addEventListener('click', function (ev) {
       var t = ev.target;
       if (t === w || (t.classList && t.classList.contains('cw-later'))) { markSeen(); closeWelcome(); }
